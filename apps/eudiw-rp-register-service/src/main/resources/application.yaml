@@ -1,0 +1,49 @@
+---
+server:
+  port: 8080
+
+spring:
+  thread-executor: virtual
+  jpa:
+    hibernate:
+      ddl-auto: none
+    generate-ddl: false
+    show-sql: false
+    database-platform: org.hibernate.dialect.MariaDBDialect
+    open-in-view: false
+  flyway:
+    table: flyway_schema_history
+  application:
+    name: eudiw-rp-register-service
+    environment: default
+
+# Spring Boot Actuator
+management:
+  server:
+    port: 8090
+  endpoints:
+    web:
+      base-path: /
+      exposure:
+        include: info,version,prometheus,health
+  endpoint:
+    health:
+      group:
+        readiness:
+          include: db
+        liveness:
+          include: livenessState
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.application.environment}
+
+---
+spring:
+  config:
+    activate:
+      on-cloud-platform: 'kubernetes'
+    import:
+      - 'optional:file:/etc/config/'

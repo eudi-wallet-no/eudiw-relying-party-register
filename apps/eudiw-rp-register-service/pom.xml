@@ -9,8 +9,8 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>no.eudiw.rp</groupId>
-	<artifactId>register</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<artifactId>register-service</artifactId>
+	<version>DEV-SNAPSHOT</version>
 	<name>register</name>
 	<description>Relaying Parties Register</description>
 	<url/>
