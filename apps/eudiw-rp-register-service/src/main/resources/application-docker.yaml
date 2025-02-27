@@ -1,0 +1,41 @@
+---
+server:
+  port: 7080
+management:
+  server:
+    port:
+logging:
+  level:
+    org:
+      hibernate:
+        stat: DEBUG
+        SQL: DEBUG
+        type:
+          descriptor:
+            sql:
+              BasicBinder: TRACE
+        orm:
+          jdbc:
+            bind: TRACE
+spring:
+  jpa:
+    properties:
+      hibernate:
+        generate_statistics: true
+        dialect: org.hibernate.dialect.MariaDBDialect
+        format_sql: true
+        show_sql: true
+    show-sql: true
+  datasource:
+    url: "jdbc:mariadb://db-rp-register:3306/register_service"
+    driver-class-name: org.mariadb.jdbc.Driver
+    username: eudiw_user
+    password: lesssecret
+    hikari:
+      connection-timeout: 3000 #maximum number of milliseconds that a client will wait for a connection
+      minimum-idle: 1 #minimum number of idle connections maintained by HikariCP in a connection pool
+      maximum-pool-size: 1 #maximum pool size
+      idle-timeout: 1000 #maximum idle time for connection
+      max-lifetime: 500 # maximum lifetime in milliseconds of a connection in the pool after it is closed.
+  application:
+    environment: docker
