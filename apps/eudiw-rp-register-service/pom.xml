@@ -8,26 +8,16 @@
 		<version>3.4.3</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>no.eudiw.rp</groupId>
-	<artifactId>register-service</artifactId>
+	<groupId>no.idporten.eudiw</groupId>
+	<artifactId>rp-register-service</artifactId>
 	<version>DEV-SNAPSHOT</version>
-	<name>register</name>
-	<description>Relaying Parties Register</description>
-	<url/>
-	<licenses>
-		<license/>
-	</licenses>
-	<developers>
-		<developer/>
-	</developers>
-	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
-	</scm>
+	<name>rp-register-service</name>
+	<description>Relying party register service</description>
+
 	<properties>
 		<java.version>21</java.version>
+        <idporten-actuator-starter.version>1.2.2</idporten-actuator-starter.version>
+        <mariadb-java-client.version>3.5.1</mariadb-java-client.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -61,6 +51,7 @@
 		<dependency>
 			<groupId>org.mariadb.jdbc</groupId>
 			<artifactId>mariadb-java-client</artifactId>
+            <version>${mariadb-java-client.version}</version>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
@@ -73,6 +64,13 @@
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+
 	</dependencies>
 
 	<build>
@@ -80,6 +78,16 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<argLine>
+						-javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar
+						-Xshare:off
+					</argLine>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

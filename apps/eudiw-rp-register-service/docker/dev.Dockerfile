@@ -14,7 +14,7 @@ RUN --mount=type=cache,target=/root/.m2/repository MAVEN_OPTS="-XX:+IgnoreUnreco
 
 FROM eclipse-temurin:22-jre-jammy
 
-ARG APPLICATION=register-service
+ARG APPLICATION=rp-register-service
 RUN mkdir /var/log/${APPLICATION}
 RUN mkdir /usr/local/webapps
 WORKDIR /usr/local/webapps
