@@ -20,8 +20,8 @@ public class RelyingPartyEaa {
     @Id
     // TODO: Jira EUW-23 (https://digdir.atlassian.net/browse/EUW-23)
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "uuid", columnDefinition = "VARCHAR(36)")
-    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(name = "id", columnDefinition = "UUID")
+    @JdbcTypeCode(SqlTypes.UUID)
     private UUID id;
 
     @Column(name = "namespace", nullable = false)
@@ -32,26 +32,11 @@ public class RelyingPartyEaa {
 
     @ToString.Exclude
     @ManyToOne
-    @JoinColumn(name = "relying_party_uuid", nullable = false)
-    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @JoinColumn(name = "relying_party_id",
+        columnDefinition = "UUID",
+        nullable = false)
+    @JdbcTypeCode(SqlTypes.UUID)
     private RelyingParty relyingParty;
-
-    // TODO: Jira EUW-24 (https://digdir.atlassian.net/browse/EUW-24)
-    @OneToMany(mappedBy = "relyingPartyEaa",
-               fetch = FetchType.EAGER,
-               cascade = CascadeType.ALL)
-    private List<RelyingPartyEaaAttribute> relyingPartyEaaAttributes = new ArrayList<>();
-
-    public void addRelyingPartyEaaAttribute(RelyingPartyEaaAttribute relyingPartyEaaAttribute) {
-        relyingPartyEaaAttribute.setRelyingPartyEaa(this);
-        this.relyingPartyEaaAttributes.add(relyingPartyEaaAttribute);
-    }
-    public void setRelyingPartyEaaAttributes(List<RelyingPartyEaaAttribute> relyingPartyEaaAttributes) {
-        this.relyingPartyEaaAttributes.clear();
-        if (relyingPartyEaaAttributes != null) {
-            relyingPartyEaaAttributes.forEach(this::addRelyingPartyEaaAttribute);
-        }
-    }
 
     public RelyingPartyEaa(String namespace, String intent) {
         this(namespace, intent, null);
@@ -77,10 +62,10 @@ public class RelyingPartyEaa {
         var relyingPartyStr = relyingParty.getId() != null
                                   ? relyingParty.getId()
                                   : relyingParty;
-        return "relyingPartyEaaAttribute(id=" + id +
-                   ", relyingParty=" + relyingPartyStr +
-                   ", attributes=" + relyingPartyEaaAttributes +
+        return "relyingPartyEaa(id=" + id +
+                   ", namespace=" + namespace +
                    ", intent=" + intent +
+                   ", relyingParty=" + relyingPartyStr +
                    ")";
     }
 }

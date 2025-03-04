@@ -19,7 +19,7 @@ public class TestDataGenerator {
         return out.toString();
     }
 
-    public static UUID generateUUID() {
+    public static UUID generateId() {
         return UUID.randomUUID();
     }
 

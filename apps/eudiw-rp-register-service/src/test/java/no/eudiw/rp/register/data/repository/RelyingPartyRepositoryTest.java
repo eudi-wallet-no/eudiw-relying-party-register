@@ -8,6 +8,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.time.Instant;
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -69,7 +72,9 @@ public class RelyingPartyRepositoryTest {
             assertAll(
                 () -> assertEquals(testRelyingParty.getOrgno(), rpOut.getOrgno()),
                 () -> assertEquals(testRelyingParty.getName(), rpOut.getName()),
-                () -> assertEquals(testRelyingParty.getPublicSector(), rpOut.getPublicSector())
+                () -> assertEquals(testRelyingParty.getPublicSector(), rpOut.getPublicSector()),
+                // ID must be valid UUID if non-null; else UUID constructor would have failed.
+                () -> assertNotNull(rpOut.getId())
             );
         }
 
@@ -91,6 +96,50 @@ public class RelyingPartyRepositoryTest {
                 () -> rpRepository.saveAndFlush(newRelyingPartyWithExistingOrgno)
             );
         }
+
+        @Test
+        @DisplayName("then the relying party is initialized with proper timestamps")
+        void testCreationHasProperTimestamps() {
+            long tInit = Instant.now().toEpochMilli();
+
+            RelyingParty testRelyingParty =
+                rpRepository.save(TestDataGenerator.generateRelyingPartyNoId());
+
+            RelyingParty relyingPartyOut =
+                rpRepository.findByOrgno(testRelyingParty.getOrgno()).orElse(null);
+            assertNotNull(relyingPartyOut);
+
+            assertAll(
+                () -> assertTrue(tInit <= relyingPartyOut.getCreatedMs()),
+                () -> assertEquals(relyingPartyOut.getCreatedMs(), relyingPartyOut.getLastUpdatedMs())
+            );
+        }
+
+        @Test
+        @DisplayName("then two distinct creations will produce two distinct IDs")
+        void testCreationAssignsDistinctIds() {
+
+            RelyingParty testRelyingParty1 =
+                rpRepository.save(TestDataGenerator.generateRelyingPartyNoId());
+            RelyingParty testRelyingParty2 =
+                rpRepository.save(TestDataGenerator.generateRelyingPartyNoId());
+
+            UUID testRelyingPartyIdOut1 =
+                rpRepository.findByOrgno(testRelyingParty1.getOrgno())
+                            .map(RelyingParty::getId)
+                            .orElse(null);
+
+            UUID testRelyingPartyIdOut2 =
+                rpRepository.findByOrgno(testRelyingParty2.getOrgno())
+                            .map(RelyingParty::getId)
+                            .orElse(null);
+
+            assertAll(
+                () -> assertNotNull(testRelyingPartyIdOut1),
+                () -> assertNotNull(testRelyingPartyIdOut2),
+                () -> assertNotEquals(testRelyingPartyIdOut1, testRelyingPartyIdOut2)
+            );
+        }
     }
 
     @Nested
@@ -103,12 +152,8 @@ public class RelyingPartyRepositoryTest {
             RelyingParty testRelyingParty =
                 rpRepository.save(TestDataGenerator.generateRelyingPartyNoId());
 
-            String orgno = testRelyingParty.getOrgno();
-
-            // create distinct orgno from existing.
-            char[] orgnoChars = orgno.toCharArray();
-            orgnoChars[0] ^= 1;
-            String newOrgno = String.valueOf(orgnoChars);
+            String oldOrgno = testRelyingParty.getOrgno();
+            String newOrgno = TestDataGenerator.generateOrgno();
 
             testRelyingParty.setOrgno(newOrgno);
             rpRepository.save(testRelyingParty);
@@ -118,9 +163,67 @@ public class RelyingPartyRepositoryTest {
 
             assertNotNull(rpModifiedOut);
             assertAll(
-                // assert update successful, and that no record exists for old orgno.
                 () -> assertEquals(newOrgno, rpModifiedOut.getOrgno()),
-                () -> assertTrue(rpRepository.findByOrgno(orgno).isEmpty())
+                () -> assertTrue(rpRepository.findByOrgno(oldOrgno).isEmpty())
+            );
+        }
+
+        @Test
+        @DisplayName("then the update preserves the ID of the updated relying party")
+        void testUpdateRespectsIds() {
+            RelyingParty testRelyingParty =
+                rpRepository.save(TestDataGenerator.generateRelyingPartyNoId());
+
+            UUID testRelyingPartyIdOut1 =
+                rpRepository.findByOrgno(testRelyingParty.getOrgno())
+                            .map(RelyingParty::getId)
+                            .orElse(null);
+
+            testRelyingParty.setName(TestDataGenerator.generateName());
+            rpRepository.save(testRelyingParty);
+
+            UUID testRelyingPartyIdOut2 =
+                rpRepository.findByOrgno(testRelyingParty.getOrgno())
+                            .map(RelyingParty::getId)
+                            .orElse(null);
+
+            assertAll(
+                () -> assertNotNull(testRelyingPartyIdOut1),
+                () -> assertNotNull(testRelyingPartyIdOut2),
+                () -> assertEquals(testRelyingPartyIdOut1, testRelyingPartyIdOut2)
+            );
+        }
+
+        @Test
+        @DisplayName("then the update respects creation time but updates last-updated time")
+        void testUpdateRespectsTimestamps() {
+            long tInit = Instant.now().toEpochMilli();
+
+            RelyingParty testRelyingParty =
+                rpRepository.save(TestDataGenerator.generateRelyingPartyNoId());
+
+            RelyingParty relyingPartyOut1 =
+                rpRepository.findByOrgno(testRelyingParty.getOrgno()).orElse(null);
+            assertNotNull(relyingPartyOut1);
+
+            // query an update, which should update lastUpdatedMs but not touch createdMs.
+            relyingPartyOut1.setName(TestDataGenerator.generateName());
+            rpRepository.save(relyingPartyOut1);
+
+            RelyingParty relyingPartyOut2 =
+                rpRepository.findByOrgno(testRelyingParty.getOrgno()).orElse(null);
+            assertNotNull(relyingPartyOut2);
+
+            long tCreated1 = relyingPartyOut1.getCreatedMs();
+            long tLastUpdated1 = relyingPartyOut1.getLastUpdatedMs();
+            long tCreated2 = relyingPartyOut2.getCreatedMs();
+            long tLastUpdated2 = relyingPartyOut2.getLastUpdatedMs();
+
+            assertAll(
+                () -> assertTrue(tInit <= tCreated1),
+                () -> assertEquals(tCreated1, tLastUpdated1),
+                () -> assertEquals(tCreated1, tCreated2),
+                () -> assertTrue(tCreated2 <= tLastUpdated2)
             );
         }
     }
@@ -147,3 +250,5 @@ public class RelyingPartyRepositoryTest {
         }
     }
 }
+
+

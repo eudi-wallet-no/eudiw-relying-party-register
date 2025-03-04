@@ -27,7 +27,7 @@ spring:
         show_sql: true
     show-sql: true
   datasource:
-    url: "jdbc:mariadb://db-rp-register:3306/register_service"
+    url: "jdbc:mariadb://rp-register-db:3306/register_service"
     driver-class-name: org.mariadb.jdbc.Driver
     username: eudiw_user
     password: lesssecret
