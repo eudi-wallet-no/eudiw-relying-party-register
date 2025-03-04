@@ -1,11 +1,11 @@
-name: eudiw-rp-register-service
+name: eudiw-rp-register
 networks:
   eudiw:
     name: eudiw
 
 services:
-  db-rp-register:
-    image: "mariadb:10.8"
+  rp-register-db:
+    image: "mariadb:11.4"
     restart: on-failure
     environment:
       MARIADB_ROOT_PASSWORD: verysecret
@@ -38,7 +38,7 @@ services:
     networks:
       - eudiw
     depends_on:
-      db-rp-register:
+      rp-register-db:
         condition: service_healthy
     entrypoint: "/bin/bash -c"
     command:

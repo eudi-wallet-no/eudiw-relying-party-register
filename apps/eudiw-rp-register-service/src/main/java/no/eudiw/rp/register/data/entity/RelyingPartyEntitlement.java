@@ -18,8 +18,8 @@ public class RelyingPartyEntitlement {
     @Id
     // TODO: Jira EUW-23 (https://digdir.atlassian.net/browse/EUW-23)
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "uuid", columnDefinition = "VARCHAR(36)")
-    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(name = "id", columnDefinition = "UUID")
+    @JdbcTypeCode(SqlTypes.UUID)
     @Setter(AccessLevel.NONE)
     private UUID id;
 
@@ -27,8 +27,10 @@ public class RelyingPartyEntitlement {
     private String entitlement;
 
     @ManyToOne
-    @JoinColumn(name = "relying_party_uuid", nullable = false)
-    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @JoinColumn(name = "relying_party_id",
+        columnDefinition = "UUID",
+        nullable = false)
+    @JdbcTypeCode(SqlTypes.UUID)
     private RelyingParty relyingParty;
 
     public RelyingPartyEntitlement(String entitlement) {

@@ -3,17 +3,14 @@ package no.eudiw.rp.register.data.service;
 import lombok.RequiredArgsConstructor;
 import no.eudiw.rp.register.RelyingPartyRegisterServiceException;
 import no.eudiw.rp.register.data.entity.RelyingParty;
-import no.eudiw.rp.register.data.entity.RelyingPartyEaa;
-import no.eudiw.rp.register.data.entity.RelyingPartyEaaAttribute;
 import no.eudiw.rp.register.data.entity.RelyingPartyEntitlement;
-import no.eudiw.rp.register.data.repository.RelyingPartyEaaAttributeRepository;
 import no.eudiw.rp.register.data.repository.RelyingPartyEaaRepository;
 import no.eudiw.rp.register.data.repository.RelyingPartyEntitlementRepository;
 import no.eudiw.rp.register.data.repository.RelyingPartyRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,7 +21,6 @@ public class RelyingPartyService {
     private final RelyingPartyRepository relyingPartyRepository;
     private final RelyingPartyEntitlementRepository relyingPartyEntitlementRepository;
     private final RelyingPartyEaaRepository relyingPartyEaaRepository;
-    private final RelyingPartyEaaAttributeRepository relyingPartyEaaAttributeRepository;
 
     @Transactional
     public RelyingParty createRelyingParty(RelyingParty relyingParty) {
@@ -81,18 +77,5 @@ public class RelyingPartyService {
                    .stream()
                    .map(RelyingPartyEntitlement::getRelyingParty)
                    .toList();
-    }
-
-    @Transactional
-    public boolean relyingPartyHasEaaWithEaaAttributeIntent(
-        RelyingParty relyingParty, String intent) {
-        return relyingPartyEaaRepository
-                   .findAllByRelyingParty(relyingParty)
-                   .stream()
-                   .map(RelyingPartyEaa::getRelyingPartyEaaAttributes)
-                   .flatMap(Collection::stream)
-                   .map(RelyingPartyEaaAttribute::getIntent)
-                   .toList()
-                   .contains(intent);
     }
 }
