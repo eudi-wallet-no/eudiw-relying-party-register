@@ -9,7 +9,7 @@ services:
     restart: on-failure
     environment:
       MARIADB_ROOT_PASSWORD: verysecret
-      MARIADB_DATABASE: register_service
+      MARIADB_DATABASE: rp_register_db
       MARIADB_USER: eudiw_user
       MARIADB_PASSWORD: lesssecret
     ports:

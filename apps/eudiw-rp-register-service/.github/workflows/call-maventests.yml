@@ -16,6 +16,6 @@ jobs:
   call-container-scan:
     uses: felleslosninger/github-workflows/.github/workflows/ci-spring-boot-container-scan.yml@main
     with:
-      image-name: register-service # TODO: might want to rename this one later. or maybe use default?
+      image-name: eudiw-rp-register-service
       java-version: 21
     secrets: inherit
