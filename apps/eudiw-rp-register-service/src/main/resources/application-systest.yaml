@@ -1,0 +1,8 @@
+---
+spring:
+  application:
+    environment: systest
+  datasource:
+    url: "jdbc:mariadb://eudiw-rp-register-mariadb:3306/rp-register"
+    username: rp_register_service
+    password: ${DATABASE_PASSWORD}
