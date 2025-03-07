@@ -52,14 +52,12 @@ public class RelyingPartiesControllerTest {
 
     protected RelyingPartyEntitlementResource getRelyingPartyEntitlementContract(String entitlement) {
         return new RelyingPartyEntitlementResource(
-                UUID.randomUUID(),
                 entitlement
         );
     }
 
     protected RelyingPartyEaaResource getRelyingPartyEaaContract() {
         return new RelyingPartyEaaResource(
-                UUID.randomUUID(),
                 "namespace",
                 "intent"
         );
