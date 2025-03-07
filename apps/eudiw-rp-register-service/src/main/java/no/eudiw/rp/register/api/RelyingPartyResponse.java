@@ -57,7 +57,6 @@ public class RelyingPartyResponse {
             this.relyingPartyEntitlements = relyingParty.getRelyingPartyEntitlements()
                     .stream()
                     .map(entitlement -> new RelyingPartyEntitlementResource(
-                            entitlement.getId(),
                             entitlement.getEntitlement()))
                     .collect(Collectors.toList());
         }
@@ -66,7 +65,6 @@ public class RelyingPartyResponse {
             this.relyingPartyEaas = relyingParty.getRelyingPartyEaas()
                     .stream()
                     .map(eaa -> new RelyingPartyEaaResource(
-                            eaa.getId(),
                             eaa.getNamespace(),
                             eaa.getIntent()))
                     .collect(Collectors.toList());
