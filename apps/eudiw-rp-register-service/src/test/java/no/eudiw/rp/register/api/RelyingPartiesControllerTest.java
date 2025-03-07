@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -70,7 +70,7 @@ public class RelyingPartiesControllerTest {
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         String json = ow.writeValueAsString(getRelyingPartyContract("1337", "Relying Party", "access"));
 
-        mockMvc.perform(post("/v1/rp/create")
+        mockMvc.perform(post("/v1/rp")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isOk())
@@ -94,7 +94,7 @@ public class RelyingPartiesControllerTest {
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         String json = ow.writeValueAsString(getRelyingPartyContract("1234", "Batman", "batcave"));
 
-        ResultActions createResult = mockMvc.perform(post("/v1/rp/create")
+        ResultActions createResult = mockMvc.perform(post("/v1/rp")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isOk())
@@ -110,7 +110,7 @@ public class RelyingPartiesControllerTest {
                 true
         );
 
-        mockMvc.perform(patch("/v1/rp/edit/" + relyingPartyResponse.getId().toString())
+        mockMvc.perform(put("/v1/rp/" + relyingPartyResponse.getId().toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(ow.writeValueAsString(editContract)))
                 .andExpect(status().isOk())
@@ -123,7 +123,7 @@ public class RelyingPartiesControllerTest {
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         String json = ow.writeValueAsString(getRelyingPartyContract("2345", "GetTest", "noe"));
 
-        ResultActions createResult = mockMvc.perform(post("/v1/rp/create")
+        ResultActions createResult = mockMvc.perform(post("/v1/rp")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isOk())
@@ -132,7 +132,7 @@ public class RelyingPartiesControllerTest {
 
         RelyingPartyResponse response = readResultActions(createResult);
 
-        mockMvc.perform(get("/v1/rp/get/" + response.getId())
+        mockMvc.perform(get("/v1/rp/" + response.getId())
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.org_nr").value("2345"))
@@ -141,7 +141,7 @@ public class RelyingPartiesControllerTest {
 
     @Test
     void testGetAllRelyingParties() throws Exception {
-        mockMvc.perform(get("/v1/rp/getAll")
+        mockMvc.perform(get("/v1/rp")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }

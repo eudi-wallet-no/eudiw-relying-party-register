@@ -50,7 +50,7 @@ public class RelyingPartiesController {
         @ApiResponses(value = {
                 @ApiResponse(responseCode = "200", description = "Relying party is created")
         })
-        @PostMapping(path = "v1/rp/create", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+        @PostMapping(path = "v1/rp", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
         public ResponseEntity<RelyingPartyResponse> createRelyingParty(@Valid @RequestBody CreateRelyingPartyResource request) {
                 RelyingPartyResponse response = new RelyingPartyResponse(
                         relyingPartyService.createRelyingParty(request)
@@ -67,7 +67,7 @@ public class RelyingPartiesController {
                 @ApiResponse(responseCode = "200", description = "Relying party is edited"),
                 @ApiResponse(responseCode = "404", description = "Relying party is not found")
         })
-        @PatchMapping(path = "v1/rp/edit/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+        @PutMapping(path = "v1/rp/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
         public ResponseEntity<RelyingPartyResponse> editRelyingParty(@PathVariable("id") UUID id, @Valid @RequestBody EditRelyingPartyResource request) {
                 RelyingPartyResponse response = new RelyingPartyResponse(
                         relyingPartyService.updateRelyingParty(
@@ -89,7 +89,7 @@ public class RelyingPartiesController {
                 @ApiResponse(responseCode = "200", description = "Relying party is returned"),
                 @ApiResponse(responseCode = "404", description = "Relying party is not found")
         })
-        @GetMapping(path = "v1/rp/get/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+        @GetMapping(path = "v1/rp/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
         public ResponseEntity<RelyingPartyResponse> getRelyingParty(@PathVariable("id") UUID id) {
                 RelyingPartyResponse response = new RelyingPartyResponse(relyingPartyService.findRelyingParty(id));
                 return ResponseEntity.ok(response);
@@ -102,7 +102,7 @@ public class RelyingPartiesController {
         @ApiResponses(value = {
                 @ApiResponse(responseCode = "200", description = "Relying parties is retrieved")
         })
-        @GetMapping(path = "v1/rp/getAll", produces = MediaType.APPLICATION_JSON_VALUE)
+        @GetMapping(path = "v1/rp", produces = MediaType.APPLICATION_JSON_VALUE)
         public ResponseEntity<RelyingPartiesResponse> getAllRelyingParties() {
                 List<RelyingParty> relyingParties = relyingPartyService.findAllRelyingParties();
                 List<RelyingPartyResponse> relyingPartiesResponse = relyingParties
