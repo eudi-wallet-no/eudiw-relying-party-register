@@ -79,6 +79,20 @@ public class RelyingPartiesController {
         }
 
         @Operation(
+                summary = "Delete Relying Party",
+                description = "Delete Relying Party",
+                tags = {"relying-parties-api"})
+        @ApiResponses(value = {
+                @ApiResponse(responseCode = "204", description = "Relying party is deleted"),
+                @ApiResponse(responseCode = "404", description = "Relying party is not found")
+        })
+        @DeleteMapping(path = "v1/rp/{id}")
+        public ResponseEntity<Void> deleteRelyingParty(@PathVariable("id") UUID id) {
+                relyingPartyService.deleteRelyingParty(id);
+                return ResponseEntity.noContent().build();
+        }
+
+        @Operation(
                 summary = "Get Relying Party",
                 description = "Get Relying Party",
                 tags = {"relying-parties-api"},

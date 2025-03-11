@@ -18,9 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
@@ -142,6 +140,37 @@ public class RelyingPartiesControllerTest {
         mockMvc.perform(get("/v1/rp")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void testDeleteRelyingParty() throws Exception {
+        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+        String json = ow.writeValueAsString(getRelyingPartyContract("54654321", "Harry", "Galtvort"));
+
+        ResultActions createResult = mockMvc.perform(post("/v1/rp")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.org_nr").value("54654321"))
+                .andExpect(jsonPath("$.name").value("Harry"));
+
+        RelyingPartyResponse relyingPartyResponse = readResultActions(createResult);
+
+        mockMvc.perform(delete("/v1/rp/" + relyingPartyResponse.getId().toString())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/v1/rp/" + relyingPartyResponse.getId().toString())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.deleted").value("true"));
+    }
+
+    @Test
+    void testDeleteNotFoundRelyingParty() throws Exception {
+        mockMvc.perform(delete("/v1/rp/" + UUID.randomUUID())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
     }
 
 }

@@ -9,6 +9,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -247,6 +248,27 @@ public class RelyingPartyRepositoryTest {
                 () -> assertTrue(rpRepository.findByOrgno(testRelyingPartyOut.getOrgno()).isEmpty()),
                 () -> assertTrue(rpRepository.findById(testRelyingPartyOut.getId()).isEmpty())
             );
+        }
+    }
+
+    @Nested
+    @DisplayName("When Getting all None Deleted from Repository ...")
+    class GetAllNoneDeletedTests {
+
+        @Test
+        @DisplayName("then deletion goes well if the entity is in the repository")
+        void testDeleteExistingOrgno() {
+            RelyingParty testRelyingParty =
+                    rpRepository.save(TestDataGenerator.generateRelyingPartyNoId());
+
+            testRelyingParty.setDeleted(true);
+            rpRepository.save(testRelyingParty);
+
+            List<RelyingParty> relyingParties =
+                    rpRepository.findAllByDeleted(false);
+            assertNotNull(relyingParties);
+            assertFalse(relyingParties.isEmpty());
+            relyingParties.forEach(rp -> assertFalse(rp.isDeleted()));
         }
     }
 }
