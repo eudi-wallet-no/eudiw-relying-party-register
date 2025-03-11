@@ -44,6 +44,9 @@ public class RelyingPartyResponse {
     @JsonProperty(value = "active", required = true)
     private boolean active;
 
+    @JsonProperty(value = "deleted", required = true)
+    private boolean deleted;
+
     public RelyingPartyResponse(RelyingParty relyingParty) {
         this.id = relyingParty.getId();
         this.orgNr = relyingParty.getOrgno();
@@ -52,6 +55,7 @@ public class RelyingPartyResponse {
         this.createdMs = relyingParty.getCreatedMs();
         this.lastUpdatedMs = relyingParty.getLastUpdatedMs();
         this.active = relyingParty.isActive();
+        this.deleted = relyingParty.isDeleted();
 
         if (relyingParty.getRelyingPartyEntitlements() != null && !relyingParty.getRelyingPartyEntitlements().isEmpty()) {
             this.relyingPartyEntitlements = relyingParty.getRelyingPartyEntitlements()

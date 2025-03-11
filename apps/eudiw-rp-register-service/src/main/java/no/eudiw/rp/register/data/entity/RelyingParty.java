@@ -60,6 +60,9 @@ public class RelyingParty {
     @Column(name = "active", nullable = false)
     private boolean active;
 
+    @Column(name = "deleted", nullable = false)
+    private boolean deleted;
+
     public void addRelyingPartyEntitlement(RelyingPartyEntitlement relyingPartyEntitlement) {
         relyingPartyEntitlement.setRelyingParty(this);
         this.relyingPartyEntitlements.add(relyingPartyEntitlement);
@@ -96,6 +99,7 @@ public class RelyingParty {
         this.publicSector = publicSector;
         this.setRelyingPartyEntitlements(relyingPartyEntitlements);
         this.active = true;
+        this.deleted = false;
     }
 
     public RelyingParty(RelyingParty relyingParty) {
@@ -107,6 +111,7 @@ public class RelyingParty {
         this.createdMs = relyingParty.createdMs;
         this.lastUpdatedMs = relyingParty.lastUpdatedMs;
         this.active = relyingParty.active;
+        this.deleted = relyingParty.deleted;
     }
 
     // for JPA instantiation.

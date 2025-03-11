@@ -9,13 +9,12 @@ import no.eudiw.rp.register.api.RelyingPartyEntitlementResource;
 import no.eudiw.rp.register.data.entity.RelyingParty;
 import no.eudiw.rp.register.data.entity.RelyingPartyEaa;
 import no.eudiw.rp.register.data.entity.RelyingPartyEntitlement;
-import no.eudiw.rp.register.data.repository.RelyingPartyEaaRepository;
-import no.eudiw.rp.register.data.repository.RelyingPartyEntitlementRepository;
 import no.eudiw.rp.register.data.repository.RelyingPartyRepository;
+import no.eudiw.rp.register.exception.ApiException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -25,8 +24,6 @@ import java.util.stream.Collectors;
 public class RelyingPartyService {
 
     private final RelyingPartyRepository relyingPartyRepository;
-    private final RelyingPartyEntitlementRepository relyingPartyEntitlementRepository;
-    private final RelyingPartyEaaRepository relyingPartyEaaRepository;
 
     @Transactional
     public RelyingParty createRelyingParty(CreateRelyingPartyResource request) {
@@ -59,24 +56,7 @@ public class RelyingPartyService {
 
     @Transactional(readOnly = true)
     public List<RelyingParty> findAllRelyingParties() {
-        return relyingPartyRepository.findAll();
-    }
-
-    @Transactional
-    public RelyingParty updateRelyingParty(RelyingParty relyingParty) {
-        // updating requires RelyingParty ID to be set; otherwise it is a creation.
-        // TODO: Jira EUW-25 (https://digdir.atlassian.net/browse/EUW-25)
-        if (relyingParty.getId() == null) {
-            throw new RelyingPartyRegisterServiceException(
-                "Cannot query update without RelyingParty ID");
-        }
-
-        if (!relyingPartyRepository.existsById(relyingParty.getId())) {
-            throw new RelyingPartyRegisterServiceException(
-                "RelyingParty to update not in relyingPartyRepository");
-        }
-
-        return relyingPartyRepository.save(relyingParty);
+        return relyingPartyRepository.findAllByDeleted(false);
     }
 
     @Transactional
@@ -94,8 +74,7 @@ public class RelyingPartyService {
         }
 
         if (!relyingPartyRepository.existsById(id)) {
-            throw new RelyingPartyRegisterServiceException(
-                    "RelyingParty to update not in relyingPartyRepository");
+            throw new ApiException("not_found", "Relying Party not found for id: " + id, HttpStatus.NOT_FOUND);
         }
 
         RelyingParty relyingParty = relyingPartyRepository.findById(id).orElseThrow();
@@ -108,20 +87,14 @@ public class RelyingPartyService {
     }
 
     @Transactional
-    public RelyingParty deleteRelyingParty(UUID id) {
-        RelyingParty deletedRelyingParty =
-            relyingPartyRepository.findById(id).orElse(null);
-        relyingPartyRepository.deleteById(id); // does nothing if id does not exist.
-        return deletedRelyingParty;
-    }
+    public void deleteRelyingParty(UUID id) {
+        if (!relyingPartyRepository.existsById(id)) {
+            throw new ApiException("not_found", "Relying Party not found for id: " + id, HttpStatus.NOT_FOUND);
+        }
 
-    @Transactional
-    public List<RelyingParty> getAllRelyingPartysWithEntitlement(String entitlement) {
-        return relyingPartyEntitlementRepository
-                   .findAllByEntitlement(entitlement)
-                   .stream()
-                   .map(RelyingPartyEntitlement::getRelyingParty)
-                   .toList();
+        RelyingParty relyingParty = relyingPartyRepository.findById(id).orElseThrow();
+        relyingParty.setDeleted(true);
+        relyingPartyRepository.save(relyingParty);
     }
 
     private void setEntitlementsAndEaa(

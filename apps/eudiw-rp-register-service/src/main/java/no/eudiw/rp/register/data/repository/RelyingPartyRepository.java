@@ -19,4 +19,6 @@ public interface RelyingPartyRepository
     List<RelyingParty> findAllByName(String name);
 
     List<RelyingParty> findAllByPublicSector(boolean publicSector);
+
+    List<RelyingParty> findAllByDeleted(boolean deleted);
 }
