@@ -17,7 +17,7 @@ services:
     networks:
       - eudiw
     healthcheck:
-      test: mysqladmin -p$$MARIADB_ROOT_PASSWORD -uroot ping -h localhost
+      test: mariadb-admin -p$$MARIADB_ROOT_PASSWORD -uroot ping -h localhost
       interval: 5s
       start_period: 5s
       timeout: 5s
