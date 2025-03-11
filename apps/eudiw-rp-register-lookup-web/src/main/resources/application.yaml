@@ -1,0 +1,22 @@
+---
+spring:
+  thread-executor: virtual
+  application:
+    name: idporten-rp-register-lookup-web
+    environment: default
+
+# Spring Boot Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: info,version,prometheus,health
+      base-path: /
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+server:
+  port: 8080
+
