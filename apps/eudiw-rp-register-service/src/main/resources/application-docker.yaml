@@ -18,6 +18,8 @@ logging:
           jdbc:
             bind: TRACE
 spring:
+  security:
+    api-key: xxx
   jpa:
     properties:
       hibernate:

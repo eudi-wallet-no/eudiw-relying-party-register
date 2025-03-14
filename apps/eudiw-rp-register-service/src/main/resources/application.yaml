@@ -4,6 +4,18 @@ server:
 
 spring:
   thread-executor: virtual
+  security:
+    include-paths:
+      - /v1/**
+    exclude-paths:
+      - /
+      - /health/**
+      - /version
+      - /info
+      - /prometheus
+      - /swagger-ui.html
+      - /swagger-ui/**
+      - /v3/api-docs/**
   jpa:
     hibernate:
       ddl-auto: none

@@ -2,6 +2,8 @@
 spring:
   application:
     environment: systest
+  security:
+    api-key: ${API_KEY}
   datasource:
     url: "jdbc:mariadb://eudiw-rp-register-mariadb:3306/rp_register"
     username: rp_register_service
