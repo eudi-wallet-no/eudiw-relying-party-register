@@ -43,22 +43,6 @@ public class RelyingPartyEntitlement {
         this.entitlement = entitlement;
     }
 
-    public RelyingPartyEntitlement(RelyingPartyEntitlement relyingPartyEntitlement) {
-        this(relyingPartyEntitlement.entitlement,
-             relyingPartyEntitlement.relyingParty);
-        this.id = relyingPartyEntitlement.id;
-    }
-
     // for JPA instantiation.
     protected RelyingPartyEntitlement() { }
-
-    public String toString() {
-        String relyingPartyStr =
-            relyingParty != null ? relyingParty.getId().toString() : "<no RP>";
-        return "RelyingPartyEntitlement(" +
-                   "\n  id=" + id +
-                   "\n  entitlement='" + entitlement +
-                   "',\n  relyingParty=" + relyingPartyStr +
-                   "\n)";
-    }
 }

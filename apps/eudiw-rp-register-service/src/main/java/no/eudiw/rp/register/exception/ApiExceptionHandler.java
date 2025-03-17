@@ -1,7 +1,6 @@
 package no.eudiw.rp.register.exception;
 
 import lombok.extern.slf4j.Slf4j;
-import no.eudiw.rp.register.RelyingPartyRegisterServiceException;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
