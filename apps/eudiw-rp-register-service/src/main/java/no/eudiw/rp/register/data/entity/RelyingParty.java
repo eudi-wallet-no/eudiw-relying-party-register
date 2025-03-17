@@ -86,18 +86,20 @@ public class RelyingParty {
     }
 
     public RelyingParty(String name, String orgno, Boolean publicSector) {
-        this(name, orgno, publicSector, null);
+        this(name, orgno, publicSector, null, null);
     }
 
     public RelyingParty(String name,
                         String orgno,
                         Boolean publicSector,
-                        List<RelyingPartyEntitlement> relyingPartyEntitlements) {
+                        List<RelyingPartyEntitlement> relyingPartyEntitlements,
+                        List<RelyingPartyEaa> relyingPartyEaas) {
         this.id = null;
         this.name = name;
         this.orgno = orgno;
         this.publicSector = publicSector;
         this.setRelyingPartyEntitlements(relyingPartyEntitlements);
+        this.setRelyingPartyEaas(relyingPartyEaas);
         this.active = true;
         this.deleted = false;
     }
@@ -106,7 +108,8 @@ public class RelyingParty {
         this(relyingParty.name,
              relyingParty.orgno,
              relyingParty.publicSector,
-             relyingParty.relyingPartyEntitlements);
+             relyingParty.relyingPartyEntitlements,
+             relyingParty.relyingPartyEaas);
         this.id = relyingParty.id;
         this.createdMs = relyingParty.createdMs;
         this.lastUpdatedMs = relyingParty.lastUpdatedMs;

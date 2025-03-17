@@ -7,12 +7,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.UUID;
 
-@JsonInclude(JsonInclude.Include.ALWAYS)
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateRelyingPartyResource {
+public class RelyingPartyResource {
+
+    @JsonProperty("id")
+    private UUID id;
 
     @JsonProperty(value = "org_nr", required = true)
     private String orgNr;
@@ -28,4 +32,16 @@ public class CreateRelyingPartyResource {
 
     @JsonProperty("relying_party_eaas")
     private List<RelyingPartyEaaResource> relyingPartyEaas;
+
+    @JsonProperty(value = "created_ms", required = false)
+    private long createdMs;
+
+    @JsonProperty(value = "last_updated_ms", required = false)
+    private long lastUpdatedMs;
+
+    @JsonProperty(value = "active", required = true)
+    private boolean active;
+
+    @JsonProperty(value = "deleted", required = true)
+    private boolean deleted;
 }

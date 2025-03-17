@@ -10,8 +10,8 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class RelyingPartiesResponse {
+public class RelyingPartiesResource {
 
     @JsonProperty("relying_parties")
-    private List<RelyingPartyResponse> relyingParties;
+    private List<RelyingPartyResource> relyingParties;
 }

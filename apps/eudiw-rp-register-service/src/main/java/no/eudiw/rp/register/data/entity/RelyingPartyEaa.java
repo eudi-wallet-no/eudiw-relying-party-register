@@ -7,8 +7,6 @@ import lombok.ToString;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -48,24 +46,6 @@ public class RelyingPartyEaa {
         this.relyingParty = relyingParty;
     }
 
-    public RelyingPartyEaa(RelyingPartyEaa relyingPartyEaa) {
-        this(relyingPartyEaa.namespace,
-             relyingPartyEaa.intent,
-             relyingPartyEaa.relyingParty);
-        this.id = relyingPartyEaa.id;
-    }
-
     // for JPA instantiation.
     protected RelyingPartyEaa() { }
-
-    public String toString() {
-        var relyingPartyStr = relyingParty.getId() != null
-                                  ? relyingParty.getId()
-                                  : relyingParty;
-        return "relyingPartyEaa(id=" + id +
-                   ", namespace=" + namespace +
-                   ", intent=" + intent +
-                   ", relyingParty=" + relyingPartyStr +
-                   ")";
-    }
 }

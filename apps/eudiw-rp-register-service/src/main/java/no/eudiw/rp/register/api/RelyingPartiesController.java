@@ -10,7 +10,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import no.eudiw.rp.register.data.entity.RelyingParty;
 import no.eudiw.rp.register.data.service.RelyingPartyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -18,7 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @Tag(name = "relying-parties-api", description = "Relying Parties Service Api")
@@ -51,12 +49,8 @@ public class RelyingPartiesController {
                 @ApiResponse(responseCode = "200", description = "Relying party is created")
         })
         @PostMapping(path = "v1/rp", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-        public ResponseEntity<RelyingPartyResponse> createRelyingParty(@Valid @RequestBody CreateRelyingPartyResource request) {
-                RelyingPartyResponse response = new RelyingPartyResponse(
-                        relyingPartyService.createRelyingParty(request)
-                );
-
-                return ResponseEntity.ok(response);
+        public ResponseEntity<RelyingPartyResource> createRelyingParty(@Valid @RequestBody CreateRelyingPartyResource request) {
+                return ResponseEntity.ok(relyingPartyService.createRelyingParty(request));
         }
 
         @Operation(
@@ -68,14 +62,9 @@ public class RelyingPartiesController {
                 @ApiResponse(responseCode = "404", description = "Relying party is not found")
         })
         @PutMapping(path = "v1/rp/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-        public ResponseEntity<RelyingPartyResponse> editRelyingParty(@PathVariable("id") UUID id, @Valid @RequestBody EditRelyingPartyResource request) {
-                RelyingPartyResponse response = new RelyingPartyResponse(
-                        relyingPartyService.updateRelyingParty(
-                                id,
-                                request
-                        )
-                );
-                return ResponseEntity.ok(response);
+        public ResponseEntity<RelyingPartyResource> editRelyingParty(
+            @PathVariable("id") UUID id, @Valid @RequestBody EditRelyingPartyResource request) {
+                return ResponseEntity.ofNullable(relyingPartyService.updateRelyingParty(id, request));
         }
 
         @Operation(
@@ -104,9 +93,29 @@ public class RelyingPartiesController {
                 @ApiResponse(responseCode = "404", description = "Relying party is not found")
         })
         @GetMapping(path = "v1/rp/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-        public ResponseEntity<RelyingPartyResponse> getRelyingParty(@PathVariable("id") UUID id) {
-                RelyingPartyResponse response = new RelyingPartyResponse(relyingPartyService.findRelyingParty(id));
-                return ResponseEntity.ok(response);
+        public ResponseEntity<RelyingPartyResource> getRelyingParty(@PathVariable("id") UUID id) {
+                return ResponseEntity.ok(relyingPartyService.findRelyingParty(id));
+        }
+
+
+        @Operation(
+                summary = "Search",
+                description = "Search relying parties by org_nr and public_sector",
+                tags = {"relying-parties-api"},
+                parameters = {
+                        @Parameter(in = ParameterIn.PATH,
+                                   name = "organisajonsnummer",
+                                   description = "Unikt organisasjonsnummer",
+                                   required = true)
+                })
+        @ApiResponses(value = {
+                @ApiResponse(responseCode = "200",
+                             description = "Possibly empty relying parties search result is returned")
+        })
+        @PostMapping(path = "v1/rp/search", produces = MediaType.APPLICATION_JSON_VALUE)
+        public ResponseEntity<RelyingPartiesResource> searchRelyingParty(
+            @Valid @RequestBody SearchRelyingPartyResource request) {
+                return ResponseEntity.ok(relyingPartyService.searchRelyingParties(request));
         }
 
         @Operation(
@@ -114,15 +123,10 @@ public class RelyingPartiesController {
                 description = "Get all Relying Parties",
                 tags = {"relying-parties-api"})
         @ApiResponses(value = {
-                @ApiResponse(responseCode = "200", description = "Relying parties is retrieved")
+                @ApiResponse(responseCode = "200", description = "Relying parties are retrieved")
         })
         @GetMapping(path = "v1/rp", produces = MediaType.APPLICATION_JSON_VALUE)
-        public ResponseEntity<RelyingPartiesResponse> getAllRelyingParties() {
-                List<RelyingParty> relyingParties = relyingPartyService.findAllRelyingParties();
-                List<RelyingPartyResponse> relyingPartiesResponse = relyingParties
-                        .stream()
-                        .map(RelyingPartyResponse::new)
-                        .toList();
-                return ResponseEntity.ok(new RelyingPartiesResponse(relyingPartiesResponse));
+        public ResponseEntity<RelyingPartiesResource> getAllRelyingParties() {
+                return ResponseEntity.ok(relyingPartyService.findAllRelyingParties());
         }
 }

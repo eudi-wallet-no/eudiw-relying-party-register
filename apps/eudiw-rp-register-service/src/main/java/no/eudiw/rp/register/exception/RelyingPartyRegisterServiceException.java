@@ -1,4 +1,4 @@
-package no.eudiw.rp.register;
+package no.eudiw.rp.register.exception;
 
 public class RelyingPartyRegisterServiceException extends RuntimeException {
 

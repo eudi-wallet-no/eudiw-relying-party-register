@@ -1,7 +1,7 @@
 package no.eudiw.rp.register.data.repository;
 
 import jakarta.annotation.Resource;
-import no.eudiw.rp.register.TestDataGenerator;
+import no.eudiw.rp.register.testdata.EntityGenerator;
 import no.eudiw.rp.register.data.entity.RelyingParty;
 import org.junit.jupiter.api.*;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -34,7 +34,7 @@ public class RelyingPartyRepositoryTest {
         @DisplayName("then the read goes well if a record with the orgno exists")
         void testFindByOrgno() {
             RelyingParty testRelyingParty =
-                rpRepository.save(TestDataGenerator.generateRelyingPartyNoId());
+                rpRepository.save(EntityGenerator.generateRelyingPartyNoId());
 
             String orgno = testRelyingParty.getOrgno();
             RelyingParty rpOut = rpRepository.findByOrgno(orgno).orElse(null);
@@ -50,7 +50,7 @@ public class RelyingPartyRepositoryTest {
         @Test
         @DisplayName("then nothing is read if the orgno is not in the RelyingPartyRepository")
         void testFindNonexistentOrgno() {
-            String nonExistentOrgno = TestDataGenerator.generateOrgno();
+            String nonExistentOrgno = EntityGenerator.generateOrgno();
             assertTrue(rpRepository.findByOrgno(nonExistentOrgno).isEmpty());
         }
     }
@@ -63,7 +63,7 @@ public class RelyingPartyRepositoryTest {
         @DisplayName("then creation goes well if ID field is null and orgno does not exist")
         void testCreateNewRelyingParty() {
             RelyingParty testRelyingParty =
-                TestDataGenerator.generateRelyingPartyNoId();
+                EntityGenerator.generateRelyingPartyNoId();
             String orgno = testRelyingParty.getOrgno();
 
             rpRepository.save(testRelyingParty);
@@ -83,12 +83,12 @@ public class RelyingPartyRepositoryTest {
         @DisplayName("then creation is rejected if orgno already exists")
         void testCreationRejectedWhenOrgnoAlreadyExists() {
             RelyingParty testRelyingParty =
-                rpRepository.save(TestDataGenerator.generateRelyingPartyNoId());
+                rpRepository.save(EntityGenerator.generateRelyingPartyNoId());
 
             String existingOrgno = testRelyingParty.getOrgno();
 
             RelyingParty newRelyingPartyWithExistingOrgno =
-                TestDataGenerator.generateRelyingPartyNoId();
+                EntityGenerator.generateRelyingPartyNoId();
             newRelyingPartyWithExistingOrgno.setOrgno(existingOrgno);
 
             // assert second creation with same orgno is rejected.
@@ -104,7 +104,7 @@ public class RelyingPartyRepositoryTest {
             long tInit = Instant.now().toEpochMilli();
 
             RelyingParty testRelyingParty =
-                rpRepository.save(TestDataGenerator.generateRelyingPartyNoId());
+                rpRepository.save(EntityGenerator.generateRelyingPartyNoId());
 
             RelyingParty relyingPartyOut =
                 rpRepository.findByOrgno(testRelyingParty.getOrgno()).orElse(null);
@@ -121,9 +121,9 @@ public class RelyingPartyRepositoryTest {
         void testCreationAssignsDistinctIds() {
 
             RelyingParty testRelyingParty1 =
-                rpRepository.save(TestDataGenerator.generateRelyingPartyNoId());
+                rpRepository.save(EntityGenerator.generateRelyingPartyNoId());
             RelyingParty testRelyingParty2 =
-                rpRepository.save(TestDataGenerator.generateRelyingPartyNoId());
+                rpRepository.save(EntityGenerator.generateRelyingPartyNoId());
 
             UUID testRelyingPartyIdOut1 =
                 rpRepository.findByOrgno(testRelyingParty1.getOrgno())
@@ -151,10 +151,10 @@ public class RelyingPartyRepositoryTest {
         @DisplayName("then the update goes well if the ID already exists")
         void testUpdateOrgnoForExistingRelyingParty() {
             RelyingParty testRelyingParty =
-                rpRepository.save(TestDataGenerator.generateRelyingPartyNoId());
+                rpRepository.save(EntityGenerator.generateRelyingPartyNoId());
 
             String oldOrgno = testRelyingParty.getOrgno();
-            String newOrgno = TestDataGenerator.generateOrgno();
+            String newOrgno = EntityGenerator.generateOrgno();
 
             testRelyingParty.setOrgno(newOrgno);
             rpRepository.save(testRelyingParty);
@@ -173,14 +173,14 @@ public class RelyingPartyRepositoryTest {
         @DisplayName("then the update preserves the ID of the updated relying party")
         void testUpdateRespectsIds() {
             RelyingParty testRelyingParty =
-                rpRepository.save(TestDataGenerator.generateRelyingPartyNoId());
+                rpRepository.save(EntityGenerator.generateRelyingPartyNoId());
 
             UUID testRelyingPartyIdOut1 =
                 rpRepository.findByOrgno(testRelyingParty.getOrgno())
                             .map(RelyingParty::getId)
                             .orElse(null);
 
-            testRelyingParty.setName(TestDataGenerator.generateName());
+            testRelyingParty.setName(EntityGenerator.generateName());
             rpRepository.save(testRelyingParty);
 
             UUID testRelyingPartyIdOut2 =
@@ -201,14 +201,14 @@ public class RelyingPartyRepositoryTest {
             long tInit = Instant.now().toEpochMilli();
 
             RelyingParty testRelyingParty =
-                rpRepository.save(TestDataGenerator.generateRelyingPartyNoId());
+                rpRepository.save(EntityGenerator.generateRelyingPartyNoId());
 
             RelyingParty relyingPartyOut1 =
                 rpRepository.findByOrgno(testRelyingParty.getOrgno()).orElse(null);
             assertNotNull(relyingPartyOut1);
 
             // query an update, which should update lastUpdatedMs but not touch createdMs.
-            relyingPartyOut1.setName(TestDataGenerator.generateName());
+            relyingPartyOut1.setName(EntityGenerator.generateName());
             rpRepository.save(relyingPartyOut1);
 
             RelyingParty relyingPartyOut2 =
@@ -237,7 +237,7 @@ public class RelyingPartyRepositoryTest {
         @DisplayName("then deletion goes well if the entity is in the repository")
         void testDeleteExistingOrgno() {
             RelyingParty testRelyingParty =
-                rpRepository.save(TestDataGenerator.generateRelyingPartyNoId());
+                rpRepository.save(EntityGenerator.generateRelyingPartyNoId());
 
             RelyingParty testRelyingPartyOut =
                 rpRepository.findByOrgno(testRelyingParty.getOrgno()).orElse(null);
@@ -259,7 +259,7 @@ public class RelyingPartyRepositoryTest {
         @DisplayName("then deletion goes well if the entity is in the repository")
         void testDeleteExistingOrgno() {
             RelyingParty testRelyingParty =
-                    rpRepository.save(TestDataGenerator.generateRelyingPartyNoId());
+                    rpRepository.save(EntityGenerator.generateRelyingPartyNoId());
 
             testRelyingParty.setDeleted(true);
             rpRepository.save(testRelyingParty);
@@ -272,5 +272,3 @@ public class RelyingPartyRepositoryTest {
         }
     }
 }
-
-
