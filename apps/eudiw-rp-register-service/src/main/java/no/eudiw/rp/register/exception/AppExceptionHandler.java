@@ -14,6 +14,8 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import java.util.NoSuchElementException;
+
 
 /**
  * Top level exception handling for application.
@@ -27,7 +29,7 @@ public class AppExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleException(Exception e) {
         log.error("Failed to process request", e);
-        return errorResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, "server_error", e.getMessage());
+        return errorResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, "server_error", "server_error");
     }
 
     // api key
@@ -57,6 +59,12 @@ public class AppExceptionHandler {
     // Spring 404
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ErrorResponse> handleNoResourceFoundException(NoResourceFoundException e) {
+        return errorResponseEntity(HttpStatus.NOT_FOUND, "invalid_request", "Requested resource not found");
+    }
+
+    // Spring 404
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<ErrorResponse> handleNoSuchElementException(NoSuchElementException e) {
         return errorResponseEntity(HttpStatus.NOT_FOUND, "invalid_request", "Requested resource not found");
     }
 
