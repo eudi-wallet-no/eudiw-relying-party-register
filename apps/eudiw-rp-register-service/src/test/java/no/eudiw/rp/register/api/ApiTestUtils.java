@@ -2,6 +2,8 @@ package no.eudiw.rp.register.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import no.eudiw.rp.register.api.resource.RelyingPartiesResource;
+import no.eudiw.rp.register.api.resource.RelyingPartyResource;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.io.UnsupportedEncodingException;

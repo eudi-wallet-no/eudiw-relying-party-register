@@ -2,6 +2,7 @@ package no.eudiw.rp.register.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import no.eudiw.rp.register.api.resource.*;
 import no.eudiw.rp.register.data.entity.RelyingParty;
 import no.eudiw.rp.register.data.repository.RelyingPartyRepository;
 import no.eudiw.rp.register.testdata.TestDataGenerator;
@@ -49,222 +50,237 @@ public class RelyingPartiesControllerTest {
 
         public static final String VALID_API_KEY = "junit-api-key";
 
-        @Test
-        void testCreateRelyingParty() throws Exception {
-            CreateRelyingPartyResource resource = generateCreateRelyingPartyResource();
+        @Nested
+        @DisplayName("When creating a relying party ...")
+        class CreateTests {
+            @Test
+            void testCreateRelyingParty() throws Exception {
+                CreateRelyingPartyResource resource = generateCreateRelyingPartyResource();
 
-            ObjectWriter ow = new ObjectMapper().writer();
-            String json = ow.writeValueAsString(resource);
+                ObjectWriter ow = new ObjectMapper().writer();
+                String json = ow.writeValueAsString(resource);
 
-            mockMvc.perform(post("/v1/rp")
+                mockMvc.perform(post("/v1/rp")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .header(X_API_KEY_HEADER, VALID_API_KEY)
                                 .content(json))
-                   .andExpect(status().isOk())
-                   .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
-                   .andExpect(jsonPath("$.name").value(resource.getName()))
-                   .andExpect(jsonPath("$.public_sector").value(resource.isPublicSector()));
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
+                        .andExpect(jsonPath("$.name").value(resource.getName()))
+                        .andExpect(jsonPath("$.public_sector").value(resource.isPublicSector()));
+            }
         }
 
+        @Nested
+        @DisplayName("When retrieving a relying party ...")
+        class RetrieveTests {
+            @Test
+            void testGetRelyingParty() throws Exception {
+                CreateRelyingPartyResource resource = generateCreateRelyingPartyResource();
+                ObjectWriter ow = new ObjectMapper().writer();
+                String json = ow.writeValueAsString(resource);
 
-        @Test
-        void testEditRelyingPartySameEntitlements() throws Exception {
+                ResultActions createResult = mockMvc.perform(post("/v1/rp")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .header(X_API_KEY_HEADER, VALID_API_KEY)
+                                .content(json))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
+                        .andExpect(jsonPath("$.name").value(resource.getName()))
+                        .andExpect(jsonPath("$.public_sector").value(resource.isPublicSector()));
 
-            CreateRelyingPartyResource resource = generateCreateRelyingPartyResource();
+                RelyingPartyResource response = ApiTestUtils.toRelyingPartyResource(createResult);
 
-            ObjectWriter ow = new ObjectMapper().writer();
-            String json = ow.writeValueAsString(resource);
+                mockMvc.perform(get("/v1/rp/" + response.getId())
+                                .accept(MediaType.APPLICATION_JSON)
+                                .header(X_API_KEY_HEADER, VALID_API_KEY))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
+                        .andExpect(jsonPath("$.name").value(resource.getName()))
+                        .andExpect(jsonPath("$.public_sector").value(resource.isPublicSector()));
+            }
 
-            ResultActions createResult =
-                mockMvc.perform(post("/v1/rp")
-                                    .contentType(MediaType.APPLICATION_JSON)
-                                    .header(X_API_KEY_HEADER, VALID_API_KEY)
-                                    .content(json))
-                       .andExpect(status().isOk())
-                       .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
-                       .andExpect(jsonPath("$.name").value(resource.getName()))
-                       .andExpect(jsonPath("$.public_sector").value(resource.isPublicSector()));
+            @Test
+            void testGetRelyingPartyNoneExists() throws Exception {
+                mockMvc.perform(get("/v1/rp/" + UUID.randomUUID())
+                                .accept(MediaType.APPLICATION_JSON)
+                                .header(X_API_KEY_HEADER, VALID_API_KEY))
+                        .andExpect(status().isNotFound());
+            }
 
-            RelyingPartyResource relyingPartyResource = ApiTestUtils.toRelyingPartyResource(createResult);
+            @Test
+            void testGetAllRelyingParties() throws Exception {
+                mockMvc.perform(get("/v1/rp")
+                                .accept(MediaType.APPLICATION_JSON)
+                                .header(X_API_KEY_HEADER, VALID_API_KEY))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.relying_parties").exists())
+                        .andExpect(jsonPath("$.relying_parties").isArray());
+            }
+        }
 
-            EditRelyingPartyResource editResource = new EditRelyingPartyResource(
-                TestDataGenerator.generateName(),
-                TestDataGenerator.generatePublicSector(),
-                resource.getRelyingPartyEntitlements(),
-                resource.getRelyingPartyEaas(),
-                true
-            );
+        @Nested
+        @DisplayName("When deleting a relying party ...")
+        class DeleteTests {
+            @Test
+            void testDeleteRelyingParty() throws Exception {
+                CreateRelyingPartyResource resource = generateCreateRelyingPartyResource();
+                ObjectWriter ow = new ObjectMapper().writer();
+                String json = ow.writeValueAsString(resource);
 
-            mockMvc.perform(put("/v1/rp/" + relyingPartyResource.getId().toString())
+                ResultActions createResult =
+                        mockMvc.perform(post("/v1/rp")
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .header(X_API_KEY_HEADER, VALID_API_KEY)
+                                        .content(json))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
+                                .andExpect(jsonPath("$.name").value(resource.getName()))
+                                .andExpect(jsonPath("$.public_sector").value(resource.isPublicSector()));
+
+                RelyingPartyResource relyingPartyResource = ApiTestUtils.toRelyingPartyResource(createResult);
+
+                mockMvc.perform(delete("/v1/rp/" + relyingPartyResource.getId().toString())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .header(X_API_KEY_HEADER, VALID_API_KEY)
+                        )
+                        .andExpect(status().isNoContent());
+
+                mockMvc.perform(get("/v1/rp/" + relyingPartyResource.getId().toString())
+                                .accept(MediaType.APPLICATION_JSON)
+                                .header(X_API_KEY_HEADER, VALID_API_KEY)
+                        )
+                        .andExpect(status().isGone());
+            }
+
+            @Test
+            void testDeleteNotFoundRelyingParty() throws Exception {
+                mockMvc.perform(delete("/v1/rp/" + UUID.randomUUID())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .header(X_API_KEY_HEADER, VALID_API_KEY)
+                        )
+                        .andExpect(status().isNotFound());
+            }
+        }
+
+        @Nested
+        @DisplayName("When editing relying party ...")
+        class EditTests {
+            @Test
+            void testEditRelyingPartySameEntitlements() throws Exception {
+
+                CreateRelyingPartyResource resource = generateCreateRelyingPartyResource();
+
+                ObjectWriter ow = new ObjectMapper().writer();
+                String json = ow.writeValueAsString(resource);
+
+                ResultActions createResult =
+                        mockMvc.perform(post("/v1/rp")
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .header(X_API_KEY_HEADER, VALID_API_KEY)
+                                        .content(json))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
+                                .andExpect(jsonPath("$.name").value(resource.getName()))
+                                .andExpect(jsonPath("$.public_sector").value(resource.isPublicSector()));
+
+                RelyingPartyResource relyingPartyResource = ApiTestUtils.toRelyingPartyResource(createResult);
+
+                EditRelyingPartyResource editResource = new EditRelyingPartyResource(
+                        TestDataGenerator.generateName(),
+                        TestDataGenerator.generatePublicSector(),
+                        resource.getRelyingPartyEntitlements(),
+                        resource.getRelyingPartyEaas(),
+                        true
+                );
+
+                mockMvc.perform(put("/v1/rp/" + relyingPartyResource.getId().toString())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .header(X_API_KEY_HEADER, VALID_API_KEY)
                                 .content(ow.writeValueAsString(editResource)))
-                   .andExpect(status().isOk())
-                   .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
-                   .andExpect(jsonPath("$.name").value(editResource.getName()))
-                   .andExpect(jsonPath("$.public_sector").value(editResource.isPublicSector()));
-        }
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
+                        .andExpect(jsonPath("$.name").value(editResource.getName()))
+                        .andExpect(jsonPath("$.public_sector").value(editResource.isPublicSector()));
+            }
 
-        @Test
-        void testEditRelyingPartyMoreEntitlements() throws Exception {
+            @Test
+            void testEditRelyingPartyMoreEntitlements() throws Exception {
 
-            CreateRelyingPartyResource resource = generateCreateRelyingPartyResource();
+                CreateRelyingPartyResource resource = generateCreateRelyingPartyResource();
 
-            ObjectWriter ow = new ObjectMapper().writer();
-            String json = ow.writeValueAsString(resource);
+                ObjectWriter ow = new ObjectMapper().writer();
+                String json = ow.writeValueAsString(resource);
 
-            ResultActions createResult =
-                    mockMvc.perform(post("/v1/rp")
-                                    .contentType(MediaType.APPLICATION_JSON)
-                                    .header(X_API_KEY_HEADER, VALID_API_KEY)
-                                    .content(json))
-                            .andExpect(status().isOk())
-                            .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
-                            .andExpect(jsonPath("$.name").value(resource.getName()))
-                            .andExpect(jsonPath("$.public_sector").value(resource.isPublicSector()));
+                ResultActions createResult =
+                        mockMvc.perform(post("/v1/rp")
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .header(X_API_KEY_HEADER, VALID_API_KEY)
+                                        .content(json))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
+                                .andExpect(jsonPath("$.name").value(resource.getName()))
+                                .andExpect(jsonPath("$.public_sector").value(resource.isPublicSector()));
 
-            RelyingPartyResource relyingPartyResource = ApiTestUtils.toRelyingPartyResource(createResult);
-            List<RelyingPartyEntitlementResource> entitlements = new ArrayList<>();
-            entitlements.addAll(resource.getRelyingPartyEntitlements());
-            entitlements.add(new RelyingPartyEntitlementResource("check"));
-            EditRelyingPartyResource editResource = new EditRelyingPartyResource(
-                    TestDataGenerator.generateName(),
-                    TestDataGenerator.generatePublicSector(),
-                    entitlements,
-                    resource.getRelyingPartyEaas(),
-                    true
-            );
+                RelyingPartyResource relyingPartyResource = ApiTestUtils.toRelyingPartyResource(createResult);
+                List<RelyingPartyEntitlementResource> entitlements = new ArrayList<>();
+                entitlements.addAll(resource.getRelyingPartyEntitlements());
+                entitlements.add(new RelyingPartyEntitlementResource("check"));
+                EditRelyingPartyResource editResource = new EditRelyingPartyResource(
+                        TestDataGenerator.generateName(),
+                        TestDataGenerator.generatePublicSector(),
+                        entitlements,
+                        resource.getRelyingPartyEaas(),
+                        true
+                );
 
-            mockMvc.perform(put("/v1/rp/" + relyingPartyResource.getId().toString())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .header(X_API_KEY_HEADER, VALID_API_KEY)
-                            .content(ow.writeValueAsString(editResource)))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
-                    .andExpect(jsonPath("$.name").value(editResource.getName()))
-                    .andExpect(jsonPath("$.public_sector").value(editResource.isPublicSector()));
-        }
-
-        @Test
-        void testEditRelyingPartyLessEntitlements() throws Exception {
-
-            CreateRelyingPartyResource resource = generateCreateRelyingPartyResource();
-
-            ObjectWriter ow = new ObjectMapper().writer();
-            String json = ow.writeValueAsString(resource);
-
-            ResultActions createResult =
-                    mockMvc.perform(post("/v1/rp")
-                                    .contentType(MediaType.APPLICATION_JSON)
-                                    .header(X_API_KEY_HEADER, VALID_API_KEY)
-                                    .content(json))
-                            .andExpect(status().isOk())
-                            .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
-                            .andExpect(jsonPath("$.name").value(resource.getName()))
-                            .andExpect(jsonPath("$.public_sector").value(resource.isPublicSector()));
-
-            RelyingPartyResource relyingPartyResource = ApiTestUtils.toRelyingPartyResource(createResult);
-            EditRelyingPartyResource editResource = new EditRelyingPartyResource(
-                    TestDataGenerator.generateName(),
-                    TestDataGenerator.generatePublicSector(),
-                    new ArrayList<>(),
-                    resource.getRelyingPartyEaas(),
-                    true
-            );
-
-            ResultActions editResult = mockMvc.perform(put("/v1/rp/" + relyingPartyResource.getId().toString())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .header(X_API_KEY_HEADER, VALID_API_KEY)
-                            .content(ow.writeValueAsString(editResource)))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
-                    .andExpect(jsonPath("$.name").value(editResource.getName()))
-                    .andExpect(jsonPath("$.public_sector").value(editResource.isPublicSector()));
-            assertTrue(ApiTestUtils.toRelyingPartyResource(editResult).getRelyingPartyEntitlements().isEmpty());
-        }
-
-        @Test
-        void testGetRelyingParty() throws Exception {
-            CreateRelyingPartyResource resource = generateCreateRelyingPartyResource();
-            ObjectWriter ow = new ObjectMapper().writer();
-            String json = ow.writeValueAsString(resource);
-
-            ResultActions createResult = mockMvc.perform(post("/v1/rp")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .header(X_API_KEY_HEADER, VALID_API_KEY)
-                            .content(json))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
-                    .andExpect(jsonPath("$.name").value(resource.getName()))
-                    .andExpect(jsonPath("$.public_sector").value(resource.isPublicSector()));
-
-            RelyingPartyResource response = ApiTestUtils.toRelyingPartyResource(createResult);
-
-            mockMvc.perform(get("/v1/rp/" + response.getId())
-                            .accept(MediaType.APPLICATION_JSON)
-                            .header(X_API_KEY_HEADER, VALID_API_KEY))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
-                    .andExpect(jsonPath("$.name").value(resource.getName()))
-                    .andExpect(jsonPath("$.public_sector").value(resource.isPublicSector()));
-        }
-
-        @Test
-        void testGetRelyingPartyNoneExists() throws Exception {
-            mockMvc.perform(get("/v1/rp/" + UUID.randomUUID())
-                            .accept(MediaType.APPLICATION_JSON)
-                            .header(X_API_KEY_HEADER, VALID_API_KEY))
-                    .andExpect(status().isNotFound());
-        }
-
-        @Test
-        void testGetAllRelyingParties() throws Exception {
-            mockMvc.perform(get("/v1/rp")
-                            .accept(MediaType.APPLICATION_JSON)
-                            .header(X_API_KEY_HEADER, VALID_API_KEY))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.relying_parties").exists())
-                    .andExpect(jsonPath("$.relying_parties").isArray());
-        }
-
-        @Test
-        void testDeleteRelyingParty() throws Exception {
-            CreateRelyingPartyResource resource = generateCreateRelyingPartyResource();
-            ObjectWriter ow = new ObjectMapper().writer();
-            String json = ow.writeValueAsString(resource);
-
-            ResultActions createResult =
-                mockMvc.perform(post("/v1/rp")
-                                    .contentType(MediaType.APPLICATION_JSON)
-                                    .header(X_API_KEY_HEADER, VALID_API_KEY)
-                                    .content(json))
-                       .andExpect(status().isOk())
-                       .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
-                       .andExpect(jsonPath("$.name").value(resource.getName()))
-                       .andExpect(jsonPath("$.public_sector").value(resource.isPublicSector()));
-
-            RelyingPartyResource relyingPartyResource = ApiTestUtils.toRelyingPartyResource(createResult);
-
-            mockMvc.perform(delete("/v1/rp/" + relyingPartyResource.getId().toString())
+                mockMvc.perform(put("/v1/rp/" + relyingPartyResource.getId().toString())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .header(X_API_KEY_HEADER, VALID_API_KEY)
-                   )
-                   .andExpect(status().isNoContent());
+                                .content(ow.writeValueAsString(editResource)))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
+                        .andExpect(jsonPath("$.name").value(editResource.getName()))
+                        .andExpect(jsonPath("$.public_sector").value(editResource.isPublicSector()));
+            }
 
-            mockMvc.perform(get("/v1/rp/" + relyingPartyResource.getId().toString())
-                                .accept(MediaType.APPLICATION_JSON)
+            @Test
+            void testEditRelyingPartyLessEntitlements() throws Exception {
+
+                CreateRelyingPartyResource resource = generateCreateRelyingPartyResource();
+
+                ObjectWriter ow = new ObjectMapper().writer();
+                String json = ow.writeValueAsString(resource);
+
+                ResultActions createResult =
+                        mockMvc.perform(post("/v1/rp")
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .header(X_API_KEY_HEADER, VALID_API_KEY)
+                                        .content(json))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
+                                .andExpect(jsonPath("$.name").value(resource.getName()))
+                                .andExpect(jsonPath("$.public_sector").value(resource.isPublicSector()));
+
+                RelyingPartyResource relyingPartyResource = ApiTestUtils.toRelyingPartyResource(createResult);
+                EditRelyingPartyResource editResource = new EditRelyingPartyResource(
+                        TestDataGenerator.generateName(),
+                        TestDataGenerator.generatePublicSector(),
+                        new ArrayList<>(),
+                        resource.getRelyingPartyEaas(),
+                        true
+                );
+
+                ResultActions editResult = mockMvc.perform(put("/v1/rp/" + relyingPartyResource.getId().toString())
+                                .contentType(MediaType.APPLICATION_JSON)
                                 .header(X_API_KEY_HEADER, VALID_API_KEY)
-                   )
-                   .andExpect(status().isGone());
-        }
-
-        @Test
-        void testDeleteNotFoundRelyingParty() throws Exception {
-            mockMvc.perform(delete("/v1/rp/" + UUID.randomUUID())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .header(X_API_KEY_HEADER, VALID_API_KEY)
-                    )
-                    .andExpect(status().isNotFound());
+                                .content(ow.writeValueAsString(editResource)))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
+                        .andExpect(jsonPath("$.name").value(editResource.getName()))
+                        .andExpect(jsonPath("$.public_sector").value(editResource.isPublicSector()));
+                assertTrue(ApiTestUtils.toRelyingPartyResource(editResult).getRelyingPartyEntitlements().isEmpty());
+            }
         }
 
         @Nested

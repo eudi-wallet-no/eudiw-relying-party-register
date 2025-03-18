@@ -1,4 +1,4 @@
-package no.eudiw.rp.register.api;
+package no.eudiw.rp.register.api.resource;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -7,16 +7,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.UUID;
 
 @JsonInclude(JsonInclude.Include.ALWAYS)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class RelyingPartyResource {
-
-    @JsonProperty("id")
-    private UUID id;
+public class CreateRelyingPartyResource {
 
     @JsonProperty(value = "org_nr", required = true)
     private String orgNr;
@@ -32,13 +28,4 @@ public class RelyingPartyResource {
 
     @JsonProperty("relying_party_eaas")
     private List<RelyingPartyEaaResource> relyingPartyEaas;
-
-    @JsonProperty(value = "created_ms", required = false)
-    private long createdMs;
-
-    @JsonProperty(value = "last_updated_ms", required = false)
-    private long lastUpdatedMs;
-
-    @JsonProperty(value = "active", required = true)
-    private boolean active;
 }

@@ -1,8 +1,8 @@
 package no.eudiw.rp.register.testdata;
 
-import no.eudiw.rp.register.api.CreateRelyingPartyResource;
-import no.eudiw.rp.register.api.RelyingPartyEaaResource;
-import no.eudiw.rp.register.api.RelyingPartyEntitlementResource;
+import no.eudiw.rp.register.api.resource.CreateRelyingPartyResource;
+import no.eudiw.rp.register.api.resource.RelyingPartyEaaResource;
+import no.eudiw.rp.register.api.resource.RelyingPartyEntitlementResource;
 
 import java.util.List;
 

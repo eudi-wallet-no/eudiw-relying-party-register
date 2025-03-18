@@ -1,4 +1,4 @@
-package no.eudiw.rp.register.api;
+package no.eudiw.rp.register.api.resource;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -12,10 +12,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateRelyingPartyResource {
-
-    @JsonProperty(value = "org_nr", required = true)
-    private String orgNr;
+public class EditRelyingPartyResource {
 
     @JsonProperty(value = "name", required = true)
     private String name;
@@ -28,4 +25,7 @@ public class CreateRelyingPartyResource {
 
     @JsonProperty("relying_party_eaas")
     private List<RelyingPartyEaaResource> relyingPartyEaas;
+
+    @JsonProperty(value = "active", required = true)
+    private boolean active;
 }

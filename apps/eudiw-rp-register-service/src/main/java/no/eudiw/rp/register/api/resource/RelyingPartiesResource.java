@@ -1,4 +1,4 @@
-package no.eudiw.rp.register.api;
+package no.eudiw.rp.register.api.resource;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;

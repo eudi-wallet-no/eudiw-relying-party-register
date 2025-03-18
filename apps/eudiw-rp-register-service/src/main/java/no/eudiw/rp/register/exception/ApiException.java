@@ -15,5 +15,4 @@ public class ApiException extends RuntimeException {
         this.errorDescription = errorDescription;
         this.httpStatus = httpStatus;
     }
-
 }
