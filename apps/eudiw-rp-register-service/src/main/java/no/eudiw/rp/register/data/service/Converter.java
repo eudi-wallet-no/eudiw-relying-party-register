@@ -31,8 +31,7 @@ class Converter {
                         .toList(),
             relyingParty.getCreatedMs(),
             relyingParty.getLastUpdatedMs(),
-            relyingParty.isActive(),
-            relyingParty.isDeleted()
+            relyingParty.isActive()
         );
     }
 

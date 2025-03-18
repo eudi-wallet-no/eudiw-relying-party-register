@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 import java.util.UUID;
 
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
+@JsonInclude(JsonInclude.Include.ALWAYS)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -41,7 +41,4 @@ public class RelyingPartyResource {
 
     @JsonProperty(value = "active", required = true)
     private boolean active;
-
-    @JsonProperty(value = "deleted", required = true)
-    private boolean deleted;
 }

@@ -24,13 +24,14 @@ public interface RelyingPartyRepository
     @Query("""
         SELECT r
         FROM RelyingParty r
-        WHERE (r.orgno = :orgno AND
+        WHERE (r.orgno = :orgno) AND (r.deleted = :deleted) AND
                (:publicSector IS NULL OR r.publicSector = :publicSector) AND
-               (r.active OR :includeInactive = true))
+               (r.active OR :includeInactive = true)
     """)
-    List<RelyingParty> findByOrgnoAndOptionalPublicSector(
+    List<RelyingParty> findByOrgnoAndOptionalPublicSectorAndDeleted(
         @Param("orgno")           String orgno,
         @Param("publicSector")    Boolean publicSector,
+        @Param("deleted")    Boolean deleted,
         @Param("includeInactive") Boolean includeInactive);
 }
 

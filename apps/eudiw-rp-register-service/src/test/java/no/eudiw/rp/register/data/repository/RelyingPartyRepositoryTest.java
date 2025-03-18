@@ -267,8 +267,32 @@ public class RelyingPartyRepositoryTest {
             List<RelyingParty> relyingParties =
                     rpRepository.findAllByDeleted(false);
             assertNotNull(relyingParties);
-            assertFalse(relyingParties.isEmpty());
-            relyingParties.forEach(rp -> assertFalse(rp.isDeleted()));
+            assertTrue(relyingParties.isEmpty());
+        }
+    }
+
+    @Nested
+    @DisplayName("When Search ...")
+    class SearchTests {
+
+        @Test
+        @DisplayName("and deleted are not included")
+        void testDeleteExistingOrgno() {
+            RelyingParty testRelyingParty =
+                    rpRepository.save(EntityGenerator.generateRelyingPartyNoId());
+
+            testRelyingParty.setDeleted(true);
+            rpRepository.save(testRelyingParty);
+
+            List<RelyingParty> relyingParties =
+                    rpRepository.findByOrgnoAndOptionalPublicSectorAndDeleted(
+                            testRelyingParty.getOrgno(),
+                            testRelyingParty.getPublicSector(),
+                            false,
+                            testRelyingParty.isActive()
+                    );
+            assertNotNull(relyingParties);
+            assertTrue(relyingParties.isEmpty());
         }
     }
 }
