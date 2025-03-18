@@ -11,8 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -39,9 +39,12 @@ public class RelyingPartyService {
 
     @Transactional(readOnly = true)
     public RelyingPartyResource findRelyingParty(UUID id) {
-        return relyingPartyRepository.findById(id)
-                                     .map(Converter::toResource)
-                                     .orElse(null);
+        RelyingParty relyingParty = relyingPartyRepository.findById(id).orElse(null);
+        if (relyingParty == null) {
+            throw new ApiException("not_found", "Relying Party not found for id: " + id, HttpStatus.NOT_FOUND);
+        }
+
+        return Converter.toResource(relyingParty);
     }
 
     @Transactional(readOnly = true)
@@ -65,7 +68,6 @@ public class RelyingPartyService {
 
     @Transactional
     public RelyingPartyResource updateRelyingParty(UUID id, EditRelyingPartyResource request) {
-
         // updating requires RelyingParty ID to be set; otherwise it is a creation.
         // TODO: Jira EUW-25 (https://digdir.atlassian.net/browse/EUW-25)
         if (id == null) {
@@ -107,23 +109,33 @@ public class RelyingPartyService {
             List<RelyingPartyEntitlementResource> entitlements,
             List<RelyingPartyEaaResource> eaas
     ) {
-        relyingParty.setRelyingPartyEntitlements(
-            entitlements
-                .stream()
-                .map(entitlement -> new RelyingPartyEntitlement(
-                    entitlement.getEntitlement(),
-                    relyingParty))
-                .toList()
-        );
+        Set<String> entitlementNames = entitlements.stream()
+                .map(RelyingPartyEntitlementResource::getEntitlement)
+                .collect(Collectors.toSet());
 
-        relyingParty.setRelyingPartyEaas(
-            eaas
+        List<RelyingPartyEntitlement> updatedEntitlements = relyingParty.getRelyingPartyEntitlements()
                 .stream()
-                .map(eaa -> new RelyingPartyEaa(
-                    eaa.getNamespace(),
-                    eaa.getIntent(),
-                    relyingParty))
-                .toList()
-        );
+                .filter(entitlement -> entitlementNames.contains(entitlement.getEntitlement()))
+                .collect(Collectors.toList());
+
+        Set<String> existingEntitlementNames = relyingParty.getRelyingPartyEntitlements()
+                .stream()
+                .map(RelyingPartyEntitlement::getEntitlement)
+                .collect(Collectors.toSet());
+
+        entitlements.stream()
+                .map(RelyingPartyEntitlementResource::getEntitlement)
+                .filter(entitlement -> !existingEntitlementNames.contains(entitlement))
+                .map(entitlement -> new RelyingPartyEntitlement(entitlement, relyingParty))
+                .forEach(updatedEntitlements::add);
+
+        relyingParty.setRelyingPartyEntitlements(updatedEntitlements);
+
+        List<RelyingPartyEaa> updatedEaas = eaas.stream()
+                .map(eaa -> new RelyingPartyEaa(eaa.getNamespace(), eaa.getIntent(), relyingParty))
+                .toList();
+
+        relyingParty.setRelyingPartyEaas(updatedEaas);
+
     }
 }
