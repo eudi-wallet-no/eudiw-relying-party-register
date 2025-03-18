@@ -32,7 +32,7 @@ public class RelyingPartyService {
         }
 
         RelyingParty relyingParty = Converter.toEntity(request);
-        return Converter.toResource(relyingPartyRepository.save(relyingParty));
+        return Converter.toResource(relyingPartyRepository.saveAndFlush(relyingParty));
     }
 
     @Transactional(readOnly = true)
@@ -91,7 +91,7 @@ public class RelyingPartyService {
         relyingParty.setActive(request.isActive());
         setEntitlementsAndEaa(relyingParty, request.getRelyingPartyEntitlements(), request.getRelyingPartyEaas());
 
-        return Converter.toResource(relyingPartyRepository.save(relyingParty));
+        return Converter.toResource(relyingPartyRepository.saveAndFlush(relyingParty));
     }
 
     @Transactional
@@ -136,7 +136,9 @@ public class RelyingPartyService {
                 .map(eaa -> new RelyingPartyEaa(eaa.getNamespace(), eaa.getIntent(), relyingParty))
                 .toList();
 
-        relyingParty.setRelyingPartyEaas(updatedEaas);
+        List<RelyingPartyEaa> eliminateDuplicates =
+                new ArrayList<>(new LinkedHashSet<>(updatedEaas));
 
+        relyingParty.setRelyingPartyEaas(eliminateDuplicates);
     }
 }
