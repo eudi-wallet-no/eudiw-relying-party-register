@@ -1,7 +1,7 @@
 package no.eudiw.rp.register.data.service;
 
 import lombok.RequiredArgsConstructor;
-import no.eudiw.rp.register.api.*;
+import no.eudiw.rp.register.api.resource.*;
 import no.eudiw.rp.register.data.entity.RelyingParty;
 import no.eudiw.rp.register.data.entity.RelyingPartyEaa;
 import no.eudiw.rp.register.data.entity.RelyingPartyEntitlement;
@@ -24,13 +24,11 @@ public class RelyingPartyService {
     public RelyingPartyResource createRelyingParty(CreateRelyingPartyResource request) {
         // TODO: Jira EUW-27 (https://digdir.atlassian.net/browse/EUW-27)
         if (relyingPartyRepository.existsByOrgno(request.getOrgNr())) {
-            throw new RelyingPartyRegisterServiceException(
-                "Orgno already exists in relyingPartyRepository");
+            throw new ApiException("invalid_request", "OrgNr should be unique", HttpStatus.BAD_REQUEST);
         }
 
         if (request.getRelyingPartyEntitlements() == null || request.getRelyingPartyEaas() == null) {
-            throw new RelyingPartyRegisterServiceException(
-                "RelyingPartyEntitlements and RelyingPartyEaas must be non-null");
+            throw new ApiException("invalid_request", "Entitlements and Eaas should be emtpy if none exists", HttpStatus.BAD_REQUEST);
         }
 
         RelyingParty relyingParty = Converter.toEntity(request);
@@ -76,13 +74,11 @@ public class RelyingPartyService {
         // updating requires RelyingParty ID to be set; otherwise it is a creation.
         // TODO: Jira EUW-25 (https://digdir.atlassian.net/browse/EUW-25)
         if (id == null) {
-            throw new RelyingPartyRegisterServiceException(
-                    "Cannot query update without RelyingParty ID");
+            throw new ApiException("invalid_request", "Id should not be null", HttpStatus.BAD_REQUEST);
         }
 
         if (request.getRelyingPartyEntitlements() == null || request.getRelyingPartyEaas() == null) {
-            throw new RelyingPartyRegisterServiceException(
-                    "RelyingPartyEntitlements og RelyingPartyEaas kan ikke være null");
+            throw new ApiException("invalid_request", "Entitlements and Eaas should be emtpy if none exists", HttpStatus.BAD_REQUEST);
         }
 
         if (!relyingPartyRepository.existsById(id)) {

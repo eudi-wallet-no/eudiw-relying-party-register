@@ -32,6 +32,11 @@ public class AppExceptionHandler {
         return errorResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, "server_error", "server_error");
     }
 
+    @ExceptionHandler(ApiException.class)
+    public ResponseEntity<ErrorResponse> handleApiException(ApiException e) {
+        return errorResponseEntity(e.getHttpStatus(), e.getError(), e.getErrorDescription());
+    }
+
     // api key
     @ExceptionHandler(APIKeyAuthenticationExceptipon.class)
     public ResponseEntity<ErrorResponse> handleApiException(APIKeyAuthenticationExceptipon e) {

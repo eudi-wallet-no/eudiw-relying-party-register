@@ -1,6 +1,6 @@
 package no.eudiw.rp.register.data.service;
 
-import no.eudiw.rp.register.api.*;
+import no.eudiw.rp.register.api.resource.*;
 import no.eudiw.rp.register.data.entity.RelyingParty;
 import no.eudiw.rp.register.data.entity.RelyingPartyEaa;
 import no.eudiw.rp.register.data.entity.RelyingPartyEntitlement;
