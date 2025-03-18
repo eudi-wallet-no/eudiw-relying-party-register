@@ -41,7 +41,11 @@ public class RelyingPartyService {
     public RelyingPartyResource findRelyingParty(UUID id) {
         RelyingParty relyingParty = relyingPartyRepository.findById(id).orElse(null);
         if (relyingParty == null) {
-            throw new ApiException("not_found", "Relying Party not found for id: " + id, HttpStatus.NOT_FOUND);
+            throw new ApiException("not_found", "Relying Party not found", HttpStatus.NOT_FOUND);
+        }
+
+        if (relyingParty.isDeleted()) {
+            throw new ApiException("resource_deleted", "No access to resource", HttpStatus.GONE);
         }
 
         return Converter.toResource(relyingParty);
@@ -50,9 +54,10 @@ public class RelyingPartyService {
     @Transactional(readOnly = true)
     public RelyingPartiesResource searchRelyingParties(SearchRelyingPartyResource request) {
         return new RelyingPartiesResource(
-            relyingPartyRepository.findByOrgnoAndOptionalPublicSector(
+            relyingPartyRepository.findByOrgnoAndOptionalPublicSectorAndDeleted(
                                       request.orgno(),
                                       request.publicSector(),
+                                      false,
                                       request.includeInactive()
                                   )
                                   .stream()
@@ -81,7 +86,7 @@ public class RelyingPartyService {
         }
 
         if (!relyingPartyRepository.existsById(id)) {
-            throw new ApiException("not_found", "Relying Party not found for id: " + id, HttpStatus.NOT_FOUND);
+            throw new ApiException("not_found", "Relying Party not found", HttpStatus.NOT_FOUND);
         }
 
         RelyingParty relyingParty = relyingPartyRepository.findById(id).orElseThrow();
@@ -97,7 +102,7 @@ public class RelyingPartyService {
     public void deleteRelyingParty(UUID id) {
         RelyingParty relyingParty = relyingPartyRepository.findById(id).orElse(null);
         if (relyingParty == null) {
-            throw new ApiException("not_found", "Relying Party not found for id: " + id, HttpStatus.NOT_FOUND);
+            throw new ApiException("not_found", "Relying Party not found", HttpStatus.NOT_FOUND);
         }
 
         relyingParty.setDeleted(true);

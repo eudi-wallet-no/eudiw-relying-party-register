@@ -180,7 +180,7 @@ public class RelyingPartiesControllerTest {
                     .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
                     .andExpect(jsonPath("$.name").value(editResource.getName()))
                     .andExpect(jsonPath("$.public_sector").value(editResource.isPublicSector()));
-            assertTrue(ApiTestUtils.toRelyingPartyResource(editResult).getRelyingPartyEntitlements() == null);
+            assertTrue(ApiTestUtils.toRelyingPartyResource(editResult).getRelyingPartyEntitlements().isEmpty());
         }
 
         @Test
@@ -210,6 +210,14 @@ public class RelyingPartiesControllerTest {
         }
 
         @Test
+        void testGetRelyingPartyNoneExists() throws Exception {
+            mockMvc.perform(get("/v1/rp/" + UUID.randomUUID())
+                            .accept(MediaType.APPLICATION_JSON)
+                            .header(X_API_KEY_HEADER, VALID_API_KEY))
+                    .andExpect(status().isNotFound());
+        }
+
+        @Test
         void testGetAllRelyingParties() throws Exception {
             mockMvc.perform(get("/v1/rp")
                             .accept(MediaType.APPLICATION_JSON)
@@ -231,7 +239,6 @@ public class RelyingPartiesControllerTest {
                                     .header(X_API_KEY_HEADER, VALID_API_KEY)
                                     .content(json))
                        .andExpect(status().isOk())
-                       .andExpect(jsonPath("$.deleted").value("false"))
                        .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
                        .andExpect(jsonPath("$.name").value(resource.getName()))
                        .andExpect(jsonPath("$.public_sector").value(resource.isPublicSector()));
@@ -248,11 +255,7 @@ public class RelyingPartiesControllerTest {
                                 .accept(MediaType.APPLICATION_JSON)
                                 .header(X_API_KEY_HEADER, VALID_API_KEY)
                    )
-                   .andExpect(status().isOk())
-                   .andExpect(jsonPath("$.deleted").value("true"))
-                   .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
-                   .andExpect(jsonPath("$.name").value(resource.getName()))
-                   .andExpect(jsonPath("$.public_sector").value(resource.isPublicSector()));
+                   .andExpect(status().isGone());
         }
 
         @Test
