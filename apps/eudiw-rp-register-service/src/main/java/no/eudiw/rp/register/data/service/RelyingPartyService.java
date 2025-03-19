@@ -129,7 +129,7 @@ public class RelyingPartyService {
                 .filter(entitlement -> !existingEntitlementNames.contains(entitlement))
                 .map(entitlement -> new RelyingPartyEntitlement(entitlement, relyingParty))
                 .forEach(updatedEntitlements::add);
-
+        
         relyingParty.setRelyingPartyEntitlements(updatedEntitlements);
 
         List<RelyingPartyEaa> updatedEaas = eaas.stream()

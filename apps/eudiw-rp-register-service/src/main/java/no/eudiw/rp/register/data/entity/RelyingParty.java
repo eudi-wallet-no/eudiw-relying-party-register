@@ -36,17 +36,21 @@ public class RelyingParty {
     private Boolean publicSector;
 
     // TODO: Jira EUW-24 (https://digdir.atlassian.net/browse/EUW-24)
-    @OneToMany(mappedBy = "relyingParty",
-               fetch = FetchType.EAGER,
-               cascade = CascadeType.ALL)
+    @OneToMany(
+            mappedBy = "relyingParty",
+            fetch = FetchType.EAGER,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
     private List<RelyingPartyEntitlement> relyingPartyEntitlements =
         new ArrayList<>();
 
     // TODO: Jira EUW-24 (https://digdir.atlassian.net/browse/EUW-24)
     @Setter(AccessLevel.NONE)
-    @OneToMany(mappedBy = "relyingParty",
-               fetch = FetchType.EAGER,
-               cascade = CascadeType.ALL)
+    @OneToMany(
+            mappedBy = "relyingParty",
+            fetch = FetchType.EAGER,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
     private List<RelyingPartyEaa> relyingPartyEaas = new ArrayList<>();
 
     @Column(name = "created_ms", nullable = false)
