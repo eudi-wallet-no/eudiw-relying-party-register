@@ -1,0 +1,11 @@
+---
+server:
+  port: 9080
+
+management:
+  server:
+    port: 9090
+
+spring:
+  application:
+    environment: dev

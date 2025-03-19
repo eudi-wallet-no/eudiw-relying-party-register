@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>3.4.3</version>
+	</parent>
+	<groupId>no.idporten.eudiw</groupId>
+	<artifactId>rp-ca-service</artifactId>
+	<version>DEV-SNAPSHOT</version>
+	<name>rp-ca-service</name>
+	<description>EUDIW Relying Party Certificate Authority Service</description>
+	<properties>
+		<java.version>23</java.version>
+		<idporten-actuator-starter.version>1.2.2</idporten-actuator-starter.version>
+		<idporten-access-log.version>2.7.0</idporten-access-log.version>
+		<opentelemetry-instrumentation-api.version>1.48.0</opentelemetry-instrumentation-api.version>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>no.idporten.actuator</groupId>
+			<artifactId>idporten-actuator-starter</artifactId>
+			<version>${idporten-actuator-starter.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>no.idporten.logging</groupId>
+			<artifactId>idporten-access-log-spring-boot-3-starter</artifactId>
+			<version>${idporten-access-log.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.opentelemetry</groupId>
+			<artifactId>opentelemetry-api</artifactId>
+			<version>${opentelemetry-instrumentation-api.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>build-info</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+	<repositories>
+		<repository>
+			<id>central</id>
+			<url>https://repo1.maven.org/maven2</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+		</repository>
+		<repository>
+			<id>github</id>
+			<name>GitHub felleslosninger Apache Maven Packages</name>
+			<url>https://maven.pkg.github.com/felleslosninger/.github</url>
+		</repository>
+	</repositories>
+
+
+</project>
