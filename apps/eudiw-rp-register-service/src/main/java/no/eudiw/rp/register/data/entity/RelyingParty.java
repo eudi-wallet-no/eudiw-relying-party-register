@@ -108,19 +108,6 @@ public class RelyingParty {
         this.deleted = false;
     }
 
-    public RelyingParty(RelyingParty relyingParty) {
-        this(relyingParty.name,
-             relyingParty.orgno,
-             relyingParty.publicSector,
-             relyingParty.relyingPartyEntitlements,
-             relyingParty.relyingPartyEaas);
-        this.id = relyingParty.id;
-        this.createdMs = relyingParty.createdMs;
-        this.lastUpdatedMs = relyingParty.lastUpdatedMs;
-        this.active = relyingParty.active;
-        this.deleted = relyingParty.deleted;
-    }
-
     // for JPA instantiation.
     protected RelyingParty() { }
 

@@ -1,6 +1,8 @@
 package no.eudiw.rp.register.api.resource;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,6 +14,8 @@ import java.util.List;
 @AllArgsConstructor
 public class RelyingPartiesResource {
 
+    @Valid
+    @NotNull(message = "null_relying_parties")
     @JsonProperty("relying_parties")
     private List<RelyingPartyResource> relyingParties;
 }
