@@ -48,16 +48,4 @@ public class RelyingPartyEaa {
 
     // for JPA instantiation.
     protected RelyingPartyEaa() { }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (!(obj instanceof RelyingPartyEaa)) {
-            return false;
-        }
-        RelyingPartyEaa other = (RelyingPartyEaa) obj;
-        return this.namespace.equals(other.namespace) && this.intent.equals(other.intent);
-    }
 }
