@@ -136,9 +136,9 @@ public class RelyingPartyService {
                 .map(eaa -> new RelyingPartyEaa(eaa.getNamespace(), eaa.getIntent(), relyingParty))
                 .toList();
 
-        List<RelyingPartyEaa> eliminateDuplicates =
-                new ArrayList<>(new LinkedHashSet<>(updatedEaas));
+        Set<RelyingPartyEaa> uniqueEaas = new TreeSet<>(Comparator.comparing(p -> p.getIntent() + p.getNamespace()));
+        uniqueEaas.addAll(updatedEaas);
 
-        relyingParty.setRelyingPartyEaas(eliminateDuplicates);
+        relyingParty.setRelyingPartyEaas(uniqueEaas.stream().toList());
     }
 }
