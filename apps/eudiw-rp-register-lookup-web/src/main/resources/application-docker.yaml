@@ -1,10 +1,10 @@
 ---
 server:
-  port: 9080
+  port: 9210
 
 management:
   server:
-    port: 9090
+    port: 9211
 
 spring:
   application:
