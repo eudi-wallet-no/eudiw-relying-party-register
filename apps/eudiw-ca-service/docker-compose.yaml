@@ -26,7 +26,7 @@ services:
         cd /usr/local/tomcat/webapps/
         java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9225 -jar application.jar
     healthcheck:
-      test: wget --no-verbose --tries=1 --spider http://localhost:9211/health/readiness || exit 1
+      test: wget --no-verbose --tries=1 --spider http://localhost:9221/health/readiness || exit 1
       interval: 15s
       start_period: 5s
       timeout: 5s
