@@ -1,4 +1,7 @@
 ---
+server:
+  port: 8080
+
 spring:
   thread-executor: virtual
   application:
@@ -7,6 +10,8 @@ spring:
 
 # Spring Boot Actuator
 management:
+  server:
+    port: 8090
   endpoints:
     web:
       exposure:
@@ -16,7 +21,3 @@ management:
     health:
       probes:
         enabled: true
-
-server:
-  port: 8080
-
