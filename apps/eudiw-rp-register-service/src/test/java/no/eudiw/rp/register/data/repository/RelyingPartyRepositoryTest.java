@@ -1,6 +1,7 @@
 package no.eudiw.rp.register.data.repository;
 
 import jakarta.annotation.Resource;
+import no.eudiw.rp.register.testdata.TestDataGenerator;
 import no.eudiw.rp.register.testdata.EntityGenerator;
 import no.eudiw.rp.register.data.entity.RelyingParty;
 import org.junit.jupiter.api.*;
@@ -50,7 +51,7 @@ public class RelyingPartyRepositoryTest {
         @Test
         @DisplayName("then nothing is read if the orgno is not in the RelyingPartyRepository")
         void testFindNonexistentOrgno() {
-            String nonExistentOrgno = EntityGenerator.generateOrgno();
+            String nonExistentOrgno = TestDataGenerator.generateValidOrgno();
             assertTrue(rpRepository.findByOrgno(nonExistentOrgno).isEmpty());
         }
     }
@@ -154,7 +155,7 @@ public class RelyingPartyRepositoryTest {
                 rpRepository.save(EntityGenerator.generateRelyingPartyNoId());
 
             String oldOrgno = testRelyingParty.getOrgno();
-            String newOrgno = EntityGenerator.generateOrgno();
+            String newOrgno = TestDataGenerator.generateValidOrgno();
 
             testRelyingParty.setOrgno(newOrgno);
             rpRepository.save(testRelyingParty);

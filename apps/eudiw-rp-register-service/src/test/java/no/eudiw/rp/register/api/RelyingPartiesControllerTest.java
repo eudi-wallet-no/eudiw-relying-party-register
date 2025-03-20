@@ -24,11 +24,12 @@ import java.util.List;
 import java.util.UUID;
 
 import static no.eudiw.rp.register.testdata.EntityGenerator.generateRelyingPartyNoId;
-import static no.eudiw.rp.register.testdata.ResourceGenerator.generateCreateRelyingPartyResource;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.hamcrest.Matchers.*;
 
+import static no.eudiw.rp.register.testdata.ResourceGenerator.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -68,6 +69,23 @@ public class RelyingPartiesControllerTest {
                         .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
                         .andExpect(jsonPath("$.name").value(resource.getName()))
                         .andExpect(jsonPath("$.public_sector").value(resource.isPublicSector()));
+            }
+
+            @Test
+            void testCreateRelyingPartyInvalidOrgno() throws Exception {
+                CreateRelyingPartyResource resource = generateCreateRelyingPartyResource();
+                resource.setOrgNr(generateInvalidOrgno());
+
+                ObjectWriter ow = new ObjectMapper().writer();
+                String json = ow.writeValueAsString(resource);
+
+                mockMvc.perform(post("/v1/rp")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .header(X_API_KEY_HEADER, VALID_API_KEY)
+                                    .content(json))
+                       .andExpect(status().isBadRequest())
+                       .andExpect(jsonPath("$.error").value("invalid_request"))
+                       .andExpect(jsonPath("$.error_description", containsString("invalid_orgnr")));
             }
         }
 
@@ -368,7 +386,7 @@ public class RelyingPartiesControllerTest {
                 @DisplayName("then search succeeds with empty result if orgno not in database")
                 void testSearchByNonexistentOrgno() throws Exception {
 
-                    String nonexistentOrgno = TestDataGenerator.generateOrgno();
+                    String nonexistentOrgno = TestDataGenerator.generateValidOrgno();
 
                     SearchRelyingPartyResource searchResource =
                         new SearchRelyingPartyResource(nonexistentOrgno, null, false);
@@ -423,8 +441,6 @@ public class RelyingPartiesControllerTest {
                 }
             }
         }
-
-
     }
 
 
@@ -448,7 +464,5 @@ public class RelyingPartiesControllerTest {
                             .header(X_API_KEY_HEADER, "junit-invalid-api-key"))
                     .andExpect(status().isUnauthorized());
         }
-
     }
-
 }

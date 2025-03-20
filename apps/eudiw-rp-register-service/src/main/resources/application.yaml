@@ -29,6 +29,11 @@ spring:
     name: eudiw-rp-register-service
     environment: default
 
+  jackson:
+    deserialization:
+      # reject API resources with unknown/extra fields in them
+      fail-on-unknown-properties: true
+
 # Spring Boot Actuator
 management:
   server:

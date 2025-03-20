@@ -6,7 +6,7 @@ public class EntityGenerator extends TestDataGenerator {
 
     public static RelyingParty generateRelyingPartyNoId() {
         return new RelyingParty(generateName(),
-                                generateOrgno(),
+                                generateValidOrgno(),
                                 generatePublicSector());
     }
 }

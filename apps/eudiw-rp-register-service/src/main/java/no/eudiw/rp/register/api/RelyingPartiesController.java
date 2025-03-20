@@ -47,7 +47,8 @@ public class RelyingPartiesController {
                 description = "Create Relying Party",
                 tags = {"relying-parties-api"})
         @ApiResponses(value = {
-                @ApiResponse(responseCode = "200", description = "Relying party is created")
+                @ApiResponse(responseCode = "200", description = "Relying party is created"),
+                @ApiResponse(responseCode = "400", description = "Invalid resource")
         })
         @PostMapping(path = "v1/rp", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
         public ResponseEntity<RelyingPartyResource> createRelyingParty(@Valid @RequestBody CreateRelyingPartyResource request) {
