@@ -17,7 +17,7 @@
     <properties>
         <java.version>21</java.version>
         <idporten-actuator.version>1.2.2</idporten-actuator.version>
-        <idporten-validators.version>1.4.2</idporten-validators.version>
+        <idporten-validators.version>1.4.3</idporten-validators.version>
         <logback.version>1.5.17</logback.version> <!-- Can be removed when spring boot has > 1.5.12 as the default version -->
         <idporten-access-log.version>2.7.0</idporten-access-log.version>
         <open.telemetry.version>2.13.3</open.telemetry.version>
