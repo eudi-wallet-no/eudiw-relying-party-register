@@ -1,9 +1,9 @@
 ---
 server:
-  port: 7080
+  port: 9200
 management:
   server:
-    port: 7090
+    port: 9201
 spring:
   security:
     api-key: xxx
