@@ -15,7 +15,7 @@
 	<properties>
 		<java.version>23</java.version>
 		<idporten-actuator-starter.version>1.2.2</idporten-actuator-starter.version>
-		<idporten-access-log.version>2.7.0</idporten-access-log.version>
+		<idporten-access-log.version>2.7.1</idporten-access-log.version>
 		<opentelemetry-instrumentation-api.version>1.48.0</opentelemetry-instrumentation-api.version>
 	</properties>
 	<dependencies>
