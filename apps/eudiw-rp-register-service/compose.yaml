@@ -34,7 +34,9 @@ services:
       spring_profiles_active: docker
       _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0"
     ports:
-      - "7080:7080"
+      - "9200:9200"
+      - "9201:9201"
+      - "9205:9205"
     networks:
       - eudiw
     depends_on:
@@ -46,7 +48,7 @@ services:
         cd /usr/local/webapps
         java -jar application.jar
     healthcheck:
-      test: wget --no-verbose --tries=1 --spider http://localhost:7080/health/readiness || exit 1
+      test: wget --no-verbose --tries=1 --spider http://eudiw-rp-register-service:9201/health/readiness || exit 1
       interval: 15s
       start_period: 5s
       timeout: 5s

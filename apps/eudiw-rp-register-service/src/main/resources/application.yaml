@@ -1,6 +1,6 @@
 ---
 server:
-  port: 8080
+  port: 9200
 
 spring:
   thread-executor: virtual
@@ -37,7 +37,7 @@ spring:
 # Spring Boot Actuator
 management:
   server:
-    port: 8090
+    port: 9201
   endpoints:
     web:
       base-path: /
