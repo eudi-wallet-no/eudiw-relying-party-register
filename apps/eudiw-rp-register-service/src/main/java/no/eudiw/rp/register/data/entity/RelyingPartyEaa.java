@@ -3,7 +3,6 @@ package no.eudiw.rp.register.data.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -28,7 +27,6 @@ public class RelyingPartyEaa {
     @Column(name = "intent", nullable = false)
     private String intent;
 
-    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "relying_party_id",
         columnDefinition = "UUID",

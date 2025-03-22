@@ -13,6 +13,6 @@ public record SearchRelyingPartyResource(
     String orgno,
     @JsonProperty("public_sector")
     Boolean publicSector,
-    @JsonProperty("include_inactive")
+    @JsonProperty(value = "include_inactive", defaultValue = "false")
     Boolean includeInactive
 ) { }

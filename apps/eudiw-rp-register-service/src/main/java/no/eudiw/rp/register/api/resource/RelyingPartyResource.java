@@ -5,54 +5,50 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.With;
 import no.eudiw.rp.register.validation.NameConstraint;
 import no.eudiw.rp.register.validation.SaneStringConstraint;
 
 import java.util.List;
 import java.util.UUID;
 
+@With
 @JsonInclude(JsonInclude.Include.ALWAYS)
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class RelyingPartyResource {
+public record RelyingPartyResource(
 
     @NotNull(message = "null_id")
     @JsonProperty("id")
-    private UUID id;
+    UUID id,
 
     @NotNull(message = "null_orgno")
     @JsonProperty(value = "org_nr", required = true)
-    private String orgNr;
+    String orgNr,
 
     @SaneStringConstraint
     @NameConstraint
     @NotNull(message = "null_name")
     @JsonProperty(value = "name", required = true)
-    private String name;
+    String name,
 
     @JsonProperty(value = "public_sector", required = true)
-    private boolean publicSector;
+    boolean publicSector,
 
     @Valid
     @NotEmpty(message = "empty_entitlements")
     @JsonProperty("relying_party_entitlements")
-    private List<RelyingPartyEntitlementResource> relyingPartyEntitlements;
+    List<RelyingPartyEntitlementResource> relyingPartyEntitlements,
 
     @Valid
     @NotNull(message = "null_eaas")
     @JsonProperty("relying_party_eaas")
-    private List<RelyingPartyEaaResource> relyingPartyEaas;
+    List<RelyingPartyEaaResource> relyingPartyEaas,
 
     @JsonProperty(value = "created_ms", required = false)
-    private long createdMs;
+    long createdMs,
 
     @JsonProperty(value = "last_updated_ms", required = false)
-    private long lastUpdatedMs;
+    long lastUpdatedMs,
 
     @JsonProperty(value = "active", required = true)
-    private boolean active;
-}
+    boolean active
+) { }

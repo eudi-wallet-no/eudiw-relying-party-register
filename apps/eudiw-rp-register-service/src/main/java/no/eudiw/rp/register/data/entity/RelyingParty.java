@@ -7,13 +7,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.AccessLevel;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 @Getter
 @Setter
-@ToString
 @Entity
 @Table(name = "relying_party")
 public class RelyingParty {

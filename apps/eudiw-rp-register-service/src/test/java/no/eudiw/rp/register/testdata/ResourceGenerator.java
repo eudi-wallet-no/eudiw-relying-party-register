@@ -3,18 +3,18 @@ package no.eudiw.rp.register.testdata;
 import no.eudiw.rp.register.api.resource.*;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
 
 public class ResourceGenerator extends TestDataGenerator {
+
 
     public static CreateRelyingPartyResource generateCreateRelyingPartyResource() {
         return new CreateRelyingPartyResource(
             generateValidOrgno(),
             generateName(),
             generatePublicSector(),
-            List.of(generateRelyingPartyEntitlementResource()),
-            List.of(generateRelyingPartyEaaResource())
+            generateListBy(ResourceGenerator::generateRelyingPartyEntitlementResource),
+            generateListBy(ResourceGenerator::generateRelyingPartyEaaResource)
         );
     }
 
@@ -22,8 +22,8 @@ public class ResourceGenerator extends TestDataGenerator {
         return new EditRelyingPartyResource(
             generateName(),
             generatePublicSector(),
-            List.of(generateRelyingPartyEntitlementResource()),
-            List.of(generateRelyingPartyEaaResource()),
+            generateListBy(ResourceGenerator::generateRelyingPartyEntitlementResource),
+            generateListBy(ResourceGenerator::generateRelyingPartyEaaResource),
             true
        );
     }
@@ -42,17 +42,17 @@ public class ResourceGenerator extends TestDataGenerator {
     }
 
     public static RelyingPartyResource generateRelyingPartyResource() {
-        Instant timeNow = Instant.now();
+        long timeNow = Instant.now().toEpochMilli();
 
         return new RelyingPartyResource(
             UUID.randomUUID(),
             generateValidOrgno(),
             generateName(),
             generatePublicSector(),
-            List.of(generateRelyingPartyEntitlementResource()),
-            List.of(generateRelyingPartyEaaResource()),
-            timeNow.toEpochMilli(),
-            timeNow.toEpochMilli(),
+            generateListBy(ResourceGenerator::generateRelyingPartyEntitlementResource),
+            generateListBy(ResourceGenerator::generateRelyingPartyEaaResource),
+            timeNow,
+            timeNow,
             true
         );
     }

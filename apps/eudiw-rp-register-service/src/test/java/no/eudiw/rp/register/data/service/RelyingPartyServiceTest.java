@@ -1,6 +1,7 @@
 package no.eudiw.rp.register.data.service;
 
 import no.eudiw.rp.register.api.resource.*;
+import static no.eudiw.rp.register.testdata.ResourceGenerator.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -8,10 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import static no.eudiw.rp.register.testdata.ResourceGenerator.generateCreateRelyingPartyResource;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -34,48 +33,33 @@ public class RelyingPartyServiceTest {
             RelyingPartyResource response = relyingPartyService.createRelyingParty(resource);
             assertNotNull(response);
 
-            RelyingPartyResource editResponse1 = relyingPartyService.updateRelyingParty(
-                    response.getId(),
-                    new EditRelyingPartyResource(
-                            response.getName(),
-                            response.isPublicSector(),
-                            List.of(new RelyingPartyEntitlementResource("value")),
-                            List.of(new RelyingPartyEaaResource("asd", "asd"), new RelyingPartyEaaResource("vsd", "ert")),
-                            true
-                    )
-            );
+            EditRelyingPartyResource editResource =
+                generateEditRelyingPartyResource()
+                    .withName(response.name())
+                    .withPublicSector(response.publicSector());
+
+            RelyingPartyResource editResponse1 =
+                relyingPartyService.updateRelyingParty(response.id(), editResource);
             assertNotNull(editResponse1);
-            assertEquals(2, editResponse1.getRelyingPartyEaas().size());
+            assertEquals(editResource.relyingPartyEaas().size(), editResponse1.relyingPartyEaas().size());
 
-            RelyingPartyResource editResponse2 = relyingPartyService.updateRelyingParty(
-                    response.getId(),
-                    new EditRelyingPartyResource(
-                            response.getName(),
-                            response.isPublicSector(),
-                            List.of(new RelyingPartyEntitlementResource("value")),
-                            List.of(new RelyingPartyEaaResource("asd", "asd"), new RelyingPartyEaaResource("vsd", "ert")),
-                            true
-                    )
-            );
+            RelyingPartyResource editResponse2 =
+                relyingPartyService.updateRelyingParty(response.id(), editResource);
             assertNotNull(editResponse2);
-            assertEquals(2, editResponse2.getRelyingPartyEaas().size());
+            assertEquals(editResource.relyingPartyEaas().size(), editResponse2.relyingPartyEaas().size());
 
+            EditRelyingPartyResource emptyEaasEditResource =
+                editResource.withRelyingPartyEaas(List.of());
             RelyingPartyResource editResponse3 = relyingPartyService.updateRelyingParty(
-                    response.getId(),
-                    new EditRelyingPartyResource(
-                            response.getName(),
-                            response.isPublicSector(),
-                            List.of(new RelyingPartyEntitlementResource("value")),
-                            new ArrayList<>(),
-                            true
-                    )
+                    response.id(),
+                    emptyEaasEditResource
             );
             assertNotNull(editResponse3);
-            assertEquals(0, editResponse3.getRelyingPartyEaas().size());
+            assertEquals(0, editResponse3.relyingPartyEaas().size());
 
-            RelyingPartyResource getResult = relyingPartyService.findRelyingParty(response.getId());
+            RelyingPartyResource getResult = relyingPartyService.findRelyingParty(response.id());
             assertNotNull(getResult);
-            assertEquals(0, getResult.getRelyingPartyEaas().size());
+            assertEquals(0, getResult.relyingPartyEaas().size());
         }
 
         @Test
@@ -85,26 +69,24 @@ public class RelyingPartyServiceTest {
             RelyingPartyResource response = relyingPartyService.createRelyingParty(resource);
             assertNotNull(response);
 
+            EditRelyingPartyResource editResource =
+                generateEditRelyingPartyResource()
+                    .withName(response.name() + "new")
+                    .withPublicSector(!response.publicSector());
             RelyingPartyResource editResponse = relyingPartyService.updateRelyingParty(
-                    response.getId(),
-                    new EditRelyingPartyResource(
-                            response.getName() + "new",
-                            !response.isPublicSector(),
-                            List.of(new RelyingPartyEntitlementResource("value")),
-                            List.of(new RelyingPartyEaaResource("asd", "asd"), new RelyingPartyEaaResource("vsd", "ert")),
-                            true
-                    )
+                    response.id(),
+                    editResource
             );
             assertNotNull(editResponse);
-            assertEquals(2, editResponse.getRelyingPartyEaas().size());
-            assertEquals(response.getName() + "new", editResponse.getName());
-            assertEquals(!response.isPublicSector(), editResponse.isPublicSector());
+            assertEquals(editResource.relyingPartyEaas().size(), editResponse.relyingPartyEaas().size());
+            assertEquals(response.name() + "new", editResponse.name());
+            assertEquals(!response.publicSector(), editResponse.publicSector());
 
-            RelyingPartyResource getResult = relyingPartyService.findRelyingParty(response.getId());
+            RelyingPartyResource getResult = relyingPartyService.findRelyingParty(response.id());
             assertNotNull(getResult);
-            assertEquals(2, getResult.getRelyingPartyEaas().size());
-            assertEquals(response.getName() + "new", getResult.getName());
-            assertEquals(!response.isPublicSector(), getResult.isPublicSector());
+            assertEquals(editResource.relyingPartyEaas().size(), getResult.relyingPartyEaas().size());
+            assertEquals(response.name() + "new", getResult.name());
+            assertEquals(!response.publicSector(), getResult.publicSector());
         }
 
         @Test
@@ -114,73 +96,49 @@ public class RelyingPartyServiceTest {
             RelyingPartyResource response = relyingPartyService.createRelyingParty(resource);
             assertNotNull(response);
 
-            RelyingPartyResource editResponse1 = relyingPartyService.updateRelyingParty(
-                    response.getId(),
-                    new EditRelyingPartyResource(
-                            response.getName(),
-                            response.isPublicSector(),
-                            List.of(new RelyingPartyEntitlementResource("value")),
-                            List.of(new RelyingPartyEaaResource("asd", "asd"), new RelyingPartyEaaResource("vsd", "ert")),
-                            true
-                    )
-            );
+            EditRelyingPartyResource editResource =
+                generateEditRelyingPartyResource()
+                    .withName(response.name())
+                    .withPublicSector(response.publicSector());
+
+            RelyingPartyResource editResponse1 =
+                relyingPartyService.updateRelyingParty(response.id(), editResource);
             assertNotNull(editResponse1);
-            assertEquals(2, editResponse1.getRelyingPartyEaas().size());
+            assertEquals(editResource.relyingPartyEaas().size(), editResponse1.relyingPartyEaas().size());
 
-            RelyingPartyResource getResult1 = relyingPartyService.findRelyingParty(response.getId());
+            RelyingPartyResource getResult1 = relyingPartyService.findRelyingParty(response.id());
             assertNotNull(getResult1);
-            assertEquals(2, getResult1.getRelyingPartyEaas().size());
+            assertEquals(editResource.relyingPartyEaas().size(), getResult1.relyingPartyEaas().size());
 
-            RelyingPartyResource editResponse2 = relyingPartyService.updateRelyingParty(
-                    response.getId(),
-                    new EditRelyingPartyResource(
-                            response.getName(),
-                            response.isPublicSector(),
-                            List.of(new RelyingPartyEntitlementResource("value")),
-                            List.of(new RelyingPartyEaaResource("asd", "asd"), new RelyingPartyEaaResource("vsd", "ert")),
-                            true
-                    )
-            );
+            RelyingPartyResource editResponse2 =
+                relyingPartyService.updateRelyingParty(response.id(), editResource);
             assertNotNull(editResponse2);
-            assertEquals(2, editResponse2.getRelyingPartyEaas().size());
+            assertEquals(editResource.relyingPartyEaas().size(), editResponse2.relyingPartyEaas().size());
 
-            RelyingPartyResource getResult2 = relyingPartyService.findRelyingParty(response.getId());
+            RelyingPartyResource getResult2 = relyingPartyService.findRelyingParty(response.id());
             assertNotNull(getResult2);
-            assertEquals(2, getResult2.getRelyingPartyEaas().size());
+            assertEquals(editResource.relyingPartyEaas().size(), getResult2.relyingPartyEaas().size());
 
-            RelyingPartyResource editResponse3 = relyingPartyService.updateRelyingParty(
-                    response.getId(),
-                    new EditRelyingPartyResource(
-                            response.getName(),
-                            response.isPublicSector(),
-                            List.of(new RelyingPartyEntitlementResource("value")),
-                            new ArrayList<>(),
-                            true
-                    )
-            );
+            EditRelyingPartyResource emptyEaasEditResource =
+                generateEditRelyingPartyResource()
+                    .withRelyingPartyEaas(List.of());
+            RelyingPartyResource editResponse3 =
+                relyingPartyService.updateRelyingParty(response.id(), emptyEaasEditResource);
             assertNotNull(editResponse3);
-            assertEquals(0, editResponse3.getRelyingPartyEaas().size());
+            assertEquals(0, editResponse3.relyingPartyEaas().size());
 
-            RelyingPartyResource getResult3 = relyingPartyService.findRelyingParty(response.getId());
+            RelyingPartyResource getResult3 = relyingPartyService.findRelyingParty(response.id());
             assertNotNull(getResult3);
-            assertEquals(0, getResult3.getRelyingPartyEaas().size());
+            assertEquals(0, getResult3.relyingPartyEaas().size());
 
-            RelyingPartyResource editResponse4 = relyingPartyService.updateRelyingParty(
-                    response.getId(),
-                    new EditRelyingPartyResource(
-                            response.getName(),
-                            response.isPublicSector(),
-                            List.of(new RelyingPartyEntitlementResource("value")),
-                            List.of(new RelyingPartyEaaResource("asd", "asd"), new RelyingPartyEaaResource("vsd", "ert")),
-                            true
-                    )
-            );
+            RelyingPartyResource editResponse4 =
+                relyingPartyService.updateRelyingParty(response.id(), editResource);
             assertNotNull(editResponse4);
-            assertEquals(2, editResponse4.getRelyingPartyEaas().size());
+            assertEquals(editResource.relyingPartyEaas().size(), editResponse4.relyingPartyEaas().size());
 
-            RelyingPartyResource getResult4 = relyingPartyService.findRelyingParty(response.getId());
+            RelyingPartyResource getResult4 = relyingPartyService.findRelyingParty(response.id());
             assertNotNull(getResult4);
-            assertEquals(2, getResult4.getRelyingPartyEaas().size());
+            assertEquals(editResource.relyingPartyEaas().size(), getResult4.relyingPartyEaas().size());
         }
 
         @Test
@@ -190,42 +148,36 @@ public class RelyingPartyServiceTest {
             RelyingPartyResource response = relyingPartyService.createRelyingParty(resource);
             assertNotNull(response);
 
-            RelyingPartyResource editResponse1 = relyingPartyService.updateRelyingParty(
-                    response.getId(),
-                    new EditRelyingPartyResource(
-                            response.getName(),
-                            response.isPublicSector(),
-                            List.of(new RelyingPartyEntitlementResource("e")),
-                            List.of(new RelyingPartyEaaResource("asd", "asd"), new RelyingPartyEaaResource("vsd", "ert")),
-                            true
-                    )
-            );
+            EditRelyingPartyResource editResource =
+                generateEditRelyingPartyResource()
+                    .withName(response.name())
+                    .withPublicSector(response.publicSector());
+            RelyingPartyResource editResponse1 =
+                relyingPartyService.updateRelyingParty(response.id(), editResource);
             assertNotNull(editResponse1);
-            assertEquals(2, editResponse1.getRelyingPartyEaas().size());
+            assertEquals(editResource.relyingPartyEaas().size(), editResponse1.relyingPartyEaas().size());
 
-            RelyingPartyResource getResult1 = relyingPartyService.findRelyingParty(response.getId());
+            RelyingPartyResource getResult1 = relyingPartyService.findRelyingParty(response.id());
             assertNotNull(getResult1);
-            assertEquals(2, getResult1.getRelyingPartyEaas().size());
-            assertEquals(1, getResult1.getRelyingPartyEntitlements().size());
+            assertEquals(editResource.relyingPartyEaas().size(), getResult1.relyingPartyEaas().size());
+            assertEquals(editResource.relyingPartyEntitlements().size(), getResult1.relyingPartyEntitlements().size());
 
-            RelyingPartyResource editResponse2 = relyingPartyService.updateRelyingParty(
-                    response.getId(),
-                    new EditRelyingPartyResource(
-                            response.getName(),
-                            response.isPublicSector(),
-                            List.of(new RelyingPartyEntitlementResource("e"), new RelyingPartyEntitlementResource("f")),
-                            List.of(new RelyingPartyEaaResource("asd", "asd"), new RelyingPartyEaaResource("vsd", "ert")),
-                            true
-                    )
-            );
+            EditRelyingPartyResource editResource2 =
+                generateEditRelyingPartyResource()
+                    .withName(response.name())
+                    .withPublicSector(response.publicSector());
+
+            RelyingPartyResource editResponse2 =
+                relyingPartyService.updateRelyingParty(response.id(), editResource2);
+
             assertNotNull(editResponse2);
-            assertEquals(2, editResponse2.getRelyingPartyEaas().size());
-            assertEquals(2, editResponse2.getRelyingPartyEntitlements().size());
+            assertEquals(editResource2.relyingPartyEaas().size(), editResponse2.relyingPartyEaas().size());
+            assertEquals(editResource2.relyingPartyEntitlements().size(), editResponse2.relyingPartyEntitlements().size());
 
-            RelyingPartyResource getResult2 = relyingPartyService.findRelyingParty(response.getId());
+            RelyingPartyResource getResult2 = relyingPartyService.findRelyingParty(response.id());
             assertNotNull(getResult2);
-            assertEquals(2, getResult2.getRelyingPartyEaas().size());
-            assertEquals(2, getResult2.getRelyingPartyEntitlements().size());
+            assertEquals(editResource2.relyingPartyEaas().size(), getResult2.relyingPartyEaas().size());
+            assertEquals(editResource2.relyingPartyEntitlements().size(), getResult2.relyingPartyEntitlements().size());
         }
 
         @Test
@@ -234,23 +186,19 @@ public class RelyingPartyServiceTest {
 
             RelyingPartyResource response = relyingPartyService.createRelyingParty(resource);
             assertNotNull(response);
+            EditRelyingPartyResource editResource =
+                generateEditRelyingPartyResource()
+                    .withName(response.name())
+                    .withPublicSector(response.publicSector());
 
-            RelyingPartyResource editResponse1 = relyingPartyService.updateRelyingParty(
-                    response.getId(),
-                    new EditRelyingPartyResource(
-                            response.getName(),
-                            response.isPublicSector(),
-                            List.of(new RelyingPartyEntitlementResource("e")),
-                            List.of(new RelyingPartyEaaResource("asd", "asd"), new RelyingPartyEaaResource("asd", "asd")),
-                            true
-                    )
-            );
+            RelyingPartyResource editResponse1 =
+                relyingPartyService.updateRelyingParty(response.id(), editResource);
             assertNotNull(editResponse1);
-            assertEquals(1, editResponse1.getRelyingPartyEaas().size());
+            assertEquals(editResource.relyingPartyEaas().size(), editResponse1.relyingPartyEaas().size());
 
-            RelyingPartyResource getResult1 = relyingPartyService.findRelyingParty(response.getId());
+            RelyingPartyResource getResult1 = relyingPartyService.findRelyingParty(response.id());
             assertNotNull(getResult1);
-            assertEquals(1, getResult1.getRelyingPartyEaas().size());
+            assertEquals(editResource.relyingPartyEaas().size(), getResult1.relyingPartyEaas().size());
         }
     }
 }

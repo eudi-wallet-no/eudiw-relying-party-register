@@ -4,38 +4,34 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.With;
 import no.eudiw.rp.register.validation.NameConstraint;
 import no.eudiw.rp.register.validation.SaneStringConstraint;
 
 import java.util.List;
 
+@With
 @JsonInclude(JsonInclude.Include.ALWAYS)
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class EditRelyingPartyResource {
+public record EditRelyingPartyResource(
 
     @SaneStringConstraint
     @NameConstraint
     @JsonProperty(value = "name", required = true)
-    private String name;
+    String name,
 
     @JsonProperty(value = "public_sector", required = true)
-    private boolean publicSector;
+    boolean publicSector,
 
     @Valid
     @NotNull(message = "null_entitlements")
     @JsonProperty("relying_party_entitlements")
-    private List<RelyingPartyEntitlementResource> relyingPartyEntitlements;
+    List<RelyingPartyEntitlementResource> relyingPartyEntitlements,
 
     @Valid
     @NotNull(message = "null_eaas")
     @JsonProperty("relying_party_eaas")
-    private List<RelyingPartyEaaResource> relyingPartyEaas;
+    List<RelyingPartyEaaResource> relyingPartyEaas,
 
     @JsonProperty(value = "active", required = true)
-    private boolean active;
-}
+    boolean active
+) { }

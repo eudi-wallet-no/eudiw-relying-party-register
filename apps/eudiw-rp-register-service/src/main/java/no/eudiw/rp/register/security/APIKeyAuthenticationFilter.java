@@ -44,10 +44,10 @@ public class APIKeyAuthenticationFilter extends OncePerRequestFilter {
             }
             final String apiKey = request.getHeader(API_KEY_HEADER_NAME);
             if (StringUtils.isEmpty(apiKey)) {
-                throw new APIKeyAuthenticationExceptipon("Missing API key");
+                throw new APIKeyAuthenticationException("Missing API key");
             }
             if (!Objects.equals(apiKey, apiKeySecurityProperties.apiKey())) {
-                throw new APIKeyAuthenticationExceptipon("Invalid API key");
+                throw new APIKeyAuthenticationException("Invalid API key");
             }
             Authentication authentication = new APIKeyAuthenticationToken(apiKey, AuthorityUtils.NO_AUTHORITIES);
             SecurityContextHolder.getContext().setAuthentication(authentication);

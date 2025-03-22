@@ -1,7 +1,7 @@
 package no.eudiw.rp.register.exception;
 
 import lombok.extern.slf4j.Slf4j;
-import no.eudiw.rp.register.security.APIKeyAuthenticationExceptipon;
+import no.eudiw.rp.register.security.APIKeyAuthenticationException;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -38,15 +38,12 @@ public class AppExceptionHandler {
     }
 
     // api key
-    @ExceptionHandler(APIKeyAuthenticationExceptipon.class)
-    public ResponseEntity<ErrorResponse> handleApiException(APIKeyAuthenticationExceptipon e) {
+    @ExceptionHandler(APIKeyAuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleApiException(APIKeyAuthenticationException e) {
         log.warn("Unauthorized request: {}", e.getMessage());
         return ResponseEntity
                 .status(e.getHttpStatus())
-                .body(ErrorResponse.builder()
-                        .error(e.getError())
-                        .errorDescription(e.getErrorDescription())
-                        .build());
+                .body(new ErrorResponse(e.getError(), e.getErrorDescription()));
     }
 
     // Spring 405
@@ -87,7 +84,7 @@ public class AppExceptionHandler {
     }
 
     protected static ResponseEntity<ErrorResponse> errorResponseEntity(HttpStatusCode httpStatus, String error, String errorDescription) {
-        return errorResponseEntity(httpStatus, ErrorResponse.builder().error(error).errorDescription(errorDescription).build());
+        return errorResponseEntity(httpStatus, new ErrorResponse(error, errorDescription));
     }
 
     protected static ResponseEntity<ErrorResponse> errorResponseEntity(HttpStatusCode httpStatus, ErrorResponse errorResponse) {

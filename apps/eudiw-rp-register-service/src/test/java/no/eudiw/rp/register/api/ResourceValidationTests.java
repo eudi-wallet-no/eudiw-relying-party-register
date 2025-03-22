@@ -21,8 +21,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 
 import java.util.UUID;
 
-import static no.eudiw.rp.register.testdata.ResourceGenerator.generateCreateRelyingPartyResource;
-import static no.eudiw.rp.register.testdata.ResourceGenerator.generateEditRelyingPartyResource;
+import static no.eudiw.rp.register.testdata.ResourceGenerator.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.hamcrest.Matchers.*;
@@ -60,8 +59,8 @@ public class ResourceValidationTests {
         @DisplayName("then request rejected if orgno is invalid")
         void testInvalidOrgnoInCreateResource() throws Exception {
 
-            CreateRelyingPartyResource resource = generateCreateRelyingPartyResource();
-            resource.setOrgNr(generateInvalidOrgno());
+            CreateRelyingPartyResource resource =
+                generateCreateRelyingPartyResource().withOrgNr(generateInvalidOrgno());
 
             mvcPerform(post("/v1/rp"), resource)
                 .andExpect(status().isBadRequest())
@@ -80,8 +79,9 @@ public class ResourceValidationTests {
             RelyingParty relyingPartyIn = relyingPartyRepository.save(generateRelyingPartyNoId());
             UUID id = relyingPartyIn.getId();
 
-            EditRelyingPartyResource resource = generateEditRelyingPartyResource();
-            resource.setName("<script>Digdir</script>");
+            String invalidName ="<script>Digdir</script>";
+            EditRelyingPartyResource resource =
+                generateEditRelyingPartyResource().withName(invalidName);
 
             mvcPerform(put("/v1/rp/" + id), resource)
                 .andExpect(status().isBadRequest())
@@ -115,21 +115,26 @@ public class ResourceValidationTests {
             EditRelyingPartyResource editResource =
                 generateEditRelyingPartyResource();
 
-            mvcPerform(post("/v1/rp/search"), editResource)
+            mvcPerform(post("/v1/rp"), editResource)
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("invalid_request"));
         }
 
         @Test
         void testUnknownPropertiesInResource() throws Exception {
-            CreateRelyingPartyResource faultyCreateResource =
-                new CreateRelyingPartyResource() {
-                    @JsonProperty(value = "unknown_property", defaultValue = "foo")
-                    @SuppressWarnings("unused")
-                    String _unknownProperty;
-                };
+            record FaultySearchResource(
+                @JsonProperty("unknown_property_name")
+                String orgno,
+                @JsonProperty("public_sector")
+                Boolean publicSector,
+                @JsonProperty("include_inactive")
+                Boolean includeInactive
+            ) {}
 
-            mvcPerform(post("/v1/rp"), faultyCreateResource)
+            FaultySearchResource faultySearchResource =
+                new FaultySearchResource("foo", true, true);
+
+            mvcPerform(post("/v1/rp/search"), faultySearchResource)
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("invalid_request"));
         }

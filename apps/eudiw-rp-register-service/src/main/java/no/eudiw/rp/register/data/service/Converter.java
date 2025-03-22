@@ -7,7 +7,7 @@ import no.eudiw.rp.register.data.entity.RelyingPartyEntitlement;
 
 import java.util.List;
 
-class Converter {
+public class Converter {
 
     public static RelyingPartiesResource toResource(List<RelyingParty> relyingParties) {
         return new RelyingPartiesResource(
@@ -44,19 +44,19 @@ class Converter {
 
     public static RelyingParty toEntity(CreateRelyingPartyResource resource) {
         return new RelyingParty(
-            resource.getName(),
-            resource.getOrgNr(),
-            resource.isPublicSector(),
-            resource.getRelyingPartyEntitlements().stream().map(Converter::toEntity).toList(),
-            resource.getRelyingPartyEaas().stream().map(Converter::toEntity).toList()
+            resource.name(),
+            resource.orgNr(),
+            resource.publicSector(),
+            resource.relyingPartyEntitlements().stream().map(Converter::toEntity).toList(),
+            resource.relyingPartyEaas().stream().map(Converter::toEntity).toList()
         );
     }
 
     public static RelyingPartyEntitlement toEntity(RelyingPartyEntitlementResource resource) {
-        return new RelyingPartyEntitlement(resource.getEntitlement());
+        return new RelyingPartyEntitlement(resource.entitlement());
     }
     public static RelyingPartyEaa toEntity(RelyingPartyEaaResource resource) {
-        return new RelyingPartyEaa(resource.getNamespace(), resource.getIntent());
+        return new RelyingPartyEaa(resource.namespace(), resource.intent());
     }
 
 }
