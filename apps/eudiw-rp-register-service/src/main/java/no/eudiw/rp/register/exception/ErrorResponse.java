@@ -2,21 +2,14 @@ package no.eudiw.rp.register.exception;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.NotNull;
 
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class ErrorResponse {
-
+@JsonInclude(JsonInclude.Include.ALWAYS)
+public record ErrorResponse(
+    @NotNull
     @JsonProperty("error")
-    private String error;
+    String error,
+    @NotNull
     @JsonProperty("error_description")
-    private String errorDescription;
-
-}
+    String errorDescription
+) { }

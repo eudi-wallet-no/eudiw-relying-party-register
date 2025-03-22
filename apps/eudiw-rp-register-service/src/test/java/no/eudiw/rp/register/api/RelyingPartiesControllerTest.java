@@ -66,15 +66,15 @@ public class RelyingPartiesControllerTest {
                                 .header(X_API_KEY_HEADER, VALID_API_KEY)
                                 .content(json))
                         .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
-                        .andExpect(jsonPath("$.name").value(resource.getName()))
-                        .andExpect(jsonPath("$.public_sector").value(resource.isPublicSector()));
+                        .andExpect(jsonPath("$.org_nr").value(resource.orgNr()))
+                        .andExpect(jsonPath("$.name").value(resource.name()))
+                        .andExpect(jsonPath("$.public_sector").value(resource.publicSector()));
             }
 
             @Test
             void testCreateRelyingPartyInvalidOrgno() throws Exception {
-                CreateRelyingPartyResource resource = generateCreateRelyingPartyResource();
-                resource.setOrgNr(generateInvalidOrgno());
+                CreateRelyingPartyResource resource =
+                    generateCreateRelyingPartyResource().withOrgNr(generateInvalidOrgno());
 
                 ObjectWriter ow = new ObjectMapper().writer();
                 String json = ow.writeValueAsString(resource);
@@ -103,19 +103,19 @@ public class RelyingPartiesControllerTest {
                                 .header(X_API_KEY_HEADER, VALID_API_KEY)
                                 .content(json))
                         .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
-                        .andExpect(jsonPath("$.name").value(resource.getName()))
-                        .andExpect(jsonPath("$.public_sector").value(resource.isPublicSector()));
+                        .andExpect(jsonPath("$.org_nr").value(resource.orgNr()))
+                        .andExpect(jsonPath("$.name").value(resource.name()))
+                        .andExpect(jsonPath("$.public_sector").value(resource.publicSector()));
 
                 RelyingPartyResource response = ApiTestUtils.toRelyingPartyResource(createResult);
 
-                mockMvc.perform(get("/v1/rp/" + response.getId())
+                mockMvc.perform(get("/v1/rp/" + response.id())
                                 .accept(MediaType.APPLICATION_JSON)
                                 .header(X_API_KEY_HEADER, VALID_API_KEY))
                         .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
-                        .andExpect(jsonPath("$.name").value(resource.getName()))
-                        .andExpect(jsonPath("$.public_sector").value(resource.isPublicSector()));
+                        .andExpect(jsonPath("$.org_nr").value(resource.orgNr()))
+                        .andExpect(jsonPath("$.name").value(resource.name()))
+                        .andExpect(jsonPath("$.public_sector").value(resource.publicSector()));
             }
 
             @Test
@@ -152,19 +152,19 @@ public class RelyingPartiesControllerTest {
                                         .header(X_API_KEY_HEADER, VALID_API_KEY)
                                         .content(json))
                                 .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
-                                .andExpect(jsonPath("$.name").value(resource.getName()))
-                                .andExpect(jsonPath("$.public_sector").value(resource.isPublicSector()));
+                                .andExpect(jsonPath("$.org_nr").value(resource.orgNr()))
+                                .andExpect(jsonPath("$.name").value(resource.name()))
+                                .andExpect(jsonPath("$.public_sector").value(resource.publicSector()));
 
                 RelyingPartyResource relyingPartyResource = ApiTestUtils.toRelyingPartyResource(createResult);
 
-                mockMvc.perform(delete("/v1/rp/" + relyingPartyResource.getId().toString())
+                mockMvc.perform(delete("/v1/rp/" + relyingPartyResource.id())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .header(X_API_KEY_HEADER, VALID_API_KEY)
                         )
                         .andExpect(status().isNoContent());
 
-                mockMvc.perform(get("/v1/rp/" + relyingPartyResource.getId().toString())
+                mockMvc.perform(get("/v1/rp/" + relyingPartyResource.id())
                                 .accept(MediaType.APPLICATION_JSON)
                                 .header(X_API_KEY_HEADER, VALID_API_KEY)
                         )
@@ -198,28 +198,25 @@ public class RelyingPartiesControllerTest {
                                         .header(X_API_KEY_HEADER, VALID_API_KEY)
                                         .content(json))
                                 .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
-                                .andExpect(jsonPath("$.name").value(resource.getName()))
-                                .andExpect(jsonPath("$.public_sector").value(resource.isPublicSector()));
+                                .andExpect(jsonPath("$.org_nr").value(resource.orgNr()))
+                                .andExpect(jsonPath("$.name").value(resource.name()))
+                                .andExpect(jsonPath("$.public_sector").value(resource.publicSector()));
 
                 RelyingPartyResource relyingPartyResource = ApiTestUtils.toRelyingPartyResource(createResult);
 
-                EditRelyingPartyResource editResource = new EditRelyingPartyResource(
-                        TestDataGenerator.generateName(),
-                        TestDataGenerator.generatePublicSector(),
-                        resource.getRelyingPartyEntitlements(),
-                        resource.getRelyingPartyEaas(),
-                        true
-                );
+                EditRelyingPartyResource editResource =
+                    generateEditRelyingPartyResource()
+                        .withRelyingPartyEntitlements(resource.relyingPartyEntitlements())
+                        .withRelyingPartyEaas(resource.relyingPartyEaas());
 
-                mockMvc.perform(put("/v1/rp/" + relyingPartyResource.getId().toString())
+                mockMvc.perform(put("/v1/rp/" + relyingPartyResource.id())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .header(X_API_KEY_HEADER, VALID_API_KEY)
                                 .content(ow.writeValueAsString(editResource)))
                         .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
-                        .andExpect(jsonPath("$.name").value(editResource.getName()))
-                        .andExpect(jsonPath("$.public_sector").value(editResource.isPublicSector()));
+                        .andExpect(jsonPath("$.org_nr").value(resource.orgNr()))
+                        .andExpect(jsonPath("$.name").value(editResource.name()))
+                        .andExpect(jsonPath("$.public_sector").value(editResource.publicSector()));
             }
 
             @Test
@@ -236,30 +233,26 @@ public class RelyingPartiesControllerTest {
                                         .header(X_API_KEY_HEADER, VALID_API_KEY)
                                         .content(json))
                                 .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
-                                .andExpect(jsonPath("$.name").value(resource.getName()))
-                                .andExpect(jsonPath("$.public_sector").value(resource.isPublicSector()));
+                                .andExpect(jsonPath("$.org_nr").value(resource.orgNr()))
+                                .andExpect(jsonPath("$.name").value(resource.name()))
+                                .andExpect(jsonPath("$.public_sector").value(resource.publicSector()));
 
                 RelyingPartyResource relyingPartyResource = ApiTestUtils.toRelyingPartyResource(createResult);
-                List<RelyingPartyEntitlementResource> entitlements = new ArrayList<>();
-                entitlements.addAll(resource.getRelyingPartyEntitlements());
-                entitlements.add(new RelyingPartyEntitlementResource("check"));
-                EditRelyingPartyResource editResource = new EditRelyingPartyResource(
-                        TestDataGenerator.generateName(),
-                        TestDataGenerator.generatePublicSector(),
-                        entitlements,
-                        resource.getRelyingPartyEaas(),
-                        true
-                );
+                List<RelyingPartyEntitlementResource> entitlements = new ArrayList<>(resource.relyingPartyEntitlements());
+                entitlements.add(generateRelyingPartyEntitlementResource());
+                EditRelyingPartyResource editResource =
+                    generateEditRelyingPartyResource()
+                        .withRelyingPartyEntitlements(entitlements)
+                        .withRelyingPartyEaas(resource.relyingPartyEaas());
 
-                mockMvc.perform(put("/v1/rp/" + relyingPartyResource.getId().toString())
+                mockMvc.perform(put("/v1/rp/" + relyingPartyResource.id())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .header(X_API_KEY_HEADER, VALID_API_KEY)
                                 .content(ow.writeValueAsString(editResource)))
                         .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
-                        .andExpect(jsonPath("$.name").value(editResource.getName()))
-                        .andExpect(jsonPath("$.public_sector").value(editResource.isPublicSector()));
+                        .andExpect(jsonPath("$.org_nr").value(resource.orgNr()))
+                        .andExpect(jsonPath("$.name").value(editResource.name()))
+                        .andExpect(jsonPath("$.public_sector").value(editResource.publicSector()));
             }
 
             @Test
@@ -276,28 +269,24 @@ public class RelyingPartiesControllerTest {
                                         .header(X_API_KEY_HEADER, VALID_API_KEY)
                                         .content(json))
                                 .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
-                                .andExpect(jsonPath("$.name").value(resource.getName()))
-                                .andExpect(jsonPath("$.public_sector").value(resource.isPublicSector()));
+                                .andExpect(jsonPath("$.org_nr").value(resource.orgNr()))
+                                .andExpect(jsonPath("$.name").value(resource.name()))
+                                .andExpect(jsonPath("$.public_sector").value(resource.publicSector()));
 
                 RelyingPartyResource relyingPartyResource = ApiTestUtils.toRelyingPartyResource(createResult);
-                EditRelyingPartyResource editResource = new EditRelyingPartyResource(
-                        TestDataGenerator.generateName(),
-                        TestDataGenerator.generatePublicSector(),
-                        new ArrayList<>(),
-                        resource.getRelyingPartyEaas(),
-                        true
-                );
+                EditRelyingPartyResource editResource =
+                    generateEditRelyingPartyResource()
+                        .withRelyingPartyEntitlements(List.of());
 
-                ResultActions editResult = mockMvc.perform(put("/v1/rp/" + relyingPartyResource.getId().toString())
+                ResultActions editResult = mockMvc.perform(put("/v1/rp/" + relyingPartyResource.id())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .header(X_API_KEY_HEADER, VALID_API_KEY)
                                 .content(ow.writeValueAsString(editResource)))
                         .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.org_nr").value(resource.getOrgNr()))
-                        .andExpect(jsonPath("$.name").value(editResource.getName()))
-                        .andExpect(jsonPath("$.public_sector").value(editResource.isPublicSector()));
-                assertTrue(ApiTestUtils.toRelyingPartyResource(editResult).getRelyingPartyEntitlements().isEmpty());
+                        .andExpect(jsonPath("$.org_nr").value(resource.orgNr()))
+                        .andExpect(jsonPath("$.name").value(editResource.name()))
+                        .andExpect(jsonPath("$.public_sector").value(editResource.publicSector()));
+                assertTrue(ApiTestUtils.toRelyingPartyResource(editResult).relyingPartyEntitlements().isEmpty());
             }
         }
 
@@ -328,14 +317,14 @@ public class RelyingPartiesControllerTest {
                                .andExpect(jsonPath("$.relying_parties").exists());
 
                     List<RelyingPartyResource> relyingPartyResources =
-                        ApiTestUtils.toRelyingPartiesResource(actions).getRelyingParties();
+                        ApiTestUtils.toRelyingPartiesResource(actions).relyingParties();
                     assertEquals(1, relyingPartyResources.size());
 
                     RelyingPartyResource relyingPartyResource = relyingPartyResources.getFirst();
                     assertAll(
-                        () -> assertEquals(relyingParty.getOrgno(), relyingPartyResource.getOrgNr()),
-                        () -> assertEquals(relyingParty.getName(), relyingPartyResource.getName()),
-                        () -> assertEquals(relyingParty.getPublicSector(), relyingPartyResource.isPublicSector())
+                        () -> assertEquals(relyingParty.getOrgno(), relyingPartyResource.orgNr()),
+                        () -> assertEquals(relyingParty.getName(), relyingPartyResource.name()),
+                        () -> assertEquals(relyingParty.getPublicSector(), relyingPartyResource.publicSector())
                     );
                 }
 
@@ -429,14 +418,14 @@ public class RelyingPartiesControllerTest {
                                .andExpect(jsonPath("$.relying_parties").exists());
 
                     List<RelyingPartyResource> relyingPartyResources =
-                        ApiTestUtils.toRelyingPartiesResource(actions).getRelyingParties();
+                        ApiTestUtils.toRelyingPartiesResource(actions).relyingParties();
                     assertEquals(1, relyingPartyResources.size());
 
                     RelyingPartyResource relyingPartyResource = relyingPartyResources.getFirst();
                     assertAll(
-                        () -> assertEquals(relyingParty.getOrgno(), relyingPartyResource.getOrgNr()),
-                        () -> assertEquals(relyingParty.getName(), relyingPartyResource.getName()),
-                        () -> assertEquals(relyingParty.getPublicSector(), relyingPartyResource.isPublicSector())
+                        () -> assertEquals(relyingParty.getOrgno(), relyingPartyResource.orgNr()),
+                        () -> assertEquals(relyingParty.getName(), relyingPartyResource.name()),
+                        () -> assertEquals(relyingParty.getPublicSector(), relyingPartyResource.publicSector())
                     );
                 }
             }

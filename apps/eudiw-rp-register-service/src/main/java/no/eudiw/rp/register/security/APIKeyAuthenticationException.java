@@ -5,13 +5,13 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.UNAUTHORIZED)
-public class APIKeyAuthenticationExceptipon extends AuthenticationException {
+public class APIKeyAuthenticationException extends AuthenticationException {
 
     private final String error;
     private HttpStatus httpStatus;
 
 
-    APIKeyAuthenticationExceptipon(String msg) {
+    APIKeyAuthenticationException(String msg) {
         super(msg);
         this.httpStatus = HttpStatus.UNAUTHORIZED;
         this.error = "invalid_request";

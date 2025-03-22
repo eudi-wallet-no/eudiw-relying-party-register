@@ -44,8 +44,8 @@ public class ValidationTests {
 
         @Test
         void testOrgnoConstraint() {
-            CreateRelyingPartyResource resource = generateCreateRelyingPartyResource();
-            resource.setOrgNr(generateInvalidOrgno());
+            CreateRelyingPartyResource resource =
+                generateCreateRelyingPartyResource().withOrgNr(generateInvalidOrgno());
 
             Set<ConstraintViolation<CreateRelyingPartyResource>> violations =
                 doValidateResource(resource);
@@ -59,8 +59,8 @@ public class ValidationTests {
 
         @Test
         void testNullOrgnoDoesNotGiveOrgnoViolation() {
-            CreateRelyingPartyResource resource = generateCreateRelyingPartyResource();
-            resource.setOrgNr(null);
+            CreateRelyingPartyResource resource =
+                generateCreateRelyingPartyResource().withOrgNr(null);
 
             Set<ConstraintViolation<CreateRelyingPartyResource>> violations =
                 doValidateResource(resource);
@@ -80,11 +80,12 @@ public class ValidationTests {
             "Dig$dir" // invalid symbols
         })
         void testNameConstraint(String invalidName) {
-            CreateRelyingPartyResource resource = generateCreateRelyingPartyResource();
-            resource.setName(invalidName);
+            CreateRelyingPartyResource resourceWithInvalidName =
+                generateCreateRelyingPartyResource()
+                    .withName(invalidName);
 
             Set<ConstraintViolation<CreateRelyingPartyResource>> violations =
-                doValidateResource(resource);
+                doValidateResource(resourceWithInvalidName);
             List<String> validationErrorMessages = getValidationErrorMessages(violations);
             assertAll(
                 () -> assertEquals(1, violations.size()),
@@ -95,11 +96,12 @@ public class ValidationTests {
 
     @Test
     void testRelyingPartyResourceEaaConstraint() {
-        RelyingPartyEaaResource invalidEaaResource = generateRelyingPartyEaaResource();
-        invalidEaaResource.setNamespace("");
+        RelyingPartyEaaResource invalidEaaResource =
+            new RelyingPartyEaaResource("   ", "valid-intent");
 
-        RelyingPartyResource resource = generateRelyingPartyResource();
-        resource.setRelyingPartyEaas(List.of(invalidEaaResource));
+        RelyingPartyResource resource =
+            generateRelyingPartyResource()
+                .withRelyingPartyEaas(List.of(invalidEaaResource));
 
         Set<ConstraintViolation<RelyingPartyResource>> violations =
             doValidateResource(resource);
@@ -116,15 +118,14 @@ public class ValidationTests {
     void testRelyingPartyResourceEntitlementConstraint() {
         List<RelyingPartyEntitlementResource> entitlementResources =
             List.of(
-                generateRelyingPartyEntitlementResource(),
-                generateRelyingPartyEntitlementResource(),
-                generateRelyingPartyEntitlementResource()
+                new RelyingPartyEntitlementResource("   "),
+                new RelyingPartyEntitlementResource("valid entitlement"),
+                new RelyingPartyEntitlementResource("<script>bad!</script>")
             );
-        entitlementResources.get(0).setEntitlement("");
-        entitlementResources.get(2).setEntitlement("<script>bad!</script>");
 
-        RelyingPartyResource resource = generateRelyingPartyResource();
-        resource.setRelyingPartyEntitlements(entitlementResources);
+        RelyingPartyResource resource =
+            generateRelyingPartyResource()
+                .withRelyingPartyEntitlements(entitlementResources);
 
         Set<ConstraintViolation<RelyingPartyResource>> violations =
             doValidateResource(resource);

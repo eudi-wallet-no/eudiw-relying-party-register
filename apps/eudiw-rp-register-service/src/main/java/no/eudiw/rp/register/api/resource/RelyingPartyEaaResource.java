@@ -3,24 +3,18 @@ package no.eudiw.rp.register.api.resource;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import no.eudiw.rp.register.validation.SaneStringConstraint;
 
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class RelyingPartyEaaResource {
+@JsonInclude(JsonInclude.Include.ALWAYS)
+public record RelyingPartyEaaResource(
 
     @SaneStringConstraint
     @NotBlank(message = "blank_namespace")
     @JsonProperty("namespace")
-    private String namespace;
+    String namespace,
 
     @SaneStringConstraint
     @NotBlank(message = "blank_intent")
     @JsonProperty("intent")
-    private String intent;
-}
+    String intent
+) { }

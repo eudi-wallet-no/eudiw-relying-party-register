@@ -2,7 +2,10 @@ package no.eudiw.rp.register.testdata;
 
 import java.security.SecureRandom;
 import java.util.Arrays;
+import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class TestDataGenerator {
 
@@ -21,6 +24,12 @@ public class TestDataGenerator {
 
     public static Boolean generatePublicSector() {
         return rng.nextInt() % 2 == 0;
+    }
+
+    protected static <T> List<T> generateListBy(Supplier<T> supplier) {
+        return IntStream.range(0, rng.nextInt(1, 10))
+                        .mapToObj(_x -> supplier.get())
+                        .toList();
     }
 
     private static final int[] ORGNO_WEIGHTS = {3, 2, 7, 6, 5, 4, 3, 2, 0};
