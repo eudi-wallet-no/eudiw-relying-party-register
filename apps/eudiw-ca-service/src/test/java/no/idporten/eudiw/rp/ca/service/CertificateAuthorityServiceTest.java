@@ -1,0 +1,67 @@
+package no.idporten.eudiw.rp.ca.service;
+
+
+import no.idporten.eudiw.rp.ca.config.CertificateAuthorities;
+import no.idporten.eudiw.rp.ca.config.CertificateAuthority;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+
+import java.security.Security;
+import java.security.cert.X509Certificate;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+@ActiveProfiles("test")
+@SpringBootTest
+public class CertificateAuthorityServiceTest {
+
+    @Autowired
+    private CertificateAuthorityService certificateAuthorityService;
+
+    @Autowired
+    private CertificateAuthorities certificateAuthorities;
+
+    @BeforeAll
+    static void setUp() {
+        Security.addProvider(new BouncyCastleProvider());
+    }
+
+    @DisplayName("When signing access certificates")
+    @Nested
+    class AccessCertificateTests {
+
+        @DisplayName("then a valid certificate is created with san extensions")
+        @Test
+        void testAccessCertificate() throws Exception {
+            String csr = """
+                    -----BEGIN NEW CERTIFICATE REQUEST-----
+                    MIIBbTCCARQCAQAwXzELMAkGA1UEBhMCbm8xDTALBgNVBAgTBFNvZ24xEjAQBgNV
+                    BAcTCUxlaWthbmdlcjEPMA0GA1UEChMGRGlnZGlyMQ4wDAYDVQQLEwVFVURJVzEM
+                    MAoGA1UEAxMDcnAyMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAELKyeEr6OlEgW
+                    E0cRI3aCgzRnPu9IjoYCsPuV53/QwBe0pymYVafMPssBqiLEyuylH/AQ3Teltq66
+                    L96/KVs1bqBTMFEGCSqGSIb3DQEJDjFEMEIwHQYDVR0OBBYEFFLDKogDLA5GDhgY
+                    oiRDkMpjeQDNMCEGA1UdEQQaMBiCFmp1bml0LnJwMS5pZHBvcnRlbi5kZXYwCgYI
+                    KoZIzj0EAwMDRwAwRAIgVIhOFcOMK0KR9MvK3a76Hgma6susPfXDJ+HfZZe50N8C
+                    IF5nyI5eYXYbBBQvdAZFJStX4YgEc+7j/QV3BlIGz2HE
+                    -----END NEW CERTIFICATE REQUEST-----""";
+            CertificateAuthority intermediate = certificateAuthorities.findIntermediate("access");
+            X509Certificate certificate = certificateAuthorityService.signCertificate(intermediate, certificateAuthorityService.decodeCsr(csr));
+            assertAll(
+                    () -> assertNotNull(certificate),
+                    () -> assertTrue(certificate.getBasicConstraints() < 0),
+                    () -> assertArrayEquals(new boolean[]{true, false, true, false, false, false, false, false, false}, certificate.getKeyUsage()),
+                    () -> assertTrue(certificate.getSubjectAlternativeNames().iterator().next().contains("junit.rp1.idporten.dev")),
+                    () -> assertEquals(intermediate.getCertificate().getSubjectX500Principal(), certificate.getIssuerX500Principal())
+            );
+            certificate.verify(intermediate.getPublicKey());
+        }
+
+    }
+
+}
