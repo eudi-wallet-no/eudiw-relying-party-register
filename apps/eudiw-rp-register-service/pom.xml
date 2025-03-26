@@ -15,7 +15,7 @@
     <description>Relying party register service</description>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>23</java.version>
         <idporten-actuator.version>1.2.2</idporten-actuator.version>
         <idporten-validators.version>1.4.3</idporten-validators.version>
         <logback.version>1.5.17</logback.version> <!-- Can be removed when spring boot has > 1.5.12 as the default version -->
@@ -120,6 +120,14 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <configuration>
+                    <proc>full</proc>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
