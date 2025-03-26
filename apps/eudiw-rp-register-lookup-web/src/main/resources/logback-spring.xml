@@ -3,27 +3,30 @@
 <configuration>
     <springProperty name="APP-NAME" source="spring.application.name" defaultValue="-"/>
     <springProperty name="APP-ENV" source="spring.application.environment" defaultValue="-"/>
-    <springProfile name="dev | test1-dev | docker">
+    <springProfile name="local-dev | local-h2">
+
         <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
-        <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
-        <root level="debug">
-            <appender-ref ref="CONSOLE"/>
+        <include resource="org/springframework/boot/logging/logback/console-appender.xml" />
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
         </root>
     </springProfile>
+
 
     <appender name="APPLICATION" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
             <includeMdc>true</includeMdc>
-            <customFields>{"application":"${APP-NAME}", "environment":"${APP-ENV}", "logtype":"application"}</customFields>
+            <customFields>{"application":"${APP-NAME}","environment":"${APP-ENV}","logtype":"application"}</customFields>
         </encoder>
     </appender>
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
             <includeMdc>true</includeMdc>
-            <customFields>{"application":"${APP-NAME}", "environment":"${APP-ENV}", "logtype":"application"}</customFields>
+            <customFields>{"application":"${APP-NAME}","environment":"${APP-ENV}","logtype":"application"}</customFields>
         </encoder>
     </appender>
-    <springProfile name="!dev &amp; !test1-dev &amp; !docker">
+
+    <springProfile name="!local-dev &amp; !local-h2">
         <logger name="no.idporten" level="INFO" additivity="false">
             <appender-ref ref="APPLICATION"/>
         </logger>
