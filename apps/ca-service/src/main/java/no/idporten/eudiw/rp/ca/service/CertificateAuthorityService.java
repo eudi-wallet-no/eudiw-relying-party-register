@@ -19,8 +19,11 @@ import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
 import org.bouncycastle.operator.bc.BcRSAContentSignerBuilder;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
+import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
 import org.bouncycastle.util.io.pem.PemWriter;
 import org.springframework.stereotype.Service;
 
@@ -46,7 +49,7 @@ public class CertificateAuthorityService {
     protected void validateCSR(PKCS10CertificationRequest csr) throws Exception {
         PublicKey publicKey = new JcaPEMKeyConverter().getPublicKey(csr.getSubjectPublicKeyInfo());
         JcaContentVerifierProviderBuilder jcaContentVerifierProviderBuilder = new JcaContentVerifierProviderBuilder();
-        if (! csr.isSignatureValid(jcaContentVerifierProviderBuilder.build(publicKey))) {
+        if (!csr.isSignatureValid(jcaContentVerifierProviderBuilder.build(publicKey))) {
             throw new RuntimeException("CSR signature is invalid");
         }
     }
@@ -71,8 +74,8 @@ public class CertificateAuthorityService {
         return signCertificate(certificateAuthority, csr, List.of(
                 Extension.create(Extension.basicConstraints, true, new BasicConstraints(true)),
                 createCrlDistributionPointExtension(certificateAuthority.getCrlDistributionPoint()),
-                Extension.create(Extension.keyUsage, true, new KeyUsage(KeyUsage.keyCertSign | KeyUsage.cRLSign))
-        ));
+                Extension.create(Extension.keyUsage, true, new KeyUsage(KeyUsage.keyCertSign | KeyUsage.cRLSign)),
+                createAuthorityInformationAccess(certificateAuthority.getCertificateUri())));
     }
 
     /**
@@ -84,6 +87,7 @@ public class CertificateAuthorityService {
         extensions.add(Extension.create(Extension.basicConstraints, true, new BasicConstraints(false)));
         extensions.add(createCrlDistributionPointExtension(certificateAuthority.getCrlDistributionPoint()));
         extensions.add(Extension.create(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment)));
+        extensions.add(createAuthorityInformationAccess(certificateAuthority.getCertificateUri()));
         if (csr.getRequestedExtensions().getExtension(Extension.subjectAlternativeName) != null) {
             extensions.add(csr.getRequestedExtensions().getExtension(Extension.subjectAlternativeName));
         }
@@ -95,7 +99,7 @@ public class CertificateAuthorityService {
         SubjectPublicKeyInfo keyInfo = SubjectPublicKeyInfo.getInstance(publicKey.getEncoded());
         X509v3CertificateBuilder x509v3CertificateBuilder = new X509v3CertificateBuilder(
                 X500Name.getInstance(certificateAuthority.getCertificate().getSubjectX500Principal().getEncoded()),
-                BigInteger.valueOf(new SecureRandom().nextInt()),
+                new BigInteger(64, new SecureRandom()),
                 new Date(System.currentTimeMillis()),
                 calculateExpiryDate(certificateAuthority.getLifetimeDays(), certificateAuthority.getCertificate().getNotAfter()),
                 csr.getSubject(),
@@ -127,6 +131,16 @@ public class CertificateAuthorityService {
         return Extension.create(Extension.cRLDistributionPoints, false, crlDistPoint);
     }
 
+    protected Extension createAuthorityInformationAccess(URI uri) throws Exception {
+        return Extension.create(Extension.authorityInfoAccess,
+                false,
+                new AuthorityInformationAccess(
+                        new AccessDescription(
+                                AccessDescription.id_ad_caIssuers,
+                                new GeneralName(GeneralName.uniformResourceIdentifier,
+                                        uri.toString()))));
+    }
+
     protected Date calculateExpiryDate(long lifetimeDays, Date isserExpiryDate) {
         Date expires = new Date(System.currentTimeMillis() + lifetimeDays * 24 * 60 * 60 * 1000);
         if (expires.after(isserExpiryDate)) {
@@ -156,6 +170,20 @@ public class CertificateAuthorityService {
         try (InputStream is = new ByteArrayInputStream(asn1Object.getEncoded())) {
             return (X509CRL) cf.generateCRL(is);
         }
+    }
+
+
+    /**
+     * Creates a CSR for a certificate authority.
+     */
+    protected PKCS10CertificationRequest createCSR(CertificateAuthority certificateAuthority) throws Exception {
+        PKCS10CertificationRequestBuilder p10Builder =
+                new JcaPKCS10CertificationRequestBuilder(
+                        certificateAuthority.getCertificate().getSubjectX500Principal(),
+                        certificateAuthority.getPublicKey());
+        JcaContentSignerBuilder csBuilder = new JcaContentSignerBuilder("SHA256withRSA");
+        ContentSigner signer = csBuilder.build(certificateAuthority.getPrivateKey());
+        return p10Builder.build(signer);
     }
 
     public String encodeToPem(Object o) {

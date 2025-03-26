@@ -4,6 +4,7 @@ package no.idporten.eudiw.rp.ca.service;
 import no.idporten.eudiw.rp.ca.config.CertificateAuthorities;
 import no.idporten.eudiw.rp.ca.config.CertificateAuthority;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -62,6 +63,49 @@ public class CertificateAuthorityServiceTest {
             certificate.verify(intermediate.getPublicKey());
         }
 
+    }
+
+    @DisplayName("When signing root CA certificates")
+    @Nested
+    class RootCATests {
+
+        @DisplayName("then a self signed root contains the expected extensions")
+        @Test
+        void testSelfSignedRootCA() throws Exception {
+            CertificateAuthority certificateAuthority = certificateAuthorities.getRoot();
+            PKCS10CertificationRequest csr = certificateAuthorityService.createCSR(certificateAuthority);
+            X509Certificate certificate = certificateAuthorityService.signRootCertificate(certificateAuthority, csr);
+            assertAll(
+                    () -> assertNotNull(certificate),
+                    () -> assertTrue(certificate.getBasicConstraints() > 0),
+                    () -> assertArrayEquals(new boolean[]{false, false, false, false, false, true, true, false, false}, certificate.getKeyUsage()),
+                    () -> assertNull(certificate.getSubjectAlternativeNames()),
+                    () -> assertEquals(certificateAuthority.getCertificate().getSubjectX500Principal(), certificate.getIssuerX500Principal())
+            );
+            certificate.verify(certificateAuthority.getPublicKey());
+        }
+    }
+
+    @DisplayName("When signing intermediate CA certificates")
+    @Nested
+    class IntermediateCATests {
+
+        @DisplayName("then an intermediate CA is signed by the root CA and can be used for certificate and CRL signing")
+        @Test
+        void testSignIntermediateCA() throws Exception {
+            CertificateAuthority root = certificateAuthorities.getRoot();
+            CertificateAuthority intermediate = certificateAuthorities.findIntermediate("access");
+            PKCS10CertificationRequest csr = certificateAuthorityService.createCSR(intermediate);
+            X509Certificate certificate = certificateAuthorityService.signIntermediateCertificate(root, csr);
+            assertAll(
+                    () -> assertNotNull(certificate),
+                    () -> assertTrue(certificate.getBasicConstraints() > 0),
+                    () -> assertArrayEquals(new boolean[]{false, false, false, false, false, true, true, false, false}, certificate.getKeyUsage()),
+                    () -> assertNull(certificate.getSubjectAlternativeNames()),
+                    () -> assertEquals(root.getCertificate().getSubjectX500Principal(), certificate.getIssuerX500Principal())
+            );
+            certificate.verify(root.getPublicKey());
+        }
     }
 
 }
