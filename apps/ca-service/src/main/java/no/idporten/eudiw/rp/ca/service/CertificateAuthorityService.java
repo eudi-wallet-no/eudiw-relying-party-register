@@ -205,4 +205,12 @@ public class CertificateAuthorityService {
         }
     }
 
+    public X509Certificate toX509Certificate(X509CertificateHolder certificateHolder) throws Exception {
+        org.bouncycastle.asn1.x509.Certificate eeX509CertificateStructure = certificateHolder.toASN1Structure();
+        CertificateFactory cf = CertificateFactory.getInstance("X.509", BouncyCastleProvider.PROVIDER_NAME);
+        try (InputStream is = new ByteArrayInputStream(eeX509CertificateStructure.getEncoded())) {
+            return (X509Certificate) cf.generateCertificate(is);
+        }
+    }
+
 }
