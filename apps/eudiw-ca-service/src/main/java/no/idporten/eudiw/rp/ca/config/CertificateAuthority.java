@@ -24,6 +24,8 @@ public class CertificateAuthority {
     private final int lifetimeDays;
     @NotNull
     private final URI crlDistributionPoint;
+    @NotNull
+    private final URI certificateUri;
 
     @Getter(AccessLevel.PRIVATE)
     @NotNull
