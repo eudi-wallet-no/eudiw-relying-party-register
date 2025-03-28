@@ -51,9 +51,9 @@ public class CertificateAuthority {
     public void validate(CertificateAuthority issuer) throws Exception {
         getCertificate().verify(issuer.getPublicKey());
         if (isRoot() && !getCertificate().equals(issuer.getCertificate())) {
-            throw new RuntimeException("Root certificate must be self-signed");
+            throw new IllegalArgumentException("Root certificate must be self-signed");
         } else if (!isRoot() && getCertificate().equals(issuer.getCertificate())) {
-            throw new RuntimeException("Intermediate certificate must not be self-signed");
+            throw new IllegalArgumentException("Intermediate certificate must not be self-signed");
         }
     }
 

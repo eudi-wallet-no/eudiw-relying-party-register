@@ -2,6 +2,7 @@ package no.idporten.eudiw.rp.ca.config;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationContextException;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
@@ -35,7 +36,7 @@ public class KeyStoreProvider {
             }
             this.keyStore = keystore;
         } catch (IOException | KeyStoreException | CertificateException | NoSuchAlgorithmException e) {
-            throw new RuntimeException("Failed to load keystore.", e);
+            throw new ApplicationContextException("Failed to load keystore.", e);
         }
     }
 

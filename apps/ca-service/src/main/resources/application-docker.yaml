@@ -9,3 +9,6 @@ management:
 spring:
   application:
     environment: docker
+
+eudiw-rp-ca:
+  base-uri: "http://eudiw-rp-ca-service:9220"
