@@ -1,6 +1,7 @@
 package no.idporten.eudiw.rp.ca.service;
 
 import no.idporten.eudiw.rp.ca.config.CertificateAuthority;
+import no.idporten.eudiw.rp.ca.exception.CertificateAuthorityException;
 import org.bouncycastle.asn1.ASN1Object;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.*;
@@ -25,6 +26,7 @@ import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
 import org.bouncycastle.util.io.pem.PemWriter;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
@@ -47,10 +49,19 @@ public class CertificateAuthorityService {
     }
 
     protected void validateCSR(PKCS10CertificationRequest csr) throws Exception {
+        if (csr == null) {
+            throw new CertificateAuthorityException("invalid_request", "CSR parsing failed", HttpStatus.BAD_REQUEST);
+        }
         PublicKey publicKey = new JcaPEMKeyConverter().getPublicKey(csr.getSubjectPublicKeyInfo());
         JcaContentVerifierProviderBuilder jcaContentVerifierProviderBuilder = new JcaContentVerifierProviderBuilder();
         if (!csr.isSignatureValid(jcaContentVerifierProviderBuilder.build(publicKey))) {
-            throw new RuntimeException("CSR signature is invalid");
+            throw new CertificateAuthorityException("invalid_request", "CSR signature is invalid", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    protected void validateCertificateAuthority(CertificateAuthority certificateAuthority) throws Exception {
+        if (certificateAuthority.getCertificate().getNotAfter().before(new Date())) {
+            throw new CertificateAuthorityException("invalid_request", "Certificate authority is expired", HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -95,6 +106,7 @@ public class CertificateAuthorityService {
     }
 
     protected X509Certificate signCertificate(CertificateAuthority certificateAuthority, PKCS10CertificationRequest csr, List<Extension> extensions) throws Exception {
+        validateCertificateAuthority(certificateAuthority);
         PublicKey publicKey = new JcaPEMKeyConverter().getPublicKey(csr.getSubjectPublicKeyInfo());
         SubjectPublicKeyInfo keyInfo = SubjectPublicKeyInfo.getInstance(publicKey.getEncoded());
         X509v3CertificateBuilder x509v3CertificateBuilder = new X509v3CertificateBuilder(
@@ -141,10 +153,10 @@ public class CertificateAuthorityService {
                                         uri.toString()))));
     }
 
-    protected Date calculateExpiryDate(long lifetimeDays, Date isserExpiryDate) {
+    protected Date calculateExpiryDate(long lifetimeDays, Date issuerExpiryDate) {
         Date expires = new Date(System.currentTimeMillis() + lifetimeDays * 24 * 60 * 60 * 1000);
-        if (expires.after(isserExpiryDate)) {
-            return isserExpiryDate;
+        if (expires.after(issuerExpiryDate)) {
+            return issuerExpiryDate;
         }
         return expires;
     }
@@ -193,7 +205,7 @@ public class CertificateAuthorityService {
             pemWriter.flush();
             return stringWriter.toString();
         } catch (Exception e) {
-            throw new RuntimeException("Failed to encode certificate to PEM", e);
+            throw new CertificateAuthorityException("server_error", "Failed to encode DER to PEM", HttpStatus.INTERNAL_SERVER_ERROR, e);
         }
     }
 
@@ -201,7 +213,7 @@ public class CertificateAuthorityService {
         try (PEMParser pemParser = new PEMParser(new StringReader(pem))) {
             return clazz.cast(pemParser.readObject());
         } catch (Exception e) {
-            throw new RuntimeException("Failed to decode object from PEM", e);
+            throw new CertificateAuthorityException("invalid_request", "Failed to decode object from PEM", HttpStatus.INTERNAL_SERVER_ERROR, e);
         }
     }
 

@@ -7,7 +7,21 @@ spring:
   application:
     name: eudiw-rp-ca-service
     environment: default
-
+  security:
+    api-key: ${API_KEY}
+    include-paths:
+      - /v1/certs/access
+    exclude-paths:
+      - /
+      - /swagger-ui.html
+      - /swagger-ui/**
+      - /v3/api-docs/**
+      - /v1/certs/root**
+      - /v1/certs/intermediates/**
+      - /info
+      - /health**
+      - /health/**
+      - /version
 # Spring Boot Actuator
 management:
   server:
@@ -22,3 +36,27 @@ management:
       probes:
         enabled: true
 
+eudiw-rp-ca:
+  base-uri: "http://eudiw-rp-ca-service:9220"
+  root:
+    root: true
+    lifetime-days: 1825
+    crl-distribution-point: ${eudiw-rp-ca.base-uri}/v1/certs/root.crl
+    certificate-uri: ${eudiw-rp-ca.base-uri}/v1/certs/root.crt
+    keystore:
+      type: pkcs12
+      location: ${ROOT_KEYSTORE_LOCATION}
+      password: ${ROOT_KEYSTORE_PASSWORD}
+      key-alias: ${ROOT_KEYSTORE_KEY_ALIAS}
+      key-password: ${ROOT_KEYSTORE_KEY_PASSWORD}
+  intermediates:
+    access:
+      lifetime-days: 100
+      crl-distribution-point: ${eudiw-rp-ca.base-uri}/v1/certs/intermediates/access.crl
+      certificate-uri: ${eudiw-rp-ca.base-uri}/v1/certs/intermediates/access.crt
+      keystore:
+        type: pkcs12
+        location: ${INTERMEDIATE_ACCESS_KEYSTORE_LOCATION}
+        password: ${INTERMEDIATE_ACCESS_KEYSTORE_PASSWORD}
+        key-alias: ${INTERMEDIATE_ACCESS_KEYSTORE_KEY_ALIAS}
+        key-password: ${INTERMEDIATE_ACCESS_KEYSTORE_KEY_PASSWORD}

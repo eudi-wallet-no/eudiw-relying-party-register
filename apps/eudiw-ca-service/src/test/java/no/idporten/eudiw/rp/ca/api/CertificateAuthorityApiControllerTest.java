@@ -97,19 +97,20 @@ public class CertificateAuthorityApiControllerTest {
     @Test
     void testSignCertificate() throws Exception {
         String csr = """
-                    -----BEGIN NEW CERTIFICATE REQUEST-----
-                    MIIBbTCCARQCAQAwXzELMAkGA1UEBhMCbm8xDTALBgNVBAgTBFNvZ24xEjAQBgNV
-                    BAcTCUxlaWthbmdlcjEPMA0GA1UEChMGRGlnZGlyMQ4wDAYDVQQLEwVFVURJVzEM
-                    MAoGA1UEAxMDcnAyMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAELKyeEr6OlEgW
-                    E0cRI3aCgzRnPu9IjoYCsPuV53/QwBe0pymYVafMPssBqiLEyuylH/AQ3Teltq66
-                    L96/KVs1bqBTMFEGCSqGSIb3DQEJDjFEMEIwHQYDVR0OBBYEFFLDKogDLA5GDhgY
-                    oiRDkMpjeQDNMCEGA1UdEQQaMBiCFmp1bml0LnJwMS5pZHBvcnRlbi5kZXYwCgYI
-                    KoZIzj0EAwMDRwAwRAIgVIhOFcOMK0KR9MvK3a76Hgma6susPfXDJ+HfZZe50N8C
-                    IF5nyI5eYXYbBBQvdAZFJStX4YgEc+7j/QV3BlIGz2HE
-                    -----END NEW CERTIFICATE REQUEST-----""";
+                -----BEGIN NEW CERTIFICATE REQUEST-----
+                MIIBbTCCARQCAQAwXzELMAkGA1UEBhMCbm8xDTALBgNVBAgTBFNvZ24xEjAQBgNV
+                BAcTCUxlaWthbmdlcjEPMA0GA1UEChMGRGlnZGlyMQ4wDAYDVQQLEwVFVURJVzEM
+                MAoGA1UEAxMDcnAyMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAELKyeEr6OlEgW
+                E0cRI3aCgzRnPu9IjoYCsPuV53/QwBe0pymYVafMPssBqiLEyuylH/AQ3Teltq66
+                L96/KVs1bqBTMFEGCSqGSIb3DQEJDjFEMEIwHQYDVR0OBBYEFFLDKogDLA5GDhgY
+                oiRDkMpjeQDNMCEGA1UdEQQaMBiCFmp1bml0LnJwMS5pZHBvcnRlbi5kZXYwCgYI
+                KoZIzj0EAwMDRwAwRAIgVIhOFcOMK0KR9MvK3a76Hgma6susPfXDJ+HfZZe50N8C
+                IF5nyI5eYXYbBBQvdAZFJStX4YgEc+7j/QV3BlIGz2HE
+                -----END NEW CERTIFICATE REQUEST-----""";
         MvcResult result = mockMvc.perform(post("/v1/certs/access")
-                .contentType("application/x-pem-file")
-                .content(csr))
+                        .header("X-API-KEY", "junit-api-key")
+                        .contentType("application/x-pem-file")
+                        .content(csr))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/x-pem-file;charset=UTF-8"))
                 .andReturn();

@@ -7,10 +7,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.rp.ca.config.CertificateAuthorities;
 import no.idporten.eudiw.rp.ca.service.CertificateAuthorityService;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -39,7 +41,7 @@ public class CertificateAuthorityApiController {
     private final CertificateAuthorities certificateAuthorities;
 
     public final static String APPLICATION_X_PEM_FILE_VALUE = "application/x-pem-file";
-    public final static String errorResponseExample = "{\"error\": \"error code\", \"error_description\": \"description of the error\"}";
+    public final static String errorResponseExample = "{\"error\": \"error_code\", \"error_description\": \"Description of the error\"}";
     public final static String API_TAG = "rp-ca-api-v1";
 
     @Operation(
@@ -97,8 +99,8 @@ public class CertificateAuthorityApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "PEM-encoded certificate", content = @Content(mediaType = APPLICATION_X_PEM_FILE_VALUE))
     })
-    @PostMapping(path = "/v1/certs/access", consumes = APPLICATION_X_PEM_FILE_VALUE, produces = APPLICATION_X_PEM_FILE_VALUE)
-    public ResponseEntity<String> signCertificate(@Valid @RequestBody String csr) throws Exception {
+    @PostMapping(path = "/v1/certs/access", consumes = APPLICATION_X_PEM_FILE_VALUE, produces = {APPLICATION_X_PEM_FILE_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<String> signCertificate(@Valid @NotEmpty(message = "CSR cannot be null") @RequestBody String csr) throws Exception {
         PKCS10CertificationRequest pkcs10CertificationRequest = certificateAuthorityService.decodeCsr(csr);
         X509Certificate signedCertificate =
                 certificateAuthorityService.signCertificate(

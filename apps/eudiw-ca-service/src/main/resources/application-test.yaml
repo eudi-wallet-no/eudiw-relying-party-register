@@ -2,3 +2,6 @@
 spring:
   application:
     environment: test
+
+eudiw-rp-ca:
+  base-uri: "https://eudiw-rp-ca.test.idporten.no"
