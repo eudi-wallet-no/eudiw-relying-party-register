@@ -5,27 +5,16 @@ import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.AccessLevel;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "relying_party")
-public class RelyingParty {
-
-    @Id
-    // TODO: Jira EUW-23 (https://digdir.atlassian.net/browse/EUW-23)
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", columnDefinition = "UUID")
-    @JdbcTypeCode(SqlTypes.UUID)
-    @Setter(AccessLevel.NONE)
-    private UUID id;
+public class RelyingParty extends BaseEntity {
 
     @Column(name = "orgno", unique = true, nullable = false)
     private String orgno;
