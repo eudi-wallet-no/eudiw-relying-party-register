@@ -5,8 +5,9 @@ server:
 spring:
   thread-executor: virtual
   application:
-    name: idporten-rp-register-lookup-web
+    name: eudiw-rp-register-lookup-web
     environment: default
+
 
 # Spring Boot Actuator
 management:
@@ -21,3 +22,13 @@ management:
     health:
       probes:
         enabled: true
+
+eudiw-rp-register-lookup-web:
+  service:
+    api-search-endpoint: /search
+    rest-client-defaults:
+      register-service-api-base-uri: ${API_BASE_URI}
+      api-key-header-id: X-API-KEY
+      api-key-value: ${API_KEY_VALUE}
+      connect-timeout-millis: 5000
+      read-timeout-millis: 5000

@@ -9,3 +9,5 @@ management:
 spring:
   application:
     environment: dev
+  config:
+    import: file:.env[.properties]
