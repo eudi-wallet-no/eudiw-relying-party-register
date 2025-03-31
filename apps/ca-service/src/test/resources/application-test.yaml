@@ -2,7 +2,7 @@
 spring:
   security:
     api-key: junit-api-key
-eudiw-rp-ca:
+eudiw-ca:
   root:
     root: true
     lifetime-days: 1825

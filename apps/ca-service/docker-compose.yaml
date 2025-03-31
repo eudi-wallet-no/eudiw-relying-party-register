@@ -4,7 +4,7 @@ networks:
     name: eudiw
 
 services:
-  rp-ca-service:
+  ca-service:
     build:
       context: .
       dockerfile: docker/dev.Dockerfile

@@ -5,7 +5,7 @@ server:
 spring:
   thread-executor: virtual
   application:
-    name: eudiw-rp-ca-service
+    name: eudiw-ca-service
     environment: default
   security:
     api-key: ${API_KEY}
@@ -36,13 +36,13 @@ management:
       probes:
         enabled: true
 
-eudiw-rp-ca:
-  base-uri: "http://eudiw-rp-ca-service:9220"
+eudiw-ca:
+  base-uri: "http://eudiw-ca-service:9220"
   root:
     root: true
     lifetime-days: 1825
-    crl-distribution-point: ${eudiw-rp-ca.base-uri}/v1/certs/root.crl
-    certificate-uri: ${eudiw-rp-ca.base-uri}/v1/certs/root.crt
+    crl-distribution-point: ${eudiw-ca.base-uri}/v1/certs/root.crl
+    certificate-uri: ${eudiw-ca.base-uri}/v1/certs/root.crt
     keystore:
       type: pkcs12
       location: ${ROOT_KEYSTORE_LOCATION}
@@ -52,8 +52,8 @@ eudiw-rp-ca:
   intermediates:
     access:
       lifetime-days: 100
-      crl-distribution-point: ${eudiw-rp-ca.base-uri}/v1/certs/intermediates/access.crl
-      certificate-uri: ${eudiw-rp-ca.base-uri}/v1/certs/intermediates/access.crt
+      crl-distribution-point: ${eudiw-ca.base-uri}/v1/certs/intermediates/access.crl
+      certificate-uri: ${eudiw-ca.base-uri}/v1/certs/intermediates/access.crt
       keystore:
         type: pkcs12
         location: ${INTERMEDIATE_ACCESS_KEYSTORE_LOCATION}

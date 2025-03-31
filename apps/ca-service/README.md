@@ -1,12 +1,12 @@
-# eudiw-rp-ca-service
-EUDIW Relying Party Certificate Authority Service is an API for issuing RP access certificates.
+# eudiw-ca-service
+EUDIW Certificate Authority Service is an API for issuing RP access certificates.
 
 The application's API can be used to:
 * Download root and intermediate CA certificates and CRLs
 * Issue RP access certificates signed by an intermediate CA for access certificates
 
 ## Requirements
-- Java 23
+- Java 21
 - Maven
 - Docker
 
@@ -23,7 +23,7 @@ Profiles in the [resources](/src/main/resources) folder:
 
 The hosts file should include:
 ```
-127.0.0.1 eudiw-rp-ca-service
+127.0.0.1 eudiw-ca-service
 ```
 
 The application can be started with Maven:
@@ -36,4 +36,4 @@ The application can be started with Docker compose:
 docker-compose up --build
 ```
 
-The application will run on http://eudiw-rp-ca-service:9220 .
+The application will run on http://eudiw-ca-service:9220 .
