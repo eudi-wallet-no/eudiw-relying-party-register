@@ -3,5 +3,5 @@ spring:
   application:
     environment: test
 
-eudiw-rp-ca:
-  base-uri: "https://eudiw-rp-ca.test.idporten.no"
+eudiw--ca:
+  base-uri: "https://ca.test.eidas2sandkasse.net "

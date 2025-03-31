@@ -3,5 +3,5 @@ spring:
   application:
     environment: systest
 
-eudiw-rp-ca:
-  base-uri: "https://eudiw-rp-ca.idporten.dev"
+eudiw-ca:
+  base-uri: "https://ca.eidas2sandkasse.dev"

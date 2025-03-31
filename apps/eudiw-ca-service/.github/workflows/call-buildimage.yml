@@ -15,8 +15,8 @@ jobs:
   call-workflow-image-build-publish:
     uses: felleslosninger/github-workflows/.github/workflows/ci-spring-boot-build-publish-image.yml@main
     with:
-      image-name: eudiw-rp-ca-service
-      java-version: 23
+      image-name: eudiw-ca-service
+      java-version: 21
     secrets: inherit
 
   update-image-version:
@@ -24,15 +24,15 @@ jobs:
     needs: call-workflow-image-build-publish
     strategy:
       matrix:
-        application-name: [eudiw-rp-ca-service]
+        application-name: [eudiw-ca-service]
         include:
-          - application-name: eudiw-rp-ca-service
+          - application-name: eudiw-ca-service
             product-name: eudiw
     with:
       application-name: ${{ matrix.application-name }}
       deployment-environment: systest
       image-digest: ${{ needs.call-workflow-image-build-publish.outputs.image-digest }}
-      image-name: eudiw-rp-ca-service
+      image-name: eudiw-ca-service
       image-version: ${{ needs.call-workflow-image-build-publish.outputs.image-version }}
       kubernetes-repo: idporten-cd
       product-name: ${{ matrix.product-name }}

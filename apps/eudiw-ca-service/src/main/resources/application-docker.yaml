@@ -10,5 +10,5 @@ spring:
   application:
     environment: docker
 
-eudiw-rp-ca:
-  base-uri: "http://eudiw-rp-ca-service:9220"
+eudiw-ca:
+  base-uri: "http://eudiw-ca-service:9220"
