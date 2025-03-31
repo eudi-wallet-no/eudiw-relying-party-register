@@ -11,7 +11,11 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 public class RegisterApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(RegisterApplication.class, args);
+		//SpringApplication.run(RegisterApplication.class, args);
+
+		SpringApplication springApplication = new SpringApplication(RegisterApplication.class);
+		springApplication.addListeners(new PropertiesLogger());
+		springApplication.run(args);
 	}
 
 }
