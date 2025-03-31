@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
+<head>
+    <title>Innsynstjenestens søkefunksjon</title>
+    <style>
+        form {
+            display: table;
+        }
+        table, td, th {
+            border: 1px solid black;
+            border-collapse: collapse;
+            padding: 4px;
+        }
+        tr:hover {
+            background-color: lightgray;
+        }
+        .column {
+            float: left;
+            width: 50%
+        }
+    </style>
+</head>
+
+<body>
+<h1>Innsynstjenestens søkefunksjon</h1>
+<div>
+    <div class="column">
+        <h2>Søk på relying parties</h2>
+        <form
+            th:object="${searchFormObject}"
+            th:action="@{/}"
+            method="POST">
+            <p>
+                <label for="orgno" class="form-label">Orgno</label>
+                <input id="orgno" type="text" th:field="*{orgno}" />
+            </p>
+            <p>
+                <label for="sector" class="form-label">Sektor</label>
+                <select id="sector" th:field="*{searchSector}">
+                    <option th:text="any"     th:value="ANY"  />
+                    <option th:text="public"  th:value="PUBLIC"  />
+                    <option th:text="private" th:value="PRIVATE" />
+                </select>
+            </p>
+            <p>
+                <label for="includeInactive" class="form-label">Inkluder inaktive</label>
+                <input id="includeInactive" type="checkbox" th:field="*{includeInactive}"/>
+            </p>
+
+            <button type="submit">Søk!</button>
+        </form>
+    </div>
+
+    <div class="column">
+        <h2>Soekekeresultat</h2>
+        <div th:unless="${ #lists.isEmpty(searchResultObject)}">
+            <table>
+                <tr>
+                    <th>Organisajonsnummer</th>
+                    <th>Navn</th>
+                </tr>
+                <tr th:each="rp : ${searchResultObject}" style="cursor: pointer" onclick="">
+                    <td th:text="${rp.orgno}"></td>
+                    <td th:text="${rp.name}"></td>
+                </tr>
+            </table>
+        </div>
+        <div th:if="${ #lists.isEmpty(searchResultObject)}">
+            Ingen resultat!
+        </div>
+    </div>
+</div>
+</body>
+</html>
