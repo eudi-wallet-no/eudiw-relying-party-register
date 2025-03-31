@@ -1,0 +1,15 @@
+---
+server:
+  port: 8080
+management:
+  server:
+    port: 8090
+spring:
+  application:
+    environment: test
+  security:
+    api-key: ${API_KEY}
+  datasource:
+    url: "jdbc:mariadb://mysql-lb1.kt.digdir.cosng.net:3306/id_eudiw_rp_register_test"
+    username: id_eudiw_rp_register_test
+    password: ${DATABASE_PASSWORD}
