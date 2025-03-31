@@ -20,18 +20,19 @@ public interface RelyingPartyRepository
 
     List<RelyingParty> findAllByDeleted(boolean deleted);
 
-    // orgno required; publicSector optional; includeActive optional (default false).
+    // orgno and deleted required; publicSector optional; includeActive optional (default false).
     @Query("""
         SELECT r
         FROM RelyingParty r
-        WHERE (r.orgno = :orgno) AND (r.deleted = :deleted) AND
-               (:publicSector IS NULL OR r.publicSector = :publicSector) AND
-               (r.active OR :includeInactive = true)
+        WHERE r.orgno = :orgno AND
+              r.deleted = :deleted AND
+              (:publicSector IS NULL OR r.publicSector = :publicSector) AND
+              (r.active OR :includeInactive = true)
     """)
     List<RelyingParty> findByOrgnoAndOptionalPublicSectorAndDeleted(
         @Param("orgno")           String orgno,
         @Param("publicSector")    Boolean publicSector,
-        @Param("deleted")    Boolean deleted,
+        @Param("deleted")         Boolean deleted,
         @Param("includeInactive") Boolean includeInactive);
 }
 
