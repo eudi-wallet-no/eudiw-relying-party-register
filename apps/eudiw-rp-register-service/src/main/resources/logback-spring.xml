@@ -26,7 +26,7 @@
         </encoder>
     </appender>
 
-    <logger name="org.flywaydb" level="DEBUG"/>
+    <logger name="org.flywaydb" level="TRACE"/>
 
     <springProfile name="!local-dev &amp; !local-h2">
         <logger name="no.idporten" level="INFO" additivity="false">

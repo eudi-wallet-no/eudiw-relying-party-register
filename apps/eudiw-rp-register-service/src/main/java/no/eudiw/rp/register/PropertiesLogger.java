@@ -1,5 +1,6 @@
 package no.eudiw.rp.register;
 
+import org.flywaydb.core.Flyway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationPreparedEvent;
@@ -67,5 +68,13 @@ public class PropertiesLogger implements ApplicationListener<ApplicationPrepared
                 });
 
         System.out.println("******************************************************************************");
+
+        Flyway flyway = Flyway.configure()
+                .dataSource(env.getProperty("spring.datasource.url"), env.getProperty("spring.datasource.username"), env.getProperty("spring.datasource.password"))
+                .cleanDisabled(false)
+                .load();
+
+        flyway.repair();
+        System.out.println("FLYWAY DONE");
     }
 }
