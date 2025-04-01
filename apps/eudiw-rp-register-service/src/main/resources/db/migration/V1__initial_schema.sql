@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS `relying_party`
 (
-    `id`                 UUID NOT NULL,
+    `id`                 VARCHAR(36) NOT NULL,
 
     `orgno`              VARCHAR(9) NOT NULL UNIQUE,
     `name`               VARCHAR(255) NOT NULL,
@@ -16,8 +16,8 @@ CREATE TABLE IF NOT EXISTS `relying_party`
 
 CREATE TABLE IF NOT EXISTS `relying_party_entitlement`
 (
-    `id`                  UUID NOT NULL,
-    `relying_party_id`    UUID NOT NULL,
+    `id`                  VARCHAR(36) NOT NULL,
+    `relying_party_id`    VARCHAR(36) NOT NULL,
 
     `entitlement`         VARCHAR(255) NOT NULL,
 
@@ -34,8 +34,8 @@ CREATE TABLE IF NOT EXISTS `relying_party_entitlement`
 
 CREATE TABLE IF NOT EXISTS `relying_party_eaa`
 (
-    `id`                  UUID NOT NULL,
-    `relying_party_id`    UUID NOT NULL,
+    `id`                  VARCHAR(36) NOT NULL,
+    `relying_party_id`    VARCHAR(36) NOT NULL,
 
     `namespace`           VARCHAR(255) NOT NULL,
     `intent`              VARCHAR(255) NOT NULL,
