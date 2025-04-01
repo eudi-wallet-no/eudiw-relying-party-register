@@ -6,7 +6,7 @@ The application's API can be used to:
 * Issue RP access certificates signed by an intermediate CA for access certificates
 
 ## Requirements
-- Java 21
+- Java 24
 - Maven
 - Docker
 
