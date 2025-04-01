@@ -21,6 +21,10 @@ public class ApiTestUtils {
         throws UnsupportedEncodingException, JsonProcessingException {
 
         String json = result.andReturn().getResponse().getContentAsString();
-        return new ObjectMapper().readValue(json, klass);
+        return readJson(json, klass);
+    }
+
+    public static <T> T readJson(Object json, Class<T> klass) throws JsonProcessingException {
+        return new ObjectMapper().readValue((String) json, klass);
     }
 }
