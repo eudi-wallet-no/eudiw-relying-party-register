@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import no.eudiw.rp.register.api.resource.*;
 import no.eudiw.rp.register.data.service.RelyingPartyService;
+import no.idporten.logging.audit.Audit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +35,12 @@ import java.util.UUID;
 public class RelyingPartiesController {
 
         public static final String errorResponseExample = "{\"error\": \"error code\", \"error_description\": \"description of the error\"}";
+        private static final String RELYING_PARTY_CREATED = "RELYING-PARTY-CREATED";
+        private static final String RELYING_PARTY_UPDATED = "RELYING-PARTY-UPDATED";
+        private static final String RELYING_PARTY_DELETED = "RELYING-PARTY-DELETED";
+        private static final String RELYING_PARTY_RETRIEVED = "RELYING-PARTY-RETRIEVED";
+        private static final String RELYING_PARTIES_SEARCHED = "RELYING-PARTIES-SEARCHED";
+        private static final String RELYING_PARTIES_RETRIEVED = "RELYING-PARTIES-RETRIEVED";
 
         private final RelyingPartyService relyingPartyService;
 
@@ -50,6 +57,7 @@ public class RelyingPartiesController {
                 @ApiResponse(responseCode = "200", description = "Relying party is created"),
                 @ApiResponse(responseCode = "400", description = "Invalid resource")
         })
+        @Audit(auditId = RELYING_PARTY_CREATED)
         @PostMapping(path = "v1/rp", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
         public ResponseEntity<RelyingPartyResource> createRelyingParty(@Valid @RequestBody CreateRelyingPartyResource request) {
                 return ResponseEntity.ok(relyingPartyService.createRelyingParty(request));
@@ -63,6 +71,7 @@ public class RelyingPartiesController {
                 @ApiResponse(responseCode = "200", description = "Relying party is edited"),
                 @ApiResponse(responseCode = "404", description = "Relying party is not found")
         })
+        @Audit(auditId = RELYING_PARTY_UPDATED)
         @PutMapping(path = "v1/rp/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
         public ResponseEntity<RelyingPartyResource> editRelyingParty(
             @PathVariable("id") UUID id, @Valid @RequestBody EditRelyingPartyResource request) {
@@ -77,6 +86,7 @@ public class RelyingPartiesController {
                 @ApiResponse(responseCode = "204", description = "Relying party is deleted"),
                 @ApiResponse(responseCode = "404", description = "Relying party is not found")
         })
+        @Audit(auditId = RELYING_PARTY_DELETED)
         @DeleteMapping(path = "v1/rp/{id}")
         public ResponseEntity<Void> deleteRelyingParty(@PathVariable("id") UUID id) {
                 relyingPartyService.deleteRelyingParty(id);
@@ -94,11 +104,11 @@ public class RelyingPartiesController {
                 @ApiResponse(responseCode = "200", description = "Relying party is returned"),
                 @ApiResponse(responseCode = "404", description = "Relying party is not found")
         })
+        @Audit(auditId = RELYING_PARTY_RETRIEVED)
         @GetMapping(path = "v1/rp/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
         public ResponseEntity<RelyingPartyResource> getRelyingParty(@PathVariable("id") UUID id) {
                 return ResponseEntity.ok(relyingPartyService.findRelyingParty(id));
         }
-
 
         @Operation(
                 summary = "Search",
@@ -114,6 +124,7 @@ public class RelyingPartiesController {
                 @ApiResponse(responseCode = "200",
                              description = "Possibly empty relying parties search result is returned")
         })
+        @Audit(auditId = RELYING_PARTIES_SEARCHED)
         @PostMapping(path = "v1/rp/search", produces = MediaType.APPLICATION_JSON_VALUE)
         public ResponseEntity<RelyingPartiesResource> searchRelyingParty(
             @Valid @RequestBody SearchRelyingPartyResource request) {
@@ -127,6 +138,7 @@ public class RelyingPartiesController {
         @ApiResponses(value = {
                 @ApiResponse(responseCode = "200", description = "Relying parties are retrieved")
         })
+        @Audit(auditId = RELYING_PARTIES_RETRIEVED)
         @GetMapping(path = "v1/rp", produces = MediaType.APPLICATION_JSON_VALUE)
         public ResponseEntity<RelyingPartiesResource> getAllRelyingParties() {
                 return ResponseEntity.ok(relyingPartyService.findAllRelyingParties());
