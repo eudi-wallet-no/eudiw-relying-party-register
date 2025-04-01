@@ -74,7 +74,7 @@ public class PropertiesLogger implements ApplicationListener<ApplicationPrepared
                 .cleanDisabled(false)
                 .load();
 
-        flyway.repair();
+        flyway.clean();
         System.out.println("FLYWAY DONE");
     }
 }

@@ -16,7 +16,7 @@ public abstract class BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", columnDefinition = "UUID")
-    @JdbcTypeCode(SqlTypes.UUID)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Getter
     protected UUID id;
 
