@@ -1,4 +1,4 @@
-FROM maven:3-eclipse-temurin-21 as builder
+FROM maven:3-eclipse-temurin-24 as builder
 
 ARG GIT_PACKAGE_TOKEN
 ARG GIT_PACKAGE_USERNAME
@@ -17,7 +17,7 @@ RUN --mount=type=cache,target=/root/.m2/repository \
   MAVEN_OPTS="-XX:UseSVE=0" mvn -B package dependency:go-offline -Dmaven.test.skip=true -Dmaven.gitcommitid.skip=true
 
 
-FROM  eclipse-temurin:21-jre-noble
+FROM  eclipse-temurin:24-jre-noble
 
 ARG APPLICATION=ca-service
 RUN mkdir /var/log/${APPLICATION}
