@@ -3,7 +3,7 @@ EUDIW Relying Party Register Web Interface
 
 ## Requiremens
 To build and run this project you need to have the following installed:
-* Java 23
+* Java 24
 * Maven
 
 ## Runnning the application locally

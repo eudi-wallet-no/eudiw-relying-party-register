@@ -12,16 +12,20 @@
 	<version>DEV-SNAPSHOT</version>
 	<name>rp-register-lookup-web</name>
 	<description>EUDIW Relying Party register open web</description>
+
 	<properties>
-		<java.version>23</java.version>
+		<java.version>24</java.version>
 		<idporten-actuator-starter.version>1.3.0</idporten-actuator-starter.version>
 		<idporten-access-log.version>2.7.1</idporten-access-log.version>
+
 		<opentelemetry-instrumentation-api.version>1.48.0</opentelemetry-instrumentation-api.version>
 		<logback.version>1.5.17</logback.version>
-		<springdoc.version>2.8.5</springdoc.version>
+		<springdoc.version>2.8.6</springdoc.version>
 		<maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
         <mockwebserver.version>4.12.0</mockwebserver.version>
+		<lombok.version>1.18.38</lombok.version>
 	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -71,6 +75,12 @@
             <version>${mockwebserver.version}</version>
             <scope>test</scope>
         </dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+			<version>${lombok.version}</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -94,6 +104,16 @@
                     <proc>full</proc>
                 </configuration>
             </plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<argLine>
+						-javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar
+						-Xshare:off
+					</argLine>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 	<repositories>
