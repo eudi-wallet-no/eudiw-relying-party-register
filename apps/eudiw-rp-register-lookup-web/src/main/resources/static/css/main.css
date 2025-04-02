@@ -1,0 +1,12 @@
+form {
+    display: table;
+}
+
+.verticalHalfpage {
+    float: left;
+    width: 45%;
+}
+
+div + div {
+    margin-left: 20px;
+}

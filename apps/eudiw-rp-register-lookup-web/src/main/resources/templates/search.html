@@ -2,32 +2,21 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
 <head>
     <title>Innsynstjenestens søkefunksjon</title>
-    <style>
-        form {
-            display: table;
-        }
-        table, td, th {
-            border: 1px solid black;
-            border-collapse: collapse;
-            padding: 4px;
-        }
-        tr:hover {
-            background-color: lightgray;
-        }
-        .column {
-            float: left;
-            width: 50%
-        }
-    </style>
+    <link th:href="@{/css/main.css}" rel="stylesheet" />
+    <link th:href="@{/css/tables.css}" rel="stylesheet" />
 </head>
 
 <body>
 <h1>Innsynstjenestens søkefunksjon</h1>
 <div>
-    <div class="column">
+
+    <!--/*
+        search form
+    */-->
+    <div class="verticalHalfpage">
         <h2>Søk på relying parties</h2>
         <form
-            th:object="${searchFormObject}"
+            th:object="${searchFormAttr}"
             th:action="@{/}"
             method="POST">
             <p>
@@ -37,9 +26,9 @@
             <p>
                 <label for="sector" class="form-label">Sektor</label>
                 <select id="sector" th:field="*{searchSector}">
-                    <option th:text="any"     th:value="ANY"  />
-                    <option th:text="public"  th:value="PUBLIC"  />
-                    <option th:text="private" th:value="PRIVATE" />
+                    <option th:text="begge"     th:value="ANY"     />
+                    <option th:text="offentlig" th:value="PUBLIC"  />
+                    <option th:text="privat"    th:value="PRIVATE" />
                 </select>
             </p>
             <p>
@@ -47,26 +36,41 @@
                 <input id="includeInactive" type="checkbox" th:field="*{includeInactive}"/>
             </p>
 
-            <button type="submit">Søk!</button>
+            <button type="submit">Søk</button>
         </form>
     </div>
 
-    <div class="column">
-        <h2>Soekekeresultat</h2>
-        <div th:unless="${ #lists.isEmpty(searchResultObject)}">
-            <table>
-                <tr>
-                    <th>Organisajonsnummer</th>
-                    <th>Navn</th>
-                </tr>
-                <tr th:each="rp : ${searchResultObject}" style="cursor: pointer" onclick="">
-                    <td th:text="${rp.orgno}"></td>
-                    <td th:text="${rp.name}"></td>
-                </tr>
-            </table>
-        </div>
-        <div th:if="${ #lists.isEmpty(searchResultObject)}">
-            Ingen resultat!
+    <!--/*
+        search results list with clickable rows
+    */-->
+    <div class="verticalHalfpage">
+        <div class="row">
+        <h2>Søkekeresultat</h2>
+            <div th:unless="${ #maps.isEmpty(resultsAttr)}"
+                 class="fixedHeaderTable"
+            >
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Organisajonsnummer</th>
+                            <th>Navn</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="rp : ${resultsAttr}"
+                            style="cursor: pointer"
+                        >
+                            <td th:text="${rp.value.orgno}"></td>
+                            <td>
+                                <a th:text="${rp.value.name}" th:href="|@{/details}/${rp.key}|"/>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div th:if="${ #maps.isEmpty(resultsAttr)}">
+                Ingen resultat!
+            </div>
         </div>
     </div>
 </div>
