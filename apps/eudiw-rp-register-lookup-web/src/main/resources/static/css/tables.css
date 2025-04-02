@@ -14,8 +14,14 @@
 }
 
 
-table, th, td {
+table {
+    border: 2px solid black;
+}
+th, td {
     border: 1px solid black;
+}
+
+table, th, td {
     border-collapse: collapse;
     padding: 2px;
 }

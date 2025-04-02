@@ -44,6 +44,14 @@ public class LookupController {
         return "search";
     }
 
+    @GetMapping("/getAll")
+    public String getAll(Model model) {
+        model.addAttribute(searchFormAttrId, SearchForm.empty());
+        RelyingPartiesResource allRelyingParties = lookupService.getAll();
+        model.addAttribute(searchResultAttrId, allRelyingParties.toMap());
+        return "search";
+    }
+
     @GetMapping("/details/{id}")
     public String detailedView(@PathVariable("id") UUID id,
                                @ModelAttribute(searchResultAttrId)

@@ -26,4 +26,11 @@ public class LookupService {
                      .toEntity(RelyingPartiesResource.class)
                      .getBody();
     }
+
+    public RelyingPartiesResource getAll() {
+        return restClient.get()
+                         .retrieve()
+                         .toEntity(RelyingPartiesResource.class)
+                         .getBody();
+    }
 }
