@@ -6,9 +6,14 @@ public record SearchForm(
     boolean includeInactive
 ) {
     public enum SearchSector {
-        PUBLIC,
-        PRIVATE,
-        ANY;
+        PUBLIC  ("offentlig"),
+        PRIVATE ("privat"),
+        ANY     ("begge");
+        public final String displayName;
+
+        SearchSector(String displayName) {
+            this.displayName = displayName;
+        }
         private Boolean toDataBoolean() {
             return this == ANY ? null : this == PUBLIC;
         }

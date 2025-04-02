@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
+<head>
+    <title>Detaljer</title>
+    <link th:href="@{/css/main.css}" rel="stylesheet" />
+    <link th:href="@{/css/tables.css}" rel="stylesheet" />
+</head>
+
+<body>
+
+
+<a th:text="Hjem" th:href="@{/}"></a>
+<h1>
+    Detaljert visning for brukerstad: <span th:text="${relyingPartyAttr?.name}"></span>
+</h1>
+
+<div style="width: 100%; height: 100vh; overflow: auto;">
+<div style="width: 45%; float: left;">
+    <table class="verticalHeadersTable">
+        <tbody>
+        <tr>
+            <th>UUID</th>
+            <td th:text="${relyingPartyAttr.id}"/>
+        </tr>
+        <tr>
+            <th>Org.nr.</th>
+            <td th:text="${relyingPartyAttr.orgno}"/>
+        </tr>
+        <tr>
+            <th>Org.navn</th>
+            <td th:text="${relyingPartyAttr.name}"/>
+        </tr>
+        <tr>
+            <th>Sektor</th>
+            <td th:text="${relyingPartyAttr.publicSector ? 'offentlig' : 'privat'}"/>
+        </tr>
+        <tr>
+            <th>Opprettet</th>
+            <td th:text="${#dates.format(relyingPartyAttr.createdMs, 'HH:mm:ss dd-MM-yyyy')}"></td>
+        </tr>
+        <tr>
+            <th>Sidst oppdatert</th>
+            <td th:text="${#dates.format(relyingPartyAttr.lastUpdatedMs, 'HH:mm:ss dd-MM-yyyy')}"></td>
+        </tr>
+        <tr>
+            <th>Aktiv</th>
+            <td th:text="${relyingPartyAttr.active}"/>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<div style="width: 45%; float:right;">
+    <h3>Registrerte entitlements</h3>
+    <div th:unless="${ #lists.isEmpty(relyingPartyAttr.relyingPartyEntitlements)}"
+         class="fixedHeaderTable"
+    >
+        <table>
+            <thead>
+            <tr><th>Entitlement</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="entitlementResource : ${relyingPartyAttr.relyingPartyEntitlements}"
+                style="cursor: pointer; border: 1px solid black;"
+            >
+                <td th:text="${entitlementResource.entitlement}">
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div th:if="${ #lists.isEmpty(relyingPartyAttr.relyingPartyEntitlements)}"
+         class="fixedHeaderTable"
+    >
+        Ingen registrerte entitlements for <span th:text="${relyingPartyAttr?.name}"></span>
+    </div>
+
+    <h3>Registrerte EAA'ere</h3>
+    <div th:unless="${ #lists.isEmpty(relyingPartyAttr.relyingPartyEaas)}"
+         class="fixedHeaderTable"
+    >
+        <table>
+            <thead>
+            <tr>
+                <th>Namespace</th>
+                <th>Intention</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="eaaResource : ${relyingPartyAttr.relyingPartyEaas}"
+                style="cursor: pointer"
+            >
+                <td th:text="${eaaResource.namespace}"/>
+                <td th:text="${eaaResource.intent}"/>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div th:if="${ #lists.isEmpty(relyingPartyAttr.relyingPartyEaas)}"
+         class="fixedHeaderTable"
+    >
+        Ingen registrerte EAA'ere for <span th:text="${relyingPartyAttr?.name}"></span>.
+    </div>
+</div>
+</div>
+
+</body>
+</html>

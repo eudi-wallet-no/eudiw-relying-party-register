@@ -34,4 +34,12 @@ public class LookupControllerAdvice {
         model.addAttribute("error_msg", "Error communicating with register service API");
         return "error";
     }
+
+    @ExceptionHandler(Exception.class)
+    public String handleException(Exception e, Model model) {
+        log.error("Unexpected exception: {}", e.getMessage());
+        model.addAttribute("error_msg", "Unexpected error");
+        return "error";
+    }
+
 }

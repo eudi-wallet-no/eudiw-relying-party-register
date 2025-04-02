@@ -1,0 +1,37 @@
+.fixedHeaderTable {
+    overflow: auto;
+    max-height: 40vh;
+}
+.fixedHeaderTable thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.verticalHeadersTable th,
+.verticalHeadersTable td {
+    text-align: left;
+}
+
+
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+    padding: 2px;
+}
+
+table {
+    width: 80%;
+}
+
+th {
+    background: #eee;
+}
+tr:hover {
+    background-color: lightgray
+}
+
+
+caption {
+    caption-side: bottom;
+}
