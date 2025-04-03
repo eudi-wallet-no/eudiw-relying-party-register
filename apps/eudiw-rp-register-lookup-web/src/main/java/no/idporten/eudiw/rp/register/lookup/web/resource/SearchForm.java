@@ -2,6 +2,7 @@ package no.idporten.eudiw.rp.register.lookup.web.resource;
 
 public record SearchForm(
     String orgno,
+    String name,
     SearchSector searchSector,
     boolean includeInactive
 ) {
@@ -20,13 +21,16 @@ public record SearchForm(
     }
 
     public static SearchForm empty() {
-        return new SearchForm(null, SearchSector.ANY, false);
+        return new SearchForm(null, null, SearchSector.ANY, false);
     }
-
     public SearchRelyingPartyResource toResource() {
         return new SearchRelyingPartyResource(
             this.orgno,
+            this.name,
             this.searchSector.toDataBoolean(),
             this.includeInactive);
+    }
+    public SearchSector[] getSearchSectorOptions() {
+        return SearchSector.values();
     }
 }

@@ -20,15 +20,20 @@
             th:action="@{/}"
             method="POST">
             <p>
-                <label for="orgno" class="form-label">Orgno</label>
+                <label for="orgno" class="form-label">Org.nr.</label>
                 <input id="orgno" type="text" th:field="*{orgno}" />
+            </p>
+            <p>
+                <label for="name" class="form-label">Navn</label>
+                <input id="name" type="text" th:field="*{name}" />
             </p>
             <p>
                 <label for="sector" class="form-label">Sektor</label>
                 <select id="sector" th:field="*{searchSector}">
-                    <option th:text="begge"     th:value="ANY"     />
-                    <option th:text="offentlig" th:value="PUBLIC"  />
-                    <option th:text="privat"    th:value="PRIVATE" />
+                    <option th:each="searchSectorOption : ${searchFormAttr.getSearchSectorOptions()}"
+                            th:text="${searchSectorOption.displayName}"
+                            th:value="${searchSectorOption}"
+                    />
                 </select>
             </p>
             <p>
