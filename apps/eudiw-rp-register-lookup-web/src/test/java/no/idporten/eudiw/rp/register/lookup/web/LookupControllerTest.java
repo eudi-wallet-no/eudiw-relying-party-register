@@ -65,11 +65,13 @@ public class LookupControllerTest {
             mockMvc.perform(
                        post("/")
                            .param("orgno", searchForm.orgno())
+                           .param("name", searchForm.name())
                            .param("searchSector", searchForm.searchSector().toString())
                            .param("includeInactive", Boolean.valueOf(searchForm.includeInactive()).toString()))
                    .andExpect(status().isOk())
                    .andExpect(view().name("search"))
-                   .andExpect(content().string(containsString(searchForm.orgno())));
+                   .andExpect(content().string(containsString(searchForm.orgno())))
+                   .andExpect(content().string(containsString(searchForm.name())));
         }
     }
 }

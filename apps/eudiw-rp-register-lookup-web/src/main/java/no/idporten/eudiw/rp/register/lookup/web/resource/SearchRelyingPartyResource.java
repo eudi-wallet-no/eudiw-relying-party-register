@@ -7,6 +7,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public record SearchRelyingPartyResource(
     @JsonProperty("orgno")
     String orgno,
+    @JsonProperty("name")
+    String name,
     @JsonProperty("public_sector")
     Boolean publicSector,
     @JsonProperty("include_inactive")
