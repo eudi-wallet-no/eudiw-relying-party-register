@@ -306,7 +306,7 @@ public class RelyingPartiesControllerTest {
                     relyingPartyRepository.save(relyingParty);
 
                     SearchRelyingPartyResource searchResource =
-                        new SearchRelyingPartyResource(relyingParty.getOrgno(), null, false);
+                        SearchRelyingPartyResource.empty().withOrgno(relyingParty.getOrgno());
 
                     String searchJson = new ObjectMapper().writer().writeValueAsString(searchResource);
                     ResultActions actions =
@@ -338,7 +338,7 @@ public class RelyingPartiesControllerTest {
                     relyingPartyRepository.save(relyingParty);
 
                     SearchRelyingPartyResource searchResource =
-                        new SearchRelyingPartyResource(relyingParty.getOrgno(), null, false);
+                        SearchRelyingPartyResource.empty().withOrgno(relyingParty.getOrgno());
 
                     String searchJson = new ObjectMapper().writer().writeValueAsString(searchResource);
                     mockMvc.perform(post("/v1/rp/search")
@@ -359,8 +359,9 @@ public class RelyingPartiesControllerTest {
                     relyingPartyRepository.save(relyingParty);
 
                     SearchRelyingPartyResource searchResource =
-                        new SearchRelyingPartyResource(
-                            relyingParty.getOrgno(), !relyingParty.getPublicSector(), false);
+                        SearchRelyingPartyResource.empty()
+                                                  .withOrgno(relyingParty.getOrgno())
+                                                  .withPublicSector(!relyingParty.getPublicSector());
 
                     String searchJson = new ObjectMapper().writer().writeValueAsString(searchResource);
                     mockMvc.perform(post("/v1/rp/search")
@@ -379,7 +380,7 @@ public class RelyingPartiesControllerTest {
                     String nonexistentOrgno = TestDataGenerator.generateValidOrgno();
 
                     SearchRelyingPartyResource searchResource =
-                        new SearchRelyingPartyResource(nonexistentOrgno, null, false);
+                        SearchRelyingPartyResource.empty().withOrgno(nonexistentOrgno);
 
                     String searchJson = new ObjectMapper().writer().writeValueAsString(searchResource);
                     mockMvc.perform(post("/v1/rp/search")
@@ -406,7 +407,9 @@ public class RelyingPartiesControllerTest {
                     relyingPartyRepository.save(relyingParty);
 
                     SearchRelyingPartyResource searchResource =
-                        new SearchRelyingPartyResource(relyingParty.getOrgno(), null, true);
+                        SearchRelyingPartyResource.empty()
+                                                  .withOrgno(relyingParty.getOrgno())
+                                                  .withIncludeInactive(true);
 
                     String searchJson = new ObjectMapper().writer().writeValueAsString(searchResource);
 

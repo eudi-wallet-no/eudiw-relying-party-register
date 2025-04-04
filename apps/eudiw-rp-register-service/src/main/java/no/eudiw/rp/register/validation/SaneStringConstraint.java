@@ -15,4 +15,5 @@ public @interface SaneStringConstraint {
     String message() default "unsane_string";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
+    int maxLength() default 255;
 }

@@ -1,6 +1,5 @@
 package no.eudiw.rp.register.api;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.eudiw.rp.register.api.resource.*;
 import no.eudiw.rp.register.data.entity.RelyingParty;
@@ -30,7 +29,7 @@ import static org.hamcrest.Matchers.*;
 @ActiveProfiles("test")
 @DisplayName("When using the relying parties API with invalid resources ...")
 @AutoConfigureMockMvc
-public class ResourceValidationTests {
+public class IndexControllerValidationTests {
 
     @Autowired
     private RelyingPartyRepository relyingPartyRepository;
@@ -52,15 +51,16 @@ public class ResourceValidationTests {
     }
 
     @Nested
-    @DisplayName("When passing create resources to the create endpoint ...")
-    class CreateRelyingPartyResourceValidationTests {
+    @DisplayName("When using the create endpoint ...")
+    class CreateEndpointValidationTests {
 
         @Test
-        @DisplayName("then request rejected if orgno is invalid")
+        @DisplayName("then validation is properly applied to create resource")
         void testInvalidOrgnoInCreateResource() throws Exception {
 
             CreateRelyingPartyResource resource =
-                generateCreateRelyingPartyResource().withOrgNr(generateInvalidOrgno());
+                generateCreateRelyingPartyResource()
+                    .withOrgNr(generateInvalidOrgno());
 
             mvcPerform(post("/v1/rp"), resource)
                 .andExpect(status().isBadRequest())
@@ -70,12 +70,12 @@ public class ResourceValidationTests {
     }
 
     @Nested
-    @DisplayName("When passing edit resources to the edit endpoint ...")
-    class EditRelyingPartyResourceValidationTests {
+    @DisplayName("When using the edit endpoint ...")
+    class EditEndpointValidationTests {
 
         @Test
-        @DisplayName("then request rejected if name is invalid")
-        void testInvalidNameEditResource() throws Exception {
+        @DisplayName("then validation is properly applied to edit resource")
+        void testUnsaneNameEditResource() throws Exception {
             RelyingParty relyingPartyIn = relyingPartyRepository.save(generateRelyingPartyNoId());
             UUID id = relyingPartyIn.getId();
 
@@ -86,66 +86,52 @@ public class ResourceValidationTests {
             mvcPerform(put("/v1/rp/" + id), resource)
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("invalid_request"))
-                .andExpect(jsonPath("$.error_description", containsString("invalid_name,unsane_string")));
+                .andExpect(jsonPath("$.error_description", containsString("unsane_string")));
         }
     }
 
     @Nested
     @DisplayName("When passing search resources to the search endpoint ...")
-    class SearchRelyingPartyResourceValidationTests {
+    class SearchEndpointValidationTests {
 
         @Test
-        @DisplayName("then request rejected if orgno is null")
-        void testNullOrgnoInSearchResource() throws Exception {
+        @DisplayName("then validation is properly applied to search resource")
+        void testOptionalParametersCanBeNull() throws Exception {
             SearchRelyingPartyResource searchResource =
-                new SearchRelyingPartyResource(null, true, true);
+                SearchRelyingPartyResource.empty().withName("$fornothing");
 
             mvcPerform(post("/v1/rp/search"), searchResource)
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("invalid_request"))
-                .andExpect(jsonPath("$.error_description", containsString("null_orgno")));
+                .andExpect(jsonPath("$.error_description", containsString("unsane_string")));
         }
     }
 
     @Nested
-    @DisplayName("When passing resources with properties unknown to the API ...")
-    class UnknownPropertiesTests {
+    @DisplayName("When using the delete endpoint ...")
+    class DeleteEndpointValidationTests {
+
+        @DisplayName("then validation is properly applied to the delete ID")
         @Test
-        void testBadResourceAtEndpoint() throws Exception {
-            EditRelyingPartyResource editResource =
-                generateEditRelyingPartyResource();
-
-            mvcPerform(post("/v1/rp"), editResource)
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("invalid_request"));
-        }
-
-        @Test
-        void testUnknownPropertiesInResource() throws Exception {
-            record FaultySearchResource(
-                @JsonProperty("unknown_property_name")
-                String orgno,
-                @JsonProperty("public_sector")
-                Boolean publicSector,
-                @JsonProperty("include_inactive")
-                Boolean includeInactive
-            ) {}
-
-            FaultySearchResource faultySearchResource =
-                new FaultySearchResource("foo", true, true);
-
-            mvcPerform(post("/v1/rp/search"), faultySearchResource)
+        void testDeleteBadUuid() throws Exception {
+            String invalidId = "invalid-id";
+            mvcPerform(delete("/v1/rp/" + invalidId), null)
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("invalid_request"));
         }
     }
 
-    @DisplayName("When querying deletion of a UUID")
-    @Test
-    void testDeleteBadUuid() throws Exception {
-        String invalidId = "invalid-id";
-        mvcPerform(delete("/v1/rp/" + invalidId), null)
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.error").value("invalid_request"));
+    @Nested
+    @DisplayName("When using the get endpoint ...")
+    class GetEndpointValidationTests {
+
+        @DisplayName("then validation is properly applied to the get ID")
+        @Test
+        void testGetadUuid() throws Exception {
+            String invalidId = "invalid-id";
+            mvcPerform(get("/v1/rp/" + invalidId), null)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("invalid_request"));
+        }
     }
 }

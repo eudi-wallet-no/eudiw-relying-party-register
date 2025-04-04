@@ -286,8 +286,9 @@ public class RelyingPartyRepositoryTest {
             rpRepository.save(testRelyingParty);
 
             List<RelyingParty> relyingParties =
-                    rpRepository.findByOrgnoAndOptionalPublicSectorAndDeleted(
+                    rpRepository.searchQuery(
                             testRelyingParty.getOrgno(),
+                            testRelyingParty.getName(),
                             testRelyingParty.getPublicSector(),
                             false,
                             testRelyingParty.isActive()
@@ -296,4 +297,5 @@ public class RelyingPartyRepositoryTest {
             assertTrue(relyingParties.isEmpty());
         }
     }
+
 }
