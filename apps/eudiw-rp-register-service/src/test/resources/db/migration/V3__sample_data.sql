@@ -1,6 +1,6 @@
-INSERT INTO `relying_party` (`id`, `name`, `orgno`, `public_sector`, `created_ms`, `last_updated_ms`)
-VALUES ('4000b045-0f64-455f-8446-545f46afa089', 'digdir',       '000000001', true, 1, 1),
-       ('4e9dc882-3bc6-4822-aa01-4e0d2dc7d901', 'pizzabakeren', '000000002', false, 2, 3);
+INSERT INTO `relying_party` (`id`, `name`, `orgno`, `public_sector`, `created_ms`, `last_updated_ms`, `active`)
+VALUES ('4000b045-0f64-455f-8446-545f46afa089', 'digdir',       '123456785', true, 1, 1, false),
+       ('4e9dc882-3bc6-4822-aa01-4e0d2dc7d901', 'pizzabakeren', '985917957', false, 2, 3, true);
 
 INSERT INTO `relying_party_entitlement` (`id`, `relying_party_id`, `entitlement`)
  VALUES ('83403bb1-76fb-4ff6-98a8-61e2d1d3f8a2',

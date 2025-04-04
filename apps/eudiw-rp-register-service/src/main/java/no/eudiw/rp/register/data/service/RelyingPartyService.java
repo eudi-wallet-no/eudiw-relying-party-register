@@ -52,8 +52,9 @@ public class RelyingPartyService {
     @Transactional(readOnly = true)
     public RelyingPartiesResource searchRelyingParties(SearchRelyingPartyResource request) {
         return new RelyingPartiesResource(
-            relyingPartyRepository.findByOrgnoAndOptionalPublicSectorAndDeleted(
+            relyingPartyRepository.searchQuery(
                                       request.orgno(),
+                                      request.name(),
                                       request.publicSector(),
                                       false,
                                       request.includeInactive()

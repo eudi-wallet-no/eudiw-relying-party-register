@@ -3,11 +3,12 @@ package no.eudiw.rp.register.api.resource;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.With;
-import no.eudiw.rp.register.validation.NameConstraint;
 import no.eudiw.rp.register.validation.SaneStringConstraint;
+import no.idporten.validators.orgnr.Orgnr;
 
 import java.util.List;
 import java.util.UUID;
@@ -20,13 +21,13 @@ public record RelyingPartyResource(
     @JsonProperty("id")
     UUID id,
 
+    @Orgnr
     @NotNull(message = "null_orgno")
     @JsonProperty(value = "org_nr", required = true)
     String orgNr,
 
     @SaneStringConstraint
-    @NameConstraint
-    @NotNull(message = "null_name")
+    @NotBlank(message = "blank_name")
     @JsonProperty(value = "name", required = true)
     String name,
 

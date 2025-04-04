@@ -2,12 +2,10 @@ package no.eudiw.rp.register.validation;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ValidatorFactory;
-import no.eudiw.rp.register.api.resource.CreateRelyingPartyResource;
+import no.eudiw.rp.register.api.resource.*;
+
 import static no.eudiw.rp.register.testdata.ResourceGenerator.*;
 
-import no.eudiw.rp.register.api.resource.RelyingPartyEaaResource;
-import no.eudiw.rp.register.api.resource.RelyingPartyEntitlementResource;
-import no.eudiw.rp.register.api.resource.RelyingPartyResource;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -30,14 +28,12 @@ public class ValidationTests {
     @Autowired
     private ValidatorFactory validatorFactory;
 
-
     private <T> Set<ConstraintViolation<T>> doValidateResource(T resource) {
         return validatorFactory.getValidator().validate(resource);
     }
     private <T> List<String> getValidationErrorMessages(Set<ConstraintViolation<T>> violations) {
         return violations.stream().map(ConstraintViolation::getMessage).toList();
     }
-
 
     @Nested
     class CreateRelyingPartyResourceValidationTests {
@@ -74,67 +70,121 @@ public class ValidationTests {
         }
 
         @ParameterizedTest
-        @ValueSource(strings = {
-            "", // empty name
-            "        ", // blank name
-            "Dig$dir" // invalid symbols
-        })
-        void testNameConstraint(String invalidName) {
+        @ValueSource(strings = {"", "     "})
+        void testNotBlankNameConstraint(String blankName) {
             CreateRelyingPartyResource resourceWithInvalidName =
                 generateCreateRelyingPartyResource()
-                    .withName(invalidName);
+                    .withName(blankName);
 
             Set<ConstraintViolation<CreateRelyingPartyResource>> violations =
                 doValidateResource(resourceWithInvalidName);
             List<String> validationErrorMessages = getValidationErrorMessages(violations);
             assertAll(
                 () -> assertEquals(1, violations.size()),
-                () -> assertTrue(validationErrorMessages.contains("invalid_name"))
+                () -> assertTrue(validationErrorMessages.contains("blank_name"))
+            );
+
+        }
+    }
+
+    @Nested
+    class RelyingPartyResourceTests {
+        @Test
+        void testRelyingPartyResourceEaaConstraint() {
+            RelyingPartyEaaResource invalidEaaResource =
+                new RelyingPartyEaaResource("   ", "valid-intent");
+
+            RelyingPartyResource resource =
+                generateRelyingPartyResource()
+                    .withRelyingPartyEaas(List.of(invalidEaaResource));
+
+            Set<ConstraintViolation<RelyingPartyResource>> violations =
+                doValidateResource(resource);
+            List<String> validationErrorMessages = getValidationErrorMessages(violations);
+
+            assertAll(
+                () -> assertEquals(1, violations.size()),
+                () -> assertTrue(validationErrorMessages.contains("blank_namespace"))
+            );
+        }
+
+        @Test
+        void testRelyingPartyResourceEntitlementConstraint() {
+            List<RelyingPartyEntitlementResource> entitlementResources =
+                List.of(
+                    new RelyingPartyEntitlementResource("   "),
+                    new RelyingPartyEntitlementResource("valid entitlement"),
+                    new RelyingPartyEntitlementResource("<script>bad!</script>")
+                );
+
+            RelyingPartyResource resource =
+                generateRelyingPartyResource()
+                    .withRelyingPartyEntitlements(entitlementResources);
+
+            Set<ConstraintViolation<RelyingPartyResource>> violations =
+                doValidateResource(resource);
+            List<String> validationErrorMessages = getValidationErrorMessages(violations);
+
+            assertAll(
+                () -> assertEquals(2, violations.size()),
+                () -> assertTrue(validationErrorMessages.contains("blank_entitlement")),
+                () -> assertTrue(validationErrorMessages.contains("unsane_entitlement"))
             );
         }
     }
 
-    @Test
-    void testRelyingPartyResourceEaaConstraint() {
-        RelyingPartyEaaResource invalidEaaResource =
-            new RelyingPartyEaaResource("   ", "valid-intent");
+    @Nested
+    class SaneStringConstraintTests {
 
-        RelyingPartyResource resource =
-            generateRelyingPartyResource()
-                .withRelyingPartyEaas(List.of(invalidEaaResource));
+        @ParameterizedTest
+        @ValueSource(strings = {
+            "digæøåÅØÆdir", // norwegian letters
+            "dig0123456789dir", // numbers
+            "dig.,-:'\"&/ dir", // special symbols
+            "digaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                + "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                + "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                + "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                + "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                + "aadir" // length 255 string
+        })
+        void testValidEdgeCaseInputStrings(String str) {
+            SearchRelyingPartyResource searchResource =
+                SearchRelyingPartyResource.empty().withName(str);
+            Set<ConstraintViolation<SearchRelyingPartyResource>> violations =
+                doValidateResource(searchResource);
+            assertTrue(violations.isEmpty());
+        }
 
-        Set<ConstraintViolation<RelyingPartyResource>> violations =
-            doValidateResource(resource);
-        List<String> validationErrorMessages = getValidationErrorMessages(violations);
+        @ParameterizedTest
+        @ValueSource(strings = {
+            "digöÄdir", // non-norwegian letters
+            "dig!?dir", // disallowed symbols
+            "dig\tdir", // disallowed whitespace
+            "digaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                + "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                + "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                + "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                + "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                + "aaadir" // string too long (256 characters)
+        })
+        void testInvalidEdgeCaseInputStrings(String str) {
+            SearchRelyingPartyResource searchResource =
+                SearchRelyingPartyResource.empty().withName(str);
+            Set<ConstraintViolation<SearchRelyingPartyResource>> violations =
+                doValidateResource(searchResource);
 
-        assertAll(
-            () -> assertEquals(1, violations.size()),
-            () -> assertTrue(validationErrorMessages.contains("blank_namespace"))
-        );
-    }
+            List<String> validationErrorMessages = getValidationErrorMessages(violations);
 
-
-    @Test
-    void testRelyingPartyResourceEntitlementConstraint() {
-        List<RelyingPartyEntitlementResource> entitlementResources =
-            List.of(
-                new RelyingPartyEntitlementResource("   "),
-                new RelyingPartyEntitlementResource("valid entitlement"),
-                new RelyingPartyEntitlementResource("<script>bad!</script>")
+            assertAll(
+                () -> assertEquals(1, violations.size()),
+                () -> assertTrue(validationErrorMessages.contains("unsane_string"))
             );
-
-        RelyingPartyResource resource =
-            generateRelyingPartyResource()
-                .withRelyingPartyEntitlements(entitlementResources);
-
-        Set<ConstraintViolation<RelyingPartyResource>> violations =
-            doValidateResource(resource);
-        List<String> validationErrorMessages = getValidationErrorMessages(violations);
-
-        assertAll(
-            () -> assertEquals(2, violations.size()),
-            () -> assertTrue(validationErrorMessages.contains("blank_entitlement")),
-            () -> assertTrue(validationErrorMessages.contains("unsane_entitlement"))
-        );
+        }
     }
 }
+
+
+
+
+
