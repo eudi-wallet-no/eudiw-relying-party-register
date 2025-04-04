@@ -3,7 +3,10 @@ package no.idporten.eudiw.ca.service;
 import no.idporten.eudiw.ca.config.CertificateAuthority;
 import no.idporten.eudiw.ca.exception.CertificateAuthorityException;
 import org.bouncycastle.asn1.ASN1Object;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x509.*;
 import org.bouncycastle.cert.X509CRLHolder;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -44,6 +47,8 @@ import java.util.List;
 @Service
 public class CertificateAuthorityService {
 
+    public static final String DIGDIR_ORGNO = "991825827";
+
     public PKCS10CertificationRequest decodeCsr(String csr) throws Exception {
         return decodeFromPem(csr, PKCS10CertificationRequest.class);
     }
@@ -70,10 +75,14 @@ public class CertificateAuthorityService {
      */
     protected X509Certificate signRootCertificate(CertificateAuthority certificateAuthority, PKCS10CertificationRequest csr) throws Exception {
         validateCSR(csr);
-        return signCertificate(certificateAuthority, csr, List.of(
-                Extension.create(Extension.basicConstraints, true, new BasicConstraints(true)),
-                Extension.create(Extension.keyUsage, true, new KeyUsage(KeyUsage.keyCertSign | KeyUsage.cRLSign))
-        ));
+        return signCertificate(
+                certificateAuthority,
+                csr,
+                createSubjectWithOrgno(new X509CertificateHolder(certificateAuthority.getCertificate().getEncoded()).getSubject(), DIGDIR_ORGNO),
+                List.of(
+                        Extension.create(Extension.basicConstraints, true, new BasicConstraints(true)),
+                        Extension.create(Extension.keyUsage, true, new KeyUsage(KeyUsage.keyCertSign | KeyUsage.cRLSign))
+                ));
     }
 
     /**
@@ -82,17 +91,20 @@ public class CertificateAuthorityService {
      */
     protected X509Certificate signIntermediateCertificate(CertificateAuthority certificateAuthority, PKCS10CertificationRequest csr) throws Exception {
         validateCSR(csr);
-        return signCertificate(certificateAuthority, csr, List.of(
-                Extension.create(Extension.basicConstraints, true, new BasicConstraints(true)),
-                createCrlDistributionPointExtension(certificateAuthority.getCrlDistributionPoint()),
-                Extension.create(Extension.keyUsage, true, new KeyUsage(KeyUsage.keyCertSign | KeyUsage.cRLSign)),
-                createAuthorityInformationAccess(certificateAuthority.getCertificateUri())));
+        return signCertificate(certificateAuthority,
+                csr,
+                createSubjectWithOrgno(csr.getSubject(), DIGDIR_ORGNO),
+                List.of(
+                        Extension.create(Extension.basicConstraints, true, new BasicConstraints(true)),
+                        createCrlDistributionPointExtension(certificateAuthority.getCrlDistributionPoint()),
+                        Extension.create(Extension.keyUsage, true, new KeyUsage(KeyUsage.keyCertSign | KeyUsage.cRLSign)),
+                        createAuthorityInformationAccess(certificateAuthority.getCertificateUri())));
     }
 
     /**
-     * Signs an end-entity certificate with an intermediate CA certificate.
+     * Signs an end-entity certificate for an organization with an intermediate CA certificate.
      */
-    public X509Certificate signCertificate(CertificateAuthority certificateAuthority, PKCS10CertificationRequest csr) throws Exception {
+    public X509Certificate signCertificate(CertificateAuthority certificateAuthority, PKCS10CertificationRequest csr, String orgno) throws Exception {
         validateCSR(csr);
         List<Extension> extensions = new ArrayList<>();
         extensions.add(Extension.create(Extension.basicConstraints, true, new BasicConstraints(false)));
@@ -102,10 +114,11 @@ public class CertificateAuthorityService {
         if (csr.getRequestedExtensions().getExtension(Extension.subjectAlternativeName) != null) {
             extensions.add(csr.getRequestedExtensions().getExtension(Extension.subjectAlternativeName));
         }
-        return signCertificate(certificateAuthority, csr, extensions);
+        X500Name subject = createSubjectWithOrgno(csr.getSubject(), orgno);
+        return signCertificate(certificateAuthority, csr, subject, extensions);
     }
 
-    protected X509Certificate signCertificate(CertificateAuthority certificateAuthority, PKCS10CertificationRequest csr, List<Extension> extensions) throws Exception {
+    protected X509Certificate signCertificate(CertificateAuthority certificateAuthority, PKCS10CertificationRequest csr, X500Name subject, List<Extension> extensions) throws Exception {
         validateCertificateAuthority(certificateAuthority);
         PublicKey publicKey = new JcaPEMKeyConverter().getPublicKey(csr.getSubjectPublicKeyInfo());
         SubjectPublicKeyInfo keyInfo = SubjectPublicKeyInfo.getInstance(publicKey.getEncoded());
@@ -114,7 +127,7 @@ public class CertificateAuthorityService {
                 new BigInteger(64, new SecureRandom()),
                 new Date(System.currentTimeMillis()),
                 calculateExpiryDate(certificateAuthority.getLifetimeDays(), certificateAuthority.getCertificate().getNotAfter()),
-                csr.getSubject(),
+                subject,
                 keyInfo)
                 .addExtension(Extension.authorityKeyIdentifier, false,
                         new JcaX509ExtensionUtils().createAuthorityKeyIdentifier(certificateAuthority.getPublicKey()))
@@ -133,6 +146,14 @@ public class CertificateAuthorityService {
         try (InputStream is = new ByteArrayInputStream(eeX509CertificateStructure.getEncoded())) {
             return (X509Certificate) cf.generateCertificate(is);
         }
+    }
+
+    protected X500Name createSubjectWithOrgno(X500Name requestedName, String orgno) {
+        X500NameBuilder x500NameBuilder = new X500NameBuilder();
+        for (RDN rdn : requestedName.getRDNs()) {
+            x500NameBuilder.addMultiValuedRDN(rdn.getTypesAndValues());
+        }
+        return x500NameBuilder.addRDN(ASN1ObjectIdentifier.tryFromID("2.5.4.97"), "NTRNO-%s".formatted(orgno)).build();
     }
 
     protected Extension createCrlDistributionPointExtension(URI uri) throws IOException {

@@ -107,7 +107,7 @@ public class CertificateAuthorityApiControllerTest {
                 KoZIzj0EAwMDRwAwRAIgVIhOFcOMK0KR9MvK3a76Hgma6susPfXDJ+HfZZe50N8C
                 IF5nyI5eYXYbBBQvdAZFJStX4YgEc+7j/QV3BlIGz2HE
                 -----END NEW CERTIFICATE REQUEST-----""";
-        MvcResult result = mockMvc.perform(post("/v1/certs/access")
+        MvcResult result = mockMvc.perform(post("/v1/certs/access/991825827")
                         .header("X-API-KEY", "junit-api-key")
                         .contentType("application/x-pem-file")
                         .content(csr))

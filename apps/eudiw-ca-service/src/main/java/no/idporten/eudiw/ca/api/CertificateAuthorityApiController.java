@@ -11,13 +11,12 @@ import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.ca.config.CertificateAuthorities;
 import no.idporten.eudiw.ca.service.CertificateAuthorityService;
+import no.idporten.validators.orgnr.Orgnr;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.cert.X509Certificate;
 
@@ -33,6 +32,7 @@ import static no.idporten.eudiw.ca.api.CertificateAuthorityApiController.errorRe
                 @ExampleObject(description = "Error response", value = errorResponseExample)
         }))
 })
+@Validated
 @RequiredArgsConstructor
 @RestController
 public class CertificateAuthorityApiController {
@@ -99,13 +99,16 @@ public class CertificateAuthorityApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "PEM-encoded certificate", content = @Content(mediaType = APPLICATION_X_PEM_FILE_VALUE))
     })
-    @PostMapping(path = "/v1/certs/access", consumes = APPLICATION_X_PEM_FILE_VALUE, produces = {APPLICATION_X_PEM_FILE_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<String> signCertificate(@Valid @NotEmpty(message = "CSR cannot be null") @RequestBody String csr) throws Exception {
+    @PostMapping(path = "/v1/certs/access/{orgno}", consumes = APPLICATION_X_PEM_FILE_VALUE, produces = {APPLICATION_X_PEM_FILE_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<String> signCertificate(
+            @Valid @NotEmpty(message = "CSR cannot be null") @RequestBody String csr,
+            @Valid @Orgnr(message = "Invalid organization number") @NotEmpty @PathVariable String orgno) throws Exception {
         PKCS10CertificationRequest pkcs10CertificationRequest = certificateAuthorityService.decodeCsr(csr);
         X509Certificate signedCertificate =
                 certificateAuthorityService.signCertificate(
                         certificateAuthorities.findIntermediate("access"),
-                        pkcs10CertificationRequest);
+                        pkcs10CertificationRequest,
+                        orgno);
         return ResponseEntity.ok(certificateAuthorityService.encodeToPem(signedCertificate));
     }
 
