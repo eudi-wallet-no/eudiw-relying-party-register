@@ -22,6 +22,7 @@ spring:
       - /health**
       - /health/**
       - /version
+      - /prometheus
 # Spring Boot Actuator
 management:
   server:
