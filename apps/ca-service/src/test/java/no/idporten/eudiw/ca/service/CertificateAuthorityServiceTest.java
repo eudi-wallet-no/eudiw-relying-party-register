@@ -52,7 +52,7 @@ public class CertificateAuthorityServiceTest {
                     IF5nyI5eYXYbBBQvdAZFJStX4YgEc+7j/QV3BlIGz2HE
                     -----END NEW CERTIFICATE REQUEST-----""";
             CertificateAuthority intermediate = certificateAuthorities.findIntermediate("access");
-            X509Certificate certificate = certificateAuthorityService.signCertificate(intermediate, certificateAuthorityService.decodeCsr(csr));
+            X509Certificate certificate = certificateAuthorityService.signCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), "991825827");
             assertAll(
                     () -> assertNotNull(certificate),
                     () -> assertTrue(certificate.getBasicConstraints() < 0),
