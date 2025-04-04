@@ -1,21 +1,19 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
 <head>
-    <title>Innsynstjenesten</title>
+    <title>Innsynstjenesten - slem-feil-sida</title>
 </head>
 <body>
-<h1>Velkommen til slem-feil-sia!</h1>
+
+<h1>Velkommen til slem-feil-sida!</h1>
 
     <div>
-        Det skjedde en ille og ukjent feil.
+        Det skjedde en ille, uventet, og kanskje ukjent feil. Beklager!
     </div>
 
-    <div>
-        Feilmelding: <span th:text="${error_msg}">(ingen feilmelding)</span>
-    </div>
-
-    <a href="/">
+    <a th:href="@{/}">
         Prøv igjen
     </a>
+
 </body>
 </html>

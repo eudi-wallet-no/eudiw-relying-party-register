@@ -1,13 +1,11 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
 <head>
-    <title>Detaljer</title>
-    <link th:href="@{/css/main.css}" rel="stylesheet" />
-    <link th:href="@{/css/tables.css}" rel="stylesheet" />
+    <title th:text="|Innsynstjenesten - detaljer for ${relyingPartyAttr?.name}|" />
+    <link th:href="@{/css/detailedViewPage.css}" rel="stylesheet" />
 </head>
 
 <body>
-
 
 <a th:text="Hjem" th:href="@{/}"></a>
 <h1>
