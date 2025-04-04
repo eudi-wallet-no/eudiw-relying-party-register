@@ -1,5 +1,7 @@
 package no.idporten.eudiw.rp.register.lookup.web;
 
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.register.lookup.service.LookupService;
 import no.idporten.eudiw.rp.register.lookup.web.resource.RelyingPartiesResource;
@@ -8,12 +10,14 @@ import no.idporten.eudiw.rp.register.lookup.web.resource.SearchForm;
 import no.idporten.eudiw.rp.register.lookup.web.resource.SearchRelyingPartyResource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
+import java.util.HashMap;
 import java.util.UUID;
 
 @Slf4j
+@RequiredArgsConstructor
 @Controller
 @RequestMapping("/")
 @SessionAttributes(LookupController.searchResultAttrId)
@@ -23,11 +27,12 @@ public class LookupController {
     public static final String searchResultAttrId = "resultsAttr";
     public static final String focusResultAttrId = "relyingPartyAttr";
 
-    private final LookupService lookupService;
-
-    public LookupController(LookupService lookupService) {
-        this.lookupService = lookupService;
+    @ModelAttribute(searchResultAttrId)
+    private HashMap<UUID, RelyingPartyResource> initSearchResults() {
+        return new HashMap<>();
     }
+
+    private final LookupService lookupService;
 
     @GetMapping
     public String searchGet(Model model) {
@@ -36,30 +41,32 @@ public class LookupController {
     }
 
     @PostMapping
-    public String searchPost(@ModelAttribute(searchFormAttrId) SearchForm searchForm,
+    public String searchPost(@ModelAttribute(searchFormAttrId) @Valid SearchForm searchForm,
+                             BindingResult bindingResult,
                              Model model) {
-        SearchRelyingPartyResource searchResource = searchForm.toResource();
-        RelyingPartiesResource searchResult = lookupService.search(searchResource);
-        model.addAttribute(searchResultAttrId, searchResult.toMap());
+        if (!bindingResult.hasErrors()) {
+            SearchRelyingPartyResource searchResource = searchForm.toResource();
+            RelyingPartiesResource searchResult = lookupService.search(searchResource);
+            model.addAttribute(searchResultAttrId, searchResult.toMap());
+        }
         return "search";
     }
 
     @GetMapping("/getAll")
     public String getAll(Model model) {
-        model.addAttribute(searchFormAttrId, SearchForm.empty());
         RelyingPartiesResource allRelyingParties = lookupService.getAll();
         model.addAttribute(searchResultAttrId, allRelyingParties.toMap());
-        return "search";
+        return "redirect:/";
     }
 
     @GetMapping("/details/{id}")
     public String detailedView(@PathVariable("id") UUID id,
                                @ModelAttribute(searchResultAttrId)
-                               Map<UUID, RelyingPartyResource> searchResults,
+                               HashMap<UUID, RelyingPartyResource> searchResults,
                                Model model) {
         RelyingPartyResource focusResult = searchResults.get(id);
-        if (focusResult == null)
-            return "redirect:/";
+        if (focusResult == null) // if user navigated here without searching first.
+            return "errors/id_not_found";
         model.addAttribute(focusResultAttrId, focusResult);
         return "detailed_view";
     }

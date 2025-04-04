@@ -1,5 +1,7 @@
 package no.idporten.eudiw.rp.register.lookup.service.config;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
@@ -11,10 +13,10 @@ public record LookupServiceProperties(
 ) {
     @ConfigurationProperties(prefix = "eudiw-rp-register-lookup-web.service.rest-client-defaults")
     public record RestClientDefaults(
-        String registerServiceApiBaseUri,
-        String apiKeyHeaderId,
-        String apiKeyValue,
-        long connectTimeoutMillis,
-        long readTimeoutMillis
+        @NotBlank String registerServiceApiBaseUri,
+        @NotBlank String apiKeyHeaderId,
+        @NotBlank String apiKeyValue,
+        @Min(0) long connectTimeoutMillis,
+        @Min(0) long readTimeoutMillis
     ) { }
 }

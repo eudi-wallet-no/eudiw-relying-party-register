@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
 <head>
-    <title>Innsynstjenestens søkefunksjon</title>
-    <link th:href="@{/css/main.css}" rel="stylesheet" />
-    <link th:href="@{/css/tables.css}" rel="stylesheet" />
+    <title>Innsynstjenesten - søk</title>
+    <link th:href="@{/css/searchPage.css}" rel="stylesheet" />
 </head>
 
 <body>
@@ -19,14 +18,23 @@
             th:object="${searchFormAttr}"
             th:action="@{/}"
             method="POST">
-            <p>
                 <label for="orgno" class="form-label">Org.nr.</label>
                 <input id="orgno" type="text" th:field="*{orgno}" />
-            </p>
-            <p>
+
+                <ul>
+                    <li th:each="error : ${#fields.errors('orgno')}"
+                        th:text="${error}"
+                        class="errorText" />
+                </ul>
+
                 <label for="name" class="form-label">Navn</label>
                 <input id="name" type="text" th:field="*{name}" />
-            </p>
+                <ul>
+                    <li th:each="error : ${#fields.errors('name')}"
+                        th:text="${error}"
+                        class="errorText" />
+                </ul>
+
             <p>
                 <label for="sector" class="form-label">Sektor</label>
                 <select id="sector" th:field="*{searchSector}">
