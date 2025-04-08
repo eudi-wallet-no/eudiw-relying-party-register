@@ -12,8 +12,7 @@ WORKDIR /home/app
 COPY pom.xml ./
 COPY src ./src
 
-RUN --mount=type=cache,target=/root/.m2/repository \
-  MAVEN_OPTS="-XX:UseSVE=0" mvn -B package dependency:go-offline -Dmaven.test.skip=true -Dmaven.gitcommitid.skip=true
+RUN --mount=type=cache,target=/root/.m2/repository MAVEN_OPTS="-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0" mvn -f /home/app/pom.xml clean package -Dmaven.test.skip=true -Dmaven.gitcommitid.skip=true
 
 FROM  eclipse-temurin:24-jre-noble
 
