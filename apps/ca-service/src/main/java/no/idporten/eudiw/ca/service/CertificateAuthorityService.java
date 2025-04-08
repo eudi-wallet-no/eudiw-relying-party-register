@@ -48,6 +48,7 @@ import java.util.List;
 public class CertificateAuthorityService {
 
     public static final String DIGDIR_ORGNO = "991825827";
+    public static final String OID_ORGANIZATION_NUMBER = "2.5.4.97";
 
     public PKCS10CertificationRequest decodeCsr(String csr) throws Exception {
         return decodeFromPem(csr, PKCS10CertificationRequest.class);
@@ -153,7 +154,7 @@ public class CertificateAuthorityService {
         for (RDN rdn : requestedName.getRDNs()) {
             x500NameBuilder.addMultiValuedRDN(rdn.getTypesAndValues());
         }
-        return x500NameBuilder.addRDN(ASN1ObjectIdentifier.tryFromID("2.5.4.97"), "NTRNO-%s".formatted(orgno)).build();
+        return x500NameBuilder.addRDN(ASN1ObjectIdentifier.tryFromID(OID_ORGANIZATION_NUMBER), "NTRNO-%s".formatted(orgno)).build();
     }
 
     protected Extension createCrlDistributionPointExtension(URI uri) throws IOException {

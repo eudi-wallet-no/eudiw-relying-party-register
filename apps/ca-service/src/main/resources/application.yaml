@@ -61,3 +61,13 @@ eudiw-ca:
         password: ${INTERMEDIATE_ACCESS_KEYSTORE_PASSWORD}
         key-alias: ${INTERMEDIATE_ACCESS_KEYSTORE_KEY_ALIAS}
         key-password: ${INTERMEDIATE_ACCESS_KEYSTORE_KEY_PASSWORD}
+    issuer:
+      lifetime-days: 100
+      crl-distribution-point: ${eudiw-ca.base-uri}/v1/certs/intermediates/issuer.crl
+      certificate-uri: ${eudiw-ca.base-uri}/v1/certs/intermediates/issuer.crt
+      keystore:
+        type: pkcs12
+        location: ${INTERMEDIATE_ISSUER_KEYSTORE_LOCATION}
+        password: ${INTERMEDIATE_ISSUER_KEYSTORE_PASSWORD}
+        key-alias: ${INTERMEDIATE_ISSUER_KEYSTORE_KEY_ALIAS}
+        key-password: ${INTERMEDIATE_ISSUER_KEYSTORE_KEY_PASSWORD}
