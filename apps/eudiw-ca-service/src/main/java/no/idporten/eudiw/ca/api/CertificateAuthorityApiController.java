@@ -1,6 +1,7 @@
 package no.idporten.eudiw.ca.api;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -23,7 +24,7 @@ import java.security.cert.X509Certificate;
 import static no.idporten.eudiw.ca.api.CertificateAuthorityApiController.API_TAG;
 import static no.idporten.eudiw.ca.api.CertificateAuthorityApiController.errorResponseExample;
 
-@Tag(name = API_TAG, description = "Relying Parties Certificate Authority API")
+@Tag(name = API_TAG, description = "eIDAS 2.0 NO Sandbox Certificate Authority API")
 @ApiResponses(value = {
         @ApiResponse(responseCode = "400", description = "Invalid request", content = @Content(examples = {
                 @ExampleObject(description = "Error response", value = errorResponseExample)
@@ -42,6 +43,11 @@ public class CertificateAuthorityApiController {
 
     public final static String APPLICATION_X_PEM_FILE_VALUE = "application/x-pem-file";
     public final static String errorResponseExample = "{\"error\": \"error_code\", \"error_description\": \"Description of the error\"}";
+    public final static String certificateSigningRequestExample = """
+            -----BEGIN NEW CERTIFICATE REQUEST-----
+            MII...
+            -----END NEW CERTIFICATE REQUEST-----
+            """;
     public final static String API_TAG = "ca-api-v1";
 
     @Operation(
@@ -52,7 +58,7 @@ public class CertificateAuthorityApiController {
             @ApiResponse(responseCode = "200", description = "PEM-encoded certificate", content = @Content(mediaType = APPLICATION_X_PEM_FILE_VALUE))
     })
     @GetMapping(path = "/v1/certs/root.crt", produces = APPLICATION_X_PEM_FILE_VALUE)
-    public ResponseEntity<String> getRootCertificate() throws Exception {
+    public ResponseEntity<String> getRootCertificate() {
         return ResponseEntity.ok(certificateAuthorityService.encodeToPem(certificateAuthorities.getRoot().getCertificate()));
     }
 
@@ -75,9 +81,16 @@ public class CertificateAuthorityApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "PEM-encoded certificate", content = @Content(mediaType = APPLICATION_X_PEM_FILE_VALUE))
     })
-    @GetMapping(path = "/v1/certs/intermediates/access.crt", produces = APPLICATION_X_PEM_FILE_VALUE)
-    public ResponseEntity<String> getIntermediateCertificates() throws Exception {
-        return ResponseEntity.ok(certificateAuthorityService.encodeToPem(certificateAuthorities.findIntermediate("access").getCertificate()));
+    @GetMapping(path = "/v1/certs/intermediates/{intermediate}.crt", produces = APPLICATION_X_PEM_FILE_VALUE)
+    public ResponseEntity<String> getIntermediateCertificates(
+            @Parameter(
+                    description = "Intermediate CA name",
+                    examples = {
+                            @ExampleObject(name = "access", value = "access", description = "RP access CA"),
+                            @ExampleObject(name = "issuer", value = "issuer", description = "Issuer CA")},
+                    required = true)
+            @PathVariable("intermediate") String intermediate) {
+        return ResponseEntity.ok(certificateAuthorityService.encodeToPem(certificateAuthorities.findIntermediate(intermediate).getCertificate()));
     }
 
     @Operation(
@@ -87,26 +100,49 @@ public class CertificateAuthorityApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "PEM-encoded CRL", content = @Content(mediaType = APPLICATION_X_PEM_FILE_VALUE))
     })
-    @GetMapping(path = "/v1/certs/intermediates/access.crl", produces = APPLICATION_X_PEM_FILE_VALUE)
-    public ResponseEntity<String> getIntermediateCrl() throws Exception {
-        return ResponseEntity.ok(certificateAuthorityService.encodeToPem(certificateAuthorityService.createCRL(certificateAuthorities.findIntermediate("access"))));
+    @GetMapping(path = "/v1/certs/intermediates/{intermediate}.crl", produces = APPLICATION_X_PEM_FILE_VALUE)
+    public ResponseEntity<String> getIntermediateCrl(
+            @Parameter(
+                    description = "Intermediate CA name",
+                    examples = {
+                            @ExampleObject(name = "access", value = "access", description = "RP access CA"),
+                            @ExampleObject(name = "issuer", value = "issuer", description = "Issuer CA")},
+                    required = true)
+            @PathVariable("intermediate") String intermediate) throws Exception {
+        return ResponseEntity.ok(certificateAuthorityService.encodeToPem(certificateAuthorityService.createCRL(certificateAuthorities.findIntermediate(intermediate))));
     }
 
     @Operation(
-            summary = "Create RP access certificate",
-            description = "Sign CSR with intermediate CA for RP access",
+            summary = "Issue certificate",
+            description = "Sign CSR with intermediate CA",
             tags = {API_TAG})
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "PEM-encoded certificate", content = @Content(mediaType = APPLICATION_X_PEM_FILE_VALUE))
     })
-    @PostMapping(path = "/v1/certs/access/{orgno}", consumes = APPLICATION_X_PEM_FILE_VALUE, produces = {APPLICATION_X_PEM_FILE_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<String> signCertificate(
+    @PostMapping(path = "/v1/certs/{intermediate}/{orgno}", consumes = APPLICATION_X_PEM_FILE_VALUE, produces = {APPLICATION_X_PEM_FILE_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<String> signAccessCertificate(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "PEM-encoded Certificate Signing Request",
+                    content = {
+                            @Content(mediaType = APPLICATION_X_PEM_FILE_VALUE,
+                                    examples = @ExampleObject(value = certificateSigningRequestExample))},
+                    required = true)
             @Valid @NotEmpty(message = "CSR cannot be null") @RequestBody String csr,
+            @Parameter(
+                    description = "Intermediate CA name",
+                    examples = {
+                            @ExampleObject(name = "access", value = "access", description = "RP access CA"),
+                            @ExampleObject(name = "issuer", value = "issuer", description = "Issuer CA")},
+                    required = true)
+            @PathVariable("intermediate") String intermediate,
+            @Parameter(
+                    description = "Organization number",
+                    required = true)
             @Valid @Orgnr(message = "Invalid organization number") @NotEmpty @PathVariable String orgno) throws Exception {
         PKCS10CertificationRequest pkcs10CertificationRequest = certificateAuthorityService.decodeCsr(csr);
         X509Certificate signedCertificate =
                 certificateAuthorityService.signCertificate(
-                        certificateAuthorities.findIntermediate("access"),
+                        certificateAuthorities.findIntermediate(intermediate),
                         pkcs10CertificationRequest,
                         orgno);
         return ResponseEntity.ok(certificateAuthorityService.encodeToPem(signedCertificate));

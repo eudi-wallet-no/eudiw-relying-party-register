@@ -10,7 +10,12 @@ The application's API can be used to:
 - Maven
 - Docker
 
-## Running the application locally
+## Configuration
+
+Tha application needs:
+- a root CA certificate
+- a set of intermediate CA certificates (issued by the root CA)
+- to know the url it is running on (to add csr and cert info in issued certs)
 
 Profiles in the [resources](/src/main/resources) folder:
 
@@ -21,7 +26,12 @@ Profiles in the [resources](/src/main/resources) folder:
 | systest | Systest environment                        |
 | test    | Test environment                           |
 
-The hosts file should include:
+
+## Running the application locally
+
+The `dev` and `docker` profiles runs the application with the same configuration (certs, url).
+
+The local hosts file should include:
 ```
 127.0.0.1 eudiw-ca-service
 ```

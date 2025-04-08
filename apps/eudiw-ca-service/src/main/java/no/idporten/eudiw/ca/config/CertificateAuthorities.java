@@ -3,8 +3,10 @@ package no.idporten.eudiw.ca.config;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import no.idporten.eudiw.ca.exception.CertificateAuthorityException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
@@ -31,7 +33,7 @@ public class CertificateAuthorities implements InitializingBean {
     }
 
     public CertificateAuthority findIntermediate(String name) {
-        return Optional.ofNullable(intermediates.get(name)).orElseThrow(() -> new RuntimeException("Unknown intermediate CA"));
+        return Optional.ofNullable(intermediates.get(name)).orElseThrow(() -> new CertificateAuthorityException("invalid_request", "Unknown intermediate CA", HttpStatus.NOT_FOUND));
     }
 
     @Override
