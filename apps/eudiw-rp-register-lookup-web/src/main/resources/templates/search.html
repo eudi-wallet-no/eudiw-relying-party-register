@@ -2,29 +2,40 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
 <head>
     <title>Innsynstjenesten - søk</title>
-    <link th:href="@{/css/searchPage.css}" rel="stylesheet" />
+    <link th:href="@{/css/searchPage.css}" rel="stylesheet">
+    <!--/* make results attribute available to onclick javascript function */-->
+    <script th:inline="javascript">
+        const search_results = [[${resultsAttr}]];
+    </script>
+    <script type="text/javascript" th:src="@{/js/set_detailed_view.js}"></script>
 </head>
 
 <body>
-<h1>Innsynstjenestens søkefunksjon</h1>
-<div>
 
-    <!--/*
-        search form
-    */-->
-    <div class="verticalHalfpage">
-        <h2>Søk på relying parties</h2>
-        <form
-            th:object="${searchFormAttr}"
-            th:action="@{/}"
-            method="POST">
+<div class="two-column-page">
+    <h1>Innsynstjenestens søkefunksjon</h1>
+    <div class="flexbox">
+
+        <!--/*
+            search form/results column
+        */-->
+        <div class="search-column">
+
+            <!--/*
+                search form
+            */-->
+            <h2>Søk etter brukerstader</h2>
+            <form
+                    th:object="${searchFormAttr}"
+                    th:action="@{/}"
+                    method="POST">
                 <label for="orgno" class="form-label">Org.nr.</label>
                 <input id="orgno" type="text" th:field="*{orgno}" />
 
                 <ul>
                     <li th:each="error : ${#fields.errors('orgno')}"
                         th:text="${error}"
-                        class="errorText" />
+                        class="error-text" />
                 </ul>
 
                 <label for="name" class="form-label">Navn</label>
@@ -32,65 +43,67 @@
                 <ul>
                     <li th:each="error : ${#fields.errors('name')}"
                         th:text="${error}"
-                        class="errorText" />
+                        class="error-text" />
                 </ul>
 
-            <p>
-                <label for="sector" class="form-label">Sektor</label>
-                <select id="sector" th:field="*{searchSector}">
-                    <option th:each="searchSectorOption : ${searchFormAttr.getSearchSectorOptions()}"
-                            th:text="${searchSectorOption.displayName}"
-                            th:value="${searchSectorOption}"
-                    />
-                </select>
-            </p>
-            <p>
-                <label for="includeInactive" class="form-label">Inkluder inaktive</label>
-                <input id="includeInactive" type="checkbox" th:field="*{includeInactive}"/>
-            </p>
+                <p>
+                    <label for="sector" class="form-label">Sektor</label>
+                    <select id="sector" th:field="*{searchSector}">
+                        <option th:each="searchSectorOption : ${searchFormAttr.getSearchSectorOptions()}"
+                                th:text="${searchSectorOption.displayName}"
+                                th:value="${searchSectorOption}"
+                        />
+                    </select>
+                </p>
+                <p>
+                    <label for="includeInactive" class="form-label">Inkluder inaktive</label>
+                    <input id="includeInactive" type="checkbox" th:field="*{includeInactive}"/>
+                </p>
 
-            <button type="submit">Søk</button>
-        </form>
-        <hr>
-        <a th:href="@{/getAll}">
-            <button>Hent alle</button>
-        </a>
+                <button type="submit">Søk</button>
+            </form>
+            <a th:href="@{/getAll}">
+                <button>Hent alle</button>
+            </a>
 
-    </div>
-
-    <!--/*
-        search results list with clickable rows
-    */-->
-    <div class="verticalHalfpage">
-        <div class="row">
-        <h2>Søkekeresultat</h2>
+            <!--/*
+                search results
+            */-->
             <div th:unless="${ #maps.isEmpty(resultsAttr)}"
-                 class="fixedHeaderTable"
             >
-                <table>
-                    <thead>
+                <h2>Søkeresultat</h2>
+                <div class="fixed-headers-table">
+                    <table>
+                        <thead>
                         <tr>
-                            <th>Organisajonsnummer</th>
+                            <th>Org.nr.</th>
                             <th>Navn</th>
                         </tr>
-                    </thead>
-                    <tbody>
+                        </thead>
+                        <tbody>
+
                         <tr th:each="rp : ${resultsAttr}"
                             style="cursor: pointer"
+                            th:attr="onclick=|javascript:set_detailed_view('${rp.key}');|"
                         >
                             <td th:text="${rp.value.orgno}"></td>
-                            <td>
-                                <a th:text="${rp.value.name}" th:href="|@{/details}/${rp.key}|"/>
+                            <td th:text="${rp.value.name}">
                             </td>
                         </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div th:if="${ #maps.isEmpty(resultsAttr)}">
-                Ingen resultat!
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
+
+        <!--/*
+            detailed view column
+        */-->
+
+        <div class="details-column" id="detailed_view"></div>
     </div>
 </div>
+
+
 </body>
 </html>
