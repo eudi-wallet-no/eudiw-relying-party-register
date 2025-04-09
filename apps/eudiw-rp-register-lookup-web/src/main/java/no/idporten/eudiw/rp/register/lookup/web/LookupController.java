@@ -12,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -20,12 +21,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Controller
 @RequestMapping("/")
-@SessionAttributes(LookupController.searchResultAttrId)
 public class LookupController {
 
     public static final String searchFormAttrId = "searchFormAttr";
     public static final String searchResultAttrId = "resultsAttr";
-    public static final String focusResultAttrId = "relyingPartyAttr";
 
     @ModelAttribute(searchResultAttrId)
     private HashMap<UUID, RelyingPartyResource> initSearchResults() {
@@ -53,21 +52,9 @@ public class LookupController {
     }
 
     @GetMapping("/getAll")
-    public String getAll(Model model) {
+    public String getAll(RedirectAttributes redirectAttrs) {
         RelyingPartiesResource allRelyingParties = lookupService.getAll();
-        model.addAttribute(searchResultAttrId, allRelyingParties.toMap());
+        redirectAttrs.addFlashAttribute(searchResultAttrId, allRelyingParties.toMap());
         return "redirect:/";
-    }
-
-    @GetMapping("/details/{id}")
-    public String detailedView(@PathVariable("id") UUID id,
-                               @ModelAttribute(searchResultAttrId)
-                               HashMap<UUID, RelyingPartyResource> searchResults,
-                               Model model) {
-        RelyingPartyResource focusResult = searchResults.get(id);
-        if (focusResult == null) // if user navigated here without searching first.
-            return "errors/id_not_found";
-        model.addAttribute(focusResultAttrId, focusResult);
-        return "detailed_view";
     }
 }

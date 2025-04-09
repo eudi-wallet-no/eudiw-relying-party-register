@@ -7,7 +7,6 @@ import no.idporten.eudiw.rp.register.lookup.service.exception.UnrecognizedErrorR
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.RestClientException;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
@@ -53,12 +52,6 @@ public class LookupControllerAdvice {
     @ExceptionHandler(Exception.class)
     private String handleException(Exception e) {
         return genericInternalError("Unexpected/unrecognized error", e);
-    }
-
-    // if user fiddles with the id in "/details/{id}" and gives an invalid id
-    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    private String handleMethodArgumentTypeMismatchException() {
-        return "errors/id_not_found";
     }
 
     // 404
