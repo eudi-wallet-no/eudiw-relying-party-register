@@ -48,12 +48,12 @@ public class CertificateAuthorityApiControllerTest {
     @DisplayName("then the root certificate can be downloaded")
     @Test
     void testGetRootCertificate() throws Exception {
-        MvcResult result = mockMvc.perform(get("/v1/certs/root.crt"))
+        MvcResult result = mockMvc.perform(get("/v1/certs/root.cer"))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType("application/x-pem-file;charset=UTF-8"))
+                .andExpect(content().contentType("application/pkix-cert"))
                 .andReturn();
-        String content = result.getResponse().getContentAsString();
-        X509CertificateHolder certificate = certificateAuthorityService.decodeFromPem(content, X509CertificateHolder.class);
+        byte[] content = result.getResponse().getContentAsByteArray();
+        X509CertificateHolder certificate = new X509CertificateHolder(content);
         assertEquals(certificate.getIssuer(), certificate.getSubject());
     }
 
@@ -62,22 +62,22 @@ public class CertificateAuthorityApiControllerTest {
     void testGetRootCertificateCRL() throws Exception {
         MvcResult result = mockMvc.perform(get("/v1/certs/root.crl"))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType("application/x-pem-file;charset=UTF-8"))
+                .andExpect(content().contentType("application/pkix-crl"))
                 .andReturn();
-        String content = result.getResponse().getContentAsString();
-        X509CRLHolder crl = certificateAuthorityService.decodeFromPem(content, X509CRLHolder.class);
+        byte[] content = result.getResponse().getContentAsByteArray();
+        X509CRLHolder crl = new X509CRLHolder(content);
         assertTrue(crl.getRevokedCertificates().isEmpty());
     }
 
     @DisplayName("then the intermediate certificate for access certificates can be downloaded")
     @Test
     void testGetIntermediateAccessCertificate() throws Exception {
-        MvcResult result = mockMvc.perform(get("/v1/certs/intermediates/access.crt"))
+        MvcResult result = mockMvc.perform(get("/v1/certs/intermediates/access.cer"))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType("application/x-pem-file;charset=UTF-8"))
+                .andExpect(content().contentType("application/pkix-cert"))
                 .andReturn();
-        String content = result.getResponse().getContentAsString();
-        X509CertificateHolder certificate = certificateAuthorityService.decodeFromPem(content, X509CertificateHolder.class);
+        byte[] content = result.getResponse().getContentAsByteArray();
+        X509CertificateHolder certificate = new X509CertificateHolder(content);
         assertNotEquals(certificate.getIssuer(), certificate.getSubject());
     }
 
@@ -86,10 +86,10 @@ public class CertificateAuthorityApiControllerTest {
     void testGetIntermediateAccessCertificateCRL() throws Exception {
         MvcResult result = mockMvc.perform(get("/v1/certs/intermediates/access.crl"))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType("application/x-pem-file;charset=UTF-8"))
+                .andExpect(content().contentType("application/pkix-crl"))
                 .andReturn();
-        String content = result.getResponse().getContentAsString();
-        X509CRLHolder crl = certificateAuthorityService.decodeFromPem(content, X509CRLHolder.class);
+        byte[] content = result.getResponse().getContentAsByteArray();
+        X509CRLHolder crl = new X509CRLHolder(content);
         assertTrue(crl.getRevokedCertificates().isEmpty());
     }
 
