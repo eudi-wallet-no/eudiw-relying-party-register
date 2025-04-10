@@ -6,7 +6,7 @@
 root_alias=systest_root
 root_password=$1
 root_crl_url=https://ca.eidas2sandkasse.dev/v1/certs/root.crl
-root_cert_url=https://ca.eidas2sandkasse.dev/v1/certs/root.crt
+root_cert_url=https://ca.eidas2sandkasse.dev/v1/certs/root.cer
 
 ca_alias=systest_access_ca
 ca_password=$2
@@ -43,6 +43,7 @@ keytool \
 -ext ku:c=keyCertSign,cRLSign \
 -ext aia=caIssuers:uri:$root_cert_url \
 -ext crl=uri:$root_crl_url \
+-validity 1816 \
 -infile $ca_alias.csr \
 -rfc \
 -outfile $ca_alias.cert

@@ -43,7 +43,7 @@ eudiw-ca:
     root: true
     lifetime-days: 1825
     crl-distribution-point: ${eudiw-ca.base-uri}/v1/certs/root.crl
-    certificate-uri: ${eudiw-ca.base-uri}/v1/certs/root.crt
+    certificate-uri: ${eudiw-ca.base-uri}/v1/certs/root.cer
     keystore:
       type: pkcs12
       location: ${ROOT_KEYSTORE_LOCATION}
@@ -54,7 +54,7 @@ eudiw-ca:
     access:
       lifetime-days: 100
       crl-distribution-point: ${eudiw-ca.base-uri}/v1/certs/intermediates/access.crl
-      certificate-uri: ${eudiw-ca.base-uri}/v1/certs/intermediates/access.crt
+      certificate-uri: ${eudiw-ca.base-uri}/v1/certs/intermediates/access.cer
       keystore:
         type: pkcs12
         location: ${INTERMEDIATE_ACCESS_KEYSTORE_LOCATION}
@@ -64,7 +64,7 @@ eudiw-ca:
     issuer:
       lifetime-days: 100
       crl-distribution-point: ${eudiw-ca.base-uri}/v1/certs/intermediates/issuer.crl
-      certificate-uri: ${eudiw-ca.base-uri}/v1/certs/intermediates/issuer.crt
+      certificate-uri: ${eudiw-ca.base-uri}/v1/certs/intermediates/issuer.cer
       keystore:
         type: pkcs12
         location: ${INTERMEDIATE_ISSUER_KEYSTORE_LOCATION}
