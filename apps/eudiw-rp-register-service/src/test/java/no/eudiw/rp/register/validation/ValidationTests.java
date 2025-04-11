@@ -149,9 +149,9 @@ public class ValidationTests {
                 + "aadir" // length 255 string
         })
         void testValidEdgeCaseInputStrings(String str) {
-            SearchRelyingPartyResource searchResource =
-                SearchRelyingPartyResource.empty().withName(str);
-            Set<ConstraintViolation<SearchRelyingPartyResource>> violations =
+            AdvancedSearchRelyingPartyResource searchResource =
+                AdvancedSearchRelyingPartyResource.empty().withName(str);
+            Set<ConstraintViolation<AdvancedSearchRelyingPartyResource>> violations =
                 doValidateResource(searchResource);
             assertTrue(violations.isEmpty());
         }
@@ -169,9 +169,9 @@ public class ValidationTests {
                 + "aaadir" // string too long (256 characters)
         })
         void testInvalidEdgeCaseInputStrings(String str) {
-            SearchRelyingPartyResource searchResource =
-                SearchRelyingPartyResource.empty().withName(str);
-            Set<ConstraintViolation<SearchRelyingPartyResource>> violations =
+            AdvancedSearchRelyingPartyResource searchResource =
+                AdvancedSearchRelyingPartyResource.empty().withName(str);
+            Set<ConstraintViolation<AdvancedSearchRelyingPartyResource>> violations =
                 doValidateResource(searchResource);
 
             List<String> validationErrorMessages = getValidationErrorMessages(violations);

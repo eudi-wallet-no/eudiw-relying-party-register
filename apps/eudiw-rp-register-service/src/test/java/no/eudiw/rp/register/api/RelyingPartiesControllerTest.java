@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import no.eudiw.rp.register.api.resource.*;
 import no.eudiw.rp.register.data.entity.RelyingParty;
 import no.eudiw.rp.register.data.repository.RelyingPartyRepository;
+import no.eudiw.rp.register.data.service.Converter;
 import no.eudiw.rp.register.testdata.TestDataGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -294,10 +295,143 @@ public class RelyingPartiesControllerTest {
         @Nested
         @DisplayName("When searching for relying parties ...")
         class SearchTests {
+            @Test
+            @DisplayName("then search successful when search term exists in an RP orgno")
+            void testSearchTermExistsInRpOrgno() throws Exception {
+                RelyingParty relyingParty = generateRelyingPartyNoId();
+                relyingPartyRepository.save(relyingParty);
+
+                SearchRelyingPartyResource searchResource =
+                    SearchRelyingPartyResource.empty().withSearchTerm(relyingParty.getOrgno());
+
+                String searchJson = new ObjectMapper().writer().writeValueAsString(searchResource);
+                ResultActions actions =
+                    mockMvc.perform(post("/v1/rp/search")
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .header(X_API_KEY_HEADER, VALID_API_KEY)
+                                        .content(searchJson))
+                           .andExpect(status().isOk())
+                           .andExpect(jsonPath("$.relying_parties").exists());
+
+                List<RelyingPartyResource> relyingPartyResources =
+                    ApiTestUtils.toRelyingPartiesResource(actions).relyingParties();
+                assertEquals(1, relyingPartyResources.size());
+
+                RelyingPartyResource relyingPartyResource = relyingPartyResources.getFirst();
+                assertAll(
+                    () -> assertEquals(relyingParty.getOrgno(), relyingPartyResource.orgNr())
+                );
+            }
+
+            @Test
+            @DisplayName("then search successful when search term exists in an RP orgno")
+            void testSearchTermExistsInRpName() throws Exception {
+                RelyingParty relyingParty = generateRelyingPartyNoId();
+                relyingPartyRepository.save(relyingParty);
+
+                SearchRelyingPartyResource searchResource =
+                    SearchRelyingPartyResource.empty().withSearchTerm(relyingParty.getName());
+
+                String searchJson = new ObjectMapper().writer().writeValueAsString(searchResource);
+                ResultActions actions =
+                    mockMvc.perform(post("/v1/rp/search")
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .header(X_API_KEY_HEADER, VALID_API_KEY)
+                                        .content(searchJson))
+                           .andExpect(status().isOk())
+                           .andExpect(jsonPath("$.relying_parties").exists());
+
+                List<RelyingPartyResource> relyingPartyResources =
+                    ApiTestUtils.toRelyingPartiesResource(actions).relyingParties();
+                assertEquals(1, relyingPartyResources.size());
+
+                RelyingPartyResource relyingPartyResource = relyingPartyResources.getFirst();
+                assertAll(
+                    () -> assertEquals(relyingParty.getOrgno(), relyingPartyResource.orgNr())
+                );
+            }
+
+            @Test
+            @DisplayName("then search successful when search term exists in multiple RPs")
+            void testSearchTermExistsInDifferentFieldsOfDifferentRps() throws Exception {
+                RelyingParty relyingParty1 = generateRelyingPartyNoId();
+                RelyingParty relyingParty2 = generateRelyingPartyNoId();
+                RelyingParty relyingParty3 = generateRelyingPartyNoId();
+
+                // append some of rp1's orgno to the start of rp2's name
+                String searchStr = relyingParty1.getOrgno().substring(0, 4);
+                relyingParty2.setName(searchStr + relyingParty2.getName());
+
+                relyingPartyRepository.saveAll(List.of(relyingParty1, relyingParty2, relyingParty3));
+
+                SearchRelyingPartyResource searchResource =
+                    SearchRelyingPartyResource.empty().withSearchTerm(searchStr);
+
+                String searchJson = new ObjectMapper().writer().writeValueAsString(searchResource);
+                ResultActions actions =
+                    mockMvc.perform(post("/v1/rp/search")
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .header(X_API_KEY_HEADER, VALID_API_KEY)
+                                        .content(searchJson))
+                           .andExpect(status().isOk())
+                           .andExpect(jsonPath("$.relying_parties").exists());
+
+                List<RelyingPartyResource> relyingPartyResources =
+                    ApiTestUtils.toRelyingPartiesResource(actions).relyingParties();
+                assertEquals(2, relyingPartyResources.size());
+
+                assertAll(
+                    () -> assertTrue(relyingPartyResources.contains(Converter.toResource(relyingParty1))),
+                    () -> assertTrue(relyingPartyResources.contains(Converter.toResource(relyingParty2)))
+                );
+            }
+
+            @Test
+            @DisplayName("then search successful when search term exists in multiple RPs")
+            void testSearchMultipleRpsWithSameNamePrefix() throws Exception {
+                RelyingParty relyingParty1 = generateRelyingPartyNoId();
+                RelyingParty relyingParty2 = generateRelyingPartyNoId();
+                RelyingParty relyingParty3 = generateRelyingPartyNoId();
+
+                String searchStr = generateName();
+                relyingParty1.setName(searchStr + relyingParty1.getName());
+                relyingParty3.setName(searchStr + relyingParty3.getName());
+
+                relyingPartyRepository.saveAll(List.of(relyingParty1, relyingParty2, relyingParty3));
+
+                SearchRelyingPartyResource searchResource =
+                    SearchRelyingPartyResource.empty().withSearchTerm(searchStr);
+
+                String searchJson = new ObjectMapper().writer().writeValueAsString(searchResource);
+                ResultActions actions =
+                    mockMvc.perform(post("/v1/rp/search")
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .header(X_API_KEY_HEADER, VALID_API_KEY)
+                                        .content(searchJson))
+                           .andExpect(status().isOk())
+                           .andExpect(jsonPath("$.relying_parties").exists());
+
+                List<RelyingPartyResource> relyingPartyResources =
+                    ApiTestUtils.toRelyingPartiesResource(actions).relyingParties();
+                assertEquals(2, relyingPartyResources.size());
+
+                assertAll(
+                    () -> assertTrue(relyingPartyResources.contains(Converter.toResource(relyingParty1))),
+                    () -> assertTrue(relyingPartyResources.contains(Converter.toResource(relyingParty3)))
+                );
+            }
+
+
+        }
+
+
+        @Nested
+        @DisplayName("When using the advanced search ...")
+        class AdvancedSearchTests {
 
             @Nested
             @DisplayName("Given include_inactives = false ...")
-            class SearchWithInactiveFalseTests {
+            class AdvancedSearchWithInactiveFalseTests {
 
                 @Test
                 @DisplayName("then search is successful when orgno exists for active RP")
@@ -305,12 +439,12 @@ public class RelyingPartiesControllerTest {
                     RelyingParty relyingParty = generateRelyingPartyNoId();
                     relyingPartyRepository.save(relyingParty);
 
-                    SearchRelyingPartyResource searchResource =
-                        SearchRelyingPartyResource.empty().withOrgno(relyingParty.getOrgno());
+                    AdvancedSearchRelyingPartyResource searchResource =
+                        AdvancedSearchRelyingPartyResource.empty().withOrgno(relyingParty.getOrgno());
 
                     String searchJson = new ObjectMapper().writer().writeValueAsString(searchResource);
                     ResultActions actions =
-                        mockMvc.perform(post("/v1/rp/search")
+                        mockMvc.perform(post("/v1/rp/search/advanced")
                                             .contentType(MediaType.APPLICATION_JSON)
                                             .header(X_API_KEY_HEADER, VALID_API_KEY)
                                             .content(searchJson))
@@ -337,11 +471,11 @@ public class RelyingPartiesControllerTest {
                     relyingParty.setActive(false);
                     relyingPartyRepository.save(relyingParty);
 
-                    SearchRelyingPartyResource searchResource =
-                        SearchRelyingPartyResource.empty().withOrgno(relyingParty.getOrgno());
+                    AdvancedSearchRelyingPartyResource searchResource =
+                        AdvancedSearchRelyingPartyResource.empty().withOrgno(relyingParty.getOrgno());
 
                     String searchJson = new ObjectMapper().writer().writeValueAsString(searchResource);
-                    mockMvc.perform(post("/v1/rp/search")
+                    mockMvc.perform(post("/v1/rp/search/advanced")
                                         .contentType(MediaType.APPLICATION_JSON)
                                         .header(X_API_KEY_HEADER, VALID_API_KEY)
                                         .content(searchJson))
@@ -358,13 +492,13 @@ public class RelyingPartiesControllerTest {
                     RelyingParty relyingParty = generateRelyingPartyNoId();
                     relyingPartyRepository.save(relyingParty);
 
-                    SearchRelyingPartyResource searchResource =
-                        SearchRelyingPartyResource.empty()
-                                                  .withOrgno(relyingParty.getOrgno())
-                                                  .withPublicSector(!relyingParty.getPublicSector());
+                    AdvancedSearchRelyingPartyResource searchResource =
+                        AdvancedSearchRelyingPartyResource.empty()
+                                                          .withOrgno(relyingParty.getOrgno())
+                                                          .withPublicSector(!relyingParty.getPublicSector());
 
                     String searchJson = new ObjectMapper().writer().writeValueAsString(searchResource);
-                    mockMvc.perform(post("/v1/rp/search")
+                    mockMvc.perform(post("/v1/rp/search/advanced")
                                         .contentType(MediaType.APPLICATION_JSON)
                                         .header(X_API_KEY_HEADER, VALID_API_KEY)
                                         .content(searchJson))
@@ -379,11 +513,11 @@ public class RelyingPartiesControllerTest {
 
                     String nonexistentOrgno = TestDataGenerator.generateValidOrgno();
 
-                    SearchRelyingPartyResource searchResource =
-                        SearchRelyingPartyResource.empty().withOrgno(nonexistentOrgno);
+                    AdvancedSearchRelyingPartyResource searchResource =
+                        AdvancedSearchRelyingPartyResource.empty().withOrgno(nonexistentOrgno);
 
                     String searchJson = new ObjectMapper().writer().writeValueAsString(searchResource);
-                    mockMvc.perform(post("/v1/rp/search")
+                    mockMvc.perform(post("/v1/rp/search/advanced")
                                         .contentType(MediaType.APPLICATION_JSON)
                                         .header(X_API_KEY_HEADER, VALID_API_KEY)
                                         .content(searchJson))
@@ -395,7 +529,7 @@ public class RelyingPartiesControllerTest {
 
             @Nested
             @DisplayName("Given include_inactives = true ...")
-            class SearchWithIncludeInactiveTrueTests {
+            class AdvancedSearchWithIncludeInactiveTrueTests {
 
                 @ParameterizedTest
                 @ValueSource(booleans = {true, false})
@@ -406,15 +540,15 @@ public class RelyingPartiesControllerTest {
                     relyingParty.setActive(relyingPartyIsActive);
                     relyingPartyRepository.save(relyingParty);
 
-                    SearchRelyingPartyResource searchResource =
-                        SearchRelyingPartyResource.empty()
-                                                  .withOrgno(relyingParty.getOrgno())
-                                                  .withIncludeInactive(true);
+                    AdvancedSearchRelyingPartyResource searchResource =
+                        AdvancedSearchRelyingPartyResource.empty()
+                                                          .withOrgno(relyingParty.getOrgno())
+                                                          .withIncludeInactive(true);
 
                     String searchJson = new ObjectMapper().writer().writeValueAsString(searchResource);
 
                     ResultActions actions =
-                        mockMvc.perform(post("/v1/rp/search")
+                        mockMvc.perform(post("/v1/rp/search/advanced")
                                             .contentType(MediaType.APPLICATION_JSON)
                                             .header(X_API_KEY_HEADER, VALID_API_KEY)
                                             .content(searchJson))

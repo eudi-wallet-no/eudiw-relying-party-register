@@ -1,32 +1,23 @@
 package no.eudiw.rp.register.api.resource;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.NotNull;
 import lombok.With;
 import no.eudiw.rp.register.validation.SaneStringConstraint;
 
 @With
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record SearchRelyingPartyResource(
-    // in order to support prefix searching, we do not require valid orgno here.
-    @Pattern(regexp = "\\d{0,9}", message = "invalid_search_orgno")
-    @JsonProperty("orgno")
-    String orgno,
-
+    @JsonProperty(value = "search_term", required = true)
     @SaneStringConstraint
-    @JsonProperty("name")
-    String name,
+    @NotNull(message = "null_search_term")
+    String searchTerm,
 
-    @JsonProperty("public_sector")
-    Boolean publicSector,
-
-    @JsonProperty(value = "include_inactive", defaultValue = "false")
-    Boolean includeInactive
+    @JsonProperty(value = "include_inactive", required = true)
+    boolean includeInactive
 ) {
     public static SearchRelyingPartyResource empty() {
-        return new SearchRelyingPartyResource(null, null, null, false);
+        return new SearchRelyingPartyResource("", false);
     }
 }
