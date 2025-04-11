@@ -1,0 +1,11 @@
+---
+server:
+  port: 9230
+
+management:
+  server:
+    port: 9231
+
+spring:
+  application:
+    environment: dev
