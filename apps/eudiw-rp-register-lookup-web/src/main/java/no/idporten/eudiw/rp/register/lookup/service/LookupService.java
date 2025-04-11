@@ -2,8 +2,8 @@ package no.idporten.eudiw.rp.register.lookup.service;
 
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.rp.register.lookup.web.resource.RelyingPartiesResource;
-import no.idporten.eudiw.rp.register.lookup.web.resource.SearchRelyingPartyResource;
 import no.idporten.eudiw.rp.register.lookup.service.config.LookupServiceProperties;
+import no.idporten.eudiw.rp.register.lookup.web.resource.SearchRelyingPartyResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 

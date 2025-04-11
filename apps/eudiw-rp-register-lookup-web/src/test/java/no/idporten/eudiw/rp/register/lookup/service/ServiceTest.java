@@ -48,8 +48,7 @@ public class ServiceTest {
 
         assertThrowsExactly(UnauthorizedUserRequestException.class,
                             () -> lookupService.search(
-                                ResourceGenerator.generateSearchForm()
-                                                 .toResource()));
+                                ResourceGenerator.generateSearchForm().toResource()));
     }
 
     @Test
@@ -106,8 +105,7 @@ public class ServiceTest {
 
             assertThrowsExactly(UnrecognizedErrorResponseException.class,
                                 () -> lookupService.search(
-                                    ResourceGenerator.generateSearchForm()
-                                                     .toResource()));
+                                    ResourceGenerator.generateSearchForm().toResource()));
         }
     }
 }
