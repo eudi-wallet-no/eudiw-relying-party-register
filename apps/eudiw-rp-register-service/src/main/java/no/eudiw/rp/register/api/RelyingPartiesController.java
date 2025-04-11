@@ -50,8 +50,8 @@ public class RelyingPartiesController {
         }
 
         @Operation(
-                summary = "Create Relying Party",
-                description = "Create Relying Party",
+                summary = "Create relying party",
+                description = "Register a new relying party",
                 tags = {"relying-parties-api"})
         @ApiResponses(value = {
                 @ApiResponse(responseCode = "200", description = "Relying party is created"),
@@ -64,9 +64,12 @@ public class RelyingPartiesController {
         }
 
         @Operation(
-                summary = "Edit Relying Party",
-                description = "Edit Relying Party",
-                tags = {"relying-parties-api"})
+                summary = "Edit relying party",
+                description = "Edit information for a given relying party",
+                tags = {"relying-parties-api"},
+                parameters = {
+                    @Parameter(in = ParameterIn.PATH, name = "id", required = true, description = "Unique ID")
+                })
         @ApiResponses(value = {
                 @ApiResponse(responseCode = "200", description = "Relying party is edited"),
                 @ApiResponse(responseCode = "404", description = "Relying party is not found")
@@ -79,8 +82,11 @@ public class RelyingPartiesController {
         }
 
         @Operation(
-                summary = "Delete Relying Party",
-                description = "Delete Relying Party",
+                summary = "Delete relying party",
+                description = "Delete a relying party by its ID",
+                parameters = {
+                    @Parameter(in = ParameterIn.PATH, name = "id", required = true, description = "Unique ID")
+                },
                 tags = {"relying-parties-api"})
         @ApiResponses(value = {
                 @ApiResponse(responseCode = "204", description = "Relying party is deleted"),
@@ -94,8 +100,8 @@ public class RelyingPartiesController {
         }
 
         @Operation(
-                summary = "Get Relying Party",
-                description = "Get Relying Party",
+                summary = "Get relying party",
+                description = "Get information on relying party by its ID",
                 tags = {"relying-parties-api"},
                 parameters = {
                         @Parameter(in = ParameterIn.PATH, name = "id", required = true, description = "Unik id")
@@ -111,29 +117,38 @@ public class RelyingPartiesController {
         }
 
         @Operation(
-                summary = "Search",
-                description = "Search relying parties by org_nr and public_sector",
-                tags = {"relying-parties-api"},
-                parameters = {
-                        @Parameter(in = ParameterIn.PATH,
-                                   name = "organisajonsnummer",
-                                   description = "Unikt organisasjonsnummer",
-                                   required = true)
-                })
+            summary = "Search for relying parties",
+            description = "Free-text search for relying parties by organization number or name",
+            tags = {"relying-parties-api"})
         @ApiResponses(value = {
-                @ApiResponse(responseCode = "200",
-                             description = "Possibly empty relying parties search result is returned")
+            @ApiResponse(responseCode = "200",
+                description = "Possibly empty relying parties search result is returned")
         })
         @Audit(auditId = RELYING_PARTIES_SEARCHED)
         @PostMapping(path = "v1/rp/search", produces = MediaType.APPLICATION_JSON_VALUE)
         public ResponseEntity<RelyingPartiesResource> searchRelyingParty(
             @Valid @RequestBody SearchRelyingPartyResource request) {
-                return ResponseEntity.ok(relyingPartyService.searchRelyingParties(request));
+            return ResponseEntity.ok(relyingPartyService.searchRelyingParties(request));
         }
 
         @Operation(
-                summary = "Get all Relying Parties",
-                description = "Get all Relying Parties",
+                summary = "Advanced search for relying parties",
+                description = "Search relying parties by organization number, name, and sector",
+                tags = {"relying-parties-api"})
+        @ApiResponses(value = {
+                @ApiResponse(responseCode = "200",
+                             description = "Possibly empty relying parties search result is returned")
+        })
+        @Audit(auditId = RELYING_PARTIES_SEARCHED)
+        @PostMapping(path = "v1/rp/search/advanced", produces = MediaType.APPLICATION_JSON_VALUE)
+        public ResponseEntity<RelyingPartiesResource> advancedSearchRelyingParty(
+            @Valid @RequestBody AdvancedSearchRelyingPartyResource request) {
+                return ResponseEntity.ok(relyingPartyService.advancedSearchRelyingParties(request));
+        }
+
+        @Operation(
+                summary = "Get all relying parties",
+                description = "Retrieve information on all active and inactive relying parties",
                 tags = {"relying-parties-api"})
         @ApiResponses(value = {
                 @ApiResponse(responseCode = "200", description = "Relying parties are retrieved")

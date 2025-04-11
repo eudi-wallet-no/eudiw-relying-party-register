@@ -273,12 +273,12 @@ public class RelyingPartyRepositoryTest {
     }
 
     @Nested
-    @DisplayName("When Search ...")
+    @DisplayName("When searching ...")
     class SearchTests {
 
         @Test
-        @DisplayName("and deleted are not included")
-        void testDeleteExistingOrgno() {
+        @DisplayName("then deleted RPs are not included in advanced searches")
+        void testAdvancedSearchDoesNotIncludeDeleted() {
             RelyingParty testRelyingParty =
                     rpRepository.save(EntityGenerator.generateRelyingPartyNoId());
 
@@ -286,13 +286,26 @@ public class RelyingPartyRepositoryTest {
             rpRepository.save(testRelyingParty);
 
             List<RelyingParty> relyingParties =
-                    rpRepository.searchQuery(
+                    rpRepository.advancedSearchQuery(
                             testRelyingParty.getOrgno(),
                             testRelyingParty.getName(),
                             testRelyingParty.getPublicSector(),
-                            false,
-                            testRelyingParty.isActive()
+                            true
                     );
+            assertNotNull(relyingParties);
+            assertTrue(relyingParties.isEmpty());
+        }
+        @Test
+        @DisplayName("then deleted RPs are not included in regular searches")
+        void testSearchDoesNotIncludeDeleted() {
+            RelyingParty testRelyingParty =
+                rpRepository.save(EntityGenerator.generateRelyingPartyNoId());
+
+            testRelyingParty.setDeleted(true);
+            rpRepository.save(testRelyingParty);
+
+            List<RelyingParty> relyingParties =
+                rpRepository.searchQuery(testRelyingParty.getName(), true);
             assertNotNull(relyingParties);
             assertTrue(relyingParties.isEmpty());
         }

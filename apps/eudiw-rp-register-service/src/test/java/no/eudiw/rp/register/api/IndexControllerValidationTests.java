@@ -91,16 +91,33 @@ public class IndexControllerValidationTests {
     }
 
     @Nested
-    @DisplayName("When passing search resources to the search endpoint ...")
+    @DisplayName("When using the advanced search endpoint ...")
+    class AdvancedSearchEndpointValidationTests {
+
+        @Test
+        @DisplayName("then validation is properly applied to search resource")
+        void testOptionalParametersCanBeNull() throws Exception {
+            AdvancedSearchRelyingPartyResource resource =
+                AdvancedSearchRelyingPartyResource.empty().withName("$fornothing");
+
+            mvcPerform(post("/v1/rp/search/advanced"), resource)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("invalid_request"))
+                .andExpect(jsonPath("$.error_description", containsString("unsane_string")));
+        }
+    }
+
+    @Nested
+    @DisplayName("When using the search endpoint ...")
     class SearchEndpointValidationTests {
 
         @Test
         @DisplayName("then validation is properly applied to search resource")
         void testOptionalParametersCanBeNull() throws Exception {
-            SearchRelyingPartyResource searchResource =
-                SearchRelyingPartyResource.empty().withName("$fornothing");
+            SearchRelyingPartyResource resource =
+                new SearchRelyingPartyResource("$fornothing", false);
 
-            mvcPerform(post("/v1/rp/search"), searchResource)
+            mvcPerform(post("/v1/rp/search"), resource)
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("invalid_request"))
                 .andExpect(jsonPath("$.error_description", containsString("unsane_string")));

@@ -50,13 +50,26 @@ public class RelyingPartyService {
     }
 
     @Transactional(readOnly = true)
-    public RelyingPartiesResource searchRelyingParties(SearchRelyingPartyResource request) {
+    public RelyingPartiesResource searchRelyingParties(
+        SearchRelyingPartyResource request) {
         return new RelyingPartiesResource(
             relyingPartyRepository.searchQuery(
+                                      request.searchTerm(),
+                                      request.includeInactive()
+                                  )
+                                  .stream()
+                                  .map(Converter::toResource)
+                                  .toList()
+        );
+    }
+    @Transactional(readOnly = true)
+    public RelyingPartiesResource advancedSearchRelyingParties(
+        AdvancedSearchRelyingPartyResource request) {
+        return new RelyingPartiesResource(
+            relyingPartyRepository.advancedSearchQuery(
                                       request.orgno(),
                                       request.name(),
                                       request.publicSector(),
-                                      false,
                                       request.includeInactive()
                                   )
                                   .stream()
