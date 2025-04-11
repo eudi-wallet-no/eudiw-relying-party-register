@@ -37,9 +37,10 @@ public class LookupControllerTest {
             .thenAnswer(invocationOnMock -> {
                 SearchRelyingPartyResource searchResource =
                     invocationOnMock.getArgument(0, SearchRelyingPartyResource.class);
+                System.out.println("invocationOnMock searchterm: " + searchResource.searchTerm());
                 return new RelyingPartiesResource(
                     List.of(ResourceGenerator.generateRelyingPartyResource()
-                                             .withOrgno(searchResource.orgno())));
+                                             .withName(searchResource.searchTerm())));
             });
     }
 
@@ -62,16 +63,10 @@ public class LookupControllerTest {
         @Test
         void testServiceCalledWithCorrectSearchForm() throws Exception {
             SearchForm searchForm = ResourceGenerator.generateSearchForm();
-            mockMvc.perform(
-                       post("/")
-                           .param("orgno", searchForm.orgno())
-                           .param("name", searchForm.name())
-                           .param("searchSector", searchForm.searchSector().toString())
-                           .param("includeInactive", Boolean.valueOf(searchForm.includeInactive()).toString()))
+            mockMvc.perform(post("/").flashAttr(LookupController.searchFormAttrId, searchForm))
                    .andExpect(status().isOk())
                    .andExpect(view().name("search"))
-                   .andExpect(content().string(containsString(searchForm.orgno())))
-                   .andExpect(content().string(containsString(searchForm.name())));
+                   .andExpect(content().string(containsString(searchForm.searchTerm())));
         }
     }
 }

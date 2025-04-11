@@ -46,3 +46,13 @@ div .details-column {
     overflow: auto;
     padding: 4px;
 }
+
+.invisible-link {
+    div {
+        height: 100%;
+        width: 100%;
+        cursor: pointer;
+    }
+    color: inherit;
+    text-decoration: none;
+}

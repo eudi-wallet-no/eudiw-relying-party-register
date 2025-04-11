@@ -3,11 +3,6 @@
 <head>
     <title>Innsynstjenesten - søk</title>
     <link th:href="@{/css/searchPage.css}" rel="stylesheet">
-    <!--/* make results attribute available to onclick javascript function */-->
-    <script th:inline="javascript">
-        const search_results = [[${resultsAttr}]];
-    </script>
-    <script type="text/javascript" th:src="@{/js/set_detailed_view.js}"></script>
 </head>
 
 <body>
@@ -19,7 +14,7 @@
         <!--/*
             search form/results column
         */-->
-        <div class="search-column">
+        <div class="search-column" id="search_column">
 
             <!--/*
                 search form
@@ -29,81 +24,52 @@
                     th:object="${searchFormAttr}"
                     th:action="@{/}"
                     method="POST">
-                <label for="orgno" class="form-label">Org.nr.</label>
-                <input id="orgno" type="text" th:field="*{orgno}" />
-
-                <ul>
-                    <li th:each="error : ${#fields.errors('orgno')}"
-                        th:text="${error}"
-                        class="error-text" />
-                </ul>
-
-                <label for="name" class="form-label">Navn</label>
-                <input id="name" type="text" th:field="*{name}" />
-                <ul>
-                    <li th:each="error : ${#fields.errors('name')}"
-                        th:text="${error}"
-                        class="error-text" />
-                </ul>
-
-                <p>
-                    <label for="sector" class="form-label">Sektor</label>
-                    <select id="sector" th:field="*{searchSector}">
-                        <option th:each="searchSectorOption : ${searchFormAttr.getSearchSectorOptions()}"
-                                th:text="${searchSectorOption.displayName}"
-                                th:value="${searchSectorOption}"
-                        />
-                    </select>
-                </p>
-                <p>
-                    <label for="includeInactive" class="form-label">Inkluder inaktive</label>
-                    <input id="includeInactive" type="checkbox" th:field="*{includeInactive}"/>
-                </p>
+                <label for="search_term" class="form-label"></label>
+                <input id="search_term"
+                       type="text"
+                       th:field="*{searchTerm}"
+                       placeholder="Søk på org.nr. eller navn"
+                >
 
                 <button type="submit">Søk</button>
+                <br>
+                <label for="includeInactive" class="form-label">Inkluder inaktive</label>
+                <input id="includeInactive" type="checkbox" th:field="*{includeInactive}">
+                <ul th:if="${#fields.hasErrors()}">
+                    <li th:each="error : ${#fields.errors('searchTerm')}"
+                        th:text="${error}"
+                        class="error-text" />
+                </ul>
             </form>
-            <a th:href="@{/getAll}">
-                <button>Hent alle</button>
-            </a>
 
             <!--/*
                 search results
             */-->
-            <div th:unless="${ #maps.isEmpty(resultsAttr)}"
-            >
-                <h2>Søkeresultat</h2>
+            <div>
+            <h2>Søkeresultat</h2>
+            <div th:unless="${ #maps.isEmpty(resultsAttr.relyingParties())}">
                 <div class="fixed-headers-table">
                     <table>
                         <thead>
-                        <tr>
-                            <th>Org.nr.</th>
-                            <th>Navn</th>
-                        </tr>
+                        <tr><th>Org.nr.</th><th>Navn</th></tr>
                         </thead>
                         <tbody>
 
-                        <tr th:each="rp : ${resultsAttr}"
-                            style="cursor: pointer"
-                            th:attr="onclick=|javascript:set_detailed_view('${rp.key}');|"
-                        >
-                            <td th:text="${rp.value.orgno}"></td>
-                            <td th:text="${rp.value.name}">
-                            </td>
+                        <tr th:each="rp : ${resultsAttr.relyingParties().values()}"
+                            style="cursor: pointer">
+                            <td><a class="invisible-link" th:href="|@{/details}/${rp.id}|"><div th:text="${rp.orgno}"/></a> </td>
+                            <td><a class="invisible-link" th:href="|@{/details}/${rp.id}|"><div th:text="${rp.name}"/></a> </td>
                         </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
+            </div>
+
         </div>
-
-        <!--/*
-            detailed view column
-        */-->
-
-        <div class="details-column" id="detailed_view"></div>
+        <div th:replace="~{fragments/detailed_view :: detailed_view_column}"></div>
     </div>
 </div>
-
 
 </body>
 </html>

@@ -41,10 +41,6 @@ public class ResourceGenerator extends TestDataGenerator {
     }
 
     public static SearchForm generateSearchForm() {
-        return new SearchForm(
-            generateValidOrgno(),
-            generateName(),
-            generateBoolean() ? SearchForm.SearchSector.PUBLIC : SearchForm.SearchSector.PRIVATE,
-            generateBoolean());
+        return new SearchForm(generateName(), generateBoolean());
     }
 }
