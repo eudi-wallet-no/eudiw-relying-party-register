@@ -4,4 +4,4 @@ spring:
     environment: test
 
 eudiw--ca:
-  base-uri: "https://ca.test.eidas2sandkasse.net "
+  base-uri: "https://ca.test.eidas2sandkasse.net"
