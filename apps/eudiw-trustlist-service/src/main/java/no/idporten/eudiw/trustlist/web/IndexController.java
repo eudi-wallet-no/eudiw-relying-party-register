@@ -9,7 +9,18 @@ public class IndexController {
 
     @GetMapping("/")
     public ResponseEntity<String> index() {
-        return ResponseEntity.ok("Trust List Service");
+        return ResponseEntity.ok(
+                """
+                        <html>
+                           <head>
+                              <title>Trust List Service</title>
+                           </head>
+                           <body>
+                              <h1>Trust List Service</h1>
+                              <h2>Trust status lists</h2>
+                              <a href="access_tsl.xts">eidas2sandkasse RP access</a>
+                           </body>
+                        </html>""");
     }
 
 }
