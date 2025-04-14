@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<jaxb:bindings version="3.0" xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb"
+    xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    jaxb:extensionBindingPrefixes="xjc">
+
+    <jaxb:globalBindings>
+        <xjc:simple />
+        <xjc:serializable uid="-1" />
+        <jaxb:javaType name="java.time.ZonedDateTime" xmlType="xs:dateTime"
+            parseMethod="no.idporten.eudiw.trustlist.xml.ZonedDateTimeConverter.parseDateTime"
+            printMethod="no.idporten.eudiw.trustlist.xml.ZonedDateTimeConverter.printDateTime" />
+    </jaxb:globalBindings>
+</jaxb:bindings>
