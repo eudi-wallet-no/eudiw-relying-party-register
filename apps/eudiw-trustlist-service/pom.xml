@@ -24,7 +24,7 @@
         <opentelemetry-instrumentation-api.version>1.49.0</opentelemetry-instrumentation-api.version>
         <jakarta.xml.bind-api.version>4.0.2</jakarta.xml.bind-api.version>
         <jaxb-impl.version>4.0.4</jaxb-impl.version>
-        <jaxb2-maven-plugin.version>3.1.0</jaxb2-maven-plugin.version>
+        <jaxb2-maven-plugin.version>3.3.0</jaxb2-maven-plugin.version>
     </properties>
 
     <dependencies>
