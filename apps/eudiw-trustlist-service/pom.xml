@@ -25,6 +25,8 @@
         <jakarta.xml.bind-api.version>4.0.2</jakarta.xml.bind-api.version>
         <jaxb-impl.version>4.0.5</jaxb-impl.version>
         <jaxb2-maven-plugin.version>3.3.0</jaxb2-maven-plugin.version>
+        <bcpkix-jdk18on.version>1.80</bcpkix-jdk18on.version>
+        <bcprov-jdk18on.version>1.80</bcprov-jdk18on.version>
     </properties>
 
     <dependencies>
@@ -58,6 +60,16 @@
             <artifactId>jaxb-impl</artifactId>
             <version>${jaxb-impl.version}</version>
             <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk18on</artifactId>
+            <version>${bcpkix-jdk18on.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+            <version>${bcprov-jdk18on.version}</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
