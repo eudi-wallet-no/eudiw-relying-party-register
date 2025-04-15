@@ -20,3 +20,11 @@ management:
     health:
       probes:
         enabled: true
+
+trust-service:
+  keystore:
+    type: ${TSL_SIGN_KEYSTORE_TYPE}
+    location: ${TSL_SIGN_KEYSTORE}
+    password: ${TSL_SIGN_KEYSTORE_KEY_PASSWORD}
+    key-alias: ${TSL_SIGN_KEYSTORE_KEY_ALIAS}
+    key-password: ${TSL_SIGN_KEYSTORE_KEY_PASSWORD}
