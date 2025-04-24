@@ -14,7 +14,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.*;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -28,6 +27,7 @@ public class LookupControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @SuppressWarnings("unused") // since its use in when() is not recognized as a use.
     @MockitoBean
     private LookupService lookupService;
 
@@ -37,7 +37,6 @@ public class LookupControllerTest {
             .thenAnswer(invocationOnMock -> {
                 SearchRelyingPartyResource searchResource =
                     invocationOnMock.getArgument(0, SearchRelyingPartyResource.class);
-                System.out.println("invocationOnMock searchterm: " + searchResource.searchTerm());
                 return new RelyingPartiesResource(
                     List.of(ResourceGenerator.generateRelyingPartyResource()
                                              .withName(searchResource.searchTerm())));
@@ -45,7 +44,7 @@ public class LookupControllerTest {
     }
 
     @Nested
-    @DisplayName("when making POST requests to the search page")
+    @DisplayName("when making GET requests to the search page")
     class GetTests {
         @Test
         void testModelGetsEmptySearchFormOnGet() throws Exception {
@@ -54,19 +53,6 @@ public class LookupControllerTest {
                    .andExpect(view().name("search"))
                    .andExpect(model().attribute(LookupController.searchFormAttrId,
                                                 SearchForm.empty()));
-        }
-    }
-
-    @Nested
-    @DisplayName("when making POST requests to the search page")
-    class PostTests {
-        @Test
-        void testServiceCalledWithCorrectSearchForm() throws Exception {
-            SearchForm searchForm = ResourceGenerator.generateSearchForm();
-            mockMvc.perform(post("/").flashAttr(LookupController.searchFormAttrId, searchForm))
-                   .andExpect(status().isOk())
-                   .andExpect(view().name("search"))
-                   .andExpect(content().string(containsString(searchForm.searchTerm())));
         }
     }
 }

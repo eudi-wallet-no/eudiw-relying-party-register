@@ -4,26 +4,19 @@
     <title>Innsynstjenesten - søk</title>
     <link th:href="@{/css/searchPage.css}" rel="stylesheet">
 </head>
-
 <body>
 
 <div class="two-column-page">
     <h1>Innsynstjenestens søkefunksjon</h1>
     <div class="flexbox">
 
-        <!--/*
-            search form/results column
-        */-->
         <div class="search-column" id="search_column">
 
-            <!--/*
-                search form
-            */-->
             <h2>Søk etter brukerstader</h2>
-            <form
-                    th:object="${searchFormAttr}"
-                    th:action="@{/}"
-                    method="POST">
+            <form th:object="${searchFormAttr}"
+                  th:action="@{/search}"
+                  method="POST"
+            >
                 <label for="search_term" class="form-label"></label>
                 <input id="search_term"
                        type="text"
@@ -42,20 +35,22 @@
                 </ul>
             </form>
 
-            <!--/*
-                search results
-            */-->
-            <div>
-            <h2>Søkeresultat</h2>
-            <div th:unless="${ #maps.isEmpty(resultsAttr.relyingParties())}">
-                <div class="fixed-headers-table">
+            <div th:if="${fullResultsAttr} != null">
+                <h2>Søkeresultat</h2>
+                <div class="fixed-headers-table"
+                     th:with="resultsView=${fullResultsAttr.applyViewSpec()}"
+                >
                     <table>
                         <thead>
                         <tr><th>Org.nr.</th><th>Navn</th></tr>
                         </thead>
                         <tbody>
 
-                        <tr th:each="rp : ${resultsAttr.relyingParties().values()}"
+                        <tr th:if="${ #lists.isEmpty(resultsView)}">
+                            <td th:colspan="2">Fannt ingen brukerstader!</td>
+                        </tr>
+
+                        <tr th:each="rp : ${resultsView}"
                             style="cursor: pointer">
                             <td><a class="invisible-link" th:href="|@{/details}/${rp.id}|"><div th:text="${rp.orgno}"/></a> </td>
                             <td><a class="invisible-link" th:href="|@{/details}/${rp.id}|"><div th:text="${rp.name}"/></a> </td>
@@ -63,10 +58,40 @@
                         </tbody>
                     </table>
                 </div>
-            </div>
-            </div>
 
+                <br>
+
+                <form th:object="${viewSpecFormAttr}"
+                      th:action="@{/view}"
+                      method="POST"
+                >
+                    <label for="sorting" class="form-label">Sortering</label>
+                    <select id="sorting"
+                            th:field="*{ordering}"
+                            onchange="this.form.submit()"
+                    >
+                        <option th:each="orderingOption : ${viewSpecFormAttr.getOrderingOptions()}"
+                                th:text="${orderingOption.displayName}"
+                                th:value="${orderingOption}"
+                        />
+                    </select>
+
+                    <p>
+                        <label for="entitlement_filter_form" class="form-label">Filtrer etter rettigheter</label>
+                        <br>
+                        <textarea th:type="text"
+                                  id="entitlement_filter_form"
+                                  th:field="*{entitlementFreeTextField}"
+                                  style="width: 40em; min-height: 5em;"
+                                  placeholder="Legg til en eller flere rettigheter ..."
+                        ></textarea>
+                    </p>
+
+                    <button type="submit">Oppdater visning</button>
+                </form>
+            </div>
         </div>
+
         <div th:replace="~{fragments/detailed_view :: detailed_view_column}"></div>
     </div>
 </div>

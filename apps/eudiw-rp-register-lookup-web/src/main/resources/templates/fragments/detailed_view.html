@@ -48,12 +48,12 @@
         </table>
     </div>
 
-    <h3>Rettigheter</h3>
+    <h3>Informasjoner brukerstadet har rettighet til</h3>
     <div th:unless="${ #lists.isEmpty(rp.relyingPartyEntitlements)}">
         <div class="fixed-headers-table" style="height: 20vh;">
             <table>
                 <thead>
-                <tr><th>Entitlement</th></tr>
+                <tr><th>Rettighet</th></tr>
                 </thead>
                 <tbody>
                 <tr th:each="ent : ${rp.relyingPartyEntitlements}">
