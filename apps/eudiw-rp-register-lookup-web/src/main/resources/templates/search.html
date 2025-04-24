@@ -2,14 +2,23 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
 <head>
     <title>Innsynstjenesten - søk</title>
+    <link th:href="@{/css/index.css}" href="/css/index.css" rel="stylesheet">
+    <link th:href="@{/css/custom.css}" href="/css/custom.css" rel="stylesheet">
+    <link th:href="@{/css/digdir.css}" href="/css/digdir.css" rel="stylesheet">
     <link th:href="@{/css/searchPage.css}" rel="stylesheet">
 </head>
 <body>
 
 <div class="two-column-page">
-    <h1>Innsynstjenestens søkefunksjon</h1>
-    <div class="flexbox">
+    <div class="top-banner">
+        <img src="/img.png" alt="Logo" class="logo">
+        <div>
+            <h1>Innsynstjenestens søkefunksjon</h1>
 
+        </div>
+    </div>
+
+    <div class="flexbox">
         <div class="search-column" id="search_column">
 
             <h2>Søk etter brukerstader</h2>
@@ -17,17 +26,16 @@
                   th:action="@{/search}"
                   method="POST"
             >
-                <label for="search_term" class="form-label"></label>
-                <input id="search_term"
-                       type="text"
-                       th:field="*{searchTerm}"
-                       placeholder="Søk på org.nr. eller navn"
-                >
+                <div class="search-form-row">
+                    <input th:class="ds-input" id="search_term" type="text" size="60"
+                           th:field="*{searchTerm}" placeholder="Søk på org.nr. eller navn">
 
-                <button type="submit">Søk</button>
-                <br>
-                <label for="includeInactive" class="form-label">Inkluder inaktive</label>
-                <input id="includeInactive" type="checkbox" th:field="*{includeInactive}">
+                    <label th:class="ds-label" for="includeInactive">Inkluder inaktive</label>
+                    <input th:class="ds-input" id="includeInactive" type="checkbox" th:field="*{includeInactive}">
+
+                    <button th:class="ds-button" type="submit">Søk</button>
+                </div>
+
                 <ul th:if="${#fields.hasErrors()}">
                     <li th:each="error : ${#fields.errors('searchTerm')}"
                         th:text="${error}"
@@ -40,9 +48,9 @@
                 <div class="fixed-headers-table"
                      th:with="resultsView=${fullResultsAttr.applyViewSpec()}"
                 >
-                    <table>
+                    <table th:class="ds-table" data-zebra="true" data-hover="true" data-sticky-header="true">
                         <thead>
-                        <tr><th>Org.nr.</th><th>Navn</th></tr>
+                        <tr><th><label th:class="ds-label">Org.nr.</label></th><th><label th:class="ds-label">Navn</label></th></tr>
                         </thead>
                         <tbody>
 
@@ -65,21 +73,24 @@
                       th:action="@{/view}"
                       method="POST"
                 >
-                    <label for="sorting" class="form-label">Sortering</label>
+                    <label for="sorting" th:class="ds-label">Sortering</label>
                     <select id="sorting"
+                            th:class="ds-dropdown"
                             th:field="*{ordering}"
                             onchange="this.form.submit()"
                     >
                         <option th:each="orderingOption : ${viewSpecFormAttr.getOrderingOptions()}"
                                 th:text="${orderingOption.displayName}"
                                 th:value="${orderingOption}"
+                                th:class="ds-dropdown"
                         />
                     </select>
 
                     <p>
-                        <label for="entitlement_filter_form" class="form-label">Filtrer etter rettigheter</label>
+                        <label for="entitlement_filter_form" th:class="ds-label">Filtrer etter rettigheter</label>
                         <br>
                         <textarea th:type="text"
+                                  th:class="ds-input"
                                   id="entitlement_filter_form"
                                   th:field="*{entitlementFreeTextField}"
                                   style="width: 40em; min-height: 5em;"
@@ -87,13 +98,18 @@
                         ></textarea>
                     </p>
 
-                    <button type="submit">Oppdater visning</button>
+                    <button th:class="ds-button" type="submit">Oppdater visning</button>
                 </form>
             </div>
         </div>
 
         <div th:replace="~{fragments/detailed_view :: detailed_view_column}"></div>
+
     </div>
+
+</div>
+<div class="bottom-banner">
+    <p>Digital Lommebok © 2025</p>
 </div>
 
 </body>

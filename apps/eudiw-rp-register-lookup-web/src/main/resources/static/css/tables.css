@@ -3,12 +3,8 @@ table {
     text-align: left;
 }
 
-tr:hover {
-    background-color: #e0e0e0;
-}
-
 th {
-    background: #eeeeee;
+    background: #afcee9;
 }
 
 th, td {
