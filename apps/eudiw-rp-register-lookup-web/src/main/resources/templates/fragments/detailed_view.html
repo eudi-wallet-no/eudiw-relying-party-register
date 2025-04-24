@@ -13,36 +13,36 @@
 
     <h2>Detaljer for <span th:text="${rp.name}"></span></h2>
     <div class="vertical-headers-table">
-        <table>
+        <table th:class="ds-table" data-zebra="true" data-hover="true">
             <tbody>
             <tr>
                 <th>UUID</th>
                 <td style="font-family: monospace;"
-                    th:text="${rp.id}"></td>
+                    th:class="ds-label" th:text="${rp.id}"></td>
             </tr>
             <tr>
                 <th>Org.nr.</th>
-                <td th:text="${rp.orgno}"></td>
+                <td th:class="ds-label" th:text="${rp.orgno}"></td>
             </tr>
             <tr>
                 <th>Navn</th>
-                <td th:text="${rp.name}"></td>
+                <td th:class="ds-label" th:text="${rp.name}"></td>
             </tr>
             <tr>
                 <th>Sektor</th>
-                <td th:text="${rp.publicSector ? 'offentlig' : 'privat'}"></td>
+                <td th:class="ds-label" th:text="${rp.publicSector ? 'offentlig' : 'privat'}"></td>
             </tr>
             <tr>
                 <th>Opprettet</th>
-                <td th:text="${#dates.format(rp.createdMs, 'dd-MM-yyyy HH:mm:ss')}"></td>
+                <td th:class="ds-label" th:text="${#dates.format(rp.createdMs, 'dd-MM-yyyy HH:mm:ss')}"></td>
             </tr>
             <tr>
                 <th>Sidst oppdatert</th>
-                <td th:text="${#dates.format(rp.lastUpdatedMs, 'dd-MM-yyyy HH:mm:ss')}"></td>
+                <td th:class="ds-label" th:text="${#dates.format(rp.lastUpdatedMs, 'dd-MM-yyyy HH:mm:ss')}"></td>
             </tr>
             <tr>
                 <th>Aktiv</th>
-                <td th:text="${rp.active ? 'ja' : 'nej'}"></td>
+                <td th:class="ds-label" th:text="${rp.active ? 'ja' : 'nej'}"></td>
             </tr>
             </tbody>
         </table>
@@ -51,13 +51,13 @@
     <h3>Informasjoner brukerstadet har rettighet til</h3>
     <div th:unless="${ #lists.isEmpty(rp.relyingPartyEntitlements)}">
         <div class="fixed-headers-table" style="height: 20vh;">
-            <table>
+            <table th:class="ds-table" data-zebra="true" data-hover="true">
                 <thead>
                 <tr><th>Rettighet</th></tr>
                 </thead>
                 <tbody>
                 <tr th:each="ent : ${rp.relyingPartyEntitlements}">
-                    <td th:text="${ent.entitlement}"></td>
+                    <td th:class="ds-label" th:text="${ent.entitlement}"></td>
                 </tr>
                 </tbody>
             </table>
@@ -67,7 +67,7 @@
     <h3>EAA'ere</h3>
     <div th:unless="${ #lists.isEmpty(rp.relyingPartyEaas)}">
         <div class="fixed-headers-table" style="height: 20vh;">
-            <table>
+            <table th:class="ds-table" data-zebra="true" data-hover="true">
                 <thead>
                 <tr>
                     <th>Namespace</th>
@@ -76,8 +76,8 @@
                 </thead>
                 <tbody>
                 <tr th:each="eaa : ${rp.relyingPartyEaas}">
-                    <td th:text="${eaa.namespace}"></td>
-                    <td th:text="${eaa.intent}"></td>
+                    <td th:class="ds-label" th:text="${eaa.namespace}"></td>
+                    <td th:class="ds-label" th:text="${eaa.intent}"></td>
                 </tr>
                 </tbody>
             </table>
