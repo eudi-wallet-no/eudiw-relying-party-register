@@ -1,0 +1,13 @@
+---
+server:
+  port: 9250
+
+management:
+  server:
+    port: 9251
+
+spring:
+  application:
+    environment: dev
+  config:
+    import: file:.env[.properties]
