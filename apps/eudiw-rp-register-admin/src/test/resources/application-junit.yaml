@@ -1,0 +1,6 @@
+---
+spring:
+  application:
+    environment: junit
+  config:
+    import: file:.env[.properties]
