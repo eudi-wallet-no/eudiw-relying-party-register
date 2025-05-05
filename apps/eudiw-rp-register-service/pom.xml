@@ -24,6 +24,7 @@
         <springdoc.version>2.8.6</springdoc.version>
         <lombok.version>1.18.38</lombok.version>
         <idporten-audit-log.version>2.4.0</idporten-audit-log.version>
+        <bcpkix.version>1.80</bcpkix.version>
     </properties>
     <dependencies>
         <dependency>
@@ -107,6 +108,11 @@
             <artifactId>lombok</artifactId>
             <optional>true</optional>
             <version>${lombok.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk18on</artifactId>
+            <version>${bcpkix.version}</version>
         </dependency>
     </dependencies>
 

@@ -76,6 +76,13 @@ public class AppExceptionHandler {
         return errorResponseEntity(e.getStatusCode(), errorMessageForHttpStatus(e.getStatusCode()), e.getReason());
     }
 
+    @ExceptionHandler(AccessCertificateException.class)
+    public ResponseEntity<ErrorResponse> handleAccessCertificateException(
+        AccessCertificateException e) {
+        return errorResponseEntity(HttpStatus.BAD_REQUEST, "invalid_request", e.getMessage());
+    }
+
+
     protected String errorMessageForHttpStatus(HttpStatusCode httpStatus) {
         if (httpStatus.is4xxClientError()) {
             return "invalid_request";

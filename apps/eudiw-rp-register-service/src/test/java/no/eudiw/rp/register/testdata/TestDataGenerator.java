@@ -27,9 +27,9 @@ public class TestDataGenerator {
     }
 
     protected static <T> List<T> generateListBy(Supplier<T> supplier) {
-        return IntStream.range(0, rng.nextInt(1, 10))
+        return IntStream.range(0, rng.nextInt(2, 10))
                         .mapToObj(_x -> supplier.get())
-                        .toList();
+                        .collect(Collectors.toList());
     }
 
     private static final int[] ORGNO_WEIGHTS = {3, 2, 7, 6, 5, 4, 3, 2, 0};

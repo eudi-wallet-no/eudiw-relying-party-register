@@ -5,6 +5,7 @@ import no.eudiw.rp.register.data.entity.RelyingParty;
 import no.eudiw.rp.register.data.entity.RelyingPartyEaa;
 import no.eudiw.rp.register.data.entity.RelyingPartyEntitlement;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Converter {
@@ -48,7 +49,8 @@ public class Converter {
             resource.orgNr(),
             resource.publicSector(),
             resource.relyingPartyEntitlements().stream().map(Converter::toEntity).toList(),
-            resource.relyingPartyEaas().stream().map(Converter::toEntity).toList()
+            resource.relyingPartyEaas().stream().map(Converter::toEntity).toList(),
+            new ArrayList<>()
         );
     }
 

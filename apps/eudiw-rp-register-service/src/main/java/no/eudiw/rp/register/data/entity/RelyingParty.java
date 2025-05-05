@@ -9,10 +9,12 @@ import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.AccessLevel;
+import lombok.ToString;
 
 @Getter
 @Setter
 @Entity
+@ToString
 @Table(name = "relying_party")
 public class RelyingParty extends BaseEntity {
 
@@ -26,6 +28,7 @@ public class RelyingParty extends BaseEntity {
     private Boolean publicSector;
 
     // TODO: Jira EUW-24 (https://digdir.atlassian.net/browse/EUW-24)
+    @Setter(AccessLevel.NONE)
     @OneToMany(
             mappedBy = "relyingParty",
             fetch = FetchType.EAGER,
@@ -43,6 +46,15 @@ public class RelyingParty extends BaseEntity {
             orphanRemoval = true)
     private List<RelyingPartyEaa> relyingPartyEaas = new ArrayList<>();
 
+    @Setter(AccessLevel.NONE)
+    @OneToMany(
+        mappedBy = "relyingParty",
+        fetch = FetchType.EAGER,
+        cascade = CascadeType.ALL,
+        orphanRemoval = true)
+    private List<RelyingPartyAccessCertificate> relyingPartyAccessCertificates =
+        new ArrayList<>();
+
     @Column(name = "created_ms", nullable = false)
     @Setter(AccessLevel.NONE)
     private long createdMs;
@@ -57,43 +69,50 @@ public class RelyingParty extends BaseEntity {
     @Column(name = "deleted", nullable = false)
     private boolean deleted;
 
-    public void addRelyingPartyEntitlement(RelyingPartyEntitlement relyingPartyEntitlement) {
-        relyingPartyEntitlement.setRelyingParty(this);
-        this.relyingPartyEntitlements.add(relyingPartyEntitlement);
-    }
-
     public void setRelyingPartyEntitlements(
         List<RelyingPartyEntitlement> relyingPartyEntitlements) {
         this.relyingPartyEntitlements.clear();
-        if (relyingPartyEntitlements != null)
-            relyingPartyEntitlements.forEach(this::addRelyingPartyEntitlement);
+        if (relyingPartyEntitlements != null) {
+            relyingPartyEntitlements.forEach(entitlement -> entitlement.setRelyingParty(this));
+            this.relyingPartyEntitlements.addAll(relyingPartyEntitlements);
+        }
     }
 
-    public void addRelyingPartyEaa(RelyingPartyEaa relyingPartyEaa) {
-        relyingPartyEaa.setRelyingParty(this);
-        this.relyingPartyEaas.add(relyingPartyEaa);
-    }
     public void setRelyingPartyEaas(List<RelyingPartyEaa> relyingPartyEaas) {
         this.relyingPartyEaas.clear();
-        if (relyingPartyEaas != null)
-            relyingPartyEaas.forEach(this::addRelyingPartyEaa);
+        if (relyingPartyEaas != null) {
+            relyingPartyEaas.forEach(eaa -> eaa.setRelyingParty(this));
+            this.relyingPartyEaas.addAll(relyingPartyEaas);
+        }
+    }
+
+    public void setRelyingPartyAccessCertificates(
+        List<RelyingPartyAccessCertificate> relyingPartyAccessCertificates) {
+        this.relyingPartyAccessCertificates.clear();
+        if (relyingPartyAccessCertificates != null) {
+            relyingPartyAccessCertificates.forEach(cert -> cert.setRelyingParty(this));
+            this.relyingPartyAccessCertificates.addAll(relyingPartyAccessCertificates);
+        }
     }
 
     public RelyingParty(String name, String orgno, Boolean publicSector) {
-        this(name, orgno, publicSector, null, null);
+        this(name, orgno, publicSector, null, null, null);
     }
 
     public RelyingParty(String name,
                         String orgno,
                         Boolean publicSector,
                         List<RelyingPartyEntitlement> relyingPartyEntitlements,
-                        List<RelyingPartyEaa> relyingPartyEaas) {
+                        List<RelyingPartyEaa> relyingPartyEaas,
+                        List<RelyingPartyAccessCertificate> relyingPartyAccessCertificates
+                        ) {
         this.id = null;
         this.name = name;
         this.orgno = orgno;
         this.publicSector = publicSector;
         this.setRelyingPartyEntitlements(relyingPartyEntitlements);
         this.setRelyingPartyEaas(relyingPartyEaas);
+        this.setRelyingPartyAccessCertificates(relyingPartyAccessCertificates);
         this.active = true;
         this.deleted = false;
     }
