@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS `relying_party_access_certificate`
     `id`               VARCHAR(36) NOT NULL,
     `relying_party_id` VARCHAR(36) NOT NULL,
 
-    `certificate_pem`  VARCHAR(65535) NOT NULL,
+    `certificate_pem`  VARCHAR(8192) NOT NULL,
     `subject_dn`       VARCHAR(255)   NOT NULL,
     `serial_no`        BIGINT         NOT NULL UNIQUE,
     `valid_from_ms`    BIGINT         NOT NULL DEFAULT(0),
