@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
 <head>
-    <title>Innsynstjenesten - søk</title>
+    <title>Sandkasse for digital lommebok - Innsynstjenesten</title>
     <link th:href="@{/css/index.css}" href="/css/index.css" rel="stylesheet">
-    <link th:href="@{/css/custom.css}" href="/css/custom.css" rel="stylesheet">
     <link th:href="@{/css/digdir.css}" href="/css/digdir.css" rel="stylesheet">
     <link th:href="@{/css/searchPage.css}" rel="stylesheet">
 </head>
@@ -13,8 +12,7 @@
     <div class="top-banner">
         <img src="/img.png" alt="Logo" class="logo">
         <div>
-            <h1>Innsynstjenestens søkefunksjon</h1>
-
+            <h1>Sandkasse for digital lommebok</h1>
         </div>
     </div>
 
@@ -23,12 +21,14 @@
 
             <h2>Søk etter brukerstader</h2>
             <form th:object="${searchFormAttr}"
-                  th:action="@{/search}"
+                  th:action="@{/}"
                   method="POST"
             >
                 <div class="search-form-row">
+                    <label for="search_term"></label>
                     <input th:class="ds-input" id="search_term" type="text" size="60"
-                           th:field="*{searchTerm}" placeholder="Søk på org.nr. eller navn">
+                           th:field="*{searchTerm}"
+                           placeholder="Søk på org.nr. eller navn">
 
                     <label th:class="ds-label" for="includeInactive">Inkluder inaktive</label>
                     <input th:class="ds-input" id="includeInactive" type="checkbox" th:field="*{includeInactive}">
