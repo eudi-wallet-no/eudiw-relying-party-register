@@ -1,13 +1,11 @@
 package no.idporten.eudiw.rp.register.lookup.web.resource;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.With;
 
 @With
 public record SearchForm(
-    @NotBlank(message = "søketerm får ikkje være tom!")
     @Size(max = 255, message = "søketerm må høyest være 255 tegn!")
     @Pattern(regexp = ALLOWED_SEARCH_TERM_REGEX,
              message = "søketerm får bare indeholde norske bokstaver, tal, mellemrum, og tegnene "
@@ -21,10 +19,6 @@ public record SearchForm(
 
     public static SearchForm empty() {
         return new SearchForm("", false);
-    }
-
-    public boolean isEmpty() {
-        return this.searchTerm.isEmpty();
     }
 
     public SearchForm(String searchTerm, boolean includeInactive) {
