@@ -16,7 +16,7 @@
         <java.version>24</java.version>
         <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
         <lombok.version>1.18.38</lombok.version>
-        <idporten-actuator-starter.version>1.3.1</idporten-actuator-starter.version>
+        <idporten-actuator-starter.version>1.3.2</idporten-actuator-starter.version>
         <idporten-access-log.version>2.7.2</idporten-access-log.version>
         <idporten-validators.version>1.4.4</idporten-validators.version>
         <opentelemetry-instrumentation-api.version>1.49.0</opentelemetry-instrumentation-api.version>
