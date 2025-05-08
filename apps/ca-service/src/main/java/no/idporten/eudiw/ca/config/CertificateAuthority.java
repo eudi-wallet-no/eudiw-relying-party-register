@@ -1,5 +1,6 @@
 package no.idporten.eudiw.ca.config;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -26,6 +27,12 @@ public class CertificateAuthority {
     private final URI crlDistributionPoint;
     @NotNull
     private final URI certificateUri;
+
+    /**
+     * Profile for certificates signed with this certificate authority
+     */
+    @Valid
+    private final CertificateProfile certificateProfile;
 
     @Getter(AccessLevel.PRIVATE)
     @NotNull
