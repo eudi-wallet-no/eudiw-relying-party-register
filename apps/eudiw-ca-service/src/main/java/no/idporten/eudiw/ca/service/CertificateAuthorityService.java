@@ -108,10 +108,19 @@ public class CertificateAuthorityService {
     public X509Certificate signCertificate(CertificateAuthority certificateAuthority, PKCS10CertificationRequest csr, String orgno) throws Exception {
         validateCSR(csr);
         List<Extension> extensions = new ArrayList<>();
+        // basic + relation to CA
         extensions.add(Extension.create(Extension.basicConstraints, true, new BasicConstraints(false)));
         extensions.add(createCrlDistributionPointExtension(certificateAuthority.getCrlDistributionPoint()));
-        extensions.add(Extension.create(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment)));
         extensions.add(createAuthorityInformationAccess(certificateAuthority.getCertificateUri()));
+        // key usage
+        extensions.add(Extension.create(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment)));
+        // extensions from certificate profile config
+        if (certificateAuthority.getCertificateProfile() != null) {
+            for (String oid : certificateAuthority.getCertificateProfile().getExtendedKeyUsage()) {
+                extensions.add(Extension.create(Extension.extendedKeyUsage, true, new ExtendedKeyUsage(KeyPurposeId.getInstance(new ASN1ObjectIdentifier(oid)))));
+            }
+        }
+        // extensions from CSR
         if (csr.getRequestedExtensions().getExtension(Extension.subjectAlternativeName) != null) {
             extensions.add(csr.getRequestedExtensions().getExtension(Extension.subjectAlternativeName));
         }

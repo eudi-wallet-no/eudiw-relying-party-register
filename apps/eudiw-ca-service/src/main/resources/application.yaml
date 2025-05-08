@@ -55,6 +55,9 @@ eudiw-ca:
       lifetime-days: 100
       crl-distribution-point: ${eudiw-ca.base-uri}/v1/certs/intermediates/access.crl
       certificate-uri: ${eudiw-ca.base-uri}/v1/certs/intermediates/access.cer
+      certificate-profile:
+        extended-key-usage:
+          - "1.0.18013.5.1.6"
       keystore:
         type: pkcs12
         location: ${INTERMEDIATE_ACCESS_KEYSTORE_LOCATION}

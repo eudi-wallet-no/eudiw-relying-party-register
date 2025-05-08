@@ -37,7 +37,7 @@ public class CertificateAuthorityServiceTest {
     @Nested
     class AccessCertificateTests {
 
-        @DisplayName("then a valid certificate is created with san extensions")
+        @DisplayName("then a valid certificate is created with san extensions and extended key usage for mdoc authentication")
         @Test
         void testAccessCertificate() throws Exception {
             String csr = """
@@ -58,7 +58,9 @@ public class CertificateAuthorityServiceTest {
                     () -> assertTrue(certificate.getBasicConstraints() < 0),
                     () -> assertArrayEquals(new boolean[]{true, false, true, false, false, false, false, false, false}, certificate.getKeyUsage()),
                     () -> assertTrue(certificate.getSubjectAlternativeNames().iterator().next().contains("junit.rp1.idporten.dev")),
-                    () -> assertEquals(intermediate.getCertificate().getSubjectX500Principal(), certificate.getIssuerX500Principal())
+                    () -> assertEquals(intermediate.getCertificate().getSubjectX500Principal(), certificate.getIssuerX500Principal()),
+                    () -> assertNotNull(certificate.getExtendedKeyUsage()),
+                    () -> assertTrue(certificate.getExtendedKeyUsage().contains("1.0.18013.5.1.6"))
             );
             certificate.verify(intermediate.getPublicKey());
         }
