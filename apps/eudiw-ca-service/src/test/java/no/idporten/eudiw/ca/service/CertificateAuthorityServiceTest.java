@@ -60,7 +60,9 @@ public class CertificateAuthorityServiceTest {
                     () -> assertTrue(certificate.getSubjectAlternativeNames().iterator().next().contains("junit.rp1.idporten.dev")),
                     () -> assertEquals(intermediate.getCertificate().getSubjectX500Principal(), certificate.getIssuerX500Principal()),
                     () -> assertNotNull(certificate.getExtendedKeyUsage()),
-                    () -> assertTrue(certificate.getExtendedKeyUsage().contains("1.0.18013.5.1.6"))
+                    () -> assertTrue(certificate.getExtendedKeyUsage().contains("1.0.18013.5.1.6")),
+                    () -> assertEquals("SHA512WITHECDSA", certificate.getSigAlgName()),
+                    () -> assertEquals("1.2.840.10045.4.3.4", certificate.getSigAlgOID())
             );
             certificate.verify(intermediate.getPublicKey());
         }

@@ -11,8 +11,9 @@ dname="CN=eidas2sandkasse root CA systest, OU=Digdir, C=no, 2.5.4.97=NTRNO-99182
 keytool \
 -genkey \
 -alias $root_alias \
--keyalg RSA \
--keysize 4096 \
+-keyalg EC  \
+-groupname secp256r1 \
+-sigalg SHA256withECDSA \
 -validity 1825 \
 -dname "$dname" \
 -ext bc:ca:true \

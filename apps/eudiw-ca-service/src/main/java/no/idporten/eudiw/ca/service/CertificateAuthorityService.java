@@ -22,7 +22,7 @@ import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
-import org.bouncycastle.operator.bc.BcRSAContentSignerBuilder;
+import org.bouncycastle.operator.bc.BcECContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
@@ -49,6 +49,7 @@ public class CertificateAuthorityService {
 
     public static final String DIGDIR_ORGNO = "991825827";
     public static final String OID_ORGANIZATION_NUMBER = "2.5.4.97";
+    public static final String SIGNATURE_ALGORITHM_SHA_512_WITH_ECDSA = "SHA512WITHECDSA";
 
     public PKCS10CertificationRequest decodeCsr(String csr) throws Exception {
         return decodeFromPem(csr, PKCS10CertificationRequest.class);
@@ -146,10 +147,10 @@ public class CertificateAuthorityService {
         for (Extension extension : extensions) {
             x509v3CertificateBuilder.addExtension(extension);
         }
-        AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find("SHA256withRSA");
+        AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find(SIGNATURE_ALGORITHM_SHA_512_WITH_ECDSA);
         AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
         AsymmetricKeyParameter caPrivateKey = PrivateKeyFactory.createKey(certificateAuthority.getPrivateKey().getEncoded());
-        ContentSigner sigGen = new BcRSAContentSignerBuilder(sigAlgId, digAlgId).build(caPrivateKey);
+        ContentSigner sigGen = new BcECContentSignerBuilder(sigAlgId, digAlgId).build(caPrivateKey);
         X509CertificateHolder holder = x509v3CertificateBuilder.build(sigGen);
         org.bouncycastle.asn1.x509.Certificate eeX509CertificateStructure = holder.toASN1Structure();
         CertificateFactory cf = CertificateFactory.getInstance("X.509", BouncyCastleProvider.PROVIDER_NAME);
@@ -200,10 +201,10 @@ public class CertificateAuthorityService {
                 X500Name.getInstance(certificateAuthority.getCertificate().getSubjectX500Principal().getEncoded()),
                 new Date(System.currentTimeMillis()))
                 .setNextUpdate(new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000));
-        AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find("SHA256withRSA");
+        AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find(SIGNATURE_ALGORITHM_SHA_512_WITH_ECDSA);
         AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
         AsymmetricKeyParameter caPrivateKey = PrivateKeyFactory.createKey(certificateAuthority.getPrivateKey().getEncoded());
-        ContentSigner sigGen = new BcRSAContentSignerBuilder(sigAlgId, digAlgId).build(caPrivateKey);
+        ContentSigner sigGen = new BcECContentSignerBuilder(sigAlgId, digAlgId).build(caPrivateKey);
         X509CRLHolder crlHolder = crlBuilder.build(sigGen);
 
         ASN1Object asn1Object = crlHolder.toASN1Structure();
@@ -224,7 +225,7 @@ public class CertificateAuthorityService {
                 new JcaPKCS10CertificationRequestBuilder(
                         certificateAuthority.getCertificate().getSubjectX500Principal(),
                         certificateAuthority.getPublicKey());
-        JcaContentSignerBuilder csBuilder = new JcaContentSignerBuilder("SHA256withRSA");
+        JcaContentSignerBuilder csBuilder = new JcaContentSignerBuilder(SIGNATURE_ALGORITHM_SHA_512_WITH_ECDSA);
         ContentSigner signer = csBuilder.build(certificateAuthority.getPrivateKey());
         return p10Builder.build(signer);
     }

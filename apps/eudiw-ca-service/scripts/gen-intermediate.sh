@@ -16,8 +16,9 @@ ca_dname="CN=eidas2sandkasse Relying Party Access CA systest, OU=Digdir, C=no, 2
 keytool \
 -genkey \
 -alias $ca_alias \
--keyalg RSA \
--keysize 4096 \
+-keyalg EC  \
+-groupname secp256r1 \
+-sigalg SHA256withECDSA \
 -validity 1824 \
 -dname "$ca_dname" \
 -ext bc:ca:true \
