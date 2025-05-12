@@ -98,8 +98,9 @@ div .details-column {
 }
 
 .top-banner .logo {
-    height: 110px;
+    height: 32px;
     width: auto;
+    padding-right: 16px;
 }
 
 .bottom-banner {
