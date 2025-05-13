@@ -71,8 +71,9 @@ digdir:
 eudiw-rp-register-service:
   csr-service:
     ca-service-api:
+      ca-service-base-uri: ${CA_SERVICE_BASE_URI}
       api-key-header-id: X-API-KEY
-      ca-service-base-uri: http://eudiw-ca-service-service:8080
+      api-key-value: ${CA_SERVICE_API_KEY}
     rest-client:
       connect-timeout-millis: 5000
       read-timeout-millis: 5000
