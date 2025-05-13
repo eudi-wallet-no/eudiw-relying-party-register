@@ -6,8 +6,9 @@ import no.eudiw.rp.register.data.entity.RelyingParty;
 import no.eudiw.rp.register.data.entity.RelyingPartyEaa;
 import no.eudiw.rp.register.data.entity.RelyingPartyEntitlement;
 import no.eudiw.rp.register.data.repository.RelyingPartyRepository;
-import no.eudiw.rp.register.exception.*;
-import org.springframework.http.HttpStatus;
+import no.eudiw.rp.register.data.service.exception.BadRequestException;
+import no.eudiw.rp.register.data.service.exception.NotFoundException;
+import no.eudiw.rp.register.data.service.exception.ResourceDeletedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,13 +23,12 @@ public class RelyingPartyService {
 
     @Transactional
     public RelyingPartyResource createRelyingParty(CreateRelyingPartyResource request) {
-        // TODO: Jira EUW-27 (https://digdir.atlassian.net/browse/EUW-27)
         if (relyingPartyRepository.existsByOrgno(request.orgNr())) {
-            throw new ApiException("invalid_request", "OrgNr should be unique", HttpStatus.BAD_REQUEST);
+            throw new BadRequestException("Orgnos must be unique");
         }
 
         if (request.relyingPartyEntitlements() == null || request.relyingPartyEaas() == null) {
-            throw new ApiException("invalid_request", "Entitlements and Eaas should be emtpy if none exists", HttpStatus.BAD_REQUEST);
+            throw new BadRequestException("Entitlements and EAAs should be empty if none exists");
         }
 
         RelyingParty relyingParty = Converter.toEntity(request);
@@ -39,11 +39,11 @@ public class RelyingPartyService {
     public RelyingPartyResource findRelyingParty(UUID id) {
         RelyingParty relyingParty = relyingPartyRepository.findById(id).orElse(null);
         if (relyingParty == null) {
-            throw new ApiException("not_found", "Relying Party not found", HttpStatus.NOT_FOUND);
+            throw new NotFoundException("Relying party not found");
         }
 
         if (relyingParty.isDeleted()) {
-            throw new ApiException("resource_deleted", "No access to resource", HttpStatus.GONE);
+            throw new ResourceDeletedException("No access to relying party resource");
         }
 
         return Converter.toResource(relyingParty);
@@ -88,15 +88,15 @@ public class RelyingPartyService {
         // updating requires RelyingParty ID to be set; otherwise it is a creation.
         // TODO: Jira EUW-25 (https://digdir.atlassian.net/browse/EUW-25)
         if (id == null) {
-            throw new ApiException("invalid_request", "Id should not be null", HttpStatus.BAD_REQUEST);
+            throw new BadRequestException("ID should not be null");
         }
 
         if (request.relyingPartyEntitlements() == null || request.relyingPartyEaas() == null) {
-            throw new ApiException("invalid_request", "Entitlements and Eaas should be emtpy if none exists", HttpStatus.BAD_REQUEST);
+            throw new BadRequestException("Entitlements and EAAs should be emtpy if none exists");
         }
 
         if (!relyingPartyRepository.existsById(id)) {
-            throw new ApiException("not_found", "Relying Party not found", HttpStatus.NOT_FOUND);
+            throw new BadRequestException("Relying party not found");
         }
 
         RelyingParty relyingParty = relyingPartyRepository.findById(id).orElseThrow();
@@ -112,7 +112,7 @@ public class RelyingPartyService {
     public void deleteRelyingParty(UUID id) {
         RelyingParty relyingParty = relyingPartyRepository.findById(id).orElse(null);
         if (relyingParty == null) {
-            throw new ApiException("not_found", "Relying Party not found", HttpStatus.NOT_FOUND);
+            throw new NotFoundException("Relying party not found");
         }
 
         relyingParty.setDeleted(true);

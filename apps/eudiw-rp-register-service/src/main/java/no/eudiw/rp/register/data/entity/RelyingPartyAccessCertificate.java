@@ -24,7 +24,11 @@ public class RelyingPartyAccessCertificate extends BaseEntity {
     @Column(name = "subject_dn", nullable = false)
     private String subjectDn;
 
-    @Column(name = "serial_no", columnDefinition = "BIGINT", nullable = false)
+    @Column(
+        name = "serial_no",
+        columnDefinition = "BIGINT UNSIGNED",
+        nullable = false)
+    @JdbcTypeCode(SqlTypes.BIGINT)
     private BigInteger serialNo;
 
     @ToString.Exclude

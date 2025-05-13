@@ -86,12 +86,17 @@ public class RelyingParty extends BaseEntity {
         }
     }
 
+    public void addRelyingPartyAccessCertificate(
+        RelyingPartyAccessCertificate relyingPartyAccessCertificate) {
+        relyingPartyAccessCertificate.setRelyingParty(this);
+        this.relyingPartyAccessCertificates.add(relyingPartyAccessCertificate);
+    }
+
     public void setRelyingPartyAccessCertificates(
         List<RelyingPartyAccessCertificate> relyingPartyAccessCertificates) {
         this.relyingPartyAccessCertificates.clear();
         if (relyingPartyAccessCertificates != null) {
-            relyingPartyAccessCertificates.forEach(cert -> cert.setRelyingParty(this));
-            this.relyingPartyAccessCertificates.addAll(relyingPartyAccessCertificates);
+            relyingPartyAccessCertificates.forEach(this::addRelyingPartyAccessCertificate);
         }
     }
 

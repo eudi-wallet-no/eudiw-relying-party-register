@@ -2,15 +2,11 @@ package no.eudiw.rp.register.data.accesscertificates;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
-import no.eudiw.rp.register.exception.AccessCertificateException;
-import no.eudiw.rp.register.exception.RegisterServiceException;
+import no.eudiw.rp.register.exception.CertificateConversionException;
 import org.bouncycastle.jcajce.provider.asymmetric.x509.CertificateFactory;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
+import java.io.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -40,7 +36,7 @@ public class X509CertificateConverter
             pemWriter.close();
             return writer.toString();
         } catch (IOException e) {
-            throw new RegisterServiceException("Failed to encode certificate", e);
+            throw new CertificateConversionException("Failed to encode X.509 certificate", e);
         }
     }
     public static X509Certificate convert(String certificatePemStr) {
@@ -48,11 +44,11 @@ public class X509CertificateConverter
             InputStream inStream = new ByteArrayInputStream(certificatePemStr.getBytes());
             Certificate certificate = cf.engineGenerateCertificate(inStream);
             if (!certificate.getType().equals("X.509")) {
-                throw new AccessCertificateException("Certificate not X.509");
+                throw new CertificateConversionException("Certificate valid but is not X.509");
             }
             return (X509Certificate) certificate;
         } catch (CertificateException e) {
-            throw new AccessCertificateException("Invalid certificate", e);
+            throw new CertificateConversionException("Invalid X.509 certificate", e);
         }
     }
 }

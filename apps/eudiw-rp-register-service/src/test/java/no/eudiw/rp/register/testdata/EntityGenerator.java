@@ -22,6 +22,12 @@ public class EntityGenerator extends TestDataGenerator {
             new ArrayList<>());
     }
 
+    public static RelyingParty generateRelyingPartyWithCertificates() {
+        RelyingParty relyingParty = generateRelyingPartyNoId();
+        relyingParty.setRelyingPartyAccessCertificates(EntityGenerator.generateAccessCertificates());
+        return relyingParty;
+    }
+
     public static RelyingPartyEntitlement generateEntitlement() {
         return new RelyingPartyEntitlement("ent-" + generateName());
     }
@@ -32,13 +38,13 @@ public class EntityGenerator extends TestDataGenerator {
     public static RelyingPartyAccessCertificate generateAccessCertificate() {
         try {
             return new RelyingPartyAccessCertificate(
-                X509CertificateGenerator.generateX509Certificate());
+                CertificatesGenerator.generateX509Certificate());
         }
         catch (Exception e) {
             throw new RuntimeException("Failed to generate RelyingPartyAccessCertificate", e);
         }
     }
     public static List<RelyingPartyAccessCertificate> generateAccessCertificates() {
-        return generateListBy(EntityGenerator::generateAccessCertificate);
+        return generateListBy(2, 3, EntityGenerator::generateAccessCertificate);
     }
 }

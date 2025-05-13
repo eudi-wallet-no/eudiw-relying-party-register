@@ -1,5 +1,6 @@
 package no.eudiw.rp.register.exception;
 
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -20,7 +21,9 @@ import java.util.stream.Collectors;
 public class ApiViolationExceptionHandler {
     private ApiViolationExceptionHandler() {}
 
-    private ResponseEntity<ErrorResponse> apiViolationErrorResponse(String errorDescription) {
+    private ResponseEntity<ErrorResponse> apiViolationErrorResponse(
+        String errorDescription, Exception e) {
+        log.warn("API violation exception: {}", errorDescription, e);
         return AppExceptionHandler.errorResponseEntity(
             HttpStatus.BAD_REQUEST, "invalid_request", errorDescription);
     }
@@ -31,7 +34,13 @@ public class ApiViolationExceptionHandler {
     public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(
         HttpMessageNotReadableException e) {
         return apiViolationErrorResponse(
-                "Resource contains unexpected fields and/or is missing required fields");
+                "Resource contains unexpected fields and/or is missing required fields", e);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolationException(
+        ConstraintViolationException e) {
+        return apiViolationErrorResponse("Resource contains invalid field value(s)", e);
     }
 
     // on jakarta constraint violation (i.e. properties are recognized, but values
@@ -52,7 +61,7 @@ public class ApiViolationExceptionHandler {
         String errorDescription =
             "Provided resource violates following constraints: " + bindingErrorMessages;
 
-        return apiViolationErrorResponse(errorDescription);
+        return apiViolationErrorResponse(errorDescription, e);
     }
 
     // on API method type mismatch, i.e. when Spring fails to instantiate controller
@@ -61,6 +70,6 @@ public class ApiViolationExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatchException(
         MethodArgumentTypeMismatchException e) {
-        return apiViolationErrorResponse("HTTP request parameter type error");
+        return apiViolationErrorResponse("HTTP request parameter type error", e);
     }
 }

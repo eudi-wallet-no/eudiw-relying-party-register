@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -29,12 +30,17 @@ public class AppExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleException(Exception e) {
         log.error("Failed to process request", e);
-        return errorResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, "server_error", "server_error");
+        return errorResponseEntity(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "server_error",
+            "Unrecognized internal server error");
     }
 
-    @ExceptionHandler(ApiException.class)
-    public ResponseEntity<ErrorResponse> handleApiException(ApiException e) {
-        return errorResponseEntity(e.getHttpStatus(), e.getError(), e.getErrorDescription());
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMediaTypeNotSupportedException(
+        HttpMediaTypeNotSupportedException e) {
+        String errorDescription = "HTTP media type not supported: " + e.getContentType();
+        return errorResponseEntity(HttpStatus.BAD_REQUEST, "invalid_request", errorDescription);
     }
 
     // api key
@@ -74,12 +80,6 @@ public class AppExceptionHandler {
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ErrorResponse> handleResponseStatusException(ResponseStatusException e) {
         return errorResponseEntity(e.getStatusCode(), errorMessageForHttpStatus(e.getStatusCode()), e.getReason());
-    }
-
-    @ExceptionHandler(AccessCertificateException.class)
-    public ResponseEntity<ErrorResponse> handleAccessCertificateException(
-        AccessCertificateException e) {
-        return errorResponseEntity(HttpStatus.BAD_REQUEST, "invalid_request", e.getMessage());
     }
 
 
