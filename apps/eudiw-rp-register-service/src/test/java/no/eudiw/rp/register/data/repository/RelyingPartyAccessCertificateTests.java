@@ -41,7 +41,6 @@ public class RelyingPartyAccessCertificateTests {
             @DisplayName("then creation of RP with zero certificates is successful")
             public void testNoAccessCertificates() {
                 RelyingParty rpIn = EntityGenerator.generateRelyingPartyNoId();
-                rpIn.setRelyingPartyAccessCertificates(null);
                 assertTrue(rpIn.getRelyingPartyAccessCertificates().isEmpty());
                 rpRepository.save(rpIn);
 
@@ -84,9 +83,7 @@ public class RelyingPartyAccessCertificateTests {
             @Test
             @DisplayName("then creation of RP with multiple certificates is successful")
             public void testMultipleAccessCertificates() {
-                RelyingParty rpIn = EntityGenerator.generateRelyingPartyNoId();
-
-                rpIn.setRelyingPartyAccessCertificates(EntityGenerator.generateAccessCertificates());
+                RelyingParty rpIn = EntityGenerator.generateRelyingPartyWithCertificates();
                 assertTrue(rpIn.getRelyingPartyAccessCertificates().size() > 1);
 
                 rpRepository.save(rpIn);
@@ -113,9 +110,8 @@ public class RelyingPartyAccessCertificateTests {
             @DisplayName("then auxiliary fields are correctly extracted from the certificate")
             public void testAuxiliaryFieldsProperlyStoredInEntity() {
                 RelyingParty rpIn = EntityGenerator.generateRelyingPartyNoId();
-                rpIn.setRelyingPartyAccessCertificates(List.of(EntityGenerator.generateAccessCertificate()));
-
-                rpRepository.save(rpIn);
+                rpIn.addRelyingPartyAccessCertificate(EntityGenerator.generateAccessCertificate());
+                rpRepository.saveAndFlush(rpIn);
 
                 RelyingParty rpOut = rpRepository.findById(rpIn.getId()).orElse(null);
                 assertNotNull(rpOut);

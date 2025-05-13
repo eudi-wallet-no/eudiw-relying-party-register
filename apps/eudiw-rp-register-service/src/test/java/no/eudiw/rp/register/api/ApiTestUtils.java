@@ -17,7 +17,7 @@ public class ApiTestUtils {
         return readResultActions(result, RelyingPartiesResource.class);
     }
 
-    private static <T> T readResultActions(ResultActions result, Class<T> klass)
+    public static <T> T readResultActions(ResultActions result, Class<T> klass)
         throws UnsupportedEncodingException, JsonProcessingException {
 
         String json = result.andReturn().getResponse().getContentAsString();

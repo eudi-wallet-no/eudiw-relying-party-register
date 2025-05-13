@@ -1,7 +1,9 @@
 package no.eudiw.rp.register.data.service;
 
 import no.eudiw.rp.register.api.resource.*;
+import no.eudiw.rp.register.api.resource.accesscertificates.RelyingPartyAccessCertificateResource;
 import no.eudiw.rp.register.data.entity.RelyingParty;
+import no.eudiw.rp.register.data.entity.RelyingPartyAccessCertificate;
 import no.eudiw.rp.register.data.entity.RelyingPartyEaa;
 import no.eudiw.rp.register.data.entity.RelyingPartyEntitlement;
 
@@ -59,6 +61,13 @@ public class Converter {
     }
     public static RelyingPartyEaa toEntity(RelyingPartyEaaResource resource) {
         return new RelyingPartyEaa(resource.namespace(), resource.intent());
+    }
+
+    public static RelyingPartyAccessCertificate toEntity(RelyingPartyAccessCertificateResource resource) {
+        return new RelyingPartyAccessCertificate(resource.certificate());
+    }
+    public static RelyingPartyAccessCertificateResource toResource(RelyingPartyAccessCertificate entity) {
+        return new RelyingPartyAccessCertificateResource(entity.getCertificate());
     }
 
 }

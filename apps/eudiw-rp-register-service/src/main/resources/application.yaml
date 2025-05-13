@@ -68,6 +68,14 @@ digdir:
     logging:
       environment-name: ${spring.application.environment}
 
+eudiw-rp-register-service:
+  csr-service:
+    ca-service-api:
+      api-key-header-id: X-API-KEY
+    rest-client:
+      connect-timeout-millis: 5000
+      read-timeout-millis: 5000
+
 ---
 spring:
   config:

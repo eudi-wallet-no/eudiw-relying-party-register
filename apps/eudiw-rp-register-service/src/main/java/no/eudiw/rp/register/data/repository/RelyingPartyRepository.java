@@ -14,9 +14,12 @@ import java.util.UUID;
 public interface RelyingPartyRepository
     extends JpaRepository<RelyingParty, UUID> {
 
+    Optional<RelyingParty> findByIdAndDeletedFalse(UUID id);
+
     // NOTE: orgno column is unique in relying_party.
     Optional<RelyingParty> findByOrgno(String orgno);
     boolean existsByOrgno(String orgno);
+
 
     List<RelyingParty> findAllByDeleted(boolean deleted);
 

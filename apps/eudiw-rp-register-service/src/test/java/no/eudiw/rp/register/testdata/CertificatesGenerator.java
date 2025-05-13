@@ -6,6 +6,8 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
 
 import java.math.BigInteger;
 import java.security.KeyPair;
@@ -14,7 +16,21 @@ import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.Date;
 
-public class X509CertificateGenerator extends TestDataGenerator {
+public class CertificatesGenerator extends TestDataGenerator {
+
+    // NOTE: generating new keypair for each new test certificate makes testing
+    // run very slowly, so we use the same keypair for all certificates. this
+    // should be fine as long as we are not doing any signing in the rp-register-service.
+    private static final KeyPair keyPair;
+    static {
+        try {
+            keyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair();
+        } catch (Exception e) {
+            throw new RuntimeException(
+                "Failed to instantiate keypair for use in test data generation", e);
+        }
+    }
+
     public static X509Certificate generateX509Certificate() throws Exception {
         X500Name issuerName  = new X500Name("CN=issuer-" + generateName());
         X500Name subjectName = new X500Name("CN=subject-" + generateName());
@@ -26,7 +42,6 @@ public class X509CertificateGenerator extends TestDataGenerator {
         Date notBefore = Date.from(timeNow.minusMillis(rng.nextLong(0, millisInOneYear)));
         Date notAfter  = Date.from(timeNow.plusMillis(rng.nextLong(0,  millisInOneYear)));
 
-        KeyPair keyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair();
         ContentSigner signer = new JcaContentSignerBuilder("SHA256WithRSA").build(keyPair.getPrivate());
         X509CertificateHolder certHolder =
             new JcaX509v3CertificateBuilder(
@@ -35,4 +50,13 @@ public class X509CertificateGenerator extends TestDataGenerator {
 
         return new JcaX509CertificateConverter().getCertificate(certHolder);
     }
+
+    public static PKCS10CertificationRequest generatePKCS10Csr() throws Exception {
+        X500Name name = new X500Name("CN=" + generateName());
+
+        ContentSigner signer = new JcaContentSignerBuilder("SHA256WithRSA").build(keyPair.getPrivate());
+        return new JcaPKCS10CertificationRequestBuilder(name, keyPair.getPublic())
+                   .build(signer);
+    }
+
 }
