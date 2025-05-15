@@ -16,15 +16,16 @@ Tha application needs:
 - a root CA certificate
 - a set of intermediate CA certificates (issued by the root CA)
 - to know the url it is running on (to add csr and cert info in issued certs)
+- a database for storing issued leaf certificates
 
 Profiles in the [resources](/src/main/resources) folder:
 
-| Profile | Description                                |
-|---------|--------------------------------------------|
-| dev     | Local development                          |
-| docker  | Docker locally, run by docker-compose file |
-| systest | Systest environment                        |
-| test    | Test environment                           |
+| Profile | Description                                          |
+|---------|------------------------------------------------------|
+| dev     | Local development w/embedded H2                      |
+| docker  | Docker locally, run by docker-compose file w/MariaDB |
+| systest | Systest environment                                  |
+| test    | Test environment                                     |
 
 
 ## Running the application locally

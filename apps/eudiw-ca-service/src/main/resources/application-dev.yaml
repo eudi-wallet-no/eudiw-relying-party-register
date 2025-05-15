@@ -5,12 +5,20 @@ server:
 management:
   server:
     port: 9221
-
+  endpoint:
+    health:
+      show-details: always
 spring:
   config:
     import: file:.env[.properties]
   application:
     environment: dev
+  datasource:
+    type: org.springframework.jdbc.datasource.SimpleDriverDataSource
+    url: "jdbc:h2:mem:ca;MODE=MySQL;DB_CLOSE_ON_EXIT=FALSE"
+    driver-class-name: org.h2.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
 
 eudiw-ca:
   base-uri: "http://eudiw-ca-service:9220"
