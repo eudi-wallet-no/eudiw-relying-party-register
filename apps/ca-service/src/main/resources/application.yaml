@@ -23,6 +23,27 @@ spring:
       - /health/**
       - /version
       - /prometheus
+  datasource:
+    url: url-in-env-profile
+    username: ${MARIADB_USER}
+    password: ${MARIADB_PASSWORD}
+    driver-class-name: org.mariadb.jdbc.Driver
+    hikari:
+      connection-timeout: 3000
+      minimum-idle: 1
+      maximum-pool-size: 1
+      idle-timeout: 1000
+      max-lifetime: 500
+  flyway:
+    table: flyway_schema_history
+  jpa:
+    hibernate:
+      ddl-auto: none
+    generate-ddl: false
+    show-sql: false
+    database-platform: org.hibernate.dialect.MariaDBDialect
+    open-in-view: false
+
 # Spring Boot Actuator
 management:
   server:

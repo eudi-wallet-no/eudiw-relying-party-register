@@ -1,10 +1,28 @@
-name: eudiw-rp-register
+name: eudiw-ca-service
 networks:
   eudiw:
     name: eudiw
 
 services:
+  ca-db:
+    image: "mariadb:11.4"
+    restart: on-failure
+    env_file:
+      - .env
+    ports:
+      - "9226:3306"
+    networks:
+      - eudiw
+    healthcheck:
+      test: mariadb-admin -p$$MARIADB_ROOT_PASSWORD -uroot ping -h localhost
+      interval: 5s
+      start_period: 5s
+      timeout: 5s
+      retries: 10
   ca-service:
+    depends_on:
+      ca-db:
+        condition: service_healthy
     build:
       context: .
       dockerfile: docker/dev.Dockerfile
