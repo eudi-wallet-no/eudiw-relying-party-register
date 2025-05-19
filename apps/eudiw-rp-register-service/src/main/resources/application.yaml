@@ -45,13 +45,17 @@ management:
         include: info,version,prometheus,health
   endpoint:
     health:
-      group:
-        readiness:
-          include: db
-        liveness:
-          include: livenessState
+      show-details: never
       probes:
         enabled: true
+      status:
+        order: DOWN, OUT_OF_SERVICE, UNKNOWN, DEGRADED, EXTERNAL_DEPENDENCY_DOWN, UP
+  health:
+    group:
+      readiness:
+        include: db
+      liveness:
+        include: livenessState
   metrics:
     tags:
       application: ${spring.application.name}
@@ -85,3 +89,13 @@ spring:
       on-cloud-platform: 'kubernetes'
     import:
       - 'optional:file:/etc/config/'
+
+external-dependency-health-checks:
+  health-endpoints:
+    eudiw-ca-service:
+      name: eudiw-ca-service
+      base-uri: http://eudiw-ca-service-service:8090
+      endpoint: /health
+      connect-timeout-ms: 2000
+      read-timeout-ms: 1000
+      map-down-status-to: DOWN

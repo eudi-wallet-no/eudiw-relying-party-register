@@ -4,6 +4,9 @@ server:
 management:
   server:
     port: 9201
+  endpoint:
+    health:
+      show-details: always
 logging:
   level:
     org:
@@ -47,3 +50,6 @@ eudiw-rp-register-service:
     ca-service-api:
       ca-service-base-uri: http://ca-service:9220
       api-key-value: eudiw
+
+external-dependency-health-checks:
+  enabled: false
