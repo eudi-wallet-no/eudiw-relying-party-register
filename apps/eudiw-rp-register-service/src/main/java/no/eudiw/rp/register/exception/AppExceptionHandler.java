@@ -1,6 +1,7 @@
 package no.eudiw.rp.register.exception;
 
 import lombok.extern.slf4j.Slf4j;
+import no.eudiw.rp.register.api.resource.ErrorResponseResource;
 import no.eudiw.rp.register.security.APIKeyAuthenticationException;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -28,7 +29,7 @@ public class AppExceptionHandler {
 
     // last resort
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleException(Exception e) {
+    public ResponseEntity<ErrorResponseResource> handleException(Exception e) {
         log.error("Failed to process request", e);
         return errorResponseEntity(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -37,7 +38,7 @@ public class AppExceptionHandler {
     }
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
-    public ResponseEntity<ErrorResponse> handleHttpMediaTypeNotSupportedException(
+    public ResponseEntity<ErrorResponseResource> handleHttpMediaTypeNotSupportedException(
         HttpMediaTypeNotSupportedException e) {
         String errorDescription = "HTTP media type not supported: " + e.getContentType();
         return errorResponseEntity(HttpStatus.BAD_REQUEST, "invalid_request", errorDescription);
@@ -45,40 +46,41 @@ public class AppExceptionHandler {
 
     // api key
     @ExceptionHandler(APIKeyAuthenticationException.class)
-    public ResponseEntity<ErrorResponse> handleApiException(APIKeyAuthenticationException e) {
+    public ResponseEntity<ErrorResponseResource> handleApiException(APIKeyAuthenticationException e) {
         log.warn("Unauthorized request: {}", e.getMessage());
         return ResponseEntity
                 .status(e.getHttpStatus())
-                .body(new ErrorResponse(e.getError(), e.getErrorDescription()));
+                .body(new ErrorResponseResource(e.getError(), e.getErrorDescription()));
     }
 
     // Spring 405
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public ResponseEntity<ErrorResponse> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException ex) {
+    public ResponseEntity<ErrorResponseResource> handleHttpRequestMethodNotSupportedException(
+        HttpRequestMethodNotSupportedException ex) {
         return errorResponseEntity(HttpStatus.METHOD_NOT_ALLOWED, "invalid_request", "Unsupported HTTP method");
     }
 
     // Spring 404
     @ExceptionHandler(NoHandlerFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNoHandlerFoundException(NoHandlerFoundException e) {
+    public ResponseEntity<ErrorResponseResource> handleNoHandlerFoundException(NoHandlerFoundException e) {
         return errorResponseEntity(HttpStatus.NOT_FOUND, "invalid_request", "Requested resource not found");
     }
 
     // Spring 404
     @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNoResourceFoundException(NoResourceFoundException e) {
+    public ResponseEntity<ErrorResponseResource> handleNoResourceFoundException(NoResourceFoundException e) {
         return errorResponseEntity(HttpStatus.NOT_FOUND, "invalid_request", "Requested resource not found");
     }
 
     // Spring 404
     @ExceptionHandler(NoSuchElementException.class)
-    public ResponseEntity<ErrorResponse> handleNoSuchElementException(NoSuchElementException e) {
+    public ResponseEntity<ErrorResponseResource> handleNoSuchElementException(NoSuchElementException e) {
         return errorResponseEntity(HttpStatus.NOT_FOUND, "invalid_request", "Requested resource not found");
     }
 
     // Spring-exception som gir HTTP-feil
     @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<ErrorResponse> handleResponseStatusException(ResponseStatusException e) {
+    public ResponseEntity<ErrorResponseResource> handleResponseStatusException(ResponseStatusException e) {
         return errorResponseEntity(e.getStatusCode(), errorMessageForHttpStatus(e.getStatusCode()), e.getReason());
     }
 
@@ -90,15 +92,17 @@ public class AppExceptionHandler {
         return "server_error";
     }
 
-    protected static ResponseEntity<ErrorResponse> errorResponseEntity(HttpStatusCode httpStatus, String error, String errorDescription) {
-        return errorResponseEntity(httpStatus, new ErrorResponse(error, errorDescription));
+    protected static ResponseEntity<ErrorResponseResource> errorResponseEntity(
+        HttpStatusCode httpStatus, String error, String errorDescription) {
+        return errorResponseEntity(httpStatus, new ErrorResponseResource(error, errorDescription));
     }
 
-    protected static ResponseEntity<ErrorResponse> errorResponseEntity(HttpStatusCode httpStatus, ErrorResponse errorResponse) {
+    protected static ResponseEntity<ErrorResponseResource> errorResponseEntity(
+        HttpStatusCode httpStatus, ErrorResponseResource errorResponseResource) {
         return ResponseEntity
                 .status(httpStatus)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(errorResponse);
+                .body(errorResponseResource);
     }
 
 }

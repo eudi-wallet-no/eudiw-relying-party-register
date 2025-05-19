@@ -1,6 +1,8 @@
 package no.eudiw.rp.register.data.service.exception;
 
-public class UnauthorizedRequestException extends ServiceException {
+import no.eudiw.rp.register.exception.RegisterServiceException;
+
+public class UnauthorizedRequestException extends RegisterServiceException {
     public UnauthorizedRequestException() {
         super("Unauthorized request (bad/missing API key?)");
     }

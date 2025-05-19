@@ -11,10 +11,10 @@ import java.net.URI;
 
 @Configuration
 @RequiredArgsConstructor
-public class RelyingPartyCsrServiceConfig {
+public class RelyingPartyCertificatesServiceConfig {
 
-    private final RelyingPartyCsrServiceProperties.CaServiceApiProperties caServiceApiProperties;
-    private final RelyingPartyCsrServiceProperties.RestClientProperties restClientProperties;
+    private final RelyingPartyCertificatesServiceProperties.CaServiceApiProperties caServiceApiProperties;
+    private final RelyingPartyCertificatesServiceProperties.RestClientProperties restClientProperties;
 
     private static final String caServiceApiCertsEndpoint = "/v1/certs";
 
@@ -32,7 +32,7 @@ public class RelyingPartyCsrServiceConfig {
                       .defaultHeader(caServiceApiProperties.apiKeyHeaderId(),
                                      caServiceApiProperties.apiKeyValue())
                       .baseUrl(caServiceCertsApiBaseUrl)
-                      .defaultStatusHandler(new RelyingPartyCsrServiceResponseErrorHandler())
+                      .defaultStatusHandler(new RelyingPartyCertificatesServiceResponseErrorHandler())
                       .requestFactory(requestFactory)
                       .build();
     }

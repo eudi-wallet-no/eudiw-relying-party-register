@@ -1,7 +1,7 @@
 package no.eudiw.rp.register.testdata;
 
 import no.eudiw.rp.register.api.resource.*;
-import no.eudiw.rp.register.api.resource.accesscertificates.RegisterRelyingPartyCsrResource;
+import no.eudiw.rp.register.api.resource.accesscertificates.RelyingPartyCsrResource;
 import no.eudiw.rp.register.api.resource.accesscertificates.RelyingPartyAccessCertificateResource;
 
 import java.time.Instant;
@@ -59,9 +59,9 @@ public class ResourceGenerator extends TestDataGenerator {
         );
     }
 
-    public static RegisterRelyingPartyCsrResource generateRegisterRelyingPartyCsrResource()
+    public static RelyingPartyCsrResource generateRegisterRelyingPartyCsrResource()
         throws Exception {
-        return new RegisterRelyingPartyCsrResource(CertificatesGenerator.generatePKCS10Csr());
+        return new RelyingPartyCsrResource(CertificatesGenerator.generatePKCS10Csr());
     }
 
     public static RelyingPartyAccessCertificateResource generateRelyingPartyAccessCertificateResource()

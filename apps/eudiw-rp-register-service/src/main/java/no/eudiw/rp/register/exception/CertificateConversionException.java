@@ -1,8 +1,6 @@
 package no.eudiw.rp.register.exception;
 
-import no.eudiw.rp.register.data.service.exception.ServiceException;
-
-public class CertificateConversionException extends ServiceException {
+public class CertificateConversionException extends RegisterServiceException {
     public CertificateConversionException(String msg) {
         super(msg);
     }

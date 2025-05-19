@@ -8,10 +8,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import no.eudiw.rp.register.api.resource.accesscertificates.RegisterRelyingPartyCsrResource;
+import no.eudiw.rp.register.api.resource.accesscertificates.RelyingPartyCsrResource;
 import no.eudiw.rp.register.api.resource.accesscertificates.RelyingPartyAccessCertificateResource;
 import no.eudiw.rp.register.api.resource.accesscertificates.RelyingPartyAccessCertificatesResource;
-import no.eudiw.rp.register.data.service.accesscertificates.RelyingPartyCsrService;
+import no.eudiw.rp.register.data.service.accesscertificates.RelyingPartyCertificatesService;
 import no.idporten.logging.audit.Audit;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -42,7 +42,7 @@ public class RelyingPartyAccessCertificatesController {
     private static final String RELYING_PARTY_CERTIFICATE_RETRIEVED =
         "RELYING-PARTY-CERTIFICATE-RETRIEVED";
 
-    private final RelyingPartyCsrService certificatesService;
+    private final RelyingPartyCertificatesService certificatesService;
 
     @Operation(
         summary = "Register access certificate",
@@ -60,7 +60,7 @@ public class RelyingPartyAccessCertificatesController {
                  produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<RelyingPartyAccessCertificateResource> requestAccessCertificate(
         @PathVariable("id") @Valid UUID id,
-        @Valid @RequestBody RegisterRelyingPartyCsrResource csrResource) {
+        @Valid @RequestBody RelyingPartyCsrResource csrResource) {
         return ResponseEntity.ok(certificatesService.requestCertificateForRelyingParty(id, csrResource));
     }
 

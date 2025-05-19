@@ -1,20 +1,18 @@
 package no.eudiw.rp.register.data.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import no.eudiw.rp.register.api.resource.accesscertificates.RegisterRelyingPartyCsrResource;
+import no.eudiw.rp.register.api.resource.accesscertificates.RelyingPartyCsrResource;
 import no.eudiw.rp.register.api.resource.accesscertificates.RelyingPartyAccessCertificateResource;
 import no.eudiw.rp.register.data.accesscertificates.X509CertificateConverter;
 import no.eudiw.rp.register.data.entity.RelyingParty;
 import no.eudiw.rp.register.data.entity.RelyingPartyAccessCertificate;
-import no.eudiw.rp.register.data.repository.RelyingPartyAccessCertificateRepository;
 import no.eudiw.rp.register.data.repository.RelyingPartyRepository;
-import no.eudiw.rp.register.data.service.accesscertificates.RelyingPartyCsrService;
-import no.eudiw.rp.register.data.service.exception.BadRequestException;
+import no.eudiw.rp.register.data.service.accesscertificates.RelyingPartyCertificatesService;
 import no.eudiw.rp.register.data.service.exception.ErrorResponseException;
 import no.eudiw.rp.register.data.service.exception.NotFoundException;
-import no.eudiw.rp.register.data.service.exception.ServiceException;
+import no.eudiw.rp.register.exception.RegisterServiceException;
 import no.eudiw.rp.register.exception.CertificateConversionException;
-import no.eudiw.rp.register.exception.ErrorResponse;
+import no.eudiw.rp.register.api.resource.ErrorResponseResource;
 import no.eudiw.rp.register.testdata.CertificatesGenerator;
 import no.eudiw.rp.register.testdata.EntityGenerator;
 import no.eudiw.rp.register.testdata.ResourceGenerator;
@@ -43,14 +41,12 @@ import java.util.stream.Collectors;
 @ActiveProfiles("test")
 @Import(MockCaServerConfiguration.class)
 @DisplayName("When using the relying party certificates service")
-public class RelyingPartyCsrServiceTests {
+public class RelyingPartyCertificatesServiceTests {
 
     @Autowired
-    private RelyingPartyCsrService csrService;
+    private RelyingPartyCertificatesService certService;
     @Autowired
     private RelyingPartyRepository rpRepository;
-    @Autowired
-    private RelyingPartyAccessCertificateRepository certRepository;
 
     @BeforeEach
     public void clearRepositoryBeforeEachTest() {
@@ -76,11 +72,11 @@ public class RelyingPartyCsrServiceTests {
                             .collect(Collectors.toSet());
 
             Set<X509Certificate> certsActual =
-                csrService.getAccessCertificatesForRelyingParty(relyingParty.getId())
-                          .certificates()
-                          .stream()
-                          .map(RelyingPartyAccessCertificateResource::certificate)
-                          .collect(Collectors.toSet());
+                certService.getAccessCertificatesForRelyingParty(relyingParty.getId())
+                           .certificates()
+                           .stream()
+                           .map(RelyingPartyAccessCertificateResource::certificate)
+                           .collect(Collectors.toSet());
 
             assertEquals(certsExpected, certsActual);
         }
@@ -89,7 +85,7 @@ public class RelyingPartyCsrServiceTests {
         @DisplayName("then service throws 404 if RP does not exist")
         public void testNoCertificatesReturnedForNonexistentRelyingParty() {
             assertThrows(NotFoundException.class,
-                         () -> csrService.getAccessCertificatesForRelyingParty(UUID.randomUUID()));
+                         () -> certService.getAccessCertificatesForRelyingParty(UUID.randomUUID()));
         }
     }
 
@@ -108,8 +104,8 @@ public class RelyingPartyCsrServiceTests {
 
             // would throw on unknown ID(s)
             X509Certificate certificateActual =
-                csrService.getAccessCertificate(certificate.getId(), relyingParty.getId())
-                              .certificate();
+                certService.getAccessCertificate(certificate.getId(), relyingParty.getId())
+                           .certificate();
 
             X509Certificate certificateExpected = certificate.getCertificate();
             assertEquals(certificateExpected, certificateActual);
@@ -126,7 +122,7 @@ public class RelyingPartyCsrServiceTests {
 
             assertThrows(
                 NotFoundException.class,
-                () -> csrService.getAccessCertificate(unknownCertificateId, knownRelyingPartyId)
+                () -> certService.getAccessCertificate(unknownCertificateId, knownRelyingPartyId)
             );
         }
 
@@ -141,7 +137,7 @@ public class RelyingPartyCsrServiceTests {
             UUID unknownRelyingPartyId = UUID.randomUUID();
             assertThrows(
                 NotFoundException.class,
-                () -> csrService.getAccessCertificate(knownCertificateId, unknownRelyingPartyId)
+                () -> certService.getAccessCertificate(knownCertificateId, unknownRelyingPartyId)
             );
         }
 
@@ -158,7 +154,7 @@ public class RelyingPartyCsrServiceTests {
             UUID knownRelyingPartyId = relyingParty2.getId();
             assertThrows(
                 NotFoundException.class,
-                () -> csrService.getAccessCertificate(knownCertificateId, knownRelyingPartyId)
+                () -> certService.getAccessCertificate(knownCertificateId, knownRelyingPartyId)
             );
         }
     }
@@ -192,11 +188,11 @@ public class RelyingPartyCsrServiceTests {
                 rpRepository.save(EntityGenerator.generateRelyingPartyNoId())
                             .getId();
 
-            RegisterRelyingPartyCsrResource dummyCsrResource =
+            RelyingPartyCsrResource dummyCsrResource =
                 ResourceGenerator.generateRegisterRelyingPartyCsrResource();
             X509Certificate certificateActual =
-                csrService.requestCertificateForRelyingParty(registreeId, dummyCsrResource)
-                          .certificate();
+                certService.requestCertificateForRelyingParty(registreeId, dummyCsrResource)
+                           .certificate();
 
             assertEquals(certificateExpected, certificateActual);
         }
@@ -206,7 +202,7 @@ public class RelyingPartyCsrServiceTests {
         @DisplayName("then the certificate returned by CA is properly stored in the database")
         public void testCertificateFromCAProperlyStoredInRegisterServiceDatabase()
             throws Exception {
-            RegisterRelyingPartyCsrResource csrResource =
+            RelyingPartyCsrResource csrResource =
                 ResourceGenerator.generateRegisterRelyingPartyCsrResource();
             RelyingParty relyingPartyIn = EntityGenerator.generateRelyingPartyNoId();
 
@@ -216,8 +212,8 @@ public class RelyingPartyCsrServiceTests {
 
             // assert that immediately returned certificate is correct.
             X509Certificate certificateActual1 =
-                csrService.requestCertificateForRelyingParty(relyingPartyIn.getId(), csrResource)
-                          .certificate();
+                certService.requestCertificateForRelyingParty(relyingPartyIn.getId(), csrResource)
+                           .certificate();
             assertEquals(certificateExpected, certificateActual1);
 
             RelyingParty relyingPartyOut =
@@ -237,12 +233,12 @@ public class RelyingPartyCsrServiceTests {
         @Test
         @DisplayName("then error is thrown if a CSR is registered for an unknown RP")
         public void testErrorThrownForUnknownRelyingParty() throws Exception {
-            RegisterRelyingPartyCsrResource csrResource =
+            RelyingPartyCsrResource csrResource =
                 ResourceGenerator.generateRegisterRelyingPartyCsrResource();
             UUID unknownRelyingPartyId = UUID.randomUUID();
             assertThrows(
                 NotFoundException.class,
-                () -> csrService.requestCertificateForRelyingParty(
+                () -> certService.requestCertificateForRelyingParty(
                     unknownRelyingPartyId, csrResource)
             );
         }
@@ -254,11 +250,11 @@ public class RelyingPartyCsrServiceTests {
             relyingParty.setDeleted(true);
             rpRepository.saveAndFlush(relyingParty);
 
-            RegisterRelyingPartyCsrResource csrResource =
+            RelyingPartyCsrResource csrResource =
                 ResourceGenerator.generateRegisterRelyingPartyCsrResource();
             assertThrows(
                 NotFoundException.class,
-                () -> csrService.requestCertificateForRelyingParty(
+                () -> certService.requestCertificateForRelyingParty(
                     relyingParty.getId(), csrResource)
             );
         }
@@ -267,7 +263,7 @@ public class RelyingPartyCsrServiceTests {
         @DisplayName("then error responses from the CA are properly handled")
         public void testErrorResponseFromCAProperlyHandled() throws Exception {
             String errorResponseJson = new ObjectMapper().writeValueAsString(
-                new ErrorResponse("invalid_request", "some error description")
+                new ErrorResponseResource("invalid_request", "some error description")
             );
             MockResponse mockErrorResponse =
                 new MockResponse()
@@ -279,12 +275,12 @@ public class RelyingPartyCsrServiceTests {
             UUID knownRelyingPartyId =
                 rpRepository.saveAndFlush(EntityGenerator.generateRelyingPartyNoId())
                             .getId();
-            RegisterRelyingPartyCsrResource dummyCsrResource =
+            RelyingPartyCsrResource dummyCsrResource =
                 ResourceGenerator.generateRegisterRelyingPartyCsrResource();
 
             assertThrowsExactly(
                 ErrorResponseException.class,
-                () -> csrService.requestCertificateForRelyingParty(
+                () -> certService.requestCertificateForRelyingParty(
                     knownRelyingPartyId, dummyCsrResource)
             );
         }
@@ -306,12 +302,12 @@ public class RelyingPartyCsrServiceTests {
             UUID knownRelyingPartyId =
                 rpRepository.saveAndFlush(EntityGenerator.generateRelyingPartyNoId())
                             .getId();
-            RegisterRelyingPartyCsrResource dummyCsrResource =
+            RelyingPartyCsrResource dummyCsrResource =
                 ResourceGenerator.generateRegisterRelyingPartyCsrResource();
 
             assertThrowsExactly(
                 CertificateConversionException.class,
-                () -> csrService.requestCertificateForRelyingParty(
+                () -> certService.requestCertificateForRelyingParty(
                     knownRelyingPartyId, dummyCsrResource)
             );
         }
@@ -329,12 +325,12 @@ public class RelyingPartyCsrServiceTests {
             UUID knownRelyingPartyId =
                 rpRepository.saveAndFlush(EntityGenerator.generateRelyingPartyNoId())
                             .getId();
-            RegisterRelyingPartyCsrResource dummyCsrResource =
+            RelyingPartyCsrResource dummyCsrResource =
                 ResourceGenerator.generateRegisterRelyingPartyCsrResource();
 
             assertThrows(
-                ServiceException.class,
-                () -> csrService.requestCertificateForRelyingParty(
+                RegisterServiceException.class,
+                () -> certService.requestCertificateForRelyingParty(
                     knownRelyingPartyId, dummyCsrResource)
             );
         }
