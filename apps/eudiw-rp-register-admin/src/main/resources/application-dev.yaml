@@ -11,3 +11,6 @@ spring:
     environment: dev
   config:
     import: file:.env[.properties]
+
+external-dependency-health-checks:
+  enabled: false
