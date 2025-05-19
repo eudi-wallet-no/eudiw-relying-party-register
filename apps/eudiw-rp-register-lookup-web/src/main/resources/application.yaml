@@ -19,13 +19,22 @@ management:
     port: 8090
   endpoints:
     web:
+      base-path: /
       exposure:
         include: info,version,prometheus,health
-      base-path: /
   endpoint:
     health:
+      show-details: never
       probes:
         enabled: true
+      status:
+        order: DOWN, OUT_OF_SERVICE, UNKNOWN, DEGRADED, EXTERNAL_DEPENDENCY_DOWN, UP
+  health:
+    group:
+      readiness:
+        include: db
+      liveness:
+        include: livenessState
 
 eudiw-rp-register-lookup-web:
   service:
@@ -36,3 +45,13 @@ eudiw-rp-register-lookup-web:
       api-key-value: ${API_KEY_VALUE}
       connect-timeout-millis: 5000
       read-timeout-millis: 5000
+
+external-dependency-health-checks:
+  health-endpoints:
+    eudiw-rp-service:
+      name: eudiw-rp-service
+      base-uri: http://eudiw-rp-service-service:8090
+      endpoint: /health
+      connect-timeout-ms: 2000
+      read-timeout-ms: 1000
+      map-down-status-to: DOWN
