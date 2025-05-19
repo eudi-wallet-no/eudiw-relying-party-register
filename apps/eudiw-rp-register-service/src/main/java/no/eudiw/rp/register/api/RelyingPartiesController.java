@@ -1,6 +1,5 @@
 package no.eudiw.rp.register.api;
 
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -23,12 +22,21 @@ import java.util.UUID;
 
 @Tag(name = "relying-parties-api", description = "Relying Parties Service Api")
 @ApiResponses({
-    @ApiResponse(responseCode = "400", description = "Invalid request", content = @Content(examples = {
-            @ExampleObject(description = "Error response", value = RelyingPartiesController.errorResponseExample)
-    })),
-    @ApiResponse(responseCode = "500", description = "Server error", content = @Content(examples = {
-            @ExampleObject(description = "Error response", value = RelyingPartiesController.errorResponseExample)
-    }))
+    @ApiResponse(responseCode = "400",
+        description = "Invalid request",
+        content = @Content(examples = @ExampleObject(
+            description = "Error response", value = RegisterServiceApiSwaggerExamples.BAD_REQUEST_ERROR_EXAMPLE)
+        )),
+    @ApiResponse(responseCode = "404",
+        description = "Not found",
+        content = @Content(examples = @ExampleObject(
+            description = "Error response", value = RegisterServiceApiSwaggerExamples.NOT_FOUND_ERROR_EXAMPLE)
+        )),
+    @ApiResponse(responseCode = "500",
+        description = "Server error",
+        content = @Content(examples = @ExampleObject(
+            description = "Error response", value = RegisterServiceApiSwaggerExamples.SERVER_ERROR_EXAMPLE)
+        ))
 })
 @Validated
 @RestController
@@ -36,7 +44,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class RelyingPartiesController {
 
-    public static final String errorResponseExample = "{\"error\": \"error code\", \"error_description\": \"description of the error\"}";
     private static final String RELYING_PARTY_CREATED = "RELYING-PARTY-CREATED";
     private static final String RELYING_PARTY_UPDATED = "RELYING-PARTY-UPDATED";
     private static final String RELYING_PARTY_DELETED = "RELYING-PARTY-DELETED";
