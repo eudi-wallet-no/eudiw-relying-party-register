@@ -5,9 +5,15 @@ server:
 management:
   server:
     port: 9211
+  endpoint:
+    health:
+      show-details: always
 
 spring:
   application:
     environment: dev
   config:
     import: file:.env[.properties]
+
+external-dependency-health-checks:
+  enabled: false
