@@ -9,3 +9,6 @@ management:
 spring:
   application:
     environment: docker
+
+external-dependency-health-checks:
+  enabled: false
