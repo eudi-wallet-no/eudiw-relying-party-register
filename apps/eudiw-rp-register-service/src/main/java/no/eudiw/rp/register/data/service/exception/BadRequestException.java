@@ -1,6 +1,8 @@
 package no.eudiw.rp.register.data.service.exception;
 
-public class BadRequestException extends ServiceException {
+import no.eudiw.rp.register.exception.RegisterServiceException;
+
+public class BadRequestException extends RegisterServiceException {
     public BadRequestException(String msg) {
         super(msg);
     }

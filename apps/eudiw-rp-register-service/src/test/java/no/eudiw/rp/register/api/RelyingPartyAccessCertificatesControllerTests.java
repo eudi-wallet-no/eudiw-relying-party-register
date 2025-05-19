@@ -1,11 +1,11 @@
 package no.eudiw.rp.register.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import no.eudiw.rp.register.api.resource.accesscertificates.RegisterRelyingPartyCsrResource;
+import no.eudiw.rp.register.api.resource.accesscertificates.RelyingPartyCsrResource;
 import no.eudiw.rp.register.api.resource.accesscertificates.RelyingPartyAccessCertificateResource;
 import no.eudiw.rp.register.api.resource.accesscertificates.RelyingPartyAccessCertificatesResource;
 import no.eudiw.rp.register.data.repository.RelyingPartyRepository;
-import no.eudiw.rp.register.data.service.accesscertificates.RelyingPartyCsrService;
+import no.eudiw.rp.register.data.service.accesscertificates.RelyingPartyCertificatesService;
 import no.eudiw.rp.register.testdata.ResourceGenerator;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +40,7 @@ public class RelyingPartyAccessCertificatesControllerTests {
 
     @SuppressWarnings("unused")
     @MockitoBean
-    private RelyingPartyCsrService mockCsrService;
+    private RelyingPartyCertificatesService mockCsrService;
 
     @BeforeEach
     void clearRepositoryBeforeEachTest() {
@@ -141,7 +141,7 @@ public class RelyingPartyAccessCertificatesControllerTests {
         @DisplayName("then service called with correct arguments if ID and CSR valid")
         public void testEndpointCallsServiceWithCorrectArguments() throws Exception {
             UUID validId = UUID.randomUUID();
-            RegisterRelyingPartyCsrResource dummyCsrResource =
+            RelyingPartyCsrResource dummyCsrResource =
                 ResourceGenerator.generateRegisterRelyingPartyCsrResource();
             String validContent = new ObjectMapper().writeValueAsString(dummyCsrResource);
 
@@ -160,7 +160,7 @@ public class RelyingPartyAccessCertificatesControllerTests {
         @DisplayName("then an invalid ID gives 400 and no interactions with service")
         public void test400ErrorResponseReturnedOnInvalidID() throws Exception {
             String invalidId = "foo";
-            RegisterRelyingPartyCsrResource dummyCsrResource =
+            RelyingPartyCsrResource dummyCsrResource =
                 ResourceGenerator.generateRegisterRelyingPartyCsrResource();
             String validContent = new ObjectMapper().writeValueAsString(dummyCsrResource);
 
@@ -184,7 +184,7 @@ public class RelyingPartyAccessCertificatesControllerTests {
         @DisplayName("then an invalid CSR body gives 400 and no interactions with service")
         public void test400ErrorResponseReturnedOnInvalidCSR() throws Exception {
             UUID validId = UUID.randomUUID();
-            RegisterRelyingPartyCsrResource dummyCsrResource =
+            RelyingPartyCsrResource dummyCsrResource =
                 ResourceGenerator.generateRegisterRelyingPartyCsrResource();
             String validContent = new ObjectMapper().writeValueAsString(dummyCsrResource);
             String invalidContent = validContent.toLowerCase();

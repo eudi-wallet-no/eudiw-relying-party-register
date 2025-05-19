@@ -2,6 +2,7 @@ package no.eudiw.rp.register.exception;
 
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import no.eudiw.rp.register.api.resource.ErrorResponseResource;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +22,7 @@ import java.util.stream.Collectors;
 public class ApiViolationExceptionHandler {
     private ApiViolationExceptionHandler() {}
 
-    private ResponseEntity<ErrorResponse> apiViolationErrorResponse(
+    private ResponseEntity<ErrorResponseResource> apiViolationErrorResponse(
         String errorDescription, Exception e) {
         log.warn("API violation exception: {}", errorDescription, e);
         return AppExceptionHandler.errorResponseEntity(
@@ -31,14 +32,14 @@ public class ApiViolationExceptionHandler {
     // on jackson deserialization failure (e.g. unrecognized properties,
     // or missing required properties)
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(
+    public ResponseEntity<ErrorResponseResource> handleHttpMessageNotReadableException(
         HttpMessageNotReadableException e) {
         return apiViolationErrorResponse(
                 "Resource contains unexpected fields and/or is missing required fields", e);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ErrorResponse> handleConstraintViolationException(
+    public ResponseEntity<ErrorResponseResource> handleConstraintViolationException(
         ConstraintViolationException e) {
         return apiViolationErrorResponse("Resource contains invalid field value(s)", e);
     }
@@ -46,7 +47,7 @@ public class ApiViolationExceptionHandler {
     // on jakarta constraint violation (i.e. properties are recognized, but values
     // are invalid)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(
+    public ResponseEntity<ErrorResponseResource> handleMethodArgumentNotValidException(
         MethodArgumentNotValidException e) {
 
         String bindingErrorMessages =
@@ -68,7 +69,7 @@ public class ApiViolationExceptionHandler {
     // method parameters from the given request URL (e.g. when given UUID is
     // not a valid UUID).
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatchException(
+    public ResponseEntity<ErrorResponseResource> handleMethodArgumentTypeMismatchException(
         MethodArgumentTypeMismatchException e) {
         return apiViolationErrorResponse("HTTP request parameter type error", e);
     }

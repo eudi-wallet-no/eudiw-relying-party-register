@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import no.eudiw.rp.register.data.service.exception.ErrorResponseException;
 import no.eudiw.rp.register.data.service.exception.UnauthorizedRequestException;
 import no.eudiw.rp.register.data.service.exception.UnrecognizedErrorResponseException;
-import no.eudiw.rp.register.exception.ErrorResponse;
-import no.eudiw.rp.register.data.service.exception.ServiceException;
+import no.eudiw.rp.register.api.resource.ErrorResponseResource;
+import no.eudiw.rp.register.exception.RegisterServiceException;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpResponse;
@@ -15,7 +15,7 @@ import org.springframework.web.client.ResponseErrorHandler;
 import java.io.IOException;
 import java.net.URI;
 
-public class RelyingPartyCsrServiceResponseErrorHandler
+public class RelyingPartyCertificatesServiceResponseErrorHandler
     implements ResponseErrorHandler {
     @Override
     public boolean hasError(ClientHttpResponse response) throws IOException {
@@ -26,7 +26,7 @@ public class RelyingPartyCsrServiceResponseErrorHandler
     public void handleError(@NonNull URI _requestUri,
                             @NonNull HttpMethod _method,
                             @NonNull ClientHttpResponse response)
-        throws ServiceException {
+        throws RegisterServiceException {
 
         try {
             if (response.getStatusCode().isSameCodeAs(HttpStatusCode.valueOf(401))) {
@@ -36,9 +36,9 @@ public class RelyingPartyCsrServiceResponseErrorHandler
                 throw new UnrecognizedErrorResponseException(
                     "Unexpected HTTP status code in CA service non-success response");
             }
-            ErrorResponse errorResource =
+            ErrorResponseResource errorResource =
                 new ObjectMapper().readValue(
-                    response.getBody(), ErrorResponse.class);
+                    response.getBody(), ErrorResponseResource.class);
             String errorMsg =
                 "Bad request. CA service error response: " + errorResource.error();
             throw new ErrorResponseException(errorMsg);

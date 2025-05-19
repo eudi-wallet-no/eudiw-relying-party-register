@@ -1,5 +1,5 @@
 # eudiw-rp-register-service
-EUDIW Relaying Party Register
+EUDIW Relying Party Register
 
 
 # Docker access til db:

@@ -11,7 +11,7 @@ import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 @With
 @JsonInclude(JsonInclude.Include.ALWAYS)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record RegisterRelyingPartyCsrResource(
+public record RelyingPartyCsrResource(
     @JsonProperty(value = "csr", required = true)
     @JsonSerialize(using = PKCS10CertificationRequestJsonSerializer.class)
     @JsonDeserialize(using = PKCS10CertificationRequestJsonDeserializer.class)

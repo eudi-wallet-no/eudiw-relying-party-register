@@ -1,7 +1,7 @@
 package no.eudiw.rp.register.data.service.accesscertificates;
 
 import lombok.RequiredArgsConstructor;
-import no.eudiw.rp.register.api.resource.accesscertificates.RegisterRelyingPartyCsrResource;
+import no.eudiw.rp.register.api.resource.accesscertificates.RelyingPartyCsrResource;
 import no.eudiw.rp.register.api.resource.accesscertificates.RelyingPartyAccessCertificateResource;
 import no.eudiw.rp.register.api.resource.accesscertificates.RelyingPartyAccessCertificatesResource;
 import no.eudiw.rp.register.data.accesscertificates.PKCS10CertificationRequestConverter;
@@ -12,7 +12,7 @@ import no.eudiw.rp.register.data.repository.RelyingPartyAccessCertificateReposit
 import no.eudiw.rp.register.data.repository.RelyingPartyRepository;
 import no.eudiw.rp.register.data.service.Converter;
 import no.eudiw.rp.register.data.service.exception.NotFoundException;
-import no.eudiw.rp.register.data.service.exception.ServiceException;
+import no.eudiw.rp.register.exception.RegisterServiceException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
@@ -22,7 +22,7 @@ import java.util.UUID;
 
 @RequiredArgsConstructor
 @Service
-public class RelyingPartyCsrService {
+public class RelyingPartyCertificatesService {
 
     private final RelyingPartyRepository relyingPartyRepository;
     private final RelyingPartyAccessCertificateRepository relyingPartyAccessCertificateRepository;
@@ -55,7 +55,7 @@ public class RelyingPartyCsrService {
 
     @Transactional
     public RelyingPartyAccessCertificateResource requestCertificateForRelyingParty(
-        UUID relyingPartyId, RegisterRelyingPartyCsrResource csrResource) {
+        UUID relyingPartyId, RelyingPartyCsrResource csrResource) {
 
         RelyingParty relyingParty =
             relyingPartyRepository
@@ -74,7 +74,7 @@ public class RelyingPartyCsrService {
         if (certificatePemStr == null) {
             // NOTE: should never happen since ca-service API specifies a body
             // on success, and on failure the ResponseErrorHandler triggers.
-            throw new ServiceException("Null body in ca-service success response");
+            throw new RegisterServiceException("Null body in ca-service success response");
         }
 
         X509Certificate certificate =

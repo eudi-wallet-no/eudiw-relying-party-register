@@ -1,6 +1,8 @@
 package no.eudiw.rp.register.data.service.exception;
 
-public class ResourceDeletedException extends ServiceException {
+import no.eudiw.rp.register.exception.RegisterServiceException;
+
+public class ResourceDeletedException extends RegisterServiceException {
     public ResourceDeletedException(String msg) {
         super(msg);
     }

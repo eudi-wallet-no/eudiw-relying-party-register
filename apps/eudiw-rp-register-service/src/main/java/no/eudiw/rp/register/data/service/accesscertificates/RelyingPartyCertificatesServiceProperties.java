@@ -8,7 +8,7 @@ import org.springframework.validation.annotation.Validated;
 
 @Validated
 @ConfigurationProperties(prefix = "eudiw-rp-register-service.csr-service")
-public record RelyingPartyCsrServiceProperties(
+public record RelyingPartyCertificatesServiceProperties(
     @NotNull CaServiceApiProperties caServiceApi,
     @NotNull RestClientProperties restClient
 ) {
