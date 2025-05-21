@@ -1,5 +1,6 @@
 package no.idporten.eudiw.rp.admin.service.config;
 
+import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.rp.admin.service.RPResponseErrorHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -7,27 +8,30 @@ import org.springframework.http.MediaType;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
+import java.net.URI;
+
 @Configuration
-public class AdminServiceConfig {
+@RequiredArgsConstructor
+public class RelyingPartiesServiceConfig {
 
-    private final AdminServiceProperties.RestClientDefaults restClientDefaults;
-
-    public AdminServiceConfig(AdminServiceProperties.RestClientDefaults restClientDefaults) {
-        this.restClientDefaults = restClientDefaults;
-    }
+    private final RelyingPartiesServiceProperties rpServiceProperties;
+    private static final String registerServiceApiRpEndpoint = "/v1/rp";
 
     @Bean
     public RestClient restClient() {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout((int) restClientDefaults.connectTimeoutMillis());
-        requestFactory.setReadTimeout((int) restClientDefaults.readTimeoutMillis());
+        requestFactory.setConnectTimeout((int) rpServiceProperties.restClient().connectTimeoutMillis());
+        requestFactory.setReadTimeout((int) rpServiceProperties.restClient().readTimeoutMillis());
+        URI registerServiceRestClientBaseUrl = URI.create(
+            rpServiceProperties.registerServiceApi().registerServiceBaseUri()
+                + registerServiceApiRpEndpoint);
         return
             RestClient.builder()
                       .defaultHeader("accept", MediaType.APPLICATION_JSON.toString())
                       .defaultHeader("Content-Type", MediaType.APPLICATION_JSON.toString())
-                      .defaultHeader(restClientDefaults.apiKeyHeaderId(),
-                                     restClientDefaults.apiKeyValue())
-                      .baseUrl(restClientDefaults.registerServiceApiBaseUri())
+                      .defaultHeader(rpServiceProperties.registerServiceApi().apiKeyHeaderId(),
+                                     rpServiceProperties.registerServiceApi().apiKeyValue())
+                      .baseUrl(registerServiceRestClientBaseUrl)
                       .defaultStatusHandler(new RPResponseErrorHandler())
                       .requestFactory(requestFactory)
                       .build();
