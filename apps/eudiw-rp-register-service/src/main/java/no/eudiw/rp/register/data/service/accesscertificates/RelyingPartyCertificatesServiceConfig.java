@@ -13,24 +13,23 @@ import java.net.URI;
 @RequiredArgsConstructor
 public class RelyingPartyCertificatesServiceConfig {
 
-    private final RelyingPartyCertificatesServiceProperties.CaServiceApiProperties caServiceApiProperties;
-    private final RelyingPartyCertificatesServiceProperties.RestClientProperties restClientProperties;
+    private final RelyingPartyCertificatesServiceProperties certServiceProperties;
 
     private static final String caServiceApiCertsEndpoint = "/v1/certs";
 
     @Bean("caRestClient")
     public RestClient caRestClient() {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout((int) restClientProperties.connectTimeoutMillis());
-        requestFactory.setReadTimeout((int) restClientProperties.readTimeoutMillis());
+        requestFactory.setConnectTimeout((int) certServiceProperties.restClient().connectTimeoutMillis());
+        requestFactory.setReadTimeout((int) certServiceProperties.restClient().readTimeoutMillis());
         URI caServiceCertsApiBaseUrl = URI.create(
-            caServiceApiProperties.caServiceBaseUri() + caServiceApiCertsEndpoint);
+            certServiceProperties.caServiceApi().caServiceBaseUri() + caServiceApiCertsEndpoint);
         return
             RestClient.builder()
                       .defaultHeader("accept", "application/x-pem-file", MediaType.APPLICATION_JSON_VALUE)
                       .defaultHeader("Content-Type", "application/x-pem-file")
-                      .defaultHeader(caServiceApiProperties.apiKeyHeaderId(),
-                                     caServiceApiProperties.apiKeyValue())
+                      .defaultHeader(certServiceProperties.caServiceApi().apiKeyHeaderId(),
+                                     certServiceProperties.caServiceApi().apiKeyValue())
                       .baseUrl(caServiceCertsApiBaseUrl)
                       .defaultStatusHandler(new RelyingPartyCertificatesServiceResponseErrorHandler())
                       .requestFactory(requestFactory)

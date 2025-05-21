@@ -1,26 +1,23 @@
 package no.eudiw.rp.register.data.service.accesscertificates;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
 @Validated
 @ConfigurationProperties(prefix = "eudiw-rp-register-service.csr-service")
 public record RelyingPartyCertificatesServiceProperties(
-    @NotNull CaServiceApiProperties caServiceApi,
-    @NotNull RestClientProperties restClient
+    @Valid CaServiceApi caServiceApi,
+    @Valid RestClient restClient
 ) {
-    @ConfigurationProperties(prefix = "eudiw-rp-register-service.csr-service.ca-service-api")
-    public record CaServiceApiProperties(
+    public record CaServiceApi(
         @NotBlank String caServiceBaseUri,
         @NotBlank String apiKeyHeaderId,
         @NotBlank String apiKeyValue
     ) { }
-
-    @ConfigurationProperties(prefix = "eudiw-rp-register-service.csr-service.rest-client")
-    public record RestClientProperties(
+    public record RestClient(
         @Min(0) long connectTimeoutMillis,
         @Min(0) long readTimeoutMillis
     ) { }
