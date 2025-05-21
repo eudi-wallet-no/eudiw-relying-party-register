@@ -1,4 +1,4 @@
-package no.idporten.eudiw.rp.admin.service.exception;
+package no.idporten.eudiw.rp.admin.exception;
 
 public class AdminServiceException extends RuntimeException {
     public AdminServiceException(String msg) {

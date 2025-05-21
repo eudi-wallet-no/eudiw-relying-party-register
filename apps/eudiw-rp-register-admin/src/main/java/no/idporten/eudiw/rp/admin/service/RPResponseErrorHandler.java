@@ -1,6 +1,6 @@
 package no.idporten.eudiw.rp.admin.service;
 
-import no.idporten.eudiw.rp.admin.service.exception.AdminServiceException;
+import no.idporten.eudiw.rp.admin.exception.AdminServiceException;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpResponse;
