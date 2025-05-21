@@ -2,7 +2,7 @@ package no.idporten.eudiw.rp.admin.service;
 
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.rp.admin.service.config.AdminServiceProperties;
-import no.idporten.eudiw.rp.admin.service.resource.*;
+import no.idporten.eudiw.rp.admin.web.resource.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 

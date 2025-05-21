@@ -2,8 +2,8 @@ package no.idporten.eudiw.rp.admin.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.idporten.eudiw.rp.admin.service.exception.AdminServiceException;
-import no.idporten.eudiw.rp.admin.service.resource.RelyingPartiesResource;
-import no.idporten.eudiw.rp.admin.service.resource.SearchForm;
+import no.idporten.eudiw.rp.admin.web.resource.RelyingPartiesResource;
+import no.idporten.eudiw.rp.admin.web.resource.SearchForm;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;

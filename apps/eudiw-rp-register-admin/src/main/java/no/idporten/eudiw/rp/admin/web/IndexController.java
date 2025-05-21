@@ -17,6 +17,7 @@ public class IndexController {
                            </head>
                            <body>
                               <h1>RP Register Admin</h1>
+                              <a href="/search">Gå til søk</a>
                            </body>
                         </html>""");
     }

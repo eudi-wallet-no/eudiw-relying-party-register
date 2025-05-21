@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
+<head>
+    <title>Sandkasse for digital lommebok - Admintjenesta</title>
+</head>
+<body>
+
+<div class="two-column-page">
+    <div>
+        <h1>Sandkasse for digital lommebok - Admintjenesta</h1>
+    </div>
+
+    <div class="flexbox">
+        <div class="search-column" id="search_column">
+
+            <h2>Søk etter brukerstader</h2>
+            <div th:replace="~{fragments/search_fragments :: search_form}">
+            </div>
+
+            <div th:if="${fullResultsAttr} != null">
+                <div th:replace="~{fragments/search_fragments
+                                     :: build_results_table(${fullResultsAttr})}">
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

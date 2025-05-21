@@ -1,6 +1,6 @@
 package no.idporten.eudiw.rp.admin.testdata;
 
-import no.idporten.eudiw.rp.admin.service.resource.*;
+import no.idporten.eudiw.rp.admin.web.resource.*;
 
 import java.security.SecureRandom;
 import java.time.Instant;
