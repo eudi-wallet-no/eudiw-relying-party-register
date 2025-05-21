@@ -9,8 +9,12 @@ management:
 spring:
   application:
     environment: dev
-  config:
-    import: file:.env[.properties]
 
 external-dependency-health-checks:
   enabled: false
+
+eudiw-admin-web:
+  relying-parties-service:
+    register-service-api:
+      register-service-base-uri: http://eudiw-rp-register-service:9200
+      api-key-value: xxx

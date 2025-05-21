@@ -1,7 +1,7 @@
 TEST_MOCK_WEB_SERVER_PORT: 9253
 
 eudiw-admin-web:
-  service:
-    rest-client:
-      register-service-api-base-uri: http://localhost:${TEST_MOCK_WEB_SERVER_PORT}/
+  relying-parties-service:
+    register-service-api:
+      register-service-base-uri: http://localhost:${TEST_MOCK_WEB_SERVER_PORT}/
       api-key-value: xxx

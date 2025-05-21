@@ -31,11 +31,12 @@ management:
         include: livenessState
 
 eudiw-admin-web:
-  service:
-    rest-client:
-      register-service-api-base-uri: ${API_BASE_URI}
+  relying-parties-service:
+    register-service-api:
+      register-service-base-uri: ${REGISTER_SERVICE_BASE_URI}
       api-key-header-id: X-API-KEY
-      api-key-value: ${API_KEY_VALUE}
+      api-key-value: ${REGISTER_SERVICE_API_KEY}
+    rest-client:
       connect-timeout-millis: 5000
       read-timeout-millis: 5000
 
