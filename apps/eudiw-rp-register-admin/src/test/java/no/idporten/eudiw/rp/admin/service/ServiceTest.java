@@ -1,7 +1,7 @@
 package no.idporten.eudiw.rp.admin.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import no.idporten.eudiw.rp.admin.service.exception.AdminServiceException;
+import no.idporten.eudiw.rp.admin.exception.AdminServiceException;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartiesResource;
 import no.idporten.eudiw.rp.admin.web.resource.SearchForm;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
