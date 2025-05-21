@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
+<head>
+    <title>Detaljert visning</title>
+</head>
+<body>
+
+<h2>Detaljer for brukerstad</h2>
+<div th:if="${detailedViewDataAttr} != null">
+    <div th:replace="~{fragments/detailed_view_fragments
+                         :: detailed_view(${detailedViewDataAttr})}">
+    </div>
+</div>
+
+</body>
+</html>
