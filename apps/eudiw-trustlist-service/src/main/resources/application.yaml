@@ -20,6 +20,10 @@ management:
     health:
       probes:
         enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.application.environment}
 
 trust-service:
   keystore:
