@@ -35,6 +35,10 @@ management:
         include: db
       liveness:
         include: livenessState
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.application.environment}
 
 eudiw-rp-register-lookup-web:
   service:
