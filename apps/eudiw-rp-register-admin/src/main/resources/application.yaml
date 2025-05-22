@@ -29,6 +29,10 @@ management:
         include: db
       liveness:
         include: livenessState
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.application.environment}
 
 eudiw-admin-web:
   relying-parties-service:
