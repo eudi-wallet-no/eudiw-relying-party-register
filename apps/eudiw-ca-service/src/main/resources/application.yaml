@@ -57,6 +57,10 @@ management:
     health:
       probes:
         enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.application.environment}
 
 eudiw-ca:
   base-uri: "http://eudiw-ca-service:9220"
