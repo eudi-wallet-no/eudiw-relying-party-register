@@ -1,6 +1,6 @@
 package no.idporten.eudiw.trustlist.service;
 
-import no.idporten.eudiw.trustlist.etsi_ts_102_231.*;
+import no.idporten.eudiw.trustlist.etsi_ts_119_612.*;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.openssl.PEMParser;
 import org.springframework.stereotype.Service;
@@ -48,10 +48,9 @@ public class TSLService {
                 createMultiLangNormStringType("no", "Trusted list for eidas2sandkasse.dev"),
                 createMultiLangNormStringType("en", "Trusted list for eidas2sandkasse.dev")
         ));
-        SchemeInformationURI schemeInformationURI = new SchemeInformationURI();
-        schemeInformationURI.getURIS().add(createNonEmptyMultiLangURIType("no", "https://www.digdir.no/"));
-        schemeInformationURI.getURIS().add(createNonEmptyMultiLangURIType("en", "https://www.digdir.no/"));
-        schemeInformation.setSchemeInformationURI(schemeInformationURI);
+        schemeInformation.setSchemeInformationURI(new NonEmptyMultiLangURIListType());
+        schemeInformation.getSchemeInformationURI().getURIS().add(createNonEmptyMultiLangURIType("no", "https://www.digdir.no/"));
+        schemeInformation.getSchemeInformationURI().getURIS().add(createNonEmptyMultiLangURIType("en", "https://www.digdir.no/"));
         schemeInformation.setStatusDeterminationApproach("http://uri.etsi.org/TrstSvc/TSLType/StatusDetn/active");
         schemeInformation.setSchemeTerritory("NO");
         schemeInformation.setHistoricalInformationPeriod(BigInteger.valueOf(65534));
@@ -155,21 +154,15 @@ public class TSLService {
         postalAddress.setPostalCode("0580");
         postalAddress.setLocality("Oslo");
         postalAddress.setCountryName("NO");
-        ElectronicAddressType electronicAddressType = new ElectronicAddressType();
-        electronicAddressType.getURIS().add("servicedesk@digdir.no");
-        electronicAddressType.getURIS().add("https://www.digdir.no/");
+
+        ElectronicAddress electronicAddress = new ElectronicAddress();
+        electronicAddress.getURIS().add(createNonEmptyMultiLangURIType("en", "servicedesk@digdir.no"));
+        electronicAddress.getURIS().add(createNonEmptyMultiLangURIType("en", "https://www.digdir.no/"));
         AddressType addressType = new AddressType();
         postalAddresses.getPostalAddresses().add(postalAddress);
         addressType.setPostalAddresses(postalAddresses);
-        addressType.setElectronicAddress(electronicAddressType);
+        addressType.setElectronicAddress(electronicAddress);
         return addressType;
-    }
-
-    private InternationalNamesType createInternationalNamesType(String lang, String value) {
-        MultiLangNormStringType multiLangNormStringType = createMultiLangNormStringType(lang, value);
-        InternationalNamesType internationalNamesType = new InternationalNamesType();
-        internationalNamesType.getNames().add(multiLangNormStringType);
-        return internationalNamesType;
     }
 
     private NonEmptyMultiLangURIType createNonEmptyMultiLangURIType(String lang, String value) {
@@ -193,6 +186,5 @@ public class TSLService {
         multiLangNormStringType.setValue(value);
         return multiLangNormStringType;
     }
-
 
 }

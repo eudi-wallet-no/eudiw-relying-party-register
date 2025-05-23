@@ -3,7 +3,7 @@ package no.idporten.eudiw.trustlist.web;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Marshaller;
 import lombok.RequiredArgsConstructor;
-import no.idporten.eudiw.trustlist.etsi_ts_102_231.TrustServiceStatusList;
+import no.idporten.eudiw.trustlist.etsi_ts_119_612.TrustServiceStatusList;
 import no.idporten.eudiw.trustlist.service.TSLService;
 import no.idporten.eudiw.trustlist.service.XMLSignerService;
 import no.idporten.eudiw.trustlist.xml.XMLUtils;

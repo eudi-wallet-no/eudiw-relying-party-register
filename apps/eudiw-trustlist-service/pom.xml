@@ -103,9 +103,9 @@
                         <xjbSource>src/main/resources/global.xjb</xjbSource>
                     </xjbSources>
                     <sources>
-                        <source>src/main/resources/ts_102231v030102_xsd.xsd</source>
+                        <source>src/main/resources/ts_119612v020101_xsd.xsd</source>
                     </sources>
-                    <packageName>no.idporten.eudiw.trustlist.etsi_ts_102_231
+                    <packageName>no.idporten.eudiw.trustlist.etsi_ts_119_612
                     </packageName>
                     <outputDirectory>${basedir}/target/generated-sources/src/java</outputDirectory>
                     <clearOutputDir>false</clearOutputDir>
