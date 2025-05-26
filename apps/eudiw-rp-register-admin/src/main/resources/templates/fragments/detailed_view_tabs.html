@@ -1,13 +1,36 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
-<head>
-    <title>Detailed view fragments</title>
-</head>
-<body>
+<!--/*@thymesVar id="certs" type="java.util.List<no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary>"*/-->
+<div th:fragment="certificates_content_fragment(certs)">
+    <h2>Aksess-sertifikater</h2>
 
-<div th:fragment="detailed_view(rp)">
+    <div th:if="${ #lists.isEmpty(certs)}">
+        <em>Ingen registrerte aksess-sertifikater</em>
+    </div>
+    <div th:unless="${ #lists.isEmpty(certs)}">
+        <table>
+            <thead>
+                <tr>
+                    <th>Serienummer</th>
+                    <th>Navn</th>
+                    <th>Gjyldig fra</th>
+                    <th>Gjyldig til</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!--/*@thymesVar id="cert" type="no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary"*/-->
+                <tr th:each="cert : ${certs}">
+                    <td th:text="${cert.serialNo()}"></td>
+                    <td th:text="${cert.subjectDn()}"></td>
+                    <td th:text="${#dates.format(cert.validFromMs, 'dd-MM-yyyy HH:mm:ss')}"></td>
+                    <td th:text="${#dates.format(cert.validUntilMs, 'dd-MM-yyyy HH:mm:ss')}"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
 
-    <h3 th:text="${rp.name}"></h3>
+<div th:fragment="general_info_content_fragment(rp)">
+    <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
+    <h2>Generel info</h2>
     <div>
         <table>
             <tbody>
@@ -40,6 +63,9 @@
     </div>
 
     <h3>Informasjoner brukerstadet har rettighet til</h3>
+    <div th:if="${ #lists.isEmpty(rp.relyingPartyEntitlements)}">
+        <em>Ingen registrerte rettigheter.</em>
+    </div>
     <div th:unless="${ #lists.isEmpty(rp.relyingPartyEntitlements)}">
         <div>
             <table>
@@ -56,6 +82,9 @@
     </div>
 
     <h3>EAA'ere</h3>
+    <div th:if="${ #lists.isEmpty(rp.relyingPartyEaas)}">
+        <em>Ingen registrerte EAA'ere.</em>
+    </div>
     <div th:unless="${ #lists.isEmpty(rp.relyingPartyEaas)}">
         <div>
             <table>
@@ -75,7 +104,3 @@
         </div>
     </div>
 </div>
-
-
-</body>
-</html>

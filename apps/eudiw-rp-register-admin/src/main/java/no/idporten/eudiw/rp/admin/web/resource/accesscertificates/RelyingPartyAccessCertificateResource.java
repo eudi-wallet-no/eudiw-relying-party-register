@@ -1,0 +1,27 @@
+package no.idporten.eudiw.rp.admin.web.resource.accesscertificates;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary;
+
+import java.security.cert.X509Certificate;
+
+@JsonInclude(JsonInclude.Include.ALWAYS)
+@JsonIgnoreProperties(ignoreUnknown = true)
+public record RelyingPartyAccessCertificateResource(
+    @JsonProperty(value = "certificate", required = true)
+    @JsonDeserialize(using = X509CertificateJsonDeserializer.class)
+    X509Certificate certificate
+) {
+    public RelyingPartyAccessCertificateSummary toSummary() {
+        return new RelyingPartyAccessCertificateSummary(
+            this.certificate,
+            this.certificate.getSerialNumber(),
+            this.certificate.getSubjectX500Principal().getName(),
+            this.certificate.getNotBefore().toInstant().toEpochMilli(),
+            this.certificate.getNotAfter().toInstant().toEpochMilli()
+        );
+    }
+}

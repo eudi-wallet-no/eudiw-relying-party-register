@@ -6,7 +6,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.5.0</version>
-        <relativePath/> 
+        <relativePath/>
     </parent>
     <groupId>no.idporten.eudiw</groupId>
     <artifactId>rp-register-admin</artifactId>
@@ -25,6 +25,7 @@
         <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
         <mockwebserver.version>4.12.0</mockwebserver.version>
         <lombok.version>1.18.38</lombok.version>
+        <bcpkix.version>1.80</bcpkix.version>
     </properties>
 
     <dependencies>
@@ -81,6 +82,11 @@
             <artifactId>lombok</artifactId>
             <optional>true</optional>
             <version>${lombok.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk18on</artifactId>
+            <version>${bcpkix.version}</version>
         </dependency>
     </dependencies>
 

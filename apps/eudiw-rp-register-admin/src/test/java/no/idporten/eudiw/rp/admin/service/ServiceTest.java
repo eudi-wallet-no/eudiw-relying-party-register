@@ -2,6 +2,9 @@ package no.idporten.eudiw.rp.admin.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.idporten.eudiw.rp.admin.exception.AdminServiceException;
+import no.idporten.eudiw.rp.admin.service.exception.BadRequestException;
+import no.idporten.eudiw.rp.admin.service.exception.UnauthorizedRequestException;
+import no.idporten.eudiw.rp.admin.service.exception.UnrecognizedErrorResponseException;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartiesResource;
 import no.idporten.eudiw.rp.admin.web.resource.SearchForm;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
@@ -40,12 +43,12 @@ public class ServiceTest {
 
     @DisplayName("then the ResponseErrorHandler properly handles valid 401 response")
     @Test
-    void testErrorResponseExceptionThrownOnValidBadRequestResponse() {
+    void testErrorResponseExceptionThrownOnValidUnauthorizedRequestResponse() {
 
         MockResponse badRequestMockResponse = new MockResponse().setResponseCode(401);
         mockWebServer.enqueue(badRequestMockResponse);
 
-        assertThrowsExactly(AdminServiceException.class,
+        assertThrowsExactly(UnauthorizedRequestException.class,
                             () -> relyingPartiesService.search(
                                 ResourceGenerator.generateSearchForm().toResource()));
     }
@@ -102,7 +105,7 @@ public class ServiceTest {
 
             mockWebServer.enqueue(serverErrorMockResponse);
 
-            assertThrowsExactly(AdminServiceException.class,
+            assertThrowsExactly(UnrecognizedErrorResponseException.class,
                                 () -> relyingPartiesService.search(
                                     ResourceGenerator.generateSearchForm().toResource()));
         }

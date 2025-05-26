@@ -1,4 +1,4 @@
-package no.idporten.eudiw.rp.admin.accesscertificates;
+package no.idporten.eudiw.rp.admin.service.accesscertificates;
 
 import no.idporten.eudiw.rp.admin.exception.AdminServiceException;
 
