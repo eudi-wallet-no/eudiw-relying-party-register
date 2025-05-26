@@ -28,9 +28,10 @@ public class X509CertificateConverter
     private static final CertificateFactory cf = new CertificateFactory();
 
     public static String convert(X509Certificate certificate) {
-        try {
+        try (
             StringWriter writer = new StringWriter();
             JcaPEMWriter pemWriter = new JcaPEMWriter(writer);
+        ) {
             pemWriter.writeObject(certificate);
             pemWriter.flush();
             pemWriter.close();
@@ -40,8 +41,9 @@ public class X509CertificateConverter
         }
     }
     public static X509Certificate convert(String certificatePemStr) {
-        try {
+        try (
             InputStream inStream = new ByteArrayInputStream(certificatePemStr.getBytes());
+        ) {
             Certificate certificate = cf.engineGenerateCertificate(inStream);
             if (!certificate.getType().equals("X.509")) {
                 throw new CertificateConversionException("Certificate valid but is not X.509");
@@ -49,6 +51,8 @@ public class X509CertificateConverter
             return (X509Certificate) certificate;
         } catch (CertificateException e) {
             throw new CertificateConversionException("Invalid X.509 certificate", e);
+        } catch (IOException e) {
+            throw new CertificateConversionException("Certificate conversion failed", e);
         }
     }
 }
