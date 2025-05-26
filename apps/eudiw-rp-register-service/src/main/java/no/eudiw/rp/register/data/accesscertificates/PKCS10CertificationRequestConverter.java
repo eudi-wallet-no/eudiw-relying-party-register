@@ -27,10 +27,12 @@ public class PKCS10CertificationRequestConverter {
     }
 
     public static PKCS10CertificationRequest convert(String csrPemStr) {
-        try {
+        try (
+            StringReader stringReader = new StringReader(csrPemStr);
+            PEMParser pemParser = new PEMParser(stringReader);
+        ) {
             PKCS10CertificationRequest csr =
-                (PKCS10CertificationRequest)
-                    new PEMParser(new StringReader(csrPemStr)).readObject();
+                (PKCS10CertificationRequest) pemParser.readObject();
             if (csr == null) {
                 throw new CertificateConversionException("Invalid PKCS10 CSR");
             }
