@@ -4,28 +4,24 @@
     <title>Sandkasse for digital lommebok - Admintjenesta</title>
 </head>
 <body>
-
-<div class="two-column-page">
-    <div>
-        <h1>Sandkasse for digital lommebok - Admintjenesta</h1>
+    <div th:replace="~{fragments/general :: digdir_header}">
     </div>
 
-    <div class="flexbox">
-        <div class="search-column" id="search_column">
+    <div class="two-column-page">
 
+        <div class="flexbox">
             <h2>Søk etter brukerstader</h2>
-            <div th:replace="~{fragments/search_fragments :: search_form}">
+            <div th:replace="~{fragments/search
+                                 :: search_form_fragment(searchFormAttr)}">
             </div>
 
-            <div th:if="${fullResultsAttr} != null">
-                <div th:replace="~{fragments/search_fragments
-                                     :: build_results_table(${fullResultsAttr})}">
-                </div>
+            <div th:replace="~{fragments/search
+                                 :: results_table_fragment(${fullResultsAttr})}">
             </div>
         </div>
 
     </div>
-</div>
 
+    <div th:replace="~{fragments/general :: digdir_footer}"></div>
 </body>
 </html>

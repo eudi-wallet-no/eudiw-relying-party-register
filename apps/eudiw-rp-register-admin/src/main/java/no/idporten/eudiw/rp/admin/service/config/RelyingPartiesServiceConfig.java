@@ -1,7 +1,7 @@
 package no.idporten.eudiw.rp.admin.service.config;
 
 import lombok.RequiredArgsConstructor;
-import no.idporten.eudiw.rp.admin.service.RPResponseErrorHandler;
+import no.idporten.eudiw.rp.admin.service.RelyingPartiesServiceResponseErrorHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -32,7 +32,7 @@ public class RelyingPartiesServiceConfig {
                       .defaultHeader(rpServiceProperties.registerServiceApi().apiKeyHeaderId(),
                                      rpServiceProperties.registerServiceApi().apiKeyValue())
                       .baseUrl(registerServiceRestClientBaseUrl)
-                      .defaultStatusHandler(new RPResponseErrorHandler())
+                      .defaultStatusHandler(new RelyingPartiesServiceResponseErrorHandler())
                       .requestFactory(requestFactory)
                       .build();
     }

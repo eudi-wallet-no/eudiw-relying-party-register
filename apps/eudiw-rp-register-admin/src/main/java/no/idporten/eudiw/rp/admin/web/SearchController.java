@@ -6,11 +6,13 @@ import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.resource.SearchForm;
 import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartiesView;
+import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -22,13 +24,9 @@ public class SearchController {
     public static final String searchFormAttrId = "searchFormAttr";
     public static final String fullResultsAttrId = "fullResultsAttr";
     public static final String detailedViewDataAttrId = "detailedViewDataAttr";
+    public static final String certificateSummariesAttrId = "certificateSummariesAttr";
 
     private final RelyingPartiesService relyingPartiesService;
-
-    @ModelAttribute(fullResultsAttrId)
-    public RelyingPartiesView initFullResultsAttr() {
-        return RelyingPartiesView.empty();
-    }
 
     @GetMapping("/search")
     public ModelAndView searchGet(
@@ -48,19 +46,19 @@ public class SearchController {
 
     @GetMapping("/details")
     public ModelAndView detailsGet(
-        @RequestParam("id") @Valid String idStr,
+        @RequestParam("id") @Valid UUID id,
         @ModelAttribute(fullResultsAttrId) RelyingPartiesView searchResults) {
-        try {
-            UUID id = UUID.fromString(idStr);
-            if (searchResults.exists(id)) {
-                RelyingPartyResource relyingPartyResource = searchResults.get(id);
-                return new ModelAndView(
-                    "detailed_view",
-                    Map.of(detailedViewDataAttrId, relyingPartyResource));
-            }
-        } catch (Exception _) { }
+        if (searchResults.exists(id)) {
+            RelyingPartyResource relyingPartyResource = searchResults.get(id);
+            List<RelyingPartyAccessCertificateSummary> certificatesResource =
+                relyingPartiesService.getCertificatesForRelyingParty(id)
+                    .toSummaries();
+            return new ModelAndView(
+                "detailed_view",
+                Map.of(detailedViewDataAttrId, relyingPartyResource,
+                       certificateSummariesAttrId, certificatesResource));
+        }
 
-        // RP does not exist *or* id is not a valid UUID string.
         return new ModelAndView("redirect:/search");
     }
 }

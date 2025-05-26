@@ -2,6 +2,7 @@ package no.idporten.eudiw.rp.admin.service;
 
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.rp.admin.web.resource.*;
+import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyAccessCertificatesResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -56,5 +57,14 @@ public class RelyingPartiesService {
 
     public void delete(UUID id) {
         restClient.delete().uri("/" + id).retrieve().toBodilessEntity();
+    }
+
+    public RelyingPartyAccessCertificatesResource getCertificatesForRelyingParty(
+        UUID id) {
+        return restClient.get()
+                   .uri("/%s/certs".formatted(id))
+                   .retrieve()
+                   .toEntity(RelyingPartyAccessCertificatesResource.class)
+                   .getBody();
     }
 }

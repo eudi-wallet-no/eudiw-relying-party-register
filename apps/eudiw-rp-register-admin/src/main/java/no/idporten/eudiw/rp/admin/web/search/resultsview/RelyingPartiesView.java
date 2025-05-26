@@ -20,6 +20,11 @@ public class RelyingPartiesView {
     @Setter
     private ResultsViewSpecification viewSpec;
 
+    @SuppressWarnings("unused") // is used to instantiate missing @ModelAttributes.
+    public RelyingPartiesView() {
+        this(new HashMap<>(), ResultsViewSpecification.defaultView());
+    }
+
     public static RelyingPartiesView fromResource(RelyingPartiesResource resource) {
         HashMap<UUID, RelyingPartyResource> asHashMap =
             resource.relyingParties().stream().collect(
@@ -41,9 +46,7 @@ public class RelyingPartiesView {
                    .sorted(viewSpec.ordering())
                    .toList();
     }
-    public static RelyingPartiesView empty() {
-        return new RelyingPartiesView(new HashMap<>(), ResultsViewSpecification.defaultView());
-    }
+
     public boolean exists(UUID id) {
         return this.relyingParties.containsKey(id);
     }

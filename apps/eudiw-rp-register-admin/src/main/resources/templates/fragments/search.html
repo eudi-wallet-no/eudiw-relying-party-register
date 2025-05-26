@@ -1,11 +1,6 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
-<head>
-    <title>Search page fragments</title>
-</head>
-<body>
-
-<div th:fragment="search_form">
+<!--/*@thymesVar id="search_form" type="no.idporten.eudiw.rp.admin.web.resource.SearchForm"*/-->
+<!--/*@thymesVar id="searchFormAttr" type="no.idporten.eudiw.rp.admin.web.resource.SearchForm"*/-->
+<div th:fragment="search_form_fragment(searchFormAttr)">
     <form th:object="${searchFormAttr}"
           th:action="@{/search}"
           method="GET"
@@ -24,17 +19,19 @@
 
         <ul th:if="${#fields.hasErrors()}">
             <li th:each="error : ${#fields.errors('searchTerm')}"
-                th:text="${error}"/>
+                th:text="${error}">
+            </li>
         </ul>
     </form>
 </div>
 
 
-<div th:fragment="build_results_table(results)">
+<!--/*@thymesVar id="full_results" type="no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartiesView"*/-->
+<div th:fragment="results_table_fragment(full_results)"
+     th:if="${full_results} != null">
     <h2>Søkeresultat</h2>
-    <div class="fixed-headers-table"
-         th:with="resultsView=${results.applyViewSpec()}"
-    >
+    <div th:with="sorted_and_filtered_results=${full_results.applyViewSpec()}">
+        <!--/*@thymesVar id="sorted_and_filtered_results" type="java.util.List<no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource>"*/-->
         <table>
             <thead>
             <tr>
@@ -54,21 +51,18 @@
             </thead>
             <tbody>
 
-            <tr th:if="${#lists.isEmpty(resultsView)}">
+            <tr th:if="${#lists.isEmpty(sorted_and_filtered_results)}">
                 <td th:colspan="4">
                     Fant ingen brukerstader!
                 </td>
             </tr>
-            <tr th:each="rp : ${resultsView}">
-                <td><a th:href="|@{/details}?id=${rp.id}|" style="cursor:pointer;"><div th:text="${rp.orgno}"/></a> </td>
-                <td th:text="${rp.name}"/>
-                <td th:text="${#dates.format(rp.createdMs, 'dd-MM-yyyy HH:mm:ss')}"/>
-                <td th:text="${#dates.format(rp.lastUpdatedMs, 'dd-MM-yyyy HH:mm:ss')}"/>
+            <tr th:each="rp : ${sorted_and_filtered_results}">
+                <td><a th:href="|@{/details}?id=${rp.id}|" style="cursor:pointer;"><div th:text="${rp.orgno}"></div></a> </td>
+                <td th:text="${rp.name}"></td>
+                <td th:text="${#dates.format(rp.createdMs, 'dd-MM-yyyy HH:mm:ss')}"></td>
+                <td th:text="${#dates.format(rp.lastUpdatedMs, 'dd-MM-yyyy HH:mm:ss')}"></td>
             </tr>
             </tbody>
         </table>
     </div>
 </div>
-
-</body>
-</html>
