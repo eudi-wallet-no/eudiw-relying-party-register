@@ -34,7 +34,6 @@ public class RelyingPartiesServiceResponseErrorHandler
                 throw new UnauthorizedRequestException();
             }
             if (!response.getStatusCode().isError()) {
-                System.out.println("no error");
                 throw new UnrecognizedErrorResponseException(
                     "Unexpected HTTP status code in register service response");
             }
@@ -45,7 +44,6 @@ public class RelyingPartiesServiceResponseErrorHandler
                                   + errorResource.error();
             throw new ErrorResponseException(errorMsg);
         } catch (IOException e) {
-            System.out.println("something happend: " + e);
             throw new UnrecognizedErrorResponseException(
                 "Unrecognized error response from register service");
         }

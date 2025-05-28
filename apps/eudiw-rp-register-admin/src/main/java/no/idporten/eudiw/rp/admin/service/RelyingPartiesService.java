@@ -2,7 +2,9 @@ package no.idporten.eudiw.rp.admin.service;
 
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.rp.admin.web.resource.*;
+import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyAccessCertificateResource;
 import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyAccessCertificatesResource;
+import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyCsrResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -67,4 +69,16 @@ public class RelyingPartiesService {
                    .toEntity(RelyingPartyAccessCertificatesResource.class)
                    .getBody();
     }
+
+    public RelyingPartyAccessCertificateResource requestCertificateForRelyingParty(
+        UUID id,
+        RelyingPartyCsrResource csrResource) {
+        return restClient.post()
+                         .uri("/%s/certs/access".formatted(id))
+                         .body(csrResource)
+                         .retrieve()
+                         .toEntity(RelyingPartyAccessCertificateResource.class)
+                         .getBody();
+    }
+
 }

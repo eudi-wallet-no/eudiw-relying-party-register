@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
+<head>
+    <title>Detaljer for brukerstad</title>
+</head>
+
+<!--/*
+    to add new tab:
+    1) add a child element to the "content_tabs" div, with some id "#<tab_id>".
+    2) optionally add a link to the tab with href="#<tab_id>" to the
+       "tab_links" list.
+*/-->
+
+<!--/*@thymesVar id="detailedViewDataAttr" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
+<!--/*@thymesVar id="certificateSummariesAttr" type="java.util.List<no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary>"*/-->
+<body th:with="rp=${detailedViewDataAttr}">
+
+    <div th:replace="~{fragments/general :: digdir_header}"></div>
+
+    <p>
+        <a th:href="@{/search}">
+            Tilbake til søking
+        </a>
+    </p>
+
+    <h2>Detaljer for brukerstad: <span th:text="${rp.name}"/></h2>
+
+    <ul id="tab_links">
+        <li><a href="#about">Generelt</a></li>
+        <li><a href="#certificates">Sertifikater</a></li>
+    </ul>
+
+    <div id="content_tabs">
+        <div th:insert="~{fragments/details_tabs_fragments
+                            :: general_info_content_fragment(${rp})}"
+             id="#about">
+        </div>
+
+        <div id="#certificates">
+            <div th:replace="~{fragments/details_tabs_fragments
+                                 :: certificates_content_fragment(${certificateSummariesAttr})}">
+            </div>
+            <p>
+                <a th:href="@{/registerCsr(id=${rp.id})}">Registrer nyt CSR</a>
+            </p>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/general :: digdir_footer}"></div>
+</body>
+
+<script src="/js/simple_content_tabs.js"></script>
+</html>
