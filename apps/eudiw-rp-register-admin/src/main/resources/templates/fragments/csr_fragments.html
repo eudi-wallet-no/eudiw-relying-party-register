@@ -1,0 +1,44 @@
+<!--/*@thymesVar id="csrFormAttr" type="no.idporten.eudiw.rp.admin.web.resource.accesscertificates.CsrForm"*/-->
+<form th:fragment="csr_form_fragment(id)"
+      th:object="${csrFormAttr}"
+      th:action="@{/registerCsr(id=${id})}"
+      method="POST">
+    <p>
+        <label id="csr_form_label" for="csr_form" th:class="ds-label">CSR</label>
+        <br>
+        <textarea th:type="text"
+                  id="csr_form"
+                  th:field="*{csr}"
+                  style="width: 40em; min-height: 5em;"
+                  placeholder="Pem-enkodet PKCS10 CSR">
+        </textarea>
+    </p>
+
+    <button type="submit">Send CSR</button>
+
+    <p th:if="${#fields.hasErrors('csr')}">
+        <em>Det gitt CSR er ikkje et gjyldig CSR!</em>
+    </p>
+</form>
+
+<table th:fragment="single_certificate_table_fragment(cert)">
+    <!--/*@thymesVar id="cert" type="no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary"*/-->
+    <tbody>
+    <tr>
+        <th>Serienummer</th>
+        <td th:text="${cert.serialNo}"></td>
+    </tr>
+    <tr>
+        <th>Subjekt-navn</th>
+        <td th:text="${cert.subjectDn}"></td>
+    </tr>
+    <tr>
+        <th>Gjyldig fra</th>
+        <td th:text="${#dates.format(cert.validFromMs, 'dd-MM-yyyy HH:mm:ss')}"></td>
+    </tr>
+    <tr>
+        <th>Gjyldig til</th>
+        <td th:text="${#dates.format(cert.validUntilMs, 'dd-MM-yyyy HH:mm:ss')}"></td>
+    </tr>
+    </tbody>
+</table>

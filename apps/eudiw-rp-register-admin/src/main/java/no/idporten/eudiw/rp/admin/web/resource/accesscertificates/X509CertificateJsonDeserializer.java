@@ -18,7 +18,7 @@ public class X509CertificateJsonDeserializer
         DeserializationContext deserializationContext) {
         try {
             String csrPemStr = jsonParser.getValueAsString();
-            return X509CertificateConverter.convert(csrPemStr);
+            return X509CertificateConverter.fromString(csrPemStr);
         } catch (IOException e) {
             throw new CertificateConversionException(
                 "Failed to parse X.509 PEM from json", e);

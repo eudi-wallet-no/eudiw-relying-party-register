@@ -11,11 +11,11 @@
 
         <div class="flexbox">
             <h2>Søk etter brukerstader</h2>
-            <div th:replace="~{fragments/search
-                                 :: search_form_fragment(searchFormAttr)}">
-            </div>
+            <form th:replace="~{fragments/search_fragments
+                                 :: search_form_fragment}">
+            </form>
 
-            <div th:replace="~{fragments/search
+            <div th:replace="~{fragments/search_fragments
                                  :: results_table_fragment(${fullResultsAttr})}">
             </div>
         </div>

@@ -1,4 +1,3 @@
-<!--/*@thymesVar id="certs" type="java.util.List<no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary>"*/-->
 <div th:fragment="certificates_content_fragment(certs)">
     <h2>Aksess-sertifikater</h2>
 
@@ -18,8 +17,8 @@
             <tbody>
                 <!--/*@thymesVar id="cert" type="no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary"*/-->
                 <tr th:each="cert : ${certs}">
-                    <td th:text="${cert.serialNo()}"></td>
-                    <td th:text="${cert.subjectDn()}"></td>
+                    <td th:text="${cert.serialNo}"></td>
+                    <td th:text="${cert.subjectDn}"></td>
                     <td th:text="${#dates.format(cert.validFromMs, 'dd-MM-yyyy HH:mm:ss')}"></td>
                     <td th:text="${#dates.format(cert.validUntilMs, 'dd-MM-yyyy HH:mm:ss')}"></td>
                 </tr>
@@ -28,8 +27,8 @@
     </div>
 </div>
 
+<!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
 <div th:fragment="general_info_content_fragment(rp)">
-    <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
     <h2>Generel info</h2>
     <div>
         <table>
