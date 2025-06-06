@@ -18,9 +18,7 @@
     <div th:replace="~{fragments/general :: digdir_header}"></div>
 
     <p>
-        <a th:href="@{/search}">
-            Tilbake til søking
-        </a>
+        <a th:href="@{/search}">Tilbake til søking</a>
     </p>
 
     <h2>Detaljer for brukerstad: <span th:text="${rp.name}"/></h2>
@@ -31,9 +29,13 @@
     </ul>
 
     <div id="content_tabs">
-        <div th:insert="~{fragments/details_tabs_fragments
-                            :: general_info_content_fragment(${rp})}"
-             id="#about">
+        <div id="#about">
+            <div th:replace="~{fragments/details_tabs_fragments
+                                 :: general_info_content_fragment(${rp})}">
+            </div>
+            <p>
+                <a th:href="@{details/edit(id=${rp.id})}">Rediger brukerstad</a>
+            </p>
         </div>
 
         <div id="#certificates">

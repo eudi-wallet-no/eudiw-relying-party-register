@@ -25,8 +25,8 @@ public class RelyingPartiesService {
     }
 
     public RelyingPartyResource edit(UUID id, EditRelyingPartyResource editResource) {
-        return restClient.post()
-                .uri("/" + id)
+        return restClient.put()
+                .uri("/{id}", id)
                 .body(editResource)
                 .retrieve()
                 .toEntity(RelyingPartyResource.class)
@@ -51,34 +51,36 @@ public class RelyingPartiesService {
 
     public RelyingPartyResource get(UUID id) {
         return restClient.get()
-                .uri("/" + id)
+                .uri("/{id}", id)
                 .retrieve()
                 .toEntity(RelyingPartyResource.class)
                 .getBody();
     }
 
     public void delete(UUID id) {
-        restClient.delete().uri("/" + id).retrieve().toBodilessEntity();
+        restClient.delete()
+                  .uri("/{id}", id)
+                  .retrieve()
+                  .toBodilessEntity();
     }
 
     public RelyingPartyAccessCertificatesResource getCertificatesForRelyingParty(
         UUID id) {
         return restClient.get()
-                   .uri("/%s/certs".formatted(id))
-                   .retrieve()
-                   .toEntity(RelyingPartyAccessCertificatesResource.class)
-                   .getBody();
+                .uri("/{id}/certs", id)
+                .retrieve()
+                .toEntity(RelyingPartyAccessCertificatesResource.class)
+                .getBody();
     }
 
     public RelyingPartyAccessCertificateResource requestCertificateForRelyingParty(
         UUID id,
         RelyingPartyCsrResource csrResource) {
         return restClient.post()
-                         .uri("/%s/certs/access".formatted(id))
-                         .body(csrResource)
-                         .retrieve()
-                         .toEntity(RelyingPartyAccessCertificateResource.class)
-                         .getBody();
+                .uri("/{id}/certs/access", id)
+                .body(csrResource)
+                .retrieve()
+                .toEntity(RelyingPartyAccessCertificateResource.class)
+                .getBody();
     }
-
 }
