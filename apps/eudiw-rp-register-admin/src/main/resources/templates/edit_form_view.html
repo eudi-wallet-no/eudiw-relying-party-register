@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
+<head>
+    <title>Admintjenesta - Rediger brukerstad</title>
+</head>
+
+<!--/*@thymesVar id="detailedViewDataAttr" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
+<body th:with="rp=${detailedViewDataAttr}">
+<div th:replace="~{fragments/general :: digdir_header}"></div>
+
+    <a th:href="@{/details(id=${rp.id})}">
+        Annuler (tilbake til <span th:text="${rp.name}"></span>)
+    </a>
+
+    <h2>Rediger brukerstad: <span th:text="${rp.name}"></span></h2>
+
+    <form th:replace="~{fragments/edit_fragments :: edit_form_fragment(id=${rp.id})}">
+    </form>
+
+<div th:replace="~{fragments/general :: digdir_footer}"></div>
+
+<th:block th:replace="~{fragments/edit_fragments :: prefill_edit_form_list_fields_fragment}">
+</th:block>
+
+</body>
+</html>

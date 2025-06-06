@@ -4,9 +4,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
-import no.idporten.eudiw.rp.admin.service.exception.ErrorResponseException;
-import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
-import no.idporten.eudiw.rp.admin.web.resource.SearchForm;
+import no.idporten.eudiw.rp.admin.web.forms.RelyingPartyEditForm;
+import no.idporten.eudiw.rp.admin.web.resource.*;
 import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.*;
 import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartiesView;
 import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary;
@@ -22,11 +21,9 @@ import java.util.UUID;
 @Slf4j
 @Controller
 @RequiredArgsConstructor
-@SessionAttributes({SearchController.fullResultsAttrId})
 public class SearchController {
 
     public static final String searchFormAttrId = "searchFormAttr";
-    public static final String fullResultsAttrId = "fullResultsAttr";
 
     public static final String detailedViewDataAttrId = "detailedViewDataAttr";
     public static final String certificateSummariesAttrId = "certificateSummariesAttr";
@@ -34,7 +31,10 @@ public class SearchController {
     public static final String csrFormAttrId = "csrFormAttr";
     public static final String newCertificateAttrId = "newCertificateAttr";
 
+    public static final String editFormAttrId = "editFormAttr";
+
     private final RelyingPartiesService relyingPartiesService;
+    private final RelyingPartiesView relyingPartiesView;
 
     @GetMapping("/search")
     public ModelAndView searchGet(
@@ -46,22 +46,15 @@ public class SearchController {
         mav.addObject(searchFormAttrId, searchForm);
 
         if (!bindingResult.hasErrors() && !searchForm.searchTerm().isEmpty()) {
-            RelyingPartiesView searchResultsView =
-                RelyingPartiesView.fromResource(
-                    relyingPartiesService.search(searchForm.toResource()));
-            mav.addObject(fullResultsAttrId, searchResultsView);
+            relyingPartiesView.doSearch(searchForm.toResource());
         }
         return mav;
     }
 
     @GetMapping("/details")
     public ModelAndView detailsGet(
-        @RequestParam("id") @Valid UUID id,
-        @ModelAttribute(fullResultsAttrId) RelyingPartiesView searchResults) {
-        RelyingPartyResource relyingPartyResource =
-            searchResults.exists(id)
-                ? searchResults.get(id)
-                : relyingPartiesService.get(id);
+        @RequestParam("id") @Valid UUID id) {
+        RelyingPartyResource relyingPartyResource = relyingPartiesView.get(id);
         List<RelyingPartyAccessCertificateSummary> certificatesResource =
             relyingPartiesService.getCertificatesForRelyingParty(id)
                 .toSummaries();
@@ -72,14 +65,8 @@ public class SearchController {
     }
 
     @GetMapping("/registerCsr")
-    public ModelAndView registerCsrGet(
-        @RequestParam("id") @Valid UUID id,
-        @ModelAttribute(fullResultsAttrId) RelyingPartiesView searchResults
-    ) {
-        RelyingPartyResource relyingPartyResource =
-            searchResults.exists(id)
-                ? searchResults.get(id)
-                : relyingPartiesService.get(id);
+    public ModelAndView registerCsrGet(@RequestParam("id") @Valid UUID id) {
+        RelyingPartyResource relyingPartyResource = relyingPartiesView.get(id);
         return new ModelAndView("csr_form_view", Map.of(
             csrFormAttrId, CsrForm.empty(),
             detailedViewDataAttrId, relyingPartyResource));
@@ -88,14 +75,9 @@ public class SearchController {
     @PostMapping("/registerCsr")
     public ModelAndView registerCsrPost(
         @RequestParam("id") @Valid UUID id,
-        @ModelAttribute(fullResultsAttrId) RelyingPartiesView searchResults,
         @ModelAttribute(csrFormAttrId) @Valid CsrForm csrForm,
-        BindingResult csrFormBindingResult
-    ) {
-        RelyingPartyResource relyingPartyResource =
-            searchResults.exists(id)
-                ? searchResults.get(id)
-                : relyingPartiesService.get(id);
+        BindingResult csrFormBindingResult) {
+        RelyingPartyResource relyingPartyResource = relyingPartiesView.get(id);
         ModelAndView mav =
             new ModelAndView("csr_form_view", Map.of(detailedViewDataAttrId, relyingPartyResource));
 
@@ -109,6 +91,43 @@ public class SearchController {
             mav.setViewName("csr_submit_success_view");
             mav.addObject(newCertificateAttrId, certResource.toSummary());
         }
+        return mav;
+    }
+
+    @GetMapping("/details/edit")
+    public ModelAndView editGet(@RequestParam("id") @Valid UUID id) {
+        RelyingPartyResource relyingPartyResource = relyingPartiesView.get(id);
+        RelyingPartyEditForm editForm =
+            RelyingPartyEditForm.prefillFromRelyingPartyResource(relyingPartyResource);
+        return new ModelAndView("edit_form_view", Map.of(
+            editFormAttrId, editForm,
+            detailedViewDataAttrId, relyingPartyResource
+        ));
+    }
+
+    @PostMapping("/details/edit")
+    public ModelAndView editPost(
+        @RequestParam("id") UUID id,
+        @ModelAttribute(editFormAttrId) @Valid RelyingPartyEditForm editForm,
+        BindingResult editFormBindingResult) {
+
+        RelyingPartyResource relyingPartyResource = relyingPartiesView.get(id);
+        ModelAndView mav =
+            new ModelAndView("edit_form_view", Map.of(
+                detailedViewDataAttrId, relyingPartyResource));
+
+        if (!editFormBindingResult.hasErrors()) {
+            EditRelyingPartyResource editResource = editForm.toResource();
+
+            // NOTE: could go to an "are you sure?" page here.
+
+            relyingPartiesView.edit(id, editResource);
+
+            // NOTE: at this point RP is updated, and view returns to details page.
+            // could alternatively show a confirmation page.
+            mav.setViewName("redirect:/details?id=" + id);
+        }
+
         return mav;
     }
 }

@@ -1,0 +1,79 @@
+<form th:fragment="edit_form_fragment"
+      id="edit_form"
+      th:object="${editFormAttr}"
+      th:action="@{/details/edit(id=${rp.id})}"
+      method="POST">
+<!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
+<!--/*@thymesVar id="editFormAttr" type="no.idporten.eudiw.rp.admin.web.forms.RelyingPartyEditForm"*/-->
+
+    <fieldset>
+        <legend>Generelt</legend>
+
+        <p>
+            <label for="orgno_field">Org.nr.:</label>
+            <span id="orgno_field" th:text="${rp.orgno}"></span>
+        </p>
+        <p>
+            <label for="name_field">Navn:</label>
+            <input id="name_field"
+                   th:field="*{name}"
+                   type="text"
+                   placeholder="Navn">
+        </p>
+
+        <p>
+            <label for="sector_field">Sektor:</label>
+            <select id="sector_field" th:field="*{publicSector}">
+                <option value="true">Offentlig</option>
+                <option value="false">Privat</option>
+            </select>
+        </p>
+
+        <p>
+            <label for="active_field">Aktiv:</label>
+            <input id="active_field" type="checkbox" th:field="*{active}">
+        </p>
+    </fieldset>
+
+    <fieldset>
+        <legend>Rettigheter</legend>
+        <label for="entitlement_field">Rettighet:</label>
+        <input id="entitlement_field"
+               type="text"
+               placeholder="Entitlement ...">
+        <button type="button" onclick="addEntitlementOnclick()">Legg til rettighet</button>
+
+        <ul id="entitlement_container">
+        </ul>
+    </fieldset>
+
+    <fieldset>
+        <legend>EAA'ere</legend>
+        <label for="eaa_namespace_field">Namespace:</label>
+        <input id="eaa_namespace_field"
+               type="text"
+               placeholder="Namespace ...">
+
+        <label for="eaa_intent_field">Intent:</label>
+        <input id="eaa_intent_field"
+               type="text"
+               placeholder="Intent ...">
+        <button type="button" onclick="addEaaOnclick()">Legg til EAA</button>
+
+        <ul id="eaa_container">
+        </ul>
+    </fieldset>
+
+    <button type="submit">Send</button>
+</form>
+
+<th:block th:fragment="prefill_edit_form_list_fields_fragment">
+    <!--/*@thymesVar id="editFormAttr" type="no.idporten.eudiw.rp.admin.web.forms.RelyingPartyEditForm"*/-->
+    <script src="/js/dynamic_edit_form_fields.js"></script>
+    <th:block th:each="entitlement : ${editFormAttr.getEntitlements()}">
+        <script>addEntitlement("[[${entitlement.entitlement}]]");</script>
+    </th:block>
+    <th:block th:each="eaa : ${editFormAttr.getEaas()}">
+        <script>addEaa("[[${eaa.namespace}]]", "[[${eaa.intent}]]");</script>
+    </th:block>
+</th:block>

@@ -1,9 +1,13 @@
 package no.idporten.eudiw.rp.admin.web.search.resultsview;
 
-import lombok.AllArgsConstructor;
 import lombok.Setter;
+import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
+import no.idporten.eudiw.rp.admin.web.resource.EditRelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartiesResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
+import no.idporten.eudiw.rp.admin.web.resource.SearchRelyingPartyResource;
+import org.springframework.stereotype.Component;
+import org.springframework.web.context.annotation.SessionScope;
 
 import java.util.HashMap;
 import java.util.List;
@@ -12,27 +16,33 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-@AllArgsConstructor
+@Component("relyingPartiesView")
+@SessionScope
 public class RelyingPartiesView {
 
-    private final HashMap<UUID, RelyingPartyResource> relyingParties;
+    private HashMap<UUID, RelyingPartyResource> relyingParties;
 
     @Setter
     private ResultsViewSpecification viewSpec;
 
-    @SuppressWarnings("unused") // is used to instantiate missing @ModelAttributes.
-    public RelyingPartiesView() {
-        this(new HashMap<>(), ResultsViewSpecification.defaultView());
+    private final RelyingPartiesService relyingPartiesService;
+
+    public RelyingPartiesView(RelyingPartiesService relyingPartiesService) {
+        this.relyingPartiesService = relyingPartiesService;
+        this.relyingParties = new HashMap<>();
+        this.viewSpec = ResultsViewSpecification.defaultView();
     }
 
-    public static RelyingPartiesView fromResource(RelyingPartiesResource resource) {
-        HashMap<UUID, RelyingPartyResource> asHashMap =
-            resource.relyingParties().stream().collect(
+    public RelyingPartiesResource doSearch(SearchRelyingPartyResource searchResource) {
+        RelyingPartiesResource searchResult = this.relyingPartiesService.search(searchResource);
+        this.relyingParties =
+            searchResult.relyingParties().stream().collect(
                 Collectors.toMap(RelyingPartyResource::id,
                                  Function.identity(),
                                  (_, b) -> b,
                                  HashMap::new));
-        return new RelyingPartiesView(asHashMap, ResultsViewSpecification.defaultView());
+        this.viewSpec = ResultsViewSpecification.defaultView();
+        return searchResult;
     }
 
     @SuppressWarnings("unused") // used in Thymeleaf template
@@ -47,10 +57,19 @@ public class RelyingPartiesView {
                    .toList();
     }
 
-    public boolean exists(UUID id) {
-        return this.relyingParties.containsKey(id);
-    }
     public RelyingPartyResource get(UUID id) {
-        return this.relyingParties.get(id);
+        if (this.relyingParties.containsKey(id)) {
+            return this.relyingParties.get(id);
+        }
+
+        RelyingPartyResource rp = this.relyingPartiesService.get(id);
+        this.relyingParties.put(id, rp);
+        return rp;
+    }
+
+    public RelyingPartyResource edit(UUID id, EditRelyingPartyResource editResource) {
+        RelyingPartyResource edited = this.relyingPartiesService.edit(id, editResource);
+        this.relyingParties.put(id, edited);
+        return edited;
     }
 }

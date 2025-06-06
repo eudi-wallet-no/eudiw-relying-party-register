@@ -23,12 +23,11 @@
     </ul>
 </form>
 
-<div th:fragment="results_table_fragment(full_results)"
-     th:if="${full_results} != null">
+<div th:fragment="results_table_fragment">
     <h2>Søkeresultat</h2>
     <!--/*@thymesVar id="full_results" type="no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartiesView"*/-->
     <!--/*@thymesVar id="sorted_and_filtered_results" type="java.util.List<no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource>"*/-->
-    <div th:with="sorted_and_filtered_results=${full_results.applyViewSpec()}">
+    <div th:with="sorted_and_filtered_results=${@relyingPartiesView.applyViewSpec()}">
         <table>
             <thead>
             <tr>

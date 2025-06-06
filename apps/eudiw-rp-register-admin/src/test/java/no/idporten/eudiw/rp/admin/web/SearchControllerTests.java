@@ -1,21 +1,15 @@
 package no.idporten.eudiw.rp.admin.web;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.service.accesscertificates.PKCS10CertificationRequestConverter;
-import no.idporten.eudiw.rp.admin.service.accesscertificates.X509CertificateConverter;
-import no.idporten.eudiw.rp.admin.service.exception.NotFoundException;
 import no.idporten.eudiw.rp.admin.testdata.CertificatesGenerator;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
-import no.idporten.eudiw.rp.admin.web.resource.RelyingPartiesResource;
-import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
-import no.idporten.eudiw.rp.admin.web.resource.SearchForm;
-import no.idporten.eudiw.rp.admin.web.resource.SearchRelyingPartyResource;
+import no.idporten.eudiw.rp.admin.web.forms.RelyingPartyEditForm;
+import no.idporten.eudiw.rp.admin.web.resource.*;
 import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.CsrForm;
 import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyAccessCertificateResource;
 import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyAccessCertificatesResource;
 import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyCsrResource;
-import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartiesView;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +20,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 
-import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.UUID;
 
@@ -69,13 +62,12 @@ public class SearchControllerTests {
         @Test
         public void testServiceCalledAndWithCorrectSearchResource() throws Exception {
             SearchForm testSearchForm = ResourceGenerator.generateSearchForm();
-            String includeInactiveStr = Boolean.valueOf(testSearchForm.includeInactive()).toString();
+            String includeInactiveStr = Boolean.toString(testSearchForm.includeInactive());
 
             mockMvc.perform(get("/search")
                                 .formField("searchTerm", testSearchForm.searchTerm())
                                 .formField("includeInactive", includeInactiveStr))
                 .andExpect(view().name("search_view"))
-                .andExpect(model().attributeExists(SearchController.fullResultsAttrId))
                 .andExpect(model().attribute(SearchController.searchFormAttrId, testSearchForm));
 
             verify(mockRpService).search(eq(testSearchForm.toResource()));
@@ -88,8 +80,7 @@ public class SearchControllerTests {
                                 .formField("searchTerm", invalidSearchTerm)
                                 .formField("includeInactive", "true"))
                    .andExpect(view().name("search_view"))
-                   .andExpect(model().attributeHasFieldErrors(SearchController.searchFormAttrId, "searchTerm"))
-                   .andExpect(model().attributeDoesNotExist(SearchController.fullResultsAttrId));
+                   .andExpect(model().attributeHasFieldErrors(SearchController.searchFormAttrId, "searchTerm"));
 
             verifyNoInteractions(mockRpService);
         }
@@ -101,8 +92,7 @@ public class SearchControllerTests {
                                 .formField("searchTerm", emptySearchTerm)
                                 .formField("includeInactive", "true"))
                    .andExpect(view().name("search_view"))
-                   .andExpect(model().attributeHasNoErrors(SearchController.searchFormAttrId))
-                   .andExpect(model().attributeDoesNotExist(SearchController.fullResultsAttrId));
+                   .andExpect(model().attributeHasNoErrors(SearchController.searchFormAttrId));
 
             verifyNoInteractions(mockRpService);
         }
@@ -111,56 +101,27 @@ public class SearchControllerTests {
     @Nested
     @DisplayName("when GET'ing the /details endpoint for a given RP ID ...")
     class DetailsEndpointGetTests {
-        @BeforeEach
-        void setupMockRelyingPartiesService() throws Exception {
-            RelyingPartyAccessCertificatesResource dummyCertsResource =
-                new RelyingPartyAccessCertificatesResource(List.of(
-                    ResourceGenerator.generateCertificateResource()));
-            when(mockRpService.getCertificatesForRelyingParty(any()))
-                .thenReturn(dummyCertsResource);
-        }
-
         @Test
-        @DisplayName("then RP fetched from search results if exists, and correct view/model is used")
-        public void testControllerFetchesRpFromSearchResultsIfIdExists() throws Exception {
-            RelyingPartyResource rpResource =
-                ResourceGenerator.generateRelyingPartyResource();
-            UUID id = rpResource.id();
-
-            RelyingPartiesView dummyPreExistingSearchResults =
-                RelyingPartiesView.fromResource(
-                    new RelyingPartiesResource(List.of(rpResource)));
-
-            mockMvc.perform(get("/details")
-                                .queryParam("id", id.toString())
-                                .sessionAttr(SearchController.fullResultsAttrId, dummyPreExistingSearchResults))
-                .andExpect(status().isOk())
-                .andExpect(view().name("details_view"))
-                .andExpect(model().attribute(SearchController.detailedViewDataAttrId, rpResource));
-
-            verify(mockRpService, times(0)).get(eq(id));
-            verify(mockRpService).getCertificatesForRelyingParty(eq(id));
-        }
-
-        @Test
-        @DisplayName("then RP fetched via service if ID not in search results, and correct view/model is used")
-        public void testControllerQueriesServiceIfIdNotInSearchResults()
+        @DisplayName("then the correct view with the correct RP and certificates is loaded")
+        public void testCorrectViewAndModelAttributes()
             throws Exception {
             RelyingPartyResource rpResource =
                 ResourceGenerator.generateRelyingPartyResource();
             UUID id = rpResource.id();
-            when(mockRpService.get(any())).thenReturn(rpResource);
+            when(mockRpService.get(id)).thenReturn(rpResource);
 
-            RelyingPartiesView dummyPreExistingSearchResults =
-                RelyingPartiesView.fromResource(
-                    ResourceGenerator.generateRelyingPartiesResource());
+            RelyingPartyAccessCertificatesResource certsResource =
+                new RelyingPartyAccessCertificatesResource(List.of(
+                    ResourceGenerator.generateCertificateResource()));
+            when(mockRpService.getCertificatesForRelyingParty(id))
+                .thenReturn(certsResource);
 
             mockMvc.perform(get("/details")
-                                .queryParam("id", id.toString())
-                                .sessionAttr(SearchController.fullResultsAttrId, dummyPreExistingSearchResults))
+                                .queryParam("id", id.toString()))
                    .andExpect(status().isOk())
                    .andExpect(view().name("details_view"))
-                   .andExpect(model().attribute(SearchController.detailedViewDataAttrId, rpResource));
+                   .andExpect(model().attribute(SearchController.detailedViewDataAttrId, rpResource))
+                   .andExpect(model().attribute(SearchController.certificateSummariesAttrId, certsResource.toSummaries()));
 
             verify(mockRpService).get(eq(id));
             verify(mockRpService).getCertificatesForRelyingParty(eq(id));
@@ -172,25 +133,21 @@ public class SearchControllerTests {
     class RegisterCsrEndpointGetTests {
 
         @Test
-        @DisplayName("then RP fetched from search results if exists, and correct view/model is used")
-        void testControllerGetsRpFromSearchResultsIfExists() throws Exception {
+        @DisplayName("then the correct view with the expected RP attribute is loaded")
+        void testCorrectViewAndModelAttributes() throws Exception {
             RelyingPartyResource rpResource =
                 ResourceGenerator.generateRelyingPartyResource();
             UUID id = rpResource.id();
-
-            RelyingPartiesView dummyPreExistingSearchResults =
-                RelyingPartiesView.fromResource(
-                    new RelyingPartiesResource(List.of(rpResource)));
+            when(mockRpService.get(id)).thenReturn(rpResource);
 
             mockMvc.perform(get("/registerCsr")
-                                .queryParam("id", id.toString())
-                                .sessionAttr(SearchController.fullResultsAttrId, dummyPreExistingSearchResults))
+                                .queryParam("id", id.toString()))
                    .andExpect(status().isOk())
                    .andExpect(view().name("csr_form_view"))
                    .andExpect(model().attribute(SearchController.detailedViewDataAttrId, rpResource))
                    .andExpect(model().attribute(SearchController.csrFormAttrId, CsrForm.empty()));
 
-            verify(mockRpService, times(0)).get(eq(id));
+            verify(mockRpService, times(1)).get(eq(id));
         }
     }
 
@@ -198,50 +155,44 @@ public class SearchControllerTests {
     @DisplayName("when POST'ing a CSR to the /registerCsr endpoint for a given RP ID ...")
     class RegisterCsrEndpointPostTests {
 
-        @BeforeEach
-        void setupMockRelyingPartiesService() throws Exception {
-        }
-
         @Test
-        @DisplayName("then form is accepted if the CSR is well-formed and ID exists")
+        @DisplayName("then form accepted if CSR well-formed, and correct services called, view, and model")
         void testCsrFormAcceptedIfCsrWellFormedAndIdExists() throws Exception {
-            // set up service with a dummy certificate response
-            RelyingPartyAccessCertificateResource dummyCertResource =
-                ResourceGenerator.generateCertificateResource();
-            when(mockRpService.requestCertificateForRelyingParty(any(), any()))
-                .thenReturn(dummyCertResource);
 
-            // setup dummy search results session attribute
             RelyingPartyResource rpResource =
                 ResourceGenerator.generateRelyingPartyResource();
             UUID id = rpResource.id();
-            RelyingPartiesView dummyPreExistingSearchResults =
-                RelyingPartiesView.fromResource(
-                    new RelyingPartiesResource(List.of(rpResource)));
+            when(mockRpService.get(id)).thenReturn(rpResource);
+
+            // set up service with a dummy certificate response
+            RelyingPartyAccessCertificateResource dummyCertResource =
+                ResourceGenerator.generateCertificateResource();
 
             PKCS10CertificationRequest csr = CertificatesGenerator.generatePKCS10Csr();
+            RelyingPartyCsrResource csrResource = new RelyingPartyCsrResource(csr);
+            when(mockRpService.requestCertificateForRelyingParty(id, csrResource))
+                .thenReturn(dummyCertResource);
+
             String csrPemStr = PKCS10CertificationRequestConverter.toString(csr);
 
             mockMvc.perform(post("/registerCsr")
                                 .queryParam("id", id.toString())
-                                .formField("csr", csrPemStr)
-                                .sessionAttr(SearchController.fullResultsAttrId, dummyPreExistingSearchResults)
-                   )
+                                .formField("csr", csrPemStr))
                    .andExpect(status().isOk())
                    .andExpect(view().name("csr_submit_success_view"))
                    .andExpect(model().attribute(SearchController.newCertificateAttrId, dummyCertResource.toSummary()));
+
+            verify(mockRpService).get(eq(id));
+            verify(mockRpService).requestCertificateForRelyingParty(eq(id), eq(csrResource));
         }
 
         @Test
         @DisplayName("then form is rejected if CSR is not well-formed, and view returns to CSR form")
         void testFormRejectedIfCsrInvalid() throws Exception {
-            // setup dummy search results session attribute
             RelyingPartyResource rpResource =
                 ResourceGenerator.generateRelyingPartyResource();
             UUID id = rpResource.id();
-            RelyingPartiesView dummyPreExistingSearchResults =
-                RelyingPartiesView.fromResource(
-                    new RelyingPartiesResource(List.of(rpResource)));
+            when(mockRpService.get(id)).thenReturn(rpResource);
 
             PKCS10CertificationRequest csr = CertificatesGenerator.generatePKCS10Csr();
             String validCsrPemStr = PKCS10CertificationRequestConverter.toString(csr);
@@ -249,15 +200,98 @@ public class SearchControllerTests {
 
             mockMvc.perform(post("/registerCsr")
                                 .queryParam("id", id.toString())
-                                .formField("csr", invalidCsrPemStr)
-                                .sessionAttr(SearchController.fullResultsAttrId, dummyPreExistingSearchResults)
-                   )
+                                .formField("csr", invalidCsrPemStr))
                    .andExpect(status().isOk())
                    .andExpect(view().name("csr_form_view"))
-                   .andExpect(model().attributeHasFieldErrors(SearchController.csrFormAttrId, "csr"))
-            ;
-
+                   .andExpect(model().attributeHasFieldErrors(SearchController.csrFormAttrId, "csr"));
         }
     }
 
+    @Nested
+    @DisplayName("When GET'ing the /details/edit endpoint for a given RP ID ...")
+    class EditEndpointGetTests {
+        @Test
+        @DisplayName("then the correct view with the expected edit form and RP is loaded")
+        void testCorrectViewAndModelAttributes() throws Exception {
+            RelyingPartyResource rpResource =
+                ResourceGenerator.generateRelyingPartyResource();
+            UUID id = rpResource.id();
+            when(mockRpService.get(id)).thenReturn(rpResource);
+
+            RelyingPartyEditForm expectedEditForm =
+                RelyingPartyEditForm.prefillFromRelyingPartyResource(rpResource);
+
+            mockMvc.perform(get("/details/edit")
+                                .queryParam("id", id.toString()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("edit_form_view"))
+                .andExpect(model().attribute(SearchController.editFormAttrId, expectedEditForm))
+                .andExpect(model().attribute(SearchController.detailedViewDataAttrId, rpResource));
+
+            verify(mockRpService).get(eq(id));
+        }
+    }
+
+    @Nested
+    @DisplayName("When POST'ing edit forms to the /details/edit endpoint for a given RP ID ...")
+    class EditEndpointPostTests {
+        @Test
+        @DisplayName("then form accepted if well-formed, and correct services called, view, and model")
+        void testEditFormAcceptedIfWellFormed() throws Exception {
+            RelyingPartyResource rpResource =
+                ResourceGenerator.generateRelyingPartyResource()
+                    .withRelyingPartyEntitlements(List.of()) // for simplicity, no entitlements or EAAs
+                    .withRelyingPartyEaas(List.of());
+            UUID id = rpResource.id();
+            when(mockRpService.get(id)).thenReturn(rpResource);
+
+            RelyingPartyEditForm editForm =
+                RelyingPartyEditForm.prefillFromRelyingPartyResource(rpResource);
+
+            mockMvc.perform(post("/details/edit")
+                                .queryParam("id", id.toString())
+                                .formField("name", editForm.getName())
+                                .formField("publicSector", Boolean.toString(editForm.isPublicSector()))
+                                .formField("active", Boolean.toString(editForm.isActive())))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/details?id=%s".formatted(id.toString())));
+
+            EditRelyingPartyResource expectedEditResource = editForm.toResource();
+            verify(mockRpService).edit(id, expectedEditResource);
+        }
+
+        @Test
+        @DisplayName("then form rejected on invalid fields, and view returns to the edit form")
+        void testEditFormRejectedOnFieldInvalidation() throws Exception {
+            String invalidName = "fooBar$";
+            RelyingPartyResource rpResource =
+                ResourceGenerator.generateRelyingPartyResource()
+                    .withName(invalidName)
+                    .withRelyingPartyEntitlements(List.of()) // empty entitlements and EAAs for simplicity
+                    .withRelyingPartyEaas(List.of());
+            UUID id = UUID.randomUUID();
+            when(mockRpService.get(id)).thenReturn(rpResource);
+
+            RelyingPartyEditForm editForm =
+                RelyingPartyEditForm.prefillFromRelyingPartyResource(rpResource);
+
+            mockMvc.perform(post("/details/edit")
+                                .queryParam("id", id.toString())
+                                .formField("name", invalidName)
+                                .formField("publicSector", Boolean.toString(rpResource.publicSector()))
+                                .formField("active", Boolean.toString(rpResource.active())))
+                   // assert edit form invalid (should only have error in the name field)
+                   .andExpect(model().attributeHasFieldErrors(SearchController.editFormAttrId, "name"))
+                   .andExpect(model().attributeErrorCount(SearchController.editFormAttrId, 1))
+
+                   // assert that view returns to edit form, for the given RP and
+                   // with the unsubmitted form data.
+                   .andExpect(status().isOk())
+                   .andExpect(view().name("edit_form_view"))
+                   .andExpect(model().attribute(SearchController.detailedViewDataAttrId, rpResource))
+                   .andExpect(model().attribute(SearchController.editFormAttrId, editForm));
+
+            verify(mockRpService).get(id);
+        }
+    }
 }

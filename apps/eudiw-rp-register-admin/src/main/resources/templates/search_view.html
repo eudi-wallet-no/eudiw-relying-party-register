@@ -8,18 +8,14 @@
     </div>
 
     <div class="two-column-page">
-
         <div class="flexbox">
             <h2>Søk etter brukerstader</h2>
-            <form th:replace="~{fragments/search_fragments
-                                 :: search_form_fragment}">
+            <form th:replace="~{fragments/search_fragments :: search_form_fragment}">
             </form>
 
-            <div th:replace="~{fragments/search_fragments
-                                 :: results_table_fragment(${fullResultsAttr})}">
+            <div th:replace="~{fragments/search_fragments :: results_table_fragment}">
             </div>
         </div>
-
     </div>
 
     <div th:replace="~{fragments/general :: digdir_footer}"></div>
