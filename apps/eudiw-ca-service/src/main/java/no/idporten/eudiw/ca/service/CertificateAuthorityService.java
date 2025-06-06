@@ -31,6 +31,7 @@ import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
 import org.bouncycastle.util.io.pem.PemWriter;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.io.*;
 import java.math.BigInteger;
@@ -40,9 +41,7 @@ import java.security.SecureRandom;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class CertificateAuthorityService {
@@ -51,11 +50,25 @@ public class CertificateAuthorityService {
     public static final String OID_ORGANIZATION_NUMBER = "2.5.4.97";
     public static final String SIGNATURE_ALGORITHM_SHA_512_WITH_ECDSA = "SHA512WITHECDSA";
 
-    public PKCS10CertificationRequest decodeCsr(String csr) throws Exception {
+    /**
+     * Decodes CSR from PEM input.  Throws exception for empty or invalid input.
+     * @param csr csr
+     * @return decoded csr
+     */
+    public PKCS10CertificationRequest decodeCsr(String csr) {
+        if (! StringUtils.hasText(csr)) {
+            throw new CertificateAuthorityException("invalid_request", "CSR is empty", HttpStatus.BAD_REQUEST);
+        }
         return decodeFromPem(csr, PKCS10CertificationRequest.class);
     }
 
-    protected void validateCSR(PKCS10CertificationRequest csr) throws Exception {
+    /**
+     * Validates csr
+     * @param csr signed csr
+     * @param requiredExtensions all these and no other must be present
+     * @throws Exception if CSR is not valid
+     */
+    protected void validateCSR(PKCS10CertificationRequest csr, Set<ASN1ObjectIdentifier> requiredExtensions, Set<ASN1ObjectIdentifier> ignoredExtensions) throws Exception {
         if (csr == null) {
             throw new CertificateAuthorityException("invalid_request", "CSR parsing failed", HttpStatus.BAD_REQUEST);
         }
@@ -63,6 +76,24 @@ public class CertificateAuthorityService {
         JcaContentVerifierProviderBuilder jcaContentVerifierProviderBuilder = new JcaContentVerifierProviderBuilder();
         if (!csr.isSignatureValid(jcaContentVerifierProviderBuilder.build(publicKey))) {
             throw new CertificateAuthorityException("invalid_request", "CSR signature is invalid", HttpStatus.BAD_REQUEST);
+        }
+        Set<ASN1ObjectIdentifier> requestedExtensionsIdentifiers = csr.getRequestedExtensions() != null ? new HashSet<>(Set.of(csr.getRequestedExtensions().getExtensionOIDs())) : new HashSet<>();
+        requestedExtensionsIdentifiers.removeAll(ignoredExtensions);
+        Set<ASN1ObjectIdentifier> requiredExtensionsIdentifiers = requiredExtensions != null ? new HashSet<>(requiredExtensions) : new HashSet<>();
+        if (! requestedExtensionsIdentifiers.containsAll(requiredExtensionsIdentifiers)) {
+            requiredExtensionsIdentifiers.removeAll(requestedExtensionsIdentifiers);
+            throw new CertificateAuthorityException("invalid_request", "CSR does not contain required extension(s) %s".formatted(requiredExtensionsIdentifiers), HttpStatus.BAD_REQUEST);
+        }
+        if (! requiredExtensionsIdentifiers.containsAll(requestedExtensionsIdentifiers)) {
+            requestedExtensionsIdentifiers.removeAll(requiredExtensionsIdentifiers);
+            throw new CertificateAuthorityException("invalid_request", "CSR contains unrecognized extension(s) %s".formatted(requestedExtensionsIdentifiers), HttpStatus.BAD_REQUEST);
+        }
+        if (csr.getRequestedExtensions() != null) {
+            for (ASN1ObjectIdentifier extensionOID : csr.getRequestedExtensions().getExtensionOIDs()) {
+                if (csr.getRequestedExtensions().getExtension(extensionOID).getExtnValue().getOctetsLength() == 0) {
+                    throw new CertificateAuthorityException("invalid_request", "CSR contains empty value for extension %s".formatted(extensionOID), HttpStatus.BAD_REQUEST);
+                }
+            }
         }
     }
 
@@ -76,7 +107,7 @@ public class CertificateAuthorityService {
      * Sign a root CA certificate for certificate and CRL signing.  This certificate is self-signed.
      */
     protected X509Certificate signRootCertificate(CertificateAuthority certificateAuthority, PKCS10CertificationRequest csr) throws Exception {
-        validateCSR(csr);
+        validateCSR(csr, Collections.emptySet(), Collections.emptySet());
         return signCertificate(
                 certificateAuthority,
                 csr,
@@ -92,7 +123,7 @@ public class CertificateAuthorityService {
      * and references the root CA CRL,
      */
     protected X509Certificate signIntermediateCertificate(CertificateAuthority certificateAuthority, PKCS10CertificationRequest csr) throws Exception {
-        validateCSR(csr);
+        validateCSR(csr, Collections.emptySet(), Collections.emptySet());
         return signCertificate(certificateAuthority,
                 csr,
                 createSubjectWithOrgno(csr.getSubject(), DIGDIR_ORGNO),
@@ -107,7 +138,7 @@ public class CertificateAuthorityService {
      * Signs an end-entity certificate for an organization with an intermediate CA certificate.
      */
     public X509Certificate signCertificate(CertificateAuthority certificateAuthority, PKCS10CertificationRequest csr, String orgno) throws Exception {
-        validateCSR(csr);
+        validateCSR(csr, Set.of(Extension.subjectAlternativeName), Set.of(Extension.subjectKeyIdentifier));
         List<Extension> extensions = new ArrayList<>();
         // basic + relation to CA
         extensions.add(Extension.create(Extension.basicConstraints, true, new BasicConstraints(false)));

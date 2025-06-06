@@ -128,9 +128,9 @@ public class CertificateAuthorityApiController {
             @ApiResponse(responseCode = "200", description = "PEM-encoded certificate", content = @Content(mediaType = APPLICATION_X_PEM_FILE_VALUE))
     })
     @PostMapping(path = "/v1/certs/{intermediate}/{orgno}", consumes = APPLICATION_X_PEM_FILE_VALUE, produces = APPLICATION_X_PEM_FILE_VALUE)
-    public ResponseEntity<String> signAccessCertificate(
+    public ResponseEntity<String> signLeafCertificate(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "PEM-encoded Certificate Signing Request",
+                    description = "PEM-encoded Certificate Signing Request with SAN extension",
                     content = {
                             @Content(mediaType = APPLICATION_X_PEM_FILE_VALUE,
                                     examples = @ExampleObject(value = certificateSigningRequestExample))},

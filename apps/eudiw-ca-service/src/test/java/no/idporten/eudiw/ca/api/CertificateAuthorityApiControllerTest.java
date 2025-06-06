@@ -95,7 +95,7 @@ public class CertificateAuthorityApiControllerTest {
 
     @DisplayName("then RP access certificates can be signed")
     @Test
-    void testSignAccessCertificate() throws Exception {
+    void testSignLeafCertificate() throws Exception {
         String csr = """
                 -----BEGIN NEW CERTIFICATE REQUEST-----
                 MIIBbTCCARQCAQAwXzELMAkGA1UEBhMCbm8xDTALBgNVBAgTBFNvZ24xEjAQBgNV

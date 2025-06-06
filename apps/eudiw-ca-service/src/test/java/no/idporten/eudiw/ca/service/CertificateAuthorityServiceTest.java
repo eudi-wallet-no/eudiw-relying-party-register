@@ -3,6 +3,7 @@ package no.idporten.eudiw.ca.service;
 
 import no.idporten.eudiw.ca.config.CertificateAuthorities;
 import no.idporten.eudiw.ca.config.CertificateAuthority;
+import no.idporten.eudiw.ca.exception.CertificateAuthorityException;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.junit.jupiter.api.BeforeAll;
@@ -67,7 +68,56 @@ public class CertificateAuthorityServiceTest {
             certificate.verify(intermediate.getPublicKey());
         }
 
-    }
+        @DisplayName("then a CSR with unrecognized extensions is rejected")
+        @Test
+        void testUnrecognizedCSRExtensions() throws Exception {
+            String csr = """
+                    -----BEGIN CERTIFICATE REQUEST-----
+                    MIIBkTCCATYCAQAwYzELMAkGA1UEBhMCbm8xKTAnBgNVBAsTIGV1ZGl3LXZlcmlm
+                    aWVyLWRlbW8uaWRwb3J0ZW4uZGV2MSkwJwYDVQQDEyBldWRpdy12ZXJpZmllci1k
+                    ZW1vLmlkcG9ydGVuLmRldjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABHKIs2py
+                    gJfIIk1Z6KYl6igCERMo8SC1WAAmsPFPKdOkwp0SSIPER3BXW8BOjj2DFYV7pP1L
+                    VBQLKwYCfmY7pa6gcTBvBgkqhkiG9w0BCQ4xYjBgMB0GA1UdDgQWBBSgCT60zM6D
+                    kjq+jKsUVzcBhUbEbjArBgNVHREEJDAigiBldWRpdy12ZXJpZmllci1kZW1vLmlk
+                    cG9ydGVuLmRldjASBgNVHRIECzAJggdiYXIuZm9vMAoGCCqGSM49BAMDA0kAMEYC
+                    IQDF8LBk3ZIIITOR79QMmnkApy0Pl7R7OUay5h46CjGAXgIhAIrYLKuREXZKBFE+
+                    7OFCB31ZpyqyG8YOVrifEPf8dX9D
+                    -----END CERTIFICATE REQUEST-----""";
+            CertificateAuthority intermediate = certificateAuthorities.findIntermediate("access");
+            CertificateAuthorityException exception = assertThrows(CertificateAuthorityException.class, () -> certificateAuthorityService.signCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), "991825827"));
+            assertAll(
+                    () -> assertEquals("invalid_request", exception.getError()),
+                    () -> assertEquals(400, exception.getHttpStatus().value()),
+                    () -> assertTrue(exception.getErrorDescription().contains("contains unrecognized extension")),
+                    () -> assertTrue(exception.getErrorDescription().contains("2.5.29.18"))
+            );
+        }
+
+        @DisplayName("then a CSR with missing required extensions is rejected")
+        @Test
+        void testMissingRequiredCSRExtensions() throws Exception {
+            String csr = """
+                    -----BEGIN NEW CERTIFICATE REQUEST-----
+                    MIIBYzCCAQkCAQAwYzELMAkGA1UEBhMCbm8xKTAnBgNVBAsTIGV1ZGl3LXZlcmlm
+                    aWVyLWRlbW8uaWRwb3J0ZW4uZGV2MSkwJwYDVQQDEyBldWRpdy12ZXJpZmllci1k
+                    ZW1vLmlkcG9ydGVuLmRldjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABHKIs2py
+                    gJfIIk1Z6KYl6igCERMo8SC1WAAmsPFPKdOkwp0SSIPER3BXW8BOjj2DFYV7pP1L
+                    VBQLKwYCfmY7pa6gRDBCBgkqhkiG9w0BCQ4xNTAzMB0GA1UdDgQWBBSgCT60zM6D
+                    kjq+jKsUVzcBhUbEbjASBgNVHRIECzAJggdiYXIuZm9vMAoGCCqGSM49BAMDA0gA
+                    MEUCIGfooGcXWqd9+1M6j16wsNm/5B8XscHW3h+e0RpmiWADAiEA6f7olc4kLFAW
+                    Cn81LRLTrsAaIRzPX4BrEGFX4J6Zvdw=
+                    -----END NEW CERTIFICATE REQUEST-----""";
+            CertificateAuthority intermediate = certificateAuthorities.findIntermediate("access");
+            CertificateAuthorityException exception = assertThrows(CertificateAuthorityException.class, () -> certificateAuthorityService.signCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), "991825827"));
+            assertAll(
+                    () -> assertEquals("invalid_request", exception.getError()),
+                    () -> assertEquals(400, exception.getHttpStatus().value()),
+                    () -> assertTrue(exception.getErrorDescription().contains("does not contain required extension")),
+                    () -> assertTrue(exception.getErrorDescription().contains("2.5.29.17"))
+            );
+        }
+
+   }
 
     @DisplayName("When signing root CA certificates")
     @Nested
