@@ -145,7 +145,7 @@ public class RelyingPartyAccessCertificatesControllerTests {
                 ResourceGenerator.generateRegisterRelyingPartyCsrResource();
             String validContent = new ObjectMapper().writeValueAsString(dummyCsrResource);
 
-            mockMvc.perform(post("/v1/rp/%s/certs/access/".formatted(validId))
+            mockMvc.perform(post("/v1/rp/%s/certs/access".formatted(validId))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .accept(MediaType.APPLICATION_JSON_VALUE, "application/x-pem-file")
                                 .header(X_API_KEY_HEADER, VALID_API_KEY)
@@ -164,7 +164,7 @@ public class RelyingPartyAccessCertificatesControllerTests {
                 ResourceGenerator.generateRegisterRelyingPartyCsrResource();
             String validContent = new ObjectMapper().writeValueAsString(dummyCsrResource);
 
-            mockMvc.perform(post("/v1/rp/%s/certs/access/".formatted(invalidId))
+            mockMvc.perform(post("/v1/rp/%s/certs/access".formatted(invalidId))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .accept(MediaType.APPLICATION_JSON_VALUE, "application/x-pem-file")
                                 .header(X_API_KEY_HEADER, VALID_API_KEY)
@@ -189,7 +189,7 @@ public class RelyingPartyAccessCertificatesControllerTests {
             String validContent = new ObjectMapper().writeValueAsString(dummyCsrResource);
             String invalidContent = validContent.toLowerCase();
 
-            mockMvc.perform(post("/v1/rp/%s/certs/access/".formatted(validId))
+            mockMvc.perform(post("/v1/rp/%s/certs/access".formatted(validId))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .accept(MediaType.APPLICATION_JSON)
                                 .header(X_API_KEY_HEADER, VALID_API_KEY)

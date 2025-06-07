@@ -68,7 +68,7 @@ public class RelyingPartyAccessCertificatesController {
         @ApiResponse(responseCode = "400", description = "CSR is rejected")
     })
     @Audit(auditId = RELYING_PARTY_NEW_CERTIFICATE_REQUESTED)
-    @PostMapping(path = "/{relying-party-id}/certs/access/",
+    @PostMapping(path = "/{relying-party-id}/certs/access",
                  consumes = MediaType.APPLICATION_JSON_VALUE,
                  produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<RelyingPartyAccessCertificateResource> requestAccessCertificate(
