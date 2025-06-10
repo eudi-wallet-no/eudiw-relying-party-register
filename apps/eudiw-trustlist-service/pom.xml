@@ -26,7 +26,7 @@
         <jaxb-impl.version>4.0.5</jaxb-impl.version>
         <jaxb2-maven-plugin.version>3.3.0</jaxb2-maven-plugin.version>
         <bcpkix-jdk18on.version>1.81</bcpkix-jdk18on.version>
-        <bcprov-jdk18on.version>1.80</bcprov-jdk18on.version>
+        <bcprov-jdk18on.version>1.81</bcprov-jdk18on.version>
     </properties>
 
     <dependencies>
