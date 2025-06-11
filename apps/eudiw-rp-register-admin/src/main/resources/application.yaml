@@ -46,9 +46,9 @@ eudiw-admin-web:
 
 external-dependency-health-checks:
   health-endpoints:
-    eudiw-rp-service:
-      name: eudiw-rp-service
-      base-uri: http://eudiw-rp-service-service:8090
+    eudiw-rp-register-service:
+      name: eudiw-rp-register-service
+      base-uri: http://eudiw-rp-register-service-service:8090
       endpoint: /health
       connect-timeout-ms: 2000
       read-timeout-ms: 1000
