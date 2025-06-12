@@ -5,7 +5,7 @@ import no.idporten.eudiw.rp.admin.service.accesscertificates.PKCS10Certification
 import no.idporten.eudiw.rp.admin.testdata.CertificatesGenerator;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.admin.web.form.SearchForm;
-import no.idporten.eudiw.rp.admin.web.forms.RelyingPartyEditForm;
+import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEditForm;
 import no.idporten.eudiw.rp.admin.web.resource.*;
 import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.CsrForm;
 import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyAccessCertificateResource;

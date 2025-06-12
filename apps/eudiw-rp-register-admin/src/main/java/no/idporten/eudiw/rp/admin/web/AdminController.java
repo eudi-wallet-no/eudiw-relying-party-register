@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.web.form.SearchForm;
-import no.idporten.eudiw.rp.admin.web.forms.RelyingPartyEditForm;
+import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEditForm;
 import no.idporten.eudiw.rp.admin.web.resource.*;
 import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.*;
 import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartiesView;

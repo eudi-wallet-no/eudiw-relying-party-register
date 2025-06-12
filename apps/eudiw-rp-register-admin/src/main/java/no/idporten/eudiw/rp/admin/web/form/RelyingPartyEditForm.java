@@ -1,4 +1,4 @@
-package no.idporten.eudiw.rp.admin.web.forms;
+package no.idporten.eudiw.rp.admin.web.form;
 
 import jakarta.validation.Valid;
 import lombok.*;
