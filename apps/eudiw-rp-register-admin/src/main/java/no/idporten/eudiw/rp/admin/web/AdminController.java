@@ -4,15 +4,19 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
+import no.idporten.eudiw.rp.admin.web.form.SearchForm;
 import no.idporten.eudiw.rp.admin.web.forms.RelyingPartyEditForm;
 import no.idporten.eudiw.rp.admin.web.resource.*;
 import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.*;
 import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartiesView;
 import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
+import no.idporten.eudiw.rp.admin.web.form.CreateForm;
+import no.idporten.eudiw.rp.admin.service.FormsMapper;
 
 import java.util.List;
 import java.util.Map;
@@ -21,7 +25,7 @@ import java.util.UUID;
 @Slf4j
 @Controller
 @RequiredArgsConstructor
-public class SearchController {
+public class AdminController {
 
     public static final String searchFormAttrId = "searchFormAttr";
 
@@ -130,4 +134,18 @@ public class SearchController {
 
         return mav;
     }
+
+    @GetMapping("/register")
+    public String showRegisterForm(Model model) {
+        model.addAttribute("createRelyingParty", new CreateForm());
+        return "register";
+    }
+
+    @PostMapping("/register")
+    public String submitRegisterForm(@ModelAttribute CreateForm form) {
+        relyingPartiesService.create(FormsMapper.toResource(form));
+        return "redirect:/";
+    }
+
+
 }

@@ -18,6 +18,7 @@ public class IndexController {
                            <body>
                               <h1>RP Register Admin</h1>
                               <a href="/search">Gå til søk</a>
+                              <a href="/register">Gå til registrer</a>
                            </body>
                         </html>""");
     }
