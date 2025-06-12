@@ -4,7 +4,7 @@
       th:action="@{/details/edit(id=${rp.id})}"
       method="POST">
 <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
-<!--/*@thymesVar id="editFormAttr" type="no.idporten.eudiw.rp.admin.web.forms.RelyingPartyEditForm"*/-->
+    <!--/*@thymesVar id="editFormAttr" type="no.idporten.eudiw.rp.admin.web.form.RelyingPartyEditForm"*/-->
 
     <fieldset>
         <legend>Generelt</legend>
@@ -68,7 +68,7 @@
 </form>
 
 <th:block th:fragment="prefill_edit_form_list_fields_fragment">
-    <!--/*@thymesVar id="editFormAttr" type="no.idporten.eudiw.rp.admin.web.forms.RelyingPartyEditForm"*/-->
+    <!--/*@thymesVar id="editFormAttr" type="no.idporten.eudiw.rp.admin.web.form.RelyingPartyEditForm"*/-->
     <script src="/js/dynamic_edit_form_fields.js"></script>
     <th:block th:each="entitlement : ${editFormAttr.getEntitlements()}">
         <script>addEntitlement("[[${entitlement.entitlement}]]");</script>
