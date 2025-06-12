@@ -1,9 +1,10 @@
-package no.idporten.eudiw.rp.admin.web.resource;
+package no.idporten.eudiw.rp.admin.web.form;
 
 import jakarta.validation.constraints.Size;
 import lombok.With;
 import no.idporten.eudiw.rp.admin.validation.SaneStringConstraint;
 import no.idporten.eudiw.rp.admin.validation.SaneStringValidator;
+import no.idporten.eudiw.rp.admin.web.resource.SearchRelyingPartyResource;
 
 @With
 public record SearchForm(

@@ -1,12 +1,10 @@
 package no.idporten.eudiw.rp.admin.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import no.idporten.eudiw.rp.admin.exception.AdminServiceException;
-import no.idporten.eudiw.rp.admin.service.exception.BadRequestException;
 import no.idporten.eudiw.rp.admin.service.exception.UnauthorizedRequestException;
 import no.idporten.eudiw.rp.admin.service.exception.UnrecognizedErrorResponseException;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartiesResource;
-import no.idporten.eudiw.rp.admin.web.resource.SearchForm;
+import no.idporten.eudiw.rp.admin.web.form.SearchForm;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;

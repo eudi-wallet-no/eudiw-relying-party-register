@@ -4,6 +4,7 @@ import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.service.accesscertificates.PKCS10CertificationRequestConverter;
 import no.idporten.eudiw.rp.admin.testdata.CertificatesGenerator;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
+import no.idporten.eudiw.rp.admin.web.form.SearchForm;
 import no.idporten.eudiw.rp.admin.web.forms.RelyingPartyEditForm;
 import no.idporten.eudiw.rp.admin.web.resource.*;
 import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.CsrForm;
@@ -68,7 +69,7 @@ public class SearchControllerTests {
                                 .formField("searchTerm", testSearchForm.searchTerm())
                                 .formField("includeInactive", includeInactiveStr))
                 .andExpect(view().name("search_view"))
-                .andExpect(model().attribute(SearchController.searchFormAttrId, testSearchForm));
+                .andExpect(model().attribute(AdminController.searchFormAttrId, testSearchForm));
 
             verify(mockRpService).search(eq(testSearchForm.toResource()));
         }
@@ -80,7 +81,7 @@ public class SearchControllerTests {
                                 .formField("searchTerm", invalidSearchTerm)
                                 .formField("includeInactive", "true"))
                    .andExpect(view().name("search_view"))
-                   .andExpect(model().attributeHasFieldErrors(SearchController.searchFormAttrId, "searchTerm"));
+                   .andExpect(model().attributeHasFieldErrors(AdminController.searchFormAttrId, "searchTerm"));
 
             verifyNoInteractions(mockRpService);
         }
@@ -92,7 +93,7 @@ public class SearchControllerTests {
                                 .formField("searchTerm", emptySearchTerm)
                                 .formField("includeInactive", "true"))
                    .andExpect(view().name("search_view"))
-                   .andExpect(model().attributeHasNoErrors(SearchController.searchFormAttrId));
+                   .andExpect(model().attributeHasNoErrors(AdminController.searchFormAttrId));
 
             verifyNoInteractions(mockRpService);
         }
@@ -120,8 +121,8 @@ public class SearchControllerTests {
                                 .queryParam("id", id.toString()))
                    .andExpect(status().isOk())
                    .andExpect(view().name("details_view"))
-                   .andExpect(model().attribute(SearchController.detailedViewDataAttrId, rpResource))
-                   .andExpect(model().attribute(SearchController.certificateSummariesAttrId, certsResource.toSummaries()));
+                   .andExpect(model().attribute(AdminController.detailedViewDataAttrId, rpResource))
+                   .andExpect(model().attribute(AdminController.certificateSummariesAttrId, certsResource.toSummaries()));
 
             verify(mockRpService).get(eq(id));
             verify(mockRpService).getCertificatesForRelyingParty(eq(id));
@@ -144,8 +145,8 @@ public class SearchControllerTests {
                                 .queryParam("id", id.toString()))
                    .andExpect(status().isOk())
                    .andExpect(view().name("csr_form_view"))
-                   .andExpect(model().attribute(SearchController.detailedViewDataAttrId, rpResource))
-                   .andExpect(model().attribute(SearchController.csrFormAttrId, CsrForm.empty()));
+                   .andExpect(model().attribute(AdminController.detailedViewDataAttrId, rpResource))
+                   .andExpect(model().attribute(AdminController.csrFormAttrId, CsrForm.empty()));
 
             verify(mockRpService, times(1)).get(eq(id));
         }
@@ -180,7 +181,7 @@ public class SearchControllerTests {
                                 .formField("csr", csrPemStr))
                    .andExpect(status().isOk())
                    .andExpect(view().name("csr_submit_success_view"))
-                   .andExpect(model().attribute(SearchController.newCertificateAttrId, dummyCertResource.toSummary()));
+                   .andExpect(model().attribute(AdminController.newCertificateAttrId, dummyCertResource.toSummary()));
 
             verify(mockRpService).get(eq(id));
             verify(mockRpService).requestCertificateForRelyingParty(eq(id), eq(csrResource));
@@ -203,7 +204,7 @@ public class SearchControllerTests {
                                 .formField("csr", invalidCsrPemStr))
                    .andExpect(status().isOk())
                    .andExpect(view().name("csr_form_view"))
-                   .andExpect(model().attributeHasFieldErrors(SearchController.csrFormAttrId, "csr"));
+                   .andExpect(model().attributeHasFieldErrors(AdminController.csrFormAttrId, "csr"));
         }
     }
 
@@ -225,8 +226,8 @@ public class SearchControllerTests {
                                 .queryParam("id", id.toString()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("edit_form_view"))
-                .andExpect(model().attribute(SearchController.editFormAttrId, expectedEditForm))
-                .andExpect(model().attribute(SearchController.detailedViewDataAttrId, rpResource));
+                .andExpect(model().attribute(AdminController.editFormAttrId, expectedEditForm))
+                .andExpect(model().attribute(AdminController.detailedViewDataAttrId, rpResource));
 
             verify(mockRpService).get(eq(id));
         }
@@ -281,15 +282,15 @@ public class SearchControllerTests {
                                 .formField("publicSector", Boolean.toString(rpResource.publicSector()))
                                 .formField("active", Boolean.toString(rpResource.active())))
                    // assert edit form invalid (should only have error in the name field)
-                   .andExpect(model().attributeHasFieldErrors(SearchController.editFormAttrId, "name"))
-                   .andExpect(model().attributeErrorCount(SearchController.editFormAttrId, 1))
+                   .andExpect(model().attributeHasFieldErrors(AdminController.editFormAttrId, "name"))
+                   .andExpect(model().attributeErrorCount(AdminController.editFormAttrId, 1))
 
                    // assert that view returns to edit form, for the given RP and
                    // with the unsubmitted form data.
                    .andExpect(status().isOk())
                    .andExpect(view().name("edit_form_view"))
-                   .andExpect(model().attribute(SearchController.detailedViewDataAttrId, rpResource))
-                   .andExpect(model().attribute(SearchController.editFormAttrId, editForm));
+                   .andExpect(model().attribute(AdminController.detailedViewDataAttrId, rpResource))
+                   .andExpect(model().attribute(AdminController.editFormAttrId, editForm));
 
             verify(mockRpService).get(id);
         }

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
+<head>
+    <title>Registrer Brukerstad</title>
+    <link rel="stylesheet" th:href="@{/css/register.css}"/>
+</head>
+<body>
+
+<form th:action="@{/register}" th:object="${createRelyingParty}" method="post">
+    <h2>Generelt</h2>
+
+    <label>Organisasjonsnummer</label>
+    <input type="text" th:field="*{orgnr}"/>
+
+    <label>Navn</label>
+    <textarea th:field="*{name}"></textarea>
+
+    <label><input type="checkbox" th:field="*{publicSector}"/> Offentlig sektor</label>
+
+    <h2>EAAs</h2>
+    <div id="eaa-list">
+        <div th:each="eaa, iterStat : *{eaas}" class="eaa-item">
+            <input type="text"
+                   th:name="'eaas[' + ${iterStat.index} + '].namespace'"
+                   th:value="${eaa.namespace}"
+                   placeholder="Namespace"/>
+
+            <input type="text"
+                   th:name="'eaas[' + ${iterStat.index} + '].intent'"
+                   th:value="${eaa.intent}"
+                   placeholder="Intent"/>
+
+            <button type="button" th:if="${iterStat.index == 0}" onclick="addEaa()">+</button>
+            <button type="button" th:if="${iterStat.index > 0}" onclick="removeElement(this, 'eaa')">-</button>
+        </div>
+    </div>
+
+    <h2>Entitlements</h2>
+    <div id="entitlements-list">
+        <div th:each="ent, iterStat : *{entitlements}" class="entitlement-item">
+            <input type="text"
+                   th:name="'entitlements[' + ${iterStat.index} + '].entitlement'"
+                   th:value="${ent.entitlement}"
+                   placeholder="Entitlement"/>
+
+            <button type="button" th:if="${iterStat.index == 0}" onclick="addEntitlement()">+</button>
+            <button type="button" th:if="${iterStat.index > 0}" onclick="removeElement(this, 'entitlements')">-</button>
+        </div>
+    </div>
+
+    <button type="submit">Lagre endringer</button>
+</form>
+
+<script>
+    function updateIndexes(containerId, prefix) {
+        const container = document.getElementById(containerId);
+        const items = container.children;
+        for (let i = 0; i < items.length; i++) {
+            const inputs = items[i].querySelectorAll('input');
+            inputs.forEach(input => {
+                const fieldName = input.name.substring(input.name.indexOf('].') + 2);
+                input.name = prefix + '[' + i + '].' + fieldName;
+            });
+        }
+    }
+
+    function cloneAndAdd(containerId, itemClass, prefix) {
+        const container = document.getElementById(containerId);
+        const original = container.querySelector('.' + itemClass);
+        const clone = original.cloneNode(true);
+
+        const inputs = clone.querySelectorAll('input');
+        inputs.forEach(input => input.value = '');
+
+        clone.querySelectorAll('button').forEach(btn => btn.remove());
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.textContent = '-';
+        removeBtn.onclick = function () { removeElement(removeBtn, prefix); };
+        clone.appendChild(removeBtn);
+
+        container.appendChild(clone);
+        updateIndexes(containerId, prefix);
+    }
+
+    function addEaa() {
+        cloneAndAdd('eaa-list', 'eaa-item', 'eaas');
+    }
+
+    function addEntitlement() {
+        cloneAndAdd('entitlements-list', 'entitlement-item', 'entitlements');
+    }
+
+    function removeElement(button, prefix) {
+        const item = button.parentElement;
+        const containerId = prefix === 'eaa' ? 'eaa-list' : 'entitlements-list';
+        const container = document.getElementById(containerId);
+        container.removeChild(item);
+        updateIndexes(containerId, prefix);
+    }
+
+</script>
+
+</body>
+</html>
