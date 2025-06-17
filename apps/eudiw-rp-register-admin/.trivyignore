@@ -1,0 +1,2 @@
+CVE-2025-22874 # go stdlib, crypto/x509
+CVE-2025-48988 # tomcat-embed-core 
