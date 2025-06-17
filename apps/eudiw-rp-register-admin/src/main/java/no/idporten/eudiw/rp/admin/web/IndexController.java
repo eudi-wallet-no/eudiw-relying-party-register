@@ -1,26 +1,13 @@
 package no.idporten.eudiw.rp.admin.web;
 
-import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.ModelAndView;
 
-@RestController
+@Controller
 public class IndexController {
-
     @GetMapping("/")
-    public ResponseEntity<String> index() {
-        return ResponseEntity.ok(
-                """
-                        <html>
-                           <head>
-                              <title>RP Register Admin</title>
-                           </head>
-                           <body>
-                              <h1>RP Register Admin</h1>
-                              <a href="/search">Gå til søk</a>
-                              <a href="/register">Gå til registrer</a>
-                           </body>
-                        </html>""");
+    public ModelAndView index() {
+        return new ModelAndView("index_view");
     }
-
 }
