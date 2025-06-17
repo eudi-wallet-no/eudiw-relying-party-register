@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head th:replace="~{fragments/general ::
+                      head_fragment(title='Sandkassa for digital lommebok')}">
+</head>
+
+<body>
+    <header th:replace="~{fragments/general :: page_header_fragment}"></header>
+
+    <main>
+        <div>
+            <h1 class="ds-heading" data-size="lg">
+                Velkommen til admintjenesta til sandkassa
+            </h1>
+            <p class="ds-paragraph">
+                Her kan du administrere brukersteder og aksess-sertifikater i
+                sandkassa.
+            </p>
+        </div>
+
+        <nav class="flex-container">
+            <a th:href="@{/search}" class="ds-card">
+                <h2 class="ds-heading">
+                    Søking
+                </h2>
+                <p class="ds-paragraph">
+                    Søk etter brukersteder. Dersom du er innlogga får du også
+                    mulighet for å redigere detaljer for brukerstedet, samt å
+                    registrere og lese aksess-sertifikater.
+                </p>
+            </a>
+
+            <a th:href="@{/register}" class="ds-card">
+                <h2 class="ds-heading">
+                    Registrering
+                </h2>
+                <p class="ds-paragraph">
+                    Dersom du er innlogga får du registrere nye brukersteder her.
+                </p>
+            </a>
+        </nav>
+    </main>
+
+    <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
+</body>
+</html>

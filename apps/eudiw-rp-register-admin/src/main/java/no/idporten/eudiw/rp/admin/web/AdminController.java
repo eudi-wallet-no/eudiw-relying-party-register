@@ -146,6 +146,4 @@ public class AdminController {
         relyingPartiesService.create(FormsMapper.toResource(form));
         return "redirect:/";
     }
-
-
 }

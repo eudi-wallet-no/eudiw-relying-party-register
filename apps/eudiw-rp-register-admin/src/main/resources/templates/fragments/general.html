@@ -6,3 +6,96 @@
      class="bottom-banner">
     <p>Digital Lommebok © 2025</p>
 </div>
+
+<th:block th:fragment="default_stylesheets_fragment">
+    <link rel="stylesheet" th:href="@{inter/inter.css}">
+    <link rel="stylesheet" th:href="@{css/index.css}">
+    <link rel="stylesheet" th:href="@{css/digital-lommebok.css}">
+    <link rel="stylesheet" th:href="@{css/styles.css}">
+</th:block>
+
+<head th:fragment="head_fragment(title)">
+    <title th:text="${title}"></title>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="icon" th:href="@{favicon.ico}">
+    <th:block th:replace="~{:: default_stylesheets_fragment}"></th:block>
+</head>
+
+<header th:fragment="page_header_fragment">
+    <div>
+        <div style="padding-right: 8px;">
+            <a aria-label="Til forsiden"
+               class="ds-focus"
+               th:href="@{/}">
+                <div th:replace="~{:: digdir_logo_fragment(26)}">
+                </div>
+            </a>
+        </div>
+        Administrasjon av brukersteder
+    </div>
+
+    <div>
+        <a class="ds-link"
+           th:href="@{/about}"
+           data-color="neutral">
+            Om sandkassa
+        </a>
+        <a class="ds-link"
+           th:href="@{/}"
+           data-color="neutral">
+            Hjem
+        </a>
+    </div>
+</header>
+
+<footer th:fragment="page_footer_fragment"
+        data-color-scheme="dark">
+    <div> <!--/* this div holds first row of footer. do not remove! */-->
+        <div>
+            <div th:replace="~{:: digdir_logo_fragment(64)}"></div>
+        </div>
+
+        <div>
+            <h2 class="ds-heading">Trenger du hjelp?</h2>
+            <a class="ds-link" href="mailto:servicedesk@digdir.no">
+                servicedesk@digdir.no
+            </a>
+
+            <a class="ds-link" href="https://www.digdir.no/digdir/kontakt-oss/943">
+                Kontakt oss
+            </a>
+        </div>
+    </div>
+</footer>
+
+<div th:fragment="digdir_logo_fragment(dim)">
+    <svg xmlns="http://www.w3.org/2000/svg"
+         fill="var(--ds-color-text-default)"
+         th:height="${dim}"
+         th:width="${dim}"
+         th:viewBox="|0 0 22.63 24.37|">
+        <g>
+            <path d="M11.6096 0H0.458154C0.336644 0 0.220111 0.0518311 0.13419
+                     0.144091C0.0482698 0.236351 0 0.361481 0 0.491956V23.85C0
+                     23.9805 0.0482698 24.1057 0.13419 24.1979C0.220111 24.2902
+                     0.336644 24.342 0.458154 24.342H11.6096C14.5588 24.2519
+                     17.359 22.9307 19.4154 20.6589C21.4717 18.3871 22.6221
+                     15.344 22.6221 12.1759C22.6221 9.00789 21.4717 5.9647
+                     19.4154 3.69294C17.359 1.42118 14.5588 0.0999054 11.6096
+                     0.00983935V0ZM12.7 20.672C11.0128 20.9838 9.27693 20.7109
+                     7.74379 19.8927C6.21064 19.0745 4.9598 17.7536 4.17239
+                     16.1213C3.38497 14.4889 3.10186 12.6298 3.36403
+                     10.8131C3.62621 8.99641 4.42008 7.31649 5.63067
+                     6.01658C6.84127 4.71667 8.40576 3.86423 10.0976
+                     3.58271C11.7895 3.30119 13.5209 3.60519 15.0411
+                     4.4507C16.5613 5.29621 17.7914 6.63934 18.5534
+                     8.28559C19.3153 9.93185 19.5695 11.7958 19.2791
+                     13.6075C18.9966 15.3706 18.2123 16.9964 17.0342
+                     18.2615C15.8561 19.5265 14.342 20.3686 12.7 20.672"
+            ></path>
+        </g>
+    </svg>
+</div>
