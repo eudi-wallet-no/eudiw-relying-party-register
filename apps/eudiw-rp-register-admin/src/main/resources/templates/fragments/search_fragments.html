@@ -2,33 +2,48 @@
 <form th:fragment="search_form_fragment"
       th:object="${searchFormAttr}"
       th:action="@{/search}"
-      method="GET"
->
-    <div class="search-form-row">
-        <label for="search_term"></label>
-        <input id="search_term" type="text" size="60"
-               th:field="*{searchTerm}"
-               placeholder="Søk på org.nr. eller navn">
+      method="GET">
+        <div class="ds-search"
+             style="margin-block-end: var(--ds-size-2)">
+            <input id="search_term"
+                   th:field="*{searchTerm}"
+                   placeholder="Søk på org.nr. eller navn"
+                   size="50"
+                   type="text"
+                   class="ds-input">
+            <button type="reset"
+                    class="ds-button"
+                    data-icon="true"
+                    data-variant="tertiary"
+            ></button>
+            <button type="submit"
+                    class="ds-button"
+                    data-variant="primary">Søk</button>
+        </div>
 
         <label for="includeInactive">Inkluder inaktive</label>
-        <input id="includeInactive" type="checkbox" th:field="*{includeInactive}">
 
-        <button type="submit">Søk</button>
-    </div>
+        <input id="includeInactive"
+               type="checkbox"
+               th:field="*{includeInactive}"
+               class="ds-input">
 
     <ul th:if="${#fields.hasErrors()}">
         <li th:each="error : ${#fields.errors('searchTerm')}"
-            th:text="${error}">
-        </li>
+            th:text="${error}"
+            class="ds-validation-message"></li>
     </ul>
 </form>
 
 <div th:fragment="results_table_fragment">
-    <h2>Søkeresultat</h2>
+    <h2 class="ds-heading">
+        Søkeresultat
+    </h2>
     <!--/*@thymesVar id="full_results" type="no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartiesView"*/-->
     <!--/*@thymesVar id="sorted_and_filtered_results" type="java.util.List<no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource>"*/-->
-    <div th:with="sorted_and_filtered_results=${@relyingPartiesView.applyViewSpec()}">
-        <table>
+    <div th:with="sorted_and_filtered_results=${@relyingPartiesView.applyViewSpec()}"
+         class="flex-container">
+        <table class="ds-table" data-border="true">
             <thead>
             <tr>
                 <th>
