@@ -1,23 +1,21 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
-<head>
-    <title>Sandkasse for digital lommebok - Admintjenesta</title>
-</head>
+<head th:replace="~{fragments/general :: head_fragment(title='Søk etter brukersteder')}">
+
 <body>
-    <div th:replace="~{fragments/general :: digdir_header}">
-    </div>
+    <header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
-    <div class="two-column-page">
-        <div class="flexbox">
-            <h2>Søk etter brukerstader</h2>
-            <form th:replace="~{fragments/search_fragments :: search_form_fragment}">
-            </form>
+    <main>
+        <h1 class="ds-heading" data-size="lg">
+            Søk etter brukersteder
+        </h1>
+        <form th:replace="~{fragments/search_fragments :: search_form_fragment}">
+        </form>
 
-            <div th:replace="~{fragments/search_fragments :: results_table_fragment}">
-            </div>
+        <div th:replace="~{fragments/search_fragments :: results_table_fragment}">
         </div>
-    </div>
+    </main>
 
-    <div th:replace="~{fragments/general :: digdir_footer}"></div>
+    <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
 </body>
 </html>
