@@ -1,55 +1,51 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
-<head>
-    <title>Detaljer for brukerstad</title>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="nb-no"
+      th:with="rp=${detailedViewDataAttr}">
+<head th:replace="~{fragments/general :: head_fragment(title=|Detaljer for ${rp.name}|)}">
 </head>
-
 <!--/*
-    to add new tab:
-    1) add a child element to the "content_tabs" div, with some id "#<tab_id>".
-    2) optionally add a link to the tab with href="#<tab_id>" to the
-       "tab_links" list.
+    to add new tab/:
+    1) add a child element to the "content_panels" div, with some id "#<panel_id>".
+    2) optionally add a link to the tab with href="#<page_tabs>" to the
+       "page_tabs" container.
 */-->
 
 <!--/*@thymesVar id="detailedViewDataAttr" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
 <!--/*@thymesVar id="certificateSummariesAttr" type="java.util.List<no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary>"*/-->
-<body th:with="rp=${detailedViewDataAttr}">
+<body>
+    <header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
-    <div th:replace="~{fragments/general :: digdir_header}"></div>
+    <main>
+        <h1 class="ds-heading" data-size="lg">
+            Detaljer for brukersted: <span th:text="${rp.name}"/>
+        </h1>
 
-    <p>
-        <a th:href="@{/search}">Tilbake til søking</a>
-    </p>
+        <nav id="tabs_container">
+            <a href="#about" class="tab" data-size="lg">
+                Generelt
+            </a>
+            <a href="#certificates" class="tab" data-size="lg">
+                Aksess-sertifikater
+            </a>
+        </nav>
 
-    <h2>Detaljer for brukerstad: <span th:text="${rp.name}"/></h2>
-
-    <ul id="tab_links">
-        <li><a href="#about">Generelt</a></li>
-        <li><a href="#certificates">Sertifikater</a></li>
-    </ul>
-
-    <div id="content_tabs">
-        <div id="#about">
-            <div th:replace="~{fragments/details_tabs_fragments
-                                 :: general_info_content_fragment(${rp})}">
+        <div id="panels_container">
+            <div id="#about"
+                 th:insert="~{fragments/details_tabs_fragments
+                                :: general_info_content_fragment(rp=${rp})}">
             </div>
-            <p>
-                <a th:href="@{details/edit(id=${rp.id})}">Rediger brukerstad</a>
-            </p>
+            <div id="#certificates"
+                 th:insert="~{fragments/details_tabs_fragments
+                                :: certificates_content_fragment(
+                                    rp=${rp}, certs=${certificateSummariesAttr})}">
+            </div>
         </div>
 
-        <div id="#certificates">
-            <div th:replace="~{fragments/details_tabs_fragments
-                                 :: certificates_content_fragment(${certificateSummariesAttr})}">
-            </div>
-            <p>
-                <a th:href="@{/registerCsr(id=${rp.id})}">Registrer nyt CSR</a>
-            </p>
-        </div>
-    </div>
+    </main>
 
-    <div th:replace="~{fragments/general :: digdir_footer}"></div>
+    <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
+
+<script src="/js/simple_tabs.js"></script>
 </body>
-
-<script src="/js/simple_content_tabs.js"></script>
 </html>
