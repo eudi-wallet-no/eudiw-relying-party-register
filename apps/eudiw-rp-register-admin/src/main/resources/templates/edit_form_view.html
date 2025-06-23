@@ -1,26 +1,29 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
-<head>
-    <title>Admintjenesta - Rediger brukerstad</title>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="nb-no"
+      th:with="rp=${detailedViewDataAttr}">
+<head th:replace="~{fragments/general :: head_fragment(title=|Endre brukersted ${rp.name}|)}">
 </head>
 
 <!--/*@thymesVar id="detailedViewDataAttr" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
-<body th:with="rp=${detailedViewDataAttr}">
-<div th:replace="~{fragments/general :: digdir_header}"></div>
+<body>
+    <header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
-    <a th:href="@{/details(id=${rp.id})}">
-        Annuler (tilbake til <span th:text="${rp.name}"></span>)
-    </a>
+    <main>
 
-    <h2>Rediger brukerstad: <span th:text="${rp.name}"></span></h2>
+        <h1 class="ds-heading" data-size="lg">
+            Endre brukersted: <span th:text="${rp.name}"></span>
+        </h1>
 
-    <form th:replace="~{fragments/edit_fragments :: edit_form_fragment(id=${rp.id})}">
-    </form>
+        <p class="ds-paragraph">
+            <a th:href="@{/details(id=${rp.id})}" class="ds-button">
+                Tilbake til <span th:text="${rp.name}"></span>
+            </a>
+        </p>
+        <div th:replace="~{fragments/edit_fragments :: edit_form_fragment(id=${rp.id})}">
+        </div>
+    </main>
 
-<div th:replace="~{fragments/general :: digdir_footer}"></div>
-
-<th:block th:replace="~{fragments/edit_fragments :: prefill_edit_form_list_fields_fragment}">
-</th:block>
-
+    <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
 </body>
 </html>
