@@ -16,17 +16,24 @@ function* idxGenerator() {
 }
 const idxGen = idxGenerator();
 
-function makeListItem(content) {
-    const elem = document.createElement('li');
-    elem.innerHTML = content;
-
+function makeDeleteButtonFor(elem) {
     const deleteButton = document.createElement("button");
     deleteButton.type = "button";
-    deleteButton.innerText = "Slet";
+    deleteButton.innerText = "Slett";
     deleteButton.onclick = () => elem.remove();
-    elem.appendChild(deleteButton);
+    deleteButton.className = "ds-button";
+    deleteButton.dataset.variant = "secondary";
+    deleteButton.dataset.color = "danger";
+    return deleteButton;
+}
 
-    return elem;
+function makeTableItem(content) {
+    const row = document.createElement("tr");
+    row.innerHTML = content;
+    const deleteCell = document.createElement("td");
+    deleteCell.appendChild(makeDeleteButtonFor(row));
+    row.appendChild(deleteCell);
+    return row;
 }
 
 function addEntitlementOnclick() {
@@ -47,17 +54,15 @@ function addEaaOnclick() {
 }
 
 function addEntitlement(entitlement) {
-    const entitlementItem = makeListItem(
-        `<div>${entitlement}
-             <input type="hidden" name="entitlements" value="${entitlement}"></div>`);
+    const entitlementItem = makeTableItem(
+        `<td>${entitlement} <input type="hidden" name="entitlements" value="${entitlement}"></td>`);
     entitlement_container.appendChild(entitlementItem);
 }
 function addEaa(namespace, intent) {
     const idx = idxGen.next().value;
-    const eaaItem = makeListItem(
-        `<div>Namespace: ${namespace}
-             <input type="hidden" name="eaas[${idx}].namespace" value="${namespace}"></div>
-             <div>Intent: ${intent}
-             <input type="hidden" name="eaas[${idx}].intent" value="${intent}"></div>`);
+    const eaaItem = makeTableItem(
+        `<td>${namespace} <input type="hidden" name="eaas[${idx}].namespace" value="${namespace}"></td>
+         <td>${intent} <input type="hidden" name="eaas[${idx}].intent" value="${intent}"></td>`
+    );
     eaa_container.appendChild(eaaItem);
 }

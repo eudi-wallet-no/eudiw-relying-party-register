@@ -1,3 +1,4 @@
+<div th:fragment="edit_form_fragment">
 <form th:fragment="edit_form_fragment"
       id="edit_form"
       th:object="${editFormAttr}"
@@ -6,74 +7,205 @@
 <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
     <!--/*@thymesVar id="editFormAttr" type="no.idporten.eudiw.rp.admin.web.form.RelyingPartyEditForm"*/-->
 
-    <fieldset>
-        <legend>Generelt</legend>
+    <div style="margin-bottom: 8px;">
+    <fieldset data-size="sm">
+        <legend class="ds-label"
+                data-weight="high">
+            Generelt
+        </legend>
 
-        <p>
-            <label for="orgno_field">Org.nr.:</label>
-            <span id="orgno_field" th:text="${rp.orgno}"></span>
+        <p class="ds-paragraph">
+            <label for="orgno_field"
+                   data-weight="medium"
+                   class="ds-label">
+                Org.nr.
+            </label>
+            <input disabled
+                   id="orgno_field"
+                   th:value="${rp.orgno}"
+                   class="ds-input">
         </p>
-        <p>
-            <label for="name_field">Navn:</label>
+
+        <p class="ds-paragraph">
+            <label for="name_field"
+                   class="ds-label">
+                Navn
+            </label>
             <input id="name_field"
                    th:field="*{name}"
                    type="text"
-                   placeholder="Navn">
+                   placeholder="Navn"
+                   class="ds-input">
         </p>
 
-        <p>
-            <label for="sector_field">Sektor:</label>
-            <select id="sector_field" th:field="*{publicSector}">
+        <p class="ds-paragraph">
+            <label for="sector_field"
+                   class="data-label">
+                Sektor
+            </label>
+            <select id="sector_field"
+                    th:field="*{publicSector}"
+                    class="ds-input">
                 <option value="true">Offentlig</option>
                 <option value="false">Privat</option>
             </select>
         </p>
 
-        <p>
-            <label for="active_field">Aktiv:</label>
-            <input id="active_field" type="checkbox" th:field="*{active}">
+        <p class="ds-paragraph">
+            <label for="active_field"
+                   class="ds-label">
+                Aktiv
+            </label>
+            <input id="active_field"
+                   type="checkbox"
+                   th:field="*{active}"
+                   class="ds-input">
         </p>
     </fieldset>
 
-    <fieldset>
-        <legend>Rettigheter</legend>
-        <label for="entitlement_field">Rettighet:</label>
-        <input id="entitlement_field"
-               type="text"
-               placeholder="Entitlement ...">
-        <button type="button" onclick="addEntitlementOnclick()">Legg til rettighet</button>
+    <fieldset data-size="sm">
+        <legend class="ds-label"
+                data-weight="high">
+            Endre rettigheter for brukersted
+        </legend>
 
-        <ul id="entitlement_container">
-        </ul>
+        <div class="flex-container">
+            <div>
+                <p class="ds-paragraph"
+                   style="margin-bottom: 8px;">
+                    Valgte rettigheter
+                </p>
+                <table class="ds-table"
+                       data-border="true"
+                       style="table-layout: fixed; word-wrap: break-word;">
+                    <thead>
+                    <tr>
+                        <th>Rettighet</th>
+                        <th style="width: 4em;"></th>
+                    </tr>
+                    </thead>
+                    <tbody id="entitlement_container"></tbody>
+                </table>
+            </div>
+            <div>
+                <fieldset>
+                    <legend class="ds-legend">
+                        Legg til ny rettighet
+                    </legend>
+                    <p class="ds-paragraph"
+                       style="margin-bottom: 8px;">
+
+                        <label for="entitlement_field"
+                               class="ds-label">
+                            Rettighet
+                        </label>
+
+                        <input id="entitlement_field"
+                               type="text"
+                               placeholder="Rettighet ..."
+                               class="ds-input">
+                    </p>
+                    <button type="button"
+                            onclick="addEntitlementOnclick()"
+                            class="ds-button"
+                            data-variant="secondary">
+                        Legg til
+                    </button>
+                </fieldset>
+            </div>
+
+        </div>
     </fieldset>
 
-    <fieldset>
-        <legend>EAA'ere</legend>
-        <label for="eaa_namespace_field">Namespace:</label>
-        <input id="eaa_namespace_field"
-               type="text"
-               placeholder="Namespace ...">
+    <fieldset data-size="sm">
+        <legend class="ds-label"
+                data-weight="high">
+            Endre EAA'ere for brukersted
+        </legend>
 
-        <label for="eaa_intent_field">Intent:</label>
-        <input id="eaa_intent_field"
-               type="text"
-               placeholder="Intent ...">
-        <button type="button" onclick="addEaaOnclick()">Legg til EAA</button>
+        <div class="flex-container">
+            <div>
+                <p class="ds-paragraph"
+                   style="margin-bottom: 8px;">
+                    Valgte EAA'ere
+                </p>
+                <table class="ds-table"
+                       data-border="true"
+                       style="table-layout: fixed; word-wrap: break-word;">
+                    <thead>
+                    <tr>
+                        <th>Namespace</th>
+                        <th>Intent</th>
+                        <th style="width: 4em;"></th>
+                    </tr>
+                    </thead>
+                    <tbody id="eaa_container"></tbody>
+                </table>
+            </div>
 
-        <ul id="eaa_container">
-        </ul>
+            <div>
+                <fieldset>
+                    <legend class="ds-legend">
+                        Legg til ny EAA
+                    </legend>
+                    <p class="ds-paragraph"
+                       style="margin-bottom: 8px;">
+                        <label for="eaa_namespace_field"
+                               class="ds-label">
+                            Namespace
+                        </label>
+                        <input id="eaa_namespace_field"
+                               type="text"
+                               placeholder="Namespace ..."
+                               class="ds-input">
+
+                        <label for="eaa_intent_field"
+                               class="ds-label">
+                            Intent
+                        </label>
+
+                        <input id="eaa_intent_field"
+                               type="text"
+                               placeholder="Intent ..."
+                               class="ds-input">
+                    </p>
+                    <button type="button"
+                            onclick="addEaaOnclick()"
+                            class="ds-button"
+                            data-variant="secondary">
+                        Legg til
+                    </button>
+                </fieldset>
+            </div>
+
+        </div>
     </fieldset>
+    </div>
 
-    <button type="submit">Send</button>
+    <div class="flex-container">
+        <button type="submit"
+                class="ds-button"
+                data-variant="primary">
+            Lagre endringer
+        </button>
+
+        <a th:href="@{/details(id=${rp.id})}"
+           class="ds-button"
+           type="button"
+           data-variant="secondary"
+           data-color="danger">
+            Annuller
+        </a>
+    </div>
 </form>
 
-<th:block th:fragment="prefill_edit_form_list_fields_fragment">
-    <!--/*@thymesVar id="editFormAttr" type="no.idporten.eudiw.rp.admin.web.form.RelyingPartyEditForm"*/-->
-    <script src="/js/dynamic_edit_form_fields.js"></script>
-    <th:block th:each="entitlement : ${editFormAttr.getEntitlements()}">
-        <script>addEntitlement("[[${entitlement.entitlement}]]");</script>
-    </th:block>
-    <th:block th:each="eaa : ${editFormAttr.getEaas()}">
-        <script>addEaa("[[${eaa.namespace}]]", "[[${eaa.intent}]]");</script>
-    </th:block>
+<script src="/js/dynamic_edit_form_fields.js"></script>
+
+<!--/* pre-fill entitlements and EAA lists with values from the RP to be edited */-->
+<th:block th:each="entitlement : ${editFormAttr.getEntitlements()}">
+    <script>addEntitlement("[[${entitlement.entitlement}]]");</script>
 </th:block>
+<th:block th:each="eaa : ${editFormAttr.getEaas()}">
+    <script>addEaa("[[${eaa.namespace}]]", "[[${eaa.intent}]]");</script>
+</th:block>
+</div>
