@@ -1,0 +1,1 @@
+CVE-2025-22874 # stdlib crypto/x509: Usage of ExtKeyUsageAny disables policy validation in crypto/x509. Not relevant for us I think. Fixed in 1.24.4
