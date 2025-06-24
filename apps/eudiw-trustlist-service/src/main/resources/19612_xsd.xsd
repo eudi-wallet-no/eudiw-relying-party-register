@@ -4,7 +4,8 @@ This document is part of ETSI TS 119 612. In the event that any
 part of this document is in conflict with the text of TS 119 612 
 then that text shall prevail as the authoritative source
 
-This is a review done in October 2013 as a result of mismatches between the XML Schema and the specification of some data types within TS 119 612,
+This is a review done in January 2016 adding the possibility to specify the Service Supply Points by a type 
+
 -->
 <xsd:schema targetNamespace="http://uri.etsi.org/02231/v2#" xmlns:tsl="http://uri.etsi.org/02231/v2#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" elementFormDefault="qualified" attributeFormDefault="unqualified">
 	<!-- Imports -->
@@ -116,6 +117,18 @@ This is a review done in October 2013 as a result of mismatches between the XML 
 			<xsd:minLength value="1"/>
 		</xsd:restriction>
 	</xsd:simpleType>
+	<!-- AttributedNonEmptyURIType--> 
+	<!-- 2016-01. XML Schema CHANGE-->
+	<!-- AttributedNonEmptyURIType was included to allow to specify the type of the service/information found under the given URI -->
+    <xsd:complexType name="AttributedNonEmptyURIType"> 
+        <xsd:simpleContent> 
+            <xsd:extension base="tsl:NonEmptyURIType"> 
+                <xsd:attribute name="type" type="xsd:anyURI" use="optional"/> 
+            </xsd:extension> 
+        </xsd:simpleContent> 
+    </xsd:complexType> 
+
+	
 	<!-- -->
 	<!--NonEmptyURIType with language indication-->
 	<!-- -->
@@ -365,11 +378,18 @@ This is a review done in October 2013 as a result of mismatches between the XML 
 	<xsd:annotation><xsd:documentation>Specified in TS 119 612 v2.1.1 clause 5.5.4 Service current status</xsd:documentation></xsd:annotation>
 	<xsd:element name="ServiceStatus" type="tsl:NonEmptyURIType"/>
 	<!-- Type for Service Supply Points -->
+		<!-- 2016-01. XML Schema CHANGE-->
+	<!-- ServiceSupplyPointsType changed to use AttributedNonEmptyURIType. The optional type attribute of AttributedNonEmptyURIType allows for each URI to specify the service/information to be found under this URI. 
+For example a ServiceSupplyPoints field associated to a service of a type "http://uri.etsi.org/TrstSvc/Svctype/CA/QC" could include: 
+-	a URI pointing towards a descriptive text where users could be given information on (local) registration authorities and procedures to follow for being issued qualified certificates; 
+-	a URI providing a CRL distribution point giving certificate status information for qualified certificates issued by or under the and further specified by the type attibute value "http://uri.etsi.org/TrstSvc/Svctype/Certstatus/CRL/QC". Such URI can for example provide access to a last and final CRL in case of service unexpected termination and/or impossibility to provide such a final CRL at the CRL distribution point available from issued certificate's extensions; and/or
+-	a URI providing one access location of an OCSP responder authorized to provide certificate status information for qualified certificates issued by or under the service, and further specified by the type attibute value "http://uri.etsi.org/TrstSvc/Svctype/Certstatus/OCSP/QC".
+-->
 	<xsd:annotation><xsd:documentation>Specified in TS 119 612 v2.1.1 clause 5.5.7 Service supply points</xsd:documentation></xsd:annotation>
 	<xsd:element name="ServiceSupplyPoints" type="tsl:ServiceSupplyPointsType"/>
 	<xsd:complexType name="ServiceSupplyPointsType">
 		<xsd:sequence maxOccurs="unbounded">
-			<xsd:element name="ServiceSupplyPoint" type="tsl:NonEmptyURIType"/>
+			<xsd:element name="ServiceSupplyPoint" type="tsl:AttributedNonEmptyURIType"/>
 		</xsd:sequence>
 	</xsd:complexType>
 	<!-- TSPServiceIdentifier -->
