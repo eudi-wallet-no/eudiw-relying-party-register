@@ -92,24 +92,57 @@
                 <version>${jaxb2-maven-plugin.version}</version>
                 <executions>
                     <execution>
-                        <id>xjc</id>
+                        <id>19612_xsd.xsd</id>
                         <goals>
                             <goal>xjc</goal>
                         </goals>
+                        <configuration>
+                            <xjbSources>
+                                <xjbSource>src/main/resources/global.xjb</xjbSource>
+                            </xjbSources>
+                            <catalog>src/main/resources/catalog.xml</catalog>
+                            <sources>
+                                <source>src/main/resources/19612_xsd.xsd</source>
+                            </sources>
+                            <outputDirectory>${basedir}/target/generated-sources/src/java</outputDirectory>
+                            <clearOutputDir>false</clearOutputDir>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>19612_additionaltypes_xsd.xsd</id>
+                        <goals>
+                            <goal>xjc</goal>
+                        </goals>
+                        <configuration>
+                            <xjbSources>
+                                <xjbSource>src/main/resources/global.xjb</xjbSource>
+                            </xjbSources>
+                            <catalog>src/main/resources/catalog.xml</catalog>
+                            <sources>
+                                <source>src/main/resources/19612_additionaltypes_xsd.xsd</source>
+                            </sources>
+                            <outputDirectory>${basedir}/target/generated-sources/src/java</outputDirectory>
+                            <clearOutputDir>false</clearOutputDir>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>19612_sie_xsd.xsd</id>
+                        <goals>
+                            <goal>xjc</goal>
+                        </goals>
+                        <configuration>
+                            <xjbSources>
+                                <xjbSource>src/main/resources/global.xjb</xjbSource>
+                            </xjbSources>
+                            <catalog>src/main/resources/catalog.xml</catalog>
+                            <sources>
+                                <source>src/main/resources/19612_sie_xsd.xsd</source>
+                            </sources>
+                            <outputDirectory>${basedir}/target/generated-sources/src/java</outputDirectory>
+                            <clearOutputDir>false</clearOutputDir>
+                        </configuration>
                     </execution>
                 </executions>
-                <configuration>
-                    <xjbSources>
-                        <xjbSource>src/main/resources/global.xjb</xjbSource>
-                    </xjbSources>
-                    <sources>
-                        <source>src/main/resources/ts_119612v020101_xsd.xsd</source>
-                    </sources>
-                    <packageName>no.idporten.eudiw.trustlist.etsi_ts_119_612
-                    </packageName>
-                    <outputDirectory>${basedir}/target/generated-sources/src/java</outputDirectory>
-                    <clearOutputDir>false</clearOutputDir>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>

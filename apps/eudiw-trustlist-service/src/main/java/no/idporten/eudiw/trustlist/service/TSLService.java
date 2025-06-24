@@ -1,8 +1,8 @@
 package no.idporten.eudiw.trustlist.service;
 
-import no.idporten.eudiw.trustlist.etsi_ts_119_612.*;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.openssl.PEMParser;
+import org.etsi.uri._02231.v2_.*;
 import org.springframework.stereotype.Service;
 
 import java.io.StringReader;
