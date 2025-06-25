@@ -1,0 +1,193 @@
+<div th:fragment="create_form_fragment">
+
+<form th:fragment="create_form_fragment"
+      id="create_form"
+      th:object="${createFormAttr}"
+      th:action="@{/create}"
+      method="POST">
+    <!--/*@thymesVar id="createFormAttr" type="no.idporten.eudiw.rp.admin.web.form.RelyingPartyCreateForm"*/-->
+
+    <div style="margin-bottom: 8px;">
+    <fieldset class="ds-fieldset" data-size="sm">
+        <legend class="ds-label"
+                data-weight="high">
+            Generelt
+        </legend>
+
+        <p class="ds-paragraph">
+            <label for="orgno_field"
+                   data-weight="medium"
+                   class="ds-label">
+                Org.nr.
+            </label>
+            <input id="orgno_field"
+                   th:field="*{orgNr}"
+                   type="text"
+                   placeholder="Orgnr"
+                   class="ds-input">
+        </p>
+
+        <p class="ds-paragraph">
+            <label for="name_field"
+                   class="ds-label">
+                Navn
+            </label>
+            <input id="name_field"
+                   th:field="*{name}"
+                   type="text"
+                   placeholder="Navn"
+                   class="ds-input">
+        </p>
+
+        <p class="ds-paragraph">
+            <label for="sector_field"
+                   class="data-label">
+                Sektor
+            </label>
+            <select id="sector_field"
+                    th:field="*{publicSector}"
+                    class="ds-input">
+                <option value="true">Offentlig</option>
+                <option value="false">Privat</option>
+            </select>
+        </p>
+    </fieldset>
+
+    <fieldset class="ds-fieldset" data-size="sm">
+        <legend class="ds-label"
+                data-weight="high">
+            Legg til rettigheter for brukersted
+        </legend>
+
+        <div class="flex-container">
+            <div>
+                <p class="ds-paragraph"
+                   style="margin-bottom: 8px;">
+                    Valgte rettigheter
+                </p>
+                <table class="ds-table"
+                       data-border="true"
+                       style="table-layout: fixed; word-wrap: break-word;">
+                    <thead>
+                    <tr>
+                        <th>Rettighet</th>
+                        <th style="width: 4em;"></th>
+                    </tr>
+                    </thead>
+                    <tbody id="entitlement_container"></tbody>
+                </table>
+            </div>
+            <div>
+                <fieldset class="ds-fieldset">
+                    <legend class="ds-legend">
+                        Legg til ny rettighet
+                    </legend>
+                    <p class="ds-paragraph"
+                       style="margin-bottom: 8px;">
+
+                        <label for="entitlement_field"
+                               class="ds-label">
+                            Rettighet
+                        </label>
+
+                        <input id="entitlement_field"
+                               type="text"
+                               placeholder="Rettighet ..."
+                               class="ds-input">
+                    </p>
+                    <button type="button"
+                            onclick="addEntitlementOnclick()"
+                            class="ds-button"
+                            data-variant="secondary">
+                        Legg til
+                    </button>
+                </fieldset>
+            </div>
+
+        </div>
+    </fieldset>
+
+    <fieldset class="ds-fieldset" data-size="sm">
+        <legend class="ds-label"
+                data-weight="high">
+            Legg til EAA'ere for brukersted
+        </legend>
+
+        <div class="flex-container">
+            <div>
+                <p class="ds-paragraph"
+                   style="margin-bottom: 8px;">
+                    Valgte EAA'ere
+                </p>
+                <table class="ds-table"
+                       data-border="true"
+                       style="table-layout: fixed; word-wrap: break-word;">
+                    <thead>
+                    <tr>
+                        <th>Namespace</th>
+                        <th>Intent</th>
+                        <th style="width: 4em;"></th>
+                    </tr>
+                    </thead>
+                    <tbody id="eaa_container"></tbody>
+                </table>
+            </div>
+
+            <div>
+                <fieldset class="ds-fieldset">
+                    <legend class="ds-legend">
+                        Legg til ny EAA
+                    </legend>
+                    <p class="ds-paragraph"
+                       style="margin-bottom: 8px;">
+                        <label for="eaa_namespace_field"
+                               class="ds-label">
+                            Namespace
+                        </label>
+                        <input id="eaa_namespace_field"
+                               type="text"
+                               placeholder="Namespace ..."
+                               class="ds-input">
+
+                        <label for="eaa_intent_field"
+                               class="ds-label">
+                            Intent
+                        </label>
+
+                        <input id="eaa_intent_field"
+                               type="text"
+                               placeholder="Intent ..."
+                               class="ds-input">
+                    </p>
+                    <button type="button"
+                            onclick="addEaaOnclick()"
+                            class="ds-button"
+                            data-variant="secondary">
+                        Legg til
+                    </button>
+                </fieldset>
+            </div>
+
+        </div>
+    </fieldset>
+    </div>
+
+    <div class="flex-container">
+        <button type="submit"
+                class="ds-button"
+                data-variant="primary">
+            Registrer brukersted
+        </button>
+
+        <a th:href="@{/search}"
+           class="ds-button"
+           type="button"
+           data-variant="secondary"
+           data-color="danger">
+            Avbryt
+        </a>
+    </div>
+</form>
+
+<script src="/js/dynamic_edit_form_fields.js"></script>
+</div>

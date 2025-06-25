@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
+import no.idporten.eudiw.rp.admin.web.form.RelyingPartyCreateForm;
 import no.idporten.eudiw.rp.admin.web.form.SearchForm;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEditForm;
 import no.idporten.eudiw.rp.admin.web.resource.*;
@@ -11,12 +12,9 @@ import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.*;
 import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartiesView;
 import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
-import no.idporten.eudiw.rp.admin.web.form.CreateForm;
-import no.idporten.eudiw.rp.admin.service.FormsMapper;
 
 import java.util.List;
 import java.util.Map;
@@ -36,6 +34,7 @@ public class AdminController {
     public static final String newCertificateAttrId = "newCertificateAttr";
 
     public static final String editFormAttrId = "editFormAttr";
+    public static final String createFormAttrId = "createFormAttr";
 
     private final RelyingPartiesService relyingPartiesService;
     private final RelyingPartiesView relyingPartiesView;
@@ -135,15 +134,29 @@ public class AdminController {
         return mav;
     }
 
-    @GetMapping("/register")
-    public String showRegisterForm(Model model) {
-        model.addAttribute("createRelyingParty", new CreateForm());
-        return "register";
+    @GetMapping("/create")
+    public ModelAndView createGet() {
+        RelyingPartyCreateForm createForm = new RelyingPartyCreateForm();
+        return new ModelAndView("create_form_view", Map.of(
+            createFormAttrId, createForm
+        ));
     }
 
-    @PostMapping("/register")
-    public String submitRegisterForm(@ModelAttribute CreateForm form) {
-        relyingPartiesService.create(FormsMapper.toResource(form));
-        return "redirect:/";
+    @PostMapping("/create")
+    public ModelAndView createPost(
+        @ModelAttribute(createFormAttrId) @Valid RelyingPartyCreateForm createForm,
+        BindingResult createFormBindingResult) {
+
+        ModelAndView mav =
+            new ModelAndView("create_form_view", Map.of(
+                createFormAttrId, createForm));
+
+        if (!createFormBindingResult.hasErrors()) {
+            CreateRelyingPartyResource createResource = createForm.toResource();
+            RelyingPartyResource result = relyingPartiesView.create(createResource);
+            mav.setViewName("redirect:/details?id=" + result.id());
+        }
+
+        return mav;
     }
 }

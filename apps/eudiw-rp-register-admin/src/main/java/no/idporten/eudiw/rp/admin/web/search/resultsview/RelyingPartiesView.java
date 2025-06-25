@@ -2,10 +2,7 @@ package no.idporten.eudiw.rp.admin.web.search.resultsview;
 
 import lombok.Setter;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
-import no.idporten.eudiw.rp.admin.web.resource.EditRelyingPartyResource;
-import no.idporten.eudiw.rp.admin.web.resource.RelyingPartiesResource;
-import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
-import no.idporten.eudiw.rp.admin.web.resource.SearchRelyingPartyResource;
+import no.idporten.eudiw.rp.admin.web.resource.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.SessionScope;
 
@@ -71,5 +68,11 @@ public class RelyingPartiesView {
         RelyingPartyResource edited = this.relyingPartiesService.edit(id, editResource);
         this.relyingParties.put(id, edited);
         return edited;
+    }
+
+    public RelyingPartyResource create(CreateRelyingPartyResource createResource) {
+        RelyingPartyResource created = this.relyingPartiesService.create(createResource);
+        this.relyingParties.put(created.id(), created);
+        return created;
     }
 }

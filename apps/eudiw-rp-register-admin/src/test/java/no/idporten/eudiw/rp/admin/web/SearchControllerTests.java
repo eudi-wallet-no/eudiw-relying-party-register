@@ -4,6 +4,7 @@ import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.service.accesscertificates.PKCS10CertificationRequestConverter;
 import no.idporten.eudiw.rp.admin.testdata.CertificatesGenerator;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
+import no.idporten.eudiw.rp.admin.web.form.RelyingPartyCreateForm;
 import no.idporten.eudiw.rp.admin.web.form.SearchForm;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEditForm;
 import no.idporten.eudiw.rp.admin.web.resource.*;
@@ -21,6 +22,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -293,6 +295,56 @@ public class SearchControllerTests {
                    .andExpect(model().attribute(AdminController.editFormAttrId, editForm));
 
             verify(mockRpService).get(id);
+        }
+    }
+
+    @Nested
+    @DisplayName("When GET'ing the create endpoint")
+    class CreateEndpointGetTests {
+        @Test
+        @DisplayName("then the correct view with the expected create form is loaded")
+        void testCorrectViewAndModelAttributes() throws Exception {
+            RelyingPartyCreateForm createForm = new RelyingPartyCreateForm();
+
+            mockMvc.perform(get("/create"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("create_form_view"))
+                .andExpect(model().attribute(AdminController.createFormAttrId, createForm));
+        }
+    }
+
+    @Nested
+    @DisplayName("When POST'ing create forms to the /create endpoint")
+    class CreateEndpointPostTests {
+        @Test
+        @DisplayName("then form accepted if well-formed, and correct services called, view, and model")
+        void testCreateFormAcceptedIfWellFormed() throws Exception {
+            RelyingPartyCreateForm createForm = new RelyingPartyCreateForm();
+            createForm.setName("fooBar");
+            createForm.setPublicSector(true);
+            createForm.setOrgNr("123");
+
+            CreateRelyingPartyResource expectedCreateResource = createForm.toResource();
+            RelyingPartyResource rpResource = new RelyingPartyResource(
+                UUID.randomUUID(),
+                createForm.getOrgNr(),
+                createForm.getName(),
+                createForm.isPublicSector(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                1,
+                1,
+                true
+            );
+
+            when(mockRpService.create(expectedCreateResource)).thenReturn(rpResource);
+            mockMvc.perform(post("/create")
+                    .formField("orgNr", createForm.getOrgNr())
+                    .formField("name", createForm.getName())
+                    .formField("publicSector", Boolean.toString(createForm.isPublicSector())))
+                .andExpect(status().is3xxRedirection());
+
+            verify(mockRpService).create(expectedCreateResource);
         }
     }
 }

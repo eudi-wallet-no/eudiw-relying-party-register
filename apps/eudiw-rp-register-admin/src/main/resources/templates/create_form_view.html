@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="nb-no">
+<head th:replace="~{fragments/general :: head_fragment(title=|Registrer nytt brukersted|)}">
+</head>
+
+<body>
+<header th:replace="~{fragments/general :: page_header_fragment}"></header>
+
+<main>
+
+    <h1 class="ds-heading" data-size="lg">
+        Registrer nytt brukersted
+    </h1>
+
+    <p class="ds-paragraph">
+        <a th:href="@{/search}" class="ds-button">
+            Tilbake til søk
+        </a>
+    </p>
+
+    <div th:replace="~{fragments/create_fragments :: create_form_fragment}">
+    </div>
+</main>
+
+<footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
+</body>
+</html>
+
