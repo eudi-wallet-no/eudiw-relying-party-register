@@ -7,6 +7,7 @@ public record RelyingPartyAccessCertificateSummary(
     X509Certificate certificate,
     BigInteger serialNo,
     String subjectDn,
+    String issuerDn,
     long validFromMs,
     long validUntilMs
 ) { }

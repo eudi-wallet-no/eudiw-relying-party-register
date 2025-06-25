@@ -11,7 +11,8 @@
                 <thead>
                     <tr>
                         <th>Serienummer</th>
-                        <th>Navn</th>
+                        <th>Subjekt</th>
+                        <th>Utsteder</th>
                         <th>Gjyldig fra</th>
                         <th>Gjyldig til</th>
                     </tr>
@@ -21,6 +22,7 @@
                     <tr th:each="cert : ${certs}">
                         <td th:text="${cert.serialNo}"></td>
                         <td th:text="${cert.subjectDn}"></td>
+                        <td th:text="${cert.issuerDn}"></td>
                         <td th:text="${#dates.format(cert.validFromMs, 'dd-MM-yyyy HH:mm:ss')}"></td>
                         <td th:text="${#dates.format(cert.validUntilMs, 'dd-MM-yyyy HH:mm:ss')}"></td>
                     </tr>

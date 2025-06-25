@@ -3,25 +3,40 @@
       th:object="${csrFormAttr}"
       th:action="@{/registerCsr(id=${id})}"
       method="POST">
-    <p>
-        <label id="csr_form_label" for="csr_form" th:class="ds-label">CSR</label>
-        <br>
-        <textarea th:type="text"
-                  id="csr_form"
-                  th:field="*{csr}"
-                  style="width: 40em; min-height: 5em;"
-                  placeholder="Pem-enkodet PKCS10 CSR">
-        </textarea>
-    </p>
 
-    <button type="submit">Send CSR</button>
+    <fieldset class="ds-fieldset"
+              style="margin-bottom: 8px;">
+        <div style="display: flex; flex-direction: column;">
+            <label id="csr_form_label"
+                   for="csr_form"
+                   class="ds-label"
+                   data-weight="medium">
+                Lim inn gjyldig CSR
+            </label>
+            <textarea id="csr_form"
+                      th:field="*{csr}"
+                      th:type="text"
+                      class="ds-input"
+                      style="width: 40em; min-height: 5em;"
+                      placeholder="Pem-enkodet PKCS10 CSR">
+            </textarea>
+        </div>
 
-    <p th:if="${#fields.hasErrors('csr')}">
-        <em>Det gitt CSR er ikkje et gjyldig CSR!</em>
-    </p>
+        <div th:if="${#fields.hasErrors('csr')}"
+             class="ds-validation-message">
+            Det gitt CSR er ikkje et gyldig CSR.
+        </div>
+
+    </fieldset>
+
+    <button type="submit"
+            class="ds-button">
+        Send CSR
+    </button>
 </form>
 
-<table th:fragment="single_certificate_table_fragment(cert)">
+<table th:fragment="single_certificate_table_fragment(cert)"
+       class="ds-table">
     <!--/*@thymesVar id="cert" type="no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary"*/-->
     <tbody>
     <tr>
@@ -29,8 +44,12 @@
         <td th:text="${cert.serialNo}"></td>
     </tr>
     <tr>
-        <th>Subjekt-navn</th>
+        <th>Subjekt</th>
         <td th:text="${cert.subjectDn}"></td>
+    </tr>
+    <tr>
+        <th>Utsteder</th>
+        <td th:text="${cert.issuerDn}"></td>
     </tr>
     <tr>
         <th>Gjyldig fra</th>
