@@ -100,3 +100,9 @@
         </g>
     </svg>
 </div>
+
+<div th:fragment="generic_invalid_input_field_error_msg(field_name)"
+     class="ds-validation-message">
+    <span th:text="${field_name}"></span> får bare inneholde norske bokstaver,
+    tal, mellemrom, og symbolene .,-:'"&/, og får ikkje være tom.
+</div>

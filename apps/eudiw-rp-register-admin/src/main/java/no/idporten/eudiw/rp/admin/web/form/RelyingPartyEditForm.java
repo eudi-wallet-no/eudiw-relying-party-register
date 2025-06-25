@@ -1,8 +1,10 @@
 package no.idporten.eudiw.rp.admin.web.form;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import no.idporten.eudiw.rp.admin.validation.SaneStringConstraint;
+import no.idporten.eudiw.rp.admin.validation.SaneStringValidator;
 import no.idporten.eudiw.rp.admin.web.resource.EditRelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 
@@ -13,13 +15,17 @@ import java.util.*;
 @Setter
 @EqualsAndHashCode
 public class RelyingPartyEditForm {
-    @SaneStringConstraint
+    @SaneStringConstraint(message =
+        "Navnet får bare inneholde norske bokstaver, tal, mellemrom, og symbolene "
+            + SaneStringValidator.ALLOWED_SYMBOLS)
+    @NotBlank(message = "Navnet får ikkje være tomt")
     private String name;
 
     private boolean publicSector;
 
     @Valid
     private List<RelyingPartyEntitlementFormField> entitlements;
+
     @Valid
     private List<RelyingPartyEaaFormField> eaas;
 
