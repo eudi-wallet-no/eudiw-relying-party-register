@@ -26,6 +26,9 @@ management:
       environment: ${spring.application.environment}
 
 trust-service:
+  scheme-information:
+    sequence-number: 1
+    list-issue-datetime: 2025-06-25T10:00:00.1Z
   keystore:
     type: ${TSL_SIGN_KEYSTORE_TYPE}
     location: ${TSL_SIGN_KEYSTORE}

@@ -16,4 +16,6 @@ public class TrustServiceProperties {
 
     public KeyStoreProperties keyStore;
 
+    private SchemeInformationProperties schemeInformation;
+
 }

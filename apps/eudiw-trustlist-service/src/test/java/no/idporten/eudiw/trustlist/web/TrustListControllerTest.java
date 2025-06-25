@@ -32,7 +32,7 @@ public class TrustListControllerTest {
     @DisplayName("then the TSL is signed")
     @Test
     void testSignedTSL() throws Exception {
-        MvcResult mvcResult = mockMvc.perform(get("/access_tsl.xts"))
+        MvcResult mvcResult = mockMvc.perform(get("/access_tsl.xtsl"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/vnd.etsi.tsl+xml;charset=UTF-8"))
                 .andReturn();

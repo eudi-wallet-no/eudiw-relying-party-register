@@ -18,7 +18,7 @@ public class IndexController {
                            <body>
                               <h1>Trust List Service</h1>
                               <h2>Trust status lists</h2>
-                              <a href="access_tsl.xts">eidas2sandkasse RP access</a>
+                              eidas2sandkasse RP access <a href="access_tsl.xtsl">[ Download ]</a><a href="access_tsl"> [ Display ]</a>
                            </body>
                         </html>""");
     }

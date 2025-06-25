@@ -21,8 +21,18 @@ public class TrustListController {
     private final TSLService tslService;
     private final XMLSignerService xmlSignerService;
 
-    @GetMapping(value = "/access_tsl.xts", produces = "application/vnd.etsi.tsl+xml")
+    @GetMapping(value = "/access_tsl.xtsl", produces = "application/vnd.etsi.tsl+xml")
     public ResponseEntity<String> trustlist() throws Exception {
+        return getTrustlist();
+    }
+
+    // TODO: Temp. for ease of testing, should be removed in the future?
+    @GetMapping(value = "/access_tsl", produces = "text/xml;charset=UTF-8")
+    public ResponseEntity<String> trustlistShow() throws Exception {
+        return getTrustlist();
+    }
+
+    private ResponseEntity<String> getTrustlist() throws Exception {
         TrustServiceStatusList trustServiceStatusList = tslService.generateTrustServiceStatusList();
         Document document = marshal(trustServiceStatusList);
         Document signedDocument = xmlSignerService.createEnvelopedSignature(document);
