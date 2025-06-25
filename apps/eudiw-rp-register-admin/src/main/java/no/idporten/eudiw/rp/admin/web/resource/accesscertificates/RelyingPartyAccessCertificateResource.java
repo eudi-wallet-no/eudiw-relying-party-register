@@ -20,6 +20,7 @@ public record RelyingPartyAccessCertificateResource(
             this.certificate,
             this.certificate.getSerialNumber(),
             this.certificate.getSubjectX500Principal().getName(),
+            this.certificate.getIssuerX500Principal().getName(),
             this.certificate.getNotBefore().toInstant().toEpochMilli(),
             this.certificate.getNotAfter().toInstant().toEpochMilli()
         );

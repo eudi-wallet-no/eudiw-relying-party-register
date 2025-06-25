@@ -1,32 +1,38 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
-<head>
-    <title>Lag nyt aksesssertifikat</title>
+<head th:replace="~{fragments/general :: head_fragment(title='Lag nyt aksesssertifikat')}">
 </head>
 
 <!--/*@thymesVar id="detailedViewDataAttr" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
 <body th:with="rp=${detailedViewDataAttr}">
 
-    <div th:replace="~{fragments/general :: digdir_header}"></div>
-    <p>
-        <a th:href="@{/details#certificates(id=${rp.id})}">
-            Tilbake til <span th:text="${rp.name}"/>
-        </a>
-    </p>
+    <header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
-    <h2>Sertifikat registrert!</h2>
+    <main>
+        <p class="ds-paragraph">
+            <a th:href="@{/details#certificates(id=${rp.id})}"
+               class="ds-button"
+               data-variant="secondary"
+               data-size="sm">
+                Tilbake til <span th:text="${rp.name}"/>
+            </a>
+        </p>
 
-    <p>
-        CSR'en ble akseptert og følgende ny sertifikat ble registrert
-        for <span th:text="${rp.name}"/>:
-    </p>
+        <h2 class="ds-heading">
+            Sertifikat registrert!
+        </h2>
+        <p>
+            CSR'en ble akseptert og følgende ny sertifikat ble registrert
+            for <span th:text="${rp.name}"/>:
+        </p>
 
-    <!--/*@thymesVar id="newCertificateAttr" type="no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary"*/-->
-    <table th:insert="~{fragments/csr_fragments
-                          :: single_certificate_table_fragment(
-                              ${newCertificateAttr})}">
-    </table>
+        <!--/*@thymesVar id="newCertificateAttr" type="no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary"*/-->
+        <table th:replace="~{fragments/csr_fragments
+                              :: single_certificate_table_fragment(
+                                  ${newCertificateAttr})}">
+        </table>
+    </main>
 
-    <div th:replace="~{fragments/general :: digdir_footer}"></div>
+    <header th:replace="~{fragments/general :: page_footer_fragment}"></header>
 </body>
 </html>
