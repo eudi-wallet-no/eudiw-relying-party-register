@@ -5,6 +5,17 @@ const entitlement_input_field = document.getElementById("entitlement_field");
 const eaa_namespace_input_field = document.getElementById("eaa_namespace_field");
 const eaa_intent_input_field = document.getElementById("eaa_intent_field");
 
+const entitlement_field_error_msg = document.getElementById("entitlement_error_msg");
+const eaa_namespace_error_msg = document.getElementById("eaa_namespace_error_msg");
+const eaa_intent_error_msg = document.getElementById("eaa_intent_error_msg");
+
+const showElem = elem => elem.style.display = "block";
+const hideElem = elem => elem.style.display = "none";
+
+entitlement_input_field.oninput = () => hideElem(entitlement_field_error_msg);
+eaa_namespace_input_field.oninput = () => hideElem(eaa_namespace_error_msg);
+eaa_intent_input_field.oninput = () => hideElem(eaa_intent_error_msg);
+
 function isSaneStringInput(str) {
     const allowed_chars_regex = /^[a-zA-ZæøåÆØÅ0-9.,\-:'"&/ ]+$/;
     return str.length <= 255 && allowed_chars_regex.test(str);
@@ -42,27 +53,40 @@ function addEntitlementOnclick() {
         addEntitlement(entitlement);
         entitlement_input_field.value = "";
     }
+    else
+        showElem(entitlement_field_error_msg);
 }
+
 function addEaaOnclick() {
     const namespace = eaa_namespace_input_field.value.trim();
     const intent = eaa_intent_input_field.value.trim();
-    if (isSaneStringInput(namespace) && isSaneStringInput(intent)) {
+    const namespaceOk = isSaneStringInput(namespace);
+    const intentOk = isSaneStringInput(intent);
+    if (namespaceOk && intentOk) {
         addEaa(namespace, intent);
         eaa_namespace_input_field.value = "";
         eaa_intent_input_field.value = "";
     }
+    if (!namespaceOk)
+        showElem(eaa_namespace_error_msg);
+    if (!intentOk)
+        showElem(eaa_intent_error_msg);
 }
 
 function addEntitlement(entitlement) {
-    const entitlementItem = makeTableItem(
-        `<td>${entitlement} <input type="hidden" name="entitlements" value="${entitlement}"></td>`);
-    entitlement_container.appendChild(entitlementItem);
+    if (entitlement) {
+        const entitlementItem = makeTableItem(
+            `<td>${entitlement} <input type="hidden" name="entitlements" value="${entitlement}"></td>`);
+        entitlement_container.appendChild(entitlementItem);
+    }
 }
 function addEaa(namespace, intent) {
-    const idx = idxGen.next().value;
-    const eaaItem = makeTableItem(
-        `<td>${namespace} <input type="hidden" name="eaas[${idx}].namespace" value="${namespace}"></td>
-         <td>${intent} <input type="hidden" name="eaas[${idx}].intent" value="${intent}"></td>`
-    );
-    eaa_container.appendChild(eaaItem);
+    if (namespace && intent) {
+        const idx = idxGen.next().value;
+        const eaaItem = makeTableItem(
+            `<td>${namespace} <input type="hidden" name="eaas[${idx}].namespace" value="${namespace}"></td>
+             <td>${intent} <input type="hidden" name="eaas[${idx}].intent" value="${intent}"></td>`
+        );
+        eaa_container.appendChild(eaaItem);
+    }
 }
