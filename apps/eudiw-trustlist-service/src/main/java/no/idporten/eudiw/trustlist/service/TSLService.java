@@ -1,8 +1,11 @@
 package no.idporten.eudiw.trustlist.service;
 
+import no.idporten.eudiw.trustlist.config.TrustServiceProperties;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.openssl.PEMParser;
 import org.etsi.uri._02231.v2_.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.StringReader;
@@ -12,11 +15,26 @@ import java.time.ZonedDateTime;
 @Service
 public class TSLService {
 
+    public static final String TLS_TAG_URI = "http://uri.etsi.org/19612/TSLTag";
+    public static final String TSL_TYPE_URI = "http://uri.etsi.org/TrstSvc/TrustedList/TSLType/EUgeneric";
+    public static final String STATUS_DETERMINATION_APPROACH_URI = "http://uri.etsi.org/TrstSvc/TrustedList/StatusDetn/EUappropriate";
+    public static final String SCHEME_TYPE_COMMUNITY_RULES_URI = "http://uri.etsi.org/TrstSvc/TrustedList/schemerules/EUcommon";
+    public static final String SERVICE_STATUS_URI = "http://uri.etsi.org/TrstSvc/Svcstatus/inaccord";
+
+    private final Logger log = LoggerFactory.getLogger(TSLService.class);
+
+    private final TrustServiceProperties properties;
+
+
+    public TSLService(TrustServiceProperties properties) {
+        this.properties = properties;
+    }
+
     // viser generell opbygning av liste
     public TrustServiceStatusList generateTrustServiceStatusList() throws Exception {
         TrustServiceStatusList trustServiceStatusList = new TrustServiceStatusList();
         trustServiceStatusList.setId("tsl");
-        trustServiceStatusList.setTSLTag("http://uri.etsi.org/19612/TSLTag");
+        trustServiceStatusList.setTSLTag(TLS_TAG_URI);
 
         // 1. provide information on the issuing scheme;
         trustServiceStatusList.setSchemeInformation(createSchemeInformation());
@@ -32,29 +50,42 @@ public class TSLService {
 
     // viser hvordan meta-informasjon om tjenesten kan lages
     protected SchemeInformation createSchemeInformation() {
-        // sekvens skal øke pr gang genereres
-        // varighet må beregnes/økes
         // all info skal minimum på en og helst på språket til land som kontrollerer
-        // dette er de aller fleste feltene, noen
         SchemeInformation schemeInformation = new SchemeInformation();
-        schemeInformation.setTSLVersionIdentifier(BigInteger.valueOf(3));
-        schemeInformation.setTSLSequenceNumber(BigInteger.ONE);
-        schemeInformation.setTSLType("http://uri.etsi.org/TrstSvc/TrustedList/TSLType/EUgeneric");
+        schemeInformation.setTSLVersionIdentifier(BigInteger.valueOf(6));
+        schemeInformation.setTSLSequenceNumber(properties.getSchemeInformation().sequenceNumber());
+        
+        schemeInformation.setTSLType(TSL_TYPE_URI);
         schemeInformation.setSchemeOperatorName(createInternationalNamesType(
                 createMultiLangNormStringType("no", "Digitaliseringsdirektoratet"),
                 createMultiLangNormStringType("en", "The Norwegian Digitalisation Agency")));
         schemeInformation.setSchemeOperatorAddress(createDigdirAddressType());
         schemeInformation.setSchemeName(createInternationalNamesType(
-                createMultiLangNormStringType("no", "Trusted list for eidas2sandkasse.dev"),
-                createMultiLangNormStringType("en", "Trusted list for eidas2sandkasse.dev")
+                createMultiLangNormStringType("no", "Tillitsliste for eidas2sandkasse.net"),
+                createMultiLangNormStringType("en", "Trusted list for eidas2sandkasse.net")
         ));
         schemeInformation.setSchemeInformationURI(new NonEmptyMultiLangURIListType());
         schemeInformation.getSchemeInformationURI().getURIS().add(createNonEmptyMultiLangURIType("no", "https://www.digdir.no/"));
         schemeInformation.getSchemeInformationURI().getURIS().add(createNonEmptyMultiLangURIType("en", "https://www.digdir.no/"));
-        schemeInformation.setStatusDeterminationApproach("http://uri.etsi.org/TrstSvc/TSLType/StatusDetn/active");
+        schemeInformation.setStatusDeterminationApproach(STATUS_DETERMINATION_APPROACH_URI);
         schemeInformation.setSchemeTerritory("NO");
+        schemeInformation.setSchemeTypeCommunityRules(new NonEmptyMultiLangURIListType());
+        schemeInformation.getSchemeTypeCommunityRules().getURIS().add(createNonEmptyMultiLangURIType("en", SCHEME_TYPE_COMMUNITY_RULES_URI));
         schemeInformation.setHistoricalInformationPeriod(BigInteger.valueOf(65534));
-        schemeInformation.setListIssueDateTime(ZonedDateTime.now());
+        ZonedDateTime issuedDateTime = properties.getSchemeInformation().listIssueDateTime();
+        schemeInformation.setListIssueDateTime(issuedDateTime);
+        NextUpdate nextUpdate = new NextUpdate();
+        nextUpdate.setDateTime(issuedDateTime.plusMonths(6));
+        schemeInformation.setNextUpdate(nextUpdate);
+
+        //TODO: move validation elsewhere/generalize?
+        ZonedDateTime now = ZonedDateTime.now();
+        if(nextUpdate.getDateTime().isBefore(now)) {
+            log.error("List is expire and invalid since not updated in 6 months, nextUpdate is in the past: {}", nextUpdate.getDateTime());
+        } else if(nextUpdate.getDateTime().minusWeeks(1).isBefore(now)){
+            log.warn("List is about to expire, nextUpdate is less than 1 week away: {}", nextUpdate.getDateTime());
+        }
+
         return schemeInformation;
     }
 
@@ -80,11 +111,11 @@ public class TSLService {
         TSPService tspService = new TSPService();
         ServiceInformation serviceInformation = new ServiceInformation();
         serviceInformation.setServiceName(createInternationalNamesType(
-                createMultiLangNormStringType("en", "Root CA for eidas2sandkasse.dev")));
+                createMultiLangNormStringType("no", "Root CA for eidas2sandkasse.net"), createMultiLangNormStringType("en", "Root CA for eidas2sandkasse.net")));
         serviceInformation.setServiceTypeIdentifier("????rp/access????");
         ServiceDigitalIdentity serviceDigitalIdentity = createServiceDigitalIdentity();
         serviceInformation.setServiceDigitalIdentity(serviceDigitalIdentity);
-        serviceInformation.setServiceStatus("http://uri.etsi.org/TrstSvc/Svcstatus/inaccord");
+        serviceInformation.setServiceStatus(SERVICE_STATUS_URI);
         serviceInformation.setStatusStartingTime(ZonedDateTime.now());
         ExtensionsListType extensionsListType = new ExtensionsListType();
         Extension extension = new Extension();
@@ -145,18 +176,20 @@ public class TSLService {
         return serviceDigitalIdentity;
     }
 
-    // Det er ganske komplisert å bygge typene, bli rmye skyfkling av data fra konfig e.l.
+    // Det er ganske komplisert å bygge typene, blir mye skyfling av data fra konfig e.l.
     private AddressType createDigdirAddressType() {
         PostalAddresses postalAddresses = new PostalAddresses();
         PostalAddress postalAddress = new PostalAddress();
         postalAddress.setLang("no");
-        postalAddress.setStreetAddress("Lørenfaret 1 C");
+        postalAddress.setStreetAddress("Lørenfaret 1C");
         postalAddress.setPostalCode("0580");
         postalAddress.setLocality("Oslo");
         postalAddress.setCountryName("NO");
 
         ElectronicAddress electronicAddress = new ElectronicAddress();
-        electronicAddress.getURIS().add(createNonEmptyMultiLangURIType("en", "servicedesk@digdir.no"));
+        electronicAddress.getURIS().add(createNonEmptyMultiLangURIType("no", "mailto:servicedesk@digdir.no"));
+        electronicAddress.getURIS().add(createNonEmptyMultiLangURIType("en", "mailto:servicedesk@digdir.no"));
+        electronicAddress.getURIS().add(createNonEmptyMultiLangURIType("no", "https://www.digdir.no/"));
         electronicAddress.getURIS().add(createNonEmptyMultiLangURIType("en", "https://www.digdir.no/"));
         AddressType addressType = new AddressType();
         postalAddresses.getPostalAddresses().add(postalAddress);
