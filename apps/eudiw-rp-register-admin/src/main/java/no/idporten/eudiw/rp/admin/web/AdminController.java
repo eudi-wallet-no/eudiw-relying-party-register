@@ -41,17 +41,25 @@ public class AdminController {
 
     @GetMapping("/search")
     public ModelAndView searchGet(
+        @RequestParam(value = "page", required = false, defaultValue = "1")
+        int oneIndexedPageNum) {
+
+        relyingPartiesView.setCurrentPageIdx(oneIndexedPageNum - 1);
+        SearchForm lastSearchForm = relyingPartiesView.getLastSearchForm();
+        return new ModelAndView("search_view", searchFormAttrId, lastSearchForm);
+    }
+
+    @PostMapping("/search")
+    public ModelAndView searchPost(
         @ModelAttribute(searchFormAttrId) @Valid SearchForm searchForm,
         BindingResult bindingResult) {
-        ModelAndView mav = new ModelAndView("search_view");
-
-        searchForm = searchForm != null ? searchForm : SearchForm.empty();
-        mav.addObject(searchFormAttrId, searchForm);
 
         if (!bindingResult.hasErrors() && !searchForm.searchTerm().isEmpty()) {
             relyingPartiesView.doSearch(searchForm.toResource());
+            relyingPartiesView.setLastSearchForm(searchForm);
         }
-        return mav;
+
+        return new ModelAndView("search_view", searchFormAttrId, searchForm);
     }
 
     @GetMapping("/details")
