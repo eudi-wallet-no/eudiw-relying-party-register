@@ -1,7 +1,5 @@
 package no.idporten.eudiw.trustlist.web;
 
-import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.Marshaller;
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.trustlist.service.TSLService;
 import no.idporten.eudiw.trustlist.service.XMLSignerService;
@@ -12,16 +10,18 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.w3c.dom.Document;
 
-import javax.xml.transform.dom.DOMResult;
+import static no.idporten.eudiw.trustlist.xml.XMLUtils.parseTrustlist;
 
 @RequiredArgsConstructor
 @RestController
 public class TrustListController {
 
+    public static final String PATH_ACCESS_TRUSTLIST = "/access_tsl.xtsl";
+
     private final TSLService tslService;
     private final XMLSignerService xmlSignerService;
 
-    @GetMapping(value = "/access_tsl.xtsl", produces = "application/vnd.etsi.tsl+xml")
+    @GetMapping(value = PATH_ACCESS_TRUSTLIST, produces = "application/vnd.etsi.tsl+xml")
     public ResponseEntity<String> trustlist() throws Exception {
         return getTrustlist();
     }
@@ -34,18 +34,10 @@ public class TrustListController {
 
     private ResponseEntity<String> getTrustlist() throws Exception {
         TrustServiceStatusList trustServiceStatusList = tslService.generateTrustServiceStatusList();
-        Document document = marshal(trustServiceStatusList);
+        Document document = parseTrustlist(trustServiceStatusList);
         Document signedDocument = xmlSignerService.createEnvelopedSignature(document);
         return ResponseEntity.ok(XMLUtils.formatXml(signedDocument));
     }
 
-    protected Document marshal(TrustServiceStatusList trustServiceStatusList) throws Exception {
-        JAXBContext context = JAXBContext.newInstance(trustServiceStatusList.getClass());
-        Marshaller marshaller = context.createMarshaller();
-        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-        DOMResult domResult = new DOMResult();
-        marshaller.marshal(trustServiceStatusList, domResult);
-        return (Document) domResult.getNode();
-    }
 
 }

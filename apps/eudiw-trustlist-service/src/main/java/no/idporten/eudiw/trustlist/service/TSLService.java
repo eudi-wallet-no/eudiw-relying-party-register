@@ -93,6 +93,9 @@ public class TSLService {
     private TrustServiceProvider createTrustServiceProvider() throws Exception {
         TrustServiceProvider trustServiceProvider = new TrustServiceProvider();
         TSPInformation tspInformation = new TSPInformation();
+        NonEmptyMultiLangURIListType nonEmptyMultiLangURIListType = new NonEmptyMultiLangURIListType();
+        nonEmptyMultiLangURIListType.getURIS().add(createNonEmptyMultiLangURIType("no", "https://www.digdir.no/"));
+        tspInformation.setTSPInformationURI(nonEmptyMultiLangURIListType);
         tspInformation.setTSPAddress(createDigdirAddressType());
         tspInformation.setTSPName(createInternationalNamesType(
                 createMultiLangNormStringType("no", "Digitaliseringsdirektoratet"),
