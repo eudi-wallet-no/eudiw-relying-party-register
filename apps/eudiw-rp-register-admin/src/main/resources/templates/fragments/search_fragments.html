@@ -2,7 +2,7 @@
 <form th:fragment="search_form_fragment"
       th:object="${searchFormAttr}"
       th:action="@{/search}"
-      method="GET">
+      method="POST">
         <div class="ds-search"
              style="margin-block-end: var(--ds-size-2)">
             <input id="search_term"
@@ -35,15 +35,18 @@
     </ul>
 </form>
 
-<div th:fragment="results_table_fragment">
-    <h2 class="ds-heading">
-        Søkeresultat
-    </h2>
+<div th:fragment="results_table_fragment"
+     th:if="${@relyingPartiesView.hasResults()}">
+
     <!--/*@thymesVar id="full_results" type="no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartiesView"*/-->
     <!--/*@thymesVar id="sorted_and_filtered_results" type="java.util.List<no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource>"*/-->
-    <div th:with="sorted_and_filtered_results=${@relyingPartiesView.applyViewSpec()}"
-         class="flex-container">
-        <table class="ds-table" data-border="true">
+    <div th:with="resultsPage=${@relyingPartiesView.getCurrentResultsPage()}">
+        <div th:if="${#lists.isEmpty(resultsPage)}">
+            Fant ingen brukersteder. Ta bort et eller flere filtre, eller prøv en ny søking.
+        </div>
+
+        <table th:unless="${#lists.isEmpty(resultsPage)}"
+               class="ds-table" data-border="true">
             <thead>
             <tr>
                 <th>
@@ -62,12 +65,7 @@
             </thead>
             <tbody>
 
-            <tr th:if="${#lists.isEmpty(sorted_and_filtered_results)}">
-                <td th:colspan="4">
-                    Fant ingen brukerstader!
-                </td>
-            </tr>
-            <tr th:each="rp : ${sorted_and_filtered_results}">
+            <tr th:each="rp : ${resultsPage}">
                 <td><a th:href="@{/details(id=${rp.id})}" style="cursor:pointer;"><div th:text="${rp.orgno}"></div></a> </td>
                 <td th:text="${rp.name}"></td>
                 <td th:text="${#dates.format(rp.createdMs, 'dd-MM-yyyy HH:mm:ss')}"></td>
@@ -76,4 +74,49 @@
             </tbody>
         </table>
     </div>
+
+    <nav th:with="pageWindow=${@relyingPartiesView.getPaginationWindow()},
+                  currentPageNum=${@relyingPartiesView.getCurrentPageIdx() + 1},
+                  numPages=${@relyingPartiesView.getNumPages()}"
+         class="ds-pagination"
+    >
+
+        <ul th:if="${numPages > 1}">
+            <th:block th:unless="${#lists.contains(pageWindow, 1)}">
+                <li>
+                    <a th:href="@{search(page=1)}"
+                       class="ds-button"
+                       data-variant="tertiary">
+                        <<
+                    </a>
+                </li>
+            </th:block>
+
+            <li th:each="pageNum : ${pageWindow}">
+
+                <a th:if="${pageNum == currentPageNum}"
+                   th:href="@{search(page=${pageNum})}"
+                   class="ds-button"
+                   data-variant="primary">
+                    <span th:text="${pageNum}"></span>
+                </a>
+                <a th:unless="${pageNum == currentPageNum}"
+                   th:href="@{search(page=${pageNum})}"
+                   class="ds-button"
+                   data-variant="tertiary">
+                    <span th:text="${pageNum}"></span>
+                </a>
+            </li>
+
+            <th:block th:unless="${#lists.contains(pageWindow, numPages)}">
+                <li>
+                    <a th:href="@{search(page=${numPages})}"
+                       class="ds-button"
+                       data-variant="tertiary">
+                        >>
+                    </a>
+                </li>
+            </th:block>
+        </ul>
+    </nav>
 </div>
