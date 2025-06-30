@@ -15,7 +15,6 @@ jobs:
   build-publish-image:
     uses: felleslosninger/github-workflows/.github/workflows/ci-spring-boot-build-publish-image.yml@main
     with:
-      image-name: eudiw-trust-list-service
       java-version: 24
     secrets: inherit
 
@@ -23,11 +22,9 @@ jobs:
     uses: felleslosninger/github-workflows/.github/workflows/ci-call-update-image.yml@main
     needs: build-publish-image
     with:
-      application-name: eudiw-trust-list-service
       deployment-environment: systest
       image-digest: ${{ needs.build-publish-image.outputs.image-digest }}
-      image-name: eudiw-trust-list-service
       image-version: ${{ needs.build-publish-image.outputs.image-version }}
-      kubernetes-repo: idporten-cd
-      product-name: eudiw
+      kubernetes-repo: digital-lommebok-cd
+      product-name: digital-lommebok
     secrets: inherit
