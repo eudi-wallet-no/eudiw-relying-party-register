@@ -3,7 +3,7 @@ spring:
   application:
     environment: systest
   datasource:
-    url: "jdbc:mariadb://eudiw-ca-mariadb:3306/eudiw_ca"
+    url: "jdbc:mariadb://digital-lommebok-ca-mariadb:3306/eudiw_ca"
 
 eudiw-ca:
   base-uri: "https://ca.eidas2sandkasse.dev"
