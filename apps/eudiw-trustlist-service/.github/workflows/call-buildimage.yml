@@ -23,6 +23,7 @@ jobs:
     needs: build-publish-image
     with:
       deployment-environment: systest
+      application-name: digital-lommebok-trustlist-service
       image-digest: ${{ needs.build-publish-image.outputs.image-digest }}
       image-version: ${{ needs.build-publish-image.outputs.image-version }}
       kubernetes-repo: digital-lommebok-cd
