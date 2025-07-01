@@ -23,7 +23,7 @@ spring:
 eudiw-rp-register-service:
   csr-service:
     ca-service-api:
-      ca-service-base-uri: http://eudiw-ca-service:9220
+      ca-service-base-uri: http://digital-lommebok-ca-service:9220
       api-key-value: eudiw
 
 external-dependency-health-checks:

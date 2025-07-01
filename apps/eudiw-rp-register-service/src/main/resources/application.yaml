@@ -26,7 +26,7 @@ spring:
   flyway:
     table: flyway_schema_history
   application:
-    name: eudiw-rp-register-service
+    name: digital-lommebok-rp-register-service
     environment: default
 
   jackson:
@@ -93,8 +93,8 @@ spring:
 external-dependency-health-checks:
   health-endpoints:
     eudiw-ca-service:
-      name: eudiw-ca-service
-      base-uri: http://eudiw-ca-service-service:8090
+      name: digital-lommebok-ca-service
+      base-uri: http://digital-lommebok-ca-service-service:8090
       endpoint: /health
       connect-timeout-ms: 2000
       read-timeout-ms: 1000
