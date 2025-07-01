@@ -16,6 +16,6 @@ jobs:
   call-container-scan:
     uses: felleslosninger/github-workflows/.github/workflows/ci-spring-boot-container-scan.yml@main
     with:
-      image-name: eudiw-rp-register-admin
+      image-name: digital-lommebok-rp-register-admin
       java-version: 24
     secrets: inherit
