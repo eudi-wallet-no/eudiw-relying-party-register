@@ -37,7 +37,7 @@ management:
 eudiw-admin-web:
   relying-parties-service:
     register-service-api:
-      register-service-base-uri: ${REGISTER_SERVICE_BASE_URI}
+      register-service-base-uri: http://digital-lommebok-rp-register-service-service:8080
       api-key-header-id: X-API-KEY
       api-key-value: ${REGISTER_SERVICE_API_KEY}
     rest-client:
@@ -48,7 +48,7 @@ external-dependency-health-checks:
   health-endpoints:
     eudiw-rp-register-service:
       name: digital-lommebok-rp-register-service
-      base-uri: http://digital-lommebok-rp-register-service-service:8090
+      base-uri: http://digital-lommebok-rp-register-service-service-actuator:8090
       endpoint: /health
       connect-timeout-ms: 2000
       read-timeout-ms: 1000
