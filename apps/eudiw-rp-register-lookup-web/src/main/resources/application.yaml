@@ -44,7 +44,7 @@ eudiw-rp-register-lookup-web:
   service:
     api-search-endpoint: /search
     rest-client-defaults:
-      register-service-api-base-uri: ${API_BASE_URI}
+      register-service-api-base-uri: http://digital-lommebok-rp-register-service-service:8080
       api-key-header-id: X-API-KEY
       api-key-value: ${API_KEY_VALUE}
       connect-timeout-millis: 5000
@@ -54,7 +54,7 @@ external-dependency-health-checks:
   health-endpoints:
     eudiw-rp-service:
       name: digital-lommebok-rp-service
-      base-uri: http://digital-lommebok-rp-service-service:8090
+      base-uri: http://digital-lommebok-rp-register-service-service-actuator:8090
       endpoint: /health
       connect-timeout-ms: 2000
       read-timeout-ms: 1000
