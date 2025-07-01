@@ -10,6 +10,6 @@ spring:
   security:
     api-key: ${API_KEY}
   datasource:
-    url: "jdbc:mariadb://eudiw-rp-register-mariadb:3306/rp_register"
+    url: "jdbc:mariadb://digital-lommebok-rp-register-mariadb:3306/rp_register"
     username: rp_register_service
     password: ${DATABASE_PASSWORD}
