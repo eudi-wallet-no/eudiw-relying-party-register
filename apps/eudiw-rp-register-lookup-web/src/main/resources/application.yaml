@@ -44,7 +44,7 @@ eudiw-rp-register-lookup-web:
   service:
     api-search-endpoint: /search
     rest-client-defaults:
-      register-service-api-base-uri: http://digital-lommebok-rp-register-service-service:8080
+      register-service-api-base-uri: http://digital-lommebok-rp-register-service-service:8080/v1/rp
       api-key-header-id: X-API-KEY
       api-key-value: ${API_KEY_VALUE}
       connect-timeout-millis: 5000
