@@ -1,4 +1,4 @@
-name: eudiw-rp-register
+name: digital-lommebok-rp-register
 networks:
   eudiw:
     name: eudiw
