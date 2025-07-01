@@ -1,0 +1,13 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: digital-lommebok-trustlist-service
+  description: EUDIWs trustlist-service
+  annotations:
+    github.com/project-slug: felleslosninger/eudiw-trustlist-service
+spec:
+  type: application
+  lifecycle: production
+  owner: team-digital-lommebok
+  system: digital-lommebok-trustlist-service
+  dependsOn:
