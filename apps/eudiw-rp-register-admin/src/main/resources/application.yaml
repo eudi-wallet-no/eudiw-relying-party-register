@@ -5,7 +5,7 @@ server:
 spring:
   thread-executor: virtual
   application:
-    name: eudiw-rp-register-admin
+    name: digital-lommebok-rp-register-admin
     environment: default
 
 management:
@@ -47,8 +47,8 @@ eudiw-admin-web:
 external-dependency-health-checks:
   health-endpoints:
     eudiw-rp-register-service:
-      name: eudiw-rp-register-service
-      base-uri: http://eudiw-rp-register-service-service:8090
+      name: digital-lommebok-rp-register-service
+      base-uri: http://digital-lommebok-rp-register-service-service:8090
       endpoint: /health
       connect-timeout-ms: 2000
       read-timeout-ms: 1000
