@@ -5,7 +5,7 @@ server:
 spring:
   thread-executor: virtual
   application:
-    name: eudiw-ca-service
+    name: digital-lommebok-ca-service
     environment: default
   security:
     api-key: ${API_KEY}
@@ -63,7 +63,7 @@ management:
       environment: ${spring.application.environment}
 
 eudiw-ca:
-  base-uri: "http://eudiw-ca-service:9220"
+  base-uri: "http://digital-lommebok-ca-service:9220"
   root:
     root: true
     lifetime-days: 1825

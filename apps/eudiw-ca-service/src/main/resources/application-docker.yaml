@@ -16,4 +16,4 @@ spring:
     url: "jdbc:mariadb://ca-db:3306/ca_db"
 
 eudiw-ca:
-  base-uri: "http://eudiw-ca-service:9220"
+  base-uri: "http://digital-lommebok-ca-service:9220"
