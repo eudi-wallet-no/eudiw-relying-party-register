@@ -1,10 +1,10 @@
-name: digital-lommebok-rp-register
+name: digital-lommebok
 networks:
   eudiw:
     name: eudiw
 
 services:
-  trust-list-service:
+  trustlist-service:
     build:
       context: .
       dockerfile: docker/dev.Dockerfile

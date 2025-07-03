@@ -9,9 +9,9 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>no.idporten.eudiw</groupId>
-    <artifactId>trust-list-service</artifactId>
+    <artifactId>trustlist-service</artifactId>
     <version>DEV-SNAPSHOT</version>
-    <name>trust-list-service</name>
+    <name>trustlist-service</name>
     <description>EUDIW Trust List Service</description>
 
     <properties>
