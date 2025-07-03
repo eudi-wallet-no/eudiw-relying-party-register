@@ -19,7 +19,7 @@ RUN --mount=type=cache,target=/root/.m2/repository \
 
 FROM  eclipse-temurin:24-jre-noble
 
-ARG APPLICATION=trust-list-service
+ARG APPLICATION=trustlist-service
 RUN mkdir /var/log/${APPLICATION}
 RUN mkdir /usr/local/webapps
 WORKDIR /usr/local/webapps

@@ -21,6 +21,12 @@ public class TSLService {
     public static final String SCHEME_TYPE_COMMUNITY_RULES_URI = "http://uri.etsi.org/TrstSvc/TrustedList/schemerules/EUcommon";
     public static final String SERVICE_STATUS_URI = "http://uri.etsi.org/TrstSvc/Svcstatus/inaccord";
 
+    public static final String DIGITALISERINGSDIREKTORATET_LEGAL_NAME_NO = "Digitaliseringsdirektoratet";
+    public static final String DIGITALISERINGSDIREKTORATET_LEGAL_NAME_EN = "Norwegian Digitalisation Agency";
+    public static final String LANG_CODE_NO = "no";
+    public static final String LANG_CODE_EN = "en";
+
+
     private final Logger log = LoggerFactory.getLogger(TSLService.class);
 
     private final TrustServiceProperties properties;
@@ -54,23 +60,23 @@ public class TSLService {
         SchemeInformation schemeInformation = new SchemeInformation();
         schemeInformation.setTSLVersionIdentifier(BigInteger.valueOf(6));
         schemeInformation.setTSLSequenceNumber(properties.getSchemeInformation().sequenceNumber());
-        
+
         schemeInformation.setTSLType(TSL_TYPE_URI);
         schemeInformation.setSchemeOperatorName(createInternationalNamesType(
-                createMultiLangNormStringType("no", "Digitaliseringsdirektoratet"),
-                createMultiLangNormStringType("en", "The Norwegian Digitalisation Agency")));
+                createMultiLangNormStringType(LANG_CODE_NO, DIGITALISERINGSDIREKTORATET_LEGAL_NAME_NO),
+                createMultiLangNormStringType(LANG_CODE_EN, DIGITALISERINGSDIREKTORATET_LEGAL_NAME_EN)));
         schemeInformation.setSchemeOperatorAddress(createDigdirAddressType());
         schemeInformation.setSchemeName(createInternationalNamesType(
-                createMultiLangNormStringType("no", "Tillitsliste for eidas2sandkasse.net"),
-                createMultiLangNormStringType("en", "Trusted list for eidas2sandkasse.net")
+                createMultiLangNormStringType(LANG_CODE_NO, "Tillitsliste for eidas2sandkasse.net"),
+                createMultiLangNormStringType(LANG_CODE_EN, "Trust list for eidas2sandkasse.net")
         ));
         schemeInformation.setSchemeInformationURI(new NonEmptyMultiLangURIListType());
-        schemeInformation.getSchemeInformationURI().getURIS().add(createNonEmptyMultiLangURIType("no", "https://www.digdir.no/"));
-        schemeInformation.getSchemeInformationURI().getURIS().add(createNonEmptyMultiLangURIType("en", "https://www.digdir.no/"));
+        schemeInformation.getSchemeInformationURI().getURIS().add(createNonEmptyMultiLangURIType(LANG_CODE_NO, "https://www.digdir.no/"));
+        schemeInformation.getSchemeInformationURI().getURIS().add(createNonEmptyMultiLangURIType(LANG_CODE_EN, "https://www.digdir.no/"));
         schemeInformation.setStatusDeterminationApproach(STATUS_DETERMINATION_APPROACH_URI);
         schemeInformation.setSchemeTerritory("NO");
         schemeInformation.setSchemeTypeCommunityRules(new NonEmptyMultiLangURIListType());
-        schemeInformation.getSchemeTypeCommunityRules().getURIS().add(createNonEmptyMultiLangURIType("en", SCHEME_TYPE_COMMUNITY_RULES_URI));
+        schemeInformation.getSchemeTypeCommunityRules().getURIS().add(createNonEmptyMultiLangURIType(LANG_CODE_NO, SCHEME_TYPE_COMMUNITY_RULES_URI));
         schemeInformation.setHistoricalInformationPeriod(BigInteger.valueOf(65534));
         ZonedDateTime issuedDateTime = properties.getSchemeInformation().listIssueDateTime();
         schemeInformation.setListIssueDateTime(issuedDateTime);
@@ -80,9 +86,9 @@ public class TSLService {
 
         //TODO: move validation elsewhere/generalize?
         ZonedDateTime now = ZonedDateTime.now();
-        if(nextUpdate.getDateTime().isBefore(now)) {
+        if (nextUpdate.getDateTime().isBefore(now)) {
             log.error("List is expire and invalid since not updated in 6 months, nextUpdate is in the past: {}", nextUpdate.getDateTime());
-        } else if(nextUpdate.getDateTime().minusWeeks(1).isBefore(now)){
+        } else if (nextUpdate.getDateTime().minusWeeks(1).isBefore(now)) {
             log.warn("List is about to expire, nextUpdate is less than 1 week away: {}", nextUpdate.getDateTime());
         }
 
@@ -93,13 +99,17 @@ public class TSLService {
     private TrustServiceProvider createTrustServiceProvider() throws Exception {
         TrustServiceProvider trustServiceProvider = new TrustServiceProvider();
         TSPInformation tspInformation = new TSPInformation();
+
+        tspInformation.setTSPTradeName(createInternationalNamesType(
+                createMultiLangNormStringType(LANG_CODE_NO, "NTRNO-991825827"),
+                createMultiLangNormStringType(LANG_CODE_EN, "NTRNO-991825827")));
         NonEmptyMultiLangURIListType nonEmptyMultiLangURIListType = new NonEmptyMultiLangURIListType();
-        nonEmptyMultiLangURIListType.getURIS().add(createNonEmptyMultiLangURIType("no", "https://www.digdir.no/"));
+        nonEmptyMultiLangURIListType.getURIS().add(createNonEmptyMultiLangURIType(LANG_CODE_NO, "https://docs.digdir.no/docs/lommebok/lommebok_om.html"));
         tspInformation.setTSPInformationURI(nonEmptyMultiLangURIListType);
         tspInformation.setTSPAddress(createDigdirAddressType());
         tspInformation.setTSPName(createInternationalNamesType(
-                createMultiLangNormStringType("no", "Digitaliseringsdirektoratet"),
-                createMultiLangNormStringType("en", "The Norwegian Digitalisation Agency")));
+                createMultiLangNormStringType(LANG_CODE_NO, DIGITALISERINGSDIREKTORATET_LEGAL_NAME_NO),
+                createMultiLangNormStringType(LANG_CODE_EN, DIGITALISERINGSDIREKTORATET_LEGAL_NAME_EN)));
         trustServiceProvider.setTSPInformation(tspInformation);
         TSPServices tspServices = new TSPServices();
         TSPService tspService = createTspService();
@@ -114,7 +124,7 @@ public class TSLService {
         TSPService tspService = new TSPService();
         ServiceInformation serviceInformation = new ServiceInformation();
         serviceInformation.setServiceName(createInternationalNamesType(
-                createMultiLangNormStringType("no", "Root CA for eidas2sandkasse.net"), createMultiLangNormStringType("en", "Root CA for eidas2sandkasse.net")));
+                createMultiLangNormStringType(LANG_CODE_NO, "Root CA for eidas2sandkasse.net"), createMultiLangNormStringType(LANG_CODE_EN, "Root CA for eidas2sandkasse.net")));
         serviceInformation.setServiceTypeIdentifier("????rp/access????");
         ServiceDigitalIdentity serviceDigitalIdentity = createServiceDigitalIdentity();
         serviceInformation.setServiceDigitalIdentity(serviceDigitalIdentity);
@@ -183,17 +193,17 @@ public class TSLService {
     private AddressType createDigdirAddressType() {
         PostalAddresses postalAddresses = new PostalAddresses();
         PostalAddress postalAddress = new PostalAddress();
-        postalAddress.setLang("no");
+        postalAddress.setLang(LANG_CODE_NO);
         postalAddress.setStreetAddress("Lørenfaret 1C");
         postalAddress.setPostalCode("0580");
         postalAddress.setLocality("Oslo");
         postalAddress.setCountryName("NO");
 
         ElectronicAddress electronicAddress = new ElectronicAddress();
-        electronicAddress.getURIS().add(createNonEmptyMultiLangURIType("no", "mailto:servicedesk@digdir.no"));
-        electronicAddress.getURIS().add(createNonEmptyMultiLangURIType("en", "mailto:servicedesk@digdir.no"));
-        electronicAddress.getURIS().add(createNonEmptyMultiLangURIType("no", "https://www.digdir.no/"));
-        electronicAddress.getURIS().add(createNonEmptyMultiLangURIType("en", "https://www.digdir.no/"));
+        electronicAddress.getURIS().add(createNonEmptyMultiLangURIType(LANG_CODE_NO, "mailto:servicedesk@digdir.no"));
+        electronicAddress.getURIS().add(createNonEmptyMultiLangURIType(LANG_CODE_EN, "mailto:servicedesk@digdir.no"));
+        electronicAddress.getURIS().add(createNonEmptyMultiLangURIType(LANG_CODE_NO, "https://www.digdir.no/"));
+        electronicAddress.getURIS().add(createNonEmptyMultiLangURIType(LANG_CODE_EN, "https://www.digdir.no/"));
         AddressType addressType = new AddressType();
         postalAddresses.getPostalAddresses().add(postalAddress);
         addressType.setPostalAddresses(postalAddresses);
