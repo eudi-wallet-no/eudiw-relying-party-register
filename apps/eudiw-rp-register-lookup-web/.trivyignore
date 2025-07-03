@@ -1,1 +1,1 @@
-CVE-2025-48988 # tomcat-embed-core. Temp ignore until newer docker-image/OS from paketo
+# <CVE> # <package/affected code>. Fixed in <version>.
