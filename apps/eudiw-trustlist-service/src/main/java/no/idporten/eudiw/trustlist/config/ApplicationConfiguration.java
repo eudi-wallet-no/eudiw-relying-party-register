@@ -10,16 +10,16 @@ import org.springframework.context.annotation.Configuration;
 public class ApplicationConfiguration {
 
     @Bean
-    public KeyStoreProvider tslKeyStoreProvider(TrustServiceProperties trustServiceProperties) {
-        return new KeyStoreProvider(trustServiceProperties.getKeyStore());
+    public KeyStoreProvider tslKeyStoreProvider(TrustlistServiceProperties trustlistServiceProperties) {
+        return new KeyStoreProvider(trustlistServiceProperties.getKeyStore());
     }
 
     @Bean
-    public KeyProvider tslKeyProvider(KeyStoreProvider tslKeyStoreProvider, TrustServiceProperties trustServiceProperties) {
+    public KeyProvider tslKeyProvider(KeyStoreProvider tslKeyStoreProvider, TrustlistServiceProperties trustlistServiceProperties) {
         return new KeyProvider(
                 tslKeyStoreProvider.getKeyStore(),
-                trustServiceProperties.getKeyStore().keyAlias(),
-                trustServiceProperties.getKeyStore().password());
+                trustlistServiceProperties.getKeyStore().keyAlias(),
+                trustlistServiceProperties.getKeyStore().password());
     }
 
 }

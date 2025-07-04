@@ -5,7 +5,7 @@ server:
 spring:
   thread-executor: virtual
   application:
-    name: digital-lommebok-trust-list-service
+    name: digital-lommebok-trustlist-service
     environment: default
 
 management:
@@ -25,10 +25,43 @@ management:
       application: ${spring.application.name}
       environment: ${spring.application.environment}
 
-trust-service:
+trustlist-service:
   scheme-information:
     sequence-number: 1
-    list-issue-datetime: 2025-07-03T06:00:00.1Z
+    list-issue-datetime: 2025-07-03T06:00:00.00Z
+  # only support 1 trust service provider initially
+  service-provider:
+    name:
+      lang-no: Digitaliseringsdirektoratet
+      lang-en: Norwegian Digitalisation Agency
+    trade-name:
+      lang-no: NTRNO-991825827
+      lang-en: NTRNO-991825827
+      # use hard-coded values for now reused also for scheme-information
+#    address:
+#      postal-adress:
+#        street-address: Lørenfaret 1C
+#        locality: Oslo
+#        postal-code: 0580
+#        country-name: NO
+#      electronic-address:
+#        lang-no:
+#          - mailto:servicedesk@digdir.no
+#          - https://www.digdir.no/
+#        lang-en:
+#          - mailto:servicedesk@digdir.no
+#          - https://www.digdir.no/
+    information-uri:
+      lang-no: https://docs.digdir.no/docs/lommebok/lommebok_om.html
+    rp-access-services:
+      - name:
+          lang-no: CA for relying parties access certificates in eidas2sandkasse
+          lang-en: CA for relying parties access certificates in eidas2sandkasse
+        starting-time: 2025-07-03T12:00:00.00Z
+        cert: |-
+          -----BEGIN CERTIFICATE-----
+          MIIFhjCCA26gAwIBAgIJAPbsfA8ONFcRMA0GCSqGSIb3DQEBDAUAMGIxGDAWBgNVBGETD05UUk5PLTk5MTgyNTgyNzELMAkGA1UEBhMCbm8xDzANBgNVBAsTBkRpZ2RpcjEoMCYGA1UEAxMfZWlkYXMyc2FuZGthc3NlIHJvb3QgQ0Egc3lzdGVzdDAeFw0yNTAzMzExMTM1MDdaFw0zMDAzMzAxMTM1MDdaMGIxGDAWBgNVBGETD05UUk5PLTk5MTgyNTgyNzELMAkGA1UEBhMCbm8xDzANBgNVBAsTBkRpZ2RpcjEoMCYGA1UEAxMfZWlkYXMyc2FuZGthc3NlIHJvb3QgQ0Egc3lzdGVzdDCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBANlJnsGmLcHCj+NOYrqFfTq4rn97WlbvFRvMVcVgeeEUpqjLwVWL+qs1uZSrkxs1zAqj2FQ++RcyJzPfLx5zv7MmNdltCOeK7d31Wf+f8qCQ3fiRlcXgMA81dqfRDuMHNDpMcASx+sWCNomRvnLkJMHdPZipfIeuPt0R5EYCFhDxesghnzVJynyJz4EmaLO2aIEsf1UqadTt49bCPr+jyhaZlSFtnhrje3TWTnmSLjpbCiMFDtui8pDRp59ECXz9r8J0xzWsCRp/vX8BstVjZxMfLU6U34zD/GHT3onr/gAHl+5Suc/jQO1oUG4mjYP+xLUE5geuqFFJ7/VoGozgTLm+WQgIcKfYtJlL1frfbw/cDo/Db0hUWbsWSIbGkIfvzdPBSEfL53nnAFs0Np2VHJr6dAEjRnB6tmwgXd3bpPj5KmiCwEzJteTD4cCVBZu4vE+dwAzz0YnX7nkn70GBEIUsrsTCbmGUk/Piq1CFtTEKCF4a5kdBlsRu+swCHw051S94jJ5TgbcaS1gebiqDHKH13hNSDy9HXU0ynPz4nHKIu0Wt44Zy9aRcsA3fvvt+QKRcAOCAO3CS3YG2uHeZbrCAbFXYtKlQgJl0OrmxuXSxFKjoVQeqP1YV6bJf7grQMMD66CL6cYj/zUDtuWN6qAf9LsVt6XjNh0rqr7zD3xaJAgMBAAGjPzA9MB0GA1UdDgQWBBSDLHefDZmzEO55p/SamaAPSuTKTTAOBgNVHQ8BAf8EBAMCAQYwDAYDVR0TBAUwAwEB/zANBgkqhkiG9w0BAQwFAAOCAgEAiSseiZmTP4TJXPj2GSAdGp9s9erLuM30h1xF8vhvdIfZdN4yNPlUBuIYbfMDbdcnOELwL9SxVlwEDKF4+ZTQpjmO1JwDEFmZBghUaUBH/TrjSoN/oqq/cEruu0TJViy04daqM2B7+J+L73P+5dxodzlBmGuaN6jEHu/RsP/p5uowDEXmRaYZm4hOFYOq2XgLmOFwIoiKcmPXbS3nzXjBdshjq68fndoGyBknD/ppUL6Be1jhjH3zH0yGDGEkrcUgLA2YhF4wGfHg7x0oV8y+xBw3c6rrezP4OTv5ehPi6bejfoGuAAzdaGIdQzQSioGM6wV+73+IQ6OBXsQS/jnPvr3RwpImCeW5EqKJ9HK1i2RSkMlMc6sWRMTOH0nNcyHlv3lH6R5Na6PpYGSfgzdLl5d0BYar51o+WeKSlegjF5gg1FoOMA1ktoknnKz2Fuw7qlZ51mNQGp3SGuAfNjjVXHCa6zISNj+ROU3aZgJApRH2NmATLkWo3N13scpDq9n0ajmPgS/1VN3Feby6zO8GGYUCZdWfwTce8j7kbtNgjxhm/xucmY+N5rg0J9qNZ124arOymzyml3tDrknoSnRMtPzG6ZA4YrTJUeV7swjODUO5ltJjscRi+xnJM92fvXjBjuwbJg38PmK78RkxHeopCG4Hh9MyCycOqbQnPVSp6jY=
+          -----END CERTIFICATE-----
   keystore:
     type: ${TSL_SIGN_KEYSTORE_TYPE}
     location: ${TSL_SIGN_KEYSTORE}

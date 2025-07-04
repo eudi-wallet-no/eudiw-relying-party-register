@@ -1,10 +1,10 @@
-package no.idporten.eudiw.trustlist.config;
+package no.idporten.eudiw.trustlist.domain;
 
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
 
-public record SchemeInformationProperties(BigInteger sequenceNumber, ZonedDateTime listIssueDateTime) {
-    public SchemeInformationProperties{
+public record TLSchemeInformation(BigInteger sequenceNumber, ZonedDateTime listIssueDateTime) {
+    public TLSchemeInformation {
         if (sequenceNumber == null || sequenceNumber.compareTo(BigInteger.ZERO) < 1) {
             throw new IllegalArgumentException("Sequence number must be a non-negative BigInteger greater than zero");
         }
