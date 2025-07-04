@@ -1,14 +1,15 @@
 package no.idporten.eudiw.trustlist.service;
 
-import no.idporten.eudiw.trustlist.config.TrustServiceProperties;
+import no.idporten.eudiw.trustlist.config.TrustlistServiceProperties;
+import no.idporten.eudiw.trustlist.domain.TLRpAccessService;
+import no.idporten.eudiw.trustlist.domain.TLServiceProvider;
 import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.openssl.PEMParser;
 import org.etsi.uri._02231.v2_.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.io.StringReader;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
 
@@ -19,7 +20,6 @@ public class TSLService {
     public static final String TSL_TYPE_URI = "http://uri.etsi.org/TrstSvc/TrustedList/TSLType/EUgeneric";
     public static final String STATUS_DETERMINATION_APPROACH_URI = "http://uri.etsi.org/TrstSvc/TrustedList/StatusDetn/EUappropriate";
     public static final String SCHEME_TYPE_COMMUNITY_RULES_URI = "http://uri.etsi.org/TrstSvc/TrustedList/schemerules/EUcommon";
-    public static final String SERVICE_STATUS_URI = "http://uri.etsi.org/TrstSvc/Svcstatus/inaccord";
 
     public static final String DIGITALISERINGSDIREKTORATET_LEGAL_NAME_NO = "Digitaliseringsdirektoratet";
     public static final String DIGITALISERINGSDIREKTORATET_LEGAL_NAME_EN = "Norwegian Digitalisation Agency";
@@ -29,15 +29,14 @@ public class TSLService {
 
     private final Logger log = LoggerFactory.getLogger(TSLService.class);
 
-    private final TrustServiceProperties properties;
+    private final TrustlistServiceProperties properties;
 
 
-    public TSLService(TrustServiceProperties properties) {
+    public TSLService(TrustlistServiceProperties properties) {
         this.properties = properties;
     }
 
-    // viser generell opbygning av liste
-    public TrustServiceStatusList generateTrustServiceStatusList() throws Exception {
+    public TrustServiceStatusList generateTrustServiceStatusList() throws IOException {
         TrustServiceStatusList trustServiceStatusList = new TrustServiceStatusList();
         trustServiceStatusList.setId("tsl");
         trustServiceStatusList.setTSLTag(TLS_TAG_URI);
@@ -47,16 +46,15 @@ public class TSLService {
 
         // • identify the TSPs recognized by the scheme;
         TrustServiceProviderList trustServiceProviderList = new TrustServiceProviderList();
-        TrustServiceProvider trustServiceProvider = createTrustServiceProvider();
+        TrustServiceProvider trustServiceProvider = createTrustServiceProvider(properties.getServiceProvider());
         trustServiceProviderList.getTrustServiceProviders().add(trustServiceProvider);
         trustServiceStatusList.setTrustServiceProviderList(trustServiceProviderList);
 
         return trustServiceStatusList;
     }
 
-    // viser hvordan meta-informasjon om tjenesten kan lages
     protected SchemeInformation createSchemeInformation() {
-        // all info skal minimum på en og helst på språket til land som kontrollerer
+        // all info skal minimum på engelsk (en) og helst på språket til land som kontrollerer (no)
         SchemeInformation schemeInformation = new SchemeInformation();
         schemeInformation.setTSLVersionIdentifier(BigInteger.valueOf(6));
         schemeInformation.setTSLSequenceNumber(properties.getSchemeInformation().sequenceNumber());
@@ -95,90 +93,49 @@ public class TSLService {
         return schemeInformation;
     }
 
-    // viser oppbygging av en trust service provider
-    private TrustServiceProvider createTrustServiceProvider() throws Exception {
+    private TrustServiceProvider createTrustServiceProvider(TLServiceProvider serviceProviderData) throws IOException {
         TrustServiceProvider trustServiceProvider = new TrustServiceProvider();
         TSPInformation tspInformation = new TSPInformation();
 
         tspInformation.setTSPTradeName(createInternationalNamesType(
-                createMultiLangNormStringType(LANG_CODE_NO, "NTRNO-991825827"),
-                createMultiLangNormStringType(LANG_CODE_EN, "NTRNO-991825827")));
-        NonEmptyMultiLangURIListType nonEmptyMultiLangURIListType = new NonEmptyMultiLangURIListType();
-        nonEmptyMultiLangURIListType.getURIS().add(createNonEmptyMultiLangURIType(LANG_CODE_NO, "https://docs.digdir.no/docs/lommebok/lommebok_om.html"));
-        tspInformation.setTSPInformationURI(nonEmptyMultiLangURIListType);
-        tspInformation.setTSPAddress(createDigdirAddressType());
+                createMultiLangNormStringType(LANG_CODE_NO, serviceProviderData.tradeName().langNo()),
+                createMultiLangNormStringType(LANG_CODE_EN, serviceProviderData.tradeName().langEn())));
+        tspInformation.setTSPInformationURI(createNonEmptyMultiLangURIListType(
+                createNonEmptyMultiLangURIType(LANG_CODE_NO, serviceProviderData.informationUri().langNo())));
+        tspInformation.setTSPAddress(createDigdirAddressType()); // still hard-coded to Digdir address, should be configurable
         tspInformation.setTSPName(createInternationalNamesType(
-                createMultiLangNormStringType(LANG_CODE_NO, DIGITALISERINGSDIREKTORATET_LEGAL_NAME_NO),
-                createMultiLangNormStringType(LANG_CODE_EN, DIGITALISERINGSDIREKTORATET_LEGAL_NAME_EN)));
+                createMultiLangNormStringType(LANG_CODE_NO, serviceProviderData.name().langNo()),
+                createMultiLangNormStringType(LANG_CODE_EN, serviceProviderData.name().langEn())));
+
         trustServiceProvider.setTSPInformation(tspInformation);
+
         TSPServices tspServices = new TSPServices();
-        TSPService tspService = createTspService();
-        tspServices.getTSPServices().add(tspService);
-        trustServiceProvider.setTSPInformation(tspInformation);
+        for (TLRpAccessService rpAccessService : serviceProviderData.rpAccessServices()) {
+            tspServices.getTSPServices().add(createRpAccessTspService(rpAccessService));
+        }
         trustServiceProvider.setTSPServices(tspServices);
         return trustServiceProvider;
     }
 
-    // viser oppbyggingen av en tsp service
-    private TSPService createTspService() throws Exception {
+    private TSPService createRpAccessTspService(TLRpAccessService rpAccessService) throws IOException {
         TSPService tspService = new TSPService();
         ServiceInformation serviceInformation = new ServiceInformation();
         serviceInformation.setServiceName(createInternationalNamesType(
-                createMultiLangNormStringType(LANG_CODE_NO, "Root CA for eidas2sandkasse.net"), createMultiLangNormStringType(LANG_CODE_EN, "Root CA for eidas2sandkasse.net")));
-        serviceInformation.setServiceTypeIdentifier("????rp/access????");
-        ServiceDigitalIdentity serviceDigitalIdentity = createServiceDigitalIdentity();
-        serviceInformation.setServiceDigitalIdentity(serviceDigitalIdentity);
-        serviceInformation.setServiceStatus(SERVICE_STATUS_URI);
-        serviceInformation.setStatusStartingTime(ZonedDateTime.now());
-        ExtensionsListType extensionsListType = new ExtensionsListType();
-        Extension extension = new Extension();
-        extension.setCritical(true);
-        extensionsListType.getExtensions().add(extension);
-        serviceInformation.setServiceInformationExtensions(extensionsListType);
-        ServiceHistory serviceHistory = new ServiceHistory();
+                createMultiLangNormStringType(LANG_CODE_NO, rpAccessService.name().langNo()),
+                createMultiLangNormStringType(LANG_CODE_EN, rpAccessService.name().langEn())));
+        serviceInformation.setServiceTypeIdentifier(TLRpAccessService.SERVICE_TYPE_IDENTIFIER_URI_RP_ACCESS);
+        serviceInformation.setServiceDigitalIdentity(createServiceDigitalIdentity(rpAccessService.getCertificate()));
+        serviceInformation.setServiceStatus(TLRpAccessService.SERVICE_STATUS_URI);
+        serviceInformation.setStatusStartingTime(rpAccessService.startingTime());
         tspService.setServiceInformation(serviceInformation);
-        tspService.setServiceHistory(serviceHistory);
+
+        // add history on first change of service (new version):
+        //   ServiceHistory serviceHistory = new ServiceHistory();
+        //   tspService.setServiceHistory(serviceHistory);
         return tspService;
     }
 
-    // viser hvordan service digital identity kan bygges fra sertifikater
-    protected ServiceDigitalIdentity createServiceDigitalIdentity() throws Exception {
-        String cert = """
-                -----BEGIN CERTIFICATE-----
-                MIIFhjCCA26gAwIBAgIJAPbsfA8ONFcRMA0GCSqGSIb3DQEBDAUAMGIxGDAWBgNV
-                BGETD05UUk5PLTk5MTgyNTgyNzELMAkGA1UEBhMCbm8xDzANBgNVBAsTBkRpZ2Rp
-                cjEoMCYGA1UEAxMfZWlkYXMyc2FuZGthc3NlIHJvb3QgQ0Egc3lzdGVzdDAeFw0y
-                NTAzMzExMTM1MDdaFw0zMDAzMzAxMTM1MDdaMGIxGDAWBgNVBGETD05UUk5PLTk5
-                MTgyNTgyNzELMAkGA1UEBhMCbm8xDzANBgNVBAsTBkRpZ2RpcjEoMCYGA1UEAxMf
-                ZWlkYXMyc2FuZGthc3NlIHJvb3QgQ0Egc3lzdGVzdDCCAiIwDQYJKoZIhvcNAQEB
-                BQADggIPADCCAgoCggIBANlJnsGmLcHCj+NOYrqFfTq4rn97WlbvFRvMVcVgeeEU
-                pqjLwVWL+qs1uZSrkxs1zAqj2FQ++RcyJzPfLx5zv7MmNdltCOeK7d31Wf+f8qCQ
-                3fiRlcXgMA81dqfRDuMHNDpMcASx+sWCNomRvnLkJMHdPZipfIeuPt0R5EYCFhDx
-                esghnzVJynyJz4EmaLO2aIEsf1UqadTt49bCPr+jyhaZlSFtnhrje3TWTnmSLjpb
-                CiMFDtui8pDRp59ECXz9r8J0xzWsCRp/vX8BstVjZxMfLU6U34zD/GHT3onr/gAH
-                l+5Suc/jQO1oUG4mjYP+xLUE5geuqFFJ7/VoGozgTLm+WQgIcKfYtJlL1frfbw/c
-                Do/Db0hUWbsWSIbGkIfvzdPBSEfL53nnAFs0Np2VHJr6dAEjRnB6tmwgXd3bpPj5
-                KmiCwEzJteTD4cCVBZu4vE+dwAzz0YnX7nkn70GBEIUsrsTCbmGUk/Piq1CFtTEK
-                CF4a5kdBlsRu+swCHw051S94jJ5TgbcaS1gebiqDHKH13hNSDy9HXU0ynPz4nHKI
-                u0Wt44Zy9aRcsA3fvvt+QKRcAOCAO3CS3YG2uHeZbrCAbFXYtKlQgJl0OrmxuXSx
-                FKjoVQeqP1YV6bJf7grQMMD66CL6cYj/zUDtuWN6qAf9LsVt6XjNh0rqr7zD3xaJ
-                AgMBAAGjPzA9MB0GA1UdDgQWBBSDLHefDZmzEO55p/SamaAPSuTKTTAOBgNVHQ8B
-                Af8EBAMCAQYwDAYDVR0TBAUwAwEB/zANBgkqhkiG9w0BAQwFAAOCAgEAiSseiZmT
-                P4TJXPj2GSAdGp9s9erLuM30h1xF8vhvdIfZdN4yNPlUBuIYbfMDbdcnOELwL9Sx
-                VlwEDKF4+ZTQpjmO1JwDEFmZBghUaUBH/TrjSoN/oqq/cEruu0TJViy04daqM2B7
-                +J+L73P+5dxodzlBmGuaN6jEHu/RsP/p5uowDEXmRaYZm4hOFYOq2XgLmOFwIoiK
-                cmPXbS3nzXjBdshjq68fndoGyBknD/ppUL6Be1jhjH3zH0yGDGEkrcUgLA2YhF4w
-                GfHg7x0oV8y+xBw3c6rrezP4OTv5ehPi6bejfoGuAAzdaGIdQzQSioGM6wV+73+I
-                Q6OBXsQS/jnPvr3RwpImCeW5EqKJ9HK1i2RSkMlMc6sWRMTOH0nNcyHlv3lH6R5N
-                a6PpYGSfgzdLl5d0BYar51o+WeKSlegjF5gg1FoOMA1ktoknnKz2Fuw7qlZ51mNQ
-                Gp3SGuAfNjjVXHCa6zISNj+ROU3aZgJApRH2NmATLkWo3N13scpDq9n0ajmPgS/1
-                VN3Feby6zO8GGYUCZdWfwTce8j7kbtNgjxhm/xucmY+N5rg0J9qNZ124arOymzym
-                l3tDrknoSnRMtPzG6ZA4YrTJUeV7swjODUO5ltJjscRi+xnJM92fvXjBjuwbJg38
-                PmK78RkxHeopCG4Hh9MyCycOqbQnPVSp6jY=
-                -----END CERTIFICATE-----
-                """;
-        PEMParser pemParser = new PEMParser(new StringReader(cert));
-        X509CertificateHolder certificate = (X509CertificateHolder) pemParser.readObject();
+    protected ServiceDigitalIdentity createServiceDigitalIdentity(X509CertificateHolder certificate) throws IOException {
         ServiceDigitalIdentity serviceDigitalIdentity = new ServiceDigitalIdentity();
         DigitalIdentityType digitalIdentityTypeSubjectName = new DigitalIdentityType();
         digitalIdentityTypeSubjectName.setX509SubjectName(certificate.getSubject().toString());
@@ -189,7 +146,7 @@ public class TSLService {
         return serviceDigitalIdentity;
     }
 
-    // Det er ganske komplisert å bygge typene, blir mye skyfling av data fra konfig e.l.
+    // Hardkpder adresse for Digdir, ut i konfig eller database senere?
     private AddressType createDigdirAddressType() {
         PostalAddresses postalAddresses = new PostalAddresses();
         PostalAddress postalAddress = new PostalAddress();
@@ -212,6 +169,9 @@ public class TSLService {
     }
 
     private NonEmptyMultiLangURIType createNonEmptyMultiLangURIType(String lang, String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
         NonEmptyMultiLangURIType nonEmptyMultiLangURIType = new NonEmptyMultiLangURIType();
         nonEmptyMultiLangURIType.setLang(lang);
         nonEmptyMultiLangURIType.setValue(value);
@@ -221,12 +181,27 @@ public class TSLService {
     private InternationalNamesType createInternationalNamesType(MultiLangNormStringType... values) {
         InternationalNamesType internationalNamesType = new InternationalNamesType();
         for (MultiLangNormStringType value : values) {
-            internationalNamesType.getNames().add(value);
+            if (value != null) {
+                internationalNamesType.getNames().add(value);
+            }
+        }
+        return internationalNamesType;
+    }
+
+    private NonEmptyMultiLangURIListType createNonEmptyMultiLangURIListType(NonEmptyMultiLangURIType... values) {
+        NonEmptyMultiLangURIListType internationalNamesType = new NonEmptyMultiLangURIListType();
+        for (NonEmptyMultiLangURIType value : values) {
+            if (value != null) {
+                internationalNamesType.getURIS().add(value);
+            }
         }
         return internationalNamesType;
     }
 
     private static MultiLangNormStringType createMultiLangNormStringType(String lang, String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
         MultiLangNormStringType multiLangNormStringType = new MultiLangNormStringType();
         multiLangNormStringType.setLang(lang);
         multiLangNormStringType.setValue(value);
