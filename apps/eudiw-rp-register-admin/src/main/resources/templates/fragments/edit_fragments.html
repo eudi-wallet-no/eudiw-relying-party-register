@@ -6,9 +6,9 @@
 <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
     <!--/*@thymesVar id="editFormAttr" type="no.idporten.eudiw.rp.admin.web.form.RelyingPartyEditForm"*/-->
 
-    <div style="margin-bottom: 8px;">
     <fieldset class="ds-fieldset"
-              data-size="sm">
+              data-size="sm"
+              style="margin-bottom: 2em;">
         <legend class="ds-label"
                 data-weight="high">
             Generelt
@@ -69,7 +69,8 @@
     </fieldset>
 
     <fieldset class="ds-fieldset"
-              data-size="sm">
+              data-size="sm"
+              style="margin-bottom: 2em;">
         <legend class="ds-label"
                 data-weight="high">
             Endre rettigheter for brukersted
@@ -130,7 +131,8 @@
     </fieldset>
 
     <fieldset class="ds-fieldset"
-              data-size="sm">
+              data-size="sm"
+              style="margin-bottom: 2em;">
         <legend class="ds-label"
                 data-weight="high">
             Endre EAA'ere for brukersted
@@ -161,8 +163,8 @@
                     <legend class="ds-legend">
                         Legg til ny EAA
                     </legend>
-                    <p class="ds-paragraph"
-                       style="margin-bottom: 8px;">
+                    <div style="margin-bottom: 8px;">
+
                         <label for="eaa_namespace_field"
                                class="ds-label">
                             Namespace
@@ -188,7 +190,7 @@
                              th:insert="~{fragments/general ::
                                             generic_invalid_input_field_error_msg('EAA-intent')}"
                              style="display: none;"></div>
-                    </p>
+                    </div>
                     <button type="button"
                             onclick="addEaaOnclick()"
                             class="ds-button"
@@ -200,7 +202,6 @@
 
         </div>
     </fieldset>
-    </div>
 
     <div class="flex-container">
         <button type="submit"
