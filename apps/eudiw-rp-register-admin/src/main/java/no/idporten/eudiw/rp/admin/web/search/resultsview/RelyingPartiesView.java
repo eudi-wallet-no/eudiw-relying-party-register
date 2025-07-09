@@ -1,5 +1,6 @@
 package no.idporten.eudiw.rp.admin.web.search.resultsview;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
@@ -9,44 +10,48 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.SessionScope;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.function.Predicate;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Component("relyingPartiesView")
 @SessionScope
+@Getter
 public class RelyingPartiesView {
 
+    @Getter(AccessLevel.NONE)
     private HashMap<UUID, RelyingPartyResource> relyingParties;
 
-    private List<RelyingPartyResource> currentView;
-
+    @Getter(AccessLevel.NONE)
     private final RelyingPartiesService relyingPartiesService;
 
-    @Getter
     private int numPages;
-
-    @Getter
     private int currentPageIdx;
-
-    @Getter
     private int pageSize;
+
+    private RelyingPartiesViewOrdering ordering;
 
     private boolean initialized;
 
-    @Getter
     @Setter
     private SearchForm lastSearchForm = SearchForm.empty();
 
     private static final int DEFAULT_PAGE_SIZE = 5;
     private static final int PAGINATION_WINDOW_SIZE = 5;
 
+    private static final
+    Collector<RelyingPartyResource, ?, LinkedHashMap<UUID, RelyingPartyResource>>
+        relyingPartyLinkedMapCollector =
+        Collectors.toMap(RelyingPartyResource::id,
+                         rp -> rp,
+                         (_, snd) -> snd,
+                         LinkedHashMap::new);
+
     public RelyingPartiesView(RelyingPartiesService relyingPartiesService) {
         this.relyingPartiesService = relyingPartiesService;
 
+        this.ordering = RelyingPartiesViewOrdering.NAME_ASC;
         this.relyingParties = new HashMap<>();
-        this.currentView = new ArrayList<>();
 
         this.numPages = 0;
         this.currentPageIdx = 0;
@@ -58,39 +63,22 @@ public class RelyingPartiesView {
     public void setCurrentPageIdx(int currentPageIdx) {
         this.currentPageIdx = Math.max(Math.min(currentPageIdx, numPages - 1), 0);
     }
-    public boolean hasResults() {
-        return this.initialized;
-    }
 
     public void doSearch(SearchRelyingPartyResource searchResource) {
         RelyingPartiesResource searchResult =
             this.relyingPartiesService.search(searchResource);
-        this.relyingParties =
-            searchResult.relyingParties().stream().collect(
-                Collectors.toMap(RelyingPartyResource::id,
-                                 Function.identity(),
-                                 (_, b) -> b,
-                                 HashMap::new));
 
-        this.currentView = searchResult.relyingParties();
-        this.setViewSpec(ResultsViewSpecification.defaultView());
+        this.ordering = RelyingPartiesViewOrdering.NAME_ASC;
+        this.relyingParties =
+            searchResult.relyingParties()
+                        .stream()
+                        .sorted(this.ordering.toComparator())
+                        .collect(relyingPartyLinkedMapCollector);
 
         this.numPages = Math.ceilDiv(this.relyingParties.size(), DEFAULT_PAGE_SIZE);
         this.currentPageIdx = 0;
 
         this.initialized = true;
-    }
-
-    private void setViewSpec(ResultsViewSpecification viewSpec) {
-        Predicate<RelyingPartyResource> combinedFilter =
-            viewSpec.filters().stream().reduce(_ -> true, Predicate::and);
-        this.currentView =
-            this.relyingParties
-                   .values()
-                   .stream()
-                   .filter(combinedFilter)
-                   .sorted(viewSpec.ordering())
-                   .toList();
     }
 
     public RelyingPartyResource get(UUID id) {
@@ -113,8 +101,21 @@ public class RelyingPartiesView {
         return created;
     }
 
+    public void setOrdering(RelyingPartiesViewOrdering ordering) {
+        if (ordering != this.ordering) {
+            this.relyingParties =
+                this.relyingParties
+                    .values()
+                    .stream()
+                    .sorted(ordering.toComparator())
+                    .collect(relyingPartyLinkedMapCollector);
+            this.ordering = ordering;
+        }
+    }
+
     public List<RelyingPartyResource> getCurrentResultsPage() {
-        return this.currentView
+        return this.relyingParties
+                   .values()
                    .stream()
                    .skip((long) currentPageIdx * pageSize)
                    .limit(pageSize)
