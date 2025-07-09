@@ -36,7 +36,7 @@
 </form>
 
 <div th:fragment="results_table_fragment"
-     th:if="${@relyingPartiesView.hasResults()}">
+     th:if="${@relyingPartiesView.isInitialized()}">
 
     <!--/*@thymesVar id="full_results" type="no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartiesView"*/-->
     <!--/*@thymesVar id="sorted_and_filtered_results" type="java.util.List<no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource>"*/-->
@@ -46,20 +46,32 @@
         </div>
 
         <table th:unless="${#lists.isEmpty(resultsPage)}"
-               class="ds-table" data-border="true">
-            <thead>
+               class="ds-table"
+               data-border="true"
+               th:with="currentOrdering=${@relyingPartiesView.getOrdering()},
+                        orderingOpts=${T(no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartiesViewOrdering)}"
+        >
+            <thead class="clickableHeaders">
             <tr>
-                <th>
-                    <label>Org.nr.</label>
+                <th th:class="${currentOrdering == orderingOpts.ORGNO_ASC ? 'focused' : ''}">
+                    <a th:href="@{search(sort='ORGNO_ASC')}" class="ds-link">
+                        Org.nr.
+                    </a>
                 </th>
-                <th>
-                    <label>Navn</label>
+                <th th:class="${currentOrdering == orderingOpts.NAME_ASC ? 'focused' : ''}">
+                    <a th:href="@{search(sort='NAME_ASC')}" class="ds-link">
+                        Navn
+                    </a>
                 </th>
-                <th>
-                    <label>Oppretta</label>
+                <th th:class="${currentOrdering == orderingOpts.CREATED_ASC ? 'focused' : ''}">
+                    <a th:href="@{search(sort='CREATED_ASC')}" class="ds-link">
+                        Oppretta
+                    </a>
                 </th>
-                <th>
-                    <label>Sist oppdatert</label>
+                <th th:class="${currentOrdering == orderingOpts.LAST_UPDATED_ASC ? 'focused' : ''}">
+                    <a th:href="@{search(sort='LAST_UPDATED_ASC')}" class="ds-link">
+                        Sist oppdatert
+                    </a>
                 </th>
             </tr>
             </thead>
@@ -80,17 +92,14 @@
                   numPages=${@relyingPartiesView.getNumPages()}"
          class="ds-pagination"
     >
-
         <ul th:if="${numPages > 1}">
-            <th:block th:unless="${#lists.contains(pageWindow, 1)}">
-                <li>
-                    <a th:href="@{search(page=1)}"
-                       class="ds-button"
-                       data-variant="tertiary">
-                        <<
-                    </a>
-                </li>
-            </th:block>
+            <li th:unless="${#lists.contains(pageWindow, 1)}">
+                <a th:href="@{search(page=1)}"
+                   class="ds-button"
+                   data-variant="tertiary">
+                    <<
+                </a>
+            </li>
 
             <li th:each="pageNum : ${pageWindow}">
 
@@ -108,15 +117,13 @@
                 </a>
             </li>
 
-            <th:block th:unless="${#lists.contains(pageWindow, numPages)}">
-                <li>
-                    <a th:href="@{search(page=${numPages})}"
-                       class="ds-button"
-                       data-variant="tertiary">
-                        >>
-                    </a>
-                </li>
-            </th:block>
+            <li th:unless="${#lists.contains(pageWindow, numPages)}">
+                <a th:href="@{search(page=${numPages})}"
+                   class="ds-button"
+                   data-variant="tertiary">
+                    >>
+                </a>
+            </li>
         </ul>
     </nav>
 </div>

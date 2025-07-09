@@ -7,6 +7,7 @@ import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyCreateForm;
 import no.idporten.eudiw.rp.admin.web.form.SearchForm;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEditForm;
+import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartiesViewOrdering;
 import no.idporten.eudiw.rp.admin.web.resource.*;
 import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.*;
 import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartiesView;
@@ -18,6 +19,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -41,10 +43,12 @@ public class AdminController {
 
     @GetMapping("/search")
     public ModelAndView searchGet(
-        @RequestParam(value = "page", required = false, defaultValue = "1")
-        int oneIndexedPageNum) {
+        @RequestParam(value = "page") Optional<Integer> oneIndexedPageNum,
+        @RequestParam(value = "sort") Optional<RelyingPartiesViewOrdering> ordering) {
 
-        relyingPartiesView.setCurrentPageIdx(oneIndexedPageNum - 1);
+        relyingPartiesView.setCurrentPageIdx(oneIndexedPageNum.orElse(1) - 1);
+        ordering.ifPresent(relyingPartiesView::setOrdering);
+
         SearchForm lastSearchForm = relyingPartiesView.getLastSearchForm();
         return new ModelAndView("search_view", searchFormAttrId, lastSearchForm);
     }
