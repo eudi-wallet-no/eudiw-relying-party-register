@@ -1,7 +1,9 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      lang="nb-no">
-<head th:replace="~{fragments/general :: head_fragment(title = 'Lag nyt aksesssertifikat')}">
+<html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title>Lag nyt aksesssertifikat</title>
+</head>
 
 <body th:with="rp=${detailedViewDataAttr}">
 <!--/*@thymesVar id="detailedViewDataAttr" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->

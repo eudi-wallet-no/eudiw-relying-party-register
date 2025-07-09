@@ -1,15 +1,11 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      lang="nb-no"
+<html xmlns:th="http://www.thymeleaf.org" lang="nb-no"
       th:with="rp=${detailedViewDataAttr}">
-<head th:replace="~{fragments/general :: head_fragment(title=|Detaljer for ${rp.name}|)}">
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title th:text="|Detaljer for ${rp.name}|"></title>
+    <link rel="stylesheet" th:href="@{/css/simple_tabs.css}">
 </head>
-<!--/*
-    to add new tab/:
-    1) add a child element to the "content_panels" div, with some id "#<panel_id>".
-    2) optionally add a link to the tab with href="#<page_tabs>" to the
-       "page_tabs" container.
-*/-->
 
 <!--/*@thymesVar id="detailedViewDataAttr" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
 <!--/*@thymesVar id="certificateSummariesAttr" type="java.util.List<no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary>"*/-->

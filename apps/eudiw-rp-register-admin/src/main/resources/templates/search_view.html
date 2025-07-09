@@ -1,6 +1,23 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
-<head th:replace="~{fragments/general :: head_fragment(title='Søk etter brukersteder')}">
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title>Søk etter brukersteder</title>
+    <style>
+        .clickableHeaders a {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            text-decoration: none;
+        }
+        .clickableHeaders a:visited {
+            color: inherit;
+        }
+        .clickableHeaders th.focused {
+            background-color: #ddeeff;
+        }
+    </style>
+</head>
 
 <body>
     <header th:replace="~{fragments/general :: page_header_fragment}"></header>

@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      lang="nb-no"
+<html xmlns:th="http://www.thymeleaf.org" lang="nb-no"
       th:with="rp=${detailedViewDataAttr}">
-<head th:replace="~{fragments/general :: head_fragment(title=|Endre brukersted ${rp.name}|)}">
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title th:text="|Endre brukersted: ${rp.name}|"></title>
 </head>
 
 <!--/*@thymesVar id="detailedViewDataAttr" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
