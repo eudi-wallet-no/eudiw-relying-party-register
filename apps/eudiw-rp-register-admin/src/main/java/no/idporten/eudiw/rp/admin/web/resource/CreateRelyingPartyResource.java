@@ -11,7 +11,7 @@ import java.util.List;
 public record CreateRelyingPartyResource(
 
         @JsonProperty(value = "org_nr", required = true)
-        String orgNr,
+        String orgno,
 
         @JsonProperty(value = "name", required = true)
         String name,

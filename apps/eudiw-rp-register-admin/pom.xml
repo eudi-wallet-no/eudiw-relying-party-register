@@ -18,7 +18,7 @@
         <java.version>24</java.version>
         <idporten-actuator-starter.version>2.0.0</idporten-actuator-starter.version>
         <idporten-access-log.version>2.8.0</idporten-access-log.version>
-
+        <idporten-validators.version>1.6.0</idporten-validators.version>
         <opentelemetry-instrumentation-api.version>1.51.0</opentelemetry-instrumentation-api.version>
         <logback.version>1.5.18</logback.version>
         <springdoc.version>2.8.9</springdoc.version>
@@ -60,6 +60,11 @@
             <groupId>no.idporten.logging</groupId>
             <artifactId>idporten-access-log-spring-boot-3-starter</artifactId>
             <version>${idporten-access-log.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>no.idporten.validators</groupId>
+            <artifactId>idporten-validators</artifactId>
+            <version>${idporten-validators.version}</version>
         </dependency>
         <dependency>
             <groupId>io.opentelemetry</groupId>

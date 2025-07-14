@@ -20,11 +20,16 @@
                 Org.nr.
             </label>
             <input id="orgno_field"
-                   th:field="*{orgNr}"
+                   th:field="*{orgno}"
                    type="text"
-                   placeholder="Orgnr"
+                   placeholder="Org.nr."
                    class="ds-input">
         </p>
+        <ul th:if="${#fields.hasErrors('orgno')}">
+            <li th:each="error : ${#fields.errors('orgno')}"
+                th:text="${error}"
+                class="ds-validation-message"></li>
+        </ul>
 
         <p class="ds-paragraph">
             <label for="name_field"

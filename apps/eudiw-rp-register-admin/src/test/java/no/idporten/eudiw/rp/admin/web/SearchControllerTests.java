@@ -4,6 +4,7 @@ import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.service.accesscertificates.PKCS10CertificationRequestConverter;
 import no.idporten.eudiw.rp.admin.testdata.CertificatesGenerator;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
+import no.idporten.eudiw.rp.admin.testdata.TestDataGenerator;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyCreateForm;
 import no.idporten.eudiw.rp.admin.web.form.SearchForm;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEditForm;
@@ -320,14 +321,14 @@ public class SearchControllerTests {
         @DisplayName("then form accepted if well-formed, and correct services called, view, and model")
         void testCreateFormAcceptedIfWellFormed() throws Exception {
             RelyingPartyCreateForm createForm = new RelyingPartyCreateForm();
-            createForm.setName("fooBar");
-            createForm.setPublicSector(true);
-            createForm.setOrgNr("123");
+            createForm.setName(ResourceGenerator.generateName());
+            createForm.setPublicSector(ResourceGenerator.generateBoolean());
+            createForm.setOrgno(TestDataGenerator.generateValidOrgno());
 
             CreateRelyingPartyResource expectedCreateResource = createForm.toResource();
             RelyingPartyResource rpResource = new RelyingPartyResource(
                 UUID.randomUUID(),
-                createForm.getOrgNr(),
+                createForm.getOrgno(),
                 createForm.getName(),
                 createForm.isPublicSector(),
                 Collections.emptyList(),
@@ -339,10 +340,11 @@ public class SearchControllerTests {
 
             when(mockRpService.create(expectedCreateResource)).thenReturn(rpResource);
             mockMvc.perform(post("/create")
-                    .formField("orgNr", createForm.getOrgNr())
+                    .formField("orgno", createForm.getOrgno())
                     .formField("name", createForm.getName())
                     .formField("publicSector", Boolean.toString(createForm.isPublicSector())))
                 .andExpect(status().is3xxRedirection());
+            ;
 
             verify(mockRpService).create(expectedCreateResource);
         }

@@ -1,14 +1,17 @@
 package no.idporten.eudiw.rp.admin.web.form;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import no.idporten.eudiw.rp.admin.validation.SaneStringConstraint;
+import no.idporten.eudiw.rp.admin.validation.SaneStringValidator;
 import no.idporten.eudiw.rp.admin.web.resource.CreateRelyingPartyResource;
-import no.idporten.eudiw.rp.admin.web.resource.EditRelyingPartyResource;
-import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
+
+import no.idporten.validators.orgnr.Orgnr;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,10 +22,14 @@ import java.util.List;
 @EqualsAndHashCode
 public class RelyingPartyCreateForm {
 
-    @SaneStringConstraint
-    private String orgNr;
+    @Orgnr(message = "Ikkje et gyldig organisasjonsnummer")
+    @NotNull
+    private String orgno;
 
-    @SaneStringConstraint
+    @SaneStringConstraint(message =
+        "Navnet får bare inneholde norske bokstaver, tal, mellemrom, og symbolene "
+            + SaneStringValidator.ALLOWED_SYMBOLS)
+    @NotBlank(message = "Navnet får ikkje være tomt")
     private String name;
 
     private boolean publicSector;
@@ -39,7 +46,7 @@ public class RelyingPartyCreateForm {
 
     public CreateRelyingPartyResource toResource() {
         return new CreateRelyingPartyResource(
-            this.orgNr,
+            this.orgno,
             this.name,
             this.publicSector,
             this.getEntitlements()
