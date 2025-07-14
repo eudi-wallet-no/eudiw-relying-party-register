@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import java.net.URI;
 import java.security.*;
 import java.security.cert.X509Certificate;
+import java.util.Objects;
 
 /**
  * Represents a certificate authority with key material.  Call {@link #init()} before use.
@@ -47,7 +48,7 @@ public class CertificateAuthority {
      */
     public void init() throws Exception {
         KeyStore keyStore = new KeyStoreProvider(this.keyStore).getKeyStore();
-        this.privateKey = (PrivateKey) keyStore.getKey(this.keyStore.keyAlias(), this.keyStore.keyPassword().toCharArray());
+        this.privateKey = (PrivateKey) Objects.requireNonNull(keyStore.getKey(this.keyStore.keyAlias(), this.keyStore.keyPassword().toCharArray()), "Failed to load private key");
         this.certificate = (X509Certificate) keyStore.getCertificate(this.keyStore.keyAlias());
         this.publicKey = this.certificate.getPublicKey();
     }

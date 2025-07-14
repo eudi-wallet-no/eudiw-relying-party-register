@@ -95,6 +95,9 @@ public class CertificateAuthorityApiController {
                     description = "Intermediate CA name",
                     examples = {
                             @ExampleObject(name = "access", value = "access", description = "RP access CA"),
+                            @ExampleObject(name = "pid_provider", value = "pid_provider", description = "PID_Provider CA"),
+                            @ExampleObject(name = "eaa_provider", value = "eaa_provider", description = "QEAA_Provider/Non_Q_EAA_Provider CA"),
+                            @ExampleObject(name = "pub_eaa_provider", value = "pub_eaa_provider", description = "PUB_EAA_Provider CA"),
                             @ExampleObject(name = "issuer", value = "issuer", description = "Issuer CA")},
                     required = true)
             @PathVariable("intermediate") String intermediate) throws Exception {
@@ -114,6 +117,9 @@ public class CertificateAuthorityApiController {
                     description = "Intermediate CA name",
                     examples = {
                             @ExampleObject(name = "access", value = "access", description = "RP access CA"),
+                            @ExampleObject(name = "pid_provider", value = "pid_provider", description = "PID_Provider CA"),
+                            @ExampleObject(name = "eaa_provider", value = "eaa_provider", description = "QEAA_Provider/Non_Q_EAA_Provider CA"),
+                            @ExampleObject(name = "pub_eaa_provider", value = "pub_eaa_provider", description = "PUB_EAA_Provider CA"),
                             @ExampleObject(name = "issuer", value = "issuer", description = "Issuer CA")},
                     required = true)
             @PathVariable("intermediate") String intermediate) throws Exception {
@@ -140,6 +146,9 @@ public class CertificateAuthorityApiController {
                     description = "Intermediate CA name",
                     examples = {
                             @ExampleObject(name = "access", value = "access", description = "RP access CA"),
+                            @ExampleObject(name = "pid_provider", value = "pid_provider", description = "PID_Provider CA"),
+                            @ExampleObject(name = "eaa_provider", value = "eaa_provider", description = "QEAA_Provider/Non_Q_EAA_Provider CA"),
+                            @ExampleObject(name = "pub_eaa_provider", value = "pub_eaa_provider", description = "PUB_EAA_Provider CA"),
                             @ExampleObject(name = "issuer", value = "issuer", description = "Issuer CA")},
                     required = true)
             @PathVariable("intermediate") String intermediate,
