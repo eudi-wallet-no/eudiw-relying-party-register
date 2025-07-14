@@ -99,3 +99,33 @@ eudiw-ca:
         password: ${INTERMEDIATE_ISSUER_KEYSTORE_PASSWORD}
         key-alias: ${INTERMEDIATE_ISSUER_KEYSTORE_KEY_ALIAS}
         key-password: ${INTERMEDIATE_ISSUER_KEYSTORE_KEY_PASSWORD}
+    pid_provider:
+      lifetime-days: 100
+      crl-distribution-point: ${eudiw-ca.base-uri}/v1/certs/intermediates/pid_provider.crl
+      certificate-uri: ${eudiw-ca.base-uri}/v1/certs/intermediates/pid_provider.cer
+      keystore:
+        type: pkcs12
+        location: ${INTERMEDIATE_PID_PROVIDER_KEYSTORE_LOCATION}
+        password: ${INTERMEDIATE_PID_PROVIDER_KEYSTORE_PASSWORD}
+        key-alias: ${INTERMEDIATE_PID_PROVIDER_KEYSTORE_KEY_ALIAS}
+        key-password: ${INTERMEDIATE_PID_PROVIDER_KEYSTORE_KEY_PASSWORD}
+    eaa_provider:
+      lifetime-days: 100
+      crl-distribution-point: ${eudiw-ca.base-uri}/v1/certs/intermediates/eaa_provider.crl
+      certificate-uri: ${eudiw-ca.base-uri}/v1/certs/intermediates/eaa_provider.cer
+      keystore:
+        type: pkcs12
+        location: ${INTERMEDIATE_EAA_PROVIDER_KEYSTORE_LOCATION}
+        password: ${INTERMEDIATE_EAA_PROVIDER_KEYSTORE_PASSWORD}
+        key-alias: ${INTERMEDIATE_EAA_PROVIDER_KEYSTORE_KEY_ALIAS}
+        key-password: ${INTERMEDIATE_EAA_PROVIDER_KEYSTORE_KEY_PASSWORD}
+    pub_eaa_provider:
+      lifetime-days: 100
+      crl-distribution-point: ${eudiw-ca.base-uri}/v1/certs/intermediates/pub_eaa_provider.crl
+      certificate-uri: ${eudiw-ca.base-uri}/v1/certs/intermediates/pub_eaa_provider.cer
+      keystore:
+        type: pkcs12
+        location: ${INTERMEDIATE_PUB_EAA_PROVIDER_KEYSTORE_LOCATION}
+        password: ${INTERMEDIATE_PUB_EAA_PROVIDER_KEYSTORE_PASSWORD}
+        key-alias: ${INTERMEDIATE_PUB_EAA_PROVIDER_KEYSTORE_KEY_ALIAS}
+        key-password: ${INTERMEDIATE_PUB_EAA_PROVIDER_KEYSTORE_KEY_PASSWORD}
