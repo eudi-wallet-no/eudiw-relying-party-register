@@ -59,8 +59,8 @@ public class CertificateAuthorityApiController {
     public final static String API_TAG = "ca-api-v1";
 
     @Operation(
-            summary = "Download root CA certificate",
-            description = "Download root CA certificate",
+            summary = "Download root CA certificate (binary)",
+            description = "Download root CA certificate (binary)",
             tags = {API_TAG})
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "DER-encoded certificate", content = @Content(mediaType = APPLICATION_X_PKIX_CERT_VALUE))
@@ -68,6 +68,18 @@ public class CertificateAuthorityApiController {
     @GetMapping(path = {"/v1/certs/root.crt", "/v1/certs/root.cer"}, produces = APPLICATION_X_PKIX_CERT_VALUE)
     public ResponseEntity<byte[]> getRootCertificate() throws Exception {
         return ResponseEntity.ok(certificateAuthorities.getRoot().getCertificate().getEncoded());
+    }
+
+    @Operation(
+            summary = "Download root CA certificate (PEM)",
+            description = "Download root CA certificate (PEM)",
+            tags = {API_TAG})
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "PEM-encoded certificate", content = @Content(mediaType = APPLICATION_X_PEM_FILE_VALUE))
+    })
+    @GetMapping(path = "/v1/certs/root.pem", produces = APPLICATION_X_PEM_FILE_VALUE)
+    public ResponseEntity<String> getRootCertificatePem() throws Exception {
+        return ResponseEntity.ok(certificateAuthorityService.encodeToPem(certificateAuthorities.getRoot().getCertificate()));
     }
 
     @Operation(
@@ -83,14 +95,14 @@ public class CertificateAuthorityApiController {
     }
 
     @Operation(
-            summary = "Download intermediate CA certificate",
-            description = "Download intermediate CA certificate",
+            summary = "Download intermediate CA certificate (binary)",
+            description = "Download intermediate CA certificate (binary)",
             tags = {API_TAG})
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "DER-encoded certificate", content = @Content(mediaType = APPLICATION_X_PKIX_CERT_VALUE))
     })
     @GetMapping(path = {"/v1/certs/intermediates/{intermediate}.crt", "/v1/certs/intermediates/{intermediate}.cer"}, produces = APPLICATION_X_PKIX_CERT_VALUE)
-    public ResponseEntity<byte[]> getIntermediateCertificates(
+    public ResponseEntity<byte[]> getIntermediateCertificate(
             @Parameter(
                     description = "Intermediate CA name",
                     examples = {
@@ -102,6 +114,28 @@ public class CertificateAuthorityApiController {
                     required = true)
             @PathVariable("intermediate") String intermediate) throws Exception {
         return ResponseEntity.ok(certificateAuthorities.findIntermediate(intermediate).getCertificate().getEncoded());
+    }
+
+    @Operation(
+            summary = "Download intermediate CA certificate (PEM)",
+            description = "Download intermediate CA certificate (PEM)",
+            tags = {API_TAG})
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "PEM-encoded certificate", content = @Content(mediaType = APPLICATION_X_PEM_FILE_VALUE))
+    })
+    @GetMapping(path = "/v1/certs/intermediates/{intermediate}.pem", produces = APPLICATION_X_PEM_FILE_VALUE)
+    public ResponseEntity<String> getIntermediateCertificatePem(
+            @Parameter(
+                    description = "Intermediate CA name",
+                    examples = {
+                            @ExampleObject(name = "access", value = "access", description = "RP access CA"),
+                            @ExampleObject(name = "pid_provider", value = "pid_provider", description = "PID_Provider CA"),
+                            @ExampleObject(name = "eaa_provider", value = "eaa_provider", description = "QEAA_Provider/Non_Q_EAA_Provider CA"),
+                            @ExampleObject(name = "pub_eaa_provider", value = "pub_eaa_provider", description = "PUB_EAA_Provider CA"),
+                            @ExampleObject(name = "issuer", value = "issuer", description = "Issuer CA")},
+                    required = true)
+            @PathVariable("intermediate") String intermediate) throws Exception {
+        return ResponseEntity.ok(certificateAuthorityService.encodeToPem(certificateAuthorities.findIntermediate(intermediate).getCertificate()));
     }
 
     @Operation(

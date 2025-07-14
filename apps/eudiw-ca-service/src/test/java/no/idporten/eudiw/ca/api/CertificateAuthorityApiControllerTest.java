@@ -69,7 +69,7 @@ public class CertificateAuthorityApiControllerTest {
         assertTrue(crl.getRevokedCertificates().isEmpty());
     }
 
-    @DisplayName("then the intermediate certificate for access certificates can be downloaded")
+    @DisplayName("then the intermediate CA certificates can be downloaded in binary format")
     @Test
     void testGetIntermediateAccessCertificate() throws Exception {
         MvcResult result = mockMvc.perform(get("/v1/certs/intermediates/access.cer"))
@@ -81,7 +81,18 @@ public class CertificateAuthorityApiControllerTest {
         assertNotEquals(certificate.getIssuer(), certificate.getSubject());
     }
 
-    @DisplayName("then the intermediate certificate for access certificates' CRL can be downloaded")
+    @DisplayName("then the intermediate CA certificates can be downloaded in PEM format")
+    @Test
+    void testGetIntermediateAccessCertificatePEM() throws Exception {
+        MvcResult result = mockMvc.perform(get("/v1/certs/intermediates/access.pem"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/x-pem-file;charset=UTF-8"))
+                .andReturn();
+        X509CertificateHolder certificate = certificateAuthorityService.decodeFromPem(result.getResponse().getContentAsString(), X509CertificateHolder.class);
+        assertNotEquals(certificate.getIssuer(), certificate.getSubject());
+    }
+
+    @DisplayName("then the intermediate CA certificates' CRL can be downloaded")
     @Test
     void testGetIntermediateAccessCertificateCRL() throws Exception {
         MvcResult result = mockMvc.perform(get("/v1/certs/intermediates/access.crl"))
