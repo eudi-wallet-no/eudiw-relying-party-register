@@ -10,6 +10,10 @@ import java.util.List;
 
 public class EntityGenerator extends TestDataGenerator {
 
+    public static List<RelyingParty> generateRelyingParties(int n) {
+        return generateListBy(n, EntityGenerator::generateRelyingPartyNoId);
+    }
+
     public static RelyingParty generateRelyingPartyNoId() {
         return new RelyingParty(
             generateName(),
@@ -45,6 +49,6 @@ public class EntityGenerator extends TestDataGenerator {
         }
     }
     public static List<RelyingPartyAccessCertificate> generateAccessCertificates() {
-        return generateListBy(2, 3, EntityGenerator::generateAccessCertificate);
+        return generateListBy(rng.nextInt(2, 4), EntityGenerator::generateAccessCertificate);
     }
 }

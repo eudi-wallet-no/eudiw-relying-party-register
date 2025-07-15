@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -51,17 +52,24 @@ public class RelyingPartyService {
 
     @Transactional(readOnly = true)
     public RelyingPartiesResource searchRelyingParties(
-        SearchRelyingPartyResource request) {
+        SearchRelyingPartyResource searchResource) {
+
+        Predicate<RelyingPartyResource> hasRequiredEntitlements =
+            rp -> new HashSet<>(rp.relyingPartyEntitlements())
+                      .containsAll(searchResource.requiredEntitlements());
+
         return new RelyingPartiesResource(
             relyingPartyRepository.searchQuery(
-                                      request.searchTerm(),
-                                      request.includeInactive()
+                                      searchResource.searchTerm(),
+                                      searchResource.includeInactive()
                                   )
                                   .stream()
                                   .map(Converter::toResource)
+                                  .filter(hasRequiredEntitlements)
                                   .toList()
         );
     }
+
     @Transactional(readOnly = true)
     public RelyingPartiesResource advancedSearchRelyingParties(
         AdvancedSearchRelyingPartyResource request) {
