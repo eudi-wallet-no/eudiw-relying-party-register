@@ -49,7 +49,7 @@ public class ResourceGenerator extends TestDataGenerator {
     }
 
     public static SearchForm generateSearchForm() {
-        return new SearchForm(generateName(), generateBoolean());
+        return new SearchForm(generateName(), generateBoolean(), new ArrayList<>());
     }
 
     public static RelyingPartyAccessCertificateResource generateCertificateResource()

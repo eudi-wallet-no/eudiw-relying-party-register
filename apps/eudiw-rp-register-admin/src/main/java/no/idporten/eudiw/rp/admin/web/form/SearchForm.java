@@ -1,10 +1,14 @@
 package no.idporten.eudiw.rp.admin.web.form;
 
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.With;
 import no.idporten.eudiw.rp.admin.validation.SaneStringConstraint;
 import no.idporten.eudiw.rp.admin.validation.SaneStringValidator;
 import no.idporten.eudiw.rp.admin.web.resource.SearchRelyingPartyResource;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @With
 public record SearchForm(
@@ -14,19 +18,32 @@ public record SearchForm(
             + SaneStringValidator.ALLOWED_SYMBOLS,
                           nullable = false)
     String searchTerm,
-    boolean includeInactive
+    boolean includeInactive,
+    @NotNull
+    List<RelyingPartyEntitlementFormField> requiredEntitlements
 ) {
 
     public static SearchForm empty() {
-        return new SearchForm("", false);
+        return new SearchForm("", false, new ArrayList<>());
     }
 
-    public SearchForm(String searchTerm, boolean includeInactive) {
+    public SearchForm(
+        String searchTerm,
+        boolean includeInactive,
+        List<RelyingPartyEntitlementFormField> requiredEntitlements) {
         this.searchTerm = searchTerm.strip();
         this.includeInactive = includeInactive;
+        this.requiredEntitlements =
+            requiredEntitlements != null ? requiredEntitlements : new ArrayList<>();
     }
 
     public SearchRelyingPartyResource toResource() {
-        return new SearchRelyingPartyResource(this.searchTerm, this.includeInactive);
+        return new SearchRelyingPartyResource(
+            this.searchTerm,
+            this.includeInactive,
+            this.requiredEntitlements
+                .stream()
+                .map(RelyingPartyEntitlementFormField::toResource)
+                .toList());
     }
 }
