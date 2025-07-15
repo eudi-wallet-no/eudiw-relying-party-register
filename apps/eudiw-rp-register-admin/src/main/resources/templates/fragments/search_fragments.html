@@ -1,38 +1,59 @@
-<!--/*@thymesVar id="searchFormAttr" type="no.idporten.eudiw.rp.admin.web.resource.SearchForm"*/-->
+<!--/*@thymesVar id="searchFormAttr" type="no.idporten.eudiw.rp.admin.web.form.SearchForm"*/-->
 <form th:fragment="search_form_fragment"
       th:object="${searchFormAttr}"
       th:action="@{/search}"
       method="POST">
-        <div class="ds-search"
-             style="margin-block-end: var(--ds-size-2)">
-            <input id="search_term"
-                   th:field="*{searchTerm}"
-                   placeholder="Søk på org.nr. eller navn"
-                   size="50"
-                   type="text"
-                   class="ds-input">
-            <button type="reset"
-                    class="ds-button"
-                    data-icon="true"
-                    data-variant="tertiary"
-            ></button>
-            <button type="submit"
-                    class="ds-button"
-                    data-variant="primary">Søk</button>
-        </div>
-
-        <label for="includeInactive">Inkluder inaktive</label>
-
-        <input id="includeInactive"
-               type="checkbox"
-               th:field="*{includeInactive}"
+    <div style="margin-bottom: 1em;">
+    <div class="ds-search"
+         style="margin-block-end: var(--ds-size-2)">
+        <input id="search_term"
+               th:field="*{searchTerm}"
+               placeholder="Søk på org.nr. eller navn"
+               size="50"
+               type="text"
                class="ds-input">
+        <button type="reset"
+                class="ds-button"
+                data-icon="true"
+                data-variant="tertiary"
+        ></button>
+        <button type="submit"
+                class="ds-button"
+                data-variant="primary">Søk</button>
+    </div>
+
+    <label for="includeInactive">Inkluder inaktive</label>
+    <input id="includeInactive"
+           type="checkbox"
+           th:field="*{includeInactive}"
+           class="ds-input">
 
     <ul th:if="${#fields.hasErrors()}">
         <li th:each="error : ${#fields.errors('searchTerm')}"
             th:text="${error}"
             class="ds-validation-message"></li>
     </ul>
+    </div>
+
+    <details class="ds-details"
+             style="width: fit-content;"
+             th:open="${!#lists.isEmpty(searchFormAttr.requiredEntitlements())}">
+        <summary>Filtreringsmuligheter</summary>
+        <fieldset class="ds-fieldset">
+            <legend>
+                Vis bare brukersteder med disse rettigheter
+            </legend>
+            <div class="ds-field" th:each="option : ${T(no.idporten.eudiw.rp.admin.data.RelyingPartyEntitlement).values()}">
+                <label th:for="|id-${option.desc}|" th:text="${option.desc}"></label>
+                <input th:id="|id-${option.desc}|"
+                       type="checkbox"
+                       class="ds-input"
+                       name="requiredEntitlements"
+                       th:value="${option.uri}"
+                       th:checked="${#lists.contains(searchFormAttr.requiredEntitlements(), option.toFormField())}">
+            </div>
+        </fieldset>
+    </details>
 </form>
 
 <div th:fragment="results_table_fragment"
@@ -42,7 +63,7 @@
     <!--/*@thymesVar id="sorted_and_filtered_results" type="java.util.List<no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource>"*/-->
     <div th:with="resultsPage=${@relyingPartiesView.getCurrentResultsPage()}">
         <div th:if="${#lists.isEmpty(resultsPage)}">
-            Fant ingen brukersteder. Ta bort et eller flere filtre, eller prøv en ny søking.
+            Fant ingen brukersteder.
         </div>
 
         <table th:unless="${#lists.isEmpty(resultsPage)}"
