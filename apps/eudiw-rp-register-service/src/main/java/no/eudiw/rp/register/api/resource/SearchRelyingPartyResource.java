@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.With;
 import no.eudiw.rp.register.validation.SaneStringConstraint;
 
+import java.util.List;
+
 @With
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record SearchRelyingPartyResource(
@@ -15,9 +17,12 @@ public record SearchRelyingPartyResource(
     String searchTerm,
 
     @JsonProperty(value = "include_inactive", required = true)
-    boolean includeInactive
+    boolean includeInactive,
+
+    @JsonProperty(value = "required_entitlements")
+    List<RelyingPartyEntitlementResource> requiredEntitlements
 ) {
     public static SearchRelyingPartyResource empty() {
-        return new SearchRelyingPartyResource("", false);
+        return new SearchRelyingPartyResource("", false, List.of());
     }
 }
