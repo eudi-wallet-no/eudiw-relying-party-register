@@ -4,10 +4,11 @@ import no.eudiw.rp.register.api.resource.*;
 import static no.eudiw.rp.register.testdata.ResourceGenerator.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+import no.eudiw.rp.register.data.entitlement.Entitlement;
 import no.eudiw.rp.register.data.entity.RelyingParty;
 import no.eudiw.rp.register.data.repository.RelyingPartyRepository;
 import no.eudiw.rp.register.testdata.EntityGenerator;
-import no.eudiw.rp.register.testdata.ResourceGenerator;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -18,7 +19,7 @@ import org.springframework.test.context.ActiveProfiles;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @SpringBootTest
 @DisplayName("When using the Relying Party Service")
@@ -30,6 +31,11 @@ public class RelyingPartyServiceTest {
 
     @Autowired
     private RelyingPartyRepository rpRepository;
+
+    @BeforeEach
+    void clearRepositoryBeforeEachTest() {
+        rpRepository.deleteAll();
+    }
 
     @DisplayName("When editing a relying party")
     @Nested
@@ -218,41 +224,29 @@ public class RelyingPartyServiceTest {
         @Test
         @DisplayName("then only RPs with the specified entitlements are returned")
         void testSearchWithEntitlementsFiltering() {
-            int nEach = 25;
-
-            RelyingPartyEntitlementResource expectedEntitlement1 = ResourceGenerator.generateRelyingPartyEntitlementResource();
-            RelyingPartyEntitlementResource expectedEntitlement2 = ResourceGenerator.generateRelyingPartyEntitlementResource();
-            List<RelyingPartyEntitlementResource> requiredEntitlements = List.of(expectedEntitlement1, expectedEntitlement2);
-
-            Function<List<RelyingPartyEntitlementResource>, List<RelyingParty>> generateRpsWithEntitlements =
-                entitlements -> {
-                    List<RelyingParty> rps = EntityGenerator.generateRelyingParties(nEach);
-                    rps.forEach(rp -> rp.setRelyingPartyEntitlements(
-                        entitlements.stream().map(Converter::toEntity).toList()));
-                    return rps;
-                };
-
-            // generate RPs both with and without the required entitlements.
-            List<RelyingParty> rpsIn = EntityGenerator.generateRelyingParties(nEach);
-            rpsIn.addAll(generateRpsWithEntitlements.apply(List.of(expectedEntitlement1)));
-            rpsIn.addAll(generateRpsWithEntitlements.apply(List.of(expectedEntitlement2)));
-
-            List<RelyingParty> rpsWithRequiredEntitlements =
-                generateRpsWithEntitlements.apply(requiredEntitlements);
-            rpsIn.addAll(rpsWithRequiredEntitlements);
-
+            int nRelyingParties = 1000;
+            List<RelyingParty> rpsIn = EntityGenerator.generateRelyingParties(nRelyingParties);
             rpRepository.saveAllAndFlush(rpsIn);
+
+            List<RelyingPartyEntitlementResource> requiredEntitlements =
+                rpsIn.getFirst()
+                     .getRelyingPartyEntitlements()
+                     .stream()
+                     .map(Converter::toResource)
+                     .toList();
+
+            Set<RelyingPartyResource> expectedSearchResult =
+                rpsIn.stream()
+                     .map(Converter::toResource)
+                     .filter(rp -> rp.relyingPartyEntitlements().containsAll(requiredEntitlements))
+                     .collect(Collectors.toSet());
 
             SearchRelyingPartyResource searchResource =
                 SearchRelyingPartyResource.empty()
                                           .withIncludeInactive(true)
                                           .withRequiredEntitlements(requiredEntitlements);
-
             Set<RelyingPartyResource> actualSearchResult =
                 new HashSet<>(relyingPartyService.searchRelyingParties(searchResource).relyingParties());
-
-            Set<RelyingPartyResource> expectedSearchResult = new HashSet<>(
-                rpsWithRequiredEntitlements.stream().map(Converter::toResource).toList());
 
             assertEquals(expectedSearchResult, actualSearchResult);
         }

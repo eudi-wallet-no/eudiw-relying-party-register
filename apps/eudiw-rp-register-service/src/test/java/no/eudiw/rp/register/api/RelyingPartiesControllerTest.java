@@ -3,6 +3,7 @@ package no.eudiw.rp.register.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import no.eudiw.rp.register.api.resource.*;
+import no.eudiw.rp.register.data.entitlement.Entitlement;
 import no.eudiw.rp.register.data.entity.RelyingParty;
 import no.eudiw.rp.register.data.repository.RelyingPartyRepository;
 import no.eudiw.rp.register.data.service.Converter;
@@ -21,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -223,8 +225,13 @@ public class RelyingPartiesControllerTest {
 
             @Test
             void testEditRelyingPartyMoreEntitlements() throws Exception {
+                List<RelyingPartyEntitlementResource> initialEntitlements =
+                    List.of(Entitlement.SERVICE_PROVIDER.toResource(),
+                            Entitlement.NON_Q_EAA_PROVIDER.toResource());
 
-                CreateRelyingPartyResource resource = generateCreateRelyingPartyResource();
+                CreateRelyingPartyResource resource =
+                    generateCreateRelyingPartyResource()
+                        .withRelyingPartyEntitlements(initialEntitlements);
 
                 ObjectWriter ow = new ObjectMapper().writer();
                 String json = ow.writeValueAsString(resource);
@@ -238,10 +245,10 @@ public class RelyingPartiesControllerTest {
                                 .andExpect(jsonPath("$.org_nr").value(resource.orgNr()))
                                 .andExpect(jsonPath("$.name").value(resource.name()))
                                 .andExpect(jsonPath("$.public_sector").value(resource.publicSector()));
-
                 RelyingPartyResource relyingPartyResource = ApiTestUtils.toRelyingPartyResource(createResult);
+
                 List<RelyingPartyEntitlementResource> entitlements = new ArrayList<>(resource.relyingPartyEntitlements());
-                entitlements.add(generateRelyingPartyEntitlementResource());
+                entitlements.add(Entitlement.PID_PROVIDER.toResource());
                 EditRelyingPartyResource editResource =
                     generateEditRelyingPartyResource()
                         .withRelyingPartyEntitlements(entitlements)
