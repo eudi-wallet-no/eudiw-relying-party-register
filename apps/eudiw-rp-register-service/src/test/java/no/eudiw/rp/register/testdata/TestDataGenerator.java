@@ -1,7 +1,11 @@
 package no.eudiw.rp.register.testdata;
 
+import no.eudiw.rp.register.data.entitlement.Entitlement;
+import no.eudiw.rp.register.data.entity.RelyingPartyEntitlement;
+
 import java.security.SecureRandom;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -77,5 +81,13 @@ public class TestDataGenerator {
 
         buf.setCharAt(modifyIndex, Character.forDigit(invalidDigit, 1));
         return buf.toString();
+    }
+
+    protected static List<Entitlement> sampleEntitlements() {
+        List<Entitlement> entitlements = Arrays.asList(Entitlement.values());
+        Collections.shuffle(entitlements);
+        return entitlements.stream() // sample 1-3 valid (and distinct) entitlements
+                           .limit(rng.nextInt(1, 4))
+                           .toList();
     }
 }

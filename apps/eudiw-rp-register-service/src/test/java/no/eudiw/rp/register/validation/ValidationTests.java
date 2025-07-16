@@ -107,30 +107,6 @@ public class ValidationTests {
                 () -> assertTrue(validationErrorMessages.contains("blank_namespace"))
             );
         }
-
-        @Test
-        void testRelyingPartyResourceEntitlementConstraint() {
-            List<RelyingPartyEntitlementResource> entitlementResources =
-                List.of(
-                    new RelyingPartyEntitlementResource("   "),
-                    new RelyingPartyEntitlementResource("valid entitlement"),
-                    new RelyingPartyEntitlementResource("<script>bad!</script>")
-                );
-
-            RelyingPartyResource resource =
-                generateRelyingPartyResource()
-                    .withRelyingPartyEntitlements(entitlementResources);
-
-            Set<ConstraintViolation<RelyingPartyResource>> violations =
-                doValidateResource(resource);
-            List<String> validationErrorMessages = getValidationErrorMessages(violations);
-
-            assertAll(
-                () -> assertEquals(2, violations.size()),
-                () -> assertTrue(validationErrorMessages.contains("blank_entitlement")),
-                () -> assertTrue(validationErrorMessages.contains("unsane_entitlement"))
-            );
-        }
     }
 
     @Nested

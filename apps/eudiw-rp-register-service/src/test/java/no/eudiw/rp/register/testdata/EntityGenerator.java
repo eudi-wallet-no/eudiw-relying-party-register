@@ -19,7 +19,7 @@ public class EntityGenerator extends TestDataGenerator {
             generateName(),
             generateValidOrgno(),
             generatePublicSector(),
-            generateListBy(EntityGenerator::generateEntitlement),
+            sampleEntitlements().stream().map(RelyingPartyEntitlement::new).toList(),
             generateListBy(EntityGenerator::generateEaa),
             // NOTE: certificates are very expensive to generate, so no
             // certificates by default.
@@ -32,9 +32,6 @@ public class EntityGenerator extends TestDataGenerator {
         return relyingParty;
     }
 
-    public static RelyingPartyEntitlement generateEntitlement() {
-        return new RelyingPartyEntitlement("ent-" + generateName());
-    }
     public static RelyingPartyEaa generateEaa() {
         return new RelyingPartyEaa("namespace-" + generateName(),
                                    "intent-" + generateName());

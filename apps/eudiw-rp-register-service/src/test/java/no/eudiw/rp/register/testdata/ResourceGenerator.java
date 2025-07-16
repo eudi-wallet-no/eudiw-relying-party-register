@@ -3,19 +3,19 @@ package no.eudiw.rp.register.testdata;
 import no.eudiw.rp.register.api.resource.*;
 import no.eudiw.rp.register.api.resource.accesscertificates.RelyingPartyCsrResource;
 import no.eudiw.rp.register.api.resource.accesscertificates.RelyingPartyAccessCertificateResource;
+import no.eudiw.rp.register.data.entitlement.Entitlement;
 
 import java.time.Instant;
 import java.util.UUID;
 
 public class ResourceGenerator extends TestDataGenerator {
 
-
     public static CreateRelyingPartyResource generateCreateRelyingPartyResource() {
         return new CreateRelyingPartyResource(
             generateValidOrgno(),
             generateName(),
             generatePublicSector(),
-            generateListBy(ResourceGenerator::generateRelyingPartyEntitlementResource),
+            sampleEntitlements().stream().map(Entitlement::toResource).toList(),
             generateListBy(ResourceGenerator::generateRelyingPartyEaaResource)
         );
     }
@@ -24,16 +24,10 @@ public class ResourceGenerator extends TestDataGenerator {
         return new EditRelyingPartyResource(
             generateName(),
             generatePublicSector(),
-            generateListBy(ResourceGenerator::generateRelyingPartyEntitlementResource),
+            sampleEntitlements().stream().map(Entitlement::toResource).toList(),
             generateListBy(ResourceGenerator::generateRelyingPartyEaaResource),
             true
        );
-    }
-
-    public static RelyingPartyEntitlementResource generateRelyingPartyEntitlementResource() {
-        return new RelyingPartyEntitlementResource(
-            generateRandomString(5, 20)
-        );
     }
 
     public static RelyingPartyEaaResource generateRelyingPartyEaaResource() {
@@ -51,7 +45,7 @@ public class ResourceGenerator extends TestDataGenerator {
             generateValidOrgno(),
             generateName(),
             generatePublicSector(),
-            generateListBy(ResourceGenerator::generateRelyingPartyEntitlementResource),
+            sampleEntitlements().stream().map(Entitlement::toResource).toList(),
             generateListBy(ResourceGenerator::generateRelyingPartyEaaResource),
             timeNow,
             timeNow,

@@ -3,8 +3,6 @@ package no.eudiw.rp.register.data.service;
 import lombok.RequiredArgsConstructor;
 import no.eudiw.rp.register.api.resource.*;
 import no.eudiw.rp.register.data.entity.RelyingParty;
-import no.eudiw.rp.register.data.entity.RelyingPartyEaa;
-import no.eudiw.rp.register.data.entity.RelyingPartyEntitlement;
 import no.eudiw.rp.register.data.repository.RelyingPartyRepository;
 import no.eudiw.rp.register.data.service.exception.BadRequestException;
 import no.eudiw.rp.register.data.service.exception.NotFoundException;
@@ -14,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -103,15 +100,23 @@ public class RelyingPartyService {
             throw new BadRequestException("Entitlements and EAAs should be emtpy if none exists");
         }
 
-        if (!relyingPartyRepository.existsById(id)) {
+        RelyingParty relyingParty = relyingPartyRepository.findById(id).orElse(null);
+        if (relyingParty == null) {
             throw new BadRequestException("Relying party not found");
         }
 
-        RelyingParty relyingParty = relyingPartyRepository.findById(id).orElseThrow();
         relyingParty.setName(request.name());
         relyingParty.setPublicSector(request.publicSector());
         relyingParty.setActive(request.active());
-        setEntitlementsAndEaa(relyingParty, request.relyingPartyEntitlements(), request.relyingPartyEaas());
+
+        relyingParty.getRelyingPartyEntitlements().clear();
+        relyingParty.getRelyingPartyEaas().clear();
+        relyingPartyRepository.saveAndFlush(relyingParty);
+
+        relyingParty.setRelyingPartyEntitlements(
+            request.relyingPartyEntitlements().stream().map(Converter::toEntity).toList());
+        relyingParty.setRelyingPartyEaas(
+            request.relyingPartyEaas().stream().map(Converter::toEntity).toList());
 
         return Converter.toResource(relyingPartyRepository.saveAndFlush(relyingParty));
     }
@@ -125,42 +130,5 @@ public class RelyingPartyService {
 
         relyingParty.setDeleted(true);
         relyingPartyRepository.save(relyingParty);
-    }
-
-    private void setEntitlementsAndEaa(
-            RelyingParty relyingParty,
-            List<RelyingPartyEntitlementResource> entitlements,
-            List<RelyingPartyEaaResource> eaas
-    ) {
-        Set<String> entitlementNames = entitlements.stream()
-                .map(RelyingPartyEntitlementResource::entitlement)
-                .collect(Collectors.toSet());
-
-        List<RelyingPartyEntitlement> updatedEntitlements = relyingParty.getRelyingPartyEntitlements()
-                .stream()
-                .filter(entitlement -> entitlementNames.contains(entitlement.getEntitlement()))
-                .collect(Collectors.toList());
-
-        Set<String> existingEntitlementNames = relyingParty.getRelyingPartyEntitlements()
-                .stream()
-                .map(RelyingPartyEntitlement::getEntitlement)
-                .collect(Collectors.toSet());
-
-        entitlements.stream()
-                .map(RelyingPartyEntitlementResource::entitlement)
-                .filter(entitlement -> !existingEntitlementNames.contains(entitlement))
-                .map(entitlement -> new RelyingPartyEntitlement(entitlement, relyingParty))
-                .forEach(updatedEntitlements::add);
-
-        relyingParty.setRelyingPartyEntitlements(updatedEntitlements);
-
-        List<RelyingPartyEaa> updatedEaas = eaas.stream()
-                .map(eaa -> new RelyingPartyEaa(eaa.namespace(), eaa.intent(), relyingParty))
-                .toList();
-
-        Set<RelyingPartyEaa> uniqueEaas = new TreeSet<>(Comparator.comparing(p -> p.getIntent() + p.getNamespace()));
-        uniqueEaas.addAll(updatedEaas);
-
-        relyingParty.setRelyingPartyEaas(uniqueEaas.stream().toList());
     }
 }
