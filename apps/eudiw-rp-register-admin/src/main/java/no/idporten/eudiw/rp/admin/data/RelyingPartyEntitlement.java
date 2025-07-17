@@ -2,8 +2,14 @@ package no.idporten.eudiw.rp.admin.data;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import no.idporten.eudiw.rp.admin.exception.AdminServiceException;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEntitlementFormField;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyEntitlementResource;
+
+import java.util.Arrays;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Getter
 @RequiredArgsConstructor
@@ -21,6 +27,23 @@ public enum RelyingPartyEntitlement {
         return new RelyingPartyEntitlementFormField(this.uri);
     }
     public RelyingPartyEntitlementResource toResource() {
-        return new RelyingPartyEntitlementResource(this.uri);
+        return new RelyingPartyEntitlementResource(this);
+    }
+
+    private static final Map<String, RelyingPartyEntitlement>
+        STRING_TO_ENTITLEMENT_MAP =
+        Arrays.stream(RelyingPartyEntitlement.values())
+              .collect(Collectors.toMap(RelyingPartyEntitlement::getUri,
+                                        Function.identity()));
+    public static RelyingPartyEntitlement fromString(String s) {
+        if (!STRING_TO_ENTITLEMENT_MAP.containsKey(s)) {
+            throw new AdminServiceException(
+                "Attempted to create %s from invalid/unrecognized entitlement URI"
+                    .formatted(RelyingPartyEntitlement.class.getName()));
+        }
+        return STRING_TO_ENTITLEMENT_MAP.get(s);
+    }
+    public static boolean isValidEntitlementString(String s) {
+        return STRING_TO_ENTITLEMENT_MAP.containsKey(s);
     }
 }

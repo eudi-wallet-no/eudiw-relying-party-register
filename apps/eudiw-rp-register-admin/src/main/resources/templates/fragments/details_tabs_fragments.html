@@ -39,8 +39,8 @@
     </div>
 </div>
 
-<!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
 <div th:fragment="general_info_content_fragment(rp)">
+    <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
     <div style="padding-bottom: 2em;">
         <table class="ds-table">
             <tbody>
@@ -88,7 +88,7 @@
                     </thead>
                     <tbody>
                         <tr th:each="ent : ${rp.relyingPartyEntitlements}">
-                            <td th:text="${ent.entitlement}"></td>
+                            <td th:text="${ent.entitlement.getDesc()}"></td>
                         </tr>
                     </tbody>
                 </table>

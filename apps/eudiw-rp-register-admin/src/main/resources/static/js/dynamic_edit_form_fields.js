@@ -1,18 +1,14 @@
-const entitlement_container = document.getElementById("entitlement_container");
 const eaa_container = document.getElementById("eaa_container");
 
-const entitlement_input_field = document.getElementById("entitlement_field");
 const eaa_namespace_input_field = document.getElementById("eaa_namespace_field");
 const eaa_intent_input_field = document.getElementById("eaa_intent_field");
 
-const entitlement_field_error_msg = document.getElementById("entitlement_error_msg");
 const eaa_namespace_error_msg = document.getElementById("eaa_namespace_error_msg");
 const eaa_intent_error_msg = document.getElementById("eaa_intent_error_msg");
 
 const showElem = elem => elem.style.display = "block";
 const hideElem = elem => elem.style.display = "none";
 
-entitlement_input_field.oninput = () => hideElem(entitlement_field_error_msg);
 eaa_namespace_input_field.oninput = () => hideElem(eaa_namespace_error_msg);
 eaa_intent_input_field.oninput = () => hideElem(eaa_intent_error_msg);
 
@@ -47,16 +43,6 @@ function makeTableItem(content) {
     return row;
 }
 
-function addEntitlementOnclick() {
-    const entitlement = entitlement_input_field.value.trim();
-    if (isSaneStringInput(entitlement)) {
-        addEntitlement(entitlement);
-        entitlement_input_field.value = "";
-    }
-    else
-        showElem(entitlement_field_error_msg);
-}
-
 function addEaaOnclick() {
     const namespace = eaa_namespace_input_field.value.trim();
     const intent = eaa_intent_input_field.value.trim();
@@ -73,13 +59,6 @@ function addEaaOnclick() {
         showElem(eaa_intent_error_msg);
 }
 
-function addEntitlement(entitlement) {
-    if (entitlement) {
-        const entitlementItem = makeTableItem(
-            `<td>${entitlement} <input type="hidden" name="entitlements" value="${entitlement}"></td>`);
-        entitlement_container.appendChild(entitlementItem);
-    }
-}
 function addEaa(namespace, intent) {
     if (namespace && intent) {
         const idx = idxGen.next().value;
