@@ -1,5 +1,6 @@
 package no.idporten.eudiw.rp.admin.web;
 
+import no.idporten.eudiw.rp.admin.data.RelyingPartyEntitlement;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.service.accesscertificates.PKCS10CertificationRequestConverter;
 import no.idporten.eudiw.rp.admin.testdata.CertificatesGenerator;
@@ -242,10 +243,11 @@ public class SearchControllerTests {
         @Test
         @DisplayName("then form accepted if well-formed, and correct services called, view, and model")
         void testEditFormAcceptedIfWellFormed() throws Exception {
+            RelyingPartyEntitlement entitlement = RelyingPartyEntitlement.SERVICE_PROVIDER;
             RelyingPartyResource rpResource =
                 ResourceGenerator.generateRelyingPartyResource()
-                    .withRelyingPartyEntitlements(List.of()) // for simplicity, no entitlements or EAAs
-                    .withRelyingPartyEaas(List.of());
+                                 .withRelyingPartyEntitlements(List.of(entitlement.toResource()))
+                                 .withRelyingPartyEaas(List.of());
             UUID id = rpResource.id();
             when(mockRpService.get(id)).thenReturn(rpResource);
 
@@ -256,7 +258,8 @@ public class SearchControllerTests {
                                 .queryParam("id", id.toString())
                                 .formField("name", editForm.getName())
                                 .formField("publicSector", Boolean.toString(editForm.isPublicSector()))
-                                .formField("active", Boolean.toString(editForm.isActive())))
+                                .formField("active", Boolean.toString(editForm.isActive()))
+                                .formField("entitlements", entitlement.getUri()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/details?id=%s".formatted(id.toString())));
 
@@ -267,11 +270,12 @@ public class SearchControllerTests {
         @Test
         @DisplayName("then form rejected on invalid fields, and view returns to the edit form")
         void testEditFormRejectedOnFieldInvalidation() throws Exception {
+            RelyingPartyEntitlement entitlement = RelyingPartyEntitlement.SERVICE_PROVIDER;
             String invalidName = "fooBar$";
             RelyingPartyResource rpResource =
                 ResourceGenerator.generateRelyingPartyResource()
                     .withName(invalidName)
-                    .withRelyingPartyEntitlements(List.of()) // empty entitlements and EAAs for simplicity
+                    .withRelyingPartyEntitlements(List.of(entitlement.toResource())) // empty entitlements and EAAs for simplicity
                     .withRelyingPartyEaas(List.of());
             UUID id = UUID.randomUUID();
             when(mockRpService.get(id)).thenReturn(rpResource);
@@ -283,7 +287,8 @@ public class SearchControllerTests {
                                 .queryParam("id", id.toString())
                                 .formField("name", invalidName)
                                 .formField("publicSector", Boolean.toString(rpResource.publicSector()))
-                                .formField("active", Boolean.toString(rpResource.active())))
+                                .formField("active", Boolean.toString(rpResource.active()))
+                                .formField("entitlements", entitlement.getUri()))
                    // assert edit form invalid (should only have error in the name field)
                    .andExpect(model().attributeHasFieldErrors(AdminController.editFormAttrId, "name"))
                    .andExpect(model().attributeErrorCount(AdminController.editFormAttrId, 1))
@@ -324,6 +329,8 @@ public class SearchControllerTests {
             createForm.setName(ResourceGenerator.generateName());
             createForm.setPublicSector(ResourceGenerator.generateBoolean());
             createForm.setOrgno(TestDataGenerator.generateValidOrgno());
+            RelyingPartyEntitlement entitlement = RelyingPartyEntitlement.SERVICE_PROVIDER;
+            createForm.setEntitlements(List.of(entitlement.toFormField()));
 
             CreateRelyingPartyResource expectedCreateResource = createForm.toResource();
             RelyingPartyResource rpResource = new RelyingPartyResource(
@@ -331,7 +338,7 @@ public class SearchControllerTests {
                 createForm.getOrgno(),
                 createForm.getName(),
                 createForm.isPublicSector(),
-                Collections.emptyList(),
+                List.of(entitlement.toResource()),
                 Collections.emptyList(),
                 1,
                 1,
@@ -342,7 +349,8 @@ public class SearchControllerTests {
             mockMvc.perform(post("/create")
                     .formField("orgno", createForm.getOrgno())
                     .formField("name", createForm.getName())
-                    .formField("publicSector", Boolean.toString(createForm.isPublicSector())))
+                    .formField("publicSector", Boolean.toString(createForm.isPublicSector()))
+                    .formField("entitlements", entitlement.getUri()))
                 .andExpect(status().is3xxRedirection());
             ;
 

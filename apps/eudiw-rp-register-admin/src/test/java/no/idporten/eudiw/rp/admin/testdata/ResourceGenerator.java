@@ -1,24 +1,25 @@
 package no.idporten.eudiw.rp.admin.testdata;
 
+import no.idporten.eudiw.rp.admin.data.RelyingPartyEntitlement;
 import no.idporten.eudiw.rp.admin.web.form.SearchForm;
 import no.idporten.eudiw.rp.admin.web.resource.*;
 import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyAccessCertificateResource;
 import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyAccessCertificatesResource;
 import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyCsrResource;
-import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 
 import java.security.cert.X509Certificate;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class ResourceGenerator extends TestDataGenerator {
 
-    public static RelyingPartyEntitlementResource generateRelyingPartyEntitlementResource() {
-        return new RelyingPartyEntitlementResource(
-            generateRandomString(5, 20)
-        );
+    public static List<RelyingPartyEntitlementResource> sampleRelyingPartyEntitlementResources() {
+        List<RelyingPartyEntitlement> entitlements = Arrays.asList(RelyingPartyEntitlement.values());
+        Collections.shuffle(entitlements);
+        return entitlements.subList(0, rng.nextInt(1, 4))
+                           .stream()
+                           .map(RelyingPartyEntitlement::toResource)
+                           .toList();
     }
 
     public static RelyingPartyEaaResource generateRelyingPartyEaaResource() {
@@ -36,7 +37,7 @@ public class ResourceGenerator extends TestDataGenerator {
             generateValidOrgno(),
             generateName(),
             generateBoolean(),
-            generateListBy(ResourceGenerator::generateRelyingPartyEntitlementResource),
+            sampleRelyingPartyEntitlementResources(),
             generateListBy(ResourceGenerator::generateRelyingPartyEaaResource),
             timeNow,
             timeNow,

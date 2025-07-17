@@ -68,67 +68,28 @@
         </p>
     </fieldset>
 
-    <fieldset class="ds-fieldset"
-              data-size="sm"
-              style="margin-bottom: 2em;">
-        <legend class="ds-label"
-                data-weight="high">
-            Endre rettigheter for brukersted
-        </legend>
-
-        <div class="flex-container">
-            <div>
-                <p class="ds-paragraph"
-                   style="margin-bottom: 8px;">
-                    Valgte rettigheter
-                </p>
-                <table class="ds-table"
-                       data-border="true"
-                       style="table-layout: fixed; word-wrap: break-word;">
-                    <thead>
-                    <tr>
-                        <th>Rettighet</th>
-                        <th style="width: 4em;"></th>
-                    </tr>
-                    </thead>
-                    <tbody id="entitlement_container"></tbody>
-                </table>
+    <div style="margin-bottom: 2px;">
+        <fieldset class="ds-fieldset" data-size="sm">
+            <legend class="ds-label"
+                    data-weight="high">
+                Endre rettigheter for brukerstedet
+            </legend>
+            <div class="ds-field" th:each="option : ${T(no.idporten.eudiw.rp.admin.data.RelyingPartyEntitlement).values()}">
+                <label th:for="|id-${option.desc}|" th:text="${option.desc}"></label>
+                <input th:id="|id-${option.desc}|"
+                       type="checkbox"
+                       class="ds-input"
+                       name="entitlements"
+                       th:value="${option.uri}"
+                       th:checked="${#lists.contains(editFormAttr.getEntitlements(), option.toFormField())}">
             </div>
-            <div>
-                <fieldset class="ds-fieldset">
-                    <legend class="ds-legend">
-                        Legg til ny rettighet
-                    </legend>
-                    <p class="ds-paragraph"
-                       style="margin-bottom: 8px;">
-
-                        <label for="entitlement_field"
-                               class="ds-label">
-                            Rettighet
-                        </label>
-
-                        <input id="entitlement_field"
-                               type="text"
-                               placeholder="Rettighet ..."
-                               class="ds-input">
-                    </p>
-
-                    <div id="entitlement_error_msg"
-                         th:insert="~{fragments/general ::
-                                        generic_invalid_input_field_error_msg('Rettighet')}"
-                         style="display: none;"></div>
-
-                    <button type="button"
-                            onclick="addEntitlementOnclick()"
-                            class="ds-button"
-                            data-variant="secondary">
-                        Legg til
-                    </button>
-                </fieldset>
-            </div>
-
-        </div>
-    </fieldset>
+        </fieldset>
+        <ul th:if="${#fields.hasErrors('entitlements')}">
+            <li th:each="error : ${#fields.errors('entitlements')}"
+                th:text="${error}"
+                class="ds-validation-message"></li>
+        </ul>
+    </div>
 
     <fieldset class="ds-fieldset"
               data-size="sm"
@@ -221,10 +182,7 @@
 
 <script src="/js/dynamic_edit_form_fields.js"></script>
 
-<!--/* pre-fill entitlements and EAA lists with values from the RP to be edited */-->
-<th:block th:each="entitlement : ${editFormAttr.getEntitlements()}">
-    <script>addEntitlement("[[${entitlement.entitlement}]]");</script>
-</th:block>
+<!--/* pre-fill EAA list with values from the RP to be edited */-->
 <th:block th:each="eaa : ${editFormAttr.getEaas()}">
     <script>addEaa("[[${eaa.namespace}]]", "[[${eaa.intent}]]");</script>
 </th:block>

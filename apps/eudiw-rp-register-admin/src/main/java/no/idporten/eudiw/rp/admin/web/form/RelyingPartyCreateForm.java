@@ -2,11 +2,9 @@ package no.idporten.eudiw.rp.admin.web.form;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import no.idporten.eudiw.rp.admin.validation.SaneStringConstraint;
 import no.idporten.eudiw.rp.admin.validation.SaneStringValidator;
 import no.idporten.eudiw.rp.admin.web.resource.CreateRelyingPartyResource;
@@ -35,6 +33,7 @@ public class RelyingPartyCreateForm {
     private boolean publicSector;
 
     @Valid
+    @NotEmpty(message = "Brukerstedet må ha minst en entitlement")
     private List<RelyingPartyEntitlementFormField> entitlements;
     @Valid
     private List<RelyingPartyEaaFormField> eaas;

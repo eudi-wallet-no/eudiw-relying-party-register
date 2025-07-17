@@ -2,6 +2,7 @@ package no.idporten.eudiw.rp.admin.web.form;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
 import no.idporten.eudiw.rp.admin.validation.SaneStringConstraint;
 import no.idporten.eudiw.rp.admin.validation.SaneStringValidator;
@@ -24,6 +25,7 @@ public class RelyingPartyEditForm {
     private boolean publicSector;
 
     @Valid
+    @NotEmpty(message = "Brukerstedet må ha minst en entitlement")
     private List<RelyingPartyEntitlementFormField> entitlements;
 
     @Valid
