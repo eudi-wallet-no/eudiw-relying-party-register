@@ -81,24 +81,14 @@ public class RelyingPartiesView {
         this.initialized = true;
     }
 
-    public RelyingPartyResource get(UUID id) {
-        if (this.relyingParties.containsKey(id)) {
-            return this.relyingParties.get(id);
-        }
-
-        RelyingPartyResource rp = this.relyingPartiesService.get(id);
-        this.relyingParties.put(id, rp);
-        return rp;
-    }
     public RelyingPartyResource edit(UUID id, EditRelyingPartyResource editResource) {
         RelyingPartyResource edited = this.relyingPartiesService.edit(id, editResource);
-        this.relyingParties.put(id, edited);
+
+        // if RP is in current search results, reflect the changes there
+        if (this.relyingParties.containsKey(id)) {
+            this.relyingParties.put(id, edited);
+        }
         return edited;
-    }
-    public RelyingPartyResource create(CreateRelyingPartyResource createResource) {
-        RelyingPartyResource created = this.relyingPartiesService.create(createResource);
-        this.relyingParties.put(created.id(), created);
-        return created;
     }
 
     public void setOrdering(RelyingPartiesViewOrdering ordering) {
