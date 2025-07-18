@@ -5,70 +5,71 @@
       method="POST">
 <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
     <!--/*@thymesVar id="editFormAttr" type="no.idporten.eudiw.rp.admin.web.form.RelyingPartyEditForm"*/-->
+    <div style="margin-bottom: 8px;">
+    <div class="ds-card">
+        <fieldset class="ds-fieldset"
+                  data-size="sm">
+            <legend class="ds-label"
+                    data-weight="high">
+                Generelt
+            </legend>
 
-    <fieldset class="ds-fieldset"
-              data-size="sm"
-              style="margin-bottom: 2em;">
-        <legend class="ds-label"
-                data-weight="high">
-            Generelt
-        </legend>
+            <p class="ds-paragraph">
+                <label for="orgno_field"
+                       data-weight="medium"
+                       class="ds-label">
+                    Org.nr.
+                </label>
+                <input disabled
+                       id="orgno_field"
+                       th:value="${rp.orgno}"
+                       class="ds-input">
+            </p>
 
-        <p class="ds-paragraph">
-            <label for="orgno_field"
-                   data-weight="medium"
-                   class="ds-label">
-                Org.nr.
-            </label>
-            <input disabled
-                   id="orgno_field"
-                   th:value="${rp.orgno}"
-                   class="ds-input">
-        </p>
+            <p class="ds-paragraph">
+                <label for="name_field"
+                       class="ds-label">
+                    Navn
+                </label>
+                <input id="name_field"
+                       th:field="*{name}"
+                       type="text"
+                       placeholder="Navn"
+                       class="ds-input">
+            </p>
+            <ul th:if="${#fields.hasErrors('name')}">
+                <li th:each="error : ${#fields.errors('name')}"
+                    th:text="${error}"
+                    class="ds-validation-message"></li>
+            </ul>
 
-        <p class="ds-paragraph">
-            <label for="name_field"
-                   class="ds-label">
-                Navn
-            </label>
-            <input id="name_field"
-                   th:field="*{name}"
-                   type="text"
-                   placeholder="Navn"
-                   class="ds-input">
-        </p>
-        <ul th:if="${#fields.hasErrors('name')}">
-            <li th:each="error : ${#fields.errors('name')}"
-                th:text="${error}"
-                class="ds-validation-message"></li>
-        </ul>
+            <p class="ds-paragraph">
+                <label for="sector_field"
+                       class="data-label">
+                    Sektor
+                </label>
+                <select id="sector_field"
+                        th:field="*{publicSector}"
+                        class="ds-input">
+                    <option value="true">Offentlig</option>
+                    <option value="false">Privat</option>
+                </select>
+            </p>
 
-        <p class="ds-paragraph">
-            <label for="sector_field"
-                   class="data-label">
-                Sektor
-            </label>
-            <select id="sector_field"
-                    th:field="*{publicSector}"
-                    class="ds-input">
-                <option value="true">Offentlig</option>
-                <option value="false">Privat</option>
-            </select>
-        </p>
+            <p class="ds-paragraph">
+                <label for="active_field"
+                       class="ds-label">
+                    Aktiv
+                </label>
+                <input id="active_field"
+                       type="checkbox"
+                       th:field="*{active}"
+                       class="ds-input">
+            </p>
+        </fieldset>
+    </div>
 
-        <p class="ds-paragraph">
-            <label for="active_field"
-                   class="ds-label">
-                Aktiv
-            </label>
-            <input id="active_field"
-                   type="checkbox"
-                   th:field="*{active}"
-                   class="ds-input">
-        </p>
-    </fieldset>
-
-    <div style="margin-bottom: 2px;">
+    <div class="ds-card">
         <fieldset class="ds-fieldset" data-size="sm">
             <legend class="ds-label"
                     data-weight="high">
@@ -90,79 +91,81 @@
                 class="ds-validation-message"></li>
         </ul>
     </div>
+    <div class="ds-card">
+        <fieldset class="ds-fieldset"
+                  data-size="sm"
+                  style="margin-bottom: 2em;">
+            <legend class="ds-label"
+                    data-weight="high">
+                Endre EAA'ere for brukersted
+            </legend>
 
-    <fieldset class="ds-fieldset"
-              data-size="sm"
-              style="margin-bottom: 2em;">
-        <legend class="ds-label"
-                data-weight="high">
-            Endre EAA'ere for brukersted
-        </legend>
+            <div class="flex-container">
+                <div>
+                    <p class="ds-paragraph"
+                       style="margin-bottom: 8px;">
+                        Valgte EAA'ere
+                    </p>
+                    <table class="ds-table"
+                           data-border="true"
+                           style="table-layout: fixed; word-wrap: break-word;">
+                        <thead>
+                        <tr>
+                            <th>Namespace</th>
+                            <th>Intent</th>
+                            <th style="width: 4em;"></th>
+                        </tr>
+                        </thead>
+                        <tbody id="eaa_container"></tbody>
+                    </table>
+                </div>
 
-        <div class="flex-container">
-            <div>
-                <p class="ds-paragraph"
-                   style="margin-bottom: 8px;">
-                    Valgte EAA'ere
-                </p>
-                <table class="ds-table"
-                       data-border="true"
-                       style="table-layout: fixed; word-wrap: break-word;">
-                    <thead>
-                    <tr>
-                        <th>Namespace</th>
-                        <th>Intent</th>
-                        <th style="width: 4em;"></th>
-                    </tr>
-                    </thead>
-                    <tbody id="eaa_container"></tbody>
-                </table>
+                <div>
+                    <fieldset class="ds-fieldset">
+                        <legend class="ds-legend">
+                            Legg til ny EAA
+                        </legend>
+                        <div style="margin-bottom: 8px;">
+
+                            <label for="eaa_namespace_field"
+                                   class="ds-label">
+                                Namespace
+                            </label>
+                            <input id="eaa_namespace_field"
+                                   type="text"
+                                   placeholder="Namespace ..."
+                                   class="ds-input">
+                            <div id="eaa_namespace_error_msg"
+                                 th:insert="~{fragments/general ::
+                                                generic_invalid_input_field_error_msg('EAA-namespace')}"
+                                 style="display: none;"></div>
+
+                            <label for="eaa_intent_field"
+                                   class="ds-label">
+                                Intent
+                            </label>
+                            <input id="eaa_intent_field"
+                                   type="text"
+                                   placeholder="Intent ..."
+                                   class="ds-input">
+                            <div id="eaa_intent_error_msg"
+                                 th:insert="~{fragments/general ::
+                                                generic_invalid_input_field_error_msg('EAA-intent')}"
+                                 style="display: none;"></div>
+                        </div>
+                        <button type="button"
+                                onclick="addEaaOnclick()"
+                                class="ds-button"
+                                data-variant="secondary">
+                            Legg til
+                        </button>
+                    </fieldset>
+                </div>
+
             </div>
-
-            <div>
-                <fieldset class="ds-fieldset">
-                    <legend class="ds-legend">
-                        Legg til ny EAA
-                    </legend>
-                    <div style="margin-bottom: 8px;">
-
-                        <label for="eaa_namespace_field"
-                               class="ds-label">
-                            Namespace
-                        </label>
-                        <input id="eaa_namespace_field"
-                               type="text"
-                               placeholder="Namespace ..."
-                               class="ds-input">
-                        <div id="eaa_namespace_error_msg"
-                             th:insert="~{fragments/general ::
-                                            generic_invalid_input_field_error_msg('EAA-namespace')}"
-                             style="display: none;"></div>
-
-                        <label for="eaa_intent_field"
-                               class="ds-label">
-                            Intent
-                        </label>
-                        <input id="eaa_intent_field"
-                               type="text"
-                               placeholder="Intent ..."
-                               class="ds-input">
-                        <div id="eaa_intent_error_msg"
-                             th:insert="~{fragments/general ::
-                                            generic_invalid_input_field_error_msg('EAA-intent')}"
-                             style="display: none;"></div>
-                    </div>
-                    <button type="button"
-                            onclick="addEaaOnclick()"
-                            class="ds-button"
-                            data-variant="secondary">
-                        Legg til
-                    </button>
-                </fieldset>
-            </div>
-
-        </div>
-    </fieldset>
+        </fieldset>
+    </div>
+    </div>
 
     <div class="flex-container">
         <button type="submit"
@@ -181,7 +184,6 @@
     </div>
 
 <script src="/js/dynamic_edit_form_fields.js"></script>
-
 <!--/* pre-fill EAA list with values from the RP to be edited */-->
 <th:block th:each="eaa : ${editFormAttr.getEaas()}">
     <script>addEaa("[[${eaa.namespace}]]", "[[${eaa.intent}]]");</script>
