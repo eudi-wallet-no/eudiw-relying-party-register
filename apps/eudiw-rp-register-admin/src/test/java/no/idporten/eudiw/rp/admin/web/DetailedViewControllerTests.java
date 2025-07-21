@@ -56,8 +56,7 @@ public class DetailedViewControllerTests {
             when(mockRpService.getCertificatesForRelyingParty(id))
                 .thenReturn(certsResource);
 
-            mockMvc.perform(get("/details")
-                                .queryParam("id", id.toString()))
+            mockMvc.perform(get("/details/" + id))
                    .andExpect(status().isOk())
                    .andExpect(view().name("details_view"))
                    .andExpect(model().attribute(DetailedViewController.detailedViewDataAttrId, rpResource))
@@ -82,8 +81,7 @@ public class DetailedViewControllerTests {
             RelyingPartyEditForm expectedEditForm =
                 RelyingPartyEditForm.prefillFromRelyingPartyResource(rpResource);
 
-            mockMvc.perform(get("/details/edit")
-                                .queryParam("id", id.toString()))
+            mockMvc.perform(get("/details/%s/edit".formatted(id)))
                 .andExpect(status().isOk())
                 .andExpect(view().name("edit_form_view"))
                 .andExpect(model().attribute(DetailedViewController.editFormAttrId, expectedEditForm))
@@ -110,14 +108,13 @@ public class DetailedViewControllerTests {
             RelyingPartyEditForm editForm =
                 RelyingPartyEditForm.prefillFromRelyingPartyResource(rpResource);
 
-            mockMvc.perform(post("/details/edit")
-                                .queryParam("id", id.toString())
+            mockMvc.perform(post("/details/%s/edit".formatted(id))
                                 .formField("name", editForm.getName())
                                 .formField("publicSector", Boolean.toString(editForm.isPublicSector()))
                                 .formField("active", Boolean.toString(editForm.isActive()))
                                 .formField("entitlements", entitlement.getUri()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/details?id=%s".formatted(id.toString())));
+                .andExpect(redirectedUrl("/details/" + id));
 
             EditRelyingPartyResource expectedEditResource = editForm.toResource();
             verify(mockRpService).edit(id, expectedEditResource);
@@ -139,8 +136,7 @@ public class DetailedViewControllerTests {
             RelyingPartyEditForm editForm =
                 RelyingPartyEditForm.prefillFromRelyingPartyResource(rpResource);
 
-            mockMvc.perform(post("/details/edit")
-                                .queryParam("id", id.toString())
+            mockMvc.perform(post("/details/%s/edit".formatted(id))
                                 .formField("name", invalidName)
                                 .formField("publicSector", Boolean.toString(rpResource.publicSector()))
                                 .formField("active", Boolean.toString(rpResource.active()))

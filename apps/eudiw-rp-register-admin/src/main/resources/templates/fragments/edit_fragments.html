@@ -1,7 +1,7 @@
 <form th:fragment="edit_form_fragment"
       id="edit_form"
       th:object="${editFormAttr}"
-      th:action="@{/details/edit(id=${rp.id})}"
+      th:action="@{|/details/${rp.id}/edit|}"
       method="POST">
 <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
     <!--/*@thymesVar id="editFormAttr" type="no.idporten.eudiw.rp.admin.web.form.RelyingPartyEditForm"*/-->
@@ -174,7 +174,7 @@
             Lagre endringer
         </button>
 
-        <a th:href="@{/details(id=${rp.id})}"
+        <a th:href="@{|/details/${rp.id}|}"
            class="ds-button"
            type="button"
            data-variant="secondary"

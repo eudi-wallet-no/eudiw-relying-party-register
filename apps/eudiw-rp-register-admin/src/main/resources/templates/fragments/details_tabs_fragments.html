@@ -1,4 +1,5 @@
 <div th:fragment="certificates_content_fragment(rp, certs)">
+    <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
     <div style="padding-bottom: 2em;">
         <div th:if="${ #lists.isEmpty(certs)}">
             <em>
@@ -31,7 +32,7 @@
         </div>
     </div>
     <div>
-        <a th:href="@{/registerCsr(id=${rp.id})}"
+        <a th:href="@{|/csr/${rp.id}|}"
            class="ds-button"
            data-variant="primary">
             Registrer nyt sertifikat
@@ -120,7 +121,7 @@
     </div>
 
     <div>
-        <a th:href="@{details/edit(id=${rp.id})}"
+        <a th:href="@{|/details/${rp.id}/edit|}"
            class="ds-button"
            data-variant="primary">
             Rediger brukersted

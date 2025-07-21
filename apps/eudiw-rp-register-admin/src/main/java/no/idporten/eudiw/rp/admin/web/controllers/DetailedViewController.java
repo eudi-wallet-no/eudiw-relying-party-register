@@ -11,10 +11,7 @@ import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartiesView;
 import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.List;
@@ -27,15 +24,15 @@ import java.util.UUID;
 public class DetailedViewController {
 
     public static final String detailedViewDataAttrId = SearchController.detailedViewDataAttrId;
-    public static final String editFormAttrId = "editFormAttr";
     public static final String certificateSummariesAttrId = "certificateSummariesAttr";
+    public static final String editFormAttrId = "editFormAttr";
 
     private final RelyingPartiesService relyingPartiesService;
     private final RelyingPartiesView relyingPartiesView;
 
-    @GetMapping("/details")
+    @GetMapping("/details/{id}")
     public ModelAndView detailsGet(
-        @RequestParam("id") @Valid UUID id) {
+        @PathVariable("id") @Valid UUID id) {
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
         List<RelyingPartyAccessCertificateSummary> certificatesResource =
             relyingPartiesService.getCertificatesForRelyingParty(id)
@@ -46,8 +43,9 @@ public class DetailedViewController {
                    certificateSummariesAttrId, certificatesResource));
     }
 
-    @GetMapping("/details/edit")
-    public ModelAndView editGet(@RequestParam("id") @Valid UUID id) {
+    @GetMapping("/details/{id}/edit")
+    public ModelAndView editGet(
+        @PathVariable("id") @Valid UUID id) {
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
         RelyingPartyEditForm editForm =
             RelyingPartyEditForm.prefillFromRelyingPartyResource(relyingPartyResource);
@@ -57,9 +55,9 @@ public class DetailedViewController {
         ));
     }
 
-    @PostMapping("/details/edit")
+    @PostMapping("/details/{id}/edit")
     public ModelAndView editPost(
-        @RequestParam("id") UUID id,
+        @PathVariable("id") UUID id,
         @ModelAttribute(editFormAttrId) @Valid RelyingPartyEditForm editForm,
         BindingResult editFormBindingResult) {
 
@@ -75,7 +73,8 @@ public class DetailedViewController {
 
             // NOTE: at this point RP is updated, and view returns to details page.
             // could alternatively show a confirmation page.
-            mav.setViewName("redirect:/details?id=" + id);
+
+            mav.setViewName("redirect:/details/" + id);
         }
         return mav;
     }
