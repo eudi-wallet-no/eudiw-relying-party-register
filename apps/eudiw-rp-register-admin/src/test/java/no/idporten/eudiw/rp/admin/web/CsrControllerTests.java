@@ -43,7 +43,7 @@ public class CsrControllerTests {
     private RelyingPartiesService mockRpService;
 
     @Nested
-    @DisplayName("when GET'ing the /registerCsr endpoint for a given RP ID ...")
+    @DisplayName("when GET'ing the CSR endpoint for a given RP ID ...")
     class RegisterCsrEndpointGetTests {
 
         @Test
@@ -54,8 +54,7 @@ public class CsrControllerTests {
             UUID id = rpResource.id();
             when(mockRpService.get(id)).thenReturn(rpResource);
 
-            mockMvc.perform(get("/registerCsr")
-                                .queryParam("id", id.toString()))
+            mockMvc.perform(get("/csr/" + id))
                    .andExpect(status().isOk())
                    .andExpect(view().name("csr_form_view"))
                    .andExpect(model().attribute(SearchController.detailedViewDataAttrId, rpResource))
@@ -66,7 +65,7 @@ public class CsrControllerTests {
     }
 
     @Nested
-    @DisplayName("when POST'ing a CSR to the /registerCsr endpoint for a given RP ID ...")
+    @DisplayName("when POST'ing a CSR to the CSR endpoint for a given RP ID ...")
     class RegisterCsrEndpointPostTests {
 
         @Test
@@ -89,8 +88,7 @@ public class CsrControllerTests {
 
             String csrPemStr = PKCS10CertificationRequestConverter.toString(csr);
 
-            mockMvc.perform(post("/registerCsr")
-                                .queryParam("id", id.toString())
+            mockMvc.perform(post("/csr/" + id)
                                 .formField("csr", csrPemStr))
                    .andExpect(status().isOk())
                    .andExpect(view().name("csr_submit_success_view"))
@@ -112,8 +110,7 @@ public class CsrControllerTests {
             String validCsrPemStr = PKCS10CertificationRequestConverter.toString(csr);
             String invalidCsrPemStr = validCsrPemStr.replace('\n', 'x');
 
-            mockMvc.perform(post("/registerCsr")
-                                .queryParam("id", id.toString())
+            mockMvc.perform(post("/csr/" + id)
                                 .formField("csr", invalidCsrPemStr))
                    .andExpect(status().isOk())
                    .andExpect(view().name("csr_form_view"))

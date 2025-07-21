@@ -14,7 +14,7 @@
             Lag nyt aksesssertifikat for <span th:text="${rp.name}"></span>
         </h1>
         <p class="ds-paragraph">
-            <a th:href="@{/details#certificates(id=${rp.id})}"
+            <a th:href="@{|/details/${rp.id}#certificates|}"
                class="ds-button"
                data-variant="secondary"
                data-size="sm">

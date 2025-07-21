@@ -45,7 +45,7 @@ public class CreateController {
         if (!createFormBindingResult.hasErrors()) {
             CreateRelyingPartyResource createResource = createForm.toResource();
             RelyingPartyResource result = relyingPartiesService.create(createResource);
-            mav.setViewName("redirect:/details?id=" + result.id());
+            mav.setViewName("redirect:/details/" + result.id());
         }
         return mav;
     }

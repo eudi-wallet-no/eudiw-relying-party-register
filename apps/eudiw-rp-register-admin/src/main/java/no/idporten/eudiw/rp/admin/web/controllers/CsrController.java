@@ -10,10 +10,7 @@ import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyAc
 import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyCsrResource;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.Map;
@@ -30,17 +27,17 @@ public class CsrController {
 
     private final RelyingPartiesService relyingPartiesService;
 
-    @GetMapping("/registerCsr")
-    public ModelAndView registerCsrGet(@RequestParam("id") @Valid UUID id) {
+    @GetMapping("/csr/{id}")
+    public ModelAndView registerCsrGet(@PathVariable("id") @Valid UUID id) {
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
         return new ModelAndView("csr_form_view", Map.of(
             csrFormAttrId, CsrForm.empty(),
             detailedViewDataAttrId, relyingPartyResource));
     }
 
-    @PostMapping("/registerCsr")
+    @PostMapping("/csr/{id}")
     public ModelAndView registerCsrPost(
-        @RequestParam("id") @Valid UUID id,
+        @PathVariable("id") @Valid UUID id,
         @ModelAttribute(csrFormAttrId) @Valid CsrForm csrForm,
         BindingResult csrFormBindingResult) {
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);

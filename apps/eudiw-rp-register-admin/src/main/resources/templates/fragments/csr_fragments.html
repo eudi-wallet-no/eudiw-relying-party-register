@@ -1,7 +1,7 @@
 <!--/*@thymesVar id="csrFormAttr" type="no.idporten.eudiw.rp.admin.web.resource.accesscertificates.CsrForm"*/-->
 <form th:fragment="csr_form_fragment(id)"
       th:object="${csrFormAttr}"
-      th:action="@{/registerCsr(id=${id})}"
+      th:action="@{|/csr/${id}|}"
       method="POST">
 
     <fieldset class="ds-fieldset"
