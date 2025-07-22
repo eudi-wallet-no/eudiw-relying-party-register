@@ -53,12 +53,12 @@ public class RelyingPartyService {
 
         Predicate<RelyingPartyResource> hasRequiredEntitlements =
             rp -> new HashSet<>(rp.relyingPartyEntitlements())
-                      .containsAll(searchResource.requiredEntitlements());
+                      .containsAll(searchResource.getRequiredEntitlements());
 
         return new RelyingPartiesResource(
             relyingPartyRepository.searchQuery(
-                                      searchResource.searchTerm(),
-                                      searchResource.includeInactive()
+                                      searchResource.getSearchTerm(),
+                                      searchResource.isIncludeInactive()
                                   )
                                   .stream()
                                   .map(Converter::toResource)

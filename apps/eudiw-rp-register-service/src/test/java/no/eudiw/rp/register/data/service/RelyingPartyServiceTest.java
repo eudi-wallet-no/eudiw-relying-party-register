@@ -242,9 +242,7 @@ public class RelyingPartyServiceTest {
                      .collect(Collectors.toSet());
 
             SearchRelyingPartyResource searchResource =
-                SearchRelyingPartyResource.empty()
-                                          .withIncludeInactive(true)
-                                          .withRequiredEntitlements(requiredEntitlements);
+                new SearchRelyingPartyResource("", true, requiredEntitlements);
             Set<RelyingPartyResource> actualSearchResult =
                 new HashSet<>(relyingPartyService.searchRelyingParties(searchResource).relyingParties());
 

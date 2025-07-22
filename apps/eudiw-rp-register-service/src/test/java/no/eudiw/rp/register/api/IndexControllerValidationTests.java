@@ -114,8 +114,7 @@ public class IndexControllerValidationTests {
         @Test
         @DisplayName("then validation is properly applied to search resource")
         void testOptionalParametersCanBeNull() throws Exception {
-            SearchRelyingPartyResource resource =
-                SearchRelyingPartyResource.empty().withSearchTerm("$fornothing");
+            SearchRelyingPartyResource resource = new SearchRelyingPartyResource("$fornothing");
 
             mvcPerform(post("/v1/rp/search"), resource)
                 .andExpect(status().isBadRequest())
