@@ -21,24 +21,33 @@ public class RegisterServiceExceptionHandler {
         return AppExceptionHandler.errorResponseEntity(HttpStatus.NOT_FOUND, "not_found", e.getMessage());
     }
 
+    @ExceptionHandler(AlreadyExistsException.class)
+    public ResponseEntity<ErrorResponseResource> handleRelyingPartyAlreadyExistsException(
+        AlreadyExistsException e) {
+        return AppExceptionHandler.errorResponseEntity(
+            HttpStatus.BAD_REQUEST, "already_exists", e.getMessage());
+    }
+
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ErrorResponseResource> handleBadRequestException(
         BadRequestException e) {
-        return AppExceptionHandler.errorResponseEntity(HttpStatus.BAD_REQUEST, "invalid_request", e.getMessage());
+        return AppExceptionHandler.errorResponseEntity(
+            HttpStatus.BAD_REQUEST, "invalid_request", e.getMessage());
     }
 
     @ExceptionHandler(ResourceDeletedException.class)
     public ResponseEntity<ErrorResponseResource> handleResourceDeletedException(
         ResourceDeletedException e) {
-        return AppExceptionHandler.errorResponseEntity(HttpStatus.GONE, "resource_deleted", e.getMessage());
+        return AppExceptionHandler.errorResponseEntity(
+            HttpStatus.GONE, "resource_deleted", e.getMessage());
     }
 
     @ExceptionHandler(CertificateConversionException.class)
     public ResponseEntity<ErrorResponseResource> handleCertificateConversionException(
         CertificateConversionException e) {
-        return AppExceptionHandler.errorResponseEntity(HttpStatus.BAD_REQUEST, "invalid_request", e.getMessage());
+        return AppExceptionHandler.errorResponseEntity(
+            HttpStatus.BAD_REQUEST, "invalid_request", e.getMessage());
     }
-
 
     private ResponseEntity<ErrorResponseResource> genericInternalErrorResponse(
         String errorDescription, Exception e) {
