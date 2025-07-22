@@ -2,11 +2,10 @@ package no.idporten.eudiw.rp.admin.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.idporten.eudiw.rp.admin.exception.AdminServiceException;
-import no.idporten.eudiw.rp.admin.service.exception.ErrorResponseException;
-import no.idporten.eudiw.rp.admin.service.exception.UnauthorizedRequestException;
-import no.idporten.eudiw.rp.admin.service.exception.UnrecognizedErrorResponseException;
+import no.idporten.eudiw.rp.admin.service.exception.*;
 import no.idporten.eudiw.rp.admin.web.resource.ErrorResponseResource;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.lang.NonNull;
@@ -30,19 +29,22 @@ public class RelyingPartiesServiceResponseErrorHandler
         throws AdminServiceException {
 
         try {
-            if (response.getStatusCode().isSameCodeAs(HttpStatusCode.valueOf(401))) {
+            HttpStatusCode statusCode = response.getStatusCode();
+            if (!statusCode.isError()) {
+                throw new UnrecognizedErrorResponseException(
+                    "Unexpected HTTP status code (%s) in register service response"
+                        .formatted(statusCode));
+            }
+            if (statusCode.isSameCodeAs(HttpStatus.UNAUTHORIZED)) {
                 throw new UnauthorizedRequestException();
             }
-            if (!response.getStatusCode().isError()) {
-                throw new UnrecognizedErrorResponseException(
-                    "Unexpected HTTP status code in register service response");
+            if (statusCode.isSameCodeAs(HttpStatus.GONE)) {
+                throw new NotFoundException("Requested RP is deleted");
             }
             ErrorResponseResource errorResource =
                 new ObjectMapper().readValue(
                     response.getBody(), ErrorResponseResource.class);
-            String errorMsg = "Bad request. Register service error response: "
-                                  + errorResource.error();
-            throw new ErrorResponseException(errorMsg);
+            throw ErrorResponseException.fromResource(errorResource);
         } catch (IOException e) {
             throw new UnrecognizedErrorResponseException(
                 "Unrecognized error response from register service");
