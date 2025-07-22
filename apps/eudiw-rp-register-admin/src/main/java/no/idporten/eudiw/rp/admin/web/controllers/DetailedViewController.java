@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
+import no.idporten.eudiw.rp.admin.service.exception.NotFoundException;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEditForm;
 import no.idporten.eudiw.rp.admin.web.resource.EditRelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
@@ -37,22 +38,23 @@ public class DetailedViewController {
         List<RelyingPartyAccessCertificateSummary> certificatesResource =
             relyingPartiesService.getCertificatesForRelyingParty(id)
                                  .toSummaries();
-        return new ModelAndView(
-            "details_view",
-            Map.of(detailedViewDataAttrId, relyingPartyResource,
-                   certificateSummariesAttrId, certificatesResource));
+
+        return new ModelAndView("details_view", Map.of(
+            detailedViewDataAttrId, relyingPartyResource,
+            certificateSummariesAttrId, certificatesResource));
     }
 
     @GetMapping("/details/{id}/edit")
     public ModelAndView editGet(
         @PathVariable("id") @Valid UUID id) {
+
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
         RelyingPartyEditForm editForm =
             RelyingPartyEditForm.prefillFromRelyingPartyResource(relyingPartyResource);
+
         return new ModelAndView("edit_form_view", Map.of(
             editFormAttrId, editForm,
-            detailedViewDataAttrId, relyingPartyResource
-        ));
+            detailedViewDataAttrId, relyingPartyResource));
     }
 
     @PostMapping("/details/{id}/edit")
@@ -77,5 +79,11 @@ public class DetailedViewController {
             mav.setViewName("redirect:/details/" + id);
         }
         return mav;
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    public ModelAndView handleNotFoundException(NotFoundException e) {
+        log.info("Attempt to get details for unknown/invalid ID/orgno", e);
+        return new ModelAndView("id_not_found");
     }
 }

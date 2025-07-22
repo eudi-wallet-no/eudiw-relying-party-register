@@ -3,7 +3,6 @@ package no.idporten.eudiw.rp.admin.web.controllers;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.web.form.SearchForm;
 import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartiesViewOrdering;
 import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartiesView;
@@ -48,5 +47,4 @@ public class SearchController {
 
         return new ModelAndView("search_view", searchFormAttrId, searchForm);
     }
-
 }
