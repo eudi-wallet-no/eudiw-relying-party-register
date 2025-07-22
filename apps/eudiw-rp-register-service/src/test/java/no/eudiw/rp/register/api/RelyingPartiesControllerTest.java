@@ -22,7 +22,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -309,7 +308,7 @@ public class RelyingPartiesControllerTest {
                 relyingPartyRepository.save(relyingParty);
 
                 SearchRelyingPartyResource searchResource =
-                    SearchRelyingPartyResource.empty().withSearchTerm(relyingParty.getOrgno());
+                    new SearchRelyingPartyResource(relyingParty.getOrgno());
 
                 String searchJson = new ObjectMapper().writer().writeValueAsString(searchResource);
                 ResultActions actions =
@@ -337,7 +336,7 @@ public class RelyingPartiesControllerTest {
                 relyingPartyRepository.save(relyingParty);
 
                 SearchRelyingPartyResource searchResource =
-                    SearchRelyingPartyResource.empty().withSearchTerm(relyingParty.getName());
+                    new SearchRelyingPartyResource(relyingParty.getName());
 
                 String searchJson = new ObjectMapper().writer().writeValueAsString(searchResource);
                 ResultActions actions =
@@ -372,7 +371,7 @@ public class RelyingPartiesControllerTest {
                 relyingPartyRepository.saveAll(List.of(relyingParty1, relyingParty2, relyingParty3));
 
                 SearchRelyingPartyResource searchResource =
-                    SearchRelyingPartyResource.empty().withSearchTerm(searchStr);
+                    new SearchRelyingPartyResource(searchStr);
 
                 String searchJson = new ObjectMapper().writer().writeValueAsString(searchResource);
                 ResultActions actions =
@@ -407,7 +406,7 @@ public class RelyingPartiesControllerTest {
                 relyingPartyRepository.saveAll(List.of(relyingParty1, relyingParty2, relyingParty3));
 
                 SearchRelyingPartyResource searchResource =
-                    SearchRelyingPartyResource.empty().withSearchTerm(searchStr);
+                    new SearchRelyingPartyResource(searchStr);
 
                 String searchJson = new ObjectMapper().writer().writeValueAsString(searchResource);
                 ResultActions actions =
@@ -427,8 +426,6 @@ public class RelyingPartiesControllerTest {
                     () -> assertTrue(relyingPartyResources.contains(Converter.toResource(relyingParty3)))
                 );
             }
-
-
         }
 
 
