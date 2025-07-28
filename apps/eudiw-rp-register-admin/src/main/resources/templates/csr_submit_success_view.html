@@ -33,6 +33,14 @@
                               :: single_certificate_table_fragment(
                                   ${newCertificateAttr})}">
         </table>
+
+        <p class="ds-paragraph">
+            <a th:href="@{|/get-certificate/${rp.id}/${newCertificateAttr.id}|}"
+               class="ds-button"
+               download>
+                Last ned sertifikat
+            </a>
+        </p>
     </main>
 
     <header th:replace="~{fragments/general :: page_footer_fragment}"></header>

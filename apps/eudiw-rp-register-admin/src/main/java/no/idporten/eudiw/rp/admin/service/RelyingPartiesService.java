@@ -73,6 +73,15 @@ public class RelyingPartiesService {
                 .getBody();
     }
 
+    public RelyingPartyAccessCertificateResource getCertificate(
+        UUID relyingPartyId, UUID certificateId) {
+        return restClient.get()
+                         .uri("/{rp-id}/certs/{cert-id}", relyingPartyId, certificateId)
+                         .retrieve()
+                         .toEntity(RelyingPartyAccessCertificateResource.class)
+                         .getBody();
+    }
+
     public RelyingPartyAccessCertificateResource requestCertificateForRelyingParty(
         UUID id,
         RelyingPartyCsrResource csrResource) {
