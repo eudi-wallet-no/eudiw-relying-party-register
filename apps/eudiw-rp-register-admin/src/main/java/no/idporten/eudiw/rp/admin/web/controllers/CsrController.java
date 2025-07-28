@@ -4,8 +4,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
+import no.idporten.eudiw.rp.admin.service.exception.ErrorResponseException;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
-import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.CsrForm;
+import no.idporten.eudiw.rp.admin.web.form.CsrForm;
 import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyAccessCertificateResource;
 import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyCsrResource;
 import org.springframework.stereotype.Controller;
@@ -24,6 +25,8 @@ public class CsrController {
     public static final String detailedViewDataAttrId = SearchController.detailedViewDataAttrId;
     public static final String csrFormAttrId = "csrFormAttr";
     public static final String newCertificateAttrId = "newCertificateAttr";
+
+    public static final String errorResponseMsgAttrId = "errorResponseMsgAttr";
 
     private final RelyingPartiesService relyingPartiesService;
 
@@ -45,14 +48,22 @@ public class CsrController {
             new ModelAndView("csr_form_view", Map.of(detailedViewDataAttrId, relyingPartyResource));
 
         if (!csrFormBindingResult.hasErrors()) {
-            RelyingPartyCsrResource csrResource =
-                new RelyingPartyCsrResource(csrForm.csr());
-            RelyingPartyAccessCertificateResource certResource =
-                relyingPartiesService.requestCertificateForRelyingParty(id, csrResource);
+            try {
+                RelyingPartyCsrResource csrResource =
+                    new RelyingPartyCsrResource(csrForm.getCsr());
+                RelyingPartyAccessCertificateResource certResource =
+                    relyingPartiesService.requestCertificateForRelyingParty(id, csrResource);
 
-            mav.setViewName("csr_submit_success_view");
-            mav.addObject(newCertificateAttrId, certResource.toSummary());
+                mav.setViewName("csr_submit_success_view");
+                mav.addObject(newCertificateAttrId, certResource.toSummary());
+                return mav;
+            }
+            catch (ErrorResponseException e) {
+                log.info("CSR registration rejected for id={}", id, e);
+                mav.addObject(errorResponseMsgAttrId, "exception.error_response");
+            }
         }
+
         return mav;
     }
 }

@@ -2,12 +2,13 @@ package no.idporten.eudiw.rp.admin.web;
 
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.service.accesscertificates.PKCS10CertificationRequestConverter;
+import no.idporten.eudiw.rp.admin.service.exception.ErrorResponseException;
 import no.idporten.eudiw.rp.admin.testdata.CertificatesGenerator;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.admin.web.controllers.CsrController;
 import no.idporten.eudiw.rp.admin.web.controllers.SearchController;
 import no.idporten.eudiw.rp.admin.web.resource.*;
-import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.CsrForm;
+import no.idporten.eudiw.rp.admin.web.form.CsrForm;
 import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyAccessCertificateResource;
 import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyCsrResource;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
@@ -55,10 +56,11 @@ public class CsrControllerTests {
             when(mockRpService.get(id)).thenReturn(rpResource);
 
             mockMvc.perform(get("/csr/" + id))
-                   .andExpect(status().isOk())
-                   .andExpect(view().name("csr_form_view"))
-                   .andExpect(model().attribute(SearchController.detailedViewDataAttrId, rpResource))
-                   .andExpect(model().attribute(CsrController.csrFormAttrId, CsrForm.empty()));
+                   .andExpectAll(
+                       status().isOk(),
+                       view().name("csr_form_view"),
+                       model().attribute(SearchController.detailedViewDataAttrId, rpResource),
+                       model().attribute(CsrController.csrFormAttrId, CsrForm.empty()));
 
             verify(mockRpService, times(1)).get(eq(id));
         }
@@ -89,10 +91,11 @@ public class CsrControllerTests {
             String csrPemStr = PKCS10CertificationRequestConverter.toString(csr);
 
             mockMvc.perform(post("/csr/" + id)
-                                .formField("csr", csrPemStr))
-                   .andExpect(status().isOk())
-                   .andExpect(view().name("csr_submit_success_view"))
-                   .andExpect(model().attribute(CsrController.newCertificateAttrId, dummyCertResource.toSummary()));
+                                .formField("csrField", csrPemStr))
+                   .andExpectAll(
+                       status().isOk(),
+                       view().name("csr_submit_success_view"),
+                       model().attribute(CsrController.newCertificateAttrId, dummyCertResource.toSummary()));
 
             verify(mockRpService).get(eq(id));
             verify(mockRpService).requestCertificateForRelyingParty(eq(id), eq(csrResource));
@@ -111,10 +114,34 @@ public class CsrControllerTests {
             String invalidCsrPemStr = validCsrPemStr.replace('\n', 'x');
 
             mockMvc.perform(post("/csr/" + id)
-                                .formField("csr", invalidCsrPemStr))
-                   .andExpect(status().isOk())
-                   .andExpect(view().name("csr_form_view"))
-                   .andExpect(model().attributeHasFieldErrors(CsrController.csrFormAttrId, "csr"));
+                                .formField("csrField", invalidCsrPemStr))
+                   .andExpectAll(
+                       status().isOk(),
+                       view().name("csr_form_view"),
+                       model().hasErrors(),
+                       model().attributeHasFieldErrors(CsrController.csrFormAttrId, "csrField"));
+        }
+
+        @Test
+        @DisplayName("then the correct view and model is used if there was an error posting valid CSR")
+        public void testCorrectHandlingOfErrorResponse() throws Exception {
+
+            RelyingPartyResource rpResource = ResourceGenerator.generateRelyingPartyResource();
+
+            when(mockRpService.get(any())).thenReturn(rpResource);
+            when(mockRpService.requestCertificateForRelyingParty(any(), any()))
+                .thenThrow(ErrorResponseException.class);
+
+            String csrStr =
+                PKCS10CertificationRequestConverter.toString(
+                    ResourceGenerator.generateCsrResource().csr());
+
+            mockMvc.perform(post("/csr/" + rpResource.id())
+                                .formField("csrField", csrStr))
+                .andExpectAll(
+                    status().isOk(),
+                    view().name("csr_form_view"),
+                    model().attributeExists(CsrController.errorResponseMsgAttrId));
         }
     }
 }
