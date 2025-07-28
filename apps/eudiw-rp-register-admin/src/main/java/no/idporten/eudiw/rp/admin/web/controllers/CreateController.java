@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
+import no.idporten.eudiw.rp.admin.service.exception.AlreadyExistsException;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyCreateForm;
 import no.idporten.eudiw.rp.admin.web.resource.CreateRelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
@@ -22,15 +23,14 @@ import java.util.Map;
 public class CreateController {
 
     public static final String createFormAttrId = "createFormAttr";
+    public static final String errorResponseMsgAttrId = "errorResponseMsgAttr";
 
     private final RelyingPartiesService relyingPartiesService;
 
     @GetMapping("/create")
     public ModelAndView createGet() {
-        RelyingPartyCreateForm createForm = new RelyingPartyCreateForm();
         return new ModelAndView("create_form_view", Map.of(
-            createFormAttrId, createForm
-        ));
+            createFormAttrId, new RelyingPartyCreateForm()));
     }
 
     @PostMapping("/create")
@@ -38,15 +38,20 @@ public class CreateController {
         @ModelAttribute(createFormAttrId) @Valid RelyingPartyCreateForm createForm,
         BindingResult createFormBindingResult) {
 
-        ModelAndView mav =
-            new ModelAndView("create_form_view", Map.of(
-                createFormAttrId, createForm));
+        ModelAndView mav = new ModelAndView("create_form_view",
+            Map.of(createFormAttrId, createForm));
 
         if (!createFormBindingResult.hasErrors()) {
             CreateRelyingPartyResource createResource = createForm.toResource();
-            RelyingPartyResource result = relyingPartiesService.create(createResource);
-            mav.setViewName("redirect:/details/" + result.id());
+            try {
+                RelyingPartyResource result = relyingPartiesService.create(createResource);
+                return new ModelAndView("redirect:/details/" + result.id());
+            } catch (AlreadyExistsException e) {
+                log.info("Attempt to create RP which already exists", e);
+                mav.addObject(errorResponseMsgAttrId, "exception.already_exists");
+            }
         }
         return mav;
     }
+
 }
