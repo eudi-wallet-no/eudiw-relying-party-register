@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.security.cert.X509Certificate;
+import java.util.UUID;
 
 @JsonInclude(JsonInclude.Include.ALWAYS)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -14,5 +15,7 @@ public record RelyingPartyAccessCertificateResource(
     @JsonProperty(value = "certificate", required = true)
     @JsonSerialize(using = X509CertificateJsonSerializer.class)
     @JsonDeserialize(using = X509CertificateJsonDeserializer.class)
-    X509Certificate certificate
+    X509Certificate certificate,
+    @JsonProperty(value = "id")
+    UUID id
 ) { }

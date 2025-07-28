@@ -67,7 +67,7 @@ public class Converter {
         return new RelyingPartyAccessCertificate(resource.certificate());
     }
     public static RelyingPartyAccessCertificateResource toResource(RelyingPartyAccessCertificate entity) {
-        return new RelyingPartyAccessCertificateResource(entity.getCertificate());
+        return new RelyingPartyAccessCertificateResource(entity.getCertificate(), entity.getId());
     }
 
 }

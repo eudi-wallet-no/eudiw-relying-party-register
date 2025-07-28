@@ -45,11 +45,10 @@ public class RelyingPartyCertificatesService {
     @Transactional(readOnly = true)
     public RelyingPartyAccessCertificateResource getAccessCertificate(
         UUID certificateId, UUID relyingPartyId) {
-        return new RelyingPartyAccessCertificateResource(
+        return Converter.toResource(
             relyingPartyAccessCertificateRepository
                 .findByIdAndRelyingPartyId(certificateId, relyingPartyId)
                 .orElseThrow(() -> new NotFoundException("Access certificate does not exist"))
-                .getCertificate()
         );
     }
 
@@ -84,8 +83,8 @@ public class RelyingPartyCertificatesService {
             new RelyingPartyAccessCertificate(certificate);
 
         relyingParty.addRelyingPartyAccessCertificate(certificateEntity);
-        relyingPartyRepository.save(relyingParty);
+        relyingPartyRepository.saveAndFlush(relyingParty);
 
-        return new RelyingPartyAccessCertificateResource(certificate);
+        return Converter.toResource(certificateEntity);
     }
 }
