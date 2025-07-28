@@ -32,6 +32,13 @@
                     class="ds-validation-message"></li>
             </ul>
 
+            <!--/*@thymesVar id="errorResponseMsgAttr" type="java.lang.String"*/-->
+            <div th:if="${errorResponseMsgAttr == 'exception.already_exists'}">
+                <p class="ds-paragraph ds-validation-message">
+                    Det gitte org.nr. er allerede registrert!
+                </p>
+            </div>
+
             <p class="ds-paragraph">
                 <label for="name_field"
                        class="ds-label">

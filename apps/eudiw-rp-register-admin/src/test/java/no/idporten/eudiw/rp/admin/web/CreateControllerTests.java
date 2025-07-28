@@ -2,6 +2,7 @@ package no.idporten.eudiw.rp.admin.web;
 
 import no.idporten.eudiw.rp.admin.data.RelyingPartyEntitlement;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
+import no.idporten.eudiw.rp.admin.service.exception.AlreadyExistsException;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.admin.testdata.TestDataGenerator;
 import no.idporten.eudiw.rp.admin.web.controllers.CreateController;
@@ -17,9 +18,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -48,9 +47,10 @@ public class CreateControllerTests {
             RelyingPartyCreateForm createForm = new RelyingPartyCreateForm();
 
             mockMvc.perform(get("/create"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("create_form_view"))
-                .andExpect(model().attribute(CreateController.createFormAttrId, createForm));
+                .andExpectAll(
+                    status().isOk(),
+                    view().name("create_form_view"),
+                    model().attribute(CreateController.createFormAttrId, createForm));
         }
     }
 
@@ -60,35 +60,55 @@ public class CreateControllerTests {
         @Test
         @DisplayName("then form accepted if well-formed, and correct services called, view, and model")
         void testCreateFormAcceptedIfWellFormed() throws Exception {
-            RelyingPartyCreateForm createForm = new RelyingPartyCreateForm();
-            createForm.setName(ResourceGenerator.generateName());
-            createForm.setPublicSector(ResourceGenerator.generateBoolean());
-            createForm.setOrgno(TestDataGenerator.generateValidOrgno());
             RelyingPartyEntitlement entitlement = RelyingPartyEntitlement.SERVICE_PROVIDER;
-            createForm.setEntitlements(List.of(entitlement.toFormField()));
 
-            CreateRelyingPartyResource expectedCreateResource = createForm.toResource();
-            RelyingPartyResource rpResource = new RelyingPartyResource(
-                UUID.randomUUID(),
-                createForm.getOrgno(),
-                createForm.getName(),
-                createForm.isPublicSector(),
-                List.of(entitlement.toResource()),
-                Collections.emptyList(),
-                1,
-                1,
-                true
-            );
+            RelyingPartyResource rpResource =
+                ResourceGenerator.generateRelyingPartyResource()
+                                 .withRelyingPartyEntitlements(List.of(entitlement.toResource()))
+                                 .withRelyingPartyEaas(List.of());
+            CreateRelyingPartyResource createResource =
+                new CreateRelyingPartyResource(
+                    rpResource.orgno(),
+                    rpResource.name(),
+                    rpResource.publicSector(),
+                    rpResource.relyingPartyEntitlements(),
+                    rpResource.relyingPartyEaas());
 
-            when(mockRpService.create(expectedCreateResource)).thenReturn(rpResource);
+            when(mockRpService.create(createResource)).thenReturn(rpResource);
             mockMvc.perform(post("/create")
-                    .formField("orgno", createForm.getOrgno())
-                    .formField("name", createForm.getName())
-                    .formField("publicSector", Boolean.toString(createForm.isPublicSector()))
+                    .formField("orgno", createResource.orgno())
+                    .formField("name", createResource.name())
+                    .formField("publicSector",
+                               Boolean.toString(createResource.publicSector()))
                     .formField("entitlements", entitlement.getUri()))
-                .andExpect(status().is3xxRedirection());
+                .andExpectAll(
+                    status().is3xxRedirection(),
+                    redirectedUrl("/details/" + rpResource.id()));
 
-            verify(mockRpService).create(expectedCreateResource);
+            verify(mockRpService).create(createResource);
+        }
+
+        @Test
+        @DisplayName("correct view and attributes when RP already exists")
+        void testCorrectHandlingOfAlreadyExistsException() throws Exception {
+
+            when(mockRpService.create(any())).thenThrow(AlreadyExistsException.class);
+
+            String orgno = TestDataGenerator.generateValidOrgno();
+            String name = TestDataGenerator.generateName();
+            String publicSectorStr = Boolean.toString(TestDataGenerator.generateBoolean());
+            String entitlementStr = RelyingPartyEntitlement.SERVICE_PROVIDER.getUri();
+
+            mockMvc.perform(post("/create")
+                                .formField("orgno", orgno)
+                                .formField("name", name)
+                                .formField("publicSector", publicSectorStr)
+                                .formField("entitlements", entitlementStr))
+                .andExpectAll(
+                    status().is2xxSuccessful(),
+                    view().name("create_form_view"),
+                    model().attribute(CreateController.errorResponseMsgAttrId,
+                                      "exception.already_exists"));
         }
     }
 }
