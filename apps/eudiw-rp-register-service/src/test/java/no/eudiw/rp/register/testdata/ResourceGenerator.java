@@ -60,6 +60,7 @@ public class ResourceGenerator extends TestDataGenerator {
 
     public static RelyingPartyAccessCertificateResource generateRelyingPartyAccessCertificateResource()
         throws Exception {
-        return new RelyingPartyAccessCertificateResource(CertificatesGenerator.generateX509Certificate());
+        return new RelyingPartyAccessCertificateResource(
+            CertificatesGenerator.generateX509Certificate(), UUID.randomUUID());
     }
 }
