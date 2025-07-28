@@ -26,6 +26,13 @@
         <form th:replace="~{fragments/csr_fragments :: csr_form_fragment(id=${rp.id})}">
         </form>
 
+        <div th:if="${errorResponseMsgAttr == 'exception.error_response'}">
+            <p class="ds-paragraph ds-validation-message">
+                Forespørselen din ble avvist. Dette kan skyldes en intern feil,
+                eller feil i CSR'en din. Sjekk CSR'en og prøv igjen, eller kontakt support.
+            </p>
+        </div>
+
     </main>
 
     <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>

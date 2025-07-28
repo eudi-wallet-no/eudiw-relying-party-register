@@ -1,4 +1,4 @@
-<!--/*@thymesVar id="csrFormAttr" type="no.idporten.eudiw.rp.admin.web.resource.accesscertificates.CsrForm"*/-->
+<!--/*@thymesVar id="csrFormAttr" type="no.idporten.eudiw.rp.admin.web.form.CsrForm"*/-->
 <form th:fragment="csr_form_fragment(id)"
       th:object="${csrFormAttr}"
       th:action="@{|/csr/${id}|}"
@@ -14,7 +14,7 @@
                 Lim inn gjyldig CSR
             </label>
             <textarea id="csr_form"
-                      th:field="*{csr}"
+                      th:field="*{csrField}"
                       th:type="text"
                       class="ds-input"
                       style="width: 40em; min-height: 5em;"
