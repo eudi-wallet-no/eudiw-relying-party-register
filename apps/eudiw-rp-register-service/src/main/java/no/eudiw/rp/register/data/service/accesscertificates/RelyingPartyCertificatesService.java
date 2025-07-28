@@ -33,7 +33,7 @@ public class RelyingPartyCertificatesService {
         UUID relyingPartyId) {
         return new RelyingPartyAccessCertificatesResource(
             relyingPartyRepository
-                .findById(relyingPartyId)
+                .findByIdAndDeletedFalse(relyingPartyId)
                 .orElseThrow(() -> new NotFoundException("Relying party not found"))
                 .getRelyingPartyAccessCertificates()
                 .stream()
@@ -45,6 +45,13 @@ public class RelyingPartyCertificatesService {
     @Transactional(readOnly = true)
     public RelyingPartyAccessCertificateResource getAccessCertificate(
         UUID certificateId, UUID relyingPartyId) {
+        // NOTE: it is currently possible to get certificates for RPs where
+        // deleted=true through the access certificates repository.
+        // this might be fixed in a better way when revocation is implemented, but
+        // for now, use a separate check to assert RP exists.
+        if (!relyingPartyRepository.existsByIdAndDeletedFalse(relyingPartyId)) {
+            throw new NotFoundException("Certificate holder does not exist or has been deleted");
+        }
         return Converter.toResource(
             relyingPartyAccessCertificateRepository
                 .findByIdAndRelyingPartyId(certificateId, relyingPartyId)

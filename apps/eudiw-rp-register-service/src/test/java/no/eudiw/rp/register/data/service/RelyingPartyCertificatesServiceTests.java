@@ -157,6 +157,34 @@ public class RelyingPartyCertificatesServiceTests {
                 () -> certService.getAccessCertificate(knownCertificateId, knownRelyingPartyId)
             );
         }
+
+        @Test
+        @DisplayName("then service throws NotFoundException when RP exists but is deleted")
+        public void testCertificateNotFoundWhenRpExistsButIsDeleted() {
+
+            RelyingParty relyingParty = EntityGenerator.generateRelyingPartyWithCertificates();
+            rpRepository.saveAndFlush(relyingParty);
+
+            RelyingPartyAccessCertificate certificateEntity =
+                relyingParty.getRelyingPartyAccessCertificates()
+                            .getFirst();
+
+            UUID certificateId = certificateEntity.getId();
+            UUID relyingPartyId = relyingParty.getId();
+
+            X509Certificate expectedCertificate = certificateEntity.getCertificate();
+            X509Certificate actualCertificate =
+                certService.getAccessCertificate(certificateId, relyingPartyId)
+                           .certificate();
+            assertEquals(expectedCertificate, actualCertificate);
+
+            relyingParty.setDeleted(true);
+            rpRepository.saveAndFlush(relyingParty);
+            assertThrows(
+                NotFoundException.class,
+                () -> certService.getAccessCertificate(certificateId, relyingPartyId)
+            );
+        }
     }
 
     @Nested
