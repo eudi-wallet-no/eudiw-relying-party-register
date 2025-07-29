@@ -38,11 +38,11 @@ public class CertificateAuthorities implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        root.init();
+        root.init("root");
         root.validate(root);
-        for (CertificateAuthority intermediate : intermediates.values()) {
-            intermediate.init();
-            intermediate.validate(root);
+        for (Map.Entry<String, CertificateAuthority> intermediateEntry : intermediates.entrySet()) {
+            intermediateEntry.getValue().init(intermediateEntry.getKey());
+            intermediateEntry.getValue().validate(root);
         }
     }
 

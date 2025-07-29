@@ -12,6 +12,7 @@ import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.ca.config.CertificateAuthorities;
 import no.idporten.eudiw.ca.service.CertificateAuthorityService;
+import no.idporten.eudiw.ca.util.CertificateEncodingUtils;
 import no.idporten.validators.orgnr.Orgnr;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.springframework.http.MediaType;
@@ -79,7 +80,7 @@ public class CertificateAuthorityApiController {
     })
     @GetMapping(path = "/v1/certs/root.pem", produces = APPLICATION_X_PEM_FILE_VALUE)
     public ResponseEntity<String> getRootCertificatePem() throws Exception {
-        return ResponseEntity.ok(certificateAuthorityService.encodeToPem(certificateAuthorities.getRoot().getCertificate()));
+        return ResponseEntity.ok(CertificateEncodingUtils.encodeToPem(certificateAuthorities.getRoot().getCertificate()));
     }
 
     @Operation(
@@ -135,7 +136,7 @@ public class CertificateAuthorityApiController {
                             @ExampleObject(name = "issuer", value = "issuer", description = "Issuer CA")},
                     required = true)
             @PathVariable("intermediate") String intermediate) throws Exception {
-        return ResponseEntity.ok(certificateAuthorityService.encodeToPem(certificateAuthorities.findIntermediate(intermediate).getCertificate()));
+        return ResponseEntity.ok(CertificateEncodingUtils.encodeToPem(certificateAuthorities.findIntermediate(intermediate).getCertificate()));
     }
 
     @Operation(
@@ -196,7 +197,7 @@ public class CertificateAuthorityApiController {
                         certificateAuthorities.findIntermediate(intermediate),
                         pkcs10CertificationRequest,
                         orgno);
-        return ResponseEntity.ok(certificateAuthorityService.encodeToPem(signedCertificate));
+        return ResponseEntity.ok(CertificateEncodingUtils.encodeToPem(signedCertificate));
     }
 
 }
