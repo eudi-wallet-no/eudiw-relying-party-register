@@ -1,4 +1,4 @@
-package no.eudiw.rp.register.api.resource.accesscertificates;
+package no.eudiw.rp.register.api.resource.certificates;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;

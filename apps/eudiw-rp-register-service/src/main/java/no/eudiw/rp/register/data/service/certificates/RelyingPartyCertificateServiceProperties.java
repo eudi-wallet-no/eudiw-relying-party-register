@@ -1,4 +1,4 @@
-package no.eudiw.rp.register.data.service.accesscertificates;
+package no.eudiw.rp.register.data.service.certificates;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -8,7 +8,7 @@ import org.springframework.validation.annotation.Validated;
 
 @Validated
 @ConfigurationProperties(prefix = "eudiw-rp-register-service.csr-service")
-public record RelyingPartyCertificatesServiceProperties(
+public record RelyingPartyCertificateServiceProperties(
     @Valid CaServiceApi caServiceApi,
     @Valid RestClient restClient
 ) {

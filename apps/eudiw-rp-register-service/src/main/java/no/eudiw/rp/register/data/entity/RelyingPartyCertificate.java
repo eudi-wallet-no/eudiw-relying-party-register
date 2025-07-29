@@ -5,7 +5,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import no.eudiw.rp.register.data.accesscertificates.X509CertificateConverter;
+import no.eudiw.rp.register.data.certificates.X509CertificateConverter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -14,8 +14,8 @@ import java.security.cert.X509Certificate;
 
 @Getter
 @Entity
-@Table(name = "relying_party_access_certificate")
-public class RelyingPartyAccessCertificate extends BaseEntity {
+@Table(name = "relying_party_certificate")
+public class RelyingPartyCertificate extends BaseEntity {
 
     @Column(name = "certificate_pem", nullable = false)
     @Convert(converter = X509CertificateConverter.class)
@@ -47,11 +47,11 @@ public class RelyingPartyAccessCertificate extends BaseEntity {
     @Column(name = "valid_until_ms", nullable = false)
     private long validUntilMs;
 
-    public RelyingPartyAccessCertificate(X509Certificate certificate) {
+    public RelyingPartyCertificate(X509Certificate certificate) {
         this(certificate, null);
     }
 
-    public RelyingPartyAccessCertificate(X509Certificate certificate, RelyingParty relyingParty) {
+    public RelyingPartyCertificate(X509Certificate certificate, RelyingParty relyingParty) {
         this.id = null;
 
         this.certificate = certificate;
@@ -64,5 +64,5 @@ public class RelyingPartyAccessCertificate extends BaseEntity {
     }
 
     // for JPA instantiation.
-    protected RelyingPartyAccessCertificate() { }
+    protected RelyingPartyCertificate() { }
 }

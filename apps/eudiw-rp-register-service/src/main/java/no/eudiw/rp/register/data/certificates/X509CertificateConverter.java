@@ -1,4 +1,4 @@
-package no.eudiw.rp.register.data.accesscertificates;
+package no.eudiw.rp.register.data.certificates;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;

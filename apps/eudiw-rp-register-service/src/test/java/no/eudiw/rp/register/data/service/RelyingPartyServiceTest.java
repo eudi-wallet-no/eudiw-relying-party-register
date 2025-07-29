@@ -4,7 +4,6 @@ import no.eudiw.rp.register.api.resource.*;
 import static no.eudiw.rp.register.testdata.ResourceGenerator.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import no.eudiw.rp.register.data.entitlement.Entitlement;
 import no.eudiw.rp.register.data.entity.RelyingParty;
 import no.eudiw.rp.register.data.repository.RelyingPartyRepository;
 import no.eudiw.rp.register.testdata.EntityGenerator;
@@ -249,5 +248,4 @@ public class RelyingPartyServiceTest {
             assertEquals(expectedSearchResult, actualSearchResult);
         }
     }
-
 }

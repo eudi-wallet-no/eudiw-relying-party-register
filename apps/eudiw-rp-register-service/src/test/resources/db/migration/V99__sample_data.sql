@@ -23,7 +23,7 @@ VALUES ('baf04533-588f-4106-a999-b2b9814522a4', -- PK for EEA1
         'namespace-2',
         'intent-2');
 
-INSERT INTO `relying_party_access_certificate` (`certificate_pem`, `subject_dn`, `serial_no`, `id`, `relying_party_id`)
+INSERT INTO `relying_party_certificate` (`certificate_pem`, `subject_dn`, `serial_no`, `id`, `relying_party_id`)
 VALUES (
 '-----BEGIN CERTIFICATE-----
 MIIEnDCCAoSgAwIBAgIJAO5izNutMzG1MA0GCSqGSIb3DQEBCwUAMGcxGDAWBgNV
@@ -52,11 +52,11 @@ niQSxZyNhzOcr9/udER/J+mHmBmr2VI89yxd3boaDmjyS/xSwe0RTkbGBYamQKXI
 VyzXkYq8hjfBmkoBl5thbOL+Ljtl5umBQgINlckv4ja32NlUExdpVb373DAVQEue
 51lWt3rvdU/13W1BYHzeB8EJ4IL+28NqOD36FdV6Vpo=
 -----END CERTIFICATE-----',
-    '2.5.4.97=#0c0f4e54524e4f2d393734373230373630,CN=banan.dk,OU=banan.dk,C=dk',
-    1717751717,
-    '3def5b25-6f50-4df5-88a5-f727f2de983f',
-    '4000b045-0f64-455f-8446-545f46afa089'
-       );
+   '2.5.4.97=#0c0f4e54524e4f2d393734373230373630,CN=banan.dk,OU=banan.dk,C=dk',
+   1717751717,
+   '3def5b25-6f50-4df5-88a5-f727f2de983f',
+   '4000b045-0f64-455f-8446-545f46afa089'
+      );
 
 
 -- -- more sample UUIDs:

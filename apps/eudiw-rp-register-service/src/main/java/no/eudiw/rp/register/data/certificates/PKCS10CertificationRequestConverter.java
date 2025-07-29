@@ -1,4 +1,4 @@
-package no.eudiw.rp.register.data.accesscertificates;
+package no.eudiw.rp.register.data.certificates;
 
 import no.eudiw.rp.register.exception.CertificateConversionException;
 import org.bouncycastle.openssl.PEMParser;
