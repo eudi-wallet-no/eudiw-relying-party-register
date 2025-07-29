@@ -1,4 +1,4 @@
-package no.eudiw.rp.register.api.resource.accesscertificates;
+package no.eudiw.rp.register.api.resource.certificates;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -10,9 +10,9 @@ import java.util.List;
 
 @JsonInclude(JsonInclude.Include.ALWAYS)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record RelyingPartyAccessCertificatesResource(
+public record RelyingPartyCertificatesResource(
     @Valid
     @NotNull(message = "null_certificates")
     @JsonProperty(value = "certificates", required = true)
-    List<RelyingPartyAccessCertificateResource> certificates
+    List<RelyingPartyCertificateResource> certificates
 ) { }

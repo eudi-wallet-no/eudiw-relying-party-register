@@ -1,4 +1,4 @@
-package no.eudiw.rp.register.data.service.accesscertificates;
+package no.eudiw.rp.register.data.service.certificates;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -11,9 +11,9 @@ import java.net.URI;
 
 @Configuration
 @RequiredArgsConstructor
-public class RelyingPartyCertificatesServiceConfig {
+public class RelyingPartyCertificateServiceConfig {
 
-    private final RelyingPartyCertificatesServiceProperties certServiceProperties;
+    private final RelyingPartyCertificateServiceProperties certServiceProperties;
 
     private static final String caServiceApiCertsEndpoint = "/v1/certs";
 
@@ -31,7 +31,7 @@ public class RelyingPartyCertificatesServiceConfig {
                       .defaultHeader(certServiceProperties.caServiceApi().apiKeyHeaderId(),
                                      certServiceProperties.caServiceApi().apiKeyValue())
                       .baseUrl(caServiceCertsApiBaseUrl)
-                      .defaultStatusHandler(new RelyingPartyCertificatesServiceResponseErrorHandler())
+                      .defaultStatusHandler(new RelyingPartyCertificateServiceResponseErrorHandler())
                       .requestFactory(requestFactory)
                       .build();
     }

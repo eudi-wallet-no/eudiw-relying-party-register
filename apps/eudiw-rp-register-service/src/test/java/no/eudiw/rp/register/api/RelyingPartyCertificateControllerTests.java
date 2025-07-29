@@ -1,11 +1,11 @@
 package no.eudiw.rp.register.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import no.eudiw.rp.register.api.resource.accesscertificates.RelyingPartyCsrResource;
-import no.eudiw.rp.register.api.resource.accesscertificates.RelyingPartyAccessCertificateResource;
-import no.eudiw.rp.register.api.resource.accesscertificates.RelyingPartyAccessCertificatesResource;
+import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCsrResource;
+import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCertificateResource;
+import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCertificatesResource;
 import no.eudiw.rp.register.data.repository.RelyingPartyRepository;
-import no.eudiw.rp.register.data.service.accesscertificates.RelyingPartyCertificatesService;
+import no.eudiw.rp.register.data.service.certificates.RelyingPartyCertificateService;
 import no.eudiw.rp.register.testdata.ResourceGenerator;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,9 +25,9 @@ import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@DisplayName("When using the relying party access certificates API")
+@DisplayName("When using the relying party certificates API")
 @ActiveProfiles("test")
-public class RelyingPartyAccessCertificatesControllerTests {
+public class RelyingPartyCertificateControllerTests {
 
     public static final String X_API_KEY_HEADER = "X-API-KEY";
     public static final String VALID_API_KEY = "junit-api-key";
@@ -40,7 +40,7 @@ public class RelyingPartyAccessCertificatesControllerTests {
 
     @SuppressWarnings("unused")
     @MockitoBean
-    private RelyingPartyCertificatesService mockCsrService;
+    private RelyingPartyCertificateService mockCsrService;
 
     @BeforeEach
     void clearRepositoryBeforeEachTest() {
@@ -49,22 +49,22 @@ public class RelyingPartyAccessCertificatesControllerTests {
 
     @BeforeEach
     void setupMockCsrService() throws Exception {
-        RelyingPartyAccessCertificateResource dummyCertificateResource =
-            ResourceGenerator.generateRelyingPartyAccessCertificateResource();
+        RelyingPartyCertificateResource dummyCertificateResource =
+            ResourceGenerator.generateRelyingPartyCertificateResource();
 
-        when(mockCsrService.requestCertificateForRelyingParty(any(), any()))
+        when(mockCsrService.requestAccessCertificateForRelyingParty(any(), any()))
             .thenReturn(dummyCertificateResource);
 
-        when(mockCsrService.getAccessCertificatesForRelyingParty(any()))
-            .thenReturn(new RelyingPartyAccessCertificatesResource(List.of(dummyCertificateResource)));
+        when(mockCsrService.getCertificatesForRelyingParty(any()))
+            .thenReturn(new RelyingPartyCertificatesResource(List.of(dummyCertificateResource)));
 
-        when(mockCsrService.getAccessCertificate(any(), any()))
+        when(mockCsrService.getCertificate(any(), any()))
             .thenReturn(dummyCertificateResource);
     }
 
     @Nested
     @DisplayName("When reading certificates for a specific relying party ...")
-    class GetAccessCertificatesEndpointTests {
+    class GetCertificatesEndpointTests {
 
         @Test
         @DisplayName("then the endpoint uses the service and returns the expected resource")
@@ -78,7 +78,7 @@ public class RelyingPartyAccessCertificatesControllerTests {
                 .andExpect(jsonPath("$.certificates").exists())
                 .andExpect(jsonPath("$.certificates").isArray());
 
-            verify(mockCsrService, times(1)).getAccessCertificatesForRelyingParty(id);
+            verify(mockCsrService, times(1)).getCertificatesForRelyingParty(id);
         }
 
         @Test
@@ -97,7 +97,7 @@ public class RelyingPartyAccessCertificatesControllerTests {
 
     @Nested
     @DisplayName("When reading a specific certificate by its ID and ID of its holder ...")
-    class GetAccessCertificateEndpointTests {
+    class GetCertificateEndpointTests {
 
         @Test
         @DisplayName("then the endpoint returns certificate if both IDs exist")
@@ -112,7 +112,7 @@ public class RelyingPartyAccessCertificatesControllerTests {
                    .andExpect(status().isOk())
                    .andExpect(jsonPath("$.certificate").exists());
 
-            verify(mockCsrService, times(1)).getAccessCertificate(certificateId, relyingPartyId);
+            verify(mockCsrService, times(1)).getCertificate(certificateId, relyingPartyId);
         }
 
         @Test
@@ -134,7 +134,7 @@ public class RelyingPartyAccessCertificatesControllerTests {
     }
 
     @Nested
-    @DisplayName("when requesting access certificates for RPs ...")
+    @DisplayName("when requesting new ACCESS certificates for RPs ...")
     class RequestAccessCertificateTests {
 
         @Test
@@ -153,7 +153,7 @@ public class RelyingPartyAccessCertificatesControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.certificate").exists());
 
-            verify(mockCsrService, times(1)).requestCertificateForRelyingParty(validId, dummyCsrResource);
+            verify(mockCsrService, times(1)).requestAccessCertificateForRelyingParty(validId, dummyCsrResource);
         }
 
         @Test

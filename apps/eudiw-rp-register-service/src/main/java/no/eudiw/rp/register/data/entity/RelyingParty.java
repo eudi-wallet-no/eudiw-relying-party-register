@@ -52,7 +52,7 @@ public class RelyingParty extends BaseEntity {
         fetch = FetchType.EAGER,
         cascade = CascadeType.ALL,
         orphanRemoval = true)
-    private List<RelyingPartyAccessCertificate> relyingPartyAccessCertificates =
+    private List<RelyingPartyCertificate> relyingPartyCertificates =
         new ArrayList<>();
 
     @Column(name = "created_ms", nullable = false)
@@ -86,17 +86,17 @@ public class RelyingParty extends BaseEntity {
         }
     }
 
-    public void addRelyingPartyAccessCertificate(
-        RelyingPartyAccessCertificate relyingPartyAccessCertificate) {
-        relyingPartyAccessCertificate.setRelyingParty(this);
-        this.relyingPartyAccessCertificates.add(relyingPartyAccessCertificate);
+    public void addRelyingPartyCertificate(
+        RelyingPartyCertificate relyingPartyCertificate) {
+        relyingPartyCertificate.setRelyingParty(this);
+        this.relyingPartyCertificates.add(relyingPartyCertificate);
     }
 
-    public void setRelyingPartyAccessCertificates(
-        List<RelyingPartyAccessCertificate> relyingPartyAccessCertificates) {
-        this.relyingPartyAccessCertificates.clear();
-        if (relyingPartyAccessCertificates != null) {
-            relyingPartyAccessCertificates.forEach(this::addRelyingPartyAccessCertificate);
+    public void setRelyingPartyCertificates(
+        List<RelyingPartyCertificate> relyingPartyCertificates) {
+        this.relyingPartyCertificates.clear();
+        if (relyingPartyCertificates != null) {
+            relyingPartyCertificates.forEach(this::addRelyingPartyCertificate);
         }
     }
 
@@ -109,7 +109,7 @@ public class RelyingParty extends BaseEntity {
                         Boolean publicSector,
                         List<RelyingPartyEntitlement> relyingPartyEntitlements,
                         List<RelyingPartyEaa> relyingPartyEaas,
-                        List<RelyingPartyAccessCertificate> relyingPartyAccessCertificates
+                        List<RelyingPartyCertificate> relyingPartyCertificates
                         ) {
         this.id = null;
         this.name = name;
@@ -117,7 +117,7 @@ public class RelyingParty extends BaseEntity {
         this.publicSector = publicSector;
         this.setRelyingPartyEntitlements(relyingPartyEntitlements);
         this.setRelyingPartyEaas(relyingPartyEaas);
-        this.setRelyingPartyAccessCertificates(relyingPartyAccessCertificates);
+        this.setRelyingPartyCertificates(relyingPartyCertificates);
         this.active = true;
         this.deleted = false;
     }

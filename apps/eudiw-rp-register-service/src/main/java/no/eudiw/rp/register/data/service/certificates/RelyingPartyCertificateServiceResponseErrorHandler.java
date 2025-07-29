@@ -1,4 +1,4 @@
-package no.eudiw.rp.register.data.service.accesscertificates;
+package no.eudiw.rp.register.data.service.certificates;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.eudiw.rp.register.data.service.exception.ErrorResponseException;
@@ -15,7 +15,7 @@ import org.springframework.web.client.ResponseErrorHandler;
 import java.io.IOException;
 import java.net.URI;
 
-public class RelyingPartyCertificatesServiceResponseErrorHandler
+public class RelyingPartyCertificateServiceResponseErrorHandler
     implements ResponseErrorHandler {
     @Override
     public boolean hasError(ClientHttpResponse response) throws IOException {

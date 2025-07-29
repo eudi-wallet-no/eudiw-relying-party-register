@@ -1,9 +1,9 @@
-package no.eudiw.rp.register.api.resource.accesscertificates;
+package no.eudiw.rp.register.api.resource.certificates;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import no.eudiw.rp.register.data.accesscertificates.PKCS10CertificationRequestConverter;
+import no.eudiw.rp.register.data.certificates.PKCS10CertificationRequestConverter;
 import no.eudiw.rp.register.exception.CertificateConversionException;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 

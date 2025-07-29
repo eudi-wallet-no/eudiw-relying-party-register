@@ -1,9 +1,9 @@
-package no.eudiw.rp.register.api.resource.accesscertificates;
+package no.eudiw.rp.register.api.resource.certificates;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import no.eudiw.rp.register.data.accesscertificates.X509CertificateConverter;
+import no.eudiw.rp.register.data.certificates.X509CertificateConverter;
 
 import java.io.IOException;
 import java.security.cert.X509Certificate;

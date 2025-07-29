@@ -1,4 +1,4 @@
-package no.eudiw.rp.register.api.resource.accesscertificates;
+package no.eudiw.rp.register.api.resource.certificates;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @JsonInclude(JsonInclude.Include.ALWAYS)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record RelyingPartyAccessCertificateResource(
+public record RelyingPartyCertificateResource(
     @JsonProperty(value = "certificate", required = true)
     @JsonSerialize(using = X509CertificateJsonSerializer.class)
     @JsonDeserialize(using = X509CertificateJsonDeserializer.class)
