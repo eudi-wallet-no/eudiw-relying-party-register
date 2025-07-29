@@ -1,7 +1,7 @@
 package no.idporten.eudiw.ca.api;
 
 import no.idporten.eudiw.ca.config.CertificateAuthorities;
-import no.idporten.eudiw.ca.service.CertificateAuthorityService;
+import no.idporten.eudiw.ca.util.CertificateEncodingUtils;
 import org.bouncycastle.cert.X509CRLHolder;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -38,9 +38,6 @@ public class CertificateAuthorityApiControllerTest {
 
     @Autowired
     private CertificateAuthorities certificateAuthorities;
-
-    @Autowired
-    private CertificateAuthorityService certificateAuthorityService;
 
     @Autowired
     private MockMvc mockMvc;
@@ -88,7 +85,7 @@ public class CertificateAuthorityApiControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/x-pem-file;charset=UTF-8"))
                 .andReturn();
-        X509CertificateHolder certificate = certificateAuthorityService.decodeFromPem(result.getResponse().getContentAsString(), X509CertificateHolder.class);
+        X509CertificateHolder certificate = CertificateEncodingUtils.decodeFromPem(result.getResponse().getContentAsString(), X509CertificateHolder.class);
         assertNotEquals(certificate.getIssuer(), certificate.getSubject());
     }
 
@@ -126,8 +123,8 @@ public class CertificateAuthorityApiControllerTest {
                 .andExpect(content().contentType("application/x-pem-file;charset=UTF-8"))
                 .andReturn();
         String content = result.getResponse().getContentAsString();
-        X509CertificateHolder certificateHolder = certificateAuthorityService.decodeFromPem(content, X509CertificateHolder.class);
-        X509Certificate certificate = certificateAuthorityService.toX509Certificate(certificateHolder);
+        X509CertificateHolder certificateHolder = CertificateEncodingUtils.decodeFromPem(content, X509CertificateHolder.class);
+        X509Certificate certificate = CertificateEncodingUtils.toX509Certificate(certificateHolder);
         certificate.verify(certificateAuthorities.findIntermediate("access").getPublicKey());
     }
 
@@ -153,11 +150,9 @@ public class CertificateAuthorityApiControllerTest {
                 .andExpect(content().contentType("application/x-pem-file;charset=UTF-8"))
                 .andReturn();
         String content = result.getResponse().getContentAsString();
-        X509CertificateHolder certificateHolder = certificateAuthorityService.decodeFromPem(content, X509CertificateHolder.class);
-        X509Certificate certificate = certificateAuthorityService.toX509Certificate(certificateHolder);
+        X509CertificateHolder certificateHolder = CertificateEncodingUtils.decodeFromPem(content, X509CertificateHolder.class);
+        X509Certificate certificate = CertificateEncodingUtils.toX509Certificate(certificateHolder);
         certificate.verify(certificateAuthorities.findIntermediate("issuer").getPublicKey());
     }
-
-
 
 }

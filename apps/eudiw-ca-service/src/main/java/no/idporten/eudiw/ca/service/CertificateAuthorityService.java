@@ -1,7 +1,11 @@
 package no.idporten.eudiw.ca.service;
 
+import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.ca.config.CertificateAuthority;
+import no.idporten.eudiw.ca.data.Certificate;
+import no.idporten.eudiw.ca.data.CertificateRepository;
 import no.idporten.eudiw.ca.exception.CertificateAuthorityException;
+import no.idporten.eudiw.ca.util.CertificateEncodingUtils;
 import org.bouncycastle.asn1.ASN1Object;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.x500.RDN;
@@ -16,8 +20,6 @@ import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
 import org.bouncycastle.crypto.util.PrivateKeyFactory;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.openssl.PEMParser;
-import org.bouncycastle.openssl.jcajce.JcaMiscPEMGenerator;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
@@ -28,7 +30,6 @@ import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
-import org.bouncycastle.util.io.pem.PemWriter;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -43,6 +44,7 @@ import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
 import java.util.*;
 
+@RequiredArgsConstructor
 @Service
 public class CertificateAuthorityService {
 
@@ -50,16 +52,18 @@ public class CertificateAuthorityService {
     public static final String OID_ORGANIZATION_NUMBER = "2.5.4.97";
     public static final String SIGNATURE_ALGORITHM_SHA_512_WITH_ECDSA = "SHA512WITHECDSA";
 
+    private final CertificateRepository certificateRepository;
+
     /**
      * Decodes CSR from PEM input.  Throws exception for empty or invalid input.
      * @param csr csr
      * @return decoded csr
      */
-    public PKCS10CertificationRequest decodeCsr(String csr) {
+    public static PKCS10CertificationRequest decodeCsr(String csr) {
         if (! StringUtils.hasText(csr)) {
             throw new CertificateAuthorityException("invalid_request", "CSR is empty", HttpStatus.BAD_REQUEST);
         }
-        return decodeFromPem(csr, PKCS10CertificationRequest.class);
+        return CertificateEncodingUtils.decodeFromPem(csr, PKCS10CertificationRequest.class);
     }
 
     /**
@@ -157,7 +161,9 @@ public class CertificateAuthorityService {
             extensions.add(csr.getRequestedExtensions().getExtension(Extension.subjectAlternativeName));
         }
         X500Name subject = createSubjectWithOrgno(csr.getSubject(), orgno);
-        return signCertificate(certificateAuthority, csr, subject, extensions);
+        X509Certificate certificate = signCertificate(certificateAuthority, csr, subject, extensions);
+        certificateRepository.save(new Certificate(certificate, certificateAuthority.getId()));
+        return certificate;
     }
 
     protected X509Certificate signCertificate(CertificateAuthority certificateAuthority, PKCS10CertificationRequest csr, X500Name subject, List<Extension> extensions) throws Exception {
@@ -259,33 +265,6 @@ public class CertificateAuthorityService {
         JcaContentSignerBuilder csBuilder = new JcaContentSignerBuilder(SIGNATURE_ALGORITHM_SHA_512_WITH_ECDSA);
         ContentSigner signer = csBuilder.build(certificateAuthority.getPrivateKey());
         return p10Builder.build(signer);
-    }
-
-    public String encodeToPem(Object o) {
-        try (StringWriter stringWriter = new StringWriter(); PemWriter pemWriter = new PemWriter(stringWriter)) {
-            JcaMiscPEMGenerator jcaMiscPEMGenerator = new JcaMiscPEMGenerator(o);
-            pemWriter.writeObject(jcaMiscPEMGenerator);
-            pemWriter.flush();
-            return stringWriter.toString();
-        } catch (Exception e) {
-            throw new CertificateAuthorityException("server_error", "Failed to encode DER to PEM", HttpStatus.INTERNAL_SERVER_ERROR, e);
-        }
-    }
-
-    public <T> T decodeFromPem(String pem, Class<T> clazz) {
-        try (PEMParser pemParser = new PEMParser(new StringReader(pem))) {
-            return clazz.cast(pemParser.readObject());
-        } catch (Exception e) {
-            throw new CertificateAuthorityException("invalid_request", "Failed to decode object from PEM", HttpStatus.INTERNAL_SERVER_ERROR, e);
-        }
-    }
-
-    public X509Certificate toX509Certificate(X509CertificateHolder certificateHolder) throws Exception {
-        org.bouncycastle.asn1.x509.Certificate eeX509CertificateStructure = certificateHolder.toASN1Structure();
-        CertificateFactory cf = CertificateFactory.getInstance("X.509", BouncyCastleProvider.PROVIDER_NAME);
-        try (InputStream is = new ByteArrayInputStream(eeX509CertificateStructure.getEncoded())) {
-            return (X509Certificate) cf.generateCertificate(is);
-        }
     }
 
 }

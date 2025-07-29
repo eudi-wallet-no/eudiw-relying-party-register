@@ -3,6 +3,8 @@ package no.idporten.eudiw.ca.service;
 
 import no.idporten.eudiw.ca.config.CertificateAuthorities;
 import no.idporten.eudiw.ca.config.CertificateAuthority;
+import no.idporten.eudiw.ca.data.Certificate;
+import no.idporten.eudiw.ca.data.CertificateRepository;
 import no.idporten.eudiw.ca.exception.CertificateAuthorityException;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
@@ -10,14 +12,19 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.security.Security;
 import java.security.cert.X509Certificate;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 @ActiveProfiles("test")
 @SpringBootTest
@@ -28,6 +35,12 @@ public class CertificateAuthorityServiceTest {
 
     @Autowired
     private CertificateAuthorities certificateAuthorities;
+
+    @MockitoBean
+    private CertificateRepository certificateRepository;
+
+    @Captor
+    private ArgumentCaptor<Certificate> certificateCaptor;
 
     @BeforeAll
     static void setUp() {
@@ -53,19 +66,29 @@ public class CertificateAuthorityServiceTest {
                     IF5nyI5eYXYbBBQvdAZFJStX4YgEc+7j/QV3BlIGz2HE
                     -----END NEW CERTIFICATE REQUEST-----""";
             CertificateAuthority intermediate = certificateAuthorities.findIntermediate("access");
-            X509Certificate certificate = certificateAuthorityService.signCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), "991825827");
+            X509Certificate issuedCertificate = certificateAuthorityService.signCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), "991825827");
             assertAll(
-                    () -> assertNotNull(certificate),
-                    () -> assertTrue(certificate.getBasicConstraints() < 0),
-                    () -> assertArrayEquals(new boolean[]{true, false, true, false, false, false, false, false, false}, certificate.getKeyUsage()),
-                    () -> assertTrue(certificate.getSubjectAlternativeNames().iterator().next().contains("junit.rp1.idporten.dev")),
-                    () -> assertEquals(intermediate.getCertificate().getSubjectX500Principal(), certificate.getIssuerX500Principal()),
-                    () -> assertNotNull(certificate.getExtendedKeyUsage()),
-                    () -> assertTrue(certificate.getExtendedKeyUsage().contains("1.0.18013.5.1.6")),
-                    () -> assertEquals("SHA512WITHECDSA", certificate.getSigAlgName()),
-                    () -> assertEquals("1.2.840.10045.4.3.4", certificate.getSigAlgOID())
+                    () -> assertNotNull(issuedCertificate),
+                    () -> assertTrue(issuedCertificate.getBasicConstraints() < 0),
+                    () -> assertArrayEquals(new boolean[]{true, false, true, false, false, false, false, false, false}, issuedCertificate.getKeyUsage()),
+                    () -> assertTrue(issuedCertificate.getSubjectAlternativeNames().iterator().next().contains("junit.rp1.idporten.dev")),
+                    () -> assertEquals(intermediate.getCertificate().getSubjectX500Principal(), issuedCertificate.getIssuerX500Principal()),
+                    () -> assertNotNull(issuedCertificate.getExtendedKeyUsage()),
+                    () -> assertTrue(issuedCertificate.getExtendedKeyUsage().contains("1.0.18013.5.1.6")),
+                    () -> assertEquals("SHA512WITHECDSA", issuedCertificate.getSigAlgName()),
+                    () -> assertEquals("1.2.840.10045.4.3.4", issuedCertificate.getSigAlgOID())
             );
-            certificate.verify(intermediate.getPublicKey());
+            issuedCertificate.verify(intermediate.getPublicKey());
+            verify(certificateRepository).save(certificateCaptor.capture());
+            Certificate savedCertificate = certificateCaptor.getValue();
+            assertAll(
+                    () -> assertEquals("access", savedCertificate.getIssuerCa()),
+                    () -> assertEquals(issuedCertificate.getSerialNumber(), savedCertificate.getSerialNo()),
+                    () -> assertEquals(issuedCertificate.getNotBefore().getTime(), savedCertificate.getValidFromMs()),
+                    () -> assertEquals(issuedCertificate.getNotAfter().getTime(), savedCertificate.getValidUntilMs()),
+                    () -> assertEquals(0, savedCertificate.getRevokedAtMs()),
+                    () -> assertEquals(-1, savedCertificate.getRevocationReason())
+            );
         }
 
         @DisplayName("then a CSR with unrecognized extensions is rejected")
@@ -91,6 +114,7 @@ public class CertificateAuthorityServiceTest {
                     () -> assertTrue(exception.getErrorDescription().contains("contains unrecognized extension")),
                     () -> assertTrue(exception.getErrorDescription().contains("2.5.29.18"))
             );
+            verifyNoInteractions(certificateRepository);
         }
 
         @DisplayName("then a CSR with missing required extensions is rejected")
@@ -115,6 +139,7 @@ public class CertificateAuthorityServiceTest {
                     () -> assertTrue(exception.getErrorDescription().contains("does not contain required extension")),
                     () -> assertTrue(exception.getErrorDescription().contains("2.5.29.17"))
             );
+            verifyNoInteractions(certificateRepository);
         }
 
    }
@@ -137,6 +162,8 @@ public class CertificateAuthorityServiceTest {
                     () -> assertEquals(certificateAuthority.getCertificate().getSubjectX500Principal(), certificate.getIssuerX500Principal())
             );
             certificate.verify(certificateAuthority.getPublicKey());
+            verifyNoInteractions(certificateRepository);
+
         }
     }
 
@@ -159,6 +186,7 @@ public class CertificateAuthorityServiceTest {
                     () -> assertEquals(root.getCertificate().getSubjectX500Principal(), certificate.getIssuerX500Principal())
             );
             certificate.verify(root.getPublicKey());
+            verifyNoInteractions(certificateRepository);
         }
     }
 
