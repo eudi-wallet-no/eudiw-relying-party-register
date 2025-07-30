@@ -6,6 +6,7 @@ import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCertificateRes
 import no.eudiw.rp.register.data.certificates.X509CertificateConverter;
 import no.eudiw.rp.register.data.entity.RelyingParty;
 import no.eudiw.rp.register.data.entity.RelyingPartyCertificate;
+import no.eudiw.rp.register.data.repository.RelyingPartyCertificateRepository;
 import no.eudiw.rp.register.data.repository.RelyingPartyRepository;
 import no.eudiw.rp.register.data.service.certificates.RelyingPartyCertificateService;
 import no.eudiw.rp.register.data.service.exception.ErrorResponseException;
@@ -45,6 +46,10 @@ public class RelyingPartyCertificateServiceTests {
 
     @Autowired
     private RelyingPartyCertificateService certService;
+
+    @Autowired
+    private RelyingPartyCertificateRepository certRepository;
+
     @Autowired
     private RelyingPartyRepository rpRepository;
 
@@ -361,6 +366,33 @@ public class RelyingPartyCertificateServiceTests {
                 () -> certService.requestAccessCertificateForRelyingParty(
                     knownRelyingPartyId, dummyCsrResource)
             );
+        }
+
+        @Test
+        @DisplayName("then returned cert resource has ID immediately, and this matches persisted ID")
+        public void testNewCertResourceHasIdImmediatelyAndMatchesPersistedCert() throws Exception {
+
+            RelyingParty relyingParty = EntityGenerator.generateRelyingPartyNoId();
+            rpRepository.saveAndFlush(relyingParty);
+
+            RelyingPartyCsrResource csrResource =
+                ResourceGenerator.generateRegisterRelyingPartyCsrResource();
+
+            enqueueMockCertificateResponse();
+
+            RelyingPartyCertificateResource immediatelyReturnedCertResource =
+                certService.requestAccessCertificateForRelyingParty(
+                    relyingParty.getId(), csrResource);
+
+            assertNotNull(immediatelyReturnedCertResource.id());
+            assertTrue(certRepository.existsById(immediatelyReturnedCertResource.id()));
+
+            // for good measure, assert also that the immediately returned ID
+            // points to the correct certificate.
+            RelyingPartyCertificateResource expectedCertResource =
+                certService.getCertificate(immediatelyReturnedCertResource.id(),
+                                           relyingParty.getId());
+            assertEquals(expectedCertResource, immediatelyReturnedCertResource);
         }
     }
 }

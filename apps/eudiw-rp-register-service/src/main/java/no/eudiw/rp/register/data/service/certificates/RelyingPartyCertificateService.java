@@ -87,10 +87,9 @@ public class RelyingPartyCertificateService {
             X509CertificateConverter.convert(certificatePemStr);
 
         RelyingPartyCertificate certificateEntity =
-            new RelyingPartyCertificate(certificate);
+            new RelyingPartyCertificate(certificate, relyingParty);
 
-        relyingParty.addRelyingPartyCertificate(certificateEntity);
-        relyingPartyRepository.saveAndFlush(relyingParty);
+        relyingPartyCertificateRepository.saveAndFlush(certificateEntity);
 
         return Converter.toResource(certificateEntity);
     }
