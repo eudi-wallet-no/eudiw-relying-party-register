@@ -41,7 +41,7 @@
     <tbody>
     <tr>
         <th>Serienummer</th>
-        <td th:text="${cert.serialNo}"></td>
+        <td th:text="${cert.serialNo.toString(16).replaceAll('(?<=..)(..)', ':$1')}"></td>
     </tr>
     <tr>
         <th>Subjekt</th>
@@ -53,11 +53,11 @@
     </tr>
     <tr>
         <th>Gjyldig fra</th>
-        <td th:text="${#dates.format(cert.validFromMs, 'dd-MM-yyyy HH:mm:ss')}"></td>
+        <td th:text="${#dates.format(cert.validFromMs, 'dd-MM-yyyy HH:mm:ss z')}"></td>
     </tr>
     <tr>
         <th>Gjyldig til</th>
-        <td th:text="${#dates.format(cert.validUntilMs, 'dd-MM-yyyy HH:mm:ss')}"></td>
+        <td th:text="${#dates.format(cert.validUntilMs, 'dd-MM-yyyy HH:mm:ss z')}"></td>
     </tr>
     </tbody>
 </table>
