@@ -1,6 +1,7 @@
 package no.idporten.eudiw.trustlist.service;
 
 import jakarta.xml.bind.JAXBException;
+import no.idporten.eudiw.trustlist.web.ApplicationException;
 import org.etsi.uri._02231.v2_.TrustServiceStatusList;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
@@ -15,8 +16,7 @@ import org.w3c.dom.Element;
 import static no.idporten.eudiw.trustlist.xml.XMLUtils.parseTrustlist;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @DisplayName("SignedTrustListServiceTest")
 @ExtendWith(SpringExtension.class)
@@ -42,6 +42,26 @@ class SignedTrustListServiceTest {
         assertNotNull(trustlist);
         verify(trustListGeneratorService).generateTrustServiceStatusList();
         verify(xmlSignerService).createEnvelopedSignature(any(Document.class));
+    }
+
+    @Test
+    @DisplayName("getTrustlist throws SigningException when signing fails")
+    void getTrustlistFailesWhenSigningFails() {
+        TrustServiceStatusList trustServiceStatusList = createTrustServiceStatusList();
+        when(trustListGeneratorService.generateTrustServiceStatusList()).thenReturn(trustServiceStatusList);
+        when(xmlSignerService.createEnvelopedSignature(any(Document.class))).thenThrow(SigningException.class);
+        assertThrows(SigningException.class , ()-> signedTrustListService.getTrustlist());
+        verify(trustListGeneratorService).generateTrustServiceStatusList();
+        verify(xmlSignerService).createEnvelopedSignature(any(Document.class));
+    }
+
+    @Test
+    @DisplayName("getTrustlist throws ApplicationException when generate Trustlist fails")
+    void getTrustlistFailesWhenTrustlistGenerationFails() {
+        when(trustListGeneratorService.generateTrustServiceStatusList()).thenThrow(ApplicationException.class);
+        assertThrows(ApplicationException.class , ()-> signedTrustListService.getTrustlist());
+        verify(trustListGeneratorService).generateTrustServiceStatusList();
+        verify(xmlSignerService, never()).createEnvelopedSignature(any(Document.class));
     }
 
     private static Document createSignedTrustlist() throws JAXBException {
@@ -75,7 +95,7 @@ class SignedTrustListServiceTest {
 
     @Test
     @DisplayName("generateShaOfString returns a non-null SHA-256 hash of the input string")
-    void generateShaOfString() throws Exception {
+    void generateShaOfString() {
         String value = "I need this value hashed";
         String sha256 = signedTrustListService.generateShaOfString(value);
         System.out.println(sha256);

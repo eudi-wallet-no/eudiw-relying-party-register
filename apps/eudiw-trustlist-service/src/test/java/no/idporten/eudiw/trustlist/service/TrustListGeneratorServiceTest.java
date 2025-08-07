@@ -9,10 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.io.IOException;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest
 @ActiveProfiles("junit")
@@ -24,7 +24,7 @@ class TrustListGeneratorServiceTest {
 
     @Test
     @DisplayName("for first ServiceProvider and it has content for first Service")
-    void verifyGenerateTrustListIsHasContent() throws IOException {
+    void verifyGenerateTrustListIsHasContent() {
         TrustServiceStatusList trustlist = trustListGeneratorService.generateTrustServiceStatusList();
         assertNotNull(trustlist);
         assertNotNull(trustlist.getTrustServiceProviderList());

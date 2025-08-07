@@ -19,12 +19,10 @@ import org.w3c.dom.Document;
 import javax.xml.transform.dom.DOMSource;
 import java.util.List;
 
-import static no.idporten.eudiw.trustlist.web.TrustListController.PATH_ACCESS_TRUSTLIST_SHA;
-import static no.idporten.eudiw.trustlist.web.TrustListController.PATH_ACCESS_TRUSTLIST_XTSL;
+import static no.idporten.eudiw.trustlist.web.TrustListController.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
 @DisplayName("When downloading trust status lists")
@@ -78,6 +76,63 @@ public class TrustListControllerTest {
         String sha256 = mvcResult.getResponse().getContentAsString();
         assertNotNull(sha256);
         assertEquals(64, sha256.length(), "SHA-256 hash should be 64 characters long (32 bytes in hex representation)");
+    }
+
+    @Test
+    @DisplayName("eTag is returned as response header in sha2 and xtsl endpoints")
+    public void eTagReturnedAsResponseHeader() throws Exception{
+        MvcResult shaResult = mockMvc.perform(get(PATH_ACCESS_TRUSTLIST_SHA))
+                .andExpect(status().isOk())
+                .andExpect(header().exists("ETag"))
+                .andExpect(header().exists("Last-Modified"))
+                .andExpect(content().contentType("text/plain;charset=UTF-8"))
+                .andReturn();
+
+        assertNotNull(shaResult.getResponse().getHeader("ETag"));
+
+        MvcResult trustlistResult = mockMvc.perform(get(PATH_ACCESS_TRUSTLIST_XTSL))
+                .andExpect(status().isOk())
+                .andExpect(header().exists("ETag"))
+                .andExpect(header().exists("Last-Modified"))
+                .andExpect(content().contentType("application/vnd.etsi.tsl+xml;charset=UTF-8"))
+                .andReturn();
+
+        assertNotNull(trustlistResult.getResponse().getHeader("ETag"));
+
+        assertNotEquals(shaResult.getResponse().getHeader("ETag"), trustlistResult.getResponse().getHeader("ETag"));
+
+        // this might be removed in the future, but for now test that ETag is not added here
+        mockMvc.perform(get(PATH_ACCESS_TRUSTLIST))
+                .andExpect(status().isOk())
+                .andExpect(header().doesNotExist("ETag"))
+                .andExpect(header().exists("Last-Modified"))
+                .andReturn();
+
+    }
+
+    @Test
+    @DisplayName("when retrieving the resource with ETag, then HTTP STATUS=not modified is returned if the resource has not changed")
+    public void verifyNoContentIsReturnedOnSecondCallWithIfNoneMatch() throws Exception{
+        MvcResult mvcResult1 = mockMvc.perform(get(PATH_ACCESS_TRUSTLIST_SHA))
+                .andExpect(status().isOk())
+                .andExpect(header().exists("ETag"))
+                .andExpect(header().exists("Last-Modified"))
+                .andExpect(content().contentType("text/plain;charset=UTF-8"))
+                .andReturn();
+
+        String eTag1 = mvcResult1.getResponse().getHeader("ETag");
+        assertTrue(mvcResult1.getResponse().getContentLength() > 0);
+
+        MvcResult mvcResult2 = mockMvc.perform(get(PATH_ACCESS_TRUSTLIST_SHA).header("If-None-Match", eTag1))
+                .andExpect(status().isNotModified())
+                .andExpect(header().exists("ETag"))
+                .andExpect(header().exists("Last-Modified"))
+                .andExpect(content().contentType("text/plain;charset=UTF-8"))
+                .andReturn();
+
+        assertEquals(0, mvcResult2.getResponse().getContentLength());
+        String eTag2 = mvcResult2.getResponse().getHeader("ETag");
+        assertEquals(eTag1, eTag2);
     }
 
 }
