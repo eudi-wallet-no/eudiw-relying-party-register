@@ -3,6 +3,7 @@ package no.idporten.eudiw.trustlist.service;
 import no.idporten.eudiw.trustlist.config.TrustlistServiceProperties;
 import no.idporten.eudiw.trustlist.domain.TLRpAccessService;
 import no.idporten.eudiw.trustlist.domain.TLServiceProvider;
+import no.idporten.eudiw.trustlist.web.ApplicationException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.etsi.uri._02231.v2_.*;
 import org.slf4j.Logger;
@@ -14,7 +15,7 @@ import java.math.BigInteger;
 import java.time.ZonedDateTime;
 
 @Service
-public class TSLService {
+public class TrustListGeneratorService {
 
     public static final String TLS_TAG_URI = "http://uri.etsi.org/19612/TSLTag";
     public static final String TSL_TYPE_URI = "http://uri.etsi.org/TrstSvc/TrustedList/TSLType/EUgeneric";
@@ -27,16 +28,15 @@ public class TSLService {
     public static final String LANG_CODE_EN = "en";
 
 
-    private final Logger log = LoggerFactory.getLogger(TSLService.class);
+    private final Logger log = LoggerFactory.getLogger(TrustListGeneratorService.class);
 
     private final TrustlistServiceProperties properties;
 
-
-    public TSLService(TrustlistServiceProperties properties) {
+    public TrustListGeneratorService(TrustlistServiceProperties properties) {
         this.properties = properties;
     }
 
-    public TrustServiceStatusList generateTrustServiceStatusList() throws IOException {
+    public TrustServiceStatusList generateTrustServiceStatusList() {
         TrustServiceStatusList trustServiceStatusList = new TrustServiceStatusList();
         trustServiceStatusList.setId("tsl");
         trustServiceStatusList.setTSLTag(TLS_TAG_URI);
@@ -93,7 +93,7 @@ public class TSLService {
         return schemeInformation;
     }
 
-    private TrustServiceProvider createTrustServiceProvider(TLServiceProvider serviceProviderData) throws IOException {
+    private TrustServiceProvider createTrustServiceProvider(TLServiceProvider serviceProviderData) {
         TrustServiceProvider trustServiceProvider = new TrustServiceProvider();
         TSPInformation tspInformation = new TSPInformation();
 
@@ -117,14 +117,18 @@ public class TSLService {
         return trustServiceProvider;
     }
 
-    private TSPService createRpAccessTspService(TLRpAccessService rpAccessService) throws IOException {
+    private TSPService createRpAccessTspService(TLRpAccessService rpAccessService)  {
         TSPService tspService = new TSPService();
         ServiceInformation serviceInformation = new ServiceInformation();
         serviceInformation.setServiceName(createInternationalNamesType(
                 createMultiLangNormStringType(LANG_CODE_NO, rpAccessService.name().langNo()),
                 createMultiLangNormStringType(LANG_CODE_EN, rpAccessService.name().langEn())));
         serviceInformation.setServiceTypeIdentifier(TLRpAccessService.SERVICE_TYPE_IDENTIFIER_URI_RP_ACCESS);
-        serviceInformation.setServiceDigitalIdentity(createServiceDigitalIdentity(rpAccessService.getCertificate()));
+        try {
+            serviceInformation.setServiceDigitalIdentity(createServiceDigitalIdentity(rpAccessService.getCertificate()));
+        } catch (IOException e) {
+            throw new ApplicationException("Failed to parse Certificate from string: %s ".formatted(rpAccessService.cert()), e);
+        }
         serviceInformation.setServiceStatus(TLRpAccessService.SERVICE_STATUS_URI);
         serviceInformation.setStatusStartingTime(rpAccessService.startingTime());
         tspService.setServiceInformation(serviceInformation);
@@ -135,12 +139,16 @@ public class TSLService {
         return tspService;
     }
 
-    protected ServiceDigitalIdentity createServiceDigitalIdentity(X509CertificateHolder certificate) throws IOException {
+    protected ServiceDigitalIdentity createServiceDigitalIdentity(X509CertificateHolder certificate) {
         ServiceDigitalIdentity serviceDigitalIdentity = new ServiceDigitalIdentity();
         DigitalIdentityType digitalIdentityTypeSubjectName = new DigitalIdentityType();
         digitalIdentityTypeSubjectName.setX509SubjectName(certificate.getSubject().toString());
         DigitalIdentityType digitalIdentityTypeX509Certificate = new DigitalIdentityType();
-        digitalIdentityTypeX509Certificate.setX509Certificate(certificate.getEncoded());
+        try {
+            digitalIdentityTypeX509Certificate.setX509Certificate(certificate.getEncoded());
+        } catch (IOException e) {
+            throw new ApplicationException("Failed to decode X509CertificateHolder with decimal SerialNumber: %d".formatted(certificate.getSerialNumber()),e);
+        }
         serviceDigitalIdentity.getDigitalIds().add(digitalIdentityTypeSubjectName);
         serviceDigitalIdentity.getDigitalIds().add(digitalIdentityTypeX509Certificate);
         return serviceDigitalIdentity;

@@ -1,42 +1,38 @@
 package no.idporten.eudiw.trustlist.web;
 
-import lombok.RequiredArgsConstructor;
-import no.idporten.eudiw.trustlist.service.TSLService;
-import no.idporten.eudiw.trustlist.service.XMLSignerService;
-import no.idporten.eudiw.trustlist.xml.XMLUtils;
-import org.etsi.uri._02231.v2_.TrustServiceStatusList;
+import no.idporten.eudiw.trustlist.service.SignedTrustListService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.w3c.dom.Document;
 
-import static no.idporten.eudiw.trustlist.xml.XMLUtils.parseTrustlist;
-
-@RequiredArgsConstructor
 @RestController
 public class TrustListController {
 
-    public static final String PATH_ACCESS_TRUSTLIST = "/access_tsl.xtsl";
+    private static final String PATH_ACCESS_TRUSTLIST = "/access_tsl";
+    public static final String PATH_ACCESS_TRUSTLIST_XTSL = PATH_ACCESS_TRUSTLIST + ".xtsl";
+    public static final String PATH_ACCESS_TRUSTLIST_SHA = PATH_ACCESS_TRUSTLIST+ ".sha2";
 
-    private final TSLService tslService;
-    private final XMLSignerService xmlSignerService;
+    private final SignedTrustListService signedTrustListService;
 
-    @GetMapping(value = PATH_ACCESS_TRUSTLIST, produces = "application/vnd.etsi.tsl+xml")
+    public TrustListController(SignedTrustListService signedTrustListService) {
+        this.signedTrustListService = signedTrustListService;
+    }
+
+    @GetMapping(value = PATH_ACCESS_TRUSTLIST_XTSL, produces = "application/vnd.etsi.tsl+xml")
     public ResponseEntity<String> trustlist() throws Exception {
-        return getTrustlist();
+        return ResponseEntity.ok(signedTrustListService.getTrustlist());
     }
 
     // TODO: Temp. for ease of testing, should be removed in the future?
-    @GetMapping(value = "/access_tsl", produces = "text/xml;charset=UTF-8")
-    public ResponseEntity<String> trustlistShow() throws Exception {
-        return getTrustlist();
+    @GetMapping(value = PATH_ACCESS_TRUSTLIST, produces = "text/xml;charset=UTF-8")
+    public ResponseEntity<String> trustlistShow() {
+        return ResponseEntity.ok(signedTrustListService.getTrustlist());
     }
 
-    private ResponseEntity<String> getTrustlist() throws Exception {
-        TrustServiceStatusList trustServiceStatusList = tslService.generateTrustServiceStatusList();
-        Document document = parseTrustlist(trustServiceStatusList);
-        Document signedDocument = xmlSignerService.createEnvelopedSignature(document);
-        return ResponseEntity.ok(XMLUtils.formatXml(signedDocument));
+    @GetMapping(value = PATH_ACCESS_TRUSTLIST_SHA, produces = "text/plain;charset=UTF-8")
+    public ResponseEntity<String> trustlistSha2() throws Exception {
+        String sha2 = signedTrustListService.getSha2();
+        return ResponseEntity.ok(sha2);
     }
 
 

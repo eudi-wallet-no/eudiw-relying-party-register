@@ -8,6 +8,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import javax.xml.crypto.KeySelector;
+import javax.xml.crypto.MarshalException;
 import javax.xml.crypto.dsig.*;
 import javax.xml.crypto.dsig.dom.DOMSignContext;
 import javax.xml.crypto.dsig.dom.DOMValidateContext;
@@ -15,6 +16,9 @@ import javax.xml.crypto.dsig.keyinfo.KeyInfo;
 import javax.xml.crypto.dsig.keyinfo.KeyInfoFactory;
 import javax.xml.crypto.dsig.keyinfo.X509Data;
 import javax.xml.crypto.dsig.spec.C14NMethodParameterSpec;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.util.Collections;
@@ -39,7 +43,7 @@ public class XMLSignerService {
 
     private final KeyProvider tslKeyProvider;
 
-    private SignedInfo createSignedInfo(XMLSignatureFactory xmlSignatureFactory) throws Exception {
+    private SignedInfo createSignedInfo(XMLSignatureFactory xmlSignatureFactory) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException {
         CanonicalizationMethod c14nMethod = xmlSignatureFactory.newCanonicalizationMethod(CanonicalizationMethod.EXCLUSIVE, (C14NMethodParameterSpec) null);
         DigestMethod digestMethod = xmlSignatureFactory.newDigestMethod(DigestMethod.SHA512, null);
         SignatureMethod signMethod = xmlSignatureFactory.newSignatureMethod(SignatureMethod.RSA_SHA512, null);
@@ -60,25 +64,48 @@ public class XMLSignerService {
     }
 
 
-    public Document createEnvelopedSignature(Document document) throws Exception {
+    public Document createEnvelopedSignature(Document document) {
         PrivateKey privateKey = tslKeyProvider.getPrivateKey();
-        XMLSignatureFactory xmlSignatureFactory = XMLSignatureFactory.getInstance(MECHANISM_DOM, PROVIDER_XMLDSIG);
-        SignedInfo signedInfo = createSignedInfo(xmlSignatureFactory);
+        XMLSignatureFactory xmlSignatureFactory;
+        try {
+            xmlSignatureFactory = XMLSignatureFactory.getInstance(MECHANISM_DOM, PROVIDER_XMLDSIG);
+        } catch (NoSuchProviderException e) {
+            throw new SigningException("Failed to get XMLSignatureFactory instance", e);
+        }
+        SignedInfo signedInfo;
+        try {
+            signedInfo = createSignedInfo(xmlSignatureFactory);
+        } catch (InvalidAlgorithmParameterException | NoSuchAlgorithmException e) {
+            throw new SigningException("Setup of SignedInfo failed", e);
+        }
         KeyInfo keyInfo = createKeyInfo(xmlSignatureFactory);
         XMLSignature xmlSignature = xmlSignatureFactory.newXMLSignature(signedInfo, keyInfo, null, null, null);
         Element rootNode = document.getDocumentElement();
         DOMSignContext domSignContext = new DOMSignContext(privateKey, rootNode);
         domSignContext.setDefaultNamespacePrefix(NAMESPACE_XMLDSIG);
-        xmlSignature.sign(domSignContext);
+        try {
+            xmlSignature.sign(domSignContext);
+        } catch (MarshalException|XMLSignatureException e) {
+            throw new SigningException("Failed to sign document", e);
+        }
         return document;
     }
 
-    public boolean validateEnvelopedSignature(Document document) throws Exception {
+    public boolean validateEnvelopedSignature(Document document) {
         Node signatureNode = document.getElementsByTagNameNS(XMLSignature.XMLNS, ELEMENT_SIGNATURE).item(0);
         DOMValidateContext validateContext = new DOMValidateContext(KeySelector.singletonKeySelector(tslKeyProvider.getPublicKey()), signatureNode);
         XMLSignatureFactory factory = XMLSignatureFactory.getInstance(MECHANISM_DOM);
-        XMLSignature signature = factory.unmarshalXMLSignature(validateContext);
-        return signature.validate(validateContext);
+        XMLSignature signature;
+        try {
+            signature = factory.unmarshalXMLSignature(validateContext);
+        } catch (MarshalException e) {
+            throw new SigningException("Failed to unmarshal XMLSignature of document", e);
+        }
+        try {
+            return signature.validate(validateContext);
+        } catch (XMLSignatureException e) {
+            throw new SigningException("Failed to validate signature of document", e);
+        }
     }
 
 }

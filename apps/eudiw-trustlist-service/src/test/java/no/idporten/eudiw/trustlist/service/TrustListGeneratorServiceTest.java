@@ -17,15 +17,15 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @ActiveProfiles("junit")
 @DisplayName("Trustlist is generated with content")
-class TSLServiceTest {
+class TrustListGeneratorServiceTest {
 
     @Autowired
-    TSLService tslService;
+    TrustListGeneratorService trustListGeneratorService;
 
     @Test
     @DisplayName("for first ServiceProvider and it has content for first Service")
     void verifyGenerateTrustListIsHasContent() throws IOException {
-        TrustServiceStatusList trustlist = tslService.generateTrustServiceStatusList();
+        TrustServiceStatusList trustlist = trustListGeneratorService.generateTrustServiceStatusList();
         assertNotNull(trustlist);
         assertNotNull(trustlist.getTrustServiceProviderList());
         assertNotNull(trustlist.getTrustServiceProviderList().getTrustServiceProviders());
