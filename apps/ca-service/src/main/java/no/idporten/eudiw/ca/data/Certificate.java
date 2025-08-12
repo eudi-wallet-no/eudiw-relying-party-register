@@ -9,6 +9,7 @@ import org.hibernate.type.SqlTypes;
 
 import java.math.BigInteger;
 import java.security.cert.X509Certificate;
+import java.time.Clock;
 
 @Getter
 @Setter
@@ -56,6 +57,11 @@ public class Certificate {
 
     public boolean isRevoked() {
         return revocationReason > -1;
+    }
+
+    public void revoke(int revocationReason) {
+        this.revokedAtMs = Clock.systemUTC().millis();
+        this.revocationReason = revocationReason;
     }
 
 }

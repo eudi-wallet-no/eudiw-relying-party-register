@@ -21,7 +21,7 @@ public record ErrorResponse(
                          @JsonProperty("error_description")
                          String errorDescription) {
         this.error = error;
-        this.errorDescription = String.format("%s (%s)", errorDescription, Span.current().getSpanContext().getTraceId());
+        this.errorDescription = String.format("%s (trace_id = %s)", errorDescription, Span.current().getSpanContext().getTraceId());
     }
 
 }

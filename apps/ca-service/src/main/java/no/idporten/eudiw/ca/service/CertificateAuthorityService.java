@@ -34,7 +34,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigInteger;
 import java.net.URI;
 import java.security.PublicKey;
@@ -172,7 +174,7 @@ public class CertificateAuthorityService {
         SubjectPublicKeyInfo keyInfo = SubjectPublicKeyInfo.getInstance(publicKey.getEncoded());
         X509v3CertificateBuilder x509v3CertificateBuilder = new X509v3CertificateBuilder(
                 X500Name.getInstance(certificateAuthority.getCertificate().getSubjectX500Principal().getEncoded()),
-                new BigInteger(64, new SecureRandom()),
+                generateSerialNumber(),
                 new Date(System.currentTimeMillis()),
                 calculateExpiryDate(certificateAuthority.getLifetimeDays(), certificateAuthority.getCertificate().getNotAfter()),
                 subject,
@@ -194,6 +196,14 @@ public class CertificateAuthorityService {
         try (InputStream is = new ByteArrayInputStream(eeX509CertificateStructure.getEncoded())) {
             return (X509Certificate) cf.generateCertificate(is);
         }
+    }
+
+    protected BigInteger generateSerialNumber() {
+        // Using current time in milliseconds as a base
+        long timeMillis = System.currentTimeMillis();
+        // Adding a random component to enhance uniqueness
+        BigInteger randomPart = new BigInteger(32, new SecureRandom()).abs(); // 32-bit random number
+        return BigInteger.valueOf(timeMillis).add(randomPart);
     }
 
     protected X500Name createSubjectWithOrgno(X500Name requestedName, String orgno) {
@@ -230,6 +240,19 @@ public class CertificateAuthorityService {
         return expires;
     }
 
+    public void revokeCertificate(CertificateAuthority certificateAuthority, X509Certificate certificate) {
+        Certificate issuedCertificate = certificateRepository.findByIssuerCaAndSerialNo(certificateAuthority.getId(), certificate.getSerialNumber());
+        if (issuedCertificate == null) {
+            throw new CertificateAuthorityException("invalid_request", "Cannot revoke unknown certificate", HttpStatus.BAD_REQUEST);
+        }
+        if (issuedCertificate.isRevoked()) {
+            throw new CertificateAuthorityException("invalid_request", "Cannot revoke revoked certificate", HttpStatus.BAD_REQUEST);
+        }
+        issuedCertificate.revoke(CRLReason.keyCompromise);
+        certificateRepository.saveAndFlush(issuedCertificate);
+    }
+
+
     /**
      * Create and sign empty CRL for a certificate authority.
      */
@@ -238,16 +261,17 @@ public class CertificateAuthorityService {
                 X500Name.getInstance(certificateAuthority.getCertificate().getSubjectX500Principal().getEncoded()),
                 new Date(System.currentTimeMillis()))
                 .setNextUpdate(new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000));
+        List<Certificate> revokedCertificates = certificateRepository.findRevokedCertificates(certificateAuthority.getId());
+        for (Certificate revokedCertificate : revokedCertificates) {
+            crlBuilder.addCRLEntry(revokedCertificate.getSerialNo(), new Date(revokedCertificate.getRevokedAtMs()), revokedCertificate.getRevocationReason());
+        }
         AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find(SIGNATURE_ALGORITHM_SHA_512_WITH_ECDSA);
         AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
         AsymmetricKeyParameter caPrivateKey = PrivateKeyFactory.createKey(certificateAuthority.getPrivateKey().getEncoded());
         ContentSigner sigGen = new BcECContentSignerBuilder(sigAlgId, digAlgId).build(caPrivateKey);
         X509CRLHolder crlHolder = crlBuilder.build(sigGen);
-
         ASN1Object asn1Object = crlHolder.toASN1Structure();
-
         CertificateFactory cf = CertificateFactory.getInstance("X.509", BouncyCastleProvider.PROVIDER_NAME);
-
         try (InputStream is = new ByteArrayInputStream(asn1Object.getEncoded())) {
             return (X509CRL) cf.generateCRL(is);
         }
