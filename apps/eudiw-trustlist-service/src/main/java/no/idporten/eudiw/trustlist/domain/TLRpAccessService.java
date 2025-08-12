@@ -2,7 +2,6 @@ package no.idporten.eudiw.trustlist.domain;
 
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.openssl.PEMParser;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -29,11 +28,7 @@ public record TLRpAccessService(TSName name, ZonedDateTime startingTime, String 
         String prefix = "-----BEGIN CERTIFICATE-----";
         String suffix = "-----END CERTIFICATE-----";
         if (!cert.startsWith(prefix) || !cert.endsWith(suffix)) {
-            LoggerFactory.getLogger(TLRpAccessService.class).warn("Certificate is not a valid certificate since missing PEM headers/footers, fix it in application.yaml. Trying fix it by adding BEGIN/END-headers like this: \n" +
-                    prefix + "\n" +
-                    cert + "\n" +
-                    suffix);
-            return prefix + System.lineSeparator() +
+           return prefix + System.lineSeparator() +
                     cert + System.lineSeparator() +
                     suffix;
         }
