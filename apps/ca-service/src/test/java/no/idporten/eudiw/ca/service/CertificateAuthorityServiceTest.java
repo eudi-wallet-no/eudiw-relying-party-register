@@ -5,7 +5,7 @@ import no.idporten.eudiw.ca.config.CertificateAuthorities;
 import no.idporten.eudiw.ca.config.CertificateAuthority;
 import no.idporten.eudiw.ca.data.Certificate;
 import no.idporten.eudiw.ca.data.CertificateRepository;
-import no.idporten.eudiw.ca.exception.CertificateAuthorityException;
+import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.junit.jupiter.api.BeforeAll;
@@ -51,9 +51,9 @@ public class CertificateAuthorityServiceTest {
     @Nested
     class AccessCertificateTests {
 
-        @DisplayName("then a valid certificate is created with san extensions and extended key usage for mdoc authentication")
+        @DisplayName("then a valid certificate is created with requested extensions and extended key usage for mdoc authentication")
         @Test
-        void testAccessCertificate() throws Exception {
+        void testSignAccessCertificate() throws Exception {
             String csr = """
                     -----BEGIN NEW CERTIFICATE REQUEST-----
                     MIIBbTCCARQCAQAwXzELMAkGA1UEBhMCbm8xDTALBgNVBAgTBFNvZ24xEjAQBgNV
@@ -76,7 +76,8 @@ public class CertificateAuthorityServiceTest {
                     () -> assertNotNull(issuedCertificate.getExtendedKeyUsage()),
                     () -> assertTrue(issuedCertificate.getExtendedKeyUsage().contains("1.0.18013.5.1.6")),
                     () -> assertEquals("SHA512WITHECDSA", issuedCertificate.getSigAlgName()),
-                    () -> assertEquals("1.2.840.10045.4.3.4", issuedCertificate.getSigAlgOID())
+                    () -> assertEquals("1.2.840.10045.4.3.4", issuedCertificate.getSigAlgOID()),
+                    () -> assertNotNull(issuedCertificate.getExtensionValue(Extension.cRLDistributionPoints.getId()))
             );
             issuedCertificate.verify(intermediate.getPublicKey());
             verify(certificateRepository).save(certificateCaptor.capture());
@@ -91,7 +92,7 @@ public class CertificateAuthorityServiceTest {
             );
         }
 
-        @DisplayName("then a CSR with unrecognized extensions is rejected")
+        @DisplayName("then unrecognized CSR extensions are ignored")
         @Test
         void testUnrecognizedCSRExtensions() throws Exception {
             String csr = """
@@ -106,43 +107,58 @@ public class CertificateAuthorityServiceTest {
                     IQDF8LBk3ZIIITOR79QMmnkApy0Pl7R7OUay5h46CjGAXgIhAIrYLKuREXZKBFE+
                     7OFCB31ZpyqyG8YOVrifEPf8dX9D
                     -----END CERTIFICATE REQUEST-----""";
+            /*
+    Certificate Request decoded:
+    Data:
+        Attributes:
+            Requested Extensions:
+                X509v3 Subject Key Identifier:
+                    A0:09:3E:B4:CC:CE:83:92:3A:BE:8C:AB:14:57:37:01:85:46:C4:6E
+                X509v3 Subject Alternative Name:
+                    DNS:eudiw-verifier-demo.idporten.dev    <-- Known
+                X509v3 Issuer Alternative Name:             <-- Unknown https://www.alvestrand.no/objectid/2.5.29.18.html
+                    DNS:bar.foo
+             */
             CertificateAuthority intermediate = certificateAuthorities.findIntermediate("access");
-            CertificateAuthorityException exception = assertThrows(CertificateAuthorityException.class, () -> certificateAuthorityService.signCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), "991825827"));
+            X509Certificate issuedCertificate = certificateAuthorityService.signCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), "991825827");
             assertAll(
-                    () -> assertEquals("invalid_request", exception.getError()),
-                    () -> assertEquals(400, exception.getHttpStatus().value()),
-                    () -> assertTrue(exception.getErrorDescription().contains("contains unrecognized extension")),
-                    () -> assertTrue(exception.getErrorDescription().contains("2.5.29.18"))
+                    () -> assertTrue(issuedCertificate.getSubjectAlternativeNames().iterator().next().contains("eudiw-verifier-demo.idporten.dev")),
+                    () -> assertFalse(issuedCertificate.getCriticalExtensionOIDs().contains(Extension.issuerAlternativeName.getId())),
+                    () -> assertFalse(issuedCertificate.getNonCriticalExtensionOIDs().contains(Extension.issuerAlternativeName.getId())),
+                    () -> assertNull(issuedCertificate.getExtensionValue(Extension.issuerAlternativeName.getId()))
             );
-            verifyNoInteractions(certificateRepository);
         }
 
-        @DisplayName("then a CSR with missing required extensions is rejected")
+        @DisplayName("then not requesting known extensions is allowed")
         @Test
-        void testMissingRequiredCSRExtensions() throws Exception {
+        void testNotRequestingCSRExtensions() throws Exception {
             String csr = """
                     -----BEGIN NEW CERTIFICATE REQUEST-----
-                    MIIBYzCCAQkCAQAwYzELMAkGA1UEBhMCbm8xKTAnBgNVBAsTIGV1ZGl3LXZlcmlm
-                    aWVyLWRlbW8uaWRwb3J0ZW4uZGV2MSkwJwYDVQQDEyBldWRpdy12ZXJpZmllci1k
-                    ZW1vLmlkcG9ydGVuLmRldjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABHKIs2py
-                    gJfIIk1Z6KYl6igCERMo8SC1WAAmsPFPKdOkwp0SSIPER3BXW8BOjj2DFYV7pP1L
-                    VBQLKwYCfmY7pa6gRDBCBgkqhkiG9w0BCQ4xNTAzMB0GA1UdDgQWBBSgCT60zM6D
-                    kjq+jKsUVzcBhUbEbjASBgNVHRIECzAJggdiYXIuZm9vMAoGCCqGSM49BAMDA0gA
-                    MEUCIGfooGcXWqd9+1M6j16wsNm/5B8XscHW3h+e0RpmiWADAiEA6f7olc4kLFAW
-                    Cn81LRLTrsAaIRzPX4BrEGFX4J6Zvdw=
+                    MIIBRDCB6gIBADBYMRgwFgYDVQRhEw9OVFJOTy05OTE4MjU4MjcxCzAJBgNVBAYT
+                    Am5vMQ8wDQYDVQQLEwZEaWdkaXIxHjAcBgNVBAMTFUVVRElXIGlzc3VlciBDQSBq
+                    dW5pdDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABN2dGw4vuzpR/UX374526zoC
+                    FncBNxDs9i4y33NP9RITOwMNo+hqfXiRV93ndxzUjbi8ACOo0dmF32Cq5nQCD+2g
+                    MDAuBgkqhkiG9w0BCQ4xITAfMB0GA1UdDgQWBBRhT9bK8Cex2asEEZv+aIbLU8sb
+                    ZjAKBggqhkjOPQQDAwNJADBGAiEA69BmlqnJUy7N5AYUr4WJbzP9lgig6ilyQC6A
+                    U2Ola9ECIQDI5x5tTEVXIeCpqD+bo067mOUMicjRWwMSeGW5PGTxLg==
                     -----END NEW CERTIFICATE REQUEST-----""";
+            /*
+    Certificate Request decoded:
+    Data:
+       Attributes:
+            Requested Extensions:
+                X509v3 Subject Key Identifier:
+                    61:4F:D6:CA:F0:27:B1:D9:AB:04:11:9B:FE:68:86:CB:53:CB:1B:66
+             */
             CertificateAuthority intermediate = certificateAuthorities.findIntermediate("access");
-            CertificateAuthorityException exception = assertThrows(CertificateAuthorityException.class, () -> certificateAuthorityService.signCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), "991825827"));
+            X509Certificate issuedCertificate = certificateAuthorityService.signCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), "991825827");
             assertAll(
-                    () -> assertEquals("invalid_request", exception.getError()),
-                    () -> assertEquals(400, exception.getHttpStatus().value()),
-                    () -> assertTrue(exception.getErrorDescription().contains("does not contain required extension")),
-                    () -> assertTrue(exception.getErrorDescription().contains("2.5.29.17"))
+                    () -> assertNull(issuedCertificate.getSubjectAlternativeNames()),
+                    () -> assertNotNull(issuedCertificate.getExtensionValue(Extension.subjectKeyIdentifier.getId()))
             );
-            verifyNoInteractions(certificateRepository);
         }
 
-   }
+    }
 
     @DisplayName("When signing root CA certificates")
     @Nested
