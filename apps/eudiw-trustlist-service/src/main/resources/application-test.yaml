@@ -2,3 +2,12 @@
 spring:
   application:
     environment: test
+
+trustlist-service:
+  service-provider:
+    rp-access-services:
+      - name:
+          lang-no: CA for relying parties access certificates in eidas2sandkasse
+          lang-en: CA for relying parties access certificates in eidas2sandkasse
+        starting-time: 2025-08-11T12:00:00.00Z
+        cert: MIICuzCCAmGgAwIBAgIJAKcp7ByPxFNUMAoGCCqGSM49BAMDMGMxGDAWBgNVBGETD05UUk5PLTk5MTgyNTgyNzELMAkGA1UEBhMCbm8xDzANBgNVBAsTBkRpZ2RpcjEpMCcGA1UEAxMgZWlkYXMyc2FuZGthc3NlLm5ldCByb290IENBIHRlc3QwHhcNMjUwNTA5MDc1NjU0WhcNMzAwNDI5MDc1NjU0WjBkMRgwFgYDVQRhEw9OVFJOTy05OTE4MjU4MjcxCzAJBgNVBAYTAm5vMQ8wDQYDVQQLEwZEaWdkaXIxKjAoBgNVBAMTIWVpZGFzMnNhbmRrYXNzZSBSUCBBY2Nlc3MgQ0EgdGVzdDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABE4OQr5vpRMvcYZs46LkpdDgVQ9V+9E/Gx3Io2jqm+g/43/0b2Ns9oSRv1VpY/vYSI/O6JWylRQ+MNk6V3DfQv2jgfwwgfkwUQYIKwYBBQUHAQEERTBDMEEGCCsGAQUFBzAChjVodHRwczovL2NhLnRlc3QuZWlkYXMyc2FuZGthc3NlLm5ldC92MS9jZXJ0cy9yb290LmNlcjAdBgNVHQ4EFgQUUcgCJYAwgpE7JCLUm9xeoainXcwwDgYDVR0PAQH/BAQDAgEGMAwGA1UdEwQFMAMBAf8wRgYDVR0fBD8wPTA7oDmgN4Y1aHR0cHM6Ly9jYS50ZXN0LmVpZGFzMnNhbmRrYXNzZS5uZXQvdjEvY2VydHMvcm9vdC5jcmwwHwYDVR0jBBgwFoAUCi/G/x9Z1uJAVlFqD3onNXclrPEwCgYIKoZIzj0EAwMDSAAwRQIgfuk68h7gRHYXzBuddxFEUGl1eYtQgMCMKcw6D1kVjzgCIQC91xg+yGdocsoPmIGACivfYZAftiQXGEjHdid9RZOX1g==
