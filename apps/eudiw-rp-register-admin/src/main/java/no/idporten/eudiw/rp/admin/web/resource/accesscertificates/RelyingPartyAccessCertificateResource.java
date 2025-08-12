@@ -6,7 +6,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary;
 
+import javax.security.auth.x500.X500Principal;
 import java.security.cert.X509Certificate;
+import java.util.Map;
 import java.util.UUID;
 
 @JsonInclude(JsonInclude.Include.ALWAYS)
@@ -18,11 +20,19 @@ public record RelyingPartyAccessCertificateResource(
     @JsonProperty(value = "id", required = true)
     UUID id
 ) {
+
+
+    private String formatX500PrincipalName(X500Principal x500Principal) {
+        return x500Principal.getName(
+                X500Principal.RFC1779,
+                Map.of("2.5.4.97", "organizationIdentifier"));
+    }
+
     public RelyingPartyAccessCertificateSummary toSummary() {
         return new RelyingPartyAccessCertificateSummary(
             this.certificate.getSerialNumber(),
-            this.certificate.getSubjectX500Principal().getName(),
-            this.certificate.getIssuerX500Principal().getName(),
+            formatX500PrincipalName(this.certificate.getSubjectX500Principal()),
+            formatX500PrincipalName(this.certificate.getIssuerX500Principal()),
             this.certificate.getNotBefore().toInstant().toEpochMilli(),
             this.certificate.getNotAfter().toInstant().toEpochMilli(),
             this.id
