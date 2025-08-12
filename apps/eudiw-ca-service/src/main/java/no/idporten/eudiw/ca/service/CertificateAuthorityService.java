@@ -70,11 +70,11 @@ public class CertificateAuthorityService {
 
     /**
      * Validates csr
+     *
      * @param csr signed csr
-     * @param requiredExtensions all these and no other must be present
      * @throws Exception if CSR is not valid
      */
-    protected void validateCSR(PKCS10CertificationRequest csr, Set<ASN1ObjectIdentifier> requiredExtensions, Set<ASN1ObjectIdentifier> ignoredExtensions) throws Exception {
+    protected void validateCSR(PKCS10CertificationRequest csr) throws Exception {
         if (csr == null) {
             throw new CertificateAuthorityException("invalid_request", "CSR parsing failed", HttpStatus.BAD_REQUEST);
         }
@@ -82,24 +82,6 @@ public class CertificateAuthorityService {
         JcaContentVerifierProviderBuilder jcaContentVerifierProviderBuilder = new JcaContentVerifierProviderBuilder();
         if (!csr.isSignatureValid(jcaContentVerifierProviderBuilder.build(publicKey))) {
             throw new CertificateAuthorityException("invalid_request", "CSR signature is invalid", HttpStatus.BAD_REQUEST);
-        }
-        Set<ASN1ObjectIdentifier> requestedExtensionsIdentifiers = csr.getRequestedExtensions() != null ? new HashSet<>(Set.of(csr.getRequestedExtensions().getExtensionOIDs())) : new HashSet<>();
-        requestedExtensionsIdentifiers.removeAll(ignoredExtensions);
-        Set<ASN1ObjectIdentifier> requiredExtensionsIdentifiers = requiredExtensions != null ? new HashSet<>(requiredExtensions) : new HashSet<>();
-        if (! requestedExtensionsIdentifiers.containsAll(requiredExtensionsIdentifiers)) {
-            requiredExtensionsIdentifiers.removeAll(requestedExtensionsIdentifiers);
-            throw new CertificateAuthorityException("invalid_request", "CSR does not contain required extension(s) %s".formatted(requiredExtensionsIdentifiers), HttpStatus.BAD_REQUEST);
-        }
-        if (! requiredExtensionsIdentifiers.containsAll(requestedExtensionsIdentifiers)) {
-            requestedExtensionsIdentifiers.removeAll(requiredExtensionsIdentifiers);
-            throw new CertificateAuthorityException("invalid_request", "CSR contains unrecognized extension(s) %s".formatted(requestedExtensionsIdentifiers), HttpStatus.BAD_REQUEST);
-        }
-        if (csr.getRequestedExtensions() != null) {
-            for (ASN1ObjectIdentifier extensionOID : csr.getRequestedExtensions().getExtensionOIDs()) {
-                if (csr.getRequestedExtensions().getExtension(extensionOID).getExtnValue().getOctetsLength() == 0) {
-                    throw new CertificateAuthorityException("invalid_request", "CSR contains empty value for extension %s".formatted(extensionOID), HttpStatus.BAD_REQUEST);
-                }
-            }
         }
     }
 
@@ -113,7 +95,7 @@ public class CertificateAuthorityService {
      * Sign a root CA certificate for certificate and CRL signing.  This certificate is self-signed.
      */
     protected X509Certificate signRootCertificate(CertificateAuthority certificateAuthority, PKCS10CertificationRequest csr) throws Exception {
-        validateCSR(csr, Collections.emptySet(), Collections.emptySet());
+        validateCSR(csr);
         return signCertificate(
                 certificateAuthority,
                 csr,
@@ -129,7 +111,7 @@ public class CertificateAuthorityService {
      * and references the root CA CRL,
      */
     protected X509Certificate signIntermediateCertificate(CertificateAuthority certificateAuthority, PKCS10CertificationRequest csr) throws Exception {
-        validateCSR(csr, Collections.emptySet(), Collections.emptySet());
+        validateCSR(csr);
         return signCertificate(certificateAuthority,
                 csr,
                 createSubjectWithOrgno(csr.getSubject(), DIGDIR_ORGNO),
@@ -144,7 +126,7 @@ public class CertificateAuthorityService {
      * Signs an end-entity certificate for an organization with an intermediate CA certificate.
      */
     public X509Certificate signCertificate(CertificateAuthority certificateAuthority, PKCS10CertificationRequest csr, String orgno) throws Exception {
-        validateCSR(csr, Set.of(Extension.subjectAlternativeName), Set.of(Extension.subjectKeyIdentifier));
+        validateCSR(csr);
         List<Extension> extensions = new ArrayList<>();
         // basic + relation to CA
         extensions.add(Extension.create(Extension.basicConstraints, true, new BasicConstraints(false)));
@@ -158,14 +140,23 @@ public class CertificateAuthorityService {
                 extensions.add(Extension.create(Extension.extendedKeyUsage, true, new ExtendedKeyUsage(KeyPurposeId.getInstance(new ASN1ObjectIdentifier(oid)))));
             }
         }
-        // extensions from CSR
-        if (csr.getRequestedExtensions().getExtension(Extension.subjectAlternativeName) != null) {
-            extensions.add(csr.getRequestedExtensions().getExtension(Extension.subjectAlternativeName));
-        }
+        addSupportedExtensionsFromCsr(csr, extensions);
         X500Name subject = createSubjectWithOrgno(csr.getSubject(), orgno);
         X509Certificate certificate = signCertificate(certificateAuthority, csr, subject, extensions);
         certificateRepository.save(new Certificate(certificate, certificateAuthority.getId()));
         return certificate;
+    }
+
+    /**
+     * Adds known requested extensions from CSR.  Only SAN DNS is supported.
+     *
+     * @param csr
+     * @param extensions
+     */
+    private void addSupportedExtensionsFromCsr(PKCS10CertificationRequest csr, List<Extension> extensions) {
+        if (csr.getRequestedExtensions().getExtension(Extension.subjectAlternativeName) != null) {
+            extensions.add(csr.getRequestedExtensions().getExtension(Extension.subjectAlternativeName));
+        }
     }
 
     protected X509Certificate signCertificate(CertificateAuthority certificateAuthority, PKCS10CertificationRequest csr, X500Name subject, List<Extension> extensions) throws Exception {
