@@ -9,12 +9,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.ca.config.CertificateAuthorities;
 import no.idporten.eudiw.ca.service.CertificateAuthorityService;
 import no.idporten.eudiw.ca.util.CertificateEncodingUtils;
-import no.idporten.validators.orgnr.Orgnr;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -160,47 +158,6 @@ public class CertificateAuthorityApiController {
                     required = true)
             @PathVariable("intermediate") String intermediate) throws Exception {
         return ResponseEntity.ok(certificateAuthorityService.createCRL(certificateAuthorities.findIntermediate(intermediate)).getEncoded());
-    }
-
-    @Operation(
-            summary = "Issue certificate",
-            description = "Sign CSR with intermediate CA",
-            tags = {API_TAG})
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "PEM-encoded certificate", content = @Content(mediaType = APPLICATION_X_PEM_FILE_VALUE))
-    })
-    @PostMapping(path = "/v1/certs/{intermediate}/{orgno}", consumes = APPLICATION_X_PEM_FILE_VALUE, produces = APPLICATION_X_PEM_FILE_VALUE)
-    @Deprecated
-    public ResponseEntity<String> signLeafCertificate(
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "PEM-encoded Certificate Signing Request with SAN extension",
-                    content = {
-                            @Content(mediaType = APPLICATION_X_PEM_FILE_VALUE,
-                                    examples = @ExampleObject(value = certificateSigningRequestExample))},
-                    required = true)
-            @Valid @NotEmpty(message = "CSR cannot be null") @RequestBody String csr,
-            @Parameter(
-                    description = "Intermediate CA name",
-                    examples = {
-                            @ExampleObject(name = "access", value = "access", description = "RP access CA"),
-                            @ExampleObject(name = "pid_provider", value = "pid_provider", description = "PID_Provider CA"),
-                            @ExampleObject(name = "eaa_provider", value = "eaa_provider", description = "QEAA_Provider/Non_Q_EAA_Provider CA"),
-                            @ExampleObject(name = "pub_eaa_provider", value = "pub_eaa_provider", description = "PUB_EAA_Provider CA"),
-                            @ExampleObject(name = "issuer", value = "issuer", description = "Issuer CA")},
-                    required = true)
-            @PathVariable("intermediate") String intermediate,
-            @Parameter(
-                    description = "Organization number",
-                    required = true)
-            @Valid @Orgnr(message = "Invalid organization number") @NotEmpty @PathVariable String orgno) throws Exception {
-        PKCS10CertificationRequest pkcs10CertificationRequest = certificateAuthorityService.decodeCsr(csr);
-        X509Certificate signedCertificate =
-                certificateAuthorityService.signLeafCertificate(
-                        certificateAuthorities.findIntermediate(intermediate),
-                        pkcs10CertificationRequest,
-                        null,
-                        orgno);
-        return ResponseEntity.ok(CertificateEncodingUtils.encodeToPem(signedCertificate));
     }
 
     @Operation(
