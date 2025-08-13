@@ -71,8 +71,13 @@ public class RelyingPartyCertificateService {
         String csrPemStr = PKCS10CertificationRequestConverter.convert(csrResource.csr());
         String certificatePemStr =
             caRestClient.post()
-                        .uri("/access/" + relyingParty.getOrgno())
-                        .body(csrPemStr)
+                        .uri("/access")
+                        .body(RelyingPartyCertificateRequest
+                                .builder()
+                                .orgno(relyingParty.getOrgno())
+                                .name(relyingParty.getName())
+                                .csr(csrPemStr)
+                                .build())
                         .retrieve()
                         .toEntity(String.class)
                         .getBody();

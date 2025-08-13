@@ -27,7 +27,7 @@ public class RelyingPartyCertificateServiceConfig {
         return
             RestClient.builder()
                       .defaultHeader("accept", "application/x-pem-file", MediaType.APPLICATION_JSON_VALUE)
-                      .defaultHeader("Content-Type", "application/x-pem-file")
+                      .defaultHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                       .defaultHeader(certServiceProperties.caServiceApi().apiKeyHeaderId(),
                                      certServiceProperties.caServiceApi().apiKeyValue())
                       .baseUrl(caServiceCertsApiBaseUrl)
