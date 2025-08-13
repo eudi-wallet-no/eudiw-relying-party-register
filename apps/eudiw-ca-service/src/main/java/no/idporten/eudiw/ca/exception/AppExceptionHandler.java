@@ -9,7 +9,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.server.ResponseStatusException;
@@ -17,6 +21,8 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 
 /**
@@ -64,6 +70,17 @@ public class AppExceptionHandler {
     public ResponseEntity<ErrorResponse> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException ex) {
         return errorResponseEntity(HttpStatus.METHOD_NOT_ALLOWED, INVALID_REQUEST, "Unsupported HTTP method");
     }
+    // Spring 400
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+        return errorResponseEntity(HttpStatus.BAD_REQUEST, INVALID_REQUEST, "Malformed request");
+    }
+
+    // Spring 415
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMediaTypeNotSupportedException(HttpMediaTypeNotSupportedException e) {
+        return errorResponseEntity(HttpStatus.UNSUPPORTED_MEDIA_TYPE, INVALID_REQUEST, "Malformed request");
+    }
 
     // Spring 404
     @ExceptionHandler(NoHandlerFoundException.class)
@@ -87,6 +104,20 @@ public class AppExceptionHandler {
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ErrorResponse> handleResponseStatusException(ResponseStatusException e) {
         return errorResponseEntity(e.getStatusCode(), errorMessageForHttpStatus(e.getStatusCode()), e.getReason());
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(
+            MethodArgumentNotValidException e) {
+
+        String bindingErrorMessages =
+                e.getBindingResult()
+                        .getFieldErrors()
+                        .stream()
+                        .map(FieldError::getDefaultMessage)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.joining(","));
+        return errorResponseEntity(e.getStatusCode(), errorMessageForHttpStatus(e.getStatusCode()), bindingErrorMessages);
     }
 
     protected String errorMessageForHttpStatus(HttpStatusCode httpStatus) {

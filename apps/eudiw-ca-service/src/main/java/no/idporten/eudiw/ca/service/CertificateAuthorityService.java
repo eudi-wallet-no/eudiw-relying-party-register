@@ -11,6 +11,7 @@ import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
+import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x509.*;
 import org.bouncycastle.cert.X509CRLHolder;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -61,7 +62,7 @@ public class CertificateAuthorityService {
      * @param csr csr
      * @return decoded csr
      */
-    public static PKCS10CertificationRequest decodeCsr(String csr) {
+    public PKCS10CertificationRequest decodeCsr(String csr) {
         if (! StringUtils.hasText(csr)) {
             throw new CertificateAuthorityException("invalid_request", "CSR is empty", HttpStatus.BAD_REQUEST);
         }
@@ -94,12 +95,13 @@ public class CertificateAuthorityService {
     /**
      * Sign a root CA certificate for certificate and CRL signing.  This certificate is self-signed.
      */
+    @Deprecated
     protected X509Certificate signRootCertificate(CertificateAuthority certificateAuthority, PKCS10CertificationRequest csr) throws Exception {
         validateCSR(csr);
-        return signCertificate(
+        return signLeafCertificate(
                 certificateAuthority,
                 csr,
-                createSubjectWithOrgno(new X509CertificateHolder(certificateAuthority.getCertificate().getEncoded()).getSubject(), DIGDIR_ORGNO),
+                createCASubject(new X509CertificateHolder(certificateAuthority.getCertificate().getEncoded()).getSubject(), DIGDIR_ORGNO),
                 List.of(
                         Extension.create(Extension.basicConstraints, true, new BasicConstraints(true)),
                         Extension.create(Extension.keyUsage, true, new KeyUsage(KeyUsage.keyCertSign | KeyUsage.cRLSign))
@@ -110,11 +112,12 @@ public class CertificateAuthorityService {
      * Sign an intermediate CA certificate for certificate and CRL signing.  This certificate is signed by the root CA
      * and references the root CA CRL,
      */
+    @Deprecated
     protected X509Certificate signIntermediateCertificate(CertificateAuthority certificateAuthority, PKCS10CertificationRequest csr) throws Exception {
         validateCSR(csr);
-        return signCertificate(certificateAuthority,
+        return signLeafCertificate(certificateAuthority,
                 csr,
-                createSubjectWithOrgno(csr.getSubject(), DIGDIR_ORGNO),
+                createCASubject(new X509CertificateHolder(certificateAuthority.getCertificate().getEncoded()).getSubject(), DIGDIR_ORGNO),
                 List.of(
                         Extension.create(Extension.basicConstraints, true, new BasicConstraints(true)),
                         createCrlDistributionPointExtension(certificateAuthority.getCrlDistributionPoint()),
@@ -125,7 +128,7 @@ public class CertificateAuthorityService {
     /**
      * Signs an end-entity certificate for an organization with an intermediate CA certificate.
      */
-    public X509Certificate signCertificate(CertificateAuthority certificateAuthority, PKCS10CertificationRequest csr, String orgno) throws Exception {
+    public X509Certificate signLeafCertificate(CertificateAuthority certificateAuthority, PKCS10CertificationRequest csr, String name, String orgno) throws Exception {
         validateCSR(csr);
         List<Extension> extensions = new ArrayList<>();
         // basic + relation to CA
@@ -141,8 +144,8 @@ public class CertificateAuthorityService {
             }
         }
         addSupportedExtensionsFromCsr(csr, extensions);
-        X500Name subject = createSubjectWithOrgno(csr.getSubject(), orgno);
-        X509Certificate certificate = signCertificate(certificateAuthority, csr, subject, extensions);
+        X500Name subject = createSubjectWithNameAndOrgno(csr.getSubject(), name, orgno);
+        X509Certificate certificate = signLeafCertificate(certificateAuthority, csr, subject, extensions);
         certificateRepository.save(new Certificate(certificate, certificateAuthority.getId()));
         return certificate;
     }
@@ -159,7 +162,7 @@ public class CertificateAuthorityService {
         }
     }
 
-    protected X509Certificate signCertificate(CertificateAuthority certificateAuthority, PKCS10CertificationRequest csr, X500Name subject, List<Extension> extensions) throws Exception {
+    protected X509Certificate signLeafCertificate(CertificateAuthority certificateAuthority, PKCS10CertificationRequest csr, X500Name subject, List<Extension> extensions) throws Exception {
         validateCertificateAuthority(certificateAuthority);
         PublicKey publicKey = new JcaPEMKeyConverter().getPublicKey(csr.getSubjectPublicKeyInfo());
         SubjectPublicKeyInfo keyInfo = SubjectPublicKeyInfo.getInstance(publicKey.getEncoded());
@@ -197,12 +200,20 @@ public class CertificateAuthorityService {
         return BigInteger.valueOf(timeMillis).add(randomPart);
     }
 
-    protected X500Name createSubjectWithOrgno(X500Name requestedName, String orgno) {
+    protected X500Name createCASubject(X500Name csrSubjectName, String orgno) {
         X500NameBuilder x500NameBuilder = new X500NameBuilder();
-        for (RDN rdn : requestedName.getRDNs()) {
+        for (RDN rdn : csrSubjectName.getRDNs()) {
             x500NameBuilder.addMultiValuedRDN(rdn.getTypesAndValues());
         }
-        return x500NameBuilder.addRDN(ASN1ObjectIdentifier.tryFromID(OID_ORGANIZATION_NUMBER), "NTRNO-%s".formatted(orgno)).build();
+        x500NameBuilder.addRDN(ASN1ObjectIdentifier.tryFromID(OID_ORGANIZATION_NUMBER), "NTRNO-%s".formatted(orgno));
+        return x500NameBuilder.build();
+    }
+
+    protected X500Name createSubjectWithNameAndOrgno(X500Name csrSubjectName, String name, String orgno) {
+        X500NameBuilder x500NameBuilder = new X500NameBuilder();
+        x500NameBuilder.addRDN(BCStyle.CN, name);
+        x500NameBuilder.addRDN(ASN1ObjectIdentifier.tryFromID(OID_ORGANIZATION_NUMBER), "NTRNO-NOFOR.%s".formatted(orgno));
+        return x500NameBuilder.build();
     }
 
     protected Extension createCrlDistributionPointExtension(URI uri) throws IOException {
