@@ -19,6 +19,7 @@ import no.eudiw.rp.register.testdata.EntityGenerator;
 import no.eudiw.rp.register.testdata.ResourceGenerator;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -228,6 +229,11 @@ public class RelyingPartyCertificateServiceTests {
                            .certificate();
 
             assertEquals(certificateExpected, certificateActual);
+            RecordedRequest recordedRequest = mockCaServer.takeRequest();
+            assertAll(
+                    () -> assertEquals("POST", recordedRequest.getMethod()),
+                    () -> assertEquals("/v1/certs/access", recordedRequest.getPath())
+            );
         }
 
 
