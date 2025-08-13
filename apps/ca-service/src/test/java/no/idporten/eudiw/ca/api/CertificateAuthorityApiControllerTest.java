@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -103,22 +104,17 @@ public class CertificateAuthorityApiControllerTest {
 
     @DisplayName("then RP access certificates can be signed")
     @Test
-    void testSignLeafCertificate() throws Exception {
-        String csr = """
-                -----BEGIN NEW CERTIFICATE REQUEST-----
-                MIIBbTCCARQCAQAwXzELMAkGA1UEBhMCbm8xDTALBgNVBAgTBFNvZ24xEjAQBgNV
-                BAcTCUxlaWthbmdlcjEPMA0GA1UEChMGRGlnZGlyMQ4wDAYDVQQLEwVFVURJVzEM
-                MAoGA1UEAxMDcnAyMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAELKyeEr6OlEgW
-                E0cRI3aCgzRnPu9IjoYCsPuV53/QwBe0pymYVafMPssBqiLEyuylH/AQ3Teltq66
-                L96/KVs1bqBTMFEGCSqGSIb3DQEJDjFEMEIwHQYDVR0OBBYEFFLDKogDLA5GDhgY
-                oiRDkMpjeQDNMCEGA1UdEQQaMBiCFmp1bml0LnJwMS5pZHBvcnRlbi5kZXYwCgYI
-                KoZIzj0EAwMDRwAwRAIgVIhOFcOMK0KR9MvK3a76Hgma6susPfXDJ+HfZZe50N8C
-                IF5nyI5eYXYbBBQvdAZFJStX4YgEc+7j/QV3BlIGz2HE
-                -----END NEW CERTIFICATE REQUEST-----""";
-        MvcResult result = mockMvc.perform(post("/v1/certs/access/991825827")
+    void testSignRPAccessCertificate() throws Exception {
+        String certificateRequest = """
+                {
+                  "orgno": "991825827",
+                  "name": "DigdirJunit",
+                  "csr": "-----BEGIN NEW CERTIFICATE REQUEST-----\\nMIIBbTCCARQCAQAwXzELMAkGA1UEBhMCbm8xDTALBgNVBAgTBFNvZ24xEjAQBgNV\\nBAcTCUxlaWthbmdlcjEPMA0GA1UEChMGRGlnZGlyMQ4wDAYDVQQLEwVFVURJVzEM\\nMAoGA1UEAxMDcnAyMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAELKyeEr6OlEgW\\nE0cRI3aCgzRnPu9IjoYCsPuV53/QwBe0pymYVafMPssBqiLEyuylH/AQ3Teltq66\\nL96/KVs1bqBTMFEGCSqGSIb3DQEJDjFEMEIwHQYDVR0OBBYEFFLDKogDLA5GDhgY\\noiRDkMpjeQDNMCEGA1UdEQQaMBiCFmp1bml0LnJwMS5pZHBvcnRlbi5kZXYwCgYI\\nKoZIzj0EAwMDRwAwRAIgVIhOFcOMK0KR9MvK3a76Hgma6susPfXDJ+HfZZe50N8C\\nIF5nyI5eYXYbBBQvdAZFJStX4YgEc+7j/QV3BlIGz2HE\\n-----END NEW CERTIFICATE REQUEST-----"
+                }""";
+        MvcResult result = mockMvc.perform(post("/v1/certs/access")
                         .header("X-API-KEY", "junit-api-key")
-                        .contentType("application/x-pem-file")
-                        .content(csr))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(certificateRequest))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/x-pem-file;charset=UTF-8"))
                 .andReturn();
@@ -131,21 +127,16 @@ public class CertificateAuthorityApiControllerTest {
     @DisplayName("then issuer certificates can be signed")
     @Test
     void testSignIssuerCertificate() throws Exception {
-        String csr = """
-                -----BEGIN NEW CERTIFICATE REQUEST-----
-                MIIBbTCCARQCAQAwXzELMAkGA1UEBhMCbm8xDTALBgNVBAgTBFNvZ24xEjAQBgNV
-                BAcTCUxlaWthbmdlcjEPMA0GA1UEChMGRGlnZGlyMQ4wDAYDVQQLEwVFVURJVzEM
-                MAoGA1UEAxMDcnAyMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAELKyeEr6OlEgW
-                E0cRI3aCgzRnPu9IjoYCsPuV53/QwBe0pymYVafMPssBqiLEyuylH/AQ3Teltq66
-                L96/KVs1bqBTMFEGCSqGSIb3DQEJDjFEMEIwHQYDVR0OBBYEFFLDKogDLA5GDhgY
-                oiRDkMpjeQDNMCEGA1UdEQQaMBiCFmp1bml0LnJwMS5pZHBvcnRlbi5kZXYwCgYI
-                KoZIzj0EAwMDRwAwRAIgVIhOFcOMK0KR9MvK3a76Hgma6susPfXDJ+HfZZe50N8C
-                IF5nyI5eYXYbBBQvdAZFJStX4YgEc+7j/QV3BlIGz2HE
-                -----END NEW CERTIFICATE REQUEST-----""";
-        MvcResult result = mockMvc.perform(post("/v1/certs/issuer/991825827")
+        String certificateRequest = """
+                {
+                  "orgno": "991825827",
+                  "name": "DigdirJunit",
+                  "csr": "-----BEGIN NEW CERTIFICATE REQUEST-----\\nMIIBbTCCARQCAQAwXzELMAkGA1UEBhMCbm8xDTALBgNVBAgTBFNvZ24xEjAQBgNV\\nBAcTCUxlaWthbmdlcjEPMA0GA1UEChMGRGlnZGlyMQ4wDAYDVQQLEwVFVURJVzEM\\nMAoGA1UEAxMDcnAyMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAELKyeEr6OlEgW\\nE0cRI3aCgzRnPu9IjoYCsPuV53/QwBe0pymYVafMPssBqiLEyuylH/AQ3Teltq66\\nL96/KVs1bqBTMFEGCSqGSIb3DQEJDjFEMEIwHQYDVR0OBBYEFFLDKogDLA5GDhgY\\noiRDkMpjeQDNMCEGA1UdEQQaMBiCFmp1bml0LnJwMS5pZHBvcnRlbi5kZXYwCgYI\\nKoZIzj0EAwMDRwAwRAIgVIhOFcOMK0KR9MvK3a76Hgma6susPfXDJ+HfZZe50N8C\\nIF5nyI5eYXYbBBQvdAZFJStX4YgEc+7j/QV3BlIGz2HE\\n-----END NEW CERTIFICATE REQUEST-----"
+                }""";
+        MvcResult result = mockMvc.perform(post("/v1/certs/issuer")
                         .header("X-API-KEY", "junit-api-key")
-                        .contentType("application/x-pem-file")
-                        .content(csr))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(certificateRequest))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/x-pem-file;charset=UTF-8"))
                 .andReturn();

@@ -63,9 +63,9 @@ public class CertificateAuthorityServicePersistenceTest {
                 IF5nyI5eYXYbBBQvdAZFJStX4YgEc+7j/QV3BlIGz2HE
                 -----END NEW CERTIFICATE REQUEST-----""";
         CertificateAuthority intermediate = certificateAuthorities.findIntermediate("access");
-        X509Certificate issuedCertificate1 = certificateAuthorityService.signCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), "991825827");
-        X509Certificate issuedCertificate2 = certificateAuthorityService.signCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), "991825827");
-        X509Certificate issuedCertificate3 = certificateAuthorityService.signCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), "991825827");
+        X509Certificate issuedCertificate1 = certificateAuthorityService.signLeafCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), "foo", "991825827");
+        X509Certificate issuedCertificate2 = certificateAuthorityService.signLeafCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), "bar", "991825827");
+        X509Certificate issuedCertificate3 = certificateAuthorityService.signLeafCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), "baz", "991825827");
 
         // empty crl
         X509CRL emptyCRL = certificateAuthorityService.createCRL(intermediate);
