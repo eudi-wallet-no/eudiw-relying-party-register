@@ -1,6 +1,7 @@
 package no.idporten.eudiw.ca.api;
 
 import no.idporten.eudiw.ca.config.CertificateAuthorities;
+import no.idporten.eudiw.ca.data.CertificateRepository;
 import no.idporten.eudiw.ca.util.CertificateEncodingUtils;
 import org.bouncycastle.cert.X509CRLHolder;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -20,8 +21,7 @@ import java.security.Security;
 import java.security.cert.X509Certificate;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -41,7 +41,15 @@ public class CertificateAuthorityApiControllerTest {
     private CertificateAuthorities certificateAuthorities;
 
     @Autowired
+    private CertificateRepository certificateRepository;
+
+    @Autowired
     private MockMvc mockMvc;
+
+    @BeforeEach
+    void clearDb() {
+        certificateRepository.deleteAll();
+    }
 
     @DisplayName("then the root certificate can be downloaded")
     @Test
@@ -144,6 +152,48 @@ public class CertificateAuthorityApiControllerTest {
         X509CertificateHolder certificateHolder = CertificateEncodingUtils.decodeFromPem(content, X509CertificateHolder.class);
         X509Certificate certificate = CertificateEncodingUtils.toX509Certificate(certificateHolder);
         certificate.verify(certificateAuthorities.findIntermediate("issuer").getPublicKey());
+    }
+
+    @DisplayName("then access certificates are added to the CRL when revoked")
+    @Test
+    void testRevokeAccessCertificate() throws Exception {
+        String certificateRequest = """
+                {
+                  "orgno": "991825827",
+                  "name": "DigdirJunit",
+                  "csr": "-----BEGIN NEW CERTIFICATE REQUEST-----\\nMIIBbTCCARQCAQAwXzELMAkGA1UEBhMCbm8xDTALBgNVBAgTBFNvZ24xEjAQBgNV\\nBAcTCUxlaWthbmdlcjEPMA0GA1UEChMGRGlnZGlyMQ4wDAYDVQQLEwVFVURJVzEM\\nMAoGA1UEAxMDcnAyMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAELKyeEr6OlEgW\\nE0cRI3aCgzRnPu9IjoYCsPuV53/QwBe0pymYVafMPssBqiLEyuylH/AQ3Teltq66\\nL96/KVs1bqBTMFEGCSqGSIb3DQEJDjFEMEIwHQYDVR0OBBYEFFLDKogDLA5GDhgY\\noiRDkMpjeQDNMCEGA1UdEQQaMBiCFmp1bml0LnJwMS5pZHBvcnRlbi5kZXYwCgYI\\nKoZIzj0EAwMDRwAwRAIgVIhOFcOMK0KR9MvK3a76Hgma6susPfXDJ+HfZZe50N8C\\nIF5nyI5eYXYbBBQvdAZFJStX4YgEc+7j/QV3BlIGz2HE\\n-----END NEW CERTIFICATE REQUEST-----"
+                }""";
+        MvcResult result = mockMvc.perform(post("/v1/certs/access")
+                        .header("X-API-KEY", "junit-api-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(certificateRequest))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/x-pem-file;charset=UTF-8"))
+                .andReturn();
+        String content = result.getResponse().getContentAsString();
+        X509CertificateHolder certificateHolder = CertificateEncodingUtils.decodeFromPem(content, X509CertificateHolder.class);
+        X509Certificate issuedCertificate = CertificateEncodingUtils.toX509Certificate(certificateHolder);
+        String certificateRevokeRequest = """
+                {
+                  "serial_number": "%s",
+                  "reason": 9
+                }""".formatted(issuedCertificate.getSerialNumber().toString(10));
+        result = mockMvc.perform(put("/v1/certs/access")
+                        .header("X-API-KEY", "junit-api-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(certificateRevokeRequest))
+                .andExpect(status().isNoContent())
+                .andReturn();
+        result = mockMvc.perform(get("/v1/certs/intermediates/access.crl"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/pkix-crl"))
+                .andReturn();
+        byte[] crlContent = result.getResponse().getContentAsByteArray();
+        X509CRLHolder crl = new X509CRLHolder(crlContent);
+        assertAll(
+                () -> assertEquals(1, crl.getRevokedCertificates().size()),
+                () -> assertNotNull(crl.getRevokedCertificate(issuedCertificate.getSerialNumber()))
+        );
     }
 
 }

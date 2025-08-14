@@ -196,4 +196,37 @@ public class CertificateAuthorityApiController {
         return ResponseEntity.ok(CertificateEncodingUtils.encodeToPem(signedCertificate));
     }
 
+    @Operation(
+            summary = "Revoke certificate",
+            description = "Revoke certificate from intermediate CA",
+            tags = {API_TAG})
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Certificate revoked")
+    })
+    @PutMapping(path = "/v1/certs/{intermediate}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> revokeLeafCertificate(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Certificate revoke request",
+                    content = {
+                            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = RevokeCertificateRequest.class))},
+                    required = true)
+            @Valid @RequestBody RevokeCertificateRequest revokeCertificateRequest,
+            @Parameter(
+                    description = "Intermediate CA name",
+                    examples = {
+                            @ExampleObject(name = "access", value = "access", description = "RP access CA"),
+                            @ExampleObject(name = "pid_provider", value = "pid_provider", description = "PID_Provider CA"),
+                            @ExampleObject(name = "eaa_provider", value = "eaa_provider", description = "QEAA_Provider/Non_Q_EAA_Provider CA"),
+                            @ExampleObject(name = "pub_eaa_provider", value = "pub_eaa_provider", description = "PUB_EAA_Provider CA"),
+                            @ExampleObject(name = "issuer", value = "issuer", description = "Issuer CA")},
+                    required = true)
+            @PathVariable("intermediate") String intermediate) {
+        certificateAuthorityService.revokeCertificate(
+                certificateAuthorities.findIntermediate(intermediate),
+                revokeCertificateRequest.getSerialNumber(),
+                revokeCertificateRequest.getReason());
+        return ResponseEntity.noContent().build();
+    }
+
 }

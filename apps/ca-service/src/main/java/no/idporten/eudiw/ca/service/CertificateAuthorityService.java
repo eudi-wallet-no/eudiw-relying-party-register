@@ -240,18 +240,22 @@ public class CertificateAuthorityService {
         return expires;
     }
 
-    public void revokeCertificate(CertificateAuthority certificateAuthority, X509Certificate certificate) {
-        Certificate issuedCertificate = certificateRepository.findByIssuerCaAndSerialNo(certificateAuthority.getId(), certificate.getSerialNumber());
+
+    public void revokeCertificate(CertificateAuthority certificateAuthority, X509Certificate certificate, CRLReason reason) {
+        revokeCertificate(certificateAuthority, SerialNumberUtils.convertToString(certificate.getSerialNumber()), reason.getValue().intValue());
+    }
+
+    public void revokeCertificate(CertificateAuthority certificateAuthority, String serialNumber, int reason) {
+        Certificate issuedCertificate = certificateRepository.findByIssuerCaAndSerialNo(certificateAuthority.getId(), serialNumber);
         if (issuedCertificate == null) {
             throw new CertificateAuthorityException("invalid_request", "Cannot revoke unknown certificate", HttpStatus.BAD_REQUEST);
         }
         if (issuedCertificate.isRevoked()) {
             throw new CertificateAuthorityException("invalid_request", "Cannot revoke revoked certificate", HttpStatus.BAD_REQUEST);
         }
-        issuedCertificate.revoke(CRLReason.keyCompromise);
+        issuedCertificate.revoke(reason);
         certificateRepository.saveAndFlush(issuedCertificate);
     }
-
 
     /**
      * Create and sign empty CRL for a certificate authority.
@@ -276,7 +280,6 @@ public class CertificateAuthorityService {
             return (X509CRL) cf.generateCRL(is);
         }
     }
-
 
     /**
      * Creates a CSR for a certificate authority.

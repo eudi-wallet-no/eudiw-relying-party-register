@@ -72,7 +72,7 @@ public class CertificateAuthorityServicePersistenceTest {
         assertTrue(CollectionUtils.isEmpty(emptyCRL.getRevokedCertificates()));
 
         // revoke 2 certs, expire c2
-        certificateAuthorityService.revokeCertificate(intermediate, issuedCertificate1);
+        certificateAuthorityService.revokeCertificate(intermediate, issuedCertificate1, CRLReason.lookup(CRLReason.keyCompromise));
         Certificate c2 = certificateRepository.findByIssuerCaAndSerialNo(intermediate.getId(), issuedCertificate2.getSerialNumber());
         c2.revoke(CRLReason.keyCompromise);
         c2.setValidUntilMs(c2.getValidFromMs());
