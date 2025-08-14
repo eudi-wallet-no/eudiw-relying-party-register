@@ -3,7 +3,6 @@ package no.eudiw.rp.register.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import no.eudiw.rp.register.api.resource.*;
-import no.eudiw.rp.register.data.entitlement.Entitlement;
 import no.eudiw.rp.register.data.entity.RelyingParty;
 import no.eudiw.rp.register.data.repository.RelyingPartyRepository;
 import no.eudiw.rp.register.data.service.Converter;
@@ -225,8 +224,8 @@ public class RelyingPartiesControllerTest {
             @Test
             void testEditRelyingPartyMoreEntitlements() throws Exception {
                 List<RelyingPartyEntitlementResource> initialEntitlements =
-                    List.of(Entitlement.SERVICE_PROVIDER.toResource(),
-                            Entitlement.NON_Q_EAA_PROVIDER.toResource());
+                    List.of(new RelyingPartyEntitlementResource("https://uri.etsi.org/19475/Entitlement/Service_Provider"),
+                            new RelyingPartyEntitlementResource("https://uri.etsi.org/19475/Entitlement/Non_Q_EAA_Provider"));
 
                 CreateRelyingPartyResource resource =
                     generateCreateRelyingPartyResource()
@@ -247,7 +246,7 @@ public class RelyingPartiesControllerTest {
                 RelyingPartyResource relyingPartyResource = ApiTestUtils.toRelyingPartyResource(createResult);
 
                 List<RelyingPartyEntitlementResource> entitlements = new ArrayList<>(resource.relyingPartyEntitlements());
-                entitlements.add(Entitlement.PID_PROVIDER.toResource());
+                entitlements.add(new RelyingPartyEntitlementResource("https://uri.etsi.org/19475/Entitlement/PID_Provider"));
                 EditRelyingPartyResource editResource =
                     generateEditRelyingPartyResource()
                         .withRelyingPartyEntitlements(entitlements)

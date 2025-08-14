@@ -3,8 +3,6 @@ package no.eudiw.rp.register.data.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import no.eudiw.rp.register.data.entitlement.Entitlement;
-import no.eudiw.rp.register.data.entitlement.EntitlementAttributeConverter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -15,8 +13,7 @@ import org.hibernate.type.SqlTypes;
 public class RelyingPartyEntitlement extends BaseEntity {
 
     @Column(name = "entitlement", nullable = false)
-    @Convert(converter = EntitlementAttributeConverter.class)
-    private Entitlement entitlement;
+    private String entitlement;
 
     @ManyToOne
     @JoinColumn(name = "relying_party_id",
@@ -25,12 +22,14 @@ public class RelyingPartyEntitlement extends BaseEntity {
     @JdbcTypeCode(SqlTypes.UUID)
     private RelyingParty relyingParty;
 
-    public RelyingPartyEntitlement(Entitlement entitlement) {
+    public RelyingPartyEntitlement(String entitlement) {
         this(entitlement, null);
     }
 
-    public RelyingPartyEntitlement(Entitlement entitlement,
-                                   RelyingParty relyingParty) {
+    public RelyingPartyEntitlement(
+        String entitlement,
+        RelyingParty relyingParty
+    ) {
         this.id = null;
         this.entitlement = entitlement;
         this.relyingParty = relyingParty;
