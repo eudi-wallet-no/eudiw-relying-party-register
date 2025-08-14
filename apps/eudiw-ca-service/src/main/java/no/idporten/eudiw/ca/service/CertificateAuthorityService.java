@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.ca.config.CertificateAuthority;
 import no.idporten.eudiw.ca.data.Certificate;
 import no.idporten.eudiw.ca.data.CertificateRepository;
+import no.idporten.eudiw.ca.data.SerialNumberUtils;
 import no.idporten.eudiw.ca.exception.CertificateAuthorityException;
 import no.idporten.eudiw.ca.util.CertificateEncodingUtils;
 import org.bouncycastle.asn1.ASN1Object;
@@ -41,11 +42,12 @@ import java.io.InputStream;
 import java.math.BigInteger;
 import java.net.URI;
 import java.security.PublicKey;
-import java.security.SecureRandom;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -193,11 +195,7 @@ public class CertificateAuthorityService {
     }
 
     protected BigInteger generateSerialNumber() {
-        // Using current time in milliseconds as a base
-        long timeMillis = System.currentTimeMillis();
-        // Adding a random component to enhance uniqueness
-        BigInteger randomPart = new BigInteger(32, new SecureRandom()).abs(); // 32-bit random number
-        return BigInteger.valueOf(timeMillis).add(randomPart);
+        return SerialNumberUtils.generateSerialNumber();
     }
 
     protected X500Name createCASubject(X500Name csrSubjectName, String orgno) {
@@ -265,7 +263,7 @@ public class CertificateAuthorityService {
                 .setNextUpdate(new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000));
         List<Certificate> revokedCertificates = certificateRepository.findRevokedCertificates(certificateAuthority.getId());
         for (Certificate revokedCertificate : revokedCertificates) {
-            crlBuilder.addCRLEntry(revokedCertificate.getSerialNo(), new Date(revokedCertificate.getRevokedAtMs()), revokedCertificate.getRevocationReason());
+            crlBuilder.addCRLEntry(SerialNumberUtils.convertFromString(revokedCertificate.getSerialNo()), new Date(revokedCertificate.getRevokedAtMs()), revokedCertificate.getRevocationReason());
         }
         AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find(SIGNATURE_ALGORITHM_SHA_512_WITH_ECDSA);
         AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);

@@ -10,7 +10,10 @@ import java.util.List;
 @Repository
 public interface CertificateRepository extends JpaRepository<Certificate, CertificateId> {
 
-    Certificate findByIssuerCaAndSerialNo(String issuerCa, BigInteger serialNo);
+    Certificate findByIssuerCaAndSerialNo(String issuerCa, String serialNo);
+    default Certificate findByIssuerCaAndSerialNo(String issuerCa, BigInteger serialNo) {
+        return findByIssuerCaAndSerialNo(issuerCa, SerialNumberUtils.convertToString(serialNo));
+    }
 
     List<Certificate> findAllByIssuerCaAndRevocationReasonGreaterThanAndValidUntilMsGreaterThan(String issuerCa, int revocationReason, long validUntilMs);
 
