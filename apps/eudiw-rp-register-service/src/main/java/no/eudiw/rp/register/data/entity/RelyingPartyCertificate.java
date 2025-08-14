@@ -9,7 +9,6 @@ import no.eudiw.rp.register.data.certificates.X509CertificateConverter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import java.math.BigInteger;
 import java.security.cert.X509Certificate;
 
 @Getter
@@ -24,12 +23,8 @@ public class RelyingPartyCertificate extends BaseEntity {
     @Column(name = "subject_dn", nullable = false)
     private String subjectDn;
 
-    @Column(
-        name = "serial_no",
-        columnDefinition = "BIGINT UNSIGNED",
-        nullable = false)
-    @JdbcTypeCode(SqlTypes.BIGINT)
-    private BigInteger serialNo;
+    @Column(name = "serial_no", nullable = false)
+    private String serialNo;
 
     @ToString.Exclude
     @ManyToOne(optional = false)
@@ -56,7 +51,7 @@ public class RelyingPartyCertificate extends BaseEntity {
 
         this.certificate = certificate;
         this.subjectDn = certificate.getSubjectX500Principal().getName();
-        this.serialNo = certificate.getSerialNumber();
+        this.serialNo = certificate.getSerialNumber().toString(10);
         this.validFromMs = certificate.getNotBefore().toInstant().toEpochMilli();
         this.validUntilMs = certificate.getNotAfter().toInstant().toEpochMilli();
 

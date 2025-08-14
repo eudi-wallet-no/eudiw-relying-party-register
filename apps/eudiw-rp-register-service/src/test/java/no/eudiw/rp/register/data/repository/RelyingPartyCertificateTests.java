@@ -12,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.math.BigInteger;
 import java.security.cert.X509Certificate;
 import java.util.*;
 
@@ -122,11 +123,10 @@ public class RelyingPartyCertificateTests {
                 X509Certificate actualCert = certEntity.getCertificate();
 
                 assertAll(
-                    () -> assertEquals(actualCert.getSerialNumber(), certEntity.getSerialNo()),
-                    () -> assertEquals(actualCert.getSubjectX500Principal().getName(), certEntity.getSubjectDn()),
-                    () -> assertEquals(actualCert.getSerialNumber(), certEntity.getSerialNo()),
-                    () -> assertEquals(actualCert.getNotBefore().toInstant().toEpochMilli(), certEntity.getValidFromMs()),
-                    () -> assertEquals(actualCert.getNotAfter().toInstant().toEpochMilli(), certEntity.getValidUntilMs())
+                        () -> assertEquals(actualCert.getSerialNumber(), new BigInteger(certEntity.getSerialNo())),
+                        () -> assertEquals(actualCert.getSubjectX500Principal().getName(), certEntity.getSubjectDn()),
+                        () -> assertEquals(actualCert.getNotBefore().toInstant().toEpochMilli(), certEntity.getValidFromMs()),
+                        () -> assertEquals(actualCert.getNotAfter().toInstant().toEpochMilli(), certEntity.getValidUntilMs())
                 );
             }
 
