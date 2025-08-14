@@ -4,10 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
-import java.math.BigInteger;
 import java.security.cert.X509Certificate;
 import java.time.Clock;
 
@@ -20,12 +17,8 @@ import java.time.Clock;
 public class Certificate {
 
     @Id
-    @Column(
-            name = "serial_no",
-            columnDefinition = "BIGINT UNSIGNED",
-            nullable = false)
-    @JdbcTypeCode(SqlTypes.BIGINT)
-    private BigInteger serialNo;
+    @Column(name = "serial_no", nullable = false)
+    private String serialNo;
 
     @Id
     @Column(name = "issuer_ca", nullable = false)
@@ -49,7 +42,7 @@ public class Certificate {
 
     public Certificate(X509Certificate certificate, String issuerCa) {
         this.certificate = certificate;
-        this.serialNo = certificate.getSerialNumber();
+        this.serialNo = SerialNumberUtils.convertToString(certificate.getSerialNumber());
         this.validFromMs = certificate.getNotBefore().toInstant().toEpochMilli();
         this.validUntilMs = certificate.getNotAfter().toInstant().toEpochMilli();
         this.issuerCa = issuerCa;
