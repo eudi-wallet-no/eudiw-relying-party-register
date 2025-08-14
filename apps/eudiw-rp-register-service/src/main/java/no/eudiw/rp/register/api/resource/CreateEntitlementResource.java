@@ -1,0 +1,17 @@
+package no.eudiw.rp.register.api.resource;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotBlank;
+import lombok.With;
+import no.eudiw.rp.register.validation.SaneStringConstraint;
+
+@With
+@JsonInclude(JsonInclude.Include.ALWAYS)
+public record CreateEntitlementResource(
+
+    @SaneStringConstraint
+    @NotBlank(message = "blank_name")
+    @JsonProperty(value = "entitlement", required = true)
+    String entitlement
+) { }

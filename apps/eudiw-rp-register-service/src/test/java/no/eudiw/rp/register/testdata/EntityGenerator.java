@@ -1,11 +1,13 @@
 package no.eudiw.rp.register.testdata;
 
+import no.eudiw.rp.register.api.resource.RelyingPartyEntitlementResource;
 import no.eudiw.rp.register.data.entity.RelyingParty;
 import no.eudiw.rp.register.data.entity.RelyingPartyCertificate;
 import no.eudiw.rp.register.data.entity.RelyingPartyEaa;
 import no.eudiw.rp.register.data.entity.RelyingPartyEntitlement;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class EntityGenerator extends TestDataGenerator {
@@ -19,7 +21,7 @@ public class EntityGenerator extends TestDataGenerator {
             generateName(),
             generateValidOrgno(),
             generatePublicSector(),
-            sampleEntitlements().stream().map(RelyingPartyEntitlement::new).toList(),
+            List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/Service_Provider"), new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/QEAA_Provider")),
             generateListBy(EntityGenerator::generateEaa),
             // NOTE: certificates are very expensive to generate, so no
             // certificates by default.

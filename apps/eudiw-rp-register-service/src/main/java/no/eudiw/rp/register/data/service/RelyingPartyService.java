@@ -3,6 +3,7 @@ package no.eudiw.rp.register.data.service;
 import lombok.RequiredArgsConstructor;
 import no.eudiw.rp.register.api.resource.*;
 import no.eudiw.rp.register.data.entity.RelyingParty;
+import no.eudiw.rp.register.data.repository.EntitlementRepository;
 import no.eudiw.rp.register.data.repository.RelyingPartyRepository;
 import no.eudiw.rp.register.data.service.exception.AlreadyExistsException;
 import no.eudiw.rp.register.data.service.exception.BadRequestException;
@@ -19,6 +20,7 @@ import java.util.function.Predicate;
 public class RelyingPartyService {
 
     private final RelyingPartyRepository relyingPartyRepository;
+    private final EntitlementRepository entitlementRepository;
 
     @Transactional
     public RelyingPartyResource createRelyingParty(CreateRelyingPartyResource request) {
@@ -31,8 +33,18 @@ public class RelyingPartyService {
             throw new BadRequestException("Entitlements and EAAs should be empty if none exists");
         }
 
+        entitlementCheck(request.relyingPartyEntitlements());
+
         RelyingParty relyingParty = Converter.toEntity(request);
         return Converter.toResource(relyingPartyRepository.saveAndFlush(relyingParty));
+    }
+
+    private void entitlementCheck(List<RelyingPartyEntitlementResource> entitlements) {
+        for (RelyingPartyEntitlementResource entitlement : entitlements) {
+            if (!entitlementRepository.existsByEntitlementAndActive(entitlement.entitlement(), true)) {
+                throw new BadRequestException(entitlement.entitlement() + " is not a valid active entitlement");
+            }
+        }
     }
 
     @Transactional(readOnly = true)
@@ -101,6 +113,8 @@ public class RelyingPartyService {
         if (request.relyingPartyEntitlements() == null || request.relyingPartyEaas() == null) {
             throw new BadRequestException("Entitlements and EAAs should be emtpy if none exists");
         }
+
+        entitlementCheck(request.relyingPartyEntitlements());
 
         RelyingParty relyingParty = relyingPartyRepository.findById(id).orElse(null);
         if (relyingParty == null) {

@@ -2,10 +2,7 @@ package no.eudiw.rp.register.data.service;
 
 import no.eudiw.rp.register.api.resource.*;
 import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCertificateResource;
-import no.eudiw.rp.register.data.entity.RelyingParty;
-import no.eudiw.rp.register.data.entity.RelyingPartyCertificate;
-import no.eudiw.rp.register.data.entity.RelyingPartyEaa;
-import no.eudiw.rp.register.data.entity.RelyingPartyEntitlement;
+import no.eudiw.rp.register.data.entity.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +42,16 @@ public class Converter {
         return new RelyingPartyEntitlementResource(entitlement.getEntitlement());
     }
 
+    public static EntitlementResource toResource(Entitlement entitlement) {
+        return new EntitlementResource(entitlement.getId(), entitlement.getEntitlement(), entitlement.isActive());
+    }
+
+    public static EntitlementsResource toEntitlementsResource(List<Entitlement> entitlements) {
+        return new EntitlementsResource(
+            entitlements.stream().map(Converter::toResource).toList()
+        );
+    }
+
     public static RelyingParty toEntity(CreateRelyingPartyResource resource) {
         return new RelyingParty(
             resource.name(),
@@ -53,6 +60,13 @@ public class Converter {
             resource.relyingPartyEntitlements().stream().map(Converter::toEntity).toList(),
             resource.relyingPartyEaas().stream().map(Converter::toEntity).toList(),
             new ArrayList<>()
+        );
+    }
+
+    public static Entitlement toEntity(String entitlement) {
+        return new Entitlement(
+            entitlement,
+            true
         );
     }
 
