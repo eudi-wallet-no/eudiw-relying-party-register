@@ -4,7 +4,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
-import no.idporten.eudiw.rp.admin.service.exception.NotFoundException;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEditForm;
 import no.idporten.eudiw.rp.admin.web.resource.EditRelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
@@ -30,6 +29,11 @@ public class DetailedViewController {
 
     private final RelyingPartiesService relyingPartiesService;
     private final RelyingPartiesView relyingPartiesView;
+
+    @GetMapping("/details")
+    public ModelAndView detailsWithoutIdRedirectToSearch() {
+        return new ModelAndView("redirect:/search");
+    }
 
     @GetMapping("/details/{id}")
     public ModelAndView detailsGet(
@@ -79,11 +83,5 @@ public class DetailedViewController {
             mav.setViewName("redirect:/details/" + id);
         }
         return mav;
-    }
-
-    @ExceptionHandler(NotFoundException.class)
-    public ModelAndView handleNotFoundException(NotFoundException e) {
-        log.info("Attempt to get details for unknown/invalid ID/orgno", e);
-        return new ModelAndView("id_not_found");
     }
 }

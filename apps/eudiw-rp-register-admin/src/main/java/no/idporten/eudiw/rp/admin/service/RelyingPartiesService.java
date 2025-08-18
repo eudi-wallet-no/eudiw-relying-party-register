@@ -1,11 +1,15 @@
 package no.idporten.eudiw.rp.admin.service;
 
 import lombok.RequiredArgsConstructor;
+import no.idporten.eudiw.rp.admin.exception.AdminServiceException;
+import no.idporten.eudiw.rp.admin.service.exception.NotFoundException;
+import no.idporten.eudiw.rp.admin.service.exception.RelyingPartyNotFoundException;
 import no.idporten.eudiw.rp.admin.web.resource.*;
 import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyAccessCertificateResource;
 import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyAccessCertificatesResource;
 import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyCsrResource;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.RestClient;
 
 import java.util.UUID;
@@ -50,11 +54,15 @@ public class RelyingPartiesService {
     }
 
     public RelyingPartyResource get(UUID id) {
-        return restClient.get()
-                .uri("/{id}", id)
-                .retrieve()
-                .toEntity(RelyingPartyResource.class)
-                .getBody();
+        try {
+            return restClient.get()
+                    .uri("/{id}", id)
+                    .retrieve()
+                    .toEntity(RelyingPartyResource.class)
+                    .getBody();
+        } catch (NotFoundException e) {
+            throw new RelyingPartyNotFoundException(e.getErrorDescription(), id.toString());
+        }
     }
 
     public void delete(UUID id) {
@@ -91,5 +99,10 @@ public class RelyingPartiesService {
                 .retrieve()
                 .toEntity(RelyingPartyAccessCertificateResource.class)
                 .getBody();
+    }
+
+    @ExceptionHandler(Exception.class)
+    public void wrapUnexpectedRestClientException(Exception e) {
+        throw new AdminServiceException("Register service REST client exception", e);
     }
 }

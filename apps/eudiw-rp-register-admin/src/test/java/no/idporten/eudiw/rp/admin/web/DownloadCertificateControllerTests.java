@@ -21,6 +21,8 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 @SpringBootTest
 @ActiveProfiles("local-test")
 @DisplayName("When using the certificate download controller")
@@ -62,18 +64,16 @@ public class DownloadCertificateControllerTests {
         }
 
         @Test
-        @DisplayName("then 404 and empty content body returned when certificate not exists")
-        public void testCorrectHandlingWhenCertificateNotExists() throws Exception {
+        @DisplayName("then 404 view shown when certificate not exists")
+        public void test404PageShownWhenCertificateNotExists() throws Exception {
             when(mockRpService.getCertificate(any(), any()))
                 .thenThrow(NotFoundException.class);
 
             UUID rpId = UUID.randomUUID();
             UUID certId = UUID.randomUUID();
-            byte[] emptyContent = {};
+
             mockMvc.perform(get("/get-certificate/%s/%s".formatted(rpId, certId)))
-                   .andExpectAll(
-                       status().isNotFound(),
-                       content().bytes(emptyContent));
+                   .andExpect(view().name("error/404"));
         }
     }
 }
