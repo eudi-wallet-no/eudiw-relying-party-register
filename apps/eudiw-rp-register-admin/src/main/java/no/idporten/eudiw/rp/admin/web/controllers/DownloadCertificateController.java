@@ -28,27 +28,18 @@ public class DownloadCertificateController {
     public ResponseEntity<byte[]> downloadCertificate(
         @PathVariable("rp-id") UUID relyingPartyId,
         @PathVariable("cert-id") UUID certificateId) {
-        try {
-            X509Certificate certificate =
-                relyingPartiesService.getCertificate(relyingPartyId, certificateId)
-                                     .certificate();
-            byte[] content = X509CertificateConverter.toPem(certificate).getBytes();
-            String filename = "%s.pem".formatted(certificate.getSerialNumber());
+        X509Certificate certificate =
+            relyingPartiesService.getCertificate(relyingPartyId, certificateId)
+                                 .certificate();
+        byte[] content = X509CertificateConverter.toPem(certificate).getBytes();
+        String filename = "%s.pem".formatted(certificate.getSerialNumber());
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.set(HttpHeaders.CONTENT_TYPE, APPLICATION_X_PEM_FILE_VALUE);
-            headers.setContentDisposition(
-                ContentDisposition.attachment()
-                                  .filename(filename)
-                                  .build());
-            return ResponseEntity.ok().headers(headers).body(content);
-
-        } catch (NotFoundException e) {
-            log.warn("Attempt to download unknown certificate (RP id={}, cert id={})",
-                     relyingPartyId,
-                     certificateId,
-                     e);
-            return ResponseEntity.notFound().build();
-        }
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(HttpHeaders.CONTENT_TYPE, APPLICATION_X_PEM_FILE_VALUE);
+        headers.setContentDisposition(
+            ContentDisposition.attachment()
+                              .filename(filename)
+                              .build());
+        return ResponseEntity.ok().headers(headers).body(content);
     }
 }
