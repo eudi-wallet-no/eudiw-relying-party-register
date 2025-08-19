@@ -101,8 +101,8 @@
             <tr th:each="rp : ${resultsPage}">
                 <td><a th:href="@{|/details/${rp.id}|}" style="cursor:pointer;"><div th:text="${rp.orgno}"></div></a> </td>
                 <td th:text="${rp.name}"></td>
-                <td th:text="${#dates.format(rp.createdMs, 'dd-MM-yyyy HH:mm:ss')}"></td>
-                <td th:text="${#dates.format(rp.lastUpdatedMs, 'dd-MM-yyyy HH:mm:ss')}"></td>
+                <td th:text="${@timestampFormatter.formatEpochMillis(rp.createdMs)}"></td>
+                <td th:text="${@timestampFormatter.formatEpochMillis(rp.lastUpdatedMs)}"></td>
             </tr>
             </tbody>
         </table>
