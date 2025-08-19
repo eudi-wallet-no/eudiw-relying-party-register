@@ -53,11 +53,11 @@
     </tr>
     <tr>
         <th>Gjyldig fra</th>
-        <td th:text="${#dates.format(cert.validFromMs, 'dd-MM-yyyy HH:mm:ss z')}"></td>
+        <td th:text="${@timestampFormatter.formatEpochMillis(cert.validFromMs)}"></td>
     </tr>
     <tr>
         <th>Gjyldig til</th>
-        <td th:text="${#dates.format(cert.validUntilMs, 'dd-MM-yyyy HH:mm:ss z')}"></td>
+        <td th:text="${@timestampFormatter.formatEpochMillis(cert.validUntilMs)}"></td>
     </tr>
     </tbody>
 </table>

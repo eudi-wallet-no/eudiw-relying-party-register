@@ -25,8 +25,8 @@
                         <td th:text="${cert.serialNo.toString(16).replaceAll('(?<=..)(..)', ':$1')}"></td>
                         <td th:text="${cert.subjectDn}" style="word-break: break-word;"></td>
                         <td th:text="${cert.issuerDn}" style="word-break: break-word;"></td>
-                        <td th:text="${#dates.format(cert.validFromMs, 'dd-MM-yyyy HH:mm:ss z')}"></td>
-                        <td th:text="${#dates.format(cert.validUntilMs, 'dd-MM-yyyy HH:mm:ss z')}"></td>
+                        <td th:text="${@timestampFormatter.formatEpochMillis(cert.validFromMs)}"></td>
+                        <td th:text="${@timestampFormatter.formatEpochMillis(cert.validUntilMs)}"></td>
                         <td>
                             <a th:href="@{|/get-certificate/${rp.id}/${cert.id}|}"
                                class="ds-button"
@@ -67,11 +67,11 @@
             </tr>
             <tr>
                 <th>Opprettet</th>
-                <td th:text="${#dates.format(rp.createdMs, 'dd-MM-yyyy HH:mm:ss z')}"></td>
+                <td th:text="${@timestampFormatter.formatEpochMillis(rp.createdMs)}"></td>
             </tr>
             <tr>
                 <th>Sidst oppdatert</th>
-                <td th:text="${#dates.format(rp.lastUpdatedMs, 'dd-MM-yyyy HH:mm:ss z')}"></td>
+                <td th:text="${@timestampFormatter.formatEpochMillis(rp.lastUpdatedMs)}"></td>
             </tr>
             <tr>
                 <th>Aktiv</th>
