@@ -8,6 +8,8 @@ import no.idporten.eudiw.rp.admin.service.exception.AlreadyExistsException;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyCreateForm;
 import no.idporten.eudiw.rp.admin.web.resource.CreateRelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
+import no.idporten.logging.audit.Audit;
+import no.idporten.logging.audit.AuditIgnore;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,6 +27,8 @@ public class CreateController {
     public static final String createFormAttrId = "createFormAttr";
     public static final String errorResponseMsgAttrId = "errorResponseMsgAttr";
 
+    private static final String LOMMEBOK_10_CREATE_RP_REQUEST = "LOMMEBOK-10-CREATE-RP-REQUEST";
+
     private final RelyingPartiesService relyingPartiesService;
 
     @GetMapping("/create")
@@ -33,11 +37,12 @@ public class CreateController {
             createFormAttrId, new RelyingPartyCreateForm()));
     }
 
+    @Audit(auditId = LOMMEBOK_10_CREATE_RP_REQUEST, includeResult = false, includeParameters = false)
     @PostMapping("/create")
     public ModelAndView createPost(
         @ModelAttribute(createFormAttrId) @Valid RelyingPartyCreateForm createForm,
-        BindingResult createFormBindingResult) {
-
+        @AuditIgnore BindingResult createFormBindingResult
+    ) {
         ModelAndView mav = new ModelAndView("create_form_view",
             Map.of(createFormAttrId, createForm));
 
