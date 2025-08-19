@@ -9,6 +9,8 @@ import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.form.CsrForm;
 import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyAccessCertificateResource;
 import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyCsrResource;
+import no.idporten.logging.audit.Audit;
+import no.idporten.logging.audit.AuditIgnore;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +29,7 @@ public class CsrController {
     public static final String newCertificateAttrId = "newCertificateAttr";
 
     public static final String errorResponseMsgAttrId = "errorResponseMsgAttr";
+    private static final String LOMMEBOK_11_REGISTER_CSR_REQUEST = "LOMMEBOK-11-REGISTER-CSR-REQUEST";
 
     private final RelyingPartiesService relyingPartiesService;
 
@@ -38,11 +41,13 @@ public class CsrController {
             detailedViewDataAttrId, relyingPartyResource));
     }
 
+    @Audit(auditId = LOMMEBOK_11_REGISTER_CSR_REQUEST, includeResult = false)
     @PostMapping("/csr/{id}")
     public ModelAndView registerCsrPost(
         @PathVariable("id") @Valid UUID id,
         @ModelAttribute(csrFormAttrId) @Valid CsrForm csrForm,
-        BindingResult csrFormBindingResult) {
+        @AuditIgnore BindingResult csrFormBindingResult
+    ) {
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
         ModelAndView mav =
             new ModelAndView("csr_form_view", Map.of(detailedViewDataAttrId, relyingPartyResource));

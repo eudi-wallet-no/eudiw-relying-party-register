@@ -9,6 +9,8 @@ import no.idporten.eudiw.rp.admin.web.resource.EditRelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartiesView;
 import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary;
+import no.idporten.logging.audit.Audit;
+import no.idporten.logging.audit.AuditIgnore;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +28,7 @@ public class DetailedViewController {
     public static final String detailedViewDataAttrId = SearchController.detailedViewDataAttrId;
     public static final String certificateSummariesAttrId = "certificateSummariesAttr";
     public static final String editFormAttrId = "editFormAttr";
+    private static final String LOMMEBOK_12_EDIT_RP_REQUEST = "LOMMEBOK-12-EDIT-RP-REQUEST";
 
     private final RelyingPartiesService relyingPartiesService;
     private final RelyingPartiesView relyingPartiesView;
@@ -61,11 +64,12 @@ public class DetailedViewController {
             detailedViewDataAttrId, relyingPartyResource));
     }
 
+    @Audit(auditId = LOMMEBOK_12_EDIT_RP_REQUEST, includeResult = false, includeParameters = false)
     @PostMapping("/details/{id}/edit")
     public ModelAndView editPost(
         @PathVariable("id") UUID id,
         @ModelAttribute(editFormAttrId) @Valid RelyingPartyEditForm editForm,
-        BindingResult editFormBindingResult) {
+        @AuditIgnore BindingResult editFormBindingResult) {
 
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
         ModelAndView mav =
