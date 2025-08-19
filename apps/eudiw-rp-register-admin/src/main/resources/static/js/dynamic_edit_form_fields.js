@@ -69,3 +69,12 @@ function addEaa(namespace, intent) {
         eaa_container.appendChild(eaaItem);
     }
 }
+
+function eaaInputFieldsOnEnter(e) {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        addEaaOnclick();
+    }
+}
+eaa_intent_input_field.addEventListener("keydown", eaaInputFieldsOnEnter);
+eaa_namespace_input_field.addEventListener("keydown", eaaInputFieldsOnEnter);
