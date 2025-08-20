@@ -50,17 +50,18 @@ public class SearchControllerTests {
                                                  .withName(searchResource.searchTerm())));
                 });
         }
-        @Test
-        public void testBlankSearchBarGivesNoInteraction() throws Exception {
-            String emptySearchTerm = "";
-            mockMvc.perform(post("/search")
-                                .formField("searchTerm", emptySearchTerm)
-                                .formField("includeInactive", "true"))
-                   .andExpect(view().name("search_view"))
-                   .andExpect(model().attributeHasNoErrors(SearchController.searchFormAttrId));
 
-            verifyNoInteractions(mockRpService);
+        @Test
+        public void testServiceCalledAndWithEmptyResource() throws Exception {
+            mockMvc.perform(post("/search")
+                    .formField("searchTerm", SearchForm.empty().searchTerm())
+                    .formField("includeInactive", Boolean.toString(SearchForm.empty().includeInactive())))
+                .andExpect(view().name("search_view"))
+                .andExpect(model().attribute(SearchController.searchFormAttrId, SearchForm.empty()));
+
+            verify(mockRpService).search(eq(SearchForm.empty().toResource()));
         }
+        
         @Test
         public void testServiceCalledAndWithCorrectSearchResource() throws Exception {
             SearchForm testSearchForm = ResourceGenerator.generateSearchForm();

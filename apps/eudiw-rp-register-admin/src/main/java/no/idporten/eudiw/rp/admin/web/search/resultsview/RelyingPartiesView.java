@@ -36,8 +36,8 @@ public class RelyingPartiesView {
     @Setter
     private SearchForm lastSearchForm = SearchForm.empty();
 
-    private static final int DEFAULT_PAGE_SIZE = 5;
-    private static final int PAGINATION_WINDOW_SIZE = 5;
+    private static final int DEFAULT_PAGE_SIZE = 25;
+    private static final int NUMBER_OF_SWITCH_PAGE_BUTTONS = 5;
 
     private static final
     Collector<RelyingPartyResource, ?, LinkedHashMap<UUID, RelyingPartyResource>>
@@ -112,7 +112,7 @@ public class RelyingPartiesView {
                    .toList();
     }
     public int[] getPaginationWindow() {
-        int windowSize = Math.min(PAGINATION_WINDOW_SIZE, numPages);
+        int windowSize = Math.min(NUMBER_OF_SWITCH_PAGE_BUTTONS, numPages);
         int windowRadius = windowSize / 2;
         int lo = currentPageIdx + windowRadius < numPages
                      ? Math.max(0, currentPageIdx - windowRadius)
