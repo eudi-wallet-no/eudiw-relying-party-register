@@ -12,7 +12,8 @@ management:
 eudiw-rp-register-lookup-web:
   service:
     rest-client-defaults:
-      register-service-api-base-uri: ${API_BASE_URI}
+      register-service-api-base-uri: http://rp-register-service:9200/v1/rp
+      api-key-value: xxx
 
 spring:
   application:

@@ -1,7 +1,7 @@
-name: digital-lommebok-rp-register
+name: digital-lommebok-rp
 networks:
-  eudiw:
-    name: eudiw
+  digital-lommebok:
+    name: digital-lommebok
 
 services:
   rp-register-lookup-web:
@@ -14,14 +14,12 @@ services:
     environment:
       spring_profiles_active: docker
       _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0"
-    env_file:
-        - .env
     ports:
       - "9210:9210"
       - "9211:9211"
       - "9215:9215"
     networks:
-      - eudiw
+      - digital-lommebok
     entrypoint: "/bin/bash -c"
     command:
       - |
