@@ -28,6 +28,11 @@ public class SearchController {
         @RequestParam(value = "page") Optional<Integer> oneIndexedPageNum,
         @RequestParam(value = "sort") Optional<RelyingPartiesViewOrdering> ordering) {
 
+        if (!relyingPartiesView.isInitialized()) {
+            relyingPartiesView.doSearch(SearchForm.empty().toResource());
+            relyingPartiesView.setLastSearchForm(SearchForm.empty());
+        }
+
         relyingPartiesView.setCurrentPageIdx(oneIndexedPageNum.orElse(1) - 1);
         ordering.ifPresent(relyingPartiesView::setOrdering);
 
@@ -40,7 +45,7 @@ public class SearchController {
         @ModelAttribute(searchFormAttrId) @Valid SearchForm searchForm,
         BindingResult bindingResult) {
 
-        if (!bindingResult.hasErrors() && !searchForm.searchTerm().isEmpty()) {
+        if (!bindingResult.hasErrors()) {
             relyingPartiesView.doSearch(searchForm.toResource());
             relyingPartiesView.setLastSearchForm(searchForm);
         }
