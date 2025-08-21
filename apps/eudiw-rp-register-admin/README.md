@@ -24,7 +24,7 @@ The `dev` and `docker` profiles runs the application with similar configuration.
 
 The local hosts file should include:
 ```
-127.0.0.1 eudiw-rp-register-admin
+127.0.0.1 rp-register-admin
 ```
 
 The application can be started with Maven:
@@ -37,4 +37,4 @@ The application can be started with Docker compose:
 docker-compose up --build
 ```
 
-The application will run on http://eudiw-rp-register-admin:9250 .
+The application will run on http://rp-register-admin:9250 .
