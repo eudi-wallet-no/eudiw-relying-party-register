@@ -15,7 +15,7 @@ import java.net.URI;
 public class RelyingPartiesServiceConfig {
 
     private final RelyingPartiesServiceProperties rpServiceProperties;
-    private static final String registerServiceApiRpEndpoint = "/v1/rp";
+    private static final String registerServiceApiEndpoint = "/v1";
 
     @Bean
     public RestClient restClient() {
@@ -24,7 +24,7 @@ public class RelyingPartiesServiceConfig {
         requestFactory.setReadTimeout((int) rpServiceProperties.restClient().readTimeoutMillis());
         URI registerServiceRestClientBaseUrl = URI.create(
             rpServiceProperties.registerServiceApi().registerServiceBaseUri()
-                + registerServiceApiRpEndpoint);
+                + registerServiceApiEndpoint);
         return
             RestClient.builder()
                       .defaultHeader("accept", MediaType.APPLICATION_JSON.toString())

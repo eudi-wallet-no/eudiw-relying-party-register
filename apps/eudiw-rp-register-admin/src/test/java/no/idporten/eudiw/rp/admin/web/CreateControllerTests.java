@@ -1,6 +1,5 @@
 package no.idporten.eudiw.rp.admin.web;
 
-import no.idporten.eudiw.rp.admin.data.RelyingPartyEntitlement;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.service.exception.AlreadyExistsException;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
@@ -60,11 +59,11 @@ public class CreateControllerTests {
         @Test
         @DisplayName("then form accepted if well-formed, and correct services called, view, and model")
         void testCreateFormAcceptedIfWellFormed() throws Exception {
-            RelyingPartyEntitlement entitlement = RelyingPartyEntitlement.SERVICE_PROVIDER;
+            RelyingPartyEntitlementResource entitlement = ResourceGenerator.generateRelyingPartyEntitlementResource();
 
             RelyingPartyResource rpResource =
                 ResourceGenerator.generateRelyingPartyResource()
-                                 .withRelyingPartyEntitlements(List.of(entitlement.toResource()))
+                                 .withRelyingPartyEntitlements(List.of(entitlement))
                                  .withRelyingPartyEaas(List.of());
             CreateRelyingPartyResource createResource =
                 new CreateRelyingPartyResource(
@@ -80,7 +79,7 @@ public class CreateControllerTests {
                     .formField("name", createResource.name())
                     .formField("publicSector",
                                Boolean.toString(createResource.publicSector()))
-                    .formField("entitlements", entitlement.getUri()))
+                    .formField("entitlements", entitlement.entitlement()))
                 .andExpectAll(
                     status().is3xxRedirection(),
                     redirectedUrl("/details/" + rpResource.id()));
@@ -97,7 +96,7 @@ public class CreateControllerTests {
             String orgno = TestDataGenerator.generateValidOrgno();
             String name = TestDataGenerator.generateName();
             String publicSectorStr = Boolean.toString(TestDataGenerator.generateBoolean());
-            String entitlementStr = RelyingPartyEntitlement.SERVICE_PROVIDER.getUri();
+            String entitlementStr = ResourceGenerator.generateRelyingPartyEntitlementResource().entitlement();
 
             mockMvc.perform(post("/create")
                                 .formField("orgno", orgno)
