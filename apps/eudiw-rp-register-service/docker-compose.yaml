@@ -1,7 +1,7 @@
-name: digital-lommebok-rp-register
+name: digital-lommebok-rp
 networks:
-  eudiw:
-    name: eudiw
+  digital-lommebok:
+    name: digital-lommebok
 
 services:
   rp-register-db:
@@ -15,7 +15,7 @@ services:
     ports:
       - "36306:3306"
     networks:
-      - eudiw
+      - digital-lommebok
     healthcheck:
       test: mariadb-admin -p$$MARIADB_ROOT_PASSWORD -uroot ping -h localhost
       interval: 5s
@@ -38,7 +38,7 @@ services:
       - "9201:9201"
       - "9205:9205"
     networks:
-      - eudiw
+      - digital-lommebok
     depends_on:
       rp-register-db:
         condition: service_healthy
