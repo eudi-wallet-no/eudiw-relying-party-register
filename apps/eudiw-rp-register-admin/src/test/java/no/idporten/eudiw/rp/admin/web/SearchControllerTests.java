@@ -61,7 +61,7 @@ public class SearchControllerTests {
 
             verify(mockRpService).search(eq(SearchForm.empty().toResource()));
         }
-        
+
         @Test
         public void testServiceCalledAndWithCorrectSearchResource() throws Exception {
             SearchForm testSearchForm = ResourceGenerator.generateSearchForm();
@@ -85,7 +85,7 @@ public class SearchControllerTests {
                    .andExpect(view().name("search_view"))
                    .andExpect(model().attributeHasFieldErrors(SearchController.searchFormAttrId, "searchTerm"));
 
-            verifyNoInteractions(mockRpService);
+            verify(mockRpService, times(0)).search(any());
         }
     }
 }

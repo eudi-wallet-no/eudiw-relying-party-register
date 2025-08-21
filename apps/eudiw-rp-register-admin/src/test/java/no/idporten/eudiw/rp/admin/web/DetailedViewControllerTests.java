@@ -1,6 +1,5 @@
 package no.idporten.eudiw.rp.admin.web;
 
-import no.idporten.eudiw.rp.admin.data.RelyingPartyEntitlement;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.admin.web.controllers.DetailedViewController;
@@ -97,10 +96,10 @@ public class DetailedViewControllerTests {
         @Test
         @DisplayName("then form accepted if well-formed, and correct services called, view, and model")
         void testEditFormAcceptedIfWellFormed() throws Exception {
-            RelyingPartyEntitlement entitlement = RelyingPartyEntitlement.SERVICE_PROVIDER;
+            RelyingPartyEntitlementResource entitlement = ResourceGenerator.generateRelyingPartyEntitlementResource();
             RelyingPartyResource rpResource =
                 ResourceGenerator.generateRelyingPartyResource()
-                                 .withRelyingPartyEntitlements(List.of(entitlement.toResource()))
+                                 .withRelyingPartyEntitlements(List.of(entitlement))
                                  .withRelyingPartyEaas(List.of());
             UUID id = rpResource.id();
             when(mockRpService.get(id)).thenReturn(rpResource);
@@ -112,7 +111,7 @@ public class DetailedViewControllerTests {
                                 .formField("name", editForm.getName())
                                 .formField("publicSector", Boolean.toString(editForm.isPublicSector()))
                                 .formField("active", Boolean.toString(editForm.isActive()))
-                                .formField("entitlements", entitlement.getUri()))
+                                .formField("entitlements", entitlement.entitlement()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/details/" + id));
 
@@ -123,12 +122,12 @@ public class DetailedViewControllerTests {
         @Test
         @DisplayName("then form rejected on invalid fields, and view returns to the edit form")
         void testEditFormRejectedOnFieldInvalidation() throws Exception {
-            RelyingPartyEntitlement entitlement = RelyingPartyEntitlement.SERVICE_PROVIDER;
+            RelyingPartyEntitlementResource entitlement = ResourceGenerator.generateRelyingPartyEntitlementResource();
             String invalidName = "fooBar$";
             RelyingPartyResource rpResource =
                 ResourceGenerator.generateRelyingPartyResource()
                     .withName(invalidName)
-                    .withRelyingPartyEntitlements(List.of(entitlement.toResource())) // empty entitlements and EAAs for simplicity
+                    .withRelyingPartyEntitlements(List.of(entitlement))
                     .withRelyingPartyEaas(List.of());
             UUID id = UUID.randomUUID();
             when(mockRpService.get(id)).thenReturn(rpResource);
@@ -140,7 +139,7 @@ public class DetailedViewControllerTests {
                                 .formField("name", invalidName)
                                 .formField("publicSector", Boolean.toString(rpResource.publicSector()))
                                 .formField("active", Boolean.toString(rpResource.active()))
-                                .formField("entitlements", entitlement.getUri()))
+                                .formField("entitlements", entitlement.entitlement()))
                    // assert edit form invalid (should only have error in the name field)
                    .andExpect(model().attributeHasFieldErrors(DetailedViewController.editFormAttrId, "name"))
                    .andExpect(model().attributeErrorCount(DetailedViewController.editFormAttrId, 1))

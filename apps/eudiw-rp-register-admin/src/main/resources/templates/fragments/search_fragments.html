@@ -43,14 +43,14 @@
             <legend>
                 Vis bare brukersteder med disse rettigheter
             </legend>
-            <div class="ds-field" th:each="option : ${T(no.idporten.eudiw.rp.admin.data.RelyingPartyEntitlement).values()}">
-                <label th:for="|id-${option.desc}|" th:text="${option.desc}"></label>
-                <input th:id="|id-${option.desc}|"
+            <div class="ds-field" th:each="entitlement : ${@relyingPartiesService.getValidEntitlementValues()}">
+                <label th:for="|id-${entitlement}|" th:text="${entitlement}"></label>
+                <input th:id="|id-${entitlement}|"
                        type="checkbox"
                        class="ds-input"
                        name="requiredEntitlements"
-                       th:value="${option.uri}"
-                       th:checked="${#lists.contains(searchFormAttr.requiredEntitlements(), option.toFormField())}">
+                       th:value="${entitlement}"
+                       th:checked="${#lists.contains(searchFormAttr.requiredEntitlements(), entitlement)}">
             </div>
         </fieldset>
     </details>

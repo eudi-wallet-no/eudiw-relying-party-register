@@ -59,4 +59,10 @@ public class RelyingPartyCreateForm {
                 .toList()
         );
     }
+
+    public List<String> getEntitlementValues() {
+        return entitlements.stream()
+                           .map(RelyingPartyEntitlementFormField::getEntitlement)
+                           .toList();
+    }
 }

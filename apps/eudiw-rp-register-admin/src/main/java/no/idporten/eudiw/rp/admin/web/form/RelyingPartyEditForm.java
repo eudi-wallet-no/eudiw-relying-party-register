@@ -71,4 +71,10 @@ public class RelyingPartyEditForm {
             resource.active()
         );
     }
+
+    public List<String> getEntitlementValues() {
+        return entitlements.stream()
+                           .map(RelyingPartyEntitlementFormField::getEntitlement)
+                           .toList();
+    }
 }

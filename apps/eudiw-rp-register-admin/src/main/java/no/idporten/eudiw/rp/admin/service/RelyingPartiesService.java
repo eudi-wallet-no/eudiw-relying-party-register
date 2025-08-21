@@ -8,10 +8,14 @@ import no.idporten.eudiw.rp.admin.web.resource.*;
 import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyAccessCertificateResource;
 import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyAccessCertificatesResource;
 import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyCsrResource;
+import no.idporten.eudiw.rp.admin.web.resource.entitlement.EntitlementResource;
+import no.idporten.eudiw.rp.admin.web.resource.entitlement.EntitlementsResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.RestClient;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -22,6 +26,7 @@ public class RelyingPartiesService {
 
     public RelyingPartyResource create(CreateRelyingPartyResource createResource) {
         return restClient.post()
+                .uri("/rp")
                 .body(createResource)
                 .retrieve()
                 .toEntity(RelyingPartyResource.class)
@@ -30,7 +35,7 @@ public class RelyingPartiesService {
 
     public RelyingPartyResource edit(UUID id, EditRelyingPartyResource editResource) {
         return restClient.put()
-                .uri("/{id}", id)
+                .uri("/rp/{id}", id)
                 .body(editResource)
                 .retrieve()
                 .toEntity(RelyingPartyResource.class)
@@ -39,7 +44,7 @@ public class RelyingPartiesService {
 
     public RelyingPartiesResource search(SearchRelyingPartyResource searchResource) {
         return restClient.post()
-                .uri("/search")
+                .uri("/rp/search")
                 .body(searchResource)
                 .retrieve()
                 .toEntity(RelyingPartiesResource.class)
@@ -48,6 +53,7 @@ public class RelyingPartiesService {
 
     public RelyingPartiesResource getAll() {
         return restClient.get()
+                .uri("/rp")
                 .retrieve()
                 .toEntity(RelyingPartiesResource.class)
                 .getBody();
@@ -56,7 +62,7 @@ public class RelyingPartiesService {
     public RelyingPartyResource get(UUID id) {
         try {
             return restClient.get()
-                    .uri("/{id}", id)
+                    .uri("/rp/{id}", id)
                     .retrieve()
                     .toEntity(RelyingPartyResource.class)
                     .getBody();
@@ -67,7 +73,7 @@ public class RelyingPartiesService {
 
     public void delete(UUID id) {
         restClient.delete()
-                  .uri("/{id}", id)
+                  .uri("/rp/{id}", id)
                   .retrieve()
                   .toBodilessEntity();
     }
@@ -75,7 +81,7 @@ public class RelyingPartiesService {
     public RelyingPartyAccessCertificatesResource getCertificatesForRelyingParty(
         UUID id) {
         return restClient.get()
-                .uri("/{id}/certs", id)
+                .uri("/rp/{id}/certs", id)
                 .retrieve()
                 .toEntity(RelyingPartyAccessCertificatesResource.class)
                 .getBody();
@@ -84,7 +90,7 @@ public class RelyingPartiesService {
     public RelyingPartyAccessCertificateResource getCertificate(
         UUID relyingPartyId, UUID certificateId) {
         return restClient.get()
-                         .uri("/{rp-id}/certs/{cert-id}", relyingPartyId, certificateId)
+                         .uri("/rp/{rp-id}/certs/{cert-id}", relyingPartyId, certificateId)
                          .retrieve()
                          .toEntity(RelyingPartyAccessCertificateResource.class)
                          .getBody();
@@ -94,11 +100,33 @@ public class RelyingPartiesService {
         UUID id,
         RelyingPartyCsrResource csrResource) {
         return restClient.post()
-                .uri("/{id}/certs/access", id)
+                .uri("/rp/{id}/certs/access", id)
                 .body(csrResource)
                 .retrieve()
                 .toEntity(RelyingPartyAccessCertificateResource.class)
                 .getBody();
+    }
+
+    public EntitlementsResource getValidEntitlements() {
+        return new EntitlementsResource(
+            Objects.requireNonNull( // should never fire since the ResponseErrorHandler would fire first.
+                       restClient.get()
+                                 .uri("/entitlement")
+                                 .retrieve()
+                                 .toEntity(EntitlementsResource.class)
+                                 .getBody())
+                   .entitlements()
+                   .stream()
+                   .filter(EntitlementResource::active)
+                   .toList()
+        );
+    }
+    public List<String> getValidEntitlementValues() {
+        return this.getValidEntitlements()
+                   .entitlements()
+                   .stream()
+                   .map(EntitlementResource::entitlement)
+                   .toList();
     }
 
     @ExceptionHandler(Exception.class)
