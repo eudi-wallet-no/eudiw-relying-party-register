@@ -7,6 +7,7 @@ on:
       - 'src/test/**'
       - '*.md'
       - 'LICENSE'
+      - 'docker-compose.yaml'
 
 jobs:
   build-publish-image:

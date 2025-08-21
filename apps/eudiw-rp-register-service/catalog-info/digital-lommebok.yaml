@@ -1,0 +1,15 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: digital-lommebok-rp-register-service
+  description: Digital lommebok - Relying Party Register Service
+  annotations:
+    github.com/project-slug: felleslosninger/eudiw-rp-register-service
+spec:
+  type: application
+  owner: team-digital-lommebok
+  lifecycle: test
+  system: digital-lommebok
+  dependsOn:
+    - digital-lommebok-rp-register-db
+    - digital-lommebok-ca-service
