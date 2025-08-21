@@ -10,4 +10,3 @@ spec:
   lifecycle: production
   owner: team-digital-lommebok
   system: digital-lommebok
-  dependsOn:
