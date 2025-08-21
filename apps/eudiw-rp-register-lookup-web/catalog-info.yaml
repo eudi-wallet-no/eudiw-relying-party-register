@@ -1,0 +1,14 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: digital-lommebok-rp-register-lookup-web
+  description: Digital lommebok rp-register-lookup-web
+  annotations:
+    github.com/project-slug: felleslosninger/eudiw-rp-register-lookup-web
+spec:
+  type: application
+  lifecycle: production
+  owner: team-digital-lommebok
+  system: digital-lommebok
+ dependsOn:
+    - digital-lommebok-rp-register-service
