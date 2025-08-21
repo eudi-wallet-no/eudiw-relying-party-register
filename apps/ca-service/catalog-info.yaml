@@ -10,5 +10,3 @@ spec:
   owner: team-digital-lommebok
   lifecycle: test
   system: digital-lommebok
-  dependsOn:
-    - id_eudiw_ca_prod
