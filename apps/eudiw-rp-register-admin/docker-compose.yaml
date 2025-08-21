@@ -1,9 +1,71 @@
-name: digital-lommebok-rp-register
+# NB: Login to Azure Container Registery : az login && az acr login -n crutvikling --subscription 9c0d7873-b8aa-4042-96f8-b8ce5c9888d0
+# https://portal.azure.com/#@Nasjonalfelleslosning.onmicrosoft.com/resource/subscriptions/9c0d7873-b8aa-4042-96f8-b8ce5c9888d0/resourceGroups/rg-eid-systest-cr/providers/Microsoft.ContainerRegistry/registries/crutvikling/overview
+
+name: digital-lommebok-rp
 networks:
-  eudiw:
-    name: eudiw
+  digital-lommebok:
+    name: digital-lommebok
 
 services:
+  redis:
+    image: redis:alpine
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      interval: 5s
+      start_period: 3s
+      timeout: 2s
+      retries: 20
+    ports:
+      - "6370:6379"
+    networks:
+      - digital-lommebok
+    command: redis-server --maxmemory-policy allkeys-lru
+  rp-register-db:
+    image: "mariadb:11.4"
+    restart: on-failure
+    environment:
+      MARIADB_ROOT_PASSWORD: verysecret
+      MARIADB_DATABASE: rp_register_db
+      MARIADB_USER: eudiw_user
+      MARIADB_PASSWORD: lesssecret
+    ports:
+      - "36306:3306"
+    networks:
+      - digital-lommebok
+    healthcheck:
+      test: mariadb-admin -p$$MARIADB_ROOT_PASSWORD -uroot ping -h localhost
+      interval: 5s
+      start_period: 5s
+      timeout: 5s
+      retries: 10
+
+  rp-register-service:
+    image: "crutvikling.azurecr.io/eudiw-rp-register-service"
+#    image: "digital-lommebok-rp-rp-register-service" # Uncomment this line if you want to use the local image instead
+    pull_policy: always
+    environment:
+      spring_profiles_active: docker
+      _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0"
+    ports:
+      - "9200:9200"
+      - "9201:9201"
+      - "9205:9205"
+    networks:
+      - digital-lommebok
+    depends_on:
+      rp-register-db:
+        condition: service_healthy
+    entrypoint: "/bin/bash -c"
+    command:
+      - |
+        cd /usr/local/webapps
+        java -jar application.jar
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:9201/health/readiness || exit 1
+      interval: 15s
+      start_period: 5s
+      timeout: 5s
+      retries: 20
   rp-register-admin:
     build:
       context: .
@@ -19,7 +81,7 @@ services:
       - "9251:9251"
       - "9255:9255"
     networks:
-      - eudiw
+      - digital-lommebok
     entrypoint: "/bin/bash -c"
     command:
       - |
@@ -27,6 +89,77 @@ services:
         java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9255 -jar application.jar
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://localhost:9251/health/readiness || exit 1
+      interval: 15s
+      start_period: 5s
+      timeout: 5s
+      retries: 20
+
+  rp-register-lookup-web:
+    image: "crutvikling.azurecr.io/eudiw-rp-register-lookup-web"
+#    image: "digital-lommebok-rp-register-rp-register-lookup-web"
+    pull_policy: always
+    environment:
+      spring_profiles_active: docker
+      _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0"
+    ports:
+      - "9210:9210"
+      - "9211:9211"
+      - "9215:9215"
+    networks:
+      - digital-lommebok
+    entrypoint: "/bin/bash -c"
+    command:
+      - |
+        cd /usr/local/tomcat/webapps/
+        java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9215 -jar application.jar
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:9211/health/readiness || exit 1
+      interval: 15s
+      start_period: 5s
+      timeout: 5s
+      retries: 20
+
+  ca-db:
+    image: "mariadb:11.4"
+    restart: on-failure
+    environment:
+      MARIADB_ROOT_PASSWORD: rootpwd
+      MARIADB_DATABASE: ca_db
+      MARIADB_USER: ca
+      MARIADB_PASSWORD: ca
+    ports:
+      - "9226:3306"
+    networks:
+      - digital-lommebok
+    healthcheck:
+      test: mariadb-admin -p$$MARIADB_ROOT_PASSWORD -uroot ping -h localhost
+      interval: 5s
+      start_period: 5s
+      timeout: 5s
+      retries: 10
+  ca-service:
+    depends_on:
+      ca-db:
+        condition: service_healthy
+    image: "crutvikling.azurecr.io/eudiw-ca-service"
+#    image: "digital-lommebok-rp-ca-service" # Uncomment this line if you want to use the local image instead
+    environment:
+      spring_profiles_active: docker
+      _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0"
+    ports:
+      - "9220:9220"
+      - "9221:9221"
+      - "9225:9225"
+    networks:
+      - digital-lommebok
+    entrypoint: "/bin/bash -c"
+    command:
+      - |
+        set -a && . /usr/local/webapps/.env && set +a
+        cd /usr/local/tomcat/webapps/
+        java -javaagent:opentelemetry-javaagent.jar -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9225 -jar application.jar
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:9221/health/readiness || exit 1
       interval: 15s
       start_period: 5s
       timeout: 5s
