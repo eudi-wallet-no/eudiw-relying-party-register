@@ -21,4 +21,4 @@ spring:
     database-platform: org.hibernate.dialect.H2Dialect
 
 eudiw-ca:
-  base-uri: "http://digital-lommebok-ca-service:9220"
+  base-uri: "http://ca-service:9220"

@@ -1,0 +1,14 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: digital-lommebok-ca-service
+  description: Digital lommebok - CA service
+  annotations:
+    github.com/project-slug: felleslosninger/eudiw-ca-service
+spec:
+  type: application
+  owner: team-digital-lommebok
+  lifecycle: test
+  system: digital-lommebok
+  dependsOn:
+    - digital-lommebok-ca-db
