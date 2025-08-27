@@ -46,4 +46,11 @@ public record SearchForm(
                 .map(RelyingPartyEntitlementFormField::toResource)
                 .toList());
     }
+
+    public List<String> requiredEntitlementValues() {
+        return requiredEntitlements
+                   .stream()
+                   .map(RelyingPartyEntitlementFormField::getEntitlement)
+                   .toList();
+    }
 }
