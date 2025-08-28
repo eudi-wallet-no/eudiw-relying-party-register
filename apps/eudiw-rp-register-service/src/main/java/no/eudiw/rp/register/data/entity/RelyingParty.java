@@ -18,7 +18,7 @@ import lombok.ToString;
 @Table(name = "relying_party")
 public class RelyingParty extends BaseEntity {
 
-    @Column(name = "orgno", unique = true, nullable = false)
+    @Column(name = "orgno", nullable = false)
     private String orgno;
 
     @Column(name = "name", nullable = false)

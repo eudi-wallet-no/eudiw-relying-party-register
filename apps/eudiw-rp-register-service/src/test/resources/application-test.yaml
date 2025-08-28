@@ -13,6 +13,9 @@ spring:
     password: junit
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
+  flyway:
+    locations:
+      classpath:/db/migration,classpath:/local-h2/db/migration
 
 TEST_MOCK_CA_SERVER_PORT: 9207
 eudiw-rp-register-service:

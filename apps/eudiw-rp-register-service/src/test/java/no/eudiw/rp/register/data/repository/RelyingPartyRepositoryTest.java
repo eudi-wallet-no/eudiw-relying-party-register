@@ -22,8 +22,8 @@ public class RelyingPartyRepositoryTest {
     @Resource
     private RelyingPartyRepository rpRepository;
 
-    @AfterEach
-    void clearRepositoryAfterTests() {
+    @BeforeEach
+    void clearRepositoryBeforeEachTest() {
         rpRepository.deleteAll();
     }
 
@@ -38,9 +38,8 @@ public class RelyingPartyRepositoryTest {
                 rpRepository.save(EntityGenerator.generateRelyingPartyNoId());
 
             String orgno = testRelyingParty.getOrgno();
-            RelyingParty rpOut = rpRepository.findByOrgno(orgno).orElse(null);
+            RelyingParty rpOut = rpRepository.findByOrgno(orgno).getFirst();
 
-            assertNotNull(rpOut);
             assertAll(
                 () -> assertEquals(testRelyingParty.getOrgno(), rpOut.getOrgno()),
                 () -> assertEquals(testRelyingParty.getName(), rpOut.getName()),
@@ -68,8 +67,7 @@ public class RelyingPartyRepositoryTest {
             String orgno = testRelyingParty.getOrgno();
 
             rpRepository.save(testRelyingParty);
-            RelyingParty rpOut = rpRepository.findByOrgno(orgno).orElse(null);
-            assertNotNull(rpOut);
+            RelyingParty rpOut = rpRepository.findByOrgno(orgno).getFirst();
 
             assertAll(
                 () -> assertEquals(testRelyingParty.getOrgno(), rpOut.getOrgno()),
@@ -81,8 +79,8 @@ public class RelyingPartyRepositoryTest {
         }
 
         @Test
-        @DisplayName("then creation is rejected if orgno already exists")
-        void testCreationRejectedWhenOrgnoAlreadyExists() {
+        @DisplayName("then creation of duplicate orgno is accepted")
+        void testCreationAcceptedWhenOrgnoAlreadyExists() {
             RelyingParty testRelyingParty =
                 rpRepository.save(EntityGenerator.generateRelyingPartyNoId());
 
@@ -92,11 +90,10 @@ public class RelyingPartyRepositoryTest {
                 EntityGenerator.generateRelyingPartyNoId();
             newRelyingPartyWithExistingOrgno.setOrgno(existingOrgno);
 
-            // assert second creation with same orgno is rejected.
-            assertThrows(
-                DataIntegrityViolationException.class,
-                () -> rpRepository.saveAndFlush(newRelyingPartyWithExistingOrgno)
-            );
+            rpRepository.saveAndFlush(newRelyingPartyWithExistingOrgno);
+
+            List<RelyingParty> rps = rpRepository.findByOrgno(existingOrgno);
+            assertTrue(rps.containsAll(List.of(testRelyingParty, newRelyingPartyWithExistingOrgno)));
         }
 
         @Test
@@ -108,8 +105,7 @@ public class RelyingPartyRepositoryTest {
                 rpRepository.save(EntityGenerator.generateRelyingPartyNoId());
 
             RelyingParty relyingPartyOut =
-                rpRepository.findByOrgno(testRelyingParty.getOrgno()).orElse(null);
-            assertNotNull(relyingPartyOut);
+                rpRepository.findByOrgno(testRelyingParty.getOrgno()).getFirst();
 
             assertAll(
                 () -> assertTrue(tInit <= relyingPartyOut.getCreatedMs()),
@@ -128,13 +124,13 @@ public class RelyingPartyRepositoryTest {
 
             UUID testRelyingPartyIdOut1 =
                 rpRepository.findByOrgno(testRelyingParty1.getOrgno())
-                            .map(RelyingParty::getId)
-                            .orElse(null);
+                            .getFirst()
+                            .getId();
 
             UUID testRelyingPartyIdOut2 =
                 rpRepository.findByOrgno(testRelyingParty2.getOrgno())
-                            .map(RelyingParty::getId)
-                            .orElse(null);
+                            .getFirst()
+                            .getId();
 
             assertAll(
                 () -> assertNotNull(testRelyingPartyIdOut1),
@@ -178,16 +174,16 @@ public class RelyingPartyRepositoryTest {
 
             UUID testRelyingPartyIdOut1 =
                 rpRepository.findByOrgno(testRelyingParty.getOrgno())
-                            .map(RelyingParty::getId)
-                            .orElse(null);
+                            .getFirst()
+                            .getId();
 
             testRelyingParty.setName(EntityGenerator.generateName());
             rpRepository.save(testRelyingParty);
 
             UUID testRelyingPartyIdOut2 =
                 rpRepository.findByOrgno(testRelyingParty.getOrgno())
-                            .map(RelyingParty::getId)
-                            .orElse(null);
+                            .getFirst()
+                            .getId();
 
             assertAll(
                 () -> assertNotNull(testRelyingPartyIdOut1),
@@ -205,16 +201,14 @@ public class RelyingPartyRepositoryTest {
                 rpRepository.save(EntityGenerator.generateRelyingPartyNoId());
 
             RelyingParty relyingPartyOut1 =
-                rpRepository.findByOrgno(testRelyingParty.getOrgno()).orElse(null);
-            assertNotNull(relyingPartyOut1);
+                rpRepository.findByOrgno(testRelyingParty.getOrgno()).getFirst();
 
             // query an update, which should update lastUpdatedMs but not touch createdMs.
             relyingPartyOut1.setName(EntityGenerator.generateName());
             rpRepository.save(relyingPartyOut1);
 
             RelyingParty relyingPartyOut2 =
-                rpRepository.findByOrgno(testRelyingParty.getOrgno()).orElse(null);
-            assertNotNull(relyingPartyOut2);
+                rpRepository.findByOrgno(testRelyingParty.getOrgno()).getFirst();
 
             long tCreated1 = relyingPartyOut1.getCreatedMs();
             long tLastUpdated1 = relyingPartyOut1.getLastUpdatedMs();
@@ -241,8 +235,7 @@ public class RelyingPartyRepositoryTest {
                 rpRepository.save(EntityGenerator.generateRelyingPartyNoId());
 
             RelyingParty testRelyingPartyOut =
-                rpRepository.findByOrgno(testRelyingParty.getOrgno()).orElse(null);
-            assertNotNull(testRelyingPartyOut);
+                rpRepository.findByOrgno(testRelyingParty.getOrgno()).getFirst();
             rpRepository.delete(testRelyingPartyOut);
 
             assertAll(
