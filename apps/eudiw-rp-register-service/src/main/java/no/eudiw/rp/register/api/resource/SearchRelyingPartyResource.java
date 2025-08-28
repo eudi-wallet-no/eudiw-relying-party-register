@@ -25,6 +25,12 @@ public class SearchRelyingPartyResource {
     @JsonProperty(value = "required_entitlements")
     private List<RelyingPartyEntitlementResource> requiredEntitlements = List.of();
 
+    @JsonProperty(value = "page")
+    private Integer page;
+
+    @JsonProperty(value = "page_size")
+    private Integer pageSize;
+
     public SearchRelyingPartyResource(String searchTerm) {
         this();
         this.searchTerm = searchTerm;

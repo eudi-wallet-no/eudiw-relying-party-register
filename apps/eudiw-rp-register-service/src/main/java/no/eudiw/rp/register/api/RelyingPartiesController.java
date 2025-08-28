@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import no.eudiw.rp.register.api.resource.*;
 import no.eudiw.rp.register.data.service.RelyingPartyService;
 import no.idporten.logging.audit.Audit;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -134,7 +135,7 @@ public class RelyingPartiesController {
     })
     @Audit(auditId = RELYING_PARTIES_SEARCHED)
     @PostMapping(path = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<RelyingPartiesResource> searchRelyingParty(
+    public ResponseEntity<PagedModel<RelyingPartyResource>> searchRelyingParty(
         @Valid @RequestBody SearchRelyingPartyResource request) {
         return ResponseEntity.ok(relyingPartyService.searchRelyingParties(request));
     }

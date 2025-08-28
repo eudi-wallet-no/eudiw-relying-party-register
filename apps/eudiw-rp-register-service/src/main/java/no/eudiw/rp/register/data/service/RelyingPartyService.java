@@ -8,15 +8,19 @@ import no.eudiw.rp.register.data.repository.RelyingPartyRepository;
 import no.eudiw.rp.register.data.service.exception.BadRequestException;
 import no.eudiw.rp.register.data.service.exception.NotFoundException;
 import no.eudiw.rp.register.data.service.exception.ResourceDeletedException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.function.Predicate;
 
 @RequiredArgsConstructor
 @Service
 public class RelyingPartyService {
+
+    private static final PageRequest DEFAULT_PAGE_REQUEST = PageRequest.of(0, 25);
 
     private final RelyingPartyRepository relyingPartyRepository;
     private final EntitlementRepository entitlementRepository;
@@ -57,23 +61,30 @@ public class RelyingPartyService {
     }
 
     @Transactional(readOnly = true)
-    public RelyingPartiesResource searchRelyingParties(
-        SearchRelyingPartyResource searchResource) {
+    public PagedModel<RelyingPartyResource> searchRelyingParties(SearchRelyingPartyResource searchResource) {
+        PageRequest pageRequest = (searchResource.getPage() == null || searchResource.getPageSize() == null)
+            ? DEFAULT_PAGE_REQUEST
+            : PageRequest.of(searchResource.getPage(), searchResource.getPageSize());
 
-        Predicate<RelyingPartyResource> hasRequiredEntitlements =
-            rp -> new HashSet<>(rp.relyingPartyEntitlements())
-                      .containsAll(searchResource.getRequiredEntitlements());
+        List<String> entitlements = Optional.ofNullable(searchResource.getRequiredEntitlements())
+            .orElse(Collections.emptyList())
+            .stream()
+            .map(RelyingPartyEntitlementResource::entitlement)
+            .toList();
 
-        return new RelyingPartiesResource(
-            relyingPartyRepository.searchQuery(
-                                      searchResource.getSearchTerm(),
-                                      searchResource.isIncludeInactive()
-                                  )
-                                  .stream()
-                                  .map(Converter::toResource)
-                                  .filter(hasRequiredEntitlements)
-                                  .toList()
+        boolean filterEntitlements = !entitlements.isEmpty();
+        int entitlementCount = filterEntitlements ? new HashSet<>(entitlements).size() : 0;
+
+        Page<RelyingParty> page = relyingPartyRepository.advancedSearchQueryPage(
+            searchResource.getSearchTerm(),
+            searchResource.isIncludeInactive(),
+            entitlements,
+            filterEntitlements,
+            entitlementCount,
+            pageRequest
         );
+
+        return new PagedModel<>(page.map(Converter::toResource));
     }
 
     @Transactional(readOnly = true)

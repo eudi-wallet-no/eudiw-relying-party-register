@@ -1,15 +1,21 @@
 package no.eudiw.rp.register.data.repository;
 
 import jakarta.annotation.Resource;
+import no.eudiw.rp.register.data.entity.RelyingPartyEntitlement;
 import no.eudiw.rp.register.testdata.TestDataGenerator;
 import no.eudiw.rp.register.testdata.EntityGenerator;
 import no.eudiw.rp.register.data.entity.RelyingParty;
 import org.junit.jupiter.api.*;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,7 +29,7 @@ public class RelyingPartyRepositoryTest {
     private RelyingPartyRepository rpRepository;
 
     @BeforeEach
-    void clearRepositoryBeforeEachTest() {
+    void clearRepositoryBeforeTests() {
         rpRepository.deleteAll();
     }
 
@@ -288,6 +294,7 @@ public class RelyingPartyRepositoryTest {
             assertNotNull(relyingParties);
             assertTrue(relyingParties.isEmpty());
         }
+
         @Test
         @DisplayName("then deleted RPs are not included in regular searches")
         void testSearchDoesNotIncludeDeleted() {
@@ -302,6 +309,155 @@ public class RelyingPartyRepositoryTest {
             assertNotNull(relyingParties);
             assertTrue(relyingParties.isEmpty());
         }
-    }
 
+        @Test
+        @DisplayName("advanced search with pagination")
+        void testAdvancedSearchPagination() {
+            RelyingParty testRelyingParty = rpRepository.save(EntityGenerator.generateRelyingPartyNoId());
+            rpRepository.save(testRelyingParty);
+
+            Pageable pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.ASC, "name"));
+            Page<RelyingParty> relyingParties = rpRepository.advancedSearchQueryPage(
+                null,
+                false,
+                null,
+                false,
+                0,
+                pageable
+            );
+
+            assertNotNull(relyingParties);
+            assertTrue(relyingParties.hasContent());
+            assertEquals(1, relyingParties.getTotalElements());
+            RelyingParty relyingParty = relyingParties.getContent().getFirst();
+            assertNotNull(relyingParty);
+            assertEquals(testRelyingParty.getOrgno(), relyingParty.getOrgno());
+        }
+
+        @Test
+        @DisplayName("advanced search with pagination and filter entitlements")
+        void testAdvancedSearchPaginationFilterEntitlements() {
+            RelyingParty testRelyingParty = rpRepository.save(EntityGenerator.generateRelyingPartyNoId());
+            rpRepository.save(testRelyingParty);
+
+            Pageable pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.ASC, "name"));
+            Page<RelyingParty> relyingParties = rpRepository.advancedSearchQueryPage(
+                null,
+                false,
+                List.of("https://uri.etsi.org/19475/Entitlement/Service_Provider", "https://uri.etsi.org/19475/Entitlement/QEAA_Provider"),
+                true,
+                2,
+                pageable
+            );
+
+            assertNotNull(relyingParties);
+            assertTrue(relyingParties.hasContent());
+            assertEquals(1, relyingParties.getTotalElements());
+            RelyingParty relyingParty = relyingParties.getContent().getFirst();
+            assertNotNull(relyingParty);
+            assertEquals(testRelyingParty.getOrgno(), relyingParty.getOrgno());
+        }
+
+        @Test
+        @DisplayName("advanced search with pagination and filter entitlements out")
+        void testAdvancedSearchPaginationFilterEntitlementsOut() {
+            RelyingParty testRelyingParty = rpRepository.save(EntityGenerator.generateRelyingPartyNoId());
+            rpRepository.save(testRelyingParty);
+
+            Pageable pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.ASC, "name"));
+            Page<RelyingParty> relyingParties = rpRepository.advancedSearchQueryPage(
+                null,
+                false,
+                List.of("NOT_AN_ENTITLEMENT"),
+                true,
+                1,
+                pageable
+            );
+
+            assertNotNull(relyingParties);
+            assertFalse(relyingParties.hasContent());
+        }
+
+        @Test
+        @DisplayName("advanced search with pagination and filter entitlements multiple")
+        void testAdvancedSearchPaginationFilterEntitlementsMultiple() {
+            RelyingParty testRelyingParty1 = rpRepository.save(EntityGenerator.generateRelyingPartyNoId());
+            rpRepository.save(testRelyingParty1);
+
+            RelyingParty testRelyingParty2 = rpRepository.save(EntityGenerator.generateRelyingPartyNoId());
+            rpRepository.save(testRelyingParty2);
+
+            RelyingParty testRelyingParty3 = rpRepository.save(EntityGenerator.generateRelyingPartyNoId());
+            testRelyingParty3.setRelyingPartyEntitlements(List.of(new RelyingPartyEntitlement("NOT_AN_ENTITLEMENT")));
+            rpRepository.save(testRelyingParty3);
+
+            Pageable pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.ASC, "name"));
+            Page<RelyingParty> relyingParties = rpRepository.advancedSearchQueryPage(
+                null,
+                false,
+                List.of("https://uri.etsi.org/19475/Entitlement/Service_Provider", "https://uri.etsi.org/19475/Entitlement/QEAA_Provider"),
+                true,
+                2,
+                pageable
+            );
+
+            assertNotNull(relyingParties);
+            assertTrue(relyingParties.hasContent());
+            assertEquals(2, relyingParties.getTotalElements());
+            RelyingParty relyingParty = relyingParties.getContent().getFirst();
+            assertNotNull(relyingParty);
+
+        }
+
+        @Test
+        @DisplayName("advanced search with pagination and filter entitlements and name")
+        void testAdvancedSearchPaginationFilterEntitlementsAndName() {
+            RelyingParty testRelyingParty1 = rpRepository.save(EntityGenerator.generateRelyingPartyNoId());
+            rpRepository.save(testRelyingParty1);
+
+            RelyingParty testRelyingParty2 = rpRepository.save(EntityGenerator.generateRelyingPartyNoId());
+            rpRepository.save(testRelyingParty2);
+
+            Pageable pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.ASC, "name"));
+            Page<RelyingParty> relyingParties = rpRepository.advancedSearchQueryPage(
+                testRelyingParty1.getName(),
+                false,
+                List.of("https://uri.etsi.org/19475/Entitlement/Service_Provider", "https://uri.etsi.org/19475/Entitlement/QEAA_Provider"),
+                true,
+                2,
+                pageable
+            );
+
+            assertNotNull(relyingParties);
+            assertTrue(relyingParties.hasContent());
+            assertEquals(1, relyingParties.getTotalElements());
+            RelyingParty relyingParty = relyingParties.getContent().getFirst();
+            assertNotNull(relyingParty);
+            assertEquals(testRelyingParty1.getOrgno(), relyingParty.getOrgno());
+        }
+
+        @Test
+        @DisplayName("advanced search with pagination page count")
+        void testAdvancedSearchPaginationPageCount() {
+            for(int i = 0; i < 30; i++) {
+                rpRepository.save(EntityGenerator.generateRelyingPartyNoId());
+            }
+
+            Pageable pageable = PageRequest.of(0, 5, Sort.by(Sort.Direction.ASC, "name"));
+            Page<RelyingParty> relyingParties = rpRepository.advancedSearchQueryPage(
+                null,
+                false,
+                null,
+                false,
+                0,//2,
+                pageable
+            );
+
+            assertNotNull(relyingParties);
+            assertTrue(relyingParties.hasContent());
+            assertEquals(30, relyingParties.getTotalElements());
+            assertEquals(30/5, relyingParties.getTotalPages());
+            assertEquals(5, relyingParties.getContent().size());
+        }
+    }
 }

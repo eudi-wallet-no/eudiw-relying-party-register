@@ -34,3 +34,5 @@ build/
 
 ### Jenv ###
 .java-version
+
+/src/main/java/no/eudiw/rp/register/testdata/
