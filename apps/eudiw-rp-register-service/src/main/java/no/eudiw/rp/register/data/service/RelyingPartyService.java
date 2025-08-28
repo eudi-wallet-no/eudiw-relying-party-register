@@ -5,7 +5,6 @@ import no.eudiw.rp.register.api.resource.*;
 import no.eudiw.rp.register.data.entity.RelyingParty;
 import no.eudiw.rp.register.data.repository.EntitlementRepository;
 import no.eudiw.rp.register.data.repository.RelyingPartyRepository;
-import no.eudiw.rp.register.data.service.exception.AlreadyExistsException;
 import no.eudiw.rp.register.data.service.exception.BadRequestException;
 import no.eudiw.rp.register.data.service.exception.NotFoundException;
 import no.eudiw.rp.register.data.service.exception.ResourceDeletedException;
@@ -24,10 +23,6 @@ public class RelyingPartyService {
 
     @Transactional
     public RelyingPartyResource createRelyingParty(CreateRelyingPartyResource request) {
-        if (relyingPartyRepository.existsByOrgno(request.orgNr())) {
-            throw new AlreadyExistsException(
-                "A relying party already exists with the orgno " + request.orgNr());
-        }
 
         if (request.relyingPartyEntitlements() == null || request.relyingPartyEaas() == null) {
             throw new BadRequestException("Entitlements and EAAs should be empty if none exists");

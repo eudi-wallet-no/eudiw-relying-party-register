@@ -19,6 +19,9 @@ spring:
     database-platform: org.hibernate.dialect.H2Dialect
   application:
     environment: local-h2
+  flyway:
+    locations:
+      classpath:/db/migration,classpath:/local-h2/db/migration
 
 eudiw-rp-register-service:
   csr-service:

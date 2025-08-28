@@ -16,11 +16,8 @@ public interface RelyingPartyRepository
 
     Optional<RelyingParty> findByIdAndDeletedFalse(UUID id);
 
-    // NOTE: orgno column is unique in relying_party.
-    Optional<RelyingParty> findByOrgno(String orgno);
-    boolean existsByOrgno(String orgno);
+    List<RelyingParty> findByOrgno(String orgno);
     boolean existsByIdAndDeletedFalse(UUID id);
-
 
     List<RelyingParty> findAllByDeleted(boolean deleted);
 
