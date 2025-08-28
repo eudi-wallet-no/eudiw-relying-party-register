@@ -1,11 +1,11 @@
 package no.idporten.eudiw.rp.register.lookup.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import no.idporten.eudiw.rp.register.lookup.service.exception.UnauthorizedUserRequestException;
+import no.idporten.eudiw.rp.register.lookup.service.exception.UnauthorizedRequestException;
 import no.idporten.eudiw.rp.register.lookup.service.exception.UnrecognizedErrorResponseException;
 import no.idporten.eudiw.rp.register.lookup.testdata.ResourceGenerator;
+import no.idporten.eudiw.rp.register.lookup.web.form.SearchForm;
 import no.idporten.eudiw.rp.register.lookup.web.resource.RelyingPartiesResource;
-import no.idporten.eudiw.rp.register.lookup.web.resource.SearchForm;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 
@@ -34,7 +34,7 @@ import java.util.stream.Stream;
 public class ServiceTest {
 
     @Autowired
-    private LookupService lookupService;
+    private RelyingPartiesService lookupService;
 
     @Autowired
     private MockWebServer mockWebServer;
@@ -46,7 +46,7 @@ public class ServiceTest {
         MockResponse badRequestMockResponse = new MockResponse().setResponseCode(401);
         mockWebServer.enqueue(badRequestMockResponse);
 
-        assertThrowsExactly(UnauthorizedUserRequestException.class,
+        assertThrowsExactly(UnauthorizedRequestException.class,
                             () -> lookupService.search(
                                 ResourceGenerator.generateSearchForm().toResource()));
     }

@@ -1,8 +1,15 @@
 package no.idporten.eudiw.rp.register.lookup.testdata;
 
-import no.idporten.eudiw.rp.register.lookup.web.resource.*;
+
+
+import no.idporten.eudiw.rp.register.lookup.web.form.SearchForm;
+import no.idporten.eudiw.rp.register.lookup.web.resource.RelyingPartiesResource;
+import no.idporten.eudiw.rp.register.lookup.web.resource.RelyingPartyEaaResource;
+import no.idporten.eudiw.rp.register.lookup.web.resource.RelyingPartyEntitlementResource;
+import no.idporten.eudiw.rp.register.lookup.web.resource.RelyingPartyResource;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.UUID;
 
 public class ResourceGenerator extends TestDataGenerator {
@@ -41,6 +48,6 @@ public class ResourceGenerator extends TestDataGenerator {
     }
 
     public static SearchForm generateSearchForm() {
-        return new SearchForm(generateName(), generateBoolean());
+        return new SearchForm(generateName(), generateBoolean(), new ArrayList<>());
     }
 }

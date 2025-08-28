@@ -6,16 +6,18 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
 @Validated
-@ConfigurationProperties(prefix = "eudiw-rp-register-lookup-web.service")
-public record LookupServiceProperties(
-    RestClientDefaults restClientDefaults,
-    String apiSearchEndpoint
+@ConfigurationProperties(prefix = "eudiw-rp-register-lookup-web.relying-parties-service")
+public record RelyingPartiesServiceProperties(
+    RegisterServiceApi registerServiceApi,
+    RestClient restClient
 ) {
-    @ConfigurationProperties(prefix = "eudiw-rp-register-lookup-web.service.rest-client-defaults")
-    public record RestClientDefaults(
-        @NotBlank String registerServiceApiBaseUri,
+    public record RegisterServiceApi(
+        @NotBlank String registerServiceBaseUri,
         @NotBlank String apiKeyHeaderId,
-        @NotBlank String apiKeyValue,
+        @NotBlank String apiKeyValue
+    ) { }
+
+    public record RestClient(
         @Min(0) long connectTimeoutMillis,
         @Min(0) long readTimeoutMillis
     ) { }
