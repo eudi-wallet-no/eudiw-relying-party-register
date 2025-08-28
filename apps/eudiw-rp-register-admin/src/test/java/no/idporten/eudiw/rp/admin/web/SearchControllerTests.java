@@ -43,11 +43,10 @@ public class SearchControllerTests {
         void setupMockRelyingPartiesService() {
             when(mockRpService.search(any()))
                 .thenAnswer(invocationOnMock -> {
-                    SearchRelyingPartyResource searchResource =
-                        invocationOnMock.getArgument(0, SearchRelyingPartyResource.class);
-                    return new RelyingPartiesResource(
-                        List.of(ResourceGenerator.generateRelyingPartyResource()
-                                                 .withName(searchResource.searchTerm())));
+                    SearchRelyingPartyResource searchResource = invocationOnMock.getArgument(0, SearchRelyingPartyResource.class);
+
+                    List<RelyingPartyResource> content = List.of(ResourceGenerator.generateRelyingPartyResource().withName(searchResource.searchTerm()));
+                    return ResourceGenerator.generatePageResponse(content);
                 });
         }
 
@@ -69,7 +68,9 @@ public class SearchControllerTests {
 
             mockMvc.perform(post("/search")
                                 .formField("searchTerm", testSearchForm.searchTerm())
-                                .formField("includeInactive", includeInactiveStr))
+                                .formField("includeInactive", includeInactiveStr)
+                                .formField("page", String.valueOf(testSearchForm.page()))
+                                .formField("pageSize", String.valueOf(testSearchForm.pageSize())))
                    .andExpect(view().name("search_view"))
                    .andExpect(model().attribute(SearchController.searchFormAttrId, testSearchForm));
 

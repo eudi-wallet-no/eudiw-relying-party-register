@@ -20,21 +20,30 @@ public record SearchForm(
     String searchTerm,
     boolean includeInactive,
     @NotNull
-    List<RelyingPartyEntitlementFormField> requiredEntitlements
+    List<RelyingPartyEntitlementFormField> requiredEntitlements,
+    Integer page,
+    Integer pageSize
 ) {
 
+    public static Integer DEFAULT_PAGE_SIZE = 25;
+    public static Integer DEFAULT_PAGE_NUMBER = 0;
+
     public static SearchForm empty() {
-        return new SearchForm("", false, new ArrayList<>());
+        return new SearchForm("", false, new ArrayList<>(), null, null);
     }
 
     public SearchForm(
         String searchTerm,
         boolean includeInactive,
-        List<RelyingPartyEntitlementFormField> requiredEntitlements) {
+        List<RelyingPartyEntitlementFormField> requiredEntitlements,
+        Integer page,
+        Integer pageSize
+    ) {
         this.searchTerm = searchTerm.strip();
         this.includeInactive = includeInactive;
-        this.requiredEntitlements =
-            requiredEntitlements != null ? requiredEntitlements : new ArrayList<>();
+        this.requiredEntitlements = requiredEntitlements != null ? requiredEntitlements : new ArrayList<>();
+        this.page = page != null ? page : DEFAULT_PAGE_NUMBER;
+        this.pageSize = pageSize != null ? pageSize : DEFAULT_PAGE_SIZE;
     }
 
     public SearchRelyingPartyResource toResource() {
@@ -44,7 +53,9 @@ public record SearchForm(
             this.requiredEntitlements
                 .stream()
                 .map(RelyingPartyEntitlementFormField::toResource)
-                .toList());
+                .toList(),
+            this.page,
+            this.pageSize);
     }
 
     public List<String> requiredEntitlementValues() {

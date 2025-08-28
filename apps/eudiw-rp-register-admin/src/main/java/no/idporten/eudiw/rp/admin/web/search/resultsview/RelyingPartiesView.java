@@ -6,6 +6,7 @@ import lombok.Setter;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.web.form.SearchForm;
 import no.idporten.eudiw.rp.admin.web.resource.*;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.SessionScope;
 
@@ -36,8 +37,8 @@ public class RelyingPartiesView {
     @Setter
     private SearchForm lastSearchForm = SearchForm.empty();
 
-    private static final int DEFAULT_PAGE_SIZE = 25;
-    private static final int NUMBER_OF_SWITCH_PAGE_BUTTONS = 5;
+    @Setter
+    private SearchRelyingPartyResource lastSearchRelyingPartyResource = null;
 
     private static final
     Collector<RelyingPartyResource, ?, LinkedHashMap<UUID, RelyingPartyResource>>
@@ -55,7 +56,7 @@ public class RelyingPartiesView {
 
         this.numPages = 0;
         this.currentPageIdx = 0;
-        this.pageSize = DEFAULT_PAGE_SIZE;
+        this.pageSize = SearchForm.DEFAULT_PAGE_SIZE;
 
         this.initialized = false;
     }
@@ -65,18 +66,23 @@ public class RelyingPartiesView {
     }
 
     public void doSearch(SearchRelyingPartyResource searchResource) {
-        RelyingPartiesResource searchResult =
-            this.relyingPartiesService.search(searchResource);
+        PagedResponse<RelyingPartyResource> searchResult =
+            this.relyingPartiesService.search(
+                searchResource
+            );
+
+        this.lastSearchRelyingPartyResource = searchResource;
 
         this.ordering = RelyingPartiesViewOrdering.NAME_ASC;
         this.relyingParties =
-            searchResult.relyingParties()
+            searchResult.content()
                         .stream()
                         .sorted(this.ordering.toComparator())
                         .collect(relyingPartyLinkedMapCollector);
 
-        this.numPages = Math.ceilDiv(this.relyingParties.size(), DEFAULT_PAGE_SIZE);
-        this.currentPageIdx = 0;
+
+        this.numPages = Math.toIntExact(searchResult.page().totalPages());
+        this.currentPageIdx = Math.toIntExact(searchResult.page().number());
 
         this.initialized = true;
     }
@@ -104,15 +110,19 @@ public class RelyingPartiesView {
     }
 
     public List<RelyingPartyResource> getCurrentResultsPage() {
-        return this.relyingParties
-                   .values()
-                   .stream()
-                   .skip((long) currentPageIdx * pageSize)
-                   .limit(pageSize)
-                   .toList();
+        if (!this.initialized) {
+            return Collections.emptyList();
+        }
+
+        if (lastSearchRelyingPartyResource != null && this.lastSearchRelyingPartyResource.page() != this.currentPageIdx) {
+            doSearch(SearchRelyingPartyResource.updatePage(this.lastSearchRelyingPartyResource, this.currentPageIdx));
+        }
+
+        return new ArrayList<>(relyingParties.values());
     }
+    
     public int[] getPaginationWindow() {
-        int windowSize = Math.min(NUMBER_OF_SWITCH_PAGE_BUTTONS, numPages);
+        int windowSize = Math.min(5, numPages);
         int windowRadius = windowSize / 2;
         int lo = currentPageIdx + windowRadius < numPages
                      ? Math.max(0, currentPageIdx - windowRadius)

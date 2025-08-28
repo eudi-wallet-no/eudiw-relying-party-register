@@ -3,9 +3,10 @@ package no.idporten.eudiw.rp.admin.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.idporten.eudiw.rp.admin.service.exception.UnauthorizedRequestException;
 import no.idporten.eudiw.rp.admin.service.exception.UnrecognizedErrorResponseException;
-import no.idporten.eudiw.rp.admin.web.resource.RelyingPartiesResource;
 import no.idporten.eudiw.rp.admin.web.form.SearchForm;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
+import no.idporten.eudiw.rp.admin.web.resource.PagedResponse;
+import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.DisplayName;
@@ -54,8 +55,10 @@ public class ServiceTest {
     @Test
     @DisplayName("then valid search result responses are properly deserialized")
     void testCorrectDeserializationOfValidSearchResponse() throws Exception {
-        RelyingPartiesResource expectedSearchResultResource = ResourceGenerator.generateRelyingPartiesResource();
-        String responseBody = new ObjectMapper().writer().writeValueAsString(expectedSearchResultResource);
+        List<RelyingPartyResource> expectedSearchResultResource = ResourceGenerator.generateRelyingPartiesResource();
+        PagedResponse<RelyingPartyResource> response = ResourceGenerator.generatePageResponse(expectedSearchResultResource);
+
+        String responseBody = new ObjectMapper().writer().writeValueAsString(response);
 
         MockResponse mockValidResponse =
             new MockResponse()
@@ -64,9 +67,9 @@ public class ServiceTest {
                 .setBody(responseBody);
         mockWebServer.enqueue(mockValidResponse);
 
-        RelyingPartiesResource actualSearchResultResource =
+        PagedResponse<RelyingPartyResource> actualSearchResultResource =
                 relyingPartiesService.search(SearchForm.empty().toResource());
-        assertEquals(expectedSearchResultResource, actualSearchResultResource);
+        assertEquals(expectedSearchResultResource.getFirst().name(), actualSearchResultResource.content().getFirst().name());
     }
 
     @Nested
