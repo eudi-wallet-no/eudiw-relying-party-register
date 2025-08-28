@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static no.eudiw.rp.register.api.ApiTestUtils.toPage;
 import static no.eudiw.rp.register.testdata.EntityGenerator.generateRelyingPartyNoId;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -316,10 +317,10 @@ public class RelyingPartiesControllerTest {
                                         .header(X_API_KEY_HEADER, VALID_API_KEY)
                                         .content(searchJson))
                            .andExpect(status().isOk())
-                           .andExpect(jsonPath("$.relying_parties").exists());
+                           .andExpect(jsonPath("$.content").exists());
 
                 List<RelyingPartyResource> relyingPartyResources =
-                    ApiTestUtils.toRelyingPartiesResource(actions).relyingParties();
+                    toPage(actions, RelyingPartyResource.class).content();
                 assertEquals(1, relyingPartyResources.size());
 
                 RelyingPartyResource relyingPartyResource = relyingPartyResources.getFirst();
@@ -344,10 +345,10 @@ public class RelyingPartiesControllerTest {
                                         .header(X_API_KEY_HEADER, VALID_API_KEY)
                                         .content(searchJson))
                            .andExpect(status().isOk())
-                           .andExpect(jsonPath("$.relying_parties").exists());
+                           .andExpect(jsonPath("$.content").exists());
 
                 List<RelyingPartyResource> relyingPartyResources =
-                    ApiTestUtils.toRelyingPartiesResource(actions).relyingParties();
+                    toPage(actions, RelyingPartyResource.class).content();
                 assertEquals(1, relyingPartyResources.size());
 
                 RelyingPartyResource relyingPartyResource = relyingPartyResources.getFirst();
@@ -379,10 +380,10 @@ public class RelyingPartiesControllerTest {
                                         .header(X_API_KEY_HEADER, VALID_API_KEY)
                                         .content(searchJson))
                            .andExpect(status().isOk())
-                           .andExpect(jsonPath("$.relying_parties").exists());
+                           .andExpect(jsonPath("$.content").exists());
 
                 List<RelyingPartyResource> relyingPartyResources =
-                    ApiTestUtils.toRelyingPartiesResource(actions).relyingParties();
+                    toPage(actions, RelyingPartyResource.class).content();
                 assertEquals(2, relyingPartyResources.size());
 
                 assertAll(
@@ -414,10 +415,11 @@ public class RelyingPartiesControllerTest {
                                         .header(X_API_KEY_HEADER, VALID_API_KEY)
                                         .content(searchJson))
                            .andExpect(status().isOk())
-                           .andExpect(jsonPath("$.relying_parties").exists());
+                           .andExpect(jsonPath("$.content").exists());
 
                 List<RelyingPartyResource> relyingPartyResources =
-                    ApiTestUtils.toRelyingPartiesResource(actions).relyingParties();
+                    toPage(actions, RelyingPartyResource.class).content();
+
                 assertEquals(2, relyingPartyResources.size());
 
                 assertAll(

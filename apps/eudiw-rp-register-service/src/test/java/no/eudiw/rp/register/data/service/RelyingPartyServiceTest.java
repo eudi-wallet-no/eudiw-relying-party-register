@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.HashSet;
@@ -241,9 +242,9 @@ public class RelyingPartyServiceTest {
                      .collect(Collectors.toSet());
 
             SearchRelyingPartyResource searchResource =
-                new SearchRelyingPartyResource("", true, requiredEntitlements);
+                new SearchRelyingPartyResource("", true, requiredEntitlements, 0, 1000);
             Set<RelyingPartyResource> actualSearchResult =
-                new HashSet<>(relyingPartyService.searchRelyingParties(searchResource).relyingParties());
+                new HashSet<>(relyingPartyService.searchRelyingParties(searchResource).getContent());
 
             assertEquals(expectedSearchResult, actualSearchResult);
         }

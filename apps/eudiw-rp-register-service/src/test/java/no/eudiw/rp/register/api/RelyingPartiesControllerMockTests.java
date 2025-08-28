@@ -53,7 +53,7 @@ public class RelyingPartiesControllerMockTests {
                                     .formatted(searchTerm, includeInactive);
 
             SearchRelyingPartyResource expectedSearchResource =
-                new SearchRelyingPartyResource(searchTerm, includeInactive, List.of());
+                new SearchRelyingPartyResource(searchTerm, includeInactive, List.of(), null, null);
 
             mockMvc.perform(post("/v1/rp/search")
                                 .contentType(MediaType.APPLICATION_JSON)

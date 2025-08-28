@@ -11,15 +11,15 @@ logging:
   level:
     org:
       hibernate:
-        stat: DEBUG
-        SQL: DEBUG
+        stat: INFO
+        SQL: INFO
         type:
           descriptor:
             sql:
-              BasicBinder: TRACE
+              BasicBinder: INFO
         orm:
           jdbc:
-            bind: TRACE
+            bind: INFO
 spring:
   security:
     api-key: xxx
