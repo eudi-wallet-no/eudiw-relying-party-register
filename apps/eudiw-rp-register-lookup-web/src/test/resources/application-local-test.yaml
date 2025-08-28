@@ -1,6 +1,7 @@
 TEST_MOCK_WEB_SERVER_PORT: 9217
+
 eudiw-rp-register-lookup-web:
-  service:
-    rest-client-defaults:
-      register-service-api-base-uri: http://localhost:${TEST_MOCK_WEB_SERVER_PORT}/
+  relying-parties-service:
+    register-service-api:
+      register-service-base-uri: http://localhost:${TEST_MOCK_WEB_SERVER_PORT}/
       api-key-value: xxx

@@ -1,6 +1,9 @@
 package no.idporten.eudiw.rp.register.lookup.service.exception;
 
-public class UnrecognizedErrorResponseException extends ErrorResponseException {
+
+import no.idporten.eudiw.rp.register.lookup.exception.LookupServiceException;
+
+public class UnrecognizedErrorResponseException extends LookupServiceException {
     public UnrecognizedErrorResponseException(String msg) {
         super(msg);
     }

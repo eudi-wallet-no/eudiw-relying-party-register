@@ -1,4 +1,4 @@
-package no.idporten.eudiw.rp.register.lookup.service.exception;
+package no.idporten.eudiw.rp.register.lookup.exception;
 
 public class LookupServiceException extends RuntimeException {
     public LookupServiceException(String msg) {

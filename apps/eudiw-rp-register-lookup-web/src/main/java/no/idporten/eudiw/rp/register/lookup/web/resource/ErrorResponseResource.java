@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record ErrorResource(
+public record ErrorResponseResource(
     @JsonProperty(value = "error", required = true)
     String error,
     @JsonProperty(value = "error_description", required = true)

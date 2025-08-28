@@ -1,9 +1,10 @@
 package no.idporten.eudiw.rp.register.lookup.web;
 
-import no.idporten.eudiw.rp.register.lookup.service.LookupService;
+import no.idporten.eudiw.rp.register.lookup.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.register.lookup.testdata.ResourceGenerator;
+import no.idporten.eudiw.rp.register.lookup.web.controllers.SearchController;
+import no.idporten.eudiw.rp.register.lookup.web.form.SearchForm;
 import no.idporten.eudiw.rp.register.lookup.web.resource.RelyingPartiesResource;
-import no.idporten.eudiw.rp.register.lookup.web.resource.SearchForm;
 import no.idporten.eudiw.rp.register.lookup.web.resource.SearchRelyingPartyResource;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +30,7 @@ public class LookupControllerTest {
 
     @SuppressWarnings("unused") // since its use in when() is not recognized as a use.
     @MockitoBean
-    private LookupService lookupService;
+    private RelyingPartiesService lookupService;
 
     @BeforeEach
     void setupMockLookupService() {
@@ -50,8 +51,8 @@ public class LookupControllerTest {
         void testModelGetsEmptySearchFormOnGet() throws Exception {
             mockMvc.perform(get("/"))
                    .andExpect(status().isOk())
-                   .andExpect(view().name("search"))
-                   .andExpect(model().attribute(LookupController.searchFormAttrId,
+                   .andExpect(view().name("search_view"))
+                   .andExpect(model().attribute(SearchController.searchFormAttrId,
                                                 SearchForm.empty()));
         }
     }

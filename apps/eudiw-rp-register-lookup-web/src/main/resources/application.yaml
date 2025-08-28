@@ -41,12 +41,12 @@ management:
       environment: ${spring.application.environment}
 
 eudiw-rp-register-lookup-web:
-  service:
-    api-search-endpoint: /search
-    rest-client-defaults:
-      register-service-api-base-uri: http://digital-lommebok-rp-register-service-service:8080/v1/rp
+  relying-parties-service:
+    register-service-api:
+      register-service-base-uri: http://digital-lommebok-rp-register-service-service:8080
       api-key-header-id: X-API-KEY
-      api-key-value: ${API_KEY_VALUE}
+      api-key-value: ${REGISTER_SERVICE_API_KEY}
+    rest-client:
       connect-timeout-millis: 5000
       read-timeout-millis: 5000
 
