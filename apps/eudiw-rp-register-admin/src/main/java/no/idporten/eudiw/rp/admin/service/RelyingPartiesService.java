@@ -10,6 +10,8 @@ import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyAc
 import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyCsrResource;
 import no.idporten.eudiw.rp.admin.web.resource.entitlement.EntitlementResource;
 import no.idporten.eudiw.rp.admin.web.resource.entitlement.EntitlementsResource;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.RestClient;
@@ -42,13 +44,12 @@ public class RelyingPartiesService {
                 .getBody();
     }
 
-    public RelyingPartiesResource search(SearchRelyingPartyResource searchResource) {
+    public PagedResponse<RelyingPartyResource> search(SearchRelyingPartyResource searchResource) {
         return restClient.post()
-                .uri("/rp/search")
-                .body(searchResource)
-                .retrieve()
-                .toEntity(RelyingPartiesResource.class)
-                .getBody();
+            .uri("/rp/search")
+            .body(searchResource)
+            .retrieve()
+            .body(new ParameterizedTypeReference<PagedResponse<RelyingPartyResource>>() {});
     }
 
     public RelyingPartiesResource getAll() {

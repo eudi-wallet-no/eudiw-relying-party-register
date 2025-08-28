@@ -12,5 +12,20 @@ public record SearchRelyingPartyResource(
     @JsonProperty("include_inactive")
     boolean includeInactive,
     @JsonProperty("required_entitlements")
-    List<RelyingPartyEntitlementResource> requiredEntitlements
-) { }
+    List<RelyingPartyEntitlementResource> requiredEntitlements,
+    @JsonProperty(value = "page")
+    Integer page,
+    @JsonProperty(value = "page_size")
+    Integer pageSize
+) {
+    public static SearchRelyingPartyResource updatePage(SearchRelyingPartyResource oldResource, Integer page) {
+        return new SearchRelyingPartyResource(
+            oldResource.searchTerm(),
+            oldResource.includeInactive(),
+            oldResource.requiredEntitlements,
+            page,
+            oldResource.pageSize
+        );
+    }
+
+}

@@ -65,13 +65,12 @@ public class ResourceGenerator extends TestDataGenerator {
             true
         );
     }
-    public static RelyingPartiesResource generateRelyingPartiesResource() {
-        return new RelyingPartiesResource(
-            generateListBy(ResourceGenerator::generateRelyingPartyResource));
+    public static List<RelyingPartyResource> generateRelyingPartiesResource() {
+        return generateListBy(ResourceGenerator::generateRelyingPartyResource);
     }
 
     public static SearchForm generateSearchForm() {
-        return new SearchForm(generateName(), generateBoolean(), new ArrayList<>());
+        return new SearchForm(generateName(), generateBoolean(), new ArrayList<>(), 0, 25);
     }
 
     public static RelyingPartyAccessCertificateResource generateCertificateResource()
@@ -82,5 +81,27 @@ public class ResourceGenerator extends TestDataGenerator {
 
     public static RelyingPartyCsrResource generateCsrResource() throws Exception {
         return new RelyingPartyCsrResource(CertificatesGenerator.generatePKCS10Csr());
+    }
+
+    public static PagedResponse<RelyingPartyResource> generatePageResponse(List<RelyingPartyResource> content) {
+        return new PagedResponse<>(
+            content,
+            new PagedResponse.PageMetadata(
+                content.size(), 0, content.size(), 1
+            )
+        );
+        /*return new PageResponse<>(
+            content,
+            null,
+            true,
+            (long) content.size(),
+            1,
+            content.size(),
+            1,
+            true,
+            content.size(),
+            null,
+            false
+        );*/
     }
 }
