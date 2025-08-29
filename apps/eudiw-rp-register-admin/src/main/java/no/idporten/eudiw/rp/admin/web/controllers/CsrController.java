@@ -45,7 +45,7 @@ public class CsrController {
     @PostMapping("/csr/{id}")
     public ModelAndView registerCsrPost(
         @PathVariable("id") @Valid UUID id,
-        @ModelAttribute(csrFormAttrId) @Valid CsrForm csrForm,
+        @AuditIgnore @ModelAttribute(csrFormAttrId) @Valid CsrForm csrForm,
         @AuditIgnore BindingResult csrFormBindingResult
     ) {
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
