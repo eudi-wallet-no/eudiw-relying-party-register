@@ -72,40 +72,14 @@ public class RelyingPartyService {
             .map(RelyingPartyEntitlementResource::entitlement)
             .toList();
 
-        boolean filterEntitlements = !entitlements.isEmpty();
-        int entitlementCount = filterEntitlements ? new HashSet<>(entitlements).size() : 0;
-
-        Page<RelyingParty> page = relyingPartyRepository.advancedSearchQueryPage(
+        Page<RelyingParty> page = relyingPartyRepository.searchQueryPaged(
             searchResource.getSearchTerm(),
             searchResource.isIncludeInactive(),
             entitlements,
-            filterEntitlements,
-            entitlementCount,
             pageRequest
         );
 
         return new PagedModel<>(page.map(Converter::toResource));
-    }
-
-    @Transactional(readOnly = true)
-    public RelyingPartiesResource advancedSearchRelyingParties(
-        AdvancedSearchRelyingPartyResource request) {
-        return new RelyingPartiesResource(
-            relyingPartyRepository.advancedSearchQuery(
-                                      request.orgno(),
-                                      request.name(),
-                                      request.publicSector(),
-                                      request.includeInactive()
-                                  )
-                                  .stream()
-                                  .map(Converter::toResource)
-                                  .toList()
-        );
-    }
-
-    @Transactional(readOnly = true)
-    public RelyingPartiesResource findAllRelyingParties() {
-        return Converter.toResource(relyingPartyRepository.findAllByDeleted(false));
     }
 
     @Transactional

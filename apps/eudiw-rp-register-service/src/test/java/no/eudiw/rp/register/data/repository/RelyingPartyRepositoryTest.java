@@ -7,7 +7,6 @@ import no.eudiw.rp.register.testdata.EntityGenerator;
 import no.eudiw.rp.register.data.entity.RelyingParty;
 import org.junit.jupiter.api.*;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,7 +14,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -252,48 +250,8 @@ public class RelyingPartyRepositoryTest {
     }
 
     @Nested
-    @DisplayName("When Getting all None Deleted from Repository ...")
-    class GetAllNoneDeletedTests {
-
-        @Test
-        @DisplayName("then deletion goes well if the entity is in the repository")
-        void testDeleteExistingOrgno() {
-            RelyingParty testRelyingParty =
-                    rpRepository.save(EntityGenerator.generateRelyingPartyNoId());
-
-            testRelyingParty.setDeleted(true);
-            rpRepository.save(testRelyingParty);
-
-            List<RelyingParty> relyingParties =
-                    rpRepository.findAllByDeleted(false);
-            assertNotNull(relyingParties);
-            assertTrue(relyingParties.isEmpty());
-        }
-    }
-
-    @Nested
     @DisplayName("When searching ...")
     class SearchTests {
-
-        @Test
-        @DisplayName("then deleted RPs are not included in advanced searches")
-        void testAdvancedSearchDoesNotIncludeDeleted() {
-            RelyingParty testRelyingParty =
-                    rpRepository.save(EntityGenerator.generateRelyingPartyNoId());
-
-            testRelyingParty.setDeleted(true);
-            rpRepository.save(testRelyingParty);
-
-            List<RelyingParty> relyingParties =
-                    rpRepository.advancedSearchQuery(
-                            testRelyingParty.getOrgno(),
-                            testRelyingParty.getName(),
-                            testRelyingParty.getPublicSector(),
-                            true
-                    );
-            assertNotNull(relyingParties);
-            assertTrue(relyingParties.isEmpty());
-        }
 
         @Test
         @DisplayName("then deleted RPs are not included in regular searches")
@@ -317,12 +275,10 @@ public class RelyingPartyRepositoryTest {
             rpRepository.save(testRelyingParty);
 
             Pageable pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.ASC, "name"));
-            Page<RelyingParty> relyingParties = rpRepository.advancedSearchQueryPage(
-                null,
+            Page<RelyingParty> relyingParties = rpRepository.searchQueryPaged(
+                "",
                 false,
-                null,
-                false,
-                0,
+                List.of(),
                 pageable
             );
 
@@ -341,12 +297,10 @@ public class RelyingPartyRepositoryTest {
             rpRepository.save(testRelyingParty);
 
             Pageable pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.ASC, "name"));
-            Page<RelyingParty> relyingParties = rpRepository.advancedSearchQueryPage(
-                null,
+            Page<RelyingParty> relyingParties = rpRepository.searchQueryPaged(
+                "",
                 false,
                 List.of("https://uri.etsi.org/19475/Entitlement/Service_Provider", "https://uri.etsi.org/19475/Entitlement/QEAA_Provider"),
-                true,
-                2,
                 pageable
             );
 
@@ -365,12 +319,10 @@ public class RelyingPartyRepositoryTest {
             rpRepository.save(testRelyingParty);
 
             Pageable pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.ASC, "name"));
-            Page<RelyingParty> relyingParties = rpRepository.advancedSearchQueryPage(
-                null,
+            Page<RelyingParty> relyingParties = rpRepository.searchQueryPaged(
+                "",
                 false,
                 List.of("NOT_AN_ENTITLEMENT"),
-                true,
-                1,
                 pageable
             );
 
@@ -392,12 +344,10 @@ public class RelyingPartyRepositoryTest {
             rpRepository.save(testRelyingParty3);
 
             Pageable pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.ASC, "name"));
-            Page<RelyingParty> relyingParties = rpRepository.advancedSearchQueryPage(
-                null,
+            Page<RelyingParty> relyingParties = rpRepository.searchQueryPaged(
+                "",
                 false,
                 List.of("https://uri.etsi.org/19475/Entitlement/Service_Provider", "https://uri.etsi.org/19475/Entitlement/QEAA_Provider"),
-                true,
-                2,
                 pageable
             );
 
@@ -419,12 +369,10 @@ public class RelyingPartyRepositoryTest {
             rpRepository.save(testRelyingParty2);
 
             Pageable pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.ASC, "name"));
-            Page<RelyingParty> relyingParties = rpRepository.advancedSearchQueryPage(
+            Page<RelyingParty> relyingParties = rpRepository.searchQueryPaged(
                 testRelyingParty1.getName(),
                 false,
                 List.of("https://uri.etsi.org/19475/Entitlement/Service_Provider", "https://uri.etsi.org/19475/Entitlement/QEAA_Provider"),
-                true,
-                2,
                 pageable
             );
 
@@ -444,12 +392,10 @@ public class RelyingPartyRepositoryTest {
             }
 
             Pageable pageable = PageRequest.of(0, 5, Sort.by(Sort.Direction.ASC, "name"));
-            Page<RelyingParty> relyingParties = rpRepository.advancedSearchQueryPage(
-                null,
+            Page<RelyingParty> relyingParties = rpRepository.searchQueryPaged(
+                "",
                 false,
-                null,
-                false,
-                0,//2,
+                List.of(),
                 pageable
             );
 
