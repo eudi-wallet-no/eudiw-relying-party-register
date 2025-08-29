@@ -90,7 +90,7 @@ public class RelyingPartiesView {
     public RelyingPartyResource edit(UUID id, EditRelyingPartyResource editResource) {
         RelyingPartyResource edited = this.relyingPartiesService.edit(id, editResource);
 
-        // if RP is in current search results, reflect the changes there
+        // if RP is in current search results, reflect the changes there -
         if (this.relyingParties.containsKey(id)) {
             this.relyingParties.put(id, edited);
         }
