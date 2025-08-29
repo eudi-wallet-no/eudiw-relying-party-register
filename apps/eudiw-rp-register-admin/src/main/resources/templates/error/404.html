@@ -2,33 +2,27 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
 <head>
     <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
-    <title>Siden/resursen finns ikkje</title>
+    <title>Sida finst ikkje</title>
 </head>
 
 <body>
     <header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
     <main>
-        <div>
-            <h1 class="ds-heading" data-size="lg">
-                Beklager! Siden eller resursen du leter etter finns ikkje.
-            </h1>
-        </div>
+        <h1 class="ds-heading" data-size="lg">
+            Beklager! Me fann ikkje sida.
+        </h1>
 
-        <div>
-            <p class="ds-paragraph">
-                Sjekk lenket og prøv igjen, eller kontakt support hvis du mener
-                resursen burde finns.
-            </p>
-        </div>
+        <p class="ds-paragraph">
+            Dobbeltsjekk om du har rett lenke eller rapporter bug i Jira om
+            du trur det er ein bug.
+        </p>
 
-        <div>
-            <p class="ds-paragraph">
-                <a th:href="@{/}" class="ds-button">
-                    Hjem
-                </a>
-            </p>
-        </div>
+        <p class="ds-paragraph">
+            <a th:href="@{/}" class="ds-button">
+                Heim
+            </a>
+        </p>
     </main>
 
     <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>

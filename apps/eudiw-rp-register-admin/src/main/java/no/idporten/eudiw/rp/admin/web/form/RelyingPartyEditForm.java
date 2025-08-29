@@ -17,9 +17,9 @@ import java.util.*;
 @EqualsAndHashCode
 public class RelyingPartyEditForm {
     @SaneStringConstraint(message =
-        "Navnet får bare inneholde norske bokstaver, tal, mellemrom, og symbolene "
+        "Ugyldig namn. Gyldige teikn er: norske bokstavar, tal, mellemrom og symbola "
             + SaneStringValidator.ALLOWED_SYMBOLS)
-    @NotBlank(message = "Navnet får ikkje være tomt")
+    @NotBlank(message = "Namn må fyllast ut")
     private String name;
 
     private boolean publicSector;

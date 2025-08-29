@@ -8,7 +8,7 @@
          style="margin-block-end: var(--ds-size-2)">
         <input id="search_term"
                th:field="*{searchTerm}"
-               placeholder="Søk på org.nr. eller navn"
+               placeholder="Søk på org.nr. eller namn"
                size="50"
                type="text"
                class="ds-input">
@@ -22,7 +22,7 @@
                 data-variant="primary">Søk</button>
     </div>
 
-    <label for="includeInactive">Inkluder inaktive</label>
+    <label for="includeInactive">Ta med inaktive</label>
     <input id="includeInactive"
            type="checkbox"
            th:field="*{includeInactive}"
@@ -38,10 +38,10 @@
     <details class="ds-details"
              style="width: fit-content;"
              th:open="${!#lists.isEmpty(searchFormAttr.requiredEntitlements())}">
-        <summary>Filtreringsmuligheter</summary>
+        <summary>Filter</summary>
         <fieldset class="ds-fieldset">
             <legend>
-                Vis bare brukersteder med disse rettigheter
+                Rolle
             </legend>
             <div class="ds-field" th:each="entitlement : ${@relyingPartiesService.getValidEntitlementValues()}">
                 <label th:for="|id-${entitlement}|" th:text="${entitlement}"></label>
@@ -81,7 +81,7 @@
                 </th>
                 <th th:class="${currentOrdering == orderingOpts.NAME_ASC ? 'focused' : ''}">
                     <a th:href="@{search(sort='NAME_ASC')}" class="ds-link">
-                        Navn
+                        Namn
                     </a>
                 </th>
                 <th th:class="${currentOrdering == orderingOpts.CREATED_ASC ? 'focused' : ''}">
@@ -91,7 +91,7 @@
                 </th>
                 <th th:class="${currentOrdering == orderingOpts.LAST_UPDATED_ASC ? 'focused' : ''}">
                     <a th:href="@{search(sort='LAST_UPDATED_ASC')}" class="ds-link">
-                        Sist oppdatert
+                        Sist endra
                     </a>
                 </th>
             </tr>

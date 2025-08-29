@@ -16,26 +16,21 @@
 <header th:fragment="page_header_fragment">
     <div>
         <div style="padding-right: 8px;">
-            <a aria-label="Til forsiden"
+            <a aria-label="Heim"
                class="ds-focus"
                th:href="@{/}">
                 <div th:replace="~{:: digdir_logo_fragment(26)}">
                 </div>
             </a>
         </div>
-        Administrasjon av brukersteder
+        Administrasjon av brukarstader
     </div>
 
     <div>
         <a class="ds-link"
-           th:href="@{/about}"
-           data-color="neutral">
-            Om sandkassa
-        </a>
-        <a class="ds-link"
            th:href="@{/}"
            data-color="neutral">
-            Hjem
+            Heim
         </a>
     </div>
 </header>
@@ -48,12 +43,20 @@
         </div>
 
         <div>
-            <h2 class="ds-heading">Trenger du hjelp?</h2>
-            <a class="ds-link" href="mailto:servicedesk@digdir.no">
+            <a class="ds-link"
+               href="https://docs.digdir.no/docs/lommebok/lommebok_om.html">
+                Om sandkassa
+            </a>
+        </div>
+
+        <div>
+            <h2 class="ds-heading">Treng du hjelp?</h2>
+            <a class="ds-link"
+               href="mailto:servicedesk@digdir.no">
                 servicedesk@digdir.no
             </a>
-
-            <a class="ds-link" href="https://www.digdir.no/digdir/kontakt-oss/943">
+            <a class="ds-link"
+               href="https://www.digdir.no/digdir/kontakt-oss/943">
                 Kontakt oss
             </a>
         </div>
@@ -91,6 +94,6 @@
 
 <div th:fragment="generic_invalid_input_field_error_msg(field_name)"
      class="ds-validation-message">
-    <span th:text="${field_name}"></span> får bare inneholde norske bokstaver,
-    tal, mellemrom, og symbolene .,-:'"&/, og får ikkje være tom.
+    Tomt eller ugyldig teikn i obligatorisk felt. Gyldige teikn er norske
+    bokstavar, tal, mellomrom og symbola .,-:'"&/
 </div>

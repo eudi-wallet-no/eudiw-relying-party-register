@@ -3,7 +3,7 @@
     <div style="padding-bottom: 2em;">
         <div th:if="${ #lists.isEmpty(certs)}">
             <em>
-                Ingen registrerte aksess-sertifikater for <span th:text="${rp.name}"></span>.
+                Ingen registrert.
             </em>
         </div>
 
@@ -13,9 +13,9 @@
                     <tr>
                         <th>Serienummer</th>
                         <th>Subjekt</th>
-                        <th>Utsteder</th>
-                        <th>Gjyldig fra</th>
-                        <th>Gjyldig til</th>
+                        <th>Utstedar</th>
+                        <th>Gyldig frå</th>
+                        <th>Gyldig til</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -43,7 +43,7 @@
         <a th:href="@{|/csr/${rp.id}|}"
            class="ds-button"
            data-variant="primary">
-            Registrer nyt sertifikat
+            Legg til nytt access-sertifikat
         </a>
     </div>
 </div>
@@ -58,42 +58,42 @@
                 <td th:text="${rp.orgno}"></td>
             </tr>
             <tr>
-                <th>Navn</th>
+                <th>Namn</th>
                 <td th:text="${rp.name}"></td>
             </tr>
             <tr>
                 <th>Sektor</th>
-                <td th:text="${rp.publicSector ? 'offentlig' : 'privat'}"></td>
+                <td th:text="${rp.publicSector ? 'offentleg' : 'privat'}"></td>
             </tr>
             <tr>
-                <th>Opprettet</th>
+                <th>Oppretta</th>
                 <td th:text="${@timestampFormatter.formatEpochMillis(rp.createdMs)}"></td>
             </tr>
             <tr>
-                <th>Sidst oppdatert</th>
+                <th>Sist endra</th>
                 <td th:text="${@timestampFormatter.formatEpochMillis(rp.lastUpdatedMs)}"></td>
             </tr>
             <tr>
                 <th>Aktiv</th>
-                <td th:text="${rp.active ? 'ja' : 'nej'}"></td>
+                <td th:text="${rp.active ? 'ja' : 'nei'}"></td>
             </tr>
             </tbody>
         </table>
     </div>
 
     <div style="margin-bottom: 1em;">
-        <h2 class="ds-heading">Ekstra</h2>
+        <h2 class="ds-heading">Roller og bevistypar</h2>
 
         <details class="ds-details" data-variant="default">
-            <summary>Registrerte rettigheter</summary>
+            <summary>Roller</summary>
 
             <div th:if="${ #lists.isEmpty(rp.relyingPartyEntitlements)}">
-                <em>Ingen registrerte rettigheter for <span th:text="${rp.name}"></span>.</em>
+                <em>Ingen registrert.</em>
             </div>
             <div th:unless="${ #lists.isEmpty(rp.relyingPartyEntitlements)}">
                 <table class="ds-table" data-sticky-header="true">
                     <thead>
-                        <tr><th>Rettighet</th></tr>
+                        <tr><th>Rolle</th></tr>
                     </thead>
                     <tbody>
                         <tr th:each="ent : ${rp.relyingPartyEntitlements}">
@@ -105,16 +105,16 @@
         </details>
 
         <details class="ds-details">
-            <summary>EAA'ere</summary>
+            <summary>Bevistypar (EAA)</summary>
             <div th:if="${ #lists.isEmpty(rp.relyingPartyEaas)}">
-                <em>Ingen registrerte EAA'ere.</em>
+                <em>Ingen registrert.</em>
             </div>
             <div th:unless="${ #lists.isEmpty(rp.relyingPartyEaas)}">
                 <table class="ds-table" data-sticky-header="true">
                     <thead>
                         <tr>
-                            <th>Namespace</th>
-                            <th>Intent</th>
+                            <th>Bevistype</th>
+                            <th>Føremål</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -132,7 +132,7 @@
         <a th:href="@{|/details/${rp.id}/edit|}"
            class="ds-button"
            data-variant="primary">
-            Rediger brukersted
+            Endre brukarstad
         </a>
     </div>
 </div>
