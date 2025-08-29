@@ -139,31 +139,4 @@ public class RelyingPartiesController {
         @Valid @RequestBody SearchRelyingPartyResource request) {
         return ResponseEntity.ok(relyingPartyService.searchRelyingParties(request));
     }
-
-    @Operation(
-        summary = "Advanced search for relying parties",
-        description = "Search relying parties by organization number, name, and sector",
-        tags = {"relying-parties-api"})
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Possibly empty relying parties search result is returned")
-    })
-    @Audit(auditId = RELYING_PARTIES_SEARCHED)
-    @PostMapping(path = "/search/advanced", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<RelyingPartiesResource> advancedSearchRelyingParty(
-        @Valid @RequestBody AdvancedSearchRelyingPartyResource request) {
-        return ResponseEntity.ok(relyingPartyService.advancedSearchRelyingParties(request));
-    }
-
-    @Operation(
-        summary = "Get all relying parties",
-        description = "Retrieve information on all active and inactive relying parties",
-        tags = {"relying-parties-api"})
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Relying parties are retrieved")
-    })
-    @Audit(auditId = RELYING_PARTIES_RETRIEVED)
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<RelyingPartiesResource> getAllRelyingParties() {
-        return ResponseEntity.ok(relyingPartyService.findAllRelyingParties());
-    }
 }
