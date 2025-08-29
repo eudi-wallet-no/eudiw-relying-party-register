@@ -3,7 +3,7 @@
       th:with="rp=${detailedViewDataAttr}">
 <head>
     <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
-    <title th:text="|Detaljer for ${rp.name}|"></title>
+    <title th:text="|Detaljar for ${rp.name}|"></title>
     <link rel="stylesheet" th:href="@{/css/simple_tabs.css}">
 </head>
 
@@ -14,7 +14,7 @@
 
     <main>
         <h1 class="ds-heading" data-size="lg">
-            Detaljer for brukersted: <span th:text="${rp.name}"/>
+            Detaljar for brukarstad: <span th:text="${rp.name}"/>
         </h1>
 
         <nav id="tabs_container">
@@ -22,7 +22,7 @@
                 Generelt
             </a>
             <a href="#certificates" class="tab" data-size="lg">
-                Aksess-sertifikater
+                Access-sertifikat
             </a>
         </nav>
 

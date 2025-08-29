@@ -29,12 +29,12 @@
             <p class="ds-paragraph">
                 <label for="name_field"
                        class="ds-label">
-                    Navn
+                    Namn
                 </label>
                 <input id="name_field"
                        th:field="*{name}"
                        type="text"
-                       placeholder="Navn"
+                       placeholder="Namn"
                        class="ds-input">
             </p>
             <ul th:if="${#fields.hasErrors('name')}">
@@ -51,7 +51,7 @@
                 <select id="sector_field"
                         th:field="*{publicSector}"
                         class="ds-input">
-                    <option value="true">Offentlig</option>
+                    <option value="true">Offentleg</option>
                     <option value="false">Privat</option>
                 </select>
             </p>
@@ -73,7 +73,7 @@
         <fieldset class="ds-fieldset" data-size="sm">
             <legend class="ds-label"
                     data-weight="high">
-                Endre rettigheter for brukerstedet
+                Endre roller for brukarstad
             </legend>
             <div class="ds-field" th:each="entitlement : ${@relyingPartiesService.getValidEntitlementValues()}">
                 <label th:for="|id-${entitlement}|" th:text="${entitlement}"></label>
@@ -97,22 +97,22 @@
                   style="margin-bottom: 2em;">
             <legend class="ds-label"
                     data-weight="high">
-                Endre EAA'ere for brukersted
+                Endre bevistypar
             </legend>
 
             <div class="flex-container">
                 <div>
                     <p class="ds-paragraph"
                        style="margin-bottom: 8px;">
-                        Valgte EAA'ere
+                        Bevistypar lagt inn
                     </p>
                     <table class="ds-table"
                            data-border="true"
                            style="table-layout: fixed; word-wrap: break-word;">
                         <thead>
                         <tr>
-                            <th>Namespace</th>
-                            <th>Intent</th>
+                            <th>Bevistype</th>
+                            <th>Føremål</th>
                             <th style="width: 4em;"></th>
                         </tr>
                         </thead>
@@ -123,17 +123,17 @@
                 <div>
                     <fieldset class="ds-fieldset">
                         <legend class="ds-legend">
-                            Legg til ny EAA
+                            Legg til ny bevistype
                         </legend>
                         <div style="margin-bottom: 8px;">
 
                             <label for="eaa_namespace_field"
                                    class="ds-label">
-                                Namespace
+                                Bevistype
                             </label>
                             <input id="eaa_namespace_field"
                                    type="text"
-                                   placeholder="Namespace ..."
+                                   placeholder="Bevistype ..."
                                    class="ds-input">
                             <div id="eaa_namespace_error_msg"
                                  th:insert="~{fragments/general ::
@@ -142,11 +142,11 @@
 
                             <label for="eaa_intent_field"
                                    class="ds-label">
-                                Intent
+                                Føremål
                             </label>
                             <input id="eaa_intent_field"
                                    type="text"
-                                   placeholder="Intent ..."
+                                   placeholder="Føremål ..."
                                    class="ds-input">
                             <div id="eaa_intent_error_msg"
                                  th:insert="~{fragments/general ::
@@ -171,7 +171,7 @@
         <button type="submit"
                 class="ds-button"
                 data-variant="primary">
-            Lagre endringer
+            Lagre endringar
         </button>
 
         <a th:href="@{|/details/${rp.id}|}"
@@ -180,7 +180,7 @@
            data-variant="secondary"
            data-color="danger"
            style="display: flex;">
-            Annuller
+            Avbryt
         </a>
     </div>
 

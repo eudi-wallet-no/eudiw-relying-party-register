@@ -11,20 +11,20 @@
                    for="csr_form"
                    class="ds-label"
                    data-weight="medium">
-                Lim inn gjyldig CSR
+                Lim inn gyldig CSR
             </label>
             <textarea id="csr_form"
                       th:field="*{csrField}"
                       th:type="text"
                       class="ds-input"
                       style="width: 40em; min-height: 5em;"
-                      placeholder="Pem-enkodet PKCS10 CSR">
+                      placeholder="PEM-innkoda PKCS10 CSR">
             </textarea>
         </div>
 
-        <div th:if="${#fields.hasErrors('csr')}"
+        <div th:if="${#fields.hasErrors('csrField')}"
              class="ds-validation-message">
-            Det gitt CSR er ikkje et gyldig CSR.
+            Lagt inn CSR er ikkje et gyldig CSR.
         </div>
 
     </fieldset>
@@ -48,15 +48,15 @@
         <td th:text="${cert.subjectDn}"></td>
     </tr>
     <tr>
-        <th>Utsteder</th>
+        <th>Utstedar</th>
         <td th:text="${cert.issuerDn}"></td>
     </tr>
     <tr>
-        <th>Gjyldig fra</th>
+        <th>Gyldig frå</th>
         <td th:text="${@timestampFormatter.formatEpochMillis(cert.validFromMs)}"></td>
     </tr>
     <tr>
-        <th>Gjyldig til</th>
+        <th>Gyldig til</th>
         <td th:text="${@timestampFormatter.formatEpochMillis(cert.validUntilMs)}"></td>
     </tr>
     </tbody>

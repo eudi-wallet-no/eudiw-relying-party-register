@@ -6,30 +6,25 @@
 </head>
 
 <body>
-<header th:replace="~{fragments/general :: page_header_fragment}"></header>
+    <header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
-<main>
-    <h1 class="ds-heading" data-size="lg">
-        Det skjedde en uventet feil
-    </h1>
+    <main>
+        <h1 class="ds-heading" data-size="lg">
+            Beklager! Me har gjort noko gale.
+        </h1>
 
-    <p class="ds-paragraph">
-        Det skjedde en uventet i håndteringen av forespørselen din.
-        Dette skyldes formentlig en ukjent intern feil eller manglende forbindelse
-        til interne services, men kan også hende når forventede resurser mangler.
-    </p>
+        <p class="ds-paragraph">
+            Det har skjedd ein uventa feil. Anten noko gale me har gjort eller
+            kontakt med ekstern teneste feila.
+        </p>
 
-    <p class="ds-paragraph">
-        Beklager!
-    </p>
+        <p class="ds-paragraph">
+            <a th:href="@{/}" class="ds-button">
+                Heim
+            </a>
+        </p>
+    </main>
 
-    <p class="ds-paragraph">
-        <a th:href="@{/search}" class="ds-button">
-            Tilbake til søk
-        </a>
-    </p>
-</main>
-
-<footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
+    <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
 </body>
 </html>

@@ -12,9 +12,9 @@ import java.util.List;
 
 @With
 public record SearchForm(
-    @Size(max = 255, message = "søketerm må max være 255 tegn")
+    @Size(max = 255, message = "Ugyldig søk. Maks 255 teikn.")
     @SaneStringConstraint(message =
-        "søketerm får bare inneholde norske bokstaver, tall, mellemrom, og symbolene "
+        "Ugyldig søk. Gyldige teikn er: norske bokstavar, tal, mellemrom og symbola "
             + SaneStringValidator.ALLOWED_SYMBOLS,
                           nullable = false)
     String searchTerm,

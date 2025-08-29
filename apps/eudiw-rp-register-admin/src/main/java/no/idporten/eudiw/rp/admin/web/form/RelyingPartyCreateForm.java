@@ -20,20 +20,20 @@ import java.util.List;
 @EqualsAndHashCode
 public class RelyingPartyCreateForm {
 
-    @Orgnr(message = "Ikkje et gyldig organisasjonsnummer")
+    @Orgnr(message = "Ugyldig organisasjonsnummer")
     @NotNull
     private String orgno;
 
     @SaneStringConstraint(message =
-        "Navnet får bare inneholde norske bokstaver, tal, mellemrom, og symbolene "
+        "Ugyldig namn. Gyldige teikn er: norske bokstavar, tal, mellemrom og symbola "
             + SaneStringValidator.ALLOWED_SYMBOLS)
-    @NotBlank(message = "Navnet får ikkje være tomt")
+    @NotBlank(message = "Namn må fyllast ut")
     private String name;
 
     private boolean publicSector;
 
     @Valid
-    @NotEmpty(message = "Brukerstedet må ha minst en entitlement")
+    @NotEmpty(message = "Brukarstaden må ha minst ein rolle valt")
     private List<RelyingPartyEntitlementFormField> entitlements;
     @Valid
     private List<RelyingPartyEaaFormField> eaas;

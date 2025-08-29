@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
 <head>
     <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
-    <title>Aksesssertifikat registrert</title>
+    <title>Access-sertifikat registrert</title>
 </head>
 
 <!--/*@thymesVar id="detailedViewDataAttr" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
@@ -21,10 +21,11 @@
         </p>
 
         <h2 class="ds-heading">
-            Sertifikat registrert!
+            Access-sertifikat registrert!
         </h2>
-        <p>
-            CSR'en ble akseptert og følgende ny sertifikat ble registrert
+        <p class="ds-paragraph"
+           style="color: red;">
+            CSR'en vart akseptert og følgjande nytt access-sertifikat blei registrert
             for <span th:text="${rp.name}"/>:
         </p>
 

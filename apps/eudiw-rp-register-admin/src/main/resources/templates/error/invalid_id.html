@@ -9,25 +9,17 @@
     <header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
     <main>
-        <div>
-            <h1 class="ds-heading" data-size="lg">
-                Ugjyldig ID!
-            </h1>
-        </div>
+        <h1 class="ds-heading" data-size="lg">
+            Ugyldig ID!
+        </h1>
 
-        <div>
-            <p class="ds-paragraph">
-                Det gitte ID er ikkje gjyldig: "<span th:text="${rejectedIdAttr}"></span>".
-            </p>
-
-            <p class="ds-paragraph">
-                Sjekk lenket eller prøv igjen.
-            </p>
-        </div>
+        <p class="ds-paragraph">
+            ID'en er ikkje gyldig: "<span th:text="${rejectedIdAttr}"></span>". Prøve med anna ID.
+        </p>
 
         <p class="ds-paragraph">
             <a th:href="@{/}" class="ds-button">
-                Hjem
+                Heim
             </a>
         </p>
     </main>
