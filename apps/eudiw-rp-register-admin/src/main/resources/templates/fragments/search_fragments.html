@@ -59,7 +59,7 @@
 <div th:fragment="results_table_fragment">
     <div th:with="resultsPage=${@searchSession.getCurrentSearchResultsPage()}">
         <div th:if="${#lists.isEmpty(resultsPage)}">
-            Fant ingen brukersteder.
+            Fann ingen brukarstader.
         </div>
 
         <table th:unless="${#lists.isEmpty(resultsPage)}"
