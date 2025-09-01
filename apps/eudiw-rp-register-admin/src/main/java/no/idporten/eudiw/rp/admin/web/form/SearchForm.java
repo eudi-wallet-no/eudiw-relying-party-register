@@ -2,15 +2,12 @@ package no.idporten.eudiw.rp.admin.web.form;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.With;
 import no.idporten.eudiw.rp.admin.validation.SaneStringConstraint;
 import no.idporten.eudiw.rp.admin.validation.SaneStringValidator;
-import no.idporten.eudiw.rp.admin.web.resource.SearchRelyingPartyResource;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@With
 public record SearchForm(
     @Size(max = 255, message = "Ugyldig søk. Maks 255 teikn.")
     @SaneStringConstraint(message =
@@ -20,42 +17,21 @@ public record SearchForm(
     String searchTerm,
     boolean includeInactive,
     @NotNull
-    List<RelyingPartyEntitlementFormField> requiredEntitlements,
-    Integer page,
-    Integer pageSize
+    List<RelyingPartyEntitlementFormField> requiredEntitlements
 ) {
 
-    public static Integer DEFAULT_PAGE_SIZE = 25;
-    public static Integer DEFAULT_PAGE_NUMBER = 0;
-
     public static SearchForm empty() {
-        return new SearchForm("", false, new ArrayList<>(), null, null);
+        return new SearchForm("", false, new ArrayList<>());
     }
 
     public SearchForm(
         String searchTerm,
         boolean includeInactive,
-        List<RelyingPartyEntitlementFormField> requiredEntitlements,
-        Integer page,
-        Integer pageSize
+        List<RelyingPartyEntitlementFormField> requiredEntitlements
     ) {
         this.searchTerm = searchTerm.strip();
         this.includeInactive = includeInactive;
         this.requiredEntitlements = requiredEntitlements != null ? requiredEntitlements : new ArrayList<>();
-        this.page = page != null ? page : DEFAULT_PAGE_NUMBER;
-        this.pageSize = pageSize != null ? pageSize : DEFAULT_PAGE_SIZE;
-    }
-
-    public SearchRelyingPartyResource toResource() {
-        return new SearchRelyingPartyResource(
-            this.searchTerm,
-            this.includeInactive,
-            this.requiredEntitlements
-                .stream()
-                .map(RelyingPartyEntitlementFormField::toResource)
-                .toList(),
-            this.page,
-            this.pageSize);
     }
 
     public List<String> requiredEntitlementValues() {

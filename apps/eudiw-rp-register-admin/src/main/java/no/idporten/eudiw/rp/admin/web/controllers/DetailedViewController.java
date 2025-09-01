@@ -4,10 +4,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
+import no.idporten.eudiw.rp.admin.web.SearchSession;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEditForm;
 import no.idporten.eudiw.rp.admin.web.resource.EditRelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
-import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartiesView;
 import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary;
 import no.idporten.logging.audit.Audit;
 import no.idporten.logging.audit.AuditIgnore;
@@ -31,7 +31,7 @@ public class DetailedViewController {
     private static final String LOMMEBOK_12_EDIT_RP_REQUEST = "LOMMEBOK-12-EDIT-RP-REQUEST";
 
     private final RelyingPartiesService relyingPartiesService;
-    private final RelyingPartiesView relyingPartiesView;
+    private final SearchSession searchSession;
 
     @GetMapping("/details")
     public ModelAndView detailsWithoutIdRedirectToSearch() {
@@ -79,7 +79,7 @@ public class DetailedViewController {
         if (!editFormBindingResult.hasErrors()) {
             EditRelyingPartyResource editResource = editForm.toResource();
 
-            relyingPartiesView.edit(id, editResource);
+            searchSession.edit(id, editResource);
 
             // NOTE: at this point RP is updated, and view returns to details page.
             // could alternatively show a confirmation page.
