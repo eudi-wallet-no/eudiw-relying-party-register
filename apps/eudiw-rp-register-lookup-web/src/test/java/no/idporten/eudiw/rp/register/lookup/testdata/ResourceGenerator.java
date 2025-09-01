@@ -9,6 +9,7 @@ import no.idporten.eudiw.rp.register.lookup.web.resource.RelyingPartyEntitlement
 import no.idporten.eudiw.rp.register.lookup.web.resource.RelyingPartyResource;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -45,6 +46,9 @@ public class ResourceGenerator extends TestDataGenerator {
     public static RelyingPartiesResource generateRelyingPartiesResource() {
         return new RelyingPartiesResource(
             generateListBy(ResourceGenerator::generateRelyingPartyResource));
+    }
+    public static List<RelyingPartyResource> generateRelyingPartyResourceList() {
+        return generateListBy(ResourceGenerator::generateRelyingPartyResource);
     }
 
     public static SearchForm generateSearchForm() {

@@ -2,6 +2,8 @@ package no.idporten.eudiw.rp.register.lookup.web.resource;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import no.idporten.eudiw.rp.register.lookup.web.form.RelyingPartyEntitlementFormField;
+import no.idporten.eudiw.rp.register.lookup.web.form.SearchForm;
 
 import java.util.List;
 
@@ -12,5 +14,21 @@ public record SearchRelyingPartyResource(
     @JsonProperty("include_inactive")
     boolean includeInactive,
     @JsonProperty("required_entitlements")
-    List<RelyingPartyEntitlementResource> requiredEntitlements
-) { }
+    List<RelyingPartyEntitlementResource> requiredEntitlements,
+    @JsonProperty(value = "page")
+    int page,
+    @JsonProperty(value = "page_size")
+    int pageSize
+) {
+    public SearchRelyingPartyResource(SearchForm searchForm, int page, int pageSize) {
+        this(searchForm.searchTerm(),
+             searchForm.includeInactive(),
+             searchForm.requiredEntitlements()
+                       .stream()
+                       .map(RelyingPartyEntitlementFormField::toResource)
+                       .toList(),
+             page,
+             pageSize);
+    }
+
+}

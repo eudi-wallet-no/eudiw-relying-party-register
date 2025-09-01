@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 import no.idporten.eudiw.rp.register.lookup.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.register.lookup.web.form.SearchForm;
-import no.idporten.eudiw.rp.register.lookup.web.resource.RelyingPartiesResource;
 import no.idporten.eudiw.rp.register.lookup.web.resource.RelyingPartyResource;
 import no.idporten.eudiw.rp.register.lookup.web.resource.SearchRelyingPartyResource;
 import org.springframework.stereotype.Component;
@@ -70,13 +69,13 @@ public class RelyingPartiesView {
     }
 
     public void doSearch(SearchRelyingPartyResource searchResource) {
-        RelyingPartiesResource searchResult =
-            this.relyingPartiesService.search(searchResource);
+        List<RelyingPartyResource> searchResult =
+            this.relyingPartiesService.search(searchResource)
+                                      .content();
 
         this.ordering = RelyingPartiesViewOrdering.NAME_ASC;
         this.relyingParties =
-            searchResult.relyingParties()
-                        .stream()
+            searchResult.stream()
                         .sorted(this.ordering.toComparator())
                         .collect(relyingPartyLinkedMapCollector);
 

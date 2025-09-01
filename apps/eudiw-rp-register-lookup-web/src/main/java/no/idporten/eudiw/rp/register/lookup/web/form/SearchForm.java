@@ -5,7 +5,6 @@ import jakarta.validation.constraints.Size;
 import lombok.With;
 import no.idporten.eudiw.rp.register.lookup.validation.SaneStringConstraint;
 import no.idporten.eudiw.rp.register.lookup.validation.SaneStringValidator;
-import no.idporten.eudiw.rp.register.lookup.web.resource.SearchRelyingPartyResource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,15 +34,5 @@ public record SearchForm(
         this.includeInactive = includeInactive;
         this.requiredEntitlements =
             requiredEntitlements != null ? requiredEntitlements : new ArrayList<>();
-    }
-
-    public SearchRelyingPartyResource toResource() {
-        return new SearchRelyingPartyResource(
-            this.searchTerm,
-            this.includeInactive,
-            this.requiredEntitlements
-                .stream()
-                .map(RelyingPartyEntitlementFormField::toResource)
-                .toList());
     }
 }

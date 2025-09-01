@@ -4,8 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import no.idporten.eudiw.rp.register.lookup.service.exception.UnauthorizedRequestException;
 import no.idporten.eudiw.rp.register.lookup.service.exception.UnrecognizedErrorResponseException;
 import no.idporten.eudiw.rp.register.lookup.testdata.ResourceGenerator;
+import no.idporten.eudiw.rp.register.lookup.web.resource.PagedResponse;
+import no.idporten.eudiw.rp.register.lookup.web.resource.RelyingPartyResource;
 import no.idporten.eudiw.rp.register.lookup.web.form.SearchForm;
-import no.idporten.eudiw.rp.register.lookup.web.resource.RelyingPartiesResource;
+import no.idporten.eudiw.rp.register.lookup.web.resource.SearchRelyingPartyResource;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 
@@ -48,13 +50,18 @@ public class ServiceTest {
 
         assertThrowsExactly(UnauthorizedRequestException.class,
                             () -> lookupService.search(
-                                ResourceGenerator.generateSearchForm().toResource()));
+                                new SearchRelyingPartyResource(
+                                    ResourceGenerator.generateSearchForm(), 0, 25)));
     }
 
     @Test
     @DisplayName("then valid search result responses are properly deserialized")
     void testCorrectDeserializationOfValidSearchResponse() throws Exception {
-        RelyingPartiesResource expectedSearchResultResource = ResourceGenerator.generateRelyingPartiesResource();
+        List<RelyingPartyResource> expectedContent = ResourceGenerator.generateRelyingPartyResourceList();
+        PagedResponse<RelyingPartyResource> expectedSearchResultResource = new PagedResponse<>(
+            expectedContent,
+            new PagedResponse.PageMetadata(expectedContent.size(), 0, expectedContent.size(), 1)
+        );
         String responseBody = new ObjectMapper().writer().writeValueAsString(expectedSearchResultResource);
 
         MockResponse mockValidResponse =
@@ -64,8 +71,9 @@ public class ServiceTest {
                 .setBody(responseBody);
         mockWebServer.enqueue(mockValidResponse);
 
-        RelyingPartiesResource actualSearchResultResource =
-            lookupService.search(SearchForm.empty().toResource());
+        PagedResponse<RelyingPartyResource> actualSearchResultResource =
+            lookupService.search(
+                new SearchRelyingPartyResource(SearchForm.empty(), 0, 25));
         assertEquals(expectedSearchResultResource, actualSearchResultResource);
     }
 
@@ -105,7 +113,8 @@ public class ServiceTest {
 
             assertThrowsExactly(UnrecognizedErrorResponseException.class,
                                 () -> lookupService.search(
-                                    ResourceGenerator.generateSearchForm().toResource()));
+                                    new SearchRelyingPartyResource(
+                                        ResourceGenerator.generateSearchForm(), 0, 25)));
         }
     }
 }
