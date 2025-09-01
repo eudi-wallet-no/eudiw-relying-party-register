@@ -56,12 +56,8 @@
     </details>
 </form>
 
-<div th:fragment="results_table_fragment"
-     th:if="${@relyingPartiesView.isInitialized()}">
-
-    <!--/*@thymesVar id="full_results" type="no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartiesView"*/-->
-    <!--/*@thymesVar id="sorted_and_filtered_results" type="java.util.List<no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource>"*/-->
-    <div th:with="resultsPage=${@relyingPartiesView.getCurrentResultsPage()}">
+<div th:fragment="results_table_fragment">
+    <div th:with="resultsPage=${@searchSession.getCurrentSearchResultsPage()}">
         <div th:if="${#lists.isEmpty(resultsPage)}">
             Fant ingen brukersteder.
         </div>
@@ -69,7 +65,7 @@
         <table th:unless="${#lists.isEmpty(resultsPage)}"
                class="ds-table"
                data-border="true"
-               th:with="currentOrdering=${@relyingPartiesView.getOrdering()},
+               th:with="currentOrdering=${@searchSession.getOrdering()},
                         orderingOpts=${T(no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartiesViewOrdering)}"
         >
             <thead class="clickableHeaders">
@@ -108,9 +104,9 @@
         </table>
     </div>
 
-    <nav th:with="pageWindow=${@relyingPartiesView.getPaginationWindow()},
-                  currentPageNum=${@relyingPartiesView.getCurrentPageIdx() + 1},
-                  numPages=${@relyingPartiesView.getNumPages()}"
+    <nav th:with="pageWindow=${@searchSession.getPaginationWindow()},
+                  currentPageNum=${@searchSession.getCurrentPageIdx() + 1},
+                  numPages=${@searchSession.getNumPages()}"
          class="ds-pagination"
     >
         <ul th:if="${numPages > 1}">

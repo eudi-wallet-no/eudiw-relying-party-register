@@ -70,7 +70,7 @@ public class ResourceGenerator extends TestDataGenerator {
     }
 
     public static SearchForm generateSearchForm() {
-        return new SearchForm(generateName(), generateBoolean(), new ArrayList<>(), 0, 25);
+        return new SearchForm(generateName(), generateBoolean(), new ArrayList<>());
     }
 
     public static RelyingPartyAccessCertificateResource generateCertificateResource()
@@ -90,18 +90,5 @@ public class ResourceGenerator extends TestDataGenerator {
                 content.size(), 0, content.size(), 1
             )
         );
-        /*return new PageResponse<>(
-            content,
-            null,
-            true,
-            (long) content.size(),
-            1,
-            content.size(),
-            1,
-            true,
-            content.size(),
-            null,
-            false
-        );*/
     }
 }

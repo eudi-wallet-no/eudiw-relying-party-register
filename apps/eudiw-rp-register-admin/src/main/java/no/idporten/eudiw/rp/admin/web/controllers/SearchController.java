@@ -3,9 +3,8 @@ package no.idporten.eudiw.rp.admin.web.controllers;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import no.idporten.eudiw.rp.admin.web.SearchSession;
 import no.idporten.eudiw.rp.admin.web.form.SearchForm;
-import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartiesViewOrdering;
-import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartiesView;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -21,22 +20,17 @@ public class SearchController {
     public static final String searchFormAttrId = "searchFormAttr";
     public static final String detailedViewDataAttrId = "detailedViewDataAttr";
 
-    private final RelyingPartiesView relyingPartiesView;
+    private final SearchSession searchSession;
 
     @GetMapping("/search")
-    public ModelAndView searchGet(
-        @RequestParam(value = "page") Optional<Integer> oneIndexedPageNum,
-        @RequestParam(value = "sort") Optional<RelyingPartiesViewOrdering> ordering) {
+    public ModelAndView searchGet(@RequestParam(value = "page") Optional<Integer> oneIndexedPageNum) {
 
-        if (!relyingPartiesView.isInitialized()) {
-            relyingPartiesView.doSearch(SearchForm.empty().toResource());
-            relyingPartiesView.setLastSearchForm(SearchForm.empty());
+        if (!searchSession.isInitialized()) {
+            searchSession.doFreshSearch(SearchForm.empty());
         }
 
-        relyingPartiesView.setCurrentPageIdx(oneIndexedPageNum.orElse(1) - 1);
-        ordering.ifPresent(relyingPartiesView::setOrdering);
-
-        SearchForm lastSearchForm = relyingPartiesView.getLastSearchForm();
+        searchSession.setCurrentPageIdx(oneIndexedPageNum.orElse(1) - 1);
+        SearchForm lastSearchForm = searchSession.getLastSearchForm();
         return new ModelAndView("search_view", searchFormAttrId, lastSearchForm);
     }
 
@@ -46,8 +40,7 @@ public class SearchController {
         BindingResult bindingResult) {
 
         if (!bindingResult.hasErrors()) {
-            relyingPartiesView.doSearch(searchForm.toResource());
-            relyingPartiesView.setLastSearchForm(searchForm);
+            searchSession.doFreshSearch(searchForm);
         }
 
         return new ModelAndView("search_view", searchFormAttrId, searchForm);

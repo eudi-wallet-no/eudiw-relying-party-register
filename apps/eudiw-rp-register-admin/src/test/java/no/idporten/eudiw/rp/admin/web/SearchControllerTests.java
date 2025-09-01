@@ -45,7 +45,9 @@ public class SearchControllerTests {
                 .thenAnswer(invocationOnMock -> {
                     SearchRelyingPartyResource searchResource = invocationOnMock.getArgument(0, SearchRelyingPartyResource.class);
 
-                    List<RelyingPartyResource> content = List.of(ResourceGenerator.generateRelyingPartyResource().withName(searchResource.searchTerm()));
+                    List<RelyingPartyResource> content =
+                        List.of(ResourceGenerator.generateRelyingPartyResource()
+                                                 .withName(searchResource.searchTerm()));
                     return ResourceGenerator.generatePageResponse(content);
                 });
         }
@@ -58,7 +60,9 @@ public class SearchControllerTests {
                 .andExpect(view().name("search_view"))
                 .andExpect(model().attribute(SearchController.searchFormAttrId, SearchForm.empty()));
 
-            verify(mockRpService).search(eq(SearchForm.empty().toResource()));
+            SearchRelyingPartyResource expectedSearchResource =
+                new SearchRelyingPartyResource(SearchForm.empty(), 0, SearchSession.DEFAULT_PAGE_SIZE);
+            verify(mockRpService).search(eq(expectedSearchResource));
         }
 
         @Test
@@ -68,13 +72,12 @@ public class SearchControllerTests {
 
             mockMvc.perform(post("/search")
                                 .formField("searchTerm", testSearchForm.searchTerm())
-                                .formField("includeInactive", includeInactiveStr)
-                                .formField("page", String.valueOf(testSearchForm.page()))
-                                .formField("pageSize", String.valueOf(testSearchForm.pageSize())))
+                                .formField("includeInactive", includeInactiveStr))
                    .andExpect(view().name("search_view"))
                    .andExpect(model().attribute(SearchController.searchFormAttrId, testSearchForm));
-
-            verify(mockRpService).search(eq(testSearchForm.toResource()));
+            SearchRelyingPartyResource expectedSearchResource =
+                new SearchRelyingPartyResource(testSearchForm, 0, SearchSession.DEFAULT_PAGE_SIZE);
+            verify(mockRpService).search(eq(expectedSearchResource));
         }
 
         @Test

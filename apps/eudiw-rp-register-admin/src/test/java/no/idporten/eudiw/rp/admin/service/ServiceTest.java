@@ -3,10 +3,12 @@ package no.idporten.eudiw.rp.admin.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.idporten.eudiw.rp.admin.service.exception.UnauthorizedRequestException;
 import no.idporten.eudiw.rp.admin.service.exception.UnrecognizedErrorResponseException;
+import no.idporten.eudiw.rp.admin.web.SearchSession;
 import no.idporten.eudiw.rp.admin.web.form.SearchForm;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.admin.web.resource.PagedResponse;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
+import no.idporten.eudiw.rp.admin.web.resource.SearchRelyingPartyResource;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.DisplayName;
@@ -47,9 +49,10 @@ public class ServiceTest {
         MockResponse badRequestMockResponse = new MockResponse().setResponseCode(401);
         mockWebServer.enqueue(badRequestMockResponse);
 
+        SearchRelyingPartyResource searchResource =
+            new SearchRelyingPartyResource(ResourceGenerator.generateSearchForm(), 0, 1);
         assertThrowsExactly(UnauthorizedRequestException.class,
-                            () -> relyingPartiesService.search(
-                                ResourceGenerator.generateSearchForm().toResource()));
+                            () -> relyingPartiesService.search(searchResource));
     }
 
     @Test
@@ -68,8 +71,9 @@ public class ServiceTest {
         mockWebServer.enqueue(mockValidResponse);
 
         PagedResponse<RelyingPartyResource> actualSearchResultResource =
-                relyingPartiesService.search(SearchForm.empty().toResource());
-        assertEquals(expectedSearchResultResource.getFirst().name(), actualSearchResultResource.content().getFirst().name());
+                relyingPartiesService.search(
+                    new SearchRelyingPartyResource(SearchForm.empty(), 0, SearchSession.DEFAULT_PAGE_SIZE));
+        assertEquals(expectedSearchResultResource.getFirst(), actualSearchResultResource.content().getFirst());
     }
 
     @Nested
@@ -105,10 +109,10 @@ public class ServiceTest {
             MockResponse serverErrorMockResponse) {
 
             mockWebServer.enqueue(serverErrorMockResponse);
-
+            SearchRelyingPartyResource searchResource =
+                new SearchRelyingPartyResource(ResourceGenerator.generateSearchForm(), 0, 1);
             assertThrowsExactly(UnrecognizedErrorResponseException.class,
-                                () -> relyingPartiesService.search(
-                                    ResourceGenerator.generateSearchForm().toResource()));
+                                () -> relyingPartiesService.search(searchResource));
         }
     }
 }
