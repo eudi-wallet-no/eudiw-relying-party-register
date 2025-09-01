@@ -4,11 +4,12 @@ import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.rp.register.lookup.exception.LookupServiceException;
 import no.idporten.eudiw.rp.register.lookup.service.exception.NotFoundException;
 import no.idporten.eudiw.rp.register.lookup.service.exception.RelyingPartyNotFoundException;
-import no.idporten.eudiw.rp.register.lookup.web.resource.RelyingPartiesResource;
+import no.idporten.eudiw.rp.register.lookup.web.resource.PagedResponse;
 import no.idporten.eudiw.rp.register.lookup.web.resource.RelyingPartyResource;
 import no.idporten.eudiw.rp.register.lookup.web.resource.SearchRelyingPartyResource;
 import no.idporten.eudiw.rp.register.lookup.web.resource.entitlement.EntitlementResource;
 import no.idporten.eudiw.rp.register.lookup.web.resource.entitlement.EntitlementsResource;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.RestClient;
@@ -23,13 +24,12 @@ public class RelyingPartiesService {
 
     private final RestClient restClient;
 
-
-    public RelyingPartiesResource search(SearchRelyingPartyResource searchResource) {
+    public PagedResponse<RelyingPartyResource> search(SearchRelyingPartyResource searchResource) {
         return restClient.post()
                 .uri("/rp/search")
                 .body(searchResource)
                 .retrieve()
-                .toEntity(RelyingPartiesResource.class)
+                .toEntity(new ParameterizedTypeReference<PagedResponse<RelyingPartyResource>>() {})
                 .getBody();
     }
 

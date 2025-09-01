@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.register.lookup.web.form.SearchForm;
+import no.idporten.eudiw.rp.register.lookup.web.resource.SearchRelyingPartyResource;
 import no.idporten.eudiw.rp.register.lookup.web.search.resultsview.RelyingPartiesView;
 import no.idporten.eudiw.rp.register.lookup.web.search.resultsview.RelyingPartiesViewOrdering;
 import org.springframework.stereotype.Controller;
@@ -32,7 +33,8 @@ public class SearchController {
         @RequestParam(value = "sort") Optional<RelyingPartiesViewOrdering> ordering) {
 
         if (!relyingPartiesView.isInitialized()) {
-            relyingPartiesView.doSearch(SearchForm.empty().toResource());
+            relyingPartiesView.doSearch(
+                new SearchRelyingPartyResource(SearchForm.empty(), 0, 25));
             relyingPartiesView.setLastSearchForm(SearchForm.empty());
         }
 
@@ -49,7 +51,8 @@ public class SearchController {
         BindingResult bindingResult) {
 
         if (!bindingResult.hasErrors()) {
-            relyingPartiesView.doSearch(searchForm.toResource());
+            relyingPartiesView.doSearch(
+                new SearchRelyingPartyResource(searchForm, 0, 25));
             relyingPartiesView.setLastSearchForm(searchForm);
         }
 

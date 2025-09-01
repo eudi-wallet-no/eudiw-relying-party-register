@@ -4,6 +4,7 @@ import no.idporten.eudiw.rp.register.lookup.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.register.lookup.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.register.lookup.web.controllers.SearchController;
 import no.idporten.eudiw.rp.register.lookup.web.form.SearchForm;
+import no.idporten.eudiw.rp.register.lookup.web.resource.PagedResponse;
 import no.idporten.eudiw.rp.register.lookup.web.resource.RelyingPartiesResource;
 import no.idporten.eudiw.rp.register.lookup.web.resource.SearchRelyingPartyResource;
 import org.junit.jupiter.api.*;
@@ -38,9 +39,13 @@ public class LookupControllerTest {
             .thenAnswer(invocationOnMock -> {
                 SearchRelyingPartyResource searchResource =
                     invocationOnMock.getArgument(0, SearchRelyingPartyResource.class);
-                return new RelyingPartiesResource(
+                return new PagedResponse<>(
                     List.of(ResourceGenerator.generateRelyingPartyResource()
-                                             .withName(searchResource.searchTerm())));
+                                             .withName(searchResource.searchTerm())),
+                    new PagedResponse.PageMetadata(searchResource.pageSize(),
+                                                   searchResource.page(),
+                                                   Integer.MAX_VALUE,
+                                                   Integer.MAX_VALUE));
             });
     }
 
