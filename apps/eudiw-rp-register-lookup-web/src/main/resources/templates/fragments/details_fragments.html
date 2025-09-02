@@ -23,10 +23,6 @@
                 <th>Sist endra</th>
                 <td th:text="${@timestampFormatter.formatEpochMillis(rp.lastUpdatedMs)}"></td>
             </tr>
-            <tr>
-                <th>Aktiv</th>
-                <td th:text="${rp.active ? 'ja' : 'nei'}"></td>
-            </tr>
             </tbody>
         </table>
     </div>
