@@ -2,8 +2,11 @@ package no.eudiw.rp.register.api.resource;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import no.eudiw.rp.register.data.RelyingPartyOrdering;
 import no.eudiw.rp.register.validation.SaneStringConstraint;
 
 import java.util.List;
@@ -13,7 +16,10 @@ import java.util.List;
 @Getter
 @EqualsAndHashCode
 @JsonIgnoreProperties(ignoreUnknown = true)
+@With
 public class SearchRelyingPartyResource {
+    public static final int DEFAULT_PAGE_SIZE = 25;
+
     @JsonProperty(value = "search_term", required = true)
     @SaneStringConstraint
     @NotNull(message = "null_search_term")
@@ -23,13 +29,26 @@ public class SearchRelyingPartyResource {
     private boolean includeInactive = false;
 
     @JsonProperty(value = "required_entitlements")
+    @NotNull
     private List<RelyingPartyEntitlementResource> requiredEntitlements = List.of();
 
     @JsonProperty(value = "page")
-    private Integer page;
+    @Min(value = 0, message = "invalid_page_index")
+    private int page = 0;
 
     @JsonProperty(value = "page_size")
-    private Integer pageSize;
+    @Min(value = 0, message = "invalid_page_size")
+    private int pageSize = DEFAULT_PAGE_SIZE;
+
+    @AssertTrue(message = "invalid_page_offset")
+    @SuppressWarnings("unused") // used by jakarta
+    private boolean assertPageOffsetIsInBounds() {
+        return (long) page * pageSize <= Integer.MAX_VALUE;
+    }
+
+    @JsonProperty(value = "order_by")
+    @NotNull
+    private RelyingPartyOrdering ordering = RelyingPartyOrdering.UNSORTED;
 
     public SearchRelyingPartyResource(String searchTerm) {
         this();

@@ -1,6 +1,7 @@
 package no.eudiw.rp.register.api;
 
 import no.eudiw.rp.register.api.resource.*;
+import no.eudiw.rp.register.data.RelyingPartyOrdering;
 import no.eudiw.rp.register.data.repository.RelyingPartyRepository;
 import no.eudiw.rp.register.data.service.RelyingPartyService;
 import org.junit.jupiter.api.DisplayName;
@@ -53,7 +54,7 @@ public class RelyingPartiesControllerMockTests {
                                     .formatted(searchTerm, includeInactive);
 
             SearchRelyingPartyResource expectedSearchResource =
-                new SearchRelyingPartyResource(searchTerm, includeInactive, List.of(), null, null);
+                new SearchRelyingPartyResource(searchTerm).withIncludeInactive(includeInactive);
 
             mockMvc.perform(post("/v1/rp/search")
                                 .contentType(MediaType.APPLICATION_JSON)
