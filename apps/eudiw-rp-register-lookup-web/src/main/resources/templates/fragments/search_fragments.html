@@ -60,27 +60,27 @@
                class="ds-table"
                data-border="true"
                th:with="currentOrdering=${@searchSession.getOrdering()},
-                        orderingOpts=${T(no.idporten.eudiw.rp.register.lookup.web.search.resultsview.RelyingPartiesViewOrdering)}"
+                        orderingOpts=${T(no.idporten.eudiw.rp.register.lookup.web.search.resultsview.RelyingPartyOrdering)}"
         >
             <thead class="clickableHeaders">
             <tr>
                 <th th:class="${currentOrdering == orderingOpts.ORGNO_ASC ? 'focused' : ''}">
-                    <a th:href="@{search(sort='ORGNO_ASC')}" class="ds-link">
+                    <a th:href="@{/(sort='ORGNO_ASC')}" class="ds-link">
                         Org.nr.
                     </a>
                 </th>
                 <th th:class="${currentOrdering == orderingOpts.NAME_ASC ? 'focused' : ''}">
-                    <a th:href="@{search(sort='NAME_ASC')}" class="ds-link">
+                    <a th:href="@{/(sort='NAME_ASC')}" class="ds-link">
                         Namn
                     </a>
                 </th>
                 <th th:class="${currentOrdering == orderingOpts.CREATED_ASC ? 'focused' : ''}">
-                    <a th:href="@{search(sort='CREATED_ASC')}" class="ds-link">
+                    <a th:href="@{/(sort='CREATED_ASC')}" class="ds-link">
                         Oppretta
                     </a>
                 </th>
                 <th th:class="${currentOrdering == orderingOpts.LAST_UPDATED_ASC ? 'focused' : ''}">
-                    <a th:href="@{search(sort='LAST_UPDATED_ASC')}" class="ds-link">
+                    <a th:href="@{/(sort='LAST_UPDATED_ASC')}" class="ds-link">
                         Sist endra
                     </a>
                 </th>
