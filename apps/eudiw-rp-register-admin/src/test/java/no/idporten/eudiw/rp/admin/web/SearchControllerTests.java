@@ -61,7 +61,7 @@ public class SearchControllerTests {
                 .andExpect(model().attribute(SearchController.searchFormAttrId, SearchForm.empty()));
 
             SearchRelyingPartyResource expectedSearchResource =
-                new SearchRelyingPartyResource(SearchForm.empty(), 0, SearchSession.DEFAULT_PAGE_SIZE);
+                new SearchRelyingPartyResource(SearchForm.empty());
             verify(mockRpService).search(eq(expectedSearchResource));
         }
 
@@ -76,7 +76,7 @@ public class SearchControllerTests {
                    .andExpect(view().name("search_view"))
                    .andExpect(model().attribute(SearchController.searchFormAttrId, testSearchForm));
             SearchRelyingPartyResource expectedSearchResource =
-                new SearchRelyingPartyResource(testSearchForm, 0, SearchSession.DEFAULT_PAGE_SIZE);
+                new SearchRelyingPartyResource(testSearchForm);
             verify(mockRpService).search(eq(expectedSearchResource));
         }
 

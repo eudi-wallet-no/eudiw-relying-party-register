@@ -2,7 +2,9 @@ package no.idporten.eudiw.rp.admin.web.resource;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.With;
+import jakarta.validation.constraints.NotNull;
+import lombok.*;
+import lombok.experimental.Accessors;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEntitlementFormField;
 import no.idporten.eudiw.rp.admin.web.form.SearchForm;
 
@@ -10,26 +12,43 @@ import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @With
-public record SearchRelyingPartyResource(
+@AllArgsConstructor
+@NoArgsConstructor
+@EqualsAndHashCode
+@Getter
+@Accessors(fluent = true)
+public class SearchRelyingPartyResource {
+    public final static int DEFAULT_PAGE_SIZE = 25;
+    public final static RelyingPartyOrdering DEFAULT_ORDERING = RelyingPartyOrdering.UNSORTED;
+
     @JsonProperty("search_term")
-    String searchTerm,
+    private String searchTerm = "";
+
     @JsonProperty("include_inactive")
-    boolean includeInactive,
+    private boolean includeInactive = false;
+
     @JsonProperty("required_entitlements")
-    List<RelyingPartyEntitlementResource> requiredEntitlements,
+    @NotNull
+    private List<RelyingPartyEntitlementResource> requiredEntitlements = List.of();
+
     @JsonProperty(value = "page")
-    int page,
+    private int page = 0;
+
     @JsonProperty(value = "page_size")
-    int pageSize
-) {
-    public SearchRelyingPartyResource(SearchForm searchForm, int page, int pageSize) {
-        this(searchForm.searchTerm(),
-             searchForm.includeInactive(),
-             searchForm.requiredEntitlements()
-                       .stream()
-                       .map(RelyingPartyEntitlementFormField::toResource)
-                       .toList(),
-             page,
-             pageSize);
+    private int pageSize = DEFAULT_PAGE_SIZE;
+
+    @JsonProperty(value = "order_by")
+    @NotNull
+    private RelyingPartyOrdering ordering = DEFAULT_ORDERING;
+
+    public SearchRelyingPartyResource(SearchForm searchForm) {
+        this();
+        this.searchTerm = searchForm.searchTerm();
+        this.includeInactive = searchForm.includeInactive();
+        this.requiredEntitlements =
+            searchForm.requiredEntitlements()
+                      .stream()
+                      .map(RelyingPartyEntitlementFormField::toResource)
+                      .toList();
     }
 }
