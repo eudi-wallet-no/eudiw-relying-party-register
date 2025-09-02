@@ -39,8 +39,7 @@ public class ResourceGenerator extends TestDataGenerator {
             generateListBy(ResourceGenerator::generateRelyingPartyEntitlementResource),
             generateListBy(ResourceGenerator::generateRelyingPartyEaaResource),
             timeNow,
-            timeNow,
-            true
+            timeNow
         );
     }
     public static RelyingPartiesResource generateRelyingPartiesResource() {
@@ -52,6 +51,6 @@ public class ResourceGenerator extends TestDataGenerator {
     }
 
     public static SearchForm generateSearchForm() {
-        return new SearchForm(generateName(), generateBoolean(), new ArrayList<>());
+        return new SearchForm(generateName(), new ArrayList<>());
     }
 }
