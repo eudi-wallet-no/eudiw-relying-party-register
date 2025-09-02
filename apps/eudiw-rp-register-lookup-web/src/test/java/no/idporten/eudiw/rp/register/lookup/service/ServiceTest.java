@@ -51,7 +51,7 @@ public class ServiceTest {
         assertThrowsExactly(UnauthorizedRequestException.class,
                             () -> lookupService.search(
                                 new SearchRelyingPartyResource(
-                                    ResourceGenerator.generateSearchForm(), 0, 25)));
+                                    ResourceGenerator.generateSearchForm())));
     }
 
     @Test
@@ -73,7 +73,7 @@ public class ServiceTest {
 
         PagedResponse<RelyingPartyResource> actualSearchResultResource =
             lookupService.search(
-                new SearchRelyingPartyResource(SearchForm.empty(), 0, 25));
+                new SearchRelyingPartyResource(SearchForm.empty()));
         assertEquals(expectedSearchResultResource, actualSearchResultResource);
     }
 
@@ -114,7 +114,7 @@ public class ServiceTest {
             assertThrowsExactly(UnrecognizedErrorResponseException.class,
                                 () -> lookupService.search(
                                     new SearchRelyingPartyResource(
-                                        ResourceGenerator.generateSearchForm(), 0, 25)));
+                                        ResourceGenerator.generateSearchForm())));
         }
     }
 }

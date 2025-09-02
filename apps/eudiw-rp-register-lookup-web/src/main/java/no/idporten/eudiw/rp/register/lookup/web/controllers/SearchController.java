@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.register.lookup.web.form.SearchForm;
+import no.idporten.eudiw.rp.register.lookup.web.search.resultsview.RelyingPartyOrdering;
 import no.idporten.eudiw.rp.register.lookup.web.search.resultsview.SearchSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -26,13 +27,17 @@ public class SearchController {
     private final SearchSession searchSession;
 
     @GetMapping("/")
-    public ModelAndView searchGet(@RequestParam(value = "page") Optional<Integer> oneIndexedPageNum) {
+    public ModelAndView searchGet(
+        @RequestParam(value = "page") Optional<Integer> oneIndexedPageNum,
+        @RequestParam(value = "sort") Optional<RelyingPartyOrdering> ordering) {
 
         if (!searchSession.isInitialized()) {
                 searchSession.doFreshSearch(SearchForm.empty());
         }
 
-        searchSession.setCurrentPageIdx(oneIndexedPageNum.orElse(1) - 1);
+        oneIndexedPageNum.ifPresent(i -> searchSession.setCurrentPageIdx(i - 1));
+        ordering.ifPresent(searchSession::setOrdering);
+
         SearchForm lastSearchForm = searchSession.getLastSearchForm();
         return new ModelAndView("search_view", searchFormAttrId, lastSearchForm);
     }
