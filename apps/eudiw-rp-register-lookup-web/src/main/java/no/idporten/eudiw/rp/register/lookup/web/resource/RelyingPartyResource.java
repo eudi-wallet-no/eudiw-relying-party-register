@@ -33,8 +33,6 @@ public record RelyingPartyResource(
     long createdMs,
 
     @JsonProperty(value = "last_updated_ms", required = true)
-    long lastUpdatedMs,
+    long lastUpdatedMs
 
-    @JsonProperty(value = "active", required = true)
-    boolean active
 ) { }

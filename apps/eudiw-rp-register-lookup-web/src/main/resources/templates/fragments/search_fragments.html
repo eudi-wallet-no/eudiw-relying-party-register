@@ -22,12 +22,6 @@
                 data-variant="primary">Søk</button>
     </div>
 
-    <label for="includeInactive">Ta med inaktive</label>
-    <input id="includeInactive"
-           type="checkbox"
-           th:field="*{includeInactive}"
-           class="ds-input">
-
     <ul th:if="${#fields.hasErrors()}">
         <li th:each="error : ${#fields.errors('searchTerm')}"
             th:text="${error}"

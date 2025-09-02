@@ -17,21 +17,18 @@ public record SearchForm(
             + SaneStringValidator.ALLOWED_SYMBOLS,
                           nullable = false)
     String searchTerm,
-    boolean includeInactive,
     @NotNull
     List<RelyingPartyEntitlementFormField> requiredEntitlements
 ) {
 
     public static SearchForm empty() {
-        return new SearchForm("", false, new ArrayList<>());
+        return new SearchForm("", new ArrayList<>());
     }
 
     public SearchForm(
         String searchTerm,
-        boolean includeInactive,
         List<RelyingPartyEntitlementFormField> requiredEntitlements) {
         this.searchTerm = searchTerm.strip();
-        this.includeInactive = includeInactive;
         this.requiredEntitlements =
             requiredEntitlements != null ? requiredEntitlements : new ArrayList<>();
     }
