@@ -4,6 +4,7 @@ import no.eudiw.rp.register.api.resource.*;
 import static no.eudiw.rp.register.testdata.ResourceGenerator.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+import no.eudiw.rp.register.data.RelyingPartyOrdering;
 import no.eudiw.rp.register.data.entity.RelyingParty;
 import no.eudiw.rp.register.data.repository.RelyingPartyRepository;
 import no.eudiw.rp.register.testdata.EntityGenerator;
@@ -13,13 +14,12 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.web.PagedModel;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @SpringBootTest
 @DisplayName("When using the Relying Party Service")
@@ -224,8 +224,8 @@ public class RelyingPartyServiceTest {
         @Test
         @DisplayName("then only RPs with the specified entitlements are returned")
         void testSearchWithEntitlementsFiltering() {
-            int nRelyingParties = 1000;
-            List<RelyingParty> rpsIn = EntityGenerator.generateRelyingParties(nRelyingParties);
+            int numRelyingParties = 1000;
+            List<RelyingParty> rpsIn = EntityGenerator.generateRelyingParties(numRelyingParties);
             rpRepository.saveAllAndFlush(rpsIn);
 
             List<RelyingPartyEntitlementResource> requiredEntitlements =
@@ -242,11 +242,75 @@ public class RelyingPartyServiceTest {
                      .collect(Collectors.toSet());
 
             SearchRelyingPartyResource searchResource =
-                new SearchRelyingPartyResource("", true, requiredEntitlements, 0, 1000);
+                new SearchRelyingPartyResource()
+                    .withIncludeInactive(true)
+                    .withRequiredEntitlements(requiredEntitlements)
+                    .withPageSize(numRelyingParties);
+
             Set<RelyingPartyResource> actualSearchResult =
                 new HashSet<>(relyingPartyService.searchRelyingParties(searchResource).getContent());
 
             assertEquals(expectedSearchResult, actualSearchResult);
         }
+
+        @Test
+        @DisplayName("then expected sorting is correctly applied")
+        void testSortingByName() {
+            int numRelyingParties = 100;
+            List<RelyingParty> rpsIn = EntityGenerator.generateRelyingParties(numRelyingParties);
+            rpRepository.saveAllAndFlush(rpsIn);
+
+            SearchRelyingPartyResource searchResource =
+                new SearchRelyingPartyResource().withIncludeInactive(true);
+
+            List<RelyingPartyResource> searchResultByName =
+                relyingPartyService.searchRelyingParties(
+                                       searchResource.withOrdering(RelyingPartyOrdering.BY_NAME)
+                                                     .withPageSize(numRelyingParties))
+                                   .getContent();
+
+            List<RelyingPartyResource> expectedResult =
+                rpsIn.stream()
+                     .map(Converter::toResource)
+                     .sorted(Comparator.comparing(RelyingPartyResource::name))
+                     .toList();
+
+            assertEquals(expectedResult, searchResultByName);
+        }
+
+        @Test
+        @DisplayName("then search results returned in order when split into multiple requests")
+        void testAllResultsReturnedInCorrectOrderAcrossMultipleServiceRequests() {
+            int pageSize = 7;
+            int numRelyingParties = 113;
+
+            List<RelyingParty> rpsIn = EntityGenerator.generateRelyingParties(numRelyingParties);
+            rpRepository.saveAllAndFlush(rpsIn);
+
+            List<RelyingPartyResource> expectedSearchResult =
+                rpRepository.findAll()
+                            .stream()
+                            .map(Converter::toResource)
+                            .sorted(Comparator.comparing(RelyingPartyResource::orgNr))
+                            .toList();
+
+            SearchRelyingPartyResource searchResourceOrderByOrgno =
+                new SearchRelyingPartyResource().withPageSize(pageSize)
+                                                .withOrdering(RelyingPartyOrdering.BY_ORGNO);
+
+            long numPages = relyingPartyService.searchRelyingParties(searchResourceOrderByOrgno)
+                                               .getMetadata()
+                                               .totalPages();
+            List<RelyingPartyResource> actualSearchResult =
+                IntStream.range(0, (int) numPages)
+                         .mapToObj(searchResourceOrderByOrgno::withPage)
+                         .map(relyingPartyService::searchRelyingParties)
+                         .map(PagedModel::getContent)
+                         .flatMap(List::stream)
+                         .toList();
+
+            assertEquals(expectedSearchResult, actualSearchResult);
+        }
+
     }
 }

@@ -10,6 +10,7 @@ import no.eudiw.rp.register.data.service.exception.NotFoundException;
 import no.eudiw.rp.register.data.service.exception.ResourceDeletedException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,8 +20,6 @@ import java.util.*;
 @RequiredArgsConstructor
 @Service
 public class RelyingPartyService {
-
-    private static final PageRequest DEFAULT_PAGE_REQUEST = PageRequest.of(0, 25);
 
     private final RelyingPartyRepository relyingPartyRepository;
     private final EntitlementRepository entitlementRepository;
@@ -62,15 +61,17 @@ public class RelyingPartyService {
 
     @Transactional(readOnly = true)
     public PagedModel<RelyingPartyResource> searchRelyingParties(SearchRelyingPartyResource searchResource) {
-        PageRequest pageRequest = (searchResource.getPage() == null || searchResource.getPageSize() == null)
-            ? DEFAULT_PAGE_REQUEST
-            : PageRequest.of(searchResource.getPage(), searchResource.getPageSize());
 
-        List<String> entitlements = Optional.ofNullable(searchResource.getRequiredEntitlements())
-            .orElse(Collections.emptyList())
-            .stream()
-            .map(RelyingPartyEntitlementResource::entitlement)
-            .toList();
+        PageRequest pageRequest =
+            PageRequest.of(searchResource.getPage(),
+                           searchResource.getPageSize(),
+                           searchResource.getOrdering().toSort());
+
+        List<String> entitlements =
+            searchResource.getRequiredEntitlements()
+                          .stream()
+                          .map(RelyingPartyEntitlementResource::entitlement)
+                          .toList();
 
         Page<RelyingParty> page = relyingPartyRepository.searchQueryPaged(
             searchResource.getSearchTerm(),
