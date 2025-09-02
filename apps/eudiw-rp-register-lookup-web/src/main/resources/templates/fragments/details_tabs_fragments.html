@@ -1,0 +1,80 @@
+<div th:fragment="general_info_content_fragment(rp)">
+    <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
+    <div style="padding-bottom: 2em;">
+        <table class="ds-table">
+            <tbody>
+            <tr>
+                <th>Org.nr.</th>
+                <td th:text="${rp.orgno}"></td>
+            </tr>
+            <tr>
+                <th>Namn</th>
+                <td th:text="${rp.name}"></td>
+            </tr>
+            <tr>
+                <th>Sektor</th>
+                <td th:text="${rp.publicSector ? 'offentleg' : 'privat'}"></td>
+            </tr>
+            <tr>
+                <th>Oppretta</th>
+                <td th:text="${@timestampFormatter.formatEpochMillis(rp.createdMs)}"></td>
+            </tr>
+            <tr>
+                <th>Sist endra</th>
+                <td th:text="${@timestampFormatter.formatEpochMillis(rp.lastUpdatedMs)}"></td>
+            </tr>
+            <tr>
+                <th>Aktiv</th>
+                <td th:text="${rp.active ? 'ja' : 'nei'}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div style="margin-bottom: 1em;">
+        <h2 class="ds-heading">Roller og bevistypar</h2>
+
+        <details class="ds-details" data-variant="default">
+            <summary>Roller</summary>
+
+            <div th:if="${ #lists.isEmpty(rp.relyingPartyEntitlements)}">
+                <em>Ingen registrert.</em>
+            </div>
+            <div th:unless="${ #lists.isEmpty(rp.relyingPartyEntitlements)}">
+                <table class="ds-table" data-sticky-header="true">
+                    <thead>
+                        <tr><th>Rolle</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="ent : ${rp.relyingPartyEntitlements}">
+                            <td th:text="${ent.entitlement}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </details>
+
+        <details class="ds-details">
+            <summary>Bevistypar (EAA)</summary>
+            <div th:if="${ #lists.isEmpty(rp.relyingPartyEaas)}">
+                <em>Ingen registrert.</em>
+            </div>
+            <div th:unless="${ #lists.isEmpty(rp.relyingPartyEaas)}">
+                <table class="ds-table" data-sticky-header="true">
+                    <thead>
+                        <tr>
+                            <th>Bevistype</th>
+                            <th>Føremål</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="eaa : ${rp.relyingPartyEaas}">
+                        <td th:text="${eaa.namespace}"></td>
+                        <td th:text="${eaa.intent}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </details>
+    </div>
+</div>

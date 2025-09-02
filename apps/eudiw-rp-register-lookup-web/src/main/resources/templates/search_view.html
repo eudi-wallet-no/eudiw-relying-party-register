@@ -1,116 +1,38 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
 <head>
-    <title>Sandkasse for digital lommebok - Innsynstjenesten</title>
-    <link th:href="@{/css/index.css}" href="/css/index.css" rel="stylesheet">
-    <link th:href="@{/css/digdir.css}" href="/css/digdir.css" rel="stylesheet">
-    <link th:href="@{/css/searchPage.css}" rel="stylesheet">
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title>Søk etter brukarstader</title>
+    <style>
+        .clickableHeaders a {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            text-decoration: none;
+        }
+        .clickableHeaders a:visited {
+            color: inherit;
+        }
+        .clickableHeaders th.focused {
+            background-color: #ddeeff;
+        }
+    </style>
 </head>
+
 <body>
+    <header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
-<div class="two-column-page">
-    <div class="top-banner">
-        <img src="/digdir_logo.png" alt="Digdir logo" class="logo">
-        <div>
-            <h1>Sandkassa for digital lommebok</h1>
+    <main>
+        <h1 class="ds-heading" data-size="lg">
+            Søk etter brukarstader
+        </h1>
+        <form th:replace="~{fragments/search_fragments :: search_form_fragment}">
+        </form>
+
+        <div th:replace="~{fragments/search_fragments :: results_table_fragment}">
         </div>
-    </div>
+    </main>
 
-    <div class="flexbox">
-        <div class="search-column" id="search_column">
-
-            <h2>Søk etter brukerstader</h2>
-            <form th:object="${searchFormAttr}"
-                  th:action="@{/}"
-                  method="POST"
-            >
-                <div class="search-form-row">
-                    <label for="search_term"></label>
-                    <input th:class="ds-input" id="search_term" type="text" size="60"
-                           th:field="*{searchTerm}"
-                           placeholder="Søk på org.nr. eller navn">
-
-                    <label th:class="ds-label" for="includeInactive">Inkluder inaktive</label>
-                    <input th:class="ds-input" id="includeInactive" type="checkbox" th:field="*{includeInactive}">
-
-                    <button th:class="ds-button" type="submit">Søk</button>
-                </div>
-
-                <ul th:if="${#fields.hasErrors()}">
-                    <li th:each="error : ${#fields.errors('searchTerm')}"
-                        th:text="${error}"
-                        class="error-text" />
-                </ul>
-            </form>
-
-            <div th:if="${fullResultsAttr} != null">
-                <h2>Søkeresultat</h2>
-                <div class="fixed-headers-table"
-                     th:with="resultsView=${fullResultsAttr.applyViewSpec()}"
-                >
-                    <table th:class="ds-table" data-zebra="true" data-hover="true" data-sticky-header="true">
-                        <thead>
-                        <tr><th><label th:class="ds-label">Org.nr.</label></th><th><label th:class="ds-label">Navn</label></th></tr>
-                        </thead>
-                        <tbody>
-
-                        <tr th:if="${ #lists.isEmpty(resultsView)}">
-                            <td th:colspan="2">Fannt ingen brukerstader!</td>
-                        </tr>
-
-                        <tr th:each="rp : ${resultsView}"
-                            style="cursor: pointer">
-                            <td><a class="invisible-link" th:href="|@{/details}/${rp.id}|"><div th:text="${rp.orgno}"/></a> </td>
-                            <td><a class="invisible-link" th:href="|@{/details}/${rp.id}|"><div th:text="${rp.name}"/></a> </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <br>
-
-                <form th:object="${viewSpecFormAttr}"
-                      th:action="@{/view}"
-                      method="POST"
-                >
-                    <label for="sorting" th:class="ds-label">Sortering</label>
-                    <select id="sorting"
-                            th:class="ds-dropdown"
-                            th:field="*{ordering}"
-                            onchange="this.form.submit()"
-                    >
-                        <option th:each="orderingOption : ${viewSpecFormAttr.getOrderingOptions()}"
-                                th:text="${orderingOption.displayName}"
-                                th:value="${orderingOption}"
-                                th:class="ds-dropdown"
-                        />
-                    </select>
-
-                    <p>
-                        <label id="filter_label" for="entitlement_filter_form" th:class="ds-label">Filtrer etter rettigheter</label>
-                        <br>
-                        <textarea th:type="text"
-                                  th:class="ds-input"
-                                  id="entitlement_filter_form"
-                                  th:field="*{entitlementFreeTextField}"
-                                  style="width: 40em; min-height: 5em;"
-                                  placeholder="Legg til en eller flere rettigheter ..."
-                        ></textarea>
-                    </p>
-
-                    <button th:class="ds-button" type="submit">Oppdater visning</button>
-                </form>
-            </div>
-        </div>
-
-        <div th:replace="~{fragments/detailed_view :: detailed_view_column}"></div>
-
-    </div>
-    <div class="bottom-banner">
-        <p>Digital Lommebok © 2025</p>
-    </div>
-</div>
-
-
+    <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
 </body>
 </html>
