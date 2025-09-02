@@ -255,7 +255,7 @@ public class RelyingPartyServiceTest {
 
         @Test
         @DisplayName("then expected sorting is correctly applied")
-        void testSortingByName() {
+        void testSortingByCreatedMs() {
             int numRelyingParties = 100;
             List<RelyingParty> rpsIn = EntityGenerator.generateRelyingParties(numRelyingParties);
             rpRepository.saveAllAndFlush(rpsIn);
@@ -263,19 +263,19 @@ public class RelyingPartyServiceTest {
             SearchRelyingPartyResource searchResource =
                 new SearchRelyingPartyResource().withIncludeInactive(true);
 
-            List<RelyingPartyResource> searchResultByName =
+            List<RelyingPartyResource> searchResultByCreatedMs =
                 relyingPartyService.searchRelyingParties(
-                                       searchResource.withOrdering(RelyingPartyOrdering.BY_NAME)
+                                       searchResource.withOrdering(RelyingPartyOrdering.CREATED_MS_ASC)
                                                      .withPageSize(numRelyingParties))
                                    .getContent();
 
             List<RelyingPartyResource> expectedResult =
                 rpsIn.stream()
                      .map(Converter::toResource)
-                     .sorted(Comparator.comparing(RelyingPartyResource::name))
+                     .sorted(Comparator.comparing(RelyingPartyResource::createdMs))
                      .toList();
 
-            assertEquals(expectedResult, searchResultByName);
+            assertEquals(expectedResult, searchResultByCreatedMs);
         }
 
         @Test
@@ -296,7 +296,7 @@ public class RelyingPartyServiceTest {
 
             SearchRelyingPartyResource searchResourceOrderByOrgno =
                 new SearchRelyingPartyResource().withPageSize(pageSize)
-                                                .withOrdering(RelyingPartyOrdering.BY_ORGNO);
+                                                .withOrdering(RelyingPartyOrdering.ORGNO_ASC);
 
             long numPages = relyingPartyService.searchRelyingParties(searchResourceOrderByOrgno)
                                                .getMetadata()
