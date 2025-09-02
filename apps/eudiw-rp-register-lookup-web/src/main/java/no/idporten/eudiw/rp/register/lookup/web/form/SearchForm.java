@@ -35,4 +35,11 @@ public record SearchForm(
         this.requiredEntitlements =
             requiredEntitlements != null ? requiredEntitlements : new ArrayList<>();
     }
+
+    public List<String> requiredEntitlementValues() {
+        return requiredEntitlements
+                .stream()
+                .map(RelyingPartyEntitlementFormField::getEntitlement)
+                .toList();
+    }
 }

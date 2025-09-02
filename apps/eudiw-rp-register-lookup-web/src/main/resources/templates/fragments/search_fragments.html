@@ -1,0 +1,146 @@
+<!--/*@thymesVar id="searchFormAttr" type="no.idporten.eudiw.rp.admin.web.form.SearchForm"*/-->
+<form th:fragment="search_form_fragment"
+      th:object="${searchFormAttr}"
+      th:action="@{/}"
+      method="POST">
+    <div style="margin-bottom: 1em;">
+    <div class="ds-search"
+         style="margin-block-end: var(--ds-size-2)">
+        <input id="search_term"
+               th:field="*{searchTerm}"
+               placeholder="Søk på org.nr. eller namn"
+               size="50"
+               type="text"
+               class="ds-input">
+        <button type="reset"
+                class="ds-button"
+                data-icon="true"
+                data-variant="tertiary"
+        ></button>
+        <button type="submit"
+                class="ds-button"
+                data-variant="primary">Søk</button>
+    </div>
+
+    <label for="includeInactive">Ta med inaktive</label>
+    <input id="includeInactive"
+           type="checkbox"
+           th:field="*{includeInactive}"
+           class="ds-input">
+
+    <ul th:if="${#fields.hasErrors()}">
+        <li th:each="error : ${#fields.errors('searchTerm')}"
+            th:text="${error}"
+            class="ds-validation-message"></li>
+    </ul>
+    </div>
+
+    <details class="ds-details"
+             style="width: fit-content;"
+             th:open="${!#lists.isEmpty(searchFormAttr.requiredEntitlements())}">
+        <summary>Filter</summary>
+        <fieldset class="ds-fieldset">
+            <legend>
+                Rolle
+            </legend>
+            <div class="ds-field" th:each="entitlement : ${@relyingPartiesService.getValidEntitlementValues()}">
+                <label th:for="|id-${entitlement}|" th:text="${entitlement}"></label>
+                <input th:id="|id-${entitlement}|"
+                       type="checkbox"
+                       class="ds-input"
+                       name="requiredEntitlements"
+                       th:value="${entitlement}"
+                       th:checked="${#lists.contains(searchFormAttr.requiredEntitlementValues(), entitlement)}">
+            </div>
+        </fieldset>
+    </details>
+</form>
+
+<div th:fragment="results_table_fragment">
+    <div th:with="resultsPage=${@searchSession.getCurrentSearchResultsPage()}">
+        <div th:if="${#lists.isEmpty(resultsPage)}">
+            Fann ingen brukarstader.
+        </div>
+
+        <table th:unless="${#lists.isEmpty(resultsPage)}"
+               class="ds-table"
+               data-border="true"
+               th:with="currentOrdering=${@searchSession.getOrdering()},
+                        orderingOpts=${T(no.idporten.eudiw.rp.register.lookup.web.search.resultsview.RelyingPartiesViewOrdering)}"
+        >
+            <thead class="clickableHeaders">
+            <tr>
+                <th th:class="${currentOrdering == orderingOpts.ORGNO_ASC ? 'focused' : ''}">
+                    <a th:href="@{search(sort='ORGNO_ASC')}" class="ds-link">
+                        Org.nr.
+                    </a>
+                </th>
+                <th th:class="${currentOrdering == orderingOpts.NAME_ASC ? 'focused' : ''}">
+                    <a th:href="@{search(sort='NAME_ASC')}" class="ds-link">
+                        Namn
+                    </a>
+                </th>
+                <th th:class="${currentOrdering == orderingOpts.CREATED_ASC ? 'focused' : ''}">
+                    <a th:href="@{search(sort='CREATED_ASC')}" class="ds-link">
+                        Oppretta
+                    </a>
+                </th>
+                <th th:class="${currentOrdering == orderingOpts.LAST_UPDATED_ASC ? 'focused' : ''}">
+                    <a th:href="@{search(sort='LAST_UPDATED_ASC')}" class="ds-link">
+                        Sist endra
+                    </a>
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+
+            <tr th:each="rp : ${resultsPage}">
+                <td><a th:href="@{|/details/${rp.id}|}" style="cursor:pointer;"><div th:text="${rp.orgno}"></div></a> </td>
+                <td th:text="${rp.name}"></td>
+                <td th:text="${@timestampFormatter.formatEpochMillis(rp.createdMs)}"></td>
+                <td th:text="${@timestampFormatter.formatEpochMillis(rp.lastUpdatedMs)}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <nav th:with="pageWindow=${@searchSession.getPaginationWindow()},
+                  currentPageNum=${@searchSession.getCurrentPageIdx() + 1},
+                  numPages=${@searchSession.getNumPages()}"
+         class="ds-pagination"
+    >
+        <ul th:if="${numPages > 1}">
+            <li th:unless="${#lists.contains(pageWindow, 1)}">
+                <a th:href="@{/(page=1)}"
+                   class="ds-button"
+                   data-variant="tertiary">
+                    <<
+                </a>
+            </li>
+
+            <li th:each="pageNum : ${pageWindow}">
+
+                <a th:if="${pageNum == currentPageNum}"
+                   th:href="@{/(page=${pageNum})}"
+                   class="ds-button"
+                   data-variant="primary">
+                    <span th:text="${pageNum}"></span>
+                </a>
+                <a th:unless="${pageNum == currentPageNum}"
+                   th:href="@{/(page=${pageNum})}"
+                   class="ds-button"
+                   data-variant="tertiary">
+                    <span th:text="${pageNum}"></span>
+                </a>
+            </li>
+
+            <li th:unless="${#lists.contains(pageWindow, numPages)}">
+                <a th:href="@{/(page=${numPages})}"
+                   class="ds-button"
+                   data-variant="tertiary">
+                    >>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>

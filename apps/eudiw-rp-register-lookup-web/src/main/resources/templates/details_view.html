@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nb-no"
+      th:with="rp=${detailedViewDataAttr}">
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title th:text="|Detaljar for ${rp.name}|"></title>
+</head>
+
+<!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
+<body>
+    <header th:replace="~{fragments/general :: page_header_fragment}"></header>
+
+    <main>
+        <h1 class="ds-heading" data-size="lg">
+            Detaljar for brukarstad: <span th:text="${rp.name}"/>
+        </h1>
+
+        <div
+             th:replace="~{fragments/details_tabs_fragments
+                            :: general_info_content_fragment(rp=${rp})}">
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
+</body>
+</html>

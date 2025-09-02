@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
 <head>
     <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
-    <title>Sida finst ikkje</title>
+    <title>Ugjyldig ID</title>
 </head>
 
 <body>
@@ -10,12 +10,11 @@
 
     <main>
         <h1 class="ds-heading" data-size="lg">
-            Beklager! Me fann ikkje sida.
+            Ugyldig ID!
         </h1>
 
         <p class="ds-paragraph">
-            Dobbeltsjekk om du har rett lenke eller rapporter bug i Jira om
-            du trur det er ein bug.
+            ID'en er ikkje gyldig: "<span th:text="${rejectedIdAttr}"></span>". Prøve med anna ID.
         </p>
 
         <p class="ds-paragraph">
