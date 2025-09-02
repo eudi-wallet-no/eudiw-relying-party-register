@@ -6,10 +6,10 @@ import org.springframework.data.domain.Sort;
 
 @RequiredArgsConstructor
 public enum RelyingPartyOrdering {
-    BY_NAME ("name"),
-    BY_ORGNO ("orgno"),
-    BY_CREATED_MS ("created_ms"),
-    BY_LAST_UPDATED_MS ("last_updated_ms"),
+    NAME_ASC ("name"),
+    ORGNO_ASC ("orgno"),
+    CREATED_MS_ASC ("createdMs"),
+    LAST_UPDATED_MS_ASC ("lastUpdatedMs"),
     UNSORTED ("unsorted");
 
     @JsonValue
