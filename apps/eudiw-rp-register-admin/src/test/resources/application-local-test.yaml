@@ -1,4 +1,8 @@
-TEST_MOCK_WEB_SERVER_PORT: 9253
+spring:
+  application:
+    name: digital-lommebok-rp-register-admin-selfservice-junit-tests
+
+TEST_MOCK_WEB_SERVER_PORT: 9252
 
 eudiw-admin-web:
   relying-parties-service:
