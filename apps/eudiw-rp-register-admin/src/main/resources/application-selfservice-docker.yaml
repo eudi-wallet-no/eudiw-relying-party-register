@@ -1,0 +1,7 @@
+---
+server:
+  port: 9255
+
+management:
+  server:
+    port: 9255
