@@ -11,6 +11,13 @@
     <header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
     <main>
+
+        <p class="ds-paragraph">
+            <a th:href="@{/}" class="ds-button">
+                Tilbake til søk
+            </a>
+        </p>
+
         <h1 class="ds-heading" data-size="lg">
             Detaljar for brukarstad: <span th:text="${rp.name}"/>
         </h1>
