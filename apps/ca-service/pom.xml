@@ -15,7 +15,7 @@
     <properties>
         <java.version>24</java.version>
         <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
-        <lombok.version>1.18.38</lombok.version>
+        <lombok.version>1.18.40</lombok.version>
         <idporten-actuator-starter.version>2.0.0</idporten-actuator-starter.version>
         <idporten-access-log.version>2.8.0</idporten-access-log.version>
         <idporten-validators.version>1.6.0</idporten-validators.version>
