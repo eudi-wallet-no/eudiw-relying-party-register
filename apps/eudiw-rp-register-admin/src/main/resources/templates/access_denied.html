@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="no-nn">
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title>Ingen tilgong</title>
+</head>
+
+<body>
+    <header th:replace="~{fragments/general :: page_header_fragment}"></header>
+
+    <main>
+        <h1 class="ds-heading" data-size="lg">Ingen tilgong</h1>
+        <div>
+            <p class="ds-paragraph">Beklager, men du har ikkje tilgong til denne sida.</p>
+            <p class="ds-paragraph">Prøv å starte frå <a th:href="@{/}">hovudsida</a></p>
+            <p class="ds-paragraph">Om du trur at du manglar rettar, så kan du søkje om tilgong via My Access:</p>
+            <p class="ds-paragraph">
+                <a href="https://myaccess.microsoft.com/" target="_blank">https://myaccess.microsoft.com/</a>
+            </p>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
+</body>
+</html>
