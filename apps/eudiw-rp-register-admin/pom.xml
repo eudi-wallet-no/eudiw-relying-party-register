@@ -27,6 +27,7 @@
         <lombok.version>1.18.38</lombok.version>
         <bcpkix.version>1.81</bcpkix.version>
         <idporten-audit-log.version>2.5.2</idporten-audit-log.version>
+        <spring-security-oauth2-resource-server.version>6.5.3</spring-security-oauth2-resource-server.version>
     </properties>
 
     <dependencies>
@@ -38,6 +39,15 @@
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>${springdoc.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-oauth2-resource-server</artifactId>
+            <version>${spring-security-oauth2-resource-server.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-client</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.data</groupId>

@@ -33,8 +33,7 @@ public class CreateController {
 
     @GetMapping("/create")
     public ModelAndView createGet() {
-        return new ModelAndView("create_form_view", Map.of(
-            createFormAttrId, new RelyingPartyCreateForm()));
+        return new ModelAndView("create_form_view", Map.of(createFormAttrId, new RelyingPartyCreateForm()));
     }
 
     @Audit(auditId = LOMMEBOK_10_CREATE_RP_REQUEST, includeResult = false, includeParameters = false)
