@@ -31,7 +31,7 @@ public class SearchSession {
     @Setter
     private SearchForm lastSearchForm = SearchForm.empty();
 
-    private RelyingPartyOrdering ordering = RelyingPartyOrdering.NAME_ASC;
+    private RelyingPartyOrdering ordering = SearchRelyingPartyResource.DEFAULT_ORDERING;
 
     private int numPages = 0;
     private int currentPageIdx = 0;

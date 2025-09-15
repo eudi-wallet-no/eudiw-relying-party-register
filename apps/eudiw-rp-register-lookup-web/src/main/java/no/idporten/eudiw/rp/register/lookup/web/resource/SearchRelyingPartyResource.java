@@ -20,13 +20,10 @@ import java.util.List;
 @Accessors(fluent = true)
 public class SearchRelyingPartyResource {
     public final static int DEFAULT_PAGE_SIZE = 25;
-    public final static RelyingPartyOrdering DEFAULT_ORDERING = RelyingPartyOrdering.UNSORTED;
+    public final static RelyingPartyOrdering DEFAULT_ORDERING = RelyingPartyOrdering.NAME_ASC;
 
     @JsonProperty("search_term")
     private String searchTerm = "";
-
-    @JsonProperty("include_inactive")
-    private final boolean includeInactive = false;
 
     @JsonProperty("required_entitlements")
     @NotNull

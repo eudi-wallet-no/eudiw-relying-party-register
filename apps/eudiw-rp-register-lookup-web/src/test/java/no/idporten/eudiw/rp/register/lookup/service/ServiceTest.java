@@ -57,7 +57,7 @@ public class ServiceTest {
     @Test
     @DisplayName("then valid search result responses are properly deserialized")
     void testCorrectDeserializationOfValidSearchResponse() throws Exception {
-        List<RelyingPartyResource> expectedContent = ResourceGenerator.generateRelyingPartyResourceList();
+        List<RelyingPartyResource> expectedContent = ResourceGenerator.generateRelyingPartiesResource();
         PagedResponse<RelyingPartyResource> expectedSearchResultResource = new PagedResponse<>(
             expectedContent,
             new PagedResponse.PageMetadata(expectedContent.size(), 0, expectedContent.size(), 1)
