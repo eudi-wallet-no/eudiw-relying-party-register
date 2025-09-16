@@ -73,7 +73,7 @@ public class SecurityConfig {
                         "/favicon.ico"
                     ).permitAll()
                     .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
-                    .anyRequest().hasAnyAuthority(requiredAuthorities())
+                    .anyRequest().hasAnyAuthority(toAuthority(entraProperties.writeAccess()))
                 )
                 .exceptionHandling(ex -> ex.accessDeniedPage("/access-denied"))
                 .oauth2Login(oauth -> oauth
@@ -108,11 +108,6 @@ public class SecurityConfig {
             List<String> groups = Optional.ofNullable(oidcUser.getClaimAsStringList("groups"))
                 .orElseGet(List::of);
 
-            Set<GrantedAuthority> mapped = new HashSet<>(oidcUser.getAuthorities());
-            for (String g : groups) {
-                mapped.add(new SimpleGrantedAuthority(toAuthority(g)));
-            }
-
             String name =
                 Optional.ofNullable(oidcUser.getClaimAsString("name"))
                     .orElse(oidcUser.getClaimAsString("preferred_username"));
@@ -122,16 +117,14 @@ public class SecurityConfig {
                 requestAttributes.getRequest().getSession(true).setAttribute("USER_DISPLAY_NAME", name);
             }
 
-            boolean inAllowedGroup = groups.stream()
-                .anyMatch(List.of(
-                    entraProperties.readAccess(),
-                    entraProperties.writeAccess()
-                )::contains);
-
-            if (!inAllowedGroup) {
+            boolean hasAccess = groups.contains(entraProperties.writeAccess());
+            if (!hasAccess) {
                 throw new OAuth2AuthenticationException(
                     new OAuth2Error("access_denied"), "Du er ikke i riktig access group");
             }
+
+            Set<GrantedAuthority> mapped = new HashSet<>(oidcUser.getAuthorities());
+            mapped.add(new SimpleGrantedAuthority(toAuthority(entraProperties.writeAccess())));
 
             return new DefaultOidcUser(mapped, oidcUser.getIdToken(), oidcUser.getUserInfo(), "preferred_username");
         };
@@ -155,12 +148,5 @@ public class SecurityConfig {
 
     private String toAuthority(String groupId) {
         return "GROUP_" + groupId;
-    }
-
-    private String[] requiredAuthorities() {
-        return Stream.of(entraProperties.readAccess(), entraProperties.writeAccess())
-            .filter(Objects::nonNull)
-            .map(this::toAuthority)
-            .toArray(String[]::new);
     }
 }
