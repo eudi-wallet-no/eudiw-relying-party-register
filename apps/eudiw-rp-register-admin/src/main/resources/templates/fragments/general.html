@@ -1,3 +1,4 @@
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/extras/spring-security" lang="no-nn">
 <th:block th:fragment="default_stylesheets_fragment">
     <link rel="stylesheet" th:href="@{/inter/inter.css}">
     <link rel="stylesheet" th:href="@{/css/index.css}">
@@ -35,7 +36,8 @@
         </a>
         <a class="ds-link"
            th:href="@{/logout}"
-           data-color="neutral">
+           data-color="neutral"
+           sec:authorize="isAuthenticated()">
             Logg ut
         </a>
     </div>
