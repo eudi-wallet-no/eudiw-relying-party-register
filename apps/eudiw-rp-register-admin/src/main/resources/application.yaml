@@ -52,7 +52,6 @@ eudiw-admin-web:
       read-timeout-millis: 5000
   entra:
     enabled: false
-    read-access: ${READ_ACCESS}
     write-access: ${WRITE_ACCESS}
 
 external-dependency-health-checks:

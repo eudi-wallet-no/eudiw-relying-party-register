@@ -29,5 +29,4 @@ spring:
 eudiw-admin-web:
   entra:
     enabled: true
-    read-access: ${READ_ACCESS}
     write-access: ${WRITE_ACCESS}
