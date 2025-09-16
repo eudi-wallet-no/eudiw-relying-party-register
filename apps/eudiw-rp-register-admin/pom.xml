@@ -27,7 +27,7 @@
         <lombok.version>1.18.40</lombok.version>
         <bcpkix.version>1.81</bcpkix.version>
         <idporten-audit-log.version>2.5.2</idporten-audit-log.version>
-        <spring-security-oauth2-resource-server.version>6.5.3</spring-security-oauth2-resource-server.version>
+        <spring-security-oauth2-resource-server.version>6.5.4</spring-security-oauth2-resource-server.version>
     </properties>
 
     <dependencies>
