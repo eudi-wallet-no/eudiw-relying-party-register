@@ -11,4 +11,9 @@ public class IndexController {
     public ModelAndView index() {
         return new ModelAndView("index_view");
     }
+
+    @GetMapping("/menu")
+    public ModelAndView menu() {
+        return new ModelAndView("menu_view");
+    }
 }
