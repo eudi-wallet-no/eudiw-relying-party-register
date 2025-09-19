@@ -53,6 +53,11 @@ eudiw-admin-web:
   entra:
     enabled: false
     write-access: ${WRITE_ACCESS}
+  ansattporten:
+    authorization-details:
+      type: ansattporten:altinn:service
+      resource: urn:altinn:resource:2480:40
+      allow-multiple-organizations: true
 
 external-dependency-health-checks:
   health-endpoints:
