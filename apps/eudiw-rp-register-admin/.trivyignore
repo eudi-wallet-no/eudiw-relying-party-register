@@ -1,5 +1,3 @@
 CVE-2025-22874 # go stdlib, crypto/x509
 CVE-2025-48988 # tomcat-embed-core 
 CVE-2025-47907 # stdlib
-CVE-2025-41248 # fixed 6.5.4  │ Spring Security │ Spring-security @EnableMethodSecurity
-CVE-2025-41249 # fixed 6.2.11 │ Spring Core │ Spring-annotations
