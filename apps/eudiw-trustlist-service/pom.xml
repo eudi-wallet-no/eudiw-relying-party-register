@@ -21,7 +21,7 @@
         <lombok.version>1.18.42</lombok.version>
         <idporten-actuator-starter.version>2.0.0</idporten-actuator-starter.version>
         <idporten-access-log.version>2.8.0</idporten-access-log.version>
-        <opentelemetry-api.version>1.54.0</opentelemetry-api.version>
+        <opentelemetry-api.version>1.54.1</opentelemetry-api.version>
         <jakarta.xml.bind-api.version>4.0.4</jakarta.xml.bind-api.version>
         <jaxb-impl.version>4.0.5</jaxb-impl.version>
         <jaxb2-maven-plugin.version>3.3.0</jaxb2-maven-plugin.version>
