@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.service.accesscertificates.X509CertificateConverter;
 import org.springframework.http.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,6 +25,7 @@ public class DownloadCertificateController {
 
     @GetMapping("/get-certificate/{rp-id}/{cert-id}")
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("@authorizationService.userHasPrivilegedAccessTo(#relyingPartyId)")
     public ResponseEntity<byte[]> downloadCertificate(
         @PathVariable("rp-id") UUID relyingPartyId,
         @PathVariable("cert-id") UUID certificateId) {

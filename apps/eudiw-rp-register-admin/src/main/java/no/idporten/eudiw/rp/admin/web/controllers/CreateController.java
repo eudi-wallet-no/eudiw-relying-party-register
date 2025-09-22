@@ -10,6 +10,7 @@ import no.idporten.eudiw.rp.admin.web.resource.CreateRelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import no.idporten.logging.audit.Audit;
 import no.idporten.logging.audit.AuditIgnore;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,6 +39,7 @@ public class CreateController {
 
     @Audit(auditId = LOMMEBOK_10_CREATE_RP_REQUEST, includeResult = false, includeParameters = false)
     @PostMapping("/create")
+    @PreAuthorize("@authorizationService.userHasPrivilegedAccessTo(#createForm.orgno())")
     public ModelAndView createPost(
         @ModelAttribute(createFormAttrId) @Valid RelyingPartyCreateForm createForm,
         @AuditIgnore BindingResult createFormBindingResult
