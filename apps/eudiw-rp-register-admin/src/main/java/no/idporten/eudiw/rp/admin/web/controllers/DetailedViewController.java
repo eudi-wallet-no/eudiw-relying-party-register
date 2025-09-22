@@ -11,6 +11,7 @@ import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary;
 import no.idporten.logging.audit.Audit;
 import no.idporten.logging.audit.AuditIgnore;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -39,8 +40,8 @@ public class DetailedViewController {
     }
 
     @GetMapping("/details/{id}")
-    public ModelAndView detailsGet(
-        @PathVariable("id") @Valid UUID id) {
+    public ModelAndView detailsGet(@PathVariable("id") @Valid UUID id) {
+
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
         List<RelyingPartyAccessCertificateSummary> certificatesResource =
             relyingPartiesService.getCertificatesForRelyingParty(id)
@@ -52,8 +53,8 @@ public class DetailedViewController {
     }
 
     @GetMapping("/details/{id}/edit")
-    public ModelAndView editGet(
-        @PathVariable("id") @Valid UUID id) {
+    @PreAuthorize("@authorizationService.userHasPrivilegedAccessTo(#id)")
+    public ModelAndView editGet(@PathVariable("id") @Valid UUID id) {
 
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
         RelyingPartyEditForm editForm =
@@ -66,6 +67,7 @@ public class DetailedViewController {
 
     @Audit(auditId = LOMMEBOK_12_EDIT_RP_REQUEST, includeResult = false, includeParameters = false)
     @PostMapping("/details/{id}/edit")
+    @PreAuthorize("@authorizationService.userHasPrivilegedAccessTo(#id)")
     public ModelAndView editPost(
         @PathVariable("id") UUID id,
         @ModelAttribute(editFormAttrId) @Valid RelyingPartyEditForm editForm,

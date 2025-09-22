@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @ActiveProfiles("local-test")
 @DisplayName("When using the certificate download controller")
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = false)
 public class DownloadCertificateControllerTests {
 
     @Autowired

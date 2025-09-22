@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @ActiveProfiles("local-test")
 @DisplayName("When using the RP registration controller")
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = false)
 public class CreateControllerTests {
 
     @Autowired

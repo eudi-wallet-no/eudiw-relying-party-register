@@ -11,6 +11,7 @@ import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyAc
 import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyCsrResource;
 import no.idporten.logging.audit.Audit;
 import no.idporten.logging.audit.AuditIgnore;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -34,6 +35,7 @@ public class CsrController {
     private final RelyingPartiesService relyingPartiesService;
 
     @GetMapping("/csr/{id}")
+    @PreAuthorize("@authorizationService.userHasPrivilegedAccessTo(#id)")
     public ModelAndView registerCsrGet(@PathVariable("id") @Valid UUID id) {
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
         return new ModelAndView("csr_form_view", Map.of(
@@ -43,6 +45,7 @@ public class CsrController {
 
     @Audit(auditId = LOMMEBOK_11_REGISTER_CSR_REQUEST, includeResult = false)
     @PostMapping("/csr/{id}")
+    @PreAuthorize("@authorizationService.userHasPrivilegedAccessTo(#id)")
     public ModelAndView registerCsrPost(
         @PathVariable("id") @Valid UUID id,
         @AuditIgnore @ModelAttribute(csrFormAttrId) @Valid CsrForm csrForm,
