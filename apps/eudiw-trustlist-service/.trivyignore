@@ -1,3 +1,2 @@
 # <CVE> # <package/affected code>. Fixed in <version>.
 CVE-2025-47907 # fixed 1.24.6  │ stdlib │ Cancelling a query
-CVE-2025-41249 # org.springframework:spring-core | Fixed in 6.2.11
