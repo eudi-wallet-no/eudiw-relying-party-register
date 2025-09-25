@@ -4,6 +4,7 @@ import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.xml.utils.DomUtils;
 import eu.europa.esig.trustedlist.TrustedListUtils;
+import no.idporten.eudiw.trustlist.config.TrustlistServiceProperties;
 import no.idporten.eudiw.trustlist.service.XMLSignerService;
 import no.idporten.eudiw.trustlist.xml.XMLUtils;
 import org.junit.jupiter.api.DisplayName;
@@ -19,7 +20,6 @@ import org.w3c.dom.Document;
 import javax.xml.transform.dom.DOMSource;
 import java.util.List;
 
-import static no.idporten.eudiw.trustlist.web.TrustListController.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -33,13 +33,29 @@ public class TrustListControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
     @Autowired
     private XMLSignerService xmlSignerService;
+
+    @Autowired
+    private TrustlistServiceProperties properties;
+
+    private String getPathXtsl() {
+        return properties.getTrustlistPathXtsl();
+    }
+
+    private String getPathSha2() {
+        return properties.getTrustlistPathSha2();
+    }
+    private String getPathDefault() {
+        return properties.getTrustlistPath();
+    }
 
     @DisplayName("then the TSL is signed")
     @Test
     void testSignedTSL() throws Exception {
-        MvcResult mvcResult = mockMvc.perform(get(PATH_ACCESS_TRUSTLIST_XTSL))
+
+        MvcResult mvcResult = mockMvc.perform(get(getPathXtsl()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/vnd.etsi.tsl+xml;charset=UTF-8"))
                 .andReturn();
@@ -49,10 +65,11 @@ public class TrustListControllerTest {
     }
 
 
+
     @DisplayName("then the TSL is signed and valid")
     @Test
     void testSignedTSLisValid() throws Exception {
-        MvcResult mvcResult = mockMvc.perform(get(PATH_ACCESS_TRUSTLIST_XTSL))
+        MvcResult mvcResult = mockMvc.perform(get(getPathXtsl()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/vnd.etsi.tsl+xml;charset=UTF-8"))
                 .andReturn();
@@ -68,7 +85,7 @@ public class TrustListControllerTest {
     @DisplayName("then the sha-256 hash of the TSL is of valid length")
     @Test
     void testSha256OfTrustlistIsValid() throws Exception {
-        MvcResult mvcResult = mockMvc.perform(get(PATH_ACCESS_TRUSTLIST_SHA))
+        MvcResult mvcResult = mockMvc.perform(get(getPathSha2()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("text/plain;charset=UTF-8"))
                 .andReturn();
@@ -80,8 +97,8 @@ public class TrustListControllerTest {
 
     @Test
     @DisplayName("eTag is returned as response header in sha2 and xtsl endpoints")
-    public void eTagReturnedAsResponseHeader() throws Exception{
-        MvcResult shaResult = mockMvc.perform(get(PATH_ACCESS_TRUSTLIST_SHA))
+    public void eTagReturnedAsResponseHeader() throws Exception {
+        MvcResult shaResult = mockMvc.perform(get(getPathSha2()))
                 .andExpect(status().isOk())
                 .andExpect(header().exists("ETag"))
                 .andExpect(header().exists("Last-Modified"))
@@ -90,7 +107,7 @@ public class TrustListControllerTest {
 
         assertNotNull(shaResult.getResponse().getHeader("ETag"));
 
-        MvcResult trustlistResult = mockMvc.perform(get(PATH_ACCESS_TRUSTLIST_XTSL))
+        MvcResult trustlistResult = mockMvc.perform(get(getPathXtsl()))
                 .andExpect(status().isOk())
                 .andExpect(header().exists("ETag"))
                 .andExpect(header().exists("Last-Modified"))
@@ -102,7 +119,7 @@ public class TrustListControllerTest {
         assertNotEquals(shaResult.getResponse().getHeader("ETag"), trustlistResult.getResponse().getHeader("ETag"));
 
         // this might be removed in the future, but for now test that ETag is not added here
-        mockMvc.perform(get(PATH_ACCESS_TRUSTLIST))
+        mockMvc.perform(get(getPathDefault()))
                 .andExpect(status().isOk())
                 .andExpect(header().doesNotExist("ETag"))
                 .andExpect(header().exists("Last-Modified"))
@@ -112,8 +129,8 @@ public class TrustListControllerTest {
 
     @Test
     @DisplayName("when retrieving the resource with ETag, then HTTP STATUS=not modified is returned if the resource has not changed")
-    public void verifyNoContentIsReturnedOnSecondCallWithIfNoneMatch() throws Exception{
-        MvcResult mvcResult1 = mockMvc.perform(get(PATH_ACCESS_TRUSTLIST_SHA))
+    public void verifyNoContentIsReturnedOnSecondCallWithIfNoneMatch() throws Exception {
+        MvcResult mvcResult1 = mockMvc.perform(get(getPathSha2()))
                 .andExpect(status().isOk())
                 .andExpect(header().exists("ETag"))
                 .andExpect(header().exists("Last-Modified"))
@@ -123,7 +140,7 @@ public class TrustListControllerTest {
         String eTag1 = mvcResult1.getResponse().getHeader("ETag");
         assertTrue(mvcResult1.getResponse().getContentLength() > 0);
 
-        MvcResult mvcResult2 = mockMvc.perform(get(PATH_ACCESS_TRUSTLIST_SHA).header("If-None-Match", eTag1))
+        MvcResult mvcResult2 = mockMvc.perform(get(getPathSha2()).header("If-None-Match", eTag1))
                 .andExpect(status().isNotModified())
                 .andExpect(header().exists("ETag"))
                 .andExpect(header().exists("Last-Modified"))

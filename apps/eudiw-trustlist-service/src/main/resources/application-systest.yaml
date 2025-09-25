@@ -4,6 +4,9 @@ spring:
     environment: systest
 
 trustlist-service:
+  trustlist-path: /no_eidas2sandkasse_dev_tsl
+  scheme-information:
+    scheme-name: Tillitsliste for norsk eidas2sandkasse i DEV
   service-provider:
     rp-access-services:
       - name:

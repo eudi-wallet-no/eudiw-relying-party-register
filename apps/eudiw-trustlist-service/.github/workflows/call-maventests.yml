@@ -6,6 +6,9 @@ name: Testing maven build
 on:
   pull_request:
     branches: [ main ]
+    paths-ignore:
+      - '*.md'
+      - 'LICENSE'
 
 jobs:
   call-workflow-maven-build:
