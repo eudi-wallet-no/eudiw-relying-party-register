@@ -1,10 +1,12 @@
 package no.idporten.eudiw.rp.admin.web.security.ansattporten;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import no.idporten.validators.orgnr.Orgnr;
 import org.springframework.boot.context.properties.bind.ConstructorBinding;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public record AnsattportenReportee(
     @JsonProperty("Name")
     @NotBlank

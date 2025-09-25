@@ -1,14 +1,10 @@
 package no.idporten.eudiw.rp.admin.web.security.ansattporten;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
-import org.springframework.stereotype.Component;
 
-@Component
-@RequiredArgsConstructor
 public class AnsattportenOidcUserService extends OidcUserService {
 
     @Override
