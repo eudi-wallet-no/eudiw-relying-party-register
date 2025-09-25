@@ -26,9 +26,14 @@ management:
       environment: ${spring.application.environment}
 
 trustlist-service:
+  trustlist-path: /no_eidas2sandkasse_tsl
+  trustlist-path-xtsl: ${trustlist-service.trustlist-path}.xtsl
+  trustlist-path-sha2: ${trustlist-service.trustlist-path}.sha2
+  environment-name: ""
   scheme-information:
+    scheme-name: Tillitsliste for norsk eidas2sandkasse
     sequence-number: 1
-    list-issue-datetime: 2025-07-03T06:00:00.00Z
+    list-issue-datetime: 2025-09-24T06:00:00.00Z
   # only support 1 trust service provider initially
   service-provider:
     name:
@@ -59,3 +64,4 @@ trustlist-service:
     password: ${TSL_SIGN_KEYSTORE_KEY_PASSWORD}
     key-alias: ${TSL_SIGN_KEYSTORE_KEY_ALIAS}
     key-password: ${TSL_SIGN_KEYSTORE_KEY_PASSWORD}
+

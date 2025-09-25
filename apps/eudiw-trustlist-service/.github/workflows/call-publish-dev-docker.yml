@@ -2,7 +2,7 @@ name: Publish Dev.Docker image
 
 on:
   push:
-    branches: main
+    branches: [ main ]
     paths-ignore:
       - 'src/test/**'
       - '*.md'
@@ -10,6 +10,5 @@ on:
 
 jobs:
   build-publish-image:
-    if: false
     uses: felleslosninger/github-workflows/.github/workflows/misc-publish-dev-docker.yml@main
     secrets: inherit

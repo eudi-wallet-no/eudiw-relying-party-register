@@ -65,7 +65,7 @@ public class TrustListGeneratorService {
                 createMultiLangNormStringType(LANG_CODE_EN, DIGITALISERINGSDIREKTORATET_LEGAL_NAME_EN)));
         schemeInformation.setSchemeOperatorAddress(createDigdirAddressType());
         schemeInformation.setSchemeName(createInternationalNamesType(
-                createMultiLangNormStringType(LANG_CODE_NO, "Tillitsliste for eidas2sandkasse.net"),
+                createMultiLangNormStringType(LANG_CODE_NO, properties.getSchemeInformation().schemeName()),
                 createMultiLangNormStringType(LANG_CODE_EN, "Trust list for eidas2sandkasse.net")
         ));
         schemeInformation.setSchemeInformationURI(new NonEmptyMultiLangURIListType());

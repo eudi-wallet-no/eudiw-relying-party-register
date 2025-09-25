@@ -16,6 +16,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "trustlist-service")
 public class TrustlistServiceProperties {
 
+    private String trustlistPath;
+    private String trustlistPathXtsl;
+    private String trustlistPathSha2;
+    private String environmentName;
+
     public KeyStoreProperties keyStore;
 
     private TLSchemeInformation schemeInformation;

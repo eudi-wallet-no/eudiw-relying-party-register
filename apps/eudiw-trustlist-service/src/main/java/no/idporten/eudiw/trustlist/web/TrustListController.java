@@ -11,10 +11,6 @@ import java.time.ZonedDateTime;
 @RestController
 public class TrustListController {
 
-    protected static final String PATH_ACCESS_TRUSTLIST = "/access_tsl";
-    public static final String PATH_ACCESS_TRUSTLIST_XTSL = PATH_ACCESS_TRUSTLIST + ".xtsl";
-    public static final String PATH_ACCESS_TRUSTLIST_SHA = PATH_ACCESS_TRUSTLIST+ ".sha2";
-
     private final SignedTrustListService signedTrustListService;
 
     @Value("${trustlist-service.scheme-information.list-issue-datetime:#{T(java.time.ZonedDateTime).now()}}")
@@ -24,7 +20,7 @@ public class TrustListController {
         this.signedTrustListService = signedTrustListService;
     }
 
-    @GetMapping(value = PATH_ACCESS_TRUSTLIST_XTSL, produces = "application/vnd.etsi.tsl+xml")
+    @GetMapping(value = "${trustlist-service.trustlist-path-xtsl}", produces = "application/vnd.etsi.tsl+xml")
     public ResponseEntity<String> trustlist() {
         return ResponseEntity.ok()
                 .lastModified(lastModified.toInstant())
@@ -32,14 +28,14 @@ public class TrustListController {
     }
 
     // TODO: Temp. for ease of testing, should be removed in the future?
-    @GetMapping(value = PATH_ACCESS_TRUSTLIST, produces = "text/xml;charset=UTF-8")
+    @GetMapping(value = "${trustlist-service.trustlist-path}", produces = "text/xml;charset=UTF-8")
     public ResponseEntity<String> trustlistShow() {
         return ResponseEntity.ok()
                 .lastModified(lastModified.toInstant())
                 .body(signedTrustListService.getTrustlist());
     }
 
-    @GetMapping(value = PATH_ACCESS_TRUSTLIST_SHA, produces = "text/plain;charset=UTF-8")
+    @GetMapping(value = "${trustlist-service.trustlist-path-sha2}", produces = "text/plain;charset=UTF-8")
     public ResponseEntity<String> trustlistSha2() {
         String sha2 = signedTrustListService.getSha2();
         return ResponseEntity.ok()

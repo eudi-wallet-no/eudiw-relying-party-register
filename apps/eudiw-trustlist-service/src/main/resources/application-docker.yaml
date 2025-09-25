@@ -11,6 +11,9 @@ spring:
     environment: docker
 
 trustlist-service:
+  trustlist-path: /no_eidas2sandkasse_local_tsl
+  scheme-information:
+    scheme-name: Tillitsliste for norsk eidas2sandkasse i LOCAL-DOCKER
   service-provider:
     rp-access-services:
       - name:
