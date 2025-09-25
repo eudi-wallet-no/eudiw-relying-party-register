@@ -39,7 +39,7 @@ public class CreateController {
 
     @Audit(auditId = LOMMEBOK_10_CREATE_RP_REQUEST, includeResult = false, includeParameters = false)
     @PostMapping("/create")
-    @PreAuthorize("@authorizationService.userHasPrivilegedAccessTo(#createForm.orgno())")
+    @PreAuthorize("@authorizationService.userHasPrivilegedAccessTo(#createForm.getOrgno())")
     public ModelAndView createPost(
         @ModelAttribute(createFormAttrId) @Valid RelyingPartyCreateForm createForm,
         @AuditIgnore BindingResult createFormBindingResult
