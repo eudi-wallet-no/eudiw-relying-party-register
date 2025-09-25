@@ -10,7 +10,7 @@ COPY pom.xml /home/app/
 COPY docker/settings.xml /root/.m2/settings.xml
 
 COPY src /home/app/src
-RUN --mount=type=cache,target=/root/.m2/repository MAVEN_OPTS="-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0" mvn -f /home/app/pom.xml clean package -Dmaven.test.skip=true -Dmaven.gitcommitid.skip=true
+RUN --mount=type=cache,target=/root/.m2/repository mvn -f /home/app/pom.xml clean package -Dmaven.test.skip=true -Dmaven.gitcommitid.skip=true
 
 FROM eclipse-temurin:24-jre-noble
 

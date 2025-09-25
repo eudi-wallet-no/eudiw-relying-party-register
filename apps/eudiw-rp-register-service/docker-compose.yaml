@@ -32,7 +32,6 @@ services:
         GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
     environment:
       spring_profiles_active: docker
-      _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0"
     ports:
       - "9200:9200"
       - "9201:9201"
