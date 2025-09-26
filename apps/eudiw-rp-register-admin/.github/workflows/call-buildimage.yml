@@ -22,8 +22,14 @@ jobs:
   update-image-version:
     uses: felleslosninger/github-workflows/.github/workflows/ci-call-update-image.yml@main
     needs: call-workflow-image-build-publish
+    strategy:
+      matrix:
+        application-name: [digital-lommebok-rp-register-admin, digital-lommebok-rp-register-selfservice]
+        include:
+          - application-name: digital-lommebok-rp-register-admin
+          - application-name: digital-lommebok-rp-register-selfservice
     with:
-      application-name: digital-lommebok-rp-register-admin
+      application-name: ${{ matrix.application-name }}
       deployment-environment: systest
       image-digest: ${{ needs.call-workflow-image-build-publish.outputs.image-digest }}
       image-name: digital-lommebok-rp-register-admin
