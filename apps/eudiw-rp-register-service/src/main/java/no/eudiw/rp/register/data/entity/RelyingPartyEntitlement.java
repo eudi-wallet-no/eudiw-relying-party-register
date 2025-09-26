@@ -6,6 +6,9 @@ import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Setter
 @Entity
@@ -22,17 +25,39 @@ public class RelyingPartyEntitlement extends BaseEntity {
     @JdbcTypeCode(SqlTypes.UUID)
     private RelyingParty relyingParty;
 
+    @OneToMany(
+        mappedBy = "entitlement",
+        fetch = FetchType.EAGER,
+        cascade = CascadeType.ALL,
+        orphanRemoval = true)
+    private List<IssuerCertificate> issuerCertificates =
+        new ArrayList<>();
+
+    public void addIssuerCertificate(IssuerCertificate issuerCertificate) {
+        issuerCertificate.setEntitlement(this);
+        issuerCertificates.add(issuerCertificate);
+    }
+
+    public void setIssuerCertificates(List<IssuerCertificate> issuerCertificates) {
+        this.issuerCertificates.clear();
+        if (issuerCertificates != null) {
+            issuerCertificates.forEach(this::addIssuerCertificate);
+        }
+    }
+
     public RelyingPartyEntitlement(String entitlement) {
-        this(entitlement, null);
+        this(entitlement, null, null);
     }
 
     public RelyingPartyEntitlement(
         String entitlement,
-        RelyingParty relyingParty
+        RelyingParty relyingParty,
+        List<IssuerCertificate> issuerCertificates
     ) {
         this.id = null;
         this.entitlement = entitlement;
         this.relyingParty = relyingParty;
+        this.issuerCertificates = issuerCertificates;
     }
 
     // for JPA instantiation.

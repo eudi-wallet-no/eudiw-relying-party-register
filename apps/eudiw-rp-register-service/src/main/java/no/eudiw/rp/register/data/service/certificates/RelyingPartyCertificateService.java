@@ -7,7 +7,7 @@ import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCertificatesRe
 import no.eudiw.rp.register.data.certificates.PKCS10CertificationRequestConverter;
 import no.eudiw.rp.register.data.certificates.X509CertificateConverter;
 import no.eudiw.rp.register.data.entity.RelyingParty;
-import no.eudiw.rp.register.data.entity.RelyingPartyCertificate;
+import no.eudiw.rp.register.data.entity.AccessCertificate;
 import no.eudiw.rp.register.data.repository.RelyingPartyCertificateRepository;
 import no.eudiw.rp.register.data.repository.RelyingPartyRepository;
 import no.eudiw.rp.register.data.service.Converter;
@@ -35,7 +35,7 @@ public class RelyingPartyCertificateService {
             relyingPartyRepository
                 .findByIdAndDeletedFalse(relyingPartyId)
                 .orElseThrow(() -> new NotFoundException("Relying party not found"))
-                .getRelyingPartyCertificates()
+                .getAccessCertificates()
                 .stream()
                 .map(Converter::toResource)
                 .toList()
@@ -91,8 +91,8 @@ public class RelyingPartyCertificateService {
         X509Certificate certificate =
             X509CertificateConverter.convert(certificatePemStr);
 
-        RelyingPartyCertificate certificateEntity =
-            new RelyingPartyCertificate(certificate, relyingParty);
+        AccessCertificate certificateEntity =
+            new AccessCertificate(certificate, relyingParty);
 
         relyingPartyCertificateRepository.saveAndFlush(certificateEntity);
 

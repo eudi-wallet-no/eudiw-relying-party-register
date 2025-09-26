@@ -5,7 +5,7 @@ import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCsrResource;
 import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCertificateResource;
 import no.eudiw.rp.register.data.certificates.X509CertificateConverter;
 import no.eudiw.rp.register.data.entity.RelyingParty;
-import no.eudiw.rp.register.data.entity.RelyingPartyCertificate;
+import no.eudiw.rp.register.data.entity.AccessCertificate;
 import no.eudiw.rp.register.data.repository.RelyingPartyCertificateRepository;
 import no.eudiw.rp.register.data.repository.RelyingPartyRepository;
 import no.eudiw.rp.register.data.service.certificates.RelyingPartyCertificateService;
@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
 @ActiveProfiles("test")
 @Import(MockCaServerConfiguration.class)
 @DisplayName("When using the relying party certificates service")
-public class RelyingPartyCertificateServiceTests {
+public class AccessCertificateServiceTests {
 
     @Autowired
     private RelyingPartyCertificateService certService;
@@ -72,9 +72,9 @@ public class RelyingPartyCertificateServiceTests {
             rpRepository.saveAllAndFlush(List.of(relyingParty, otherRelyingParty));
 
             Set<X509Certificate> certsExpected =
-                relyingParty.getRelyingPartyCertificates()
+                relyingParty.getAccessCertificates()
                             .stream()
-                            .map(RelyingPartyCertificate::getCertificate)
+                            .map(AccessCertificate::getCertificate)
                             .collect(Collectors.toSet());
 
             Set<X509Certificate> certsActual =
@@ -105,8 +105,8 @@ public class RelyingPartyCertificateServiceTests {
             RelyingParty relyingParty = EntityGenerator.generateRelyingPartyWithCertificates();
             rpRepository.saveAndFlush(relyingParty);
 
-            RelyingPartyCertificate certificate =
-                relyingParty.getRelyingPartyCertificates().getFirst();
+            AccessCertificate certificate =
+                relyingParty.getAccessCertificates().getFirst();
 
             // would throw on unknown ID(s)
             X509Certificate certificateActual =
@@ -139,7 +139,7 @@ public class RelyingPartyCertificateServiceTests {
             rpRepository.saveAndFlush(relyingParty);
 
             UUID knownCertificateId =
-                relyingParty.getRelyingPartyCertificates().getFirst().getId();
+                relyingParty.getAccessCertificates().getFirst().getId();
             UUID unknownRelyingPartyId = UUID.randomUUID();
             assertThrows(
                 NotFoundException.class,
@@ -156,7 +156,7 @@ public class RelyingPartyCertificateServiceTests {
             rpRepository.saveAllAndFlush(List.of(relyingParty1, relyingParty2));
 
             UUID knownCertificateId =
-                relyingParty1.getRelyingPartyCertificates().getFirst().getId();
+                relyingParty1.getAccessCertificates().getFirst().getId();
             UUID knownRelyingPartyId = relyingParty2.getId();
             assertThrows(
                 NotFoundException.class,
@@ -171,8 +171,8 @@ public class RelyingPartyCertificateServiceTests {
             RelyingParty relyingParty = EntityGenerator.generateRelyingPartyWithCertificates();
             rpRepository.saveAndFlush(relyingParty);
 
-            RelyingPartyCertificate certificateEntity =
-                relyingParty.getRelyingPartyCertificates()
+            AccessCertificate certificateEntity =
+                relyingParty.getAccessCertificates()
                             .getFirst();
 
             UUID certificateId = certificateEntity.getId();
@@ -259,11 +259,11 @@ public class RelyingPartyCertificateServiceTests {
                 rpRepository.findById(relyingPartyIn.getId()).orElse(null);
 
             assertNotNull(relyingPartyOut);
-            assertEquals(1, relyingPartyOut.getRelyingPartyCertificates().size());
+            assertEquals(1, relyingPartyOut.getAccessCertificates().size());
 
             // assert that certificate stored in DB also correct.
             X509Certificate certificateActual2 =
-                relyingPartyOut.getRelyingPartyCertificates()
+                relyingPartyOut.getAccessCertificates()
                                .getFirst()
                                .getCertificate();
             assertEquals(certificateExpected, certificateActual2);

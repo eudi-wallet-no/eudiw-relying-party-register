@@ -13,8 +13,8 @@ import java.security.cert.X509Certificate;
 
 @Getter
 @Entity
-@Table(name = "relying_party_certificate")
-public class RelyingPartyCertificate extends BaseEntity {
+@Table(name = "access_certificate")
+public class AccessCertificate extends BaseEntity {
 
     @Column(name = "certificate_pem", nullable = false)
     @Convert(converter = X509CertificateConverter.class)
@@ -25,6 +25,12 @@ public class RelyingPartyCertificate extends BaseEntity {
 
     @Column(name = "serial_no", nullable = false)
     private String serialNo;
+
+    @Column(name = "ca_id", nullable = false)
+    private String caId;
+
+    @Column(name = "issuer", nullable = false)
+    private String issuer;
 
     @ToString.Exclude
     @ManyToOne(optional = false)
@@ -42,12 +48,17 @@ public class RelyingPartyCertificate extends BaseEntity {
     @Column(name = "valid_until_ms", nullable = false)
     private long validUntilMs;
 
-    public RelyingPartyCertificate(X509Certificate certificate) {
+    public AccessCertificate(X509Certificate certificate) {
         this(certificate, null);
     }
 
-    public RelyingPartyCertificate(X509Certificate certificate, RelyingParty relyingParty) {
+    public AccessCertificate(X509Certificate certificate, RelyingParty relyingParty) {
         this.id = null;
+
+        this.issuer = certificate.getIssuerX500Principal().getName();
+
+        //Denne er midlertidig, inntil jeg innfører api endringer for registrering av sertifikater
+        this.caId = "Access";
 
         this.certificate = certificate;
         this.subjectDn = certificate.getSubjectX500Principal().getName();
@@ -59,5 +70,5 @@ public class RelyingPartyCertificate extends BaseEntity {
     }
 
     // for JPA instantiation.
-    protected RelyingPartyCertificate() { }
+    protected AccessCertificate() { }
 }

@@ -52,7 +52,7 @@ public class RelyingParty extends BaseEntity {
         fetch = FetchType.EAGER,
         cascade = CascadeType.ALL,
         orphanRemoval = true)
-    private List<RelyingPartyCertificate> relyingPartyCertificates =
+    private List<AccessCertificate> accessCertificates =
         new ArrayList<>();
 
     @Column(name = "created_ms", nullable = false)
@@ -87,16 +87,16 @@ public class RelyingParty extends BaseEntity {
     }
 
     public void addRelyingPartyCertificate(
-        RelyingPartyCertificate relyingPartyCertificate) {
-        relyingPartyCertificate.setRelyingParty(this);
-        this.relyingPartyCertificates.add(relyingPartyCertificate);
+        AccessCertificate accessCertificate) {
+        accessCertificate.setRelyingParty(this);
+        this.accessCertificates.add(accessCertificate);
     }
 
-    public void setRelyingPartyCertificates(
-        List<RelyingPartyCertificate> relyingPartyCertificates) {
-        this.relyingPartyCertificates.clear();
-        if (relyingPartyCertificates != null) {
-            relyingPartyCertificates.forEach(this::addRelyingPartyCertificate);
+    public void setAccessCertificates(
+        List<AccessCertificate> accessCertificates) {
+        this.accessCertificates.clear();
+        if (accessCertificates != null) {
+            accessCertificates.forEach(this::addRelyingPartyCertificate);
         }
     }
 
@@ -109,7 +109,7 @@ public class RelyingParty extends BaseEntity {
                         Boolean publicSector,
                         List<RelyingPartyEntitlement> relyingPartyEntitlements,
                         List<RelyingPartyEaa> relyingPartyEaas,
-                        List<RelyingPartyCertificate> relyingPartyCertificates
+                        List<AccessCertificate> accessCertificates
                         ) {
         this.id = null;
         this.name = name;
@@ -117,7 +117,7 @@ public class RelyingParty extends BaseEntity {
         this.publicSector = publicSector;
         this.setRelyingPartyEntitlements(relyingPartyEntitlements);
         this.setRelyingPartyEaas(relyingPartyEaas);
-        this.setRelyingPartyCertificates(relyingPartyCertificates);
+        this.setAccessCertificates(accessCertificates);
         this.active = true;
         this.deleted = false;
     }

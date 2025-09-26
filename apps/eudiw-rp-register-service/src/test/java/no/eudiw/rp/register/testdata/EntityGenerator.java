@@ -1,13 +1,11 @@
 package no.eudiw.rp.register.testdata;
 
-import no.eudiw.rp.register.api.resource.RelyingPartyEntitlementResource;
 import no.eudiw.rp.register.data.entity.RelyingParty;
-import no.eudiw.rp.register.data.entity.RelyingPartyCertificate;
+import no.eudiw.rp.register.data.entity.AccessCertificate;
 import no.eudiw.rp.register.data.entity.RelyingPartyEaa;
 import no.eudiw.rp.register.data.entity.RelyingPartyEntitlement;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class EntityGenerator extends TestDataGenerator {
@@ -30,7 +28,7 @@ public class EntityGenerator extends TestDataGenerator {
 
     public static RelyingParty generateRelyingPartyWithCertificates() {
         RelyingParty relyingParty = generateRelyingPartyNoId();
-        relyingParty.setRelyingPartyCertificates(EntityGenerator.generateCertificates());
+        relyingParty.setAccessCertificates(EntityGenerator.generateCertificates());
         return relyingParty;
     }
 
@@ -38,16 +36,16 @@ public class EntityGenerator extends TestDataGenerator {
         return new RelyingPartyEaa("namespace-" + generateName(),
                                    "intent-" + generateName());
     }
-    public static RelyingPartyCertificate generateCertificate() {
+    public static AccessCertificate generateCertificate() {
         try {
-            return new RelyingPartyCertificate(
+            return new AccessCertificate(
                 CertificatesGenerator.generateX509Certificate());
         }
         catch (Exception e) {
             throw new RuntimeException("Failed to generate RelyingPartyCertificate", e);
         }
     }
-    public static List<RelyingPartyCertificate> generateCertificates() {
+    public static List<AccessCertificate> generateCertificates() {
         return generateListBy(rng.nextInt(2, 4), EntityGenerator::generateCertificate);
     }
 }

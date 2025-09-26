@@ -77,10 +77,10 @@ public class Converter {
         return new RelyingPartyEaa(resource.namespace(), resource.intent());
     }
 
-    public static RelyingPartyCertificate toEntity(RelyingPartyCertificateResource resource) {
-        return new RelyingPartyCertificate(resource.certificate());
+    public static AccessCertificate toEntity(RelyingPartyCertificateResource resource) {
+        return new AccessCertificate(resource.certificate());
     }
-    public static RelyingPartyCertificateResource toResource(RelyingPartyCertificate entity) {
+    public static RelyingPartyCertificateResource toResource(AccessCertificate entity) {
         return new RelyingPartyCertificateResource(entity.getCertificate(), entity.getId());
     }
 

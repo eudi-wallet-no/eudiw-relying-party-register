@@ -1,6 +1,6 @@
 package no.eudiw.rp.register.data.repository;
 
-import no.eudiw.rp.register.data.entity.RelyingPartyCertificate;
+import no.eudiw.rp.register.data.entity.AccessCertificate;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,14 +11,14 @@ import java.util.UUID;
 
 @Repository
 public interface RelyingPartyCertificateRepository
-    extends JpaRepository<RelyingPartyCertificate, UUID> {
+    extends JpaRepository<AccessCertificate, UUID> {
 
     @Query("""
         SELECT cert
-        FROM RelyingPartyCertificate cert
+        FROM AccessCertificate cert
         WHERE cert.id = :certId AND cert.relyingParty.id = :relyingPartyId
     """)
-    Optional<RelyingPartyCertificate> findByIdAndRelyingPartyId(
+    Optional<AccessCertificate> findByIdAndRelyingPartyId(
         @Param("certId")         UUID certId,
         @Param("relyingPartyId") UUID relyingPartyId);
 }
