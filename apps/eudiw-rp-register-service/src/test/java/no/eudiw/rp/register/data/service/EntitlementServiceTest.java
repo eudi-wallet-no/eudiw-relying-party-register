@@ -39,11 +39,11 @@ class EntitlementServiceTest {
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("Invalid entitlement");
 
-            assertThatThrownBy(() -> service.register(new CreateEntitlementResource("")))
+            assertThatThrownBy(() -> service.register(new CreateEntitlementResource("", "")))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("Invalid entitlement");
 
-            assertThatThrownBy(() -> service.register(new CreateEntitlementResource(null)))
+            assertThatThrownBy(() -> service.register(new CreateEntitlementResource(null, null)))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("Invalid entitlement");
 
@@ -55,7 +55,7 @@ class EntitlementServiceTest {
         void alreadyExists() {
             when(repository.existsByEntitlement("entitlement1")).thenReturn(true);
 
-            assertThatThrownBy(() -> service.register(new CreateEntitlementResource("entitlement1")))
+            assertThatThrownBy(() -> service.register(new CreateEntitlementResource("entitlement1", "entitlement1")))
                 .isInstanceOf(AlreadyExistsException.class)
                 .hasMessageContaining("already exists");
 
@@ -68,16 +68,16 @@ class EntitlementServiceTest {
         void success() {
             when(repository.existsByEntitlement("entitlement1")).thenReturn(false);
 
-            Entitlement saved = new Entitlement("entitlement1", true);
+            Entitlement saved = new Entitlement("entitlement1", true, "entitlement1");
             when(repository.saveAndFlush(any(Entitlement.class))).thenReturn(saved);
 
             UUID id = UUID.randomUUID();
-            EntitlementResource expectedResource = new EntitlementResource(id, "entitlement1", true);
+            EntitlementResource expectedResource = new EntitlementResource(id, "entitlement1", true, "entitlement1");
 
             try (MockedStatic<Converter> mocked = mockStatic(Converter.class)) {
                 mocked.when(() -> Converter.toResource(saved)).thenReturn(expectedResource);
 
-                EntitlementResource returned = service.register(new CreateEntitlementResource("entitlement1"));
+                EntitlementResource returned = service.register(new CreateEntitlementResource("entitlement1", "entitlement1"));
 
                 ArgumentCaptor<Entitlement> captor = ArgumentCaptor.forClass(Entitlement.class);
                 verify(repository).saveAndFlush(captor.capture());
@@ -101,15 +101,15 @@ class EntitlementServiceTest {
         @DisplayName("returns converted list of active entitlements")
         void returnsActiveConverted() {
             List<Entitlement> active = List.of(
-                new Entitlement("entitlement1", true),
-                new Entitlement("entitlement2", true)
+                new Entitlement("entitlement1", true, "entitlement1"),
+                new Entitlement("entitlement2", true, "entitlement2")
             );
             when(repository.findAllByActive(true)).thenReturn(active);
 
             EntitlementsResource expected = new EntitlementsResource(
                 List.of(
-                    new EntitlementResource(UUID.randomUUID(), "entitlement1", true),
-                    new EntitlementResource(UUID.randomUUID(), "entitlement2", true)
+                    new EntitlementResource(UUID.randomUUID(), "entitlement1", true, "entitlement1"),
+                    new EntitlementResource(UUID.randomUUID(), "entitlement2", true, "entitlement2")
                 )
             );
 
@@ -162,13 +162,13 @@ class EntitlementServiceTest {
         @Test
         @DisplayName("updates active flag and returns converted resource")
         void success() {
-            Entitlement existing = new Entitlement("entitlement1", true);
+            Entitlement existing = new Entitlement("entitlement1", true, "entitlement1");
             when(repository.findByEntitlement("entitlement1")).thenReturn(existing);
 
-            Entitlement afterSave = new Entitlement("entitlement1", false);
+            Entitlement afterSave = new Entitlement("entitlement1", false, "entitlement1");
             when(repository.saveAndFlush(existing)).thenReturn(afterSave);
 
-            EntitlementResource expected = new EntitlementResource(UUID.randomUUID(), "entitlement1", false);
+            EntitlementResource expected = new EntitlementResource(UUID.randomUUID(), "entitlement1", false, "entitlement1");
 
             try (MockedStatic<Converter> mocked = mockStatic(Converter.class)) {
                 mocked.when(() -> Converter.toResource(afterSave)).thenReturn(expected);

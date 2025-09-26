@@ -26,7 +26,7 @@ public class EntitlementService {
                 "Entitlement already exists ");
         }
 
-        Entitlement entity = new Entitlement(entitlement.entitlement(), true);
+        Entitlement entity = new Entitlement(entitlement.entitlement(), true, entitlement.displayName());
         return Converter.toResource(entitlementRepository.saveAndFlush(entity));
     }
 

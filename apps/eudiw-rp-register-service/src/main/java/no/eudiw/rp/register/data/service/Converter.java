@@ -43,7 +43,7 @@ public class Converter {
     }
 
     public static EntitlementResource toResource(Entitlement entitlement) {
-        return new EntitlementResource(entitlement.getId(), entitlement.getEntitlement(), entitlement.isActive());
+        return new EntitlementResource(entitlement.getId(), entitlement.getEntitlement(), entitlement.isActive(), entitlement.getDisplayName());
     }
 
     public static EntitlementsResource toEntitlementsResource(List<Entitlement> entitlements) {
@@ -60,13 +60,6 @@ public class Converter {
             resource.relyingPartyEntitlements().stream().map(Converter::toEntity).toList(),
             resource.relyingPartyEaas().stream().map(Converter::toEntity).toList(),
             new ArrayList<>()
-        );
-    }
-
-    public static Entitlement toEntity(String entitlement) {
-        return new Entitlement(
-            entitlement,
-            true
         );
     }
 
