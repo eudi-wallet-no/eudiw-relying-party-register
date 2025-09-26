@@ -22,5 +22,10 @@ public record EntitlementResource(
     String entitlement,
 
     @JsonProperty(value = "active", required = true)
-    boolean active
+    boolean active,
+
+    @SaneStringConstraint
+    @NotBlank(message = "blank_name")
+    @JsonProperty(value = "display_name", required = true)
+    String displayName
 ) { }

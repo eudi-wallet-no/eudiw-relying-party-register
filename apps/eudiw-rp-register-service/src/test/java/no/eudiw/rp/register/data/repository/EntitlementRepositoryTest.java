@@ -32,7 +32,7 @@ class EntitlementRepositoryTest {
     @DisplayName("findAllByActive(false) returns only inactive entitlements")
     void findAllByActive_false() {
         String inactiveEntitlement = UUID.randomUUID().toString();
-        repository.save(new Entitlement(inactiveEntitlement, false));
+        repository.save(new Entitlement(inactiveEntitlement, false, inactiveEntitlement));
         List<Entitlement> inactive = repository.findAllByActive(false);
 
         assertThat(inactive)
@@ -47,9 +47,9 @@ class EntitlementRepositoryTest {
         @DisplayName("returns true for matching entitlement+active")
         void existingMatching() {
             String inactiveEntitlement = UUID.randomUUID().toString();
-            repository.save(new Entitlement(inactiveEntitlement, false));
+            repository.save(new Entitlement(inactiveEntitlement, false, inactiveEntitlement));
             String activeEntitlement = UUID.randomUUID().toString();
-            repository.save(new Entitlement(activeEntitlement, true));
+            repository.save(new Entitlement(activeEntitlement, true, activeEntitlement));
 
             assertThat(repository.existsByEntitlementAndActive(activeEntitlement, true)).isTrue();
             assertThat(repository.existsByEntitlementAndActive(inactiveEntitlement, false)).isTrue();
@@ -59,9 +59,9 @@ class EntitlementRepositoryTest {
         @DisplayName("returns false when active flag does not match")
         void mismatchedActive() {
             String inactiveEntitlement = UUID.randomUUID().toString();
-            repository.save(new Entitlement(inactiveEntitlement, false));
+            repository.save(new Entitlement(inactiveEntitlement, false, inactiveEntitlement));
             String activeEntitlement = UUID.randomUUID().toString();
-            repository.save(new Entitlement(activeEntitlement, true));
+            repository.save(new Entitlement(activeEntitlement, true, activeEntitlement));
 
             assertThat(repository.existsByEntitlementAndActive(activeEntitlement, false)).isFalse();
             assertThat(repository.existsByEntitlementAndActive(inactiveEntitlement, true)).isFalse();
@@ -79,11 +79,11 @@ class EntitlementRepositoryTest {
     @DisplayName("existsByEntitlement returns true only when entitlement exists")
     void existsByEntitlement_onlyOnExistence() {
         String inactiveEntitlement = UUID.randomUUID().toString();
-        repository.save(new Entitlement(inactiveEntitlement, false));
+        repository.save(new Entitlement(inactiveEntitlement, false, inactiveEntitlement));
         String activeEntitlement = UUID.randomUUID().toString();
-        repository.save(new Entitlement(activeEntitlement, true));
+        repository.save(new Entitlement(activeEntitlement, true, activeEntitlement));
         String randomEntitlement = UUID.randomUUID().toString();
-        repository.save(new Entitlement(randomEntitlement, false));
+        repository.save(new Entitlement(randomEntitlement, false, randomEntitlement));
 
         assertThat(repository.existsByEntitlement(inactiveEntitlement)).isTrue();
         assertThat(repository.existsByEntitlement(activeEntitlement)).isTrue();
@@ -99,7 +99,7 @@ class EntitlementRepositoryTest {
         @DisplayName("returns entity when found")
         void returnsEntity() {
             String activeEntitlement = UUID.randomUUID().toString();
-            repository.save(new Entitlement(activeEntitlement, true));
+            repository.save(new Entitlement(activeEntitlement, true, activeEntitlement));
 
             Entitlement e = repository.findByEntitlement(activeEntitlement);
             assertThat(e).isNotNull();
