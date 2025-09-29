@@ -39,6 +39,7 @@ public class AnsattportenSecurityConfig {
                             ansattportenAuthorizationRequestResolver))
                     .failureHandler(new SimpleUrlAuthenticationFailureHandler("/access-denied"))
                     .userInfoEndpoint(endp -> endp.oidcUserService(ansattportenOidcUserService))
+                    .loginPage("/login")
                 )
                 .logout(logout -> logout
                     .logoutRequestMatcher(logoutPostMatcher)

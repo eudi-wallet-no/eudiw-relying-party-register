@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title>Logg inn</title>
+</head>
+<body>
+    <header th:replace="~{fragments/general :: page_header_fragment}"></header>
+    <main>
+        <div>
+            <h1 class="ds-heading" data-size="lg">
+                Logg inn
+            </h1>
+        </div>
+
+        <div>
+            <p class="ds-paragraph">
+                Det tilbys OAuth2-autentisering via Entra ID (for adminbrukarar)
+                og Ansattporten (for sjølvbeteningsbrukarar).
+            </p>
+        </div>
+
+        <div th:each="client : ${@availableClients}">
+            <!--/*@thymesVar id="client" type="org.springframework.security.oauth2.client.registration.ClientRegistration"*/-->
+            <a th:href="@{|/oauth2/authorization/${client.getRegistrationId()}|}"
+               class="ds-button">
+                Logg inn via <span th:text="${client.getClientName()}"></span>
+            </a>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
+</body>
+</html>
