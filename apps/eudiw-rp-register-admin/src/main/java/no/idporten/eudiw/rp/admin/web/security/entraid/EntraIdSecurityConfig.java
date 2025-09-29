@@ -43,6 +43,7 @@ public class EntraIdSecurityConfig {
                 .oauth2Login(oauth -> oauth
                     .failureHandler(new SimpleUrlAuthenticationFailureHandler("/access-denied"))
                     .userInfoEndpoint(userInfo -> userInfo.oidcUserService(entraIdOidcUserService))
+                    .loginPage("/login")
                 )
                 .logout(logout -> logout
                     .logoutRequestMatcher(new OrRequestMatcher(logoutPost, logoutGet))

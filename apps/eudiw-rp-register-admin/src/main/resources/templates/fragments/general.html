@@ -40,6 +40,12 @@
            sec:authorize="isAuthenticated()">
             Logg ut
         </a>
+        <a class="ds-link"
+           th:href="@{/login}"
+           data-color="neutral"
+           sec:authorize="!isAuthenticated()">
+            Logg inn
+        </a>
     </div>
 </header>
 

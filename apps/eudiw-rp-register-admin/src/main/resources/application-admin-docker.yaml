@@ -15,6 +15,7 @@ spring:
         registration:
           entra:
             provider: entra
+            client-name: Microsoft Entra ID
             client-id: ${APP_ID}
             client-secret: ${SECRET_VALUE}
             authorization-grant-type: authorization_code

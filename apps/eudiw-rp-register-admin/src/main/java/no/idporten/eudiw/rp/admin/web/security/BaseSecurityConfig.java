@@ -11,9 +11,14 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -24,7 +29,7 @@ import org.springframework.security.web.authentication.logout.LogoutSuccessHandl
 public class BaseSecurityConfig {
 
     private static final String[] UNAUTHENTICATED_ALLOWLIST = {
-        "/",
+        "/login",
         "/error",
         "/access-denied",
         "/health",
@@ -35,7 +40,8 @@ public class BaseSecurityConfig {
         "/js/**",
         "/images/**",
         "/webjars/**",
-        "/favicon.ico"
+        "/favicon.ico",
+        "/inter/**"
     };
 
     @Bean
@@ -73,5 +79,12 @@ public class BaseSecurityConfig {
     @Bean
     public AuthorizationService authorizationService(RelyingPartiesService relyingPartiesService) {
         return new AuthorizationService(relyingPartiesService);
+    }
+
+    @Bean
+    public List<ClientRegistration> availableClients(InMemoryClientRegistrationRepository clientRepo) {
+        List<ClientRegistration> availableClients = new ArrayList<>();
+        clientRepo.iterator().forEachRemaining(availableClients::add);
+        return availableClients;
     }
 }

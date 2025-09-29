@@ -8,16 +8,32 @@
 <body>
     <header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
-    <div>
-        <h1 class="ds-heading" data-size="lg" style="padding-left:2rem;">
-            Adminteneste: Nasjonal sandkasse for digital lommebok
-        </h1>
-    </div>
-
     <main>
-        <a th:href="@{/menu}" class="ds-button">
-            Logg inn
-        </a>
+        <div>
+            <h1 class="ds-heading" data-size="lg">
+                Adminteneste: Nasjonal sandkasse for digital lommebok
+            </h1>
+        </div>
+
+        <nav class="flex-container">
+            <a th:href="@{/search}" class="ds-card">
+                <h2 class="ds-heading">
+                    Søking
+                </h2>
+                <p class="ds-paragraph">
+                    Søk etter brukarstader
+                </p>
+            </a>
+
+            <a th:href="@{/create}" class="ds-card">
+                <h2 class="ds-heading">
+                    Registrering
+                </h2>
+                <p class="ds-paragraph">
+                    Her kan du registrere nye brukarstader
+                </p>
+            </a>
+        </nav>
     </main>
 
     <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
