@@ -26,7 +26,7 @@
         <mockwebserver.version>5.1.0</mockwebserver.version>
         <lombok.version>1.18.42</lombok.version>
         <bcpkix.version>1.82</bcpkix.version>
-        <idporten-audit-log.version>2.5.2</idporten-audit-log.version>
+        <idporten-audit-log.version>2.5.3</idporten-audit-log.version>
         <spring-security-oauth2-resource-server.version>6.5.5</spring-security-oauth2-resource-server.version>
     </properties>
 
