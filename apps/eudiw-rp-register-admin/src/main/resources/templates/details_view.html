@@ -9,7 +9,7 @@
 
 <!--/*@thymesVar id="detailedViewDataAttr" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
 <!--/*@thymesVar id="certificateSummariesAttr" type="java.util.List<no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary>"*/-->
-<body>
+<body th:with="showCertificatesTab=${@authorizationService.userHasPrivilegedAccessTo(rp.orgno)}">
     <header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
     <main>
@@ -24,7 +24,7 @@
             Detaljar for brukarstad: <span th:text="${rp.name}"/>
         </h1>
 
-        <nav id="tabs_container">
+        <nav id="tabs_container" th:if="${showCertificatesTab}">
             <a href="#about" class="tab" data-size="lg">
                 Generelt
             </a>
@@ -38,7 +38,8 @@
                  th:insert="~{fragments/details_tabs_fragments
                                 :: general_info_content_fragment(rp=${rp})}">
             </div>
-            <div id="#certificates"
+            <div th:if="${showCertificatesTab}"
+                 id="#certificates"
                  th:insert="~{fragments/details_tabs_fragments
                                 :: certificates_content_fragment(
                                     rp=${rp}, certs=${certificateSummariesAttr})}">
@@ -49,6 +50,6 @@
 
     <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
 
-<script src="/js/simple_tabs.js"></script>
+<script th:if="${showCertificatesTab}" src="/js/simple_tabs.js"></script>
 </body>
 </html>

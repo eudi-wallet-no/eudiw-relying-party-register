@@ -28,23 +28,24 @@
     </div>
 
     <div>
-        <p class="ds-paragraph" th:text="${session['USER_DISPLAY_NAME']}"></p>
-        <a class="ds-link"
-           th:href="@{/}"
-           data-color="neutral">
-            Heim
-        </a>
-        <a class="ds-link"
-           th:href="@{/logout}"
-           data-color="neutral"
-           sec:authorize="isAuthenticated()">
-            Logg ut
-        </a>
+        <th:block sec:authorize="isAuthenticated()">
+            <p class="ds-paragraph" sec:authentication="name"></p>
+            <a class="ds-link"
+               th:href="@{/logout}"
+               data-color="neutral">
+                Logg ut
+            </a>
+        </th:block>
         <a class="ds-link"
            th:href="@{/login}"
            data-color="neutral"
            sec:authorize="!isAuthenticated()">
             Logg inn
+        </a>
+        <a class="ds-link"
+           th:href="@{/}"
+           data-color="neutral">
+            Heim
         </a>
     </div>
 </header>
