@@ -18,7 +18,7 @@ import java.util.UUID;
 public class DevSecurityConfig {
     @Bean
     @Primary
-    public AuthorizationService devEnvironmentAuthorizationService() {
+    public AuthorizationService authorizationService() {
         return new AuthorizationService(null) {
             @Override
             public boolean userHasPrivilegedAccessTo(String orgno) {

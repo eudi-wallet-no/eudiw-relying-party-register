@@ -128,7 +128,7 @@
         </details>
     </div>
 
-    <div>
+    <div th:if="${@authorizationService.userHasPrivilegedAccessTo(rp.orgno)}">
         <a th:href="@{|/details/${rp.id}/edit|}"
            class="ds-button"
            data-variant="primary">

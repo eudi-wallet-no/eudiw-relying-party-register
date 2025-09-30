@@ -9,8 +9,6 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.*;
 
@@ -27,15 +25,6 @@ public class EntraIdOidcUserService extends OidcUserService {
         List<String> groups =
             Objects.requireNonNullElseGet(oidcUser.getClaimAsStringList("groups"),
                                           List::of);
-
-        String name =
-            Objects.requireNonNullElseGet(oidcUser.getClaimAsString("name"),
-                                          () -> oidcUser.getClaimAsString("preferred_username"));
-
-        var requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        if (requestAttributes != null) {
-            requestAttributes.getRequest().getSession(true).setAttribute("USER_DISPLAY_NAME", name);
-        }
 
         boolean hasAccess = groups.contains(entraIdProperties.writeAccess());
         if (!hasAccess) {
