@@ -4,7 +4,7 @@ server:
 
 management:
   server:
-    port: 9231
+    port: 9230
 
 spring:
   application:
