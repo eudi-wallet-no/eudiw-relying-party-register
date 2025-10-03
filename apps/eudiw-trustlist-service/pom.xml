@@ -15,7 +15,7 @@
     <description>EUDIW Trust List Service</description>
 
     <properties>
-        <java.version>24</java.version>
+        <java.version>25</java.version>
         <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
         <properties-maven-plugin.version>1.2.1</properties-maven-plugin.version>
         <lombok.version>1.18.42</lombok.version>
