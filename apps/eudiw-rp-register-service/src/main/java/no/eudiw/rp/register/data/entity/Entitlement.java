@@ -19,15 +19,20 @@ public class Entitlement extends BaseEntity {
     @Column(name = "display_name", nullable = false)
     private String displayName;
 
+    @Column(name = "ca_id", nullable = false)
+    private String caId;
+
     public Entitlement(
         String entitlement,
         boolean active,
-        String displayName
+        String displayName,
+        String caId
     ) {
         this.id = null;
         this.entitlement = entitlement;
         this.active = active;
         this.displayName = displayName;
+        this.caId = caId;
     }
 
     // for JPA instantiation.

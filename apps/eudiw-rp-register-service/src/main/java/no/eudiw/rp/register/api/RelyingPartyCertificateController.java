@@ -8,6 +8,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import no.eudiw.rp.register.api.resource.RelyingPartyEntitlementsResource;
+import no.eudiw.rp.register.api.resource.certificates.IssuerCsrResource;
 import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCsrResource;
 import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCertificateResource;
 import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCertificatesResource;
@@ -48,10 +50,14 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class RelyingPartyCertificateController {
 
-    private static final String RELYING_PARTY_NEW_CERTIFICATE_REQUESTED =
+    private static final String RELYING_PARTY_NEW_ACCESS_CERTIFICATE_REQUESTED =
         "RELYING-PARTY-NEW-CERTIFICATE-REQUESTED";
-    private static final String RELYING_PARTY_CERTIFICATE_RETRIEVED =
-        "RELYING-PARTY-CERTIFICATE-RETRIEVED";
+    private static final String ISSUER_NEW_CERTIFICATE_REQUESTED =
+            "ISSUER-NEW-CERTIFICATE-REQUESTED";
+    private static final String RELYING_PARTY_ACCESS_CERTIFICATE_RETRIEVED =
+        "RELYING-PARTY-ACCESS-CERTIFICATE-RETRIEVED";
+    private static final String ISSUER_CERTIFICATE_RETRIEVED =
+        "ISSUER-CERTIFICATE-RETRIEVED";
 
     private final RelyingPartyCertificateService certificatesService;
 
@@ -67,7 +73,7 @@ public class RelyingPartyCertificateController {
         @ApiResponse(responseCode = "404", description = "Certificate requested for unknown RP"),
         @ApiResponse(responseCode = "400", description = "CSR is rejected")
     })
-    @Audit(auditId = RELYING_PARTY_NEW_CERTIFICATE_REQUESTED)
+    @Audit(auditId = RELYING_PARTY_NEW_ACCESS_CERTIFICATE_REQUESTED)
     @PostMapping(path = "/{relying-party-id}/certs/access",
                  consumes = MediaType.APPLICATION_JSON_VALUE,
                  produces = MediaType.APPLICATION_JSON_VALUE)
@@ -81,8 +87,54 @@ public class RelyingPartyCertificateController {
     }
 
     @Operation(
-        summary = "Get certificates for relying party",
-        description = "Get all certificates for relying party by ID",
+        summary = "Register issuer certificate",
+        description = "Register issuer certificate for relying party by ID",
+        tags = {"relying-parties-certs-api"}
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200",
+            description = "CSR accepted and issuer certificate is returned",
+            content = @Content(examples = @ExampleObject(value = CERTIFICATE_RESOURCE_EXAMPLE))),
+        @ApiResponse(responseCode = "404", description = "Certificate requested for unknown RP"),
+        @ApiResponse(responseCode = "400", description = "CSR is rejected")
+    })
+    @Audit(auditId = ISSUER_NEW_CERTIFICATE_REQUESTED)
+    @PostMapping(path = "/{relying-party-id}/issuer",
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<RelyingPartyCertificateResource> requestIssuerCertificate(
+        @PathVariable("relying-party-id") @Valid UUID relyingPartyId,
+        @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Issuer CSR resource",
+            content = @Content(examples = @ExampleObject(value = CSR_RESOURCE_EXAMPLE)))
+        @Valid @RequestBody IssuerCsrResource csrResource
+    ) {
+        return ResponseEntity.ok(certificatesService.requestIssuerCertificate(relyingPartyId, csrResource));
+    }
+
+    @Operation(
+        summary = "Get issuer certificates for relying party",
+        description = "Get all issuer certificates for relying party by ID",
+        tags = {"relying-parties-certs-api"}
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200",
+            description = "Certificates returned",
+            content = @Content(examples = @ExampleObject(value = CERTIFICATES_RESOURCE_EXAMPLE))),
+        @ApiResponse(responseCode = "404", description = "Relying party not found")
+    })
+    @Audit(auditId = ISSUER_CERTIFICATE_RETRIEVED)
+    @GetMapping(path = "/{relying-party-id}/issuer-certs",
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<RelyingPartyEntitlementsResource> getIssuerCertificates(
+        @PathVariable("relying-party-id") @Valid UUID relyingPartyId) {
+        return ResponseEntity.ok(
+            certificatesService.getAllIssuerCertificatesFromRelyingParty(relyingPartyId));
+    }
+
+    @Operation(
+        summary = "Get access-certificates for relying party",
+        description = "Get all access-certificates for relying party by ID",
         tags = {"relying-parties-certs-api"}
     )
     @ApiResponses({
@@ -91,18 +143,18 @@ public class RelyingPartyCertificateController {
                      content = @Content(examples = @ExampleObject(value = CERTIFICATES_RESOURCE_EXAMPLE))),
         @ApiResponse(responseCode = "404", description = "Relying party not found")
     })
-    @Audit(auditId = RELYING_PARTY_CERTIFICATE_RETRIEVED)
+    @Audit(auditId = RELYING_PARTY_ACCESS_CERTIFICATE_RETRIEVED)
     @GetMapping(path = "/{relying-party-id}/certs",
                 produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<RelyingPartyCertificatesResource> getCertificates(
+    public ResponseEntity<RelyingPartyCertificatesResource> getAccessCertificates(
         @PathVariable("relying-party-id") @Valid UUID relyingPartyId) {
         return ResponseEntity.ok(
             certificatesService.getCertificatesForRelyingParty(relyingPartyId));
     }
 
     @Operation(
-        summary = "Get specific certificate",
-        description = "Get certificate by its ID and ID of the holding relying party",
+        summary = "Get specific access-certificate",
+        description = "Get access-certificate by its ID and ID of the holding relying party",
         tags = {"relying-parties-certs-api"}
     )
     @ApiResponses({
@@ -111,10 +163,10 @@ public class RelyingPartyCertificateController {
                      content = @Content(examples = @ExampleObject(value = CERTIFICATE_RESOURCE_EXAMPLE))),
         @ApiResponse(responseCode = "404", description = "Certificate not found")
     })
-    @Audit(auditId = RELYING_PARTY_CERTIFICATE_RETRIEVED)
+    @Audit(auditId = RELYING_PARTY_ACCESS_CERTIFICATE_RETRIEVED)
     @GetMapping(path = "/{relying-party-id}/certs/{certificate-id}",
                 produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<RelyingPartyCertificateResource> getCertificate(
+    public ResponseEntity<RelyingPartyCertificateResource> getAccessCertificate(
         @PathVariable("relying-party-id") @Valid UUID relyingPartyId,
         @PathVariable("certificate-id") @Valid UUID certificateId) {
         return ResponseEntity.ok(

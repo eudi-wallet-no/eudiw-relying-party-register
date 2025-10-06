@@ -10,6 +10,7 @@ class RegisterApplicationTests {
 
 	@Test
 	void contextLoads() {
+
 	}
 
 }

@@ -49,6 +49,10 @@ public class RelyingPartyEntitlement extends BaseEntity {
         this(entitlement, null, null);
     }
 
+    public RelyingPartyEntitlement(String entitlement, RelyingParty relyingParty) {
+        this(entitlement, relyingParty, new ArrayList<>());
+    }
+
     public RelyingPartyEntitlement(
         String entitlement,
         RelyingParty relyingParty,
