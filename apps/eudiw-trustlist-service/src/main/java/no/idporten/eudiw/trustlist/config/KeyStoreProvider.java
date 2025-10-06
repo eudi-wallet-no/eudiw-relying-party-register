@@ -16,6 +16,7 @@ import java.util.Base64;
 
 /**
  * Loads a keystore from a location.  Supported locations are file:, classpath: and base64: .
+ * Keystore classess in this package might be replaced by https://github.com/felleslosninger/idporten-lib-keystore?
  */
 @Slf4j
 @Getter
