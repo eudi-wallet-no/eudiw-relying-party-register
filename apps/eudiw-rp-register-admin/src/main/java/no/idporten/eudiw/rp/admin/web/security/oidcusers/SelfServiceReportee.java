@@ -1,4 +1,4 @@
-package no.idporten.eudiw.rp.admin.web.security.ansattporten;
+package no.idporten.eudiw.rp.admin.web.security.oidcusers;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -7,7 +7,7 @@ import no.idporten.validators.orgnr.Orgnr;
 import org.springframework.boot.context.properties.bind.ConstructorBinding;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record AnsattportenReportee(
+public record SelfServiceReportee(
     @JsonProperty("Name")
     @NotBlank
     String name,
@@ -21,7 +21,7 @@ public record AnsattportenReportee(
     // String authority
 ) {
     @ConstructorBinding
-    public AnsattportenReportee(String name, String orgno) {
+    public SelfServiceReportee(String name, String orgno) {
         this.name = name;
         this.orgno = orgno.replaceFirst("^.*:", "");
     }

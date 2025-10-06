@@ -1,16 +1,15 @@
-package no.idporten.eudiw.rp.admin.web.security.entraid;
+package no.idporten.eudiw.rp.admin.web.security.oidcusers;
 
-import no.idporten.eudiw.rp.admin.web.security.BaseOidcUser;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 
 import java.util.Collection;
 
-public class EntraIdOidcUser extends BaseOidcUser {
-    public EntraIdOidcUser(Collection<? extends GrantedAuthority> authorities,
-                           OidcIdToken idToken,
-                           OidcUserInfo userInfo) {
+public class AdminOidcUser extends BaseOidcUser {
+    public AdminOidcUser(Collection<? extends GrantedAuthority> authorities,
+                         OidcIdToken idToken,
+                         OidcUserInfo userInfo) {
         super(authorities, idToken, userInfo);
     }
 

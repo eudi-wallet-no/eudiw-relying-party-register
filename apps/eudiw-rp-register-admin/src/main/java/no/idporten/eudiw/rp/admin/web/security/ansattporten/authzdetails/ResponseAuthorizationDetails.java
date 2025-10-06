@@ -3,7 +3,7 @@ package no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenReportee;
+import no.idporten.eudiw.rp.admin.web.security.oidcusers.SelfServiceReportee;
 
 import java.util.List;
 
@@ -19,5 +19,5 @@ public record ResponseAuthorizationDetails(
     String resourceName,
     @NotNull
     @JsonProperty("reportees")
-    List<AnsattportenReportee> reportees
+    List<SelfServiceReportee> reportees
 ) { }
