@@ -12,7 +12,7 @@
     <artifactId>trustlist-service</artifactId>
     <version>DEV-SNAPSHOT</version>
     <name>trustlist-service</name>
-    <description>EUDIW Trust List Service</description>
+    <description>EUDIW Tillitsliste for norsk eidas2sandkasse</description>
 
     <properties>
         <java.version>25</java.version>
