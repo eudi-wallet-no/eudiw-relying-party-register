@@ -26,10 +26,10 @@ public abstract class BaseOidcUser extends DefaultOidcUser {
     public abstract boolean isAdmin();
     public abstract boolean hasPrivilegedAccessTo(String orgno);
 
-    public SelfServiceOidcUser toAnsattportenOidcUser() {
+    public SelfServiceOidcUser toSelfServiceOidcUser() {
         return (SelfServiceOidcUser) this;
     }
-    public AdminOidcUser toEntraIdOidcUser() {
+    public AdminOidcUser toAdminOidcUser() {
         return (AdminOidcUser) this;
     }
 }
