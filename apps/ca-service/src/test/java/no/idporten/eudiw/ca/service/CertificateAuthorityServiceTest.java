@@ -21,9 +21,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import javax.security.auth.x500.X500Principal;
-import java.math.BigInteger;
 import java.security.Security;
 import java.security.cert.X509Certificate;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
@@ -82,7 +84,11 @@ public class CertificateAuthorityServiceTest {
                     () -> assertEquals("1.2.840.10045.4.3.4", issuedCertificate.getSigAlgOID()),
                     () -> assertNotNull(issuedCertificate.getExtensionValue(Extension.cRLDistributionPoints.getId())),
                     () -> assertTrue(issuedCertificate.getSubjectX500Principal().getName(X500Principal.RFC1779).contains("CN=foo")),
-                    () -> assertTrue(issuedCertificate.getSubjectX500Principal().getName(X500Principal.RFC1779).contains("NTRNO-NOFOR.99182582"))
+                    () -> assertTrue(issuedCertificate.getSubjectX500Principal().getName(X500Principal.RFC1779).contains("NTRNO-NOFOR.99182582")),
+                    () -> assertEquals(100,
+                            ChronoUnit.DAYS.between(
+                                    LocalDate.ofInstant(issuedCertificate.getNotBefore().toInstant(), ZoneId.systemDefault()),
+                                    LocalDate.ofInstant(issuedCertificate.getNotAfter().toInstant(), ZoneId.systemDefault())))
             );
             issuedCertificate.verify(intermediate.getPublicKey());
             verify(certificateRepository).save(certificateCaptor.capture());
@@ -164,6 +170,57 @@ public class CertificateAuthorityServiceTest {
         }
 
     }
+
+    @DisplayName("When signing issuer certificates")
+    @Nested
+    class IssuerCertificateTests {
+
+        @DisplayName("then a valid EAA certificate is created with expected liftime")
+        @Test
+        void testEaaProviderCertificate() throws Exception {
+            String csr = """
+                    -----BEGIN NEW CERTIFICATE REQUEST-----
+                    MIIBbTCCARQCAQAwXzELMAkGA1UEBhMCbm8xDTALBgNVBAgTBFNvZ24xEjAQBgNV
+                    BAcTCUxlaWthbmdlcjEPMA0GA1UEChMGRGlnZGlyMQ4wDAYDVQQLEwVFVURJVzEM
+                    MAoGA1UEAxMDcnAyMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAELKyeEr6OlEgW
+                    E0cRI3aCgzRnPu9IjoYCsPuV53/QwBe0pymYVafMPssBqiLEyuylH/AQ3Teltq66
+                    L96/KVs1bqBTMFEGCSqGSIb3DQEJDjFEMEIwHQYDVR0OBBYEFFLDKogDLA5GDhgY
+                    oiRDkMpjeQDNMCEGA1UdEQQaMBiCFmp1bml0LnJwMS5pZHBvcnRlbi5kZXYwCgYI
+                    KoZIzj0EAwMDRwAwRAIgVIhOFcOMK0KR9MvK3a76Hgma6susPfXDJ+HfZZe50N8C
+                    IF5nyI5eYXYbBBQvdAZFJStX4YgEc+7j/QV3BlIGz2HE
+                    -----END NEW CERTIFICATE REQUEST-----""";
+            CertificateAuthority intermediate = certificateAuthorities.findIntermediate("eaa_provider");
+            X509Certificate issuedCertificate = certificateAuthorityService.signLeafCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), "foo", "991825827");
+            assertAll(
+                    () -> assertNotNull(issuedCertificate),
+                    () -> assertTrue(issuedCertificate.getBasicConstraints() < 0),
+                    () -> assertArrayEquals(new boolean[]{true, false, true, false, false, false, false, false, false}, issuedCertificate.getKeyUsage()),
+                    () -> assertTrue(issuedCertificate.getSubjectAlternativeNames().iterator().next().contains("junit.rp1.idporten.dev")),
+                    () -> assertEquals(intermediate.getCertificate().getSubjectX500Principal(), issuedCertificate.getIssuerX500Principal()),
+                    () -> assertEquals("SHA512WITHECDSA", issuedCertificate.getSigAlgName()),
+                    () -> assertEquals("1.2.840.10045.4.3.4", issuedCertificate.getSigAlgOID()),
+                    () -> assertNotNull(issuedCertificate.getExtensionValue(Extension.cRLDistributionPoints.getId())),
+                    () -> assertTrue(issuedCertificate.getSubjectX500Principal().getName(X500Principal.RFC1779).contains("CN=foo")),
+                    () -> assertTrue(issuedCertificate.getSubjectX500Principal().getName(X500Principal.RFC1779).contains("NTRNO-NOFOR.99182582")),
+                    () -> assertEquals(365,
+                            ChronoUnit.DAYS.between(
+                                    LocalDate.ofInstant(issuedCertificate.getNotBefore().toInstant(), ZoneId.systemDefault()),
+                                    LocalDate.ofInstant(issuedCertificate.getNotAfter().toInstant(), ZoneId.systemDefault())))
+                    );
+            issuedCertificate.verify(intermediate.getPublicKey());
+            verify(certificateRepository).save(certificateCaptor.capture());
+            Certificate savedCertificate = certificateCaptor.getValue();
+            assertAll(
+                    () -> assertEquals("eaa_provider", savedCertificate.getIssuerCa()),
+                    () -> assertEquals(issuedCertificate.getSerialNumber(), SerialNumberUtils.convertFromString(savedCertificate.getSerialNo())),
+                    () -> assertEquals(issuedCertificate.getNotBefore().getTime(), savedCertificate.getValidFromMs()),
+                    () -> assertEquals(issuedCertificate.getNotAfter().getTime(), savedCertificate.getValidUntilMs()),
+                    () -> assertEquals(0, savedCertificate.getRevokedAtMs()),
+                    () -> assertEquals(-1, savedCertificate.getRevocationReason())
+            );
+        }
+    }
+
 
     @DisplayName("When signing root CA certificates")
     @Nested
