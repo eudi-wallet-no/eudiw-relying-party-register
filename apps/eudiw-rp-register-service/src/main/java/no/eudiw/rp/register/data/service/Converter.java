@@ -39,11 +39,14 @@ public class Converter {
         return new RelyingPartyEaaResource(eaa.getNamespace(), eaa.getIntent());
     }
     public static RelyingPartyEntitlementResource toResource(RelyingPartyEntitlement entitlement) {
-        return new RelyingPartyEntitlementResource(entitlement.getEntitlement());
+        return new RelyingPartyEntitlementResource(
+            entitlement.getEntitlement(),
+            entitlement.getIssuerCertificates() != null ? entitlement.getIssuerCertificates().stream().map(Converter::toResource).toList() : new ArrayList<>()
+        );
     }
 
     public static EntitlementResource toResource(Entitlement entitlement) {
-        return new EntitlementResource(entitlement.getId(), entitlement.getEntitlement(), entitlement.isActive(), entitlement.getDisplayName());
+        return new EntitlementResource(entitlement.getId(), entitlement.getEntitlement(), entitlement.isActive(), entitlement.getDisplayName(), entitlement.getCaId());
     }
 
     public static EntitlementsResource toEntitlementsResource(List<Entitlement> entitlements) {
@@ -74,6 +77,9 @@ public class Converter {
         return new AccessCertificate(resource.certificate());
     }
     public static RelyingPartyCertificateResource toResource(AccessCertificate entity) {
+        return new RelyingPartyCertificateResource(entity.getCertificate(), entity.getId());
+    }
+    public static RelyingPartyCertificateResource toResource(IssuerCertificate entity) {
         return new RelyingPartyCertificateResource(entity.getCertificate(), entity.getId());
     }
 

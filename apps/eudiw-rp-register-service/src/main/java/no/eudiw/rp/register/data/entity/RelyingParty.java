@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -70,12 +72,33 @@ public class RelyingParty extends BaseEntity {
     private boolean deleted;
 
     public void setRelyingPartyEntitlements(
-        List<RelyingPartyEntitlement> relyingPartyEntitlements) {
+        List<RelyingPartyEntitlement> relyingPartyEntitlements
+    ) {
         this.relyingPartyEntitlements.clear();
         if (relyingPartyEntitlements != null) {
             relyingPartyEntitlements.forEach(entitlement -> entitlement.setRelyingParty(this));
             this.relyingPartyEntitlements.addAll(relyingPartyEntitlements);
         }
+    }
+
+    public void addRelyingPartyEntitlement(
+        RelyingPartyEntitlement relyingPartyEntitlement
+    ) {
+        if (relyingPartyEntitlements != null) {
+            this.relyingPartyEntitlements.add(relyingPartyEntitlement);
+        }
+    }
+
+    public Optional<RelyingPartyEntitlement> getRelyingPartyEntitlement(UUID id) {
+        return relyingPartyEntitlements.stream()
+            .filter(entitlement -> id.equals(entitlement.getId()))
+            .findFirst();
+    }
+
+    public Optional<RelyingPartyEntitlement> getRelyingPartyEntitlement(String entitlementType) {
+        return relyingPartyEntitlements.stream()
+                .filter(entitlement -> entitlementType.equals(entitlement.getEntitlement()))
+                .findFirst();
     }
 
     public void setRelyingPartyEaas(List<RelyingPartyEaa> relyingPartyEaas) {

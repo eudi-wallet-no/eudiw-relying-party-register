@@ -215,8 +215,8 @@ public class RelyingPartiesControllerTest {
             @Test
             void testEditRelyingPartyMoreEntitlements() throws Exception {
                 List<RelyingPartyEntitlementResource> initialEntitlements =
-                    List.of(new RelyingPartyEntitlementResource("https://uri.etsi.org/19475/Entitlement/Service_Provider"),
-                            new RelyingPartyEntitlementResource("https://uri.etsi.org/19475/Entitlement/Non_Q_EAA_Provider"));
+                    List.of(new RelyingPartyEntitlementResource("https://uri.etsi.org/19475/Entitlement/Service_Provider", new ArrayList<>()),
+                            new RelyingPartyEntitlementResource("https://uri.etsi.org/19475/Entitlement/Non_Q_EAA_Provider", new ArrayList<>()));
 
                 CreateRelyingPartyResource resource =
                     generateCreateRelyingPartyResource()
@@ -237,7 +237,7 @@ public class RelyingPartiesControllerTest {
                 RelyingPartyResource relyingPartyResource = ApiTestUtils.toRelyingPartyResource(createResult);
 
                 List<RelyingPartyEntitlementResource> entitlements = new ArrayList<>(resource.relyingPartyEntitlements());
-                entitlements.add(new RelyingPartyEntitlementResource("https://uri.etsi.org/19475/Entitlement/PID_Provider"));
+                entitlements.add(new RelyingPartyEntitlementResource("https://uri.etsi.org/19475/Entitlement/PID_Provider", new ArrayList<>()));
                 EditRelyingPartyResource editResource =
                     generateEditRelyingPartyResource()
                         .withRelyingPartyEntitlements(entitlements)

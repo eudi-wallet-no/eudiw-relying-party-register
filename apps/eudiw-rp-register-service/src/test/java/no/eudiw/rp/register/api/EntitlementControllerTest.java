@@ -46,7 +46,7 @@ class EntitlementControllerTest {
 
         @Test
         void testCreateEntitlement() throws Exception {
-            CreateEntitlementResource resource = new CreateEntitlementResource("entitlement99", "entitlement99");
+            CreateEntitlementResource resource = new CreateEntitlementResource("entitlement99", "entitlement99", "access");
 
             ObjectWriter ow = new ObjectMapper().writer();
             String json = ow.writeValueAsString(resource);
@@ -62,7 +62,7 @@ class EntitlementControllerTest {
 
         @Test
         void testEditEntitlement() throws Exception {
-            CreateEntitlementResource createResource = new CreateEntitlementResource("entitlement98", "entitlement98");
+            CreateEntitlementResource createResource = new CreateEntitlementResource("entitlement98", "entitlement98", "access");
 
             ObjectWriter ow = new ObjectMapper().writer();
             String createJson = ow.writeValueAsString(createResource);
@@ -90,7 +90,7 @@ class EntitlementControllerTest {
 
         @Test
         void testGetAllEntitlement() throws Exception {
-            CreateEntitlementResource createResource = new CreateEntitlementResource("entitlement97", "entitlement97");
+            CreateEntitlementResource createResource = new CreateEntitlementResource("entitlement97", "entitlement97", "access");
 
             ObjectWriter ow = new ObjectMapper().writer();
             String createJson = ow.writeValueAsString(createResource);

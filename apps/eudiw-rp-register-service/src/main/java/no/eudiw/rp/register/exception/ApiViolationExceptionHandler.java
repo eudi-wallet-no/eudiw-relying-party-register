@@ -31,12 +31,12 @@ public class ApiViolationExceptionHandler {
 
     // on jackson deserialization failure (e.g. unrecognized properties,
     // or missing required properties)
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ErrorResponseResource> handleHttpMessageNotReadableException(
-        HttpMessageNotReadableException e) {
-        return apiViolationErrorResponse(
-                "Resource contains unexpected fields and/or is missing required fields", e);
-    }
+@ExceptionHandler(HttpMessageNotReadableException.class)
+public ResponseEntity<ErrorResponseResource> handleHttpMessageNotReadableException(
+    HttpMessageNotReadableException e) {
+    return apiViolationErrorResponse(
+            "Resource contains unexpected fields and/or is missing required fields", e);
+}
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ErrorResponseResource> handleConstraintViolationException(

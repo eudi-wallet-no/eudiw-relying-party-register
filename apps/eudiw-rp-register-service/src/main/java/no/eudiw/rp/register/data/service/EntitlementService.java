@@ -6,6 +6,7 @@ import no.eudiw.rp.register.data.entity.Entitlement;
 import no.eudiw.rp.register.data.repository.EntitlementRepository;
 import no.eudiw.rp.register.data.service.exception.AlreadyExistsException;
 import no.eudiw.rp.register.data.service.exception.BadRequestException;
+import no.eudiw.rp.register.data.service.exception.NotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,7 +27,7 @@ public class EntitlementService {
                 "Entitlement already exists ");
         }
 
-        Entitlement entity = new Entitlement(entitlement.entitlement(), true, entitlement.displayName());
+        Entitlement entity = new Entitlement(entitlement.entitlement(), true, entitlement.displayName(), entitlement.caId());
         return Converter.toResource(entitlementRepository.saveAndFlush(entity));
     }
 
@@ -46,10 +47,8 @@ public class EntitlementService {
             throw new BadRequestException("entitlement should not be null");
         }
 
-        Entitlement entity = entitlementRepository.findByEntitlement(entitlement);
-        if (entity == null) {
-            throw new BadRequestException("Entitlement not found");
-        }
+        Entitlement entity = entitlementRepository.findByEntitlement(entitlement)
+                .orElseThrow(() -> new BadRequestException("Entitlement not found"));
 
         entity.setActive(status);
         return Converter.toResource(entitlementRepository.saveAndFlush(entity));

@@ -27,5 +27,10 @@ public record EntitlementResource(
     @SaneStringConstraint
     @NotBlank(message = "blank_name")
     @JsonProperty(value = "display_name", required = true)
-    String displayName
+    String displayName,
+
+    @SaneStringConstraint
+    @NotBlank(message = "blank_name")
+    @JsonProperty(value = "ca_id", required = true)
+    String caId
 ) { }
