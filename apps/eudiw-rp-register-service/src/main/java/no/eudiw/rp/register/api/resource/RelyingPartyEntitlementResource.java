@@ -22,7 +22,6 @@ public record RelyingPartyEntitlementResource(
     String entitlement,
 
     @Valid
-    @NotNull(message = "null_certificates")
-    @JsonProperty(value = "certificates", required = true)
+    @JsonProperty(value = "certificates")
     List<RelyingPartyCertificateResource> certificates
 ) { }
