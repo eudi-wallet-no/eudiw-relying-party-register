@@ -1,8 +1,6 @@
-package no.idporten.eudiw.rp.admin.web.security;
+package no.idporten.eudiw.rp.admin.web.security.oidcusers;
 
 import lombok.Getter;
-import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenOidcUser;
-import no.idporten.eudiw.rp.admin.web.security.entraid.EntraIdOidcUser;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
@@ -28,10 +26,10 @@ public abstract class BaseOidcUser extends DefaultOidcUser {
     public abstract boolean isAdmin();
     public abstract boolean hasPrivilegedAccessTo(String orgno);
 
-    public AnsattportenOidcUser toAnsattportenOidcUser() {
-        return (AnsattportenOidcUser) this;
+    public SelfServiceOidcUser toAnsattportenOidcUser() {
+        return (SelfServiceOidcUser) this;
     }
-    public EntraIdOidcUser toEntraIdOidcUser() {
-        return (EntraIdOidcUser) this;
+    public AdminOidcUser toEntraIdOidcUser() {
+        return (AdminOidcUser) this;
     }
 }

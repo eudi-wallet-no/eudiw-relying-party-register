@@ -3,6 +3,7 @@ package no.idporten.eudiw.rp.admin.web.security;
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.rp.admin.exception.AdminServiceException;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
+import no.idporten.eudiw.rp.admin.web.security.oidcusers.BaseOidcUser;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 
