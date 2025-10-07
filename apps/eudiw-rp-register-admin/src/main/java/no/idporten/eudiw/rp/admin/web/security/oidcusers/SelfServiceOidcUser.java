@@ -14,6 +14,10 @@ public class SelfServiceOidcUser extends BaseOidcUser {
 
     private final List<SelfServiceReportee> reportees;
 
+    public SelfServiceReportee getReportee() {
+        return this.reportees.getFirst();
+    }
+
     public SelfServiceOidcUser(Collection<? extends GrantedAuthority> authorities,
                                OidcIdToken idToken,
                                OidcUserInfo userInfo,

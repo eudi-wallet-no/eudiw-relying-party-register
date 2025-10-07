@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import no.idporten.eudiw.rp.admin.web.security.OAuth2Constants;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails.ResponseAuthorizationDetails;
 import no.idporten.eudiw.rp.admin.web.security.oidcusers.SelfServiceOidcUser;
+import no.idporten.eudiw.rp.admin.web.security.oidcusers.SelfServiceReportee;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
@@ -47,9 +48,16 @@ public class AnsattportenOidcUserService extends OidcUserService {
         ResponseAuthorizationDetails responseAuthzDetails =
             getAndValidateAuthzDetailsClaim(oidcUser.getIdToken());
 
+        boolean dummyPublicSector = true; // TODO: whence should this come?
+        List<SelfServiceReportee> reportees =
+            responseAuthzDetails.reportees()
+                                .stream()
+                                .map(r -> new SelfServiceReportee(r.orgno(), r.name(), dummyPublicSector))
+                                .toList();
+
         return new SelfServiceOidcUser(oidcUser.getAuthorities(),
                                        oidcUser.getIdToken(),
                                        oidcUser.getUserInfo(),
-                                       responseAuthzDetails.reportees());
+                                       reportees);
     }
 }

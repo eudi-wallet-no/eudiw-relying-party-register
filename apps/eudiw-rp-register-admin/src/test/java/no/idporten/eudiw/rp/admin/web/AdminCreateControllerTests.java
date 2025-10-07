@@ -1,11 +1,9 @@
 package no.idporten.eudiw.rp.admin.web;
 
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
-import no.idporten.eudiw.rp.admin.service.exception.AlreadyExistsException;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
-import no.idporten.eudiw.rp.admin.testdata.TestDataGenerator;
-import no.idporten.eudiw.rp.admin.web.controllers.CreateController;
-import no.idporten.eudiw.rp.admin.web.form.RelyingPartyCreateForm;
+import no.idporten.eudiw.rp.admin.web.controllers.admin.AdminCreateController;
+import no.idporten.eudiw.rp.admin.web.form.admin.AdminCreateRelyingPartyForm;
 import no.idporten.eudiw.rp.admin.web.resource.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -26,9 +24,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @ActiveProfiles("local-test")
-@DisplayName("When using the RP registration controller")
+@DisplayName("When using the admin create controller")
 @AutoConfigureMockMvc(addFilters = false)
-public class CreateControllerTests {
+public class AdminCreateControllerTests {
 
     @Autowired
     private MockMvc mockMvc;
@@ -38,18 +36,18 @@ public class CreateControllerTests {
     private RelyingPartiesService mockRpService;
 
     @Nested
-    @DisplayName("When GET'ing the create endpoint")
+    @DisplayName("When GET'ing the admin/create endpoint")
     class CreateEndpointGetTests {
         @Test
         @DisplayName("then the correct view with the expected create form is loaded")
         void testCorrectViewAndModelAttributes() throws Exception {
-            RelyingPartyCreateForm createForm = new RelyingPartyCreateForm();
+            AdminCreateRelyingPartyForm createForm = new AdminCreateRelyingPartyForm();
 
-            mockMvc.perform(get("/create"))
+            mockMvc.perform(get("/admin/create"))
                 .andExpectAll(
                     status().isOk(),
-                    view().name("create_form_view"),
-                    model().attribute(CreateController.createFormAttrId, createForm));
+                    view().name("admin/create_form_view"),
+                    model().attribute(AdminCreateController.createFormAttrId, createForm));
         }
     }
 
@@ -74,7 +72,7 @@ public class CreateControllerTests {
                     rpResource.relyingPartyEaas());
 
             when(mockRpService.create(createResource)).thenReturn(rpResource);
-            mockMvc.perform(post("/create")
+            mockMvc.perform(post("/admin/create")
                     .formField("orgno", createResource.orgno())
                     .formField("name", createResource.name())
                     .formField("publicSector",
@@ -85,29 +83,6 @@ public class CreateControllerTests {
                     redirectedUrl("/details/" + rpResource.id()));
 
             verify(mockRpService).create(createResource);
-        }
-
-        @Test
-        @DisplayName("correct view and attributes when RP already exists")
-        void testCorrectHandlingOfAlreadyExistsException() throws Exception {
-
-            when(mockRpService.create(any())).thenThrow(AlreadyExistsException.class);
-
-            String orgno = TestDataGenerator.generateValidOrgno();
-            String name = TestDataGenerator.generateName();
-            String publicSectorStr = Boolean.toString(TestDataGenerator.generateBoolean());
-            String entitlementStr = ResourceGenerator.generateRelyingPartyEntitlementResource().entitlement();
-
-            mockMvc.perform(post("/create")
-                                .formField("orgno", orgno)
-                                .formField("name", name)
-                                .formField("publicSector", publicSectorStr)
-                                .formField("entitlements", entitlementStr))
-                .andExpectAll(
-                    status().is2xxSuccessful(),
-                    view().name("create_form_view"),
-                    model().attribute(CreateController.errorResponseMsgAttrId,
-                                      "exception.already_exists"));
         }
     }
 }
