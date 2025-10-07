@@ -1,4 +1,4 @@
-package no.idporten.eudiw.rp.admin.web.form;
+package no.idporten.eudiw.rp.admin.web.form.admin;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -7,6 +7,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import no.idporten.eudiw.rp.admin.validation.SaneStringConstraint;
 import no.idporten.eudiw.rp.admin.validation.SaneStringValidator;
+import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEaaFormField;
+import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEntitlementFormField;
 import no.idporten.eudiw.rp.admin.web.resource.CreateRelyingPartyResource;
 
 import no.idporten.validators.orgnr.Orgnr;
@@ -14,34 +16,30 @@ import no.idporten.validators.orgnr.Orgnr;
 import java.util.ArrayList;
 import java.util.List;
 
+@NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
 @EqualsAndHashCode
-public class RelyingPartyCreateForm {
+public class AdminCreateRelyingPartyForm {
 
     @Orgnr(message = "Ugyldig organisasjonsnummer")
     @NotNull
-    private String orgno;
+    private String orgno = "";
 
     @SaneStringConstraint(message =
         "Ugyldig namn. Gyldige teikn er: norske bokstavar, tal, mellemrom og symbola "
             + SaneStringValidator.ALLOWED_SYMBOLS)
     @NotBlank(message = "Namn må fyllast ut")
-    private String name;
+    private String name = "";
 
-    private boolean publicSector;
+    private boolean publicSector = false;
 
     @Valid
     @NotEmpty(message = "Brukarstaden må ha minst ein rolle valt")
-    private List<RelyingPartyEntitlementFormField> entitlements;
+    private List<RelyingPartyEntitlementFormField> entitlements = new ArrayList<>();
     @Valid
-    private List<RelyingPartyEaaFormField> eaas;
-
-    @SuppressWarnings("unused") // used in Spring data binding
-    public RelyingPartyCreateForm() {
-        this("", "", true, new ArrayList<>(), new ArrayList<>());
-    }
+    private List<RelyingPartyEaaFormField> eaas = new ArrayList<>();
 
     public CreateRelyingPartyResource toResource() {
         return new CreateRelyingPartyResource(
