@@ -228,7 +228,8 @@ public class CertificateAuthorityService {
             x500NameBuilder.addMultiValuedRDN(rdn.getTypesAndValues());
         }
         x500NameBuilder.addRDN(BCStyle.C, "NO");
-        x500NameBuilder.addRDN(ASN1ObjectIdentifier.tryFromID(OID_ORGANIZATION_NUMBER), "NTRNO-%s".formatted(orgno));
+        x500NameBuilder.addRDN(BCStyle.O, "DIGITALISERINGSDIREKTORATET");
+        x500NameBuilder.addRDN(ASN1ObjectIdentifier.tryFromID(OID_ORGANIZATION_NUMBER), "NTRNO-NOFOR.%s".formatted(orgno));
         return x500NameBuilder.build();
     }
 
