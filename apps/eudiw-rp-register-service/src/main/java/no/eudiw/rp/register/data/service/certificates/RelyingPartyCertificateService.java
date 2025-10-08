@@ -11,6 +11,7 @@ import no.eudiw.rp.register.data.certificates.PKCS10CertificationRequestConverte
 import no.eudiw.rp.register.data.certificates.X509CertificateConverter;
 import no.eudiw.rp.register.data.entity.*;
 import no.eudiw.rp.register.data.repository.EntitlementRepository;
+import no.eudiw.rp.register.data.repository.IssuerCertificateRepository;
 import no.eudiw.rp.register.data.repository.RelyingPartyCertificateRepository;
 import no.eudiw.rp.register.data.repository.RelyingPartyRepository;
 import no.eudiw.rp.register.data.service.Converter;
@@ -33,6 +34,7 @@ public class RelyingPartyCertificateService {
     private final RelyingPartyCertificateRepository relyingPartyCertificateRepository;
     private final RestClient caRestClient;
     private final EntitlementRepository entitlementRepository;
+    private final IssuerCertificateRepository issuerCertificateRepository;
 
     @Transactional(readOnly = true)
     public RelyingPartyCertificatesResource getCertificatesForRelyingParty(
@@ -61,6 +63,15 @@ public class RelyingPartyCertificateService {
         return Converter.toResource(
             relyingPartyCertificateRepository
                 .findByIdAndRelyingPartyId(certificateId, relyingPartyId)
+                .orElseThrow(() -> new NotFoundException("Certificate does not exist"))
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public RelyingPartyCertificateResource getIssuerCertificate(
+        UUID certificateId) {
+        return Converter.toResource(
+            issuerCertificateRepository.findById(certificateId)
                 .orElseThrow(() -> new NotFoundException("Certificate does not exist"))
         );
     }
