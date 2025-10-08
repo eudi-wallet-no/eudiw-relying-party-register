@@ -173,4 +173,25 @@ public class RelyingPartyCertificateController {
             certificatesService.getCertificate(
                 certificateId, relyingPartyId));
     }
+
+    @Operation(
+        summary = "Get specific issuer-certificate",
+        description = "Get issuer-certificate by its ID",
+        tags = {"relying-parties-certs-api"}
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200",
+            description = "Certificates returned",
+            content = @Content(examples = @ExampleObject(value = CERTIFICATE_RESOURCE_EXAMPLE))),
+        @ApiResponse(responseCode = "404", description = "Certificate not found")
+    })
+    @Audit(auditId = RELYING_PARTY_ACCESS_CERTIFICATE_RETRIEVED)
+    @GetMapping(path = "/certs/issuer/{certificate-id}",
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<RelyingPartyCertificateResource> getIssuerCertificate(
+        @PathVariable("certificate-id") @Valid UUID certificateId) {
+        return ResponseEntity.ok(
+            certificatesService.getIssuerCertificate(
+                certificateId));
+    }
 }
