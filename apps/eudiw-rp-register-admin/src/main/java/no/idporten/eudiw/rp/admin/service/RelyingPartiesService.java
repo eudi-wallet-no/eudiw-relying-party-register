@@ -5,13 +5,13 @@ import no.idporten.eudiw.rp.admin.exception.AdminServiceException;
 import no.idporten.eudiw.rp.admin.service.exception.NotFoundException;
 import no.idporten.eudiw.rp.admin.service.exception.RelyingPartyNotFoundException;
 import no.idporten.eudiw.rp.admin.web.resource.*;
-import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyAccessCertificateResource;
-import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyAccessCertificatesResource;
-import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyCsrResource;
+import no.idporten.eudiw.rp.admin.web.resource.certificates.IssuerCsrResource;
+import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificateResource;
+import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyAccessCertificatesResource;
+import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCsrResource;
 import no.idporten.eudiw.rp.admin.web.resource.entitlement.EntitlementResource;
 import no.idporten.eudiw.rp.admin.web.resource.entitlement.EntitlementsResource;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.RestClient;
@@ -88,24 +88,36 @@ public class RelyingPartiesService {
                 .getBody();
     }
 
-    public RelyingPartyAccessCertificateResource getCertificate(
+    public RelyingPartyCertificateResource getCertificate(
         UUID relyingPartyId, UUID certificateId) {
         return restClient.get()
                          .uri("/rp/{rp-id}/certs/{cert-id}", relyingPartyId, certificateId)
                          .retrieve()
-                         .toEntity(RelyingPartyAccessCertificateResource.class)
+                         .toEntity(RelyingPartyCertificateResource.class)
                          .getBody();
     }
 
-    public RelyingPartyAccessCertificateResource requestCertificateForRelyingParty(
+    public RelyingPartyCertificateResource requestCertificateForRelyingParty(
         UUID id,
         RelyingPartyCsrResource csrResource) {
         return restClient.post()
                 .uri("/rp/{id}/certs/access", id)
                 .body(csrResource)
                 .retrieve()
-                .toEntity(RelyingPartyAccessCertificateResource.class)
+                .toEntity(RelyingPartyCertificateResource.class)
                 .getBody();
+    }
+
+    public RelyingPartyCertificateResource requestIssuerCertificateForEntitlement(
+        UUID id,
+        IssuerCsrResource csrResource
+    ) {
+        return restClient.post()
+            .uri("/rp/{id}/issuer", id)
+            .body(csrResource)
+            .retrieve()
+            .toEntity(RelyingPartyCertificateResource.class)
+            .getBody();
     }
 
     public EntitlementsResource getValidEntitlements() {

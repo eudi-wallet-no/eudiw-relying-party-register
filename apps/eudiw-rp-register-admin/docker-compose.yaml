@@ -73,7 +73,7 @@ services:
         GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
         GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
     environment:
-      spring_profiles_active: "docker, admin-docker"
+      spring_profiles_active: "docker, admin, admin-docker"
     ports:
       - "9250:9250"
       - "9251:9251"

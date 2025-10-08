@@ -5,6 +5,7 @@ import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
@@ -35,24 +36,31 @@ public class CertificatesGenerator extends TestDataGenerator {
         return ResourceGenerator.generateRandomString(5, 10);
     }
 
-    public static X509Certificate generateX509Certificate() throws Exception {
-        X500Name issuerName  = new X500Name("CN=issuer-" + generateName());
-        X500Name subjectName = new X500Name("CN=subject-" + generateName());
+    public static X509Certificate generateX509Certificate() {
+        try {
+            X500Name issuerName  = new X500Name("CN=issuer-" + generateName());
+            X500Name subjectName = new X500Name("CN=subject-" + generateName());
 
-        BigInteger serialNo = BigInteger.valueOf(Math.abs(rng.nextLong()));
+            BigInteger serialNo = BigInteger.valueOf(Math.abs(rng.nextLong()));
 
-        Instant timeNow = Instant.now();
-        long millisInOneYear = 31540000000L;
-        Date notBefore = Date.from(timeNow.minusMillis(rng.nextLong(0, millisInOneYear)));
-        Date notAfter  = Date.from(timeNow.plusMillis(rng.nextLong(0,  millisInOneYear)));
+            Instant timeNow = Instant.now();
+            long millisInOneYear = 31540000000L;
+            Date notBefore = Date.from(timeNow.minusMillis(rng.nextLong(0, millisInOneYear)));
+            Date notAfter  = Date.from(timeNow.plusMillis(rng.nextLong(0,  millisInOneYear)));
 
-        ContentSigner signer = new JcaContentSignerBuilder("SHA256WithRSA").build(keyPair.getPrivate());
-        X509CertificateHolder certHolder =
-            new JcaX509v3CertificateBuilder(
-                issuerName, serialNo, notBefore, notAfter, subjectName, keyPair.getPublic())
-                .build(signer);
+            ContentSigner signer = null;
 
-        return new JcaX509CertificateConverter().getCertificate(certHolder);
+                signer = new JcaContentSignerBuilder("SHA256WithRSA").build(keyPair.getPrivate());
+
+            X509CertificateHolder certHolder =
+                new JcaX509v3CertificateBuilder(
+                    issuerName, serialNo, notBefore, notAfter, subjectName, keyPair.getPublic())
+                    .build(signer);
+
+            return new JcaX509CertificateConverter().getCertificate(certHolder);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static PKCS10CertificationRequest generatePKCS10Csr() throws Exception {

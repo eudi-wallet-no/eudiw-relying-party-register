@@ -4,7 +4,7 @@ import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.service.accesscertificates.X509CertificateConverter;
 import no.idporten.eudiw.rp.admin.service.exception.NotFoundException;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
-import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyAccessCertificateResource;
+import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificateResource;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -20,8 +20,6 @@ import java.util.UUID;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("local-test")
@@ -44,7 +42,7 @@ public class DownloadCertificateControllerTests {
         @DisplayName("then expected certificate is downloaded")
         public void testCorrectCertificateDownloadedWhenExists() throws Exception {
 
-            RelyingPartyAccessCertificateResource certResource =
+            RelyingPartyCertificateResource certResource =
                 ResourceGenerator.generateCertificateResource();
             UUID rpId = UUID.randomUUID();
             UUID certId = UUID.randomUUID();

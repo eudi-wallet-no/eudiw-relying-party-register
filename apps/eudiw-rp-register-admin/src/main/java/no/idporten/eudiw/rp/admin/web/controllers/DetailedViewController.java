@@ -49,7 +49,8 @@ public class DetailedViewController {
 
         return new ModelAndView("details_view", Map.of(
             detailedViewDataAttrId, relyingPartyResource,
-            certificateSummariesAttrId, certificatesResource));
+            certificateSummariesAttrId, certificatesResource)
+        );
     }
 
     @GetMapping("/details/{id}/edit")

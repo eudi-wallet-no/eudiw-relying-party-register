@@ -8,9 +8,9 @@ import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.admin.web.controllers.CsrController;
 import no.idporten.eudiw.rp.admin.web.controllers.SearchController;
 import no.idporten.eudiw.rp.admin.web.resource.*;
-import no.idporten.eudiw.rp.admin.web.form.CsrForm;
-import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyAccessCertificateResource;
-import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyCsrResource;
+import no.idporten.eudiw.rp.admin.web.form.CsrAccessForm;
+import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificateResource;
+import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCsrResource;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -55,12 +55,12 @@ public class CsrControllerTests {
             UUID id = rpResource.id();
             when(mockRpService.get(id)).thenReturn(rpResource);
 
-            mockMvc.perform(get("/csr/" + id))
+            mockMvc.perform(get("/csr/access/" + id))
                    .andExpectAll(
                        status().isOk(),
-                       view().name("csr_form_view"),
+                       view().name("access_csr_form_view"),
                        model().attribute(SearchController.detailedViewDataAttrId, rpResource),
-                       model().attribute(CsrController.csrFormAttrId, CsrForm.empty()));
+                       model().attribute(CsrController.csrFormAttrId, CsrAccessForm.empty()));
 
             verify(mockRpService, times(1)).get(eq(id));
         }
@@ -80,7 +80,7 @@ public class CsrControllerTests {
             when(mockRpService.get(id)).thenReturn(rpResource);
 
             // set up service with a dummy certificate response
-            RelyingPartyAccessCertificateResource dummyCertResource =
+            RelyingPartyCertificateResource dummyCertResource =
                 ResourceGenerator.generateCertificateResource();
 
             PKCS10CertificationRequest csr = CertificatesGenerator.generatePKCS10Csr();
@@ -90,7 +90,7 @@ public class CsrControllerTests {
 
             String csrPemStr = PKCS10CertificationRequestConverter.toString(csr);
 
-            mockMvc.perform(post("/csr/" + id)
+            mockMvc.perform(post("/csr/access/" + id)
                                 .formField("csrField", csrPemStr))
                    .andExpectAll(
                        status().isOk(),
@@ -113,11 +113,11 @@ public class CsrControllerTests {
             String validCsrPemStr = PKCS10CertificationRequestConverter.toString(csr);
             String invalidCsrPemStr = validCsrPemStr.replace('\n', 'x');
 
-            mockMvc.perform(post("/csr/" + id)
+            mockMvc.perform(post("/csr/access/" + id)
                                 .formField("csrField", invalidCsrPemStr))
                    .andExpectAll(
                        status().isOk(),
-                       view().name("csr_form_view"),
+                       view().name("access_csr_form_view"),
                        model().hasErrors(),
                        model().attributeHasFieldErrors(CsrController.csrFormAttrId, "csrField"));
         }
@@ -136,11 +136,11 @@ public class CsrControllerTests {
                 PKCS10CertificationRequestConverter.toString(
                     ResourceGenerator.generateCsrResource().csr());
 
-            mockMvc.perform(post("/csr/" + rpResource.id())
+            mockMvc.perform(post("/csr/access/" + rpResource.id())
                                 .formField("csrField", csrStr))
                 .andExpectAll(
                     status().isOk(),
-                    view().name("csr_form_view"),
+                    view().name("access_csr_form_view"),
                     model().attributeExists(CsrController.errorResponseMsgAttrId));
         }
     }
