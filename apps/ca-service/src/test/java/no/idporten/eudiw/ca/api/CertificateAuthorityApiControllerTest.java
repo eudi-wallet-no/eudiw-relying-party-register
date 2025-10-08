@@ -132,7 +132,7 @@ public class CertificateAuthorityApiControllerTest {
         certificate.verify(certificateAuthorities.findIntermediate("access").getPublicKey());
     }
 
-    @DisplayName("then issuer certificates can be signed")
+    @DisplayName("then eaa_provider certificates can be signed")
     @Test
     void testSignIssuerCertificate() throws Exception {
         String certificateRequest = """
@@ -141,7 +141,7 @@ public class CertificateAuthorityApiControllerTest {
                   "name": "DigdirJunit",
                   "csr": "-----BEGIN NEW CERTIFICATE REQUEST-----\\nMIIBbTCCARQCAQAwXzELMAkGA1UEBhMCbm8xDTALBgNVBAgTBFNvZ24xEjAQBgNV\\nBAcTCUxlaWthbmdlcjEPMA0GA1UEChMGRGlnZGlyMQ4wDAYDVQQLEwVFVURJVzEM\\nMAoGA1UEAxMDcnAyMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAELKyeEr6OlEgW\\nE0cRI3aCgzRnPu9IjoYCsPuV53/QwBe0pymYVafMPssBqiLEyuylH/AQ3Teltq66\\nL96/KVs1bqBTMFEGCSqGSIb3DQEJDjFEMEIwHQYDVR0OBBYEFFLDKogDLA5GDhgY\\noiRDkMpjeQDNMCEGA1UdEQQaMBiCFmp1bml0LnJwMS5pZHBvcnRlbi5kZXYwCgYI\\nKoZIzj0EAwMDRwAwRAIgVIhOFcOMK0KR9MvK3a76Hgma6susPfXDJ+HfZZe50N8C\\nIF5nyI5eYXYbBBQvdAZFJStX4YgEc+7j/QV3BlIGz2HE\\n-----END NEW CERTIFICATE REQUEST-----"
                 }""";
-        MvcResult result = mockMvc.perform(post("/v1/certs/issuer")
+        MvcResult result = mockMvc.perform(post("/v1/certs/eaa_provider")
                         .header("X-API-KEY", "junit-api-key")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(certificateRequest))
@@ -151,7 +151,7 @@ public class CertificateAuthorityApiControllerTest {
         String content = result.getResponse().getContentAsString();
         X509CertificateHolder certificateHolder = CertificateEncodingUtils.decodeFromPem(content, X509CertificateHolder.class);
         X509Certificate certificate = CertificateEncodingUtils.toX509Certificate(certificateHolder);
-        certificate.verify(certificateAuthorities.findIntermediate("issuer").getPublicKey());
+        certificate.verify(certificateAuthorities.findIntermediate("eaa_provider").getPublicKey());
     }
 
     @DisplayName("then access certificates are added to the CRL when revoked")

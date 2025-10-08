@@ -2,18 +2,20 @@ package no.idporten.eudiw.ca.service;
 
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.ca.config.CertificateAuthority;
+import no.idporten.eudiw.ca.config.CertificateProfile;
 import no.idporten.eudiw.ca.data.Certificate;
 import no.idporten.eudiw.ca.data.CertificateRepository;
 import no.idporten.eudiw.ca.data.SerialNumberUtils;
 import no.idporten.eudiw.ca.exception.CertificateAuthorityException;
 import no.idporten.eudiw.ca.util.CertificateEncodingUtils;
-import org.bouncycastle.asn1.ASN1Object;
-import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.*;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x509.*;
+import org.bouncycastle.asn1.x509.qualified.ETSIQCObjectIdentifiers;
+import org.bouncycastle.asn1.x509.qualified.QCStatement;
 import org.bouncycastle.cert.X509CRLHolder;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v2CRLBuilder;
@@ -139,12 +141,9 @@ public class CertificateAuthorityService {
         extensions.add(createAuthorityInformationAccess(certificateAuthority.getCertificateUri()));
         // key usage
         extensions.add(Extension.create(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment)));
-        // extensions from certificate profile config
-        if (certificateAuthority.getCertificateProfile() != null) {
-            for (String oid : certificateAuthority.getCertificateProfile().getExtendedKeyUsage()) {
-                extensions.add(Extension.create(Extension.extendedKeyUsage, true, new ExtendedKeyUsage(KeyPurposeId.getInstance(new ASN1ObjectIdentifier(oid)))));
-            }
-        }
+        // add extensions from CA certificate profile
+        addExtensionsFromCertificateProfile(certificateAuthority.getCertificateProfile(), extensions);
+        // add extensions from CSR
         addSupportedExtensionsFromCsr(csr, extensions);
         X500Name subject = createSubjectWithNameAndOrgno(csr.getSubject(), name, orgno);
         X509Certificate certificate = signLeafCertificate(certificateAuthority, csr, subject, extensions);
@@ -161,6 +160,31 @@ public class CertificateAuthorityService {
     private void addSupportedExtensionsFromCsr(PKCS10CertificationRequest csr, List<Extension> extensions) {
         if (csr.getRequestedExtensions().getExtension(Extension.subjectAlternativeName) != null) {
             extensions.add(csr.getRequestedExtensions().getExtension(Extension.subjectAlternativeName));
+        }
+    }
+
+    /**
+     * Adds extensions from certificate authority's certificate profile.
+     */
+    private void addExtensionsFromCertificateProfile(CertificateProfile certificateProfile, List<Extension> extensions) throws Exception {
+        if (certificateProfile == null) {
+            return;
+        }
+        for (String oid : certificateProfile.getExtendedKeyUsage()) {
+            extensions.add(Extension.create(
+                    Extension.extendedKeyUsage,
+                    true,
+                    new ExtendedKeyUsage(KeyPurposeId.getInstance(new ASN1ObjectIdentifier(oid)))));
+        }
+        if (certificateProfile.getQcStatements() != null) {
+            if (StringUtils.hasText(certificateProfile.getQcStatements().getQcType())) {
+                extensions.add(
+                        Extension.create(Extension.qCStatements,
+                        true,
+                        new QCStatement(
+                                ETSIQCObjectIdentifiers.id_etsi_qcs_QcType,
+                                new DERUTF8String(certificateProfile.getQcStatements().getQcType()))));
+            }
         }
     }
 
