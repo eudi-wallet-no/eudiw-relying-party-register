@@ -7,7 +7,7 @@ import no.idporten.eudiw.rp.admin.service.exception.RelyingPartyNotFoundExceptio
 import no.idporten.eudiw.rp.admin.web.resource.*;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.IssuerCsrResource;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificateResource;
-import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyAccessCertificatesResource;
+import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificatesResource;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCsrResource;
 import no.idporten.eudiw.rp.admin.web.resource.entitlement.EntitlementResource;
 import no.idporten.eudiw.rp.admin.web.resource.entitlement.EntitlementsResource;
@@ -79,12 +79,12 @@ public class RelyingPartiesService {
                   .toBodilessEntity();
     }
 
-    public RelyingPartyAccessCertificatesResource getCertificatesForRelyingParty(
+    public RelyingPartyCertificatesResource getCertificatesForRelyingParty(
         UUID id) {
         return restClient.get()
                 .uri("/rp/{id}/certs", id)
                 .retrieve()
-                .toEntity(RelyingPartyAccessCertificatesResource.class)
+                .toEntity(RelyingPartyCertificatesResource.class)
                 .getBody();
     }
 
@@ -95,6 +95,14 @@ public class RelyingPartiesService {
                          .retrieve()
                          .toEntity(RelyingPartyCertificateResource.class)
                          .getBody();
+    }
+
+    public RelyingPartyCertificateResource getIssuerCertificate(UUID certificateId) {
+        return restClient.get()
+            .uri("/rp/certs/issuer/{cert-id}", certificateId)
+            .retrieve()
+            .toEntity(RelyingPartyCertificateResource.class)
+            .getBody();
     }
 
     public RelyingPartyCertificateResource requestCertificateForRelyingParty(
@@ -117,6 +125,16 @@ public class RelyingPartiesService {
             .body(csrResource)
             .retrieve()
             .toEntity(RelyingPartyCertificateResource.class)
+            .getBody();
+    }
+
+    public RelyingPartyEntitlementsResource getIssuerCertificateForRelyingParty(
+        UUID id
+    ) {
+        return restClient.get()
+            .uri("/rp/{id}/issuer-certs", id)
+            .retrieve()
+            .toEntity(RelyingPartyEntitlementsResource.class)
             .getBody();
     }
 

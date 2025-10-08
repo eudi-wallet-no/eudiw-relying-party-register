@@ -11,7 +11,7 @@ import java.util.List;
 
 @JsonInclude(JsonInclude.Include.ALWAYS)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record RelyingPartyAccessCertificatesResource(
+public record RelyingPartyCertificatesResource(
     @Valid
     @NotNull(message = "null_certificates")
     @JsonProperty(value = "certificates", required = true)

@@ -9,6 +9,7 @@
 
 <!--/*@thymesVar id="detailedViewDataAttr" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
 <!--/*@thymesVar id="certificateSummariesAttr" type="java.util.List<no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary>"*/-->
+<!--/*@thymesVar id="issuerSummariesAttr" type="java.util.List<no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyIssuerCertificateSummary>"*/-->
 <body th:with="showCertificatesTab=${@authorizationService.userHasPrivilegedAccessTo(rp.orgno)}">
     <header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
@@ -50,7 +51,7 @@
             <div th:if="${showCertificatesTab}"
                  id="#issuer-certificates"
                  th:insert="~{fragments/details_tabs_fragments
-                                :: issuer_certificates_content_fragment(rp=${rp}, certs=${certificateSummariesAttr})}">
+                                :: issuer_certificates_content_fragment(rp=${rp}, certs=${issuerSummariesAttr})}">
             </div>
         </div>
 
