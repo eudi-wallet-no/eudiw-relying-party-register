@@ -89,7 +89,11 @@ public class RelyingPartyCertificateService {
             .orElseThrow(() -> new NotFoundException("RelyingPartyEntitlement does not exist"));
 
         Entitlement entitlement = entitlementRepository.findByEntitlement(csrResource.entitlement())
-                .orElseThrow(() -> new NotFoundException("Entitlement does not exist"));;
+                .orElseThrow(() -> new NotFoundException("Entitlement does not exist"));
+
+        if (entitlement.getCaId() == null) {
+            throw new RegisterServiceException("Entitlement does not have a CA ID");
+        }
 
         X509Certificate certificate = getCertificateFromCa(
                 csrResource.csr(),
