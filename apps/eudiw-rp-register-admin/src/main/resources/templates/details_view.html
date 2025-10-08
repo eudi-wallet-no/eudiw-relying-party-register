@@ -28,8 +28,11 @@
             <a href="#about" class="tab" data-size="lg">
                 Generelt
             </a>
-            <a href="#certificates" class="tab" data-size="lg">
+            <a href="#access-certificates" class="tab" data-size="lg">
                 Access-sertifikat
+            </a>
+            <a href="#issuer-certificates" class="tab" data-size="lg">
+                Issuer-sertifikat
             </a>
         </nav>
 
@@ -39,10 +42,15 @@
                                 :: general_info_content_fragment(rp=${rp})}">
             </div>
             <div th:if="${showCertificatesTab}"
-                 id="#certificates"
+                 id="#access-certificates"
                  th:insert="~{fragments/details_tabs_fragments
-                                :: certificates_content_fragment(
+                                :: access_certificates_content_fragment(
                                     rp=${rp}, certs=${certificateSummariesAttr})}">
+            </div>
+            <div th:if="${showCertificatesTab}"
+                 id="#issuer-certificates"
+                 th:insert="~{fragments/details_tabs_fragments
+                                :: issuer_certificates_content_fragment(rp=${rp}, certs=${certificateSummariesAttr})}">
             </div>
         </div>
 

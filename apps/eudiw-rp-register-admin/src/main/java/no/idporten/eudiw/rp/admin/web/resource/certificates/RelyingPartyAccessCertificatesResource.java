@@ -1,4 +1,4 @@
-package no.idporten.eudiw.rp.admin.web.resource.accesscertificates;
+package no.idporten.eudiw.rp.admin.web.resource.certificates;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -15,12 +15,12 @@ public record RelyingPartyAccessCertificatesResource(
     @Valid
     @NotNull(message = "null_certificates")
     @JsonProperty(value = "certificates", required = true)
-    List<RelyingPartyAccessCertificateResource> certificates
+    List<RelyingPartyCertificateResource> certificates
 ) {
     public List<RelyingPartyAccessCertificateSummary> toSummaries() {
         return this.certificates
                    .stream()
-                   .map(RelyingPartyAccessCertificateResource::toSummary)
+                   .map(RelyingPartyCertificateResource::toSummary)
                    .toList();
     }
 }

@@ -9,7 +9,7 @@ import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 @Getter
 @NoArgsConstructor
 @EqualsAndHashCode
-public class CsrForm {
+public class CsrAccessForm {
 
     private PKCS10CertificationRequest csr;
 
@@ -21,7 +21,7 @@ public class CsrForm {
         this.csr = PKCS10CertificationRequestConverter.fromString(csrStr);
     }
 
-    public static CsrForm empty() {
-        return new CsrForm();
+    public static CsrAccessForm empty() {
+        return new CsrAccessForm();
     }
 }

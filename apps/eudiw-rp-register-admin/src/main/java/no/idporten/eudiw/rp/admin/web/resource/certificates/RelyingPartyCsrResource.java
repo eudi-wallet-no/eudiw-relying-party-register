@@ -1,4 +1,4 @@
-package no.idporten.eudiw.rp.admin.web.resource.accesscertificates;
+package no.idporten.eudiw.rp.admin.web.resource.certificates;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;

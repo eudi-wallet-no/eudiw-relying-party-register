@@ -5,7 +5,7 @@ import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.admin.web.controllers.DetailedViewController;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEditForm;
 import no.idporten.eudiw.rp.admin.web.resource.*;
-import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyAccessCertificatesResource;
+import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyAccessCertificatesResource;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

@@ -2,8 +2,8 @@ package no.idporten.eudiw.rp.admin.testdata;
 
 import no.idporten.eudiw.rp.admin.web.form.SearchForm;
 import no.idporten.eudiw.rp.admin.web.resource.*;
-import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyAccessCertificateResource;
-import no.idporten.eudiw.rp.admin.web.resource.accesscertificates.RelyingPartyCsrResource;
+import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificateResource;
+import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCsrResource;
 
 import java.time.Instant;
 import java.util.*;
@@ -22,15 +22,18 @@ public class ResourceGenerator extends TestDataGenerator {
 
     public static List<RelyingPartyEntitlementResource> sampleRelyingPartyEntitlementResources() {
         Collections.shuffle(EXAMPLE_ENTITLEMENTS);
-        return EXAMPLE_ENTITLEMENTS.subList(0, rng.nextInt(1, 4))
-                                   .stream()
-                                   .map(RelyingPartyEntitlementResource::new)
-                                   .toList();
+        return EXAMPLE_ENTITLEMENTS
+            .subList(0, rng.nextInt(1, 4))
+            .stream()
+            .map(e -> new RelyingPartyEntitlementResource(
+                e,
+                List.of(generateCertificateResource())))
+            .toList();
     }
 
     public static RelyingPartyEntitlementResource generateRelyingPartyEntitlementResource() {
-        return new RelyingPartyEntitlementResource(
-            EXAMPLE_ENTITLEMENTS.get(rng.nextInt(0, EXAMPLE_ENTITLEMENTS.size())));
+        String e = EXAMPLE_ENTITLEMENTS.get(rng.nextInt(0, EXAMPLE_ENTITLEMENTS.size()));
+        return new RelyingPartyEntitlementResource(e, List.of());
     }
 
     public static RelyingPartyEaaResource generateRelyingPartyEaaResource() {
@@ -73,9 +76,8 @@ public class ResourceGenerator extends TestDataGenerator {
         return new SearchForm(generateName(), generateBoolean(), new ArrayList<>());
     }
 
-    public static RelyingPartyAccessCertificateResource generateCertificateResource()
-        throws Exception {
-        return new RelyingPartyAccessCertificateResource(
+    public static RelyingPartyCertificateResource generateCertificateResource() {
+        return new RelyingPartyCertificateResource(
             CertificatesGenerator.generateX509Certificate(), UUID.randomUUID());
     }
 

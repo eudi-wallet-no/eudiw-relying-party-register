@@ -1,4 +1,4 @@
-<div th:fragment="certificates_content_fragment(rp, certs)">
+<div th:fragment="access_certificates_content_fragment(rp, certs)">
     <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
     <div style="padding-bottom: 2em;">
         <div th:if="${ #lists.isEmpty(certs)}">
@@ -40,11 +40,30 @@
         </div>
     </div>
     <div>
-        <a th:href="@{|/csr/${rp.id}|}"
+        <a th:href="@{|/csr/access/${rp.id}|}"
            class="ds-button"
            data-variant="primary">
             Legg til nytt access-sertifikat
         </a>
+    </div>
+</div>
+
+<div th:fragment="issuer_certificates_content_fragment(rp, certs)">
+    <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
+    <div style="padding-bottom: 2em;">
+        <div th:if="${ #lists.isEmpty(certs)}">
+            <em>
+                Ingen registrert.
+            </em>
+        </div>
+
+        <div>
+            <a th:href="@{|/csr/issuer/${rp.id}|}"
+               class="ds-button"
+               data-variant="primary">
+                Legg til nytt issuer-sertifikat
+            </a>
+        </div>
     </div>
 </div>
 

@@ -23,7 +23,7 @@
         </p>
 
         <!--/*@thymesVar id="id" type="java.util.UUID"*/-->
-        <form th:replace="~{fragments/csr_fragments :: csr_form_fragment(id=${rp.id})}">
+        <form th:replace="~{fragments/csr_fragments :: access_csr_form_fragment(id=${rp.id})}">
         </form>
 
         <div th:if="${errorResponseMsgAttr == 'exception.error_response'}">
