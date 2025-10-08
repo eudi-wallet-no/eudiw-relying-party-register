@@ -227,12 +227,14 @@ public class CertificateAuthorityService {
         for (RDN rdn : csrSubjectName.getRDNs()) {
             x500NameBuilder.addMultiValuedRDN(rdn.getTypesAndValues());
         }
+        x500NameBuilder.addRDN(BCStyle.C, "NO");
         x500NameBuilder.addRDN(ASN1ObjectIdentifier.tryFromID(OID_ORGANIZATION_NUMBER), "NTRNO-%s".formatted(orgno));
         return x500NameBuilder.build();
     }
 
     protected X500Name createSubjectWithNameAndOrgno(X500Name csrSubjectName, String name, String orgno) {
         X500NameBuilder x500NameBuilder = new X500NameBuilder();
+        x500NameBuilder.addRDN(BCStyle.C, "NO");
         x500NameBuilder.addRDN(BCStyle.CN, name);
         x500NameBuilder.addRDN(ASN1ObjectIdentifier.tryFromID(OID_ORGANIZATION_NUMBER), "NTRNO-NOFOR.%s".formatted(orgno));
         return x500NameBuilder.build();
