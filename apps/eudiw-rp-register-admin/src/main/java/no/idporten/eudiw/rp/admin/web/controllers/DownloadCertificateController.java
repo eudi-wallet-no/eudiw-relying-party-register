@@ -43,4 +43,25 @@ public class DownloadCertificateController {
                               .build());
         return ResponseEntity.ok().headers(headers).body(content);
     }
+
+    @GetMapping("/get-certificate/{rp-id}/issuer/{cert-id}")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("@authorizationService.userHasPrivilegedAccessTo(#relyingPartyId)")
+    public ResponseEntity<byte[]> downloadIssuerCertificate(
+        @PathVariable("rp-id") UUID relyingPartyId,
+        @PathVariable("cert-id") UUID certificateId) {
+        X509Certificate certificate =
+            relyingPartiesService.getIssuerCertificate(certificateId)
+                .certificate();
+        byte[] content = X509CertificateConverter.toPem(certificate).getBytes();
+        String filename = "%s.pem".formatted(certificate.getSerialNumber());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(HttpHeaders.CONTENT_TYPE, APPLICATION_X_PEM_FILE_VALUE);
+        headers.setContentDisposition(
+            ContentDisposition.attachment()
+                .filename(filename)
+                .build());
+        return ResponseEntity.ok().headers(headers).body(content);
+    }
 }

@@ -5,7 +5,7 @@ import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.admin.web.controllers.DetailedViewController;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEditForm;
 import no.idporten.eudiw.rp.admin.web.resource.*;
-import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyAccessCertificatesResource;
+import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificatesResource;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -49,11 +49,14 @@ public class DetailedViewControllerTests {
             UUID id = rpResource.id();
             when(mockRpService.get(id)).thenReturn(rpResource);
 
-            RelyingPartyAccessCertificatesResource certsResource =
-                new RelyingPartyAccessCertificatesResource(List.of(
+            RelyingPartyCertificatesResource certsResource =
+                new RelyingPartyCertificatesResource(List.of(
                     ResourceGenerator.generateCertificateResource()));
             when(mockRpService.getCertificatesForRelyingParty(id))
                 .thenReturn(certsResource);
+            RelyingPartyEntitlementsResource resource = new RelyingPartyEntitlementsResource(List.of());
+            when(mockRpService.getIssuerCertificateForRelyingParty(id))
+                .thenReturn(resource);
 
             mockMvc.perform(get("/details/" + id))
                    .andExpect(status().isOk())
