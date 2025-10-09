@@ -1,6 +1,8 @@
 package no.idporten.eudiw.rp.admin.web.security.ansattporten;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import no.idporten.eudiw.rp.admin.service.enhetsregisteretservice.EnhetsregisteretService;
 import no.idporten.eudiw.rp.admin.web.security.OAuth2Constants;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails.ResponseAuthorizationDetails;
 import no.idporten.eudiw.rp.admin.web.security.oidcusers.SelfServiceOidcUser;
@@ -15,7 +17,10 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import java.util.List;
 import java.util.Map;
 
+@RequiredArgsConstructor
 public class AnsattportenOidcUserService extends OidcUserService {
+
+    private final EnhetsregisteretService enhetsregisteretService;
 
     private ResponseAuthorizationDetails getAndValidateAuthzDetailsClaim(OidcIdToken idToken) {
         if (!idToken.hasClaim(OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER)) {
@@ -42,17 +47,27 @@ public class AnsattportenOidcUserService extends OidcUserService {
         return authzDetails.getFirst();
     }
 
+    private SelfServiceReportee toSelfServiceReporteeWithSectorInfo(
+        ResponseAuthorizationDetails.Reportee reportee) {
+        boolean isPublicSector = enhetsregisteretService.getPublicSectorForOrgno(reportee.orgno());
+        return new SelfServiceReportee(
+            reportee.orgno(),
+            reportee.name(),
+            isPublicSector);
+    }
+
     @Override
-    public OidcUser loadUser(OidcUserRequest userRequest) throws OAuth2AuthenticationException {
+    public OidcUser loadUser(OidcUserRequest userRequest)
+        throws OAuth2AuthenticationException {
         OidcUser oidcUser = super.loadUser(userRequest);
+
         ResponseAuthorizationDetails responseAuthzDetails =
             getAndValidateAuthzDetailsClaim(oidcUser.getIdToken());
 
-        boolean dummyPublicSector = true; // TODO: whence should this come?
         List<SelfServiceReportee> reportees =
             responseAuthzDetails.reportees()
                                 .stream()
-                                .map(r -> new SelfServiceReportee(r.orgno(), r.name(), dummyPublicSector))
+                                .map(this::toSelfServiceReporteeWithSectorInfo)
                                 .toList();
 
         return new SelfServiceOidcUser(oidcUser.getAuthorities(),

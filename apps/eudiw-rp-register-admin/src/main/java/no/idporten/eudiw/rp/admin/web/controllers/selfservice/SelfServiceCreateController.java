@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.Map;
-import java.util.Random;
 
 @Slf4j
 @Controller
@@ -69,7 +68,7 @@ public class SelfServiceCreateController {
             CreateRelyingPartyResource createResource =
                 createForm.toResource(reportee.orgno(),
                                       reportee.name(),
-                                      new Random().nextBoolean());
+                                      reportee.publicSector());
             try {
                 RelyingPartyResource result = relyingPartiesService.create(createResource);
                 return new ModelAndView("redirect:/details/" + result.id());

@@ -1,6 +1,7 @@
 package no.idporten.eudiw.rp.admin.web.security.ansattporten;
 
 import lombok.RequiredArgsConstructor;
+import no.idporten.eudiw.rp.admin.service.enhetsregisteretservice.EnhetsregisteretService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -60,7 +61,8 @@ public class AnsattportenSecurityConfig {
     }
 
     @Bean
-    public AnsattportenOidcUserService ansattportenOidcUserService() {
-        return new AnsattportenOidcUserService();
+    public AnsattportenOidcUserService ansattportenOidcUserService(
+        EnhetsregisteretService enhetsregisteretService) {
+        return new AnsattportenOidcUserService(enhetsregisteretService);
     }
 }
