@@ -36,14 +36,16 @@ public class EnhetsregisteretServiceConfig {
                       .defaultStatusHandler(new EnhetsregisteretServiceResponseErrorHandler())
                       .build();
 
-        return new EnhetsregisteretService(enhetsregisteretRestClient);
+        return new EnhetsregisteretService(
+            enhetsregisteretRestClient,
+            enhetsregisteretServiceProperties.knownPublicSectorCodes());
     }
 
     @Bean
     @Profile("dev")
     @Primary
     public EnhetsregisteretService dummyEnhetsregisteretService() {
-        return new EnhetsregisteretService(null) {
+        return new EnhetsregisteretService(null, null) {
             private final Random rng = new Random();
             @Override
             public boolean getPublicSectorForOrgno(String orgno) {

@@ -63,6 +63,9 @@ eudiw-admin-web:
     rest-client:
       connect-timeout-millis: 5000
       read-timeout-millis: 5000
+    known-public-sector-codes:
+      - "6100" # Statsforvaltningen
+      - "6500" # Kommuneforvaltningen
 
 external-dependency-health-checks:
   health-endpoints:
