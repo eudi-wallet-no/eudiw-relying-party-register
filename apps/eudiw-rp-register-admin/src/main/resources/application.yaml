@@ -58,6 +58,11 @@ eudiw-admin-web:
       type: ansattporten:altinn:service
       resource: urn:altinn:resource:2480:40
       allow-multiple-organizations: true
+  enhetsregisteret-service:
+    enhetsregisteret-api-base-uri: "https://data.brreg.no/enhetsregisteret/api/enheter"
+    rest-client:
+      connect-timeout-millis: 5000
+      read-timeout-millis: 5000
 
 external-dependency-health-checks:
   health-endpoints:

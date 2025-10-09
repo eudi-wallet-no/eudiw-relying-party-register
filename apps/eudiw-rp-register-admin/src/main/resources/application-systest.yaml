@@ -2,3 +2,7 @@
 spring:
   application:
     environment: systest
+
+eudiw-admin-web:
+  enhetsregisteret-service:
+    enhetsregisteret-api-base-uri: "https://data.ppe.brreg.no/enhetsregisteret/api/enheter"
