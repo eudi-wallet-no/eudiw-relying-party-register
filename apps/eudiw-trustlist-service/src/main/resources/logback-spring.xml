@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration>
+    
     <springProperty name="APP-NAME" source="spring.application.name" defaultValue="-"/>
     <springProperty name="APP-ENV" source="spring.application.environment" defaultValue="-"/>
     <springProfile name="dev | docker">
@@ -23,6 +24,7 @@
             <customFields>{"application":"${APP-NAME}", "environment":"${APP-ENV}", "logtype":"application"}</customFields>
         </encoder>
     </appender>
+    
     <springProfile name="!dev &amp; !docker">
         <logger name="no.idporten" level="INFO" additivity="false">
             <appender-ref ref="APPLICATION"/>
@@ -32,4 +34,5 @@
             <appender-ref ref="STDOUT"/>
         </root>
     </springProfile>
+    
 </configuration>
