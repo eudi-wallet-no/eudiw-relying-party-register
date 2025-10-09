@@ -91,6 +91,31 @@ services:
       start_period: 5s
       timeout: 5s
       retries: 20
+  rp-register-selfservice:
+    build:
+      context: .
+      dockerfile: docker/dev.Dockerfile
+      args:
+        GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
+        GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
+    environment:
+      spring_profiles_active: "docker, selfservice, selfservice-docker"
+    ports:
+      - "9255:9255"
+      - "9256:9256"
+    networks:
+      - digital-lommebok
+    entrypoint: "/bin/bash -c"
+    command:
+      - |
+        cd /usr/local/tomcat/webapps/
+        java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9256 -jar application.jar
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:9255/health/readiness || exit 1
+      interval: 15s
+      start_period: 5s
+      timeout: 5s
+      retries: 20
 
   rp-register-lookup-web:
     image: "crutvikling.azurecr.io/eudiw-rp-register-lookup-web"
