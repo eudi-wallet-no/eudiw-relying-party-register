@@ -7,10 +7,13 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
 import java.net.URI;
+import java.util.List;
 
 @Validated
 @ConfigurationProperties(prefix = "eudiw-admin-web.enhetsregisteret-service")
 public record EnhetsregisteretServiceProperties(
+    @NotNull
+    List<String> knownPublicSectorCodes,
     @NotNull
     URI enhetsregisteretApiBaseUri,
     @Valid

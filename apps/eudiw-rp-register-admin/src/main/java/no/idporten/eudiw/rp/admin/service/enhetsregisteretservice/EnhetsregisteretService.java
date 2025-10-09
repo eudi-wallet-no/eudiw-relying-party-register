@@ -17,12 +17,8 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class EnhetsregisteretService {
 
-    private static final List<String> KNOWN_PUBLIC_SECTOR_CODES = List.of(
-        "6100", // "Statsforvaltningen"
-        "6500"  // "Kommuneforvaltningen"
-    );
-
     private final RestClient enhetsregisteretRestClient;
+    private final List<String> knownPublicSectorCodes;
 
     public boolean getPublicSectorForOrgno(String orgno) {
         EnhetsregisteretResponse response =
@@ -35,7 +31,7 @@ public class EnhetsregisteretService {
                       .sectorCodes()
                       .values()
                       .stream()
-                      .anyMatch(KNOWN_PUBLIC_SECTOR_CODES::contains);
+                      .anyMatch(knownPublicSectorCodes::contains);
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
