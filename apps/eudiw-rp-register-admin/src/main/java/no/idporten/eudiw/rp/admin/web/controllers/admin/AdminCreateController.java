@@ -35,8 +35,8 @@ public class AdminCreateController {
     private final RelyingPartiesService relyingPartiesService;
 
     @GetMapping("/admin/create")
-    @PreAuthorize("hasRole('ADMIN') or #oidcUser.isAdmin()")
-    public ModelAndView adminCreateGet(@AuthenticationPrincipal BaseOidcUser oidcUser) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ModelAndView adminCreateGet() {
         AdminCreateRelyingPartyForm createForm = new AdminCreateRelyingPartyForm();
 
         return new ModelAndView("admin/create_form_view", Map.of(createFormAttrId, createForm));
@@ -44,12 +44,10 @@ public class AdminCreateController {
 
     @Audit(auditId = LOMMEBOK_10_CREATE_RP_REQUEST, includeResult = false, includeParameters = false)
     @PostMapping("/admin/create")
-    @PreAuthorize("hasRole('ADMIN') or #oidcUser.isAdmin()")
+    @PreAuthorize("hasRole('ADMIN')")
     public ModelAndView adminCreatePost(
         @ModelAttribute(createFormAttrId) @Valid AdminCreateRelyingPartyForm createForm,
-        @AuditIgnore BindingResult createFormBindingResult,
-        @AuthenticationPrincipal BaseOidcUser oidcUser
-    ) {
+        @AuditIgnore BindingResult createFormBindingResult) {
         ModelAndView mav = new ModelAndView(
             "admin/create_form_view", Map.of(createFormAttrId, createForm));
 

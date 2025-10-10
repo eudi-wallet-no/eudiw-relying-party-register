@@ -1,20 +1,22 @@
 package no.idporten.eudiw.rp.admin.web.security;
 
-import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
-import org.springframework.core.annotation.Order;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer;
 import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 
 import java.util.ArrayList;
@@ -23,12 +25,10 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@Order(-1)
-@RequiredArgsConstructor
-@Profile("!(dev | local-test)")
+@ConditionalOnBooleanProperty("eudiw-admin-web.enable-security")
 public class BaseSecurityConfig {
 
-    private static final String[] UNAUTHENTICATED_ALLOWLIST = {
+    private static final String[] SECURITY_IGNORE_LIST = {
         "/login",
         "/error",
         "/access-denied",
@@ -45,15 +45,37 @@ public class BaseSecurityConfig {
     };
 
     @Bean
-    public SecurityFilterChain baseFilterChain(HttpSecurity http) throws Exception {
+    public WebSecurityCustomizer ignoringCustomizer() {
+        return (web) -> web.ignoring()
+                           .requestMatchers(SECURITY_IGNORE_LIST)
+                           .requestMatchers(PathRequest.toStaticResources().atCommonLocations());
+    }
+
+    @Bean
+    public SecurityFilterChain baseFilterChain(
+        HttpSecurity http,
+        Customizer<OAuth2LoginConfigurer<HttpSecurity>> myOauth2LoginConfigurer,
+        LogoutSuccessHandler logoutHandler)
+        throws Exception {
         return
             http
-                .securityMatcher(UNAUTHENTICATED_ALLOWLIST)
-                .authorizeHttpRequests(auth -> auth
-                    .requestMatchers(UNAUTHENTICATED_ALLOWLIST)
-                    .permitAll()
-                    .requestMatchers(PathRequest.toStaticResources().atCommonLocations())
-                    .permitAll()
+                .authorizeHttpRequests(authz -> authz
+                    .requestMatchers("/admin/**")
+                    .hasRole("ADMIN")
+                    .anyRequest()
+                    .authenticated()
+                )
+                .exceptionHandling(ex -> ex.accessDeniedPage("/access-denied"))
+                .oauth2Login(oauth -> oauth
+                    .loginPage("/login")
+                    .failureHandler(new SimpleUrlAuthenticationFailureHandler("/access-denied"))
+                )
+                .oauth2Login(myOauth2LoginConfigurer)
+                .logout(logout -> logout
+                    .clearAuthentication(true)
+                    .invalidateHttpSession(true)
+                    .deleteCookies("JSESSIONID")
+                    .logoutSuccessHandler(logoutHandler)
                 )
                 .build();
     }
@@ -77,8 +99,8 @@ public class BaseSecurityConfig {
     }
 
     @Bean
-    public AuthorizationService authorizationService(RelyingPartiesService relyingPartiesService) {
-        return new AuthorizationService(relyingPartiesService);
+    public PermissionsService permissionsService(RelyingPartiesService relyingPartiesService) {
+        return new PermissionsService(relyingPartiesService);
     }
 
     @Bean

@@ -11,3 +11,4 @@ eudiw-admin-web:
     register-service-api:
       register-service-base-uri: http://digital-lommebok-rp-register-service-service:9200
       api-key-value: xxx
+  enable-security: false

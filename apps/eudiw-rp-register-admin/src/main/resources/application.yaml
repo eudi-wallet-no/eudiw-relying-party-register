@@ -66,6 +66,7 @@ eudiw-admin-web:
     known-public-sector-codes:
       - "6100" # Statsforvaltningen
       - "6500" # Kommuneforvaltningen
+  enable-security: true
 
 external-dependency-health-checks:
   health-endpoints:

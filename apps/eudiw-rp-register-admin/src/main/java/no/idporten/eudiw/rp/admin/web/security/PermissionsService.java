@@ -10,7 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.UUID;
 
 @RequiredArgsConstructor
-public class AuthorizationService {
+public class PermissionsService {
     private final RelyingPartiesService relyingPartiesService;
 
     private boolean isAuthenticated() {

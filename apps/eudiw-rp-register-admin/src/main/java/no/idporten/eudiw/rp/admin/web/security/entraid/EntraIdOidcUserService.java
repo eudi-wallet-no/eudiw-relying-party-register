@@ -34,6 +34,7 @@ public class EntraIdOidcUserService extends OidcUserService {
 
         Set<GrantedAuthority> mapped = new HashSet<>(oidcUser.getAuthorities());
         mapped.add(new SimpleGrantedAuthority(toAuthority(entraIdProperties.writeAccess())));
+        mapped.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
 
         return new AdminOidcUser(mapped, oidcUser.getIdToken(), oidcUser.getUserInfo());
     }
