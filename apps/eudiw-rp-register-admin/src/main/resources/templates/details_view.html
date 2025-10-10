@@ -10,7 +10,7 @@
 <!--/*@thymesVar id="detailedViewDataAttr" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
 <!--/*@thymesVar id="certificateSummariesAttr" type="java.util.List<no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary>"*/-->
 <!--/*@thymesVar id="issuerSummariesAttr" type="java.util.List<no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyIssuerCertificateSummary>"*/-->
-<body th:with="showCertificatesTab=${@authorizationService.userHasPrivilegedAccessTo(rp.orgno)}">
+<body th:with="showCertificatesTab=${@permissionsService.userHasPrivilegedAccessTo(rp.orgno)}">
     <header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
     <main>

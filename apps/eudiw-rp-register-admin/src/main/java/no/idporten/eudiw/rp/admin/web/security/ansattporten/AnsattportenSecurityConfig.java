@@ -1,55 +1,29 @@
 package no.idporten.eudiw.rp.admin.web.security.ansattporten;
 
-import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.rp.admin.service.enhetsregisteretservice.EnhetsregisteretService;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
-import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
-import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 
 @Configuration
 @Profile("selfservice")
-@Order(0)
-@RequiredArgsConstructor
+@ConditionalOnBooleanProperty("eudiw-admin-web.enable-security")
 public class AnsattportenSecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(
-        HttpSecurity http,
-        LogoutSuccessHandler logoutHandler,
+    public Customizer<OAuth2LoginConfigurer<HttpSecurity>> oauth2LoginConfigurer(
         AnsattportenAuthorizationRequestResolver ansattportenAuthorizationRequestResolver,
-        AnsattportenOidcUserService ansattportenOidcUserService
-    ) throws Exception {
-        PathPatternRequestMatcher logoutPostMatcher =
-            PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, "/logout");
-
-        return
-            http
-                .authorizeHttpRequests(authz -> authz.anyRequest().authenticated())
-                .exceptionHandling(ex -> ex.accessDeniedPage("/access-denied"))
-                .oauth2Login(oauth -> oauth
-                    .authorizationEndpoint(
-                        endpoint -> endpoint.authorizationRequestResolver(
-                            ansattportenAuthorizationRequestResolver))
-                    .failureHandler(new SimpleUrlAuthenticationFailureHandler("/access-denied"))
-                    .userInfoEndpoint(endp -> endp.oidcUserService(ansattportenOidcUserService))
-                    .loginPage("/login")
-                )
-                .logout(logout -> logout
-                    .logoutRequestMatcher(logoutPostMatcher)
-                    .clearAuthentication(true)
-                    .invalidateHttpSession(true)
-                    .deleteCookies("JSESSIONID")
-                    .logoutSuccessHandler(logoutHandler)
-                )
-                .build();
+        AnsattportenOidcUserService ansattportenOidcUserService) {
+        return oauth -> oauth
+            .authorizationEndpoint(
+                endpoint -> endpoint.authorizationRequestResolver(
+                    ansattportenAuthorizationRequestResolver))
+            .userInfoEndpoint(endp -> endp.oidcUserService(ansattportenOidcUserService));
     }
 
     @Bean
