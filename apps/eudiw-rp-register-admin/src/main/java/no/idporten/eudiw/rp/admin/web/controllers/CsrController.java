@@ -37,7 +37,7 @@ public class CsrController {
     private final RelyingPartiesService relyingPartiesService;
 
     @GetMapping("/csr/access/{id}")
-    @PreAuthorize("@authorizationService.userHasPrivilegedAccessTo(#id)")
+    @PreAuthorize("@permissionsService.userHasPrivilegedAccessTo(#id)")
     public ModelAndView registerAccessCsrGet(@PathVariable("id") @Valid UUID id) {
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
         return new ModelAndView("access_csr_form_view", Map.of(
@@ -47,7 +47,7 @@ public class CsrController {
 
     @Audit(auditId = LOMMEBOK_11_REGISTER_CSR_REQUEST, includeResult = false)
     @PostMapping("/csr/access/{id}")
-    @PreAuthorize("@authorizationService.userHasPrivilegedAccessTo(#id)")
+    @PreAuthorize("@permissionsService.userHasPrivilegedAccessTo(#id)")
     public ModelAndView registerAccessCsrPost(
         @PathVariable("id") @Valid UUID id,
         @AuditIgnore @ModelAttribute(csrFormAttrId) @Valid CsrAccessForm csrAccessForm,
@@ -78,7 +78,7 @@ public class CsrController {
     }
 
     @GetMapping("/csr/issuer/{id}")
-    @PreAuthorize("@authorizationService.userHasPrivilegedAccessTo(#id)")
+    @PreAuthorize("@permissionsService.userHasPrivilegedAccessTo(#id)")
     public ModelAndView registerIssuerCsrGet(@PathVariable("id") @Valid UUID id) {
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
         return new ModelAndView("issuer_csr_form_view", Map.of(
@@ -88,7 +88,7 @@ public class CsrController {
 
     @Audit(auditId = LOMMEBOK_11_REGISTER_CSR_REQUEST, includeResult = false)
     @PostMapping("/csr/issuer/{id}")
-    @PreAuthorize("@authorizationService.userHasPrivilegedAccessTo(#id)")
+    @PreAuthorize("@permissionsService.userHasPrivilegedAccessTo(#id)")
     public ModelAndView registerIssuerCsrPost(
         @PathVariable("id") @Valid UUID id,
         @AuditIgnore @ModelAttribute(csrFormAttrId) @Valid CsrIssuerForm csrIssuerForm,

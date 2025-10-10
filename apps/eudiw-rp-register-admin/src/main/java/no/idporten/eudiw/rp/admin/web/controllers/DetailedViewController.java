@@ -66,7 +66,7 @@ public class DetailedViewController {
     }
 
     @GetMapping("/details/{id}/edit")
-    @PreAuthorize("@authorizationService.userHasPrivilegedAccessTo(#id)")
+    @PreAuthorize("@permissionsService.userHasPrivilegedAccessTo(#id)")
     public ModelAndView editGet(@PathVariable("id") @Valid UUID id) {
 
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
@@ -80,7 +80,7 @@ public class DetailedViewController {
 
     @Audit(auditId = LOMMEBOK_12_EDIT_RP_REQUEST, includeResult = false, includeParameters = false)
     @PostMapping("/details/{id}/edit")
-    @PreAuthorize("@authorizationService.userHasPrivilegedAccessTo(#id)")
+    @PreAuthorize("@permissionsService.userHasPrivilegedAccessTo(#id)")
     public ModelAndView editPost(
         @PathVariable("id") UUID id,
         @ModelAttribute(editFormAttrId) @Valid RelyingPartyEditForm editForm,
