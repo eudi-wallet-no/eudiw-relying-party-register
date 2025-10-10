@@ -25,7 +25,7 @@ public class DownloadCertificateController {
 
     @GetMapping("/get-certificate/{rp-id}/{cert-id}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("@authorizationService.userHasPrivilegedAccessTo(#relyingPartyId)")
+    @PreAuthorize("@permissionsService.userHasPrivilegedAccessTo(#relyingPartyId)")
     public ResponseEntity<byte[]> downloadCertificate(
         @PathVariable("rp-id") UUID relyingPartyId,
         @PathVariable("cert-id") UUID certificateId) {
@@ -46,7 +46,7 @@ public class DownloadCertificateController {
 
     @GetMapping("/get-certificate/{rp-id}/issuer/{cert-id}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("@authorizationService.userHasPrivilegedAccessTo(#relyingPartyId)")
+    @PreAuthorize("@permissionsService.userHasPrivilegedAccessTo(#relyingPartyId)")
     public ResponseEntity<byte[]> downloadIssuerCertificate(
         @PathVariable("rp-id") UUID relyingPartyId,
         @PathVariable("cert-id") UUID certificateId) {
