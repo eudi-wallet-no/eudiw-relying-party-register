@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProp
 import org.springframework.context.annotation.Bean;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -18,6 +19,9 @@ import org.springframework.security.oauth2.client.registration.InMemoryClientReg
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,6 +61,12 @@ public class BaseSecurityConfig {
         Customizer<OAuth2LoginConfigurer<HttpSecurity>> myOauth2LoginConfigurer,
         LogoutSuccessHandler logoutHandler)
         throws Exception {
+        PathPatternRequestMatcher.Builder matcherBuilder =
+            PathPatternRequestMatcher.withDefaults();
+        RequestMatcher logoutMatcher = new OrRequestMatcher(
+            matcherBuilder.matcher(HttpMethod.GET, "/logout"),
+            matcherBuilder.matcher(HttpMethod.POST, "/logout")
+        );
         return
             http
                 .authorizeHttpRequests(authz -> authz
@@ -72,6 +82,7 @@ public class BaseSecurityConfig {
                 )
                 .oauth2Login(myOauth2LoginConfigurer)
                 .logout(logout -> logout
+                    .logoutRequestMatcher(logoutMatcher)
                     .clearAuthentication(true)
                     .invalidateHttpSession(true)
                     .deleteCookies("JSESSIONID")
