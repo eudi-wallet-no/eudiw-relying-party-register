@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/extras/spring-security" lang="no-nn">
 <head>
     <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
     <title>Legg til ny brukarstad</title>
@@ -23,7 +23,11 @@
         Legg til ny brukarstad
     </h1>
 
-    <div th:replace="~{fragments/admin/create_fragments :: create_form_fragment}">
+    <div sec:authorize="hasRole('ADMIN')"
+         th:replace="~{fragments/create_fragments :: make_create_form_fragment(isAdmin=true)}">
+    </div>
+    <div sec:authorize="! hasRole('ADMIN')"
+         th:replace="~{fragments/create_fragments :: make_create_form_fragment(isAdmin=false)}">
     </div>
 </main>
 

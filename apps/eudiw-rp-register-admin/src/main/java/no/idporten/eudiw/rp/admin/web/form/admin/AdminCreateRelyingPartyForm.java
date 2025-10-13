@@ -20,6 +20,7 @@ import java.util.List;
 @AllArgsConstructor
 @Getter
 @Setter
+@With
 @EqualsAndHashCode
 public class AdminCreateRelyingPartyForm {
 
@@ -33,7 +34,7 @@ public class AdminCreateRelyingPartyForm {
     @NotBlank(message = "Namn må fyllast ut")
     private String name = "";
 
-    private boolean publicSector = false;
+    private boolean publicSector = true;
 
     @Valid
     @NotEmpty(message = "Brukarstaden må ha minst ein rolle valt")

@@ -1,7 +1,8 @@
-package no.idporten.eudiw.rp.admin.web.form;
+package no.idporten.eudiw.rp.admin.web.form.selfservice;
 
 import jakarta.validation.Valid;
 import lombok.*;
+import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEaaFormField;
 import no.idporten.eudiw.rp.admin.web.resource.CreateRelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyEntitlementResource;
 
@@ -12,7 +13,7 @@ import java.util.List;
 @Getter
 @Setter
 @EqualsAndHashCode
-public class CreateRelyingPartyForm {
+public class SelfServiceCreateRelyingPartyForm {
     @Valid
     private List<@Valid RelyingPartyEaaFormField> eaas = new ArrayList<>();
 

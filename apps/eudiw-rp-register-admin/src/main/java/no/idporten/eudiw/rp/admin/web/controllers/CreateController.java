@@ -1,4 +1,4 @@
-package no.idporten.eudiw.rp.admin.web.controllers.selfservice;
+package no.idporten.eudiw.rp.admin.web.controllers;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -6,7 +6,9 @@ import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.service.exception.AlreadyExistsException;
 import no.idporten.eudiw.rp.admin.service.exception.NotFoundException;
-import no.idporten.eudiw.rp.admin.web.form.CreateRelyingPartyForm;
+import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEntitlementFormField;
+import no.idporten.eudiw.rp.admin.web.form.selfservice.SelfServiceCreateRelyingPartyForm;
+import no.idporten.eudiw.rp.admin.web.form.admin.AdminCreateRelyingPartyForm;
 import no.idporten.eudiw.rp.admin.web.resource.CreateRelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.security.oidcusers.BaseOidcUser;
@@ -14,6 +16,7 @@ import no.idporten.eudiw.rp.admin.web.security.oidcusers.SelfServiceOidcUser;
 import no.idporten.eudiw.rp.admin.web.security.oidcusers.SelfServiceReportee;
 import no.idporten.logging.audit.Audit;
 import no.idporten.logging.audit.AuditIgnore;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -22,12 +25,13 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
 @Controller
 @RequiredArgsConstructor
-public class SelfServiceCreateController {
+public class CreateController {
 
     public static final String createFormAttrId = "createFormAttr";
     public static final String errorResponseMsgAttrId = "errorResponseMsgAttr";
@@ -38,28 +42,32 @@ public class SelfServiceCreateController {
 
     @GetMapping("/create")
     public ModelAndView createGet(@AuthenticationPrincipal BaseOidcUser oidcUser) {
-        if (oidcUser.isAdmin()) {
-            return new ModelAndView("redirect:/admin/create");
+        AdminCreateRelyingPartyForm createForm = new AdminCreateRelyingPartyForm();
+
+        if (oidcUser instanceof SelfServiceOidcUser selfServiceUser) {
+            SelfServiceReportee reportee = selfServiceUser.getReportee();
+            createForm = createForm
+                .withOrgno(reportee.orgno())
+                .withName(reportee.name())
+                .withPublicSector(reportee.publicSector())
+                .withEntitlements(List.of(new RelyingPartyEntitlementFormField(
+                    "https://uri.etsi.org/19475/Entitlement/Service_Provider")));
         }
-        if (!(oidcUser instanceof SelfServiceOidcUser selfServiceUser)) {
-            throw new NotFoundException("Non-admin and non-selfservice user requested /create");
-        }
-        return new ModelAndView("selfservice/create_form_view",
-                                Map.of(createFormAttrId, new CreateRelyingPartyForm(),
-                                       "reporteeAttr", selfServiceUser.getReportee()));
+
+        return new ModelAndView("create_form_view", createFormAttrId, createForm);
     }
 
     @Audit(auditId = LOMMEBOK_10_CREATE_RP_REQUEST, includeResult = false, includeParameters = false)
     @PostMapping("/create")
-    public ModelAndView createPost(
-        @ModelAttribute(createFormAttrId) @Valid CreateRelyingPartyForm createForm,
+    public ModelAndView selfServiceCreatePost(
+        @ModelAttribute(createFormAttrId) @Valid SelfServiceCreateRelyingPartyForm createForm,
         @AuditIgnore BindingResult createFormBindingResult,
         @AuthenticationPrincipal SelfServiceOidcUser selfServiceUser) {
         if (selfServiceUser == null) {
             throw new NotFoundException("Non-selfservice user attempted to POST /create");
         }
 
-        ModelAndView mav = new ModelAndView("selfservice/create_form_view",
+        ModelAndView mav = new ModelAndView("create_form_view",
             Map.of(createFormAttrId, createForm));
 
         if (!createFormBindingResult.hasErrors()) {
@@ -69,14 +77,28 @@ public class SelfServiceCreateController {
                 createForm.toResource(reportee.orgno(),
                                       reportee.name(),
                                       reportee.publicSector());
-            try {
-                RelyingPartyResource result = relyingPartiesService.create(createResource);
-                return new ModelAndView("redirect:/details/" + result.id());
-            } catch (AlreadyExistsException e) {
-                log.info("Attempt to create RP which already exists", e);
-                mav.addObject(errorResponseMsgAttrId, "exception.already_exists");
-            }
+            RelyingPartyResource result = relyingPartiesService.create(createResource);
+            return new ModelAndView("redirect:/details/" + result.id());
         }
         return mav;
     }
+
+    @Audit(auditId = LOMMEBOK_10_CREATE_RP_REQUEST, includeResult = false, includeParameters = false)
+    @PostMapping("/admin/create")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ModelAndView adminCreatePost(
+        @ModelAttribute(createFormAttrId) @Valid AdminCreateRelyingPartyForm createForm,
+        @AuditIgnore BindingResult createFormBindingResult) {
+
+        ModelAndView mav = new ModelAndView(
+            "create_form_view", Map.of(createFormAttrId, createForm));
+
+        if (!createFormBindingResult.hasErrors()) {
+            CreateRelyingPartyResource createResource = createForm.toResource();
+            RelyingPartyResource result = relyingPartiesService.create(createResource);
+            return new ModelAndView("redirect:/details/" + result.id());
+        }
+        return mav;
+    }
+
 }
