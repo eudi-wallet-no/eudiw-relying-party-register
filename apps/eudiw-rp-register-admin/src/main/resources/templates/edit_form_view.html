@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="nb-no"
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/extras/spring-security" lang="nb-no"
       th:with="rp=${detailedViewDataAttr}">
 <head>
     <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
@@ -24,7 +24,11 @@
                 Tilbake til <span th:text="${rp.name}"></span>
             </a>
         </p>
-        <div th:replace="~{fragments/edit_fragments :: edit_form_fragment(id=${rp.id})}">
+        <div sec:authorize="hasRole('ADMIN')"
+             th:replace="~{fragments/edit_fragments :: make_edit_form_fragment(isAdmin=true)}">
+        </div>
+        <div sec:authorize="! hasRole('ADMIN')"
+             th:replace="~{fragments/edit_fragments :: make_edit_form_fragment(isAdmin=false)}">
         </div>
     </main>
 

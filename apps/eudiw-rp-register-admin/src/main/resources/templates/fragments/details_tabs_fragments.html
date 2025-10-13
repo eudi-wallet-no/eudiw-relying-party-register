@@ -181,7 +181,7 @@
     </div>
 
     <div th:if="${@permissionsService.userHasPrivilegedAccessTo(rp.orgno)}">
-        <a th:href="@{|/details/${rp.id}/edit|}"
+        <a th:href="@{|/edit/${rp.id}|}"
            class="ds-button"
            data-variant="primary">
             Endre brukarstad

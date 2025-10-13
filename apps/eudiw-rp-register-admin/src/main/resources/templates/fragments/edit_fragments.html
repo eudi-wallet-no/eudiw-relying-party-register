@@ -1,10 +1,10 @@
-<form th:fragment="edit_form_fragment"
+<form th:fragment="make_edit_form_fragment(isAdmin)"
       id="edit_form"
       th:object="${editFormAttr}"
-      th:action="@{|/details/${rp.id}/edit|}"
+      th:action="@{|${isAdmin ? '/admin/edit' : '/edit'}/${rp.id}|}"
       method="POST">
 <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
-    <!--/*@thymesVar id="editFormAttr" type="no.idporten.eudiw.rp.admin.web.form.RelyingPartyEditForm"*/-->
+    <!--/*@thymesVar id="editFormAttr" type="no.idporten.eudiw.rp.admin.web.form.admin.AdminEditRelyingPartyForm"*/-->
     <div style="margin-bottom: 8px;">
     <div class="ds-card">
         <fieldset class="ds-fieldset"
@@ -35,7 +35,8 @@
                        th:field="*{name}"
                        type="text"
                        placeholder="Namn"
-                       class="ds-input">
+                       class="ds-input"
+                       th:disabled="${!isAdmin}">
             </p>
             <ul th:if="${#fields.hasErrors('name')}">
                 <li th:each="error : ${#fields.errors('name')}"
@@ -50,7 +51,8 @@
                 </label>
                 <select id="sector_field"
                         th:field="*{publicSector}"
-                        class="ds-input">
+                        class="ds-input"
+                        th:disabled="${!isAdmin}">
                     <option value="true">Offentleg</option>
                     <option value="false">Privat</option>
                 </select>
@@ -64,7 +66,8 @@
                 <input id="active_field"
                        type="checkbox"
                        th:field="*{active}"
-                       class="ds-input">
+                       class="ds-input"
+                       th:disabled="${!isAdmin}">
             </p>
         </fieldset>
     </div>
@@ -82,7 +85,8 @@
                        class="ds-input"
                        name="entitlements"
                        th:value="${entitlement}"
-                       th:checked="${#lists.contains(editFormAttr.getEntitlementValues(), entitlement)}">
+                       th:checked="${#lists.contains(editFormAttr.getEntitlementValues(), entitlement)}"
+                       th:disabled="${!isAdmin}">
             </div>
         </fieldset>
         <ul th:if="${#fields.hasErrors('entitlements')}">

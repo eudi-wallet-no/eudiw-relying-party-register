@@ -1,4 +1,4 @@
-package no.idporten.eudiw.rp.admin.web.form;
+package no.idporten.eudiw.rp.admin.web.form.admin;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
 import no.idporten.eudiw.rp.admin.validation.SaneStringConstraint;
 import no.idporten.eudiw.rp.admin.validation.SaneStringValidator;
+import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEaaFormField;
+import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEntitlementFormField;
 import no.idporten.eudiw.rp.admin.web.resource.EditRelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 
@@ -14,8 +16,9 @@ import java.util.*;
 @AllArgsConstructor
 @Getter
 @Setter
+@With
 @EqualsAndHashCode
-public class RelyingPartyEditForm {
+public class AdminEditRelyingPartyForm {
     @SaneStringConstraint(message =
         "Ugyldig namn. Gyldige teikn er: norske bokstavar, tal, mellemrom og symbola "
             + SaneStringValidator.ALLOWED_SYMBOLS)
@@ -34,7 +37,7 @@ public class RelyingPartyEditForm {
     private boolean active;
 
     @SuppressWarnings("unused") // used in Spring data binding
-    public RelyingPartyEditForm() {
+    public AdminEditRelyingPartyForm() {
         this("", true, new ArrayList<>(), new ArrayList<>(), true);
     }
 
@@ -55,9 +58,9 @@ public class RelyingPartyEditForm {
         );
     }
 
-    public static RelyingPartyEditForm prefillFromRelyingPartyResource(
+    public static AdminEditRelyingPartyForm prefillFromRelyingPartyResource(
         RelyingPartyResource resource) {
-        return new RelyingPartyEditForm(
+        return new AdminEditRelyingPartyForm(
             resource.name(),
             resource.publicSector(),
             resource.relyingPartyEntitlements()
