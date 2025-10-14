@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title>Issuer-sertifikat registrert</title>
+</head>
+
+<!--/*@thymesVar id="detailedViewDataAttr" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
+<body th:with="rp=${detailedViewDataAttr}">
+
+    <header th:replace="~{fragments/general :: page_header_fragment}"></header>
+
+    <main>
+        <p class="ds-paragraph">
+            <a th:href="@{|/details/${rp.id}#certificates|}"
+               class="ds-button"
+               data-variant="secondary"
+               data-size="sm">
+                Tilbake til <span th:text="${rp.name}"/>
+            </a>
+        </p>
+
+        <h2 class="ds-heading">
+            Issuer-sertifikat registrert!
+        </h2>
+
+        <!--/*@thymesVar id="newCertificateAttr" type="no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyIssuerCertificateSummary"*/-->
+        <table th:replace="~{fragments/csr_fragments
+                              :: single_issuer_certificate_table_fragment(
+                                  ${newCertificateAttr})}">
+        </table>
+
+        <p class="ds-paragraph">
+            <a th:href="@{|/get-certificate/${rp.id}/issuer/${newCertificateAttr.id}|}"
+               class="ds-button"
+               download>
+                Last ned sertifikat
+            </a>
+        </p>
+    </main>
+
+    <header th:replace="~{fragments/general :: page_footer_fragment}"></header>
+</body>
+</html>

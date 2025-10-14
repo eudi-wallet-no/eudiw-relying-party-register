@@ -120,3 +120,34 @@
     </tr>
     </tbody>
 </table>
+
+<table th:fragment="single_issuer_certificate_table_fragment(cert)"
+       class="ds-table">
+    <!--/*@thymesVar id="cert" type="no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyIssuerCertificateSummary"*/-->
+    <tbody>
+    <tr>
+        <th>Rolle</th>
+        <td th:text="${cert.entitlement}"></td>
+    </tr>
+    <tr>
+        <th>Serienummer</th>
+        <td th:text="${cert.serialNo.toString(16).replaceAll('(?<=..)(..)', ':$1')}"></td>
+    </tr>
+    <tr>
+        <th>Subjekt</th>
+        <td th:text="${cert.subjectDn}"></td>
+    </tr>
+    <tr>
+        <th>Utstedar</th>
+        <td th:text="${cert.issuerDn}"></td>
+    </tr>
+    <tr>
+        <th>Gyldig frå</th>
+        <td th:text="${@timestampFormatter.formatEpochMillis(cert.validFromMs)}"></td>
+    </tr>
+    <tr>
+        <th>Gyldig til</th>
+        <td th:text="${@timestampFormatter.formatEpochMillis(cert.validUntilMs)}"></td>
+    </tr>
+    </tbody>
+</table>
