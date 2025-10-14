@@ -104,8 +104,8 @@ public class CsrController {
                 RelyingPartyCertificateResource certResource =
                     relyingPartiesService.requestIssuerCertificateForEntitlement(id, csrResource);
 
-                mav.setViewName("csr_submit_success_view");
-                mav.addObject(newCertificateAttrId, certResource.toSummary());
+                mav.setViewName("csr_issuer_submit_success_view");
+                mav.addObject(newCertificateAttrId, certResource.toIssuerSummary(csrIssuerForm.getEntitlement()));
                 return mav;
             }
             catch (ErrorResponseException e) {
