@@ -13,7 +13,7 @@
     <name>ca-service</name>
     <description>EUDIW Certificate Authority Service</description>
     <properties>
-        <java.version>24</java.version>
+        <java.version>25</java.version>
         <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
         <lombok.version>1.18.42</lombok.version>
         <idporten-actuator-starter.version>2.0.0</idporten-actuator-starter.version>

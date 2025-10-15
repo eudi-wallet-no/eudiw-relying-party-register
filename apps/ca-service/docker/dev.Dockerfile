@@ -1,4 +1,4 @@
-FROM maven:3-eclipse-temurin-24 as builder
+FROM maven:3-eclipse-temurin-25 as builder
 
 ARG GIT_PACKAGE_TOKEN
 ARG GIT_PACKAGE_USERNAME
@@ -20,7 +20,7 @@ RUN --mount=type=cache,target=/root/.m2/repository \
 RUN curl -L -O https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v2.15.0/opentelemetry-javaagent.jar
 
 
-FROM  eclipse-temurin:24-jre-noble
+FROM  eclipse-temurin:25-jre-noble
 
 ARG APPLICATION=ca-service
 RUN mkdir /var/log/${APPLICATION}
