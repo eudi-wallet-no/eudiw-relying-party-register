@@ -74,10 +74,6 @@ public class RelyingParty extends BaseEntity {
     public void setRelyingPartyEntitlements(
         List<RelyingPartyEntitlement> relyingPartyEntitlements
     ) {
-        this.relyingPartyEntitlements.removeIf(
-            entitlement ->
-                entitlement.getIssuerCertificates() == null ||
-                entitlement.getIssuerCertificates().isEmpty());
         relyingPartyEntitlements.forEach(this::addRelyingPartyEntitlement);
     }
 
