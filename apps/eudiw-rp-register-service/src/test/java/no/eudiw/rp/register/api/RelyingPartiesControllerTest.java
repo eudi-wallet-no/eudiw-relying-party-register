@@ -284,7 +284,7 @@ public class RelyingPartiesControllerTest {
                         .andExpect(jsonPath("$.org_nr").value(resource.orgNr()))
                         .andExpect(jsonPath("$.name").value(editResource.name()))
                         .andExpect(jsonPath("$.public_sector").value(editResource.publicSector()));
-                assertTrue(ApiTestUtils.toRelyingPartyResource(editResult).relyingPartyEntitlements().isEmpty());
+                assertFalse(ApiTestUtils.toRelyingPartyResource(editResult).relyingPartyEntitlements().isEmpty());
             }
         }
 

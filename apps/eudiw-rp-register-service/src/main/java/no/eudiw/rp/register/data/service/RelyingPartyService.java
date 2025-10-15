@@ -105,8 +105,7 @@ public class RelyingPartyService {
         relyingParty.setName(request.name());
         relyingParty.setPublicSector(request.publicSector());
         relyingParty.setActive(request.active());
-
-        relyingParty.getRelyingPartyEntitlements().clear();
+        
         relyingParty.getRelyingPartyEaas().clear();
         relyingPartyRepository.saveAndFlush(relyingParty);
 
