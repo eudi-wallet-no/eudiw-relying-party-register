@@ -23,7 +23,7 @@ public class SearchController {
 
     private final SearchSession searchSession;
 
-    @GetMapping("/search")
+    @GetMapping("/admin/search")
     public ModelAndView searchGet(
         @RequestParam(value = "page") Optional<Integer> oneIndexedPageNum,
         @RequestParam(value = "sort") Optional<RelyingPartyOrdering> ordering) {
@@ -39,7 +39,7 @@ public class SearchController {
         return new ModelAndView("search_view", searchFormAttrId, lastSearchForm);
     }
 
-    @PostMapping("/search")
+    @PostMapping("/admin/search")
     public ModelAndView searchPost(
         @ModelAttribute(searchFormAttrId) @Valid SearchForm searchForm,
         BindingResult bindingResult) {

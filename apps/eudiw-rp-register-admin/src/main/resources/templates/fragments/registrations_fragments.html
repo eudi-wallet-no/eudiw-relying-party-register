@@ -1,0 +1,32 @@
+<div th:fragment="registrations_table_fragment">
+    <!--/*@thymesVar id="registrationsAttr" type="java.util.List<no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource>"*/-->
+    <div th:with="registrations=${registrationsAttr}">
+        <div th:if="${#lists.isEmpty(registrations)}">
+            Fann ingen registrerte brukarstader.
+        </div>
+
+        <table th:unless="${#lists.isEmpty(registrations)}"
+               class="ds-table"
+               data-border="true">
+            <thead>
+            <tr>
+                <th>Org.nr.</th>
+                <th>Namn</th>
+                <th>Roller</th>
+                <th>Oppretta</th>
+                <th>Sist endra</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            <tr th:each="rp : ${registrations}">
+                <td><a th:href="@{|/details/${rp.id}|}" style="cursor:pointer;"><div th:text="${rp.orgno}"></div></a></td>
+                <td th:text="${rp.name}"></td>
+                <td th:text="${rp.entitlementsDisplayForSearch()}" style="white-space: pre-line;"></td>
+                <td th:text="${@timestampFormatter.formatEpochMillis(rp.createdMs)}"></td>
+                <td th:text="${@timestampFormatter.formatEpochMillis(rp.lastUpdatedMs)}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
