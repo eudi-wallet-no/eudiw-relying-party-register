@@ -74,17 +74,23 @@ public class RelyingParty extends BaseEntity {
     public void setRelyingPartyEntitlements(
         List<RelyingPartyEntitlement> relyingPartyEntitlements
     ) {
-        this.relyingPartyEntitlements.clear();
-        if (relyingPartyEntitlements != null) {
-            relyingPartyEntitlements.forEach(entitlement -> entitlement.setRelyingParty(this));
-            this.relyingPartyEntitlements.addAll(relyingPartyEntitlements);
-        }
+        this.relyingPartyEntitlements.removeIf(
+            entitlement ->
+                entitlement.getIssuerCertificates() == null ||
+                entitlement.getIssuerCertificates().isEmpty());
+        relyingPartyEntitlements.forEach(this::addRelyingPartyEntitlement);
     }
 
     public void addRelyingPartyEntitlement(
         RelyingPartyEntitlement relyingPartyEntitlement
     ) {
-        if (relyingPartyEntitlements != null) {
+        if (this.relyingPartyEntitlements == null) {
+            this.relyingPartyEntitlements = new ArrayList<>();
+        }
+
+        List<String> currentEntitlements = this.relyingPartyEntitlements.stream().map(RelyingPartyEntitlement::getEntitlement).toList();
+        if (!currentEntitlements.contains(relyingPartyEntitlement.getEntitlement())) {
+            relyingPartyEntitlement.setRelyingParty(this);
             this.relyingPartyEntitlements.add(relyingPartyEntitlement);
         }
     }
