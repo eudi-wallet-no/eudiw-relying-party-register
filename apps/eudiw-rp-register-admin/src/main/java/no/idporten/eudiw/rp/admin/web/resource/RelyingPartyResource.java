@@ -1,5 +1,6 @@
 package no.idporten.eudiw.rp.admin.web.resource;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.With;
@@ -44,6 +45,10 @@ public record RelyingPartyResource(
     private static final String ENTITLEMENT_URI =
         "https://uri.etsi.org/19475/Entitlement/";
 
+    private static final String SERVICE_PROVIDER_URI =
+        "https://uri.etsi.org/19475/Entitlement/Service_Provider";
+
+    @JsonIgnore
     public String entitlementsDisplayForSearch() {
         return relyingPartyEntitlements.stream()
             .map(RelyingPartyEntitlementResource::entitlement)
@@ -53,5 +58,12 @@ public record RelyingPartyResource(
             .map(s -> s.replaceFirst(ENTITLEMENT_URI, ""))
             .map(s -> s.replace("_", " "))
             .collect(Collectors.joining(System.lineSeparator()));
+    }
+
+    @JsonIgnore
+    public List<RelyingPartyEntitlementResource> getValidEntitlementsForIssuerCertificates() {
+        return relyingPartyEntitlements.stream()
+            .filter(e -> !e.entitlement().equals(SERVICE_PROVIDER_URI))
+            .toList();
     }
 }
