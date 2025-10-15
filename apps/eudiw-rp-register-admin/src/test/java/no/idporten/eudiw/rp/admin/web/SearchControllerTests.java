@@ -54,7 +54,7 @@ public class SearchControllerTests {
 
         @Test
         public void testServiceCalledAndWithEmptyResource() throws Exception {
-            mockMvc.perform(post("/admin/search")
+            mockMvc.perform(post("/search")
                     .formField("searchTerm", SearchForm.empty().searchTerm())
                     .formField("includeInactive", Boolean.toString(SearchForm.empty().includeInactive())))
                 .andExpect(view().name("search_view"))
@@ -70,7 +70,7 @@ public class SearchControllerTests {
             SearchForm testSearchForm = ResourceGenerator.generateSearchForm();
             String includeInactiveStr = Boolean.toString(testSearchForm.includeInactive());
 
-            mockMvc.perform(post("/admin/search")
+            mockMvc.perform(post("/search")
                                 .formField("searchTerm", testSearchForm.searchTerm())
                                 .formField("includeInactive", includeInactiveStr))
                    .andExpect(view().name("search_view"))
@@ -83,7 +83,7 @@ public class SearchControllerTests {
         @Test
         public void testInvalidSearchFormIsRejected() throws Exception {
             String invalidSearchTerm = "foobar$";
-            mockMvc.perform(post("/admin/search")
+            mockMvc.perform(post("/search")
                                 .formField("searchTerm", invalidSearchTerm)
                                 .formField("includeInactive", "true"))
                    .andExpect(view().name("search_view"))
