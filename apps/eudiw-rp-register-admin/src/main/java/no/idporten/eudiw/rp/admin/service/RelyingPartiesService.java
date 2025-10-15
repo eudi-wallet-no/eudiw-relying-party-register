@@ -49,15 +49,24 @@ public class RelyingPartiesService {
             .uri("/rp/search")
             .body(searchResource)
             .retrieve()
-            .body(new ParameterizedTypeReference<PagedResponse<RelyingPartyResource>>() {});
+            .body(new ParameterizedTypeReference<>() {});
     }
 
-    public RelyingPartiesResource getAll() {
-        return restClient.get()
-                .uri("/rp")
-                .retrieve()
-                .toEntity(RelyingPartiesResource.class)
-                .getBody();
+    public RelyingPartiesResource getAllByOrgno(String orgno) {
+        SearchRelyingPartyResource searchResource =
+            new SearchRelyingPartyResource()
+                .withSearchTerm(orgno)
+                .withIncludeInactive(true)
+                .withPageSize(Integer.MAX_VALUE)
+                .withOrdering(RelyingPartyOrdering.CREATED_ASC);
+        List<RelyingPartyResource> searchResult =
+            this.search(searchResource)
+                .content()
+                .stream()
+                // must filter by orgno since the search is by orgno *and* name.
+                .filter(rp -> Objects.equals(rp.orgno(), orgno))
+                .toList();
+        return new RelyingPartiesResource(searchResult);
     }
 
     public RelyingPartyResource get(UUID id) {
@@ -70,13 +79,6 @@ public class RelyingPartiesService {
         } catch (NotFoundException e) {
             throw new RelyingPartyNotFoundException(e.getErrorDescription(), id.toString());
         }
-    }
-
-    public void delete(UUID id) {
-        restClient.delete()
-                  .uri("/rp/{id}", id)
-                  .retrieve()
-                  .toBodilessEntity();
     }
 
     public RelyingPartyCertificatesResource getCertificatesForRelyingParty(
