@@ -43,7 +43,7 @@
       method="POST">
 
     <fieldset
-            th:if="${rp.relyingPartyEntitlements != null and !#lists.isEmpty(rp.relyingPartyEntitlements)}"
+            th:if="${!#lists.isEmpty(rp.getValidEntitlementsForIssuerCertificates)}"
             class="ds-fieldset"
             style="margin-bottom: 1.5rem;"
     >
@@ -52,7 +52,7 @@
             Vel rolle
         </legend>
 
-        <div th:each="e, iter : ${rp.relyingPartyEntitlements}" class="ds-field">
+        <div th:each="e, iter : ${rp.getValidEntitlementsForIssuerCertificates}" class="ds-field">
             <input
                     class="ds-input"
                     type="radio"
