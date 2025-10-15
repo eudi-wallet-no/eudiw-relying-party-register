@@ -32,7 +32,7 @@ import java.util.List;
 @ConditionalOnBooleanProperty("eudiw-admin-web.enable-security")
 public class BaseSecurityConfig {
 
-    private static final String[] SECURITY_IGNORE_LIST = {
+    private static final String[] AUTHZ_ALLOWLIST = {
         "/login",
         "/error",
         "/access-denied",
@@ -49,13 +49,6 @@ public class BaseSecurityConfig {
     };
 
     @Bean
-    public WebSecurityCustomizer ignoringCustomizer() {
-        return (web) -> web.ignoring()
-                           .requestMatchers(SECURITY_IGNORE_LIST)
-                           .requestMatchers(PathRequest.toStaticResources().atCommonLocations());
-    }
-
-    @Bean
     public SecurityFilterChain baseFilterChain(
         HttpSecurity http,
         Customizer<OAuth2LoginConfigurer<HttpSecurity>> myOauth2LoginConfigurer,
@@ -69,6 +62,12 @@ public class BaseSecurityConfig {
         );
         return
             http
+                .authorizeHttpRequests(authz -> authz
+                    .requestMatchers(AUTHZ_ALLOWLIST)
+                    .permitAll()
+                    .requestMatchers(PathRequest.toStaticResources().atCommonLocations())
+                    .permitAll()
+                )
                 .authorizeHttpRequests(authz -> authz
                     .requestMatchers("/admin/**")
                     .hasRole("ADMIN")

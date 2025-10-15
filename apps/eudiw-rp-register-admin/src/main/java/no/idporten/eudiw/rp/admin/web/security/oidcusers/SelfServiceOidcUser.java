@@ -26,6 +26,12 @@ public class SelfServiceOidcUser extends BaseOidcUser {
         this.reportees = reportees;
     }
 
+    // for use in sec:authentication="name" (in Thymeleaf)
+    @Override
+    public String getName() {
+        return "%s - %s".formatted(super.getName(), this.getReportee().name());
+    }
+
     @Override
     public boolean isAdmin() {
         return false;

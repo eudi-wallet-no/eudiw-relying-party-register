@@ -57,7 +57,7 @@ eudiw-admin-web:
     authorization-details:
       type: ansattporten:altinn:service
       resource: urn:altinn:resource:2480:40
-      allow-multiple-organizations: true
+      allow-multiple-organizations: false
   enhetsregisteret-service:
     enhetsregisteret-api-base-uri: "https://data.brreg.no/enhetsregisteret/api/enheter"
     rest-client:
