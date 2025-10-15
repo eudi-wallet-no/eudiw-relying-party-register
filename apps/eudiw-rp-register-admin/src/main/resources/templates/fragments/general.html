@@ -29,13 +29,20 @@
 
     <div>
         <th:block sec:authorize="isAuthenticated()">
-            <p class="ds-paragraph" sec:authentication="name"></p>
+            <p class="ds-paragraph">
+                <a class="ds-link"
+                   th:href="@{/login}"
+                   data-color="neutral"
+                   sec:authentication="name">
+                </a>
+            </p>
             <a class="ds-link"
                th:href="@{/logout}"
                data-color="neutral">
                 Logg ut
             </a>
         </th:block>
+
         <a class="ds-link"
            th:href="@{/login}"
            data-color="neutral"
