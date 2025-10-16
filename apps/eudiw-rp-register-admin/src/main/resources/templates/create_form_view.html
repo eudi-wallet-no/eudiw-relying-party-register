@@ -13,7 +13,8 @@
 
 <main>
 
-    <p class="ds-paragraph">
+    <p sec:authorize="hasRole('ADMIN')"
+        class="ds-paragraph">
         <a th:href="@{/search}" class="ds-button" data-variant="secondary">
             Til søk
         </a>
