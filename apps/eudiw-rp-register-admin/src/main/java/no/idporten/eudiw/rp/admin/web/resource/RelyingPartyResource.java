@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.With;
+import no.idporten.eudiw.rp.admin.entitlements.Entitlements;
 
 import java.util.List;
 import java.util.Objects;
@@ -45,10 +46,6 @@ public record RelyingPartyResource(
     private static final String ENTITLEMENT_URI =
         "https://uri.etsi.org/19475/Entitlement/";
 
-    private static final String SERVICE_PROVIDER_URI =
-        "https://uri.etsi.org/19475/Entitlement/Service_Provider";
-
-    @JsonIgnore
     public String entitlementsDisplayForSearch() {
         return relyingPartyEntitlements.stream()
             .map(RelyingPartyEntitlementResource::entitlement)
@@ -63,7 +60,13 @@ public record RelyingPartyResource(
     @JsonIgnore
     public List<RelyingPartyEntitlementResource> getValidEntitlementsForIssuerCertificates() {
         return relyingPartyEntitlements.stream()
-            .filter(e -> !e.entitlement().equals(SERVICE_PROVIDER_URI))
+            .filter(Entitlements::isIssuerEntitlement)
             .toList();
+    }
+
+    public boolean hasIssuerEntitlements() {
+        return this.relyingPartyEntitlements()
+                   .stream()
+                   .anyMatch(Entitlements::isIssuerEntitlement);
     }
 }

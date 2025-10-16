@@ -10,7 +10,7 @@
 <!--/*@thymesVar id="detailedViewDataAttr" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
 <!--/*@thymesVar id="certificateSummariesAttr" type="java.util.List<no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary>"*/-->
 <!--/*@thymesVar id="issuerSummariesAttr" type="java.util.List<no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyIssuerCertificateSummary>"*/-->
-<body th:with="showCertificatesTab=${@permissionsService.userHasPrivilegedAccessTo(rp.orgno)}">
+<body th:with="showIssuerCertificatesTab=${rp.hasIssuerEntitlements()}">
     <header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
     <main>
@@ -26,14 +26,15 @@
             Detaljar for brukarstad: <span th:text="${rp.name}"/>
         </h1>
 
-        <nav id="tabs_container" th:if="${showCertificatesTab}">
+        <nav id="tabs_container">
             <a href="#about" class="tab" data-size="lg">
                 Generelt
             </a>
             <a href="#access-certificates" class="tab" data-size="lg">
                 Access-sertifikat
             </a>
-            <a href="#issuer-certificates" class="tab" data-size="lg">
+            <a th:if="${showIssuerCertificatesTab}"
+               href="#issuer-certificates" class="tab" data-size="lg">
                 Issuer-sertifikat
             </a>
         </nav>
@@ -43,23 +44,23 @@
                  th:insert="~{fragments/details_tabs_fragments
                                 :: general_info_content_fragment(rp=${rp})}">
             </div>
-            <div th:if="${showCertificatesTab}"
-                 id="#access-certificates"
+            <div id="#access-certificates"
                  th:insert="~{fragments/details_tabs_fragments
                                 :: access_certificates_content_fragment(
                                     rp=${rp}, certs=${certificateSummariesAttr})}">
             </div>
-            <div th:if="${showCertificatesTab}"
+            <div th:if="${showIssuerCertificatesTab}"
                  id="#issuer-certificates"
                  th:insert="~{fragments/details_tabs_fragments
                                 :: issuer_certificates_content_fragment(rp=${rp}, certs=${issuerSummariesAttr})}">
             </div>
         </div>
 
+
     </main>
 
     <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
 
-<script th:if="${showCertificatesTab}" src="/js/simple_tabs.js"></script>
+<script src="/js/simple_tabs.js"></script>
 </body>
 </html>
