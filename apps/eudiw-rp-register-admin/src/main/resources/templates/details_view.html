@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="nb-no"
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/extras/spring-security" lang="nb-no"
       th:with="rp=${detailedViewDataAttr}">
 <head>
     <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
@@ -15,7 +15,8 @@
 
     <main>
 
-        <p class="ds-paragraph">
+        <p sec:authorize="hasRole('ADMIN')"
+                class="ds-paragraph">
             <a th:href="@{/search}" class="ds-button" data-variant="secondary">
                 Tilbake til søk
             </a>

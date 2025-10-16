@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/extras/spring-security" lang="nb-no">
 <head>
     <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
     <title>Sandkassa for digital lommebok</title>
@@ -16,7 +16,9 @@
         </div>
 
         <nav class="flex-container">
-            <a th:href="@{/search}" class="ds-card">
+            <a sec:authorize="hasRole('ADMIN')"
+               th:href="@{/search}"
+               class="ds-card">
                 <h2 class="ds-heading">
                     Søking
                 </h2>
