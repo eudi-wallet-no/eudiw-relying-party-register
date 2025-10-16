@@ -24,6 +24,11 @@
         Legg til ny brukarstad
     </h1>
 
+    <p class="ds-alert" data-color="info">
+        Ved å registrera og ta i bruk ei brukarstadsregistrering godtar du
+        <span class="ds-link">Digdir sine bruksvilkår for sandkassa</span>.
+    </p>
+
     <div sec:authorize="hasRole('ADMIN')"
          th:replace="~{fragments/create_fragments :: make_create_form_fragment(isAdmin=true)}">
     </div>
