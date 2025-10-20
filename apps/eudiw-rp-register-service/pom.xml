@@ -15,7 +15,7 @@
     <description>Relying party register service</description>
 
     <properties>
-        <java.version>24</java.version>
+        <java.version>25</java.version>
         <idporten-actuator.version>2.0.0</idporten-actuator.version>
         <idporten-validators.version>1.6.0</idporten-validators.version>
         <idporten-access-log.version>2.8.0</idporten-access-log.version>
