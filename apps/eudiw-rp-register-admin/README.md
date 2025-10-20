@@ -3,7 +3,7 @@
 EUDIW Relying Party Register Admin + Self-service
 
 ## Requirements
-- Java 24
+- Java 25
 - Maven
 - Docker
 
