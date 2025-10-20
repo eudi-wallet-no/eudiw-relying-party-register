@@ -2,27 +2,35 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
 <head>
     <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
-    <title>Logg inn</title>
+    <title>Brukarstadsregister - logg inn</title>
 </head>
 <body>
     <header th:replace="~{fragments/general :: page_header_fragment}"></header>
     <main>
         <div>
             <h1 class="ds-heading" data-size="lg">
-                Logg inn
+                Brukarstadsregister
             </h1>
         </div>
-
         <div>
             <p class="ds-paragraph">
-                Det tilbys OAuth2-autentisering via Entra ID (for adminbrukarar)
-                og Ansattporten (for sjølvbeteningsbrukarar).
+                Her kan du administrere brukarstader i
+                <span th:if="${@environment.matchesProfiles('systest')}">
+                    systestmiljøet til sandkassa.
+                </span>
+                <span th:if="${@environment.matchesProfiles('test')}">
+                    testmiljøet til sandkassa.
+                </span>
+                <span th:if="${@environment.matchesProfiles('!(systest | test | prod)')}">
+                    lokalt utviklingsmiljø.
+                </span>
             </p>
         </div>
 
-        <div th:each="client : ${@availableClients}">
+        <div>
             <!--/*@thymesVar id="client" type="org.springframework.security.oauth2.client.registration.ClientRegistration"*/-->
-            <a th:href="@{|/oauth2/authorization/${client.getRegistrationId()}|}"
+            <a th:each="client : ${@availableClients}"
+               th:href="@{|/oauth2/authorization/${client.getRegistrationId()}|}"
                class="ds-button">
                 Logg inn via <span th:text="${client.getClientName()}"></span>
             </a>
