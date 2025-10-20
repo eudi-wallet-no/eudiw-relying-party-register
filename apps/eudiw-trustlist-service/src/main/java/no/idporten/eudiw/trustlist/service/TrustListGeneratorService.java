@@ -1,7 +1,7 @@
 package no.idporten.eudiw.trustlist.service;
 
 import no.idporten.eudiw.trustlist.config.TrustlistServiceProperties;
-import no.idporten.eudiw.trustlist.domain.TLRpAccessService;
+import no.idporten.eudiw.trustlist.domain.TLService;
 import no.idporten.eudiw.trustlist.domain.TLServiceProvider;
 import no.idporten.eudiw.trustlist.web.ApplicationException;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -110,26 +110,26 @@ public class TrustListGeneratorService {
         trustServiceProvider.setTSPInformation(tspInformation);
 
         TSPServices tspServices = new TSPServices();
-        for (TLRpAccessService rpAccessService : serviceProviderData.rpAccessServices()) {
+        for (TLService rpAccessService : serviceProviderData.services()) {
             tspServices.getTSPServices().add(createRpAccessTspService(rpAccessService));
         }
         trustServiceProvider.setTSPServices(tspServices);
         return trustServiceProvider;
     }
 
-    private TSPService createRpAccessTspService(TLRpAccessService rpAccessService)  {
+    private TSPService createRpAccessTspService(TLService rpAccessService) {
         TSPService tspService = new TSPService();
         ServiceInformation serviceInformation = new ServiceInformation();
         serviceInformation.setServiceName(createInternationalNamesType(
                 createMultiLangNormStringType(LANG_CODE_NO, rpAccessService.name().langNo()),
                 createMultiLangNormStringType(LANG_CODE_EN, rpAccessService.name().langEn())));
-        serviceInformation.setServiceTypeIdentifier(TLRpAccessService.SERVICE_TYPE_IDENTIFIER_URI_RP_ACCESS);
+        serviceInformation.setServiceTypeIdentifier(rpAccessService.serviceTypeIdentifier());
         try {
             serviceInformation.setServiceDigitalIdentity(createServiceDigitalIdentity(rpAccessService.getCertificate()));
         } catch (IOException e) {
             throw new ApplicationException("Failed to parse Certificate from string: %s ".formatted(rpAccessService.cert()), e);
         }
-        serviceInformation.setServiceStatus(TLRpAccessService.SERVICE_STATUS_URI);
+        serviceInformation.setServiceStatus(TLService.SERVICE_STATUS_URI);
         serviceInformation.setStatusStartingTime(rpAccessService.startingTime());
         tspService.setServiceInformation(serviceInformation);
 
@@ -147,7 +147,7 @@ public class TrustListGeneratorService {
         try {
             digitalIdentityTypeX509Certificate.setX509Certificate(certificate.getEncoded());
         } catch (IOException e) {
-            throw new ApplicationException("Failed to decode X509CertificateHolder with decimal SerialNumber: %d".formatted(certificate.getSerialNumber()),e);
+            throw new ApplicationException("Failed to decode X509CertificateHolder with decimal SerialNumber: %d".formatted(certificate.getSerialNumber()), e);
         }
         serviceDigitalIdentity.getDigitalIds().add(digitalIdentityTypeSubjectName);
         serviceDigitalIdentity.getDigitalIds().add(digitalIdentityTypeX509Certificate);
