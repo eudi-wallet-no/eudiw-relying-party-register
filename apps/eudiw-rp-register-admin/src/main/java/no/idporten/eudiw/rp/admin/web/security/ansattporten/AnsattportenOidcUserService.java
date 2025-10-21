@@ -2,6 +2,7 @@ package no.idporten.eudiw.rp.admin.web.security.ansattporten;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.admin.service.enhetsregisteretservice.EnhetsregisteretService;
 import no.idporten.eudiw.rp.admin.web.security.OAuth2Constants;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails.ResponseAuthorizationDetails;
@@ -17,6 +18,7 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RequiredArgsConstructor
 public class AnsattportenOidcUserService extends OidcUserService {
 
@@ -49,7 +51,12 @@ public class AnsattportenOidcUserService extends OidcUserService {
 
     private SelfServiceReportee toSelfServiceReporteeWithSectorInfo(
         ResponseAuthorizationDetails.Reportee reportee) {
-        boolean isPublicSector = enhetsregisteretService.getPublicSectorForOrgno(reportee.orgno());
+        boolean isPublicSector = false;
+        try {
+            isPublicSector = enhetsregisteretService.getPublicSectorForOrgno(reportee.orgno());
+        } catch (Exception e) {
+            log.warn("Failed to get public sector info from Enhetsregisteret (defaulting FALSE)", e);
+        }
         return new SelfServiceReportee(
             reportee.orgno(),
             reportee.name(),
