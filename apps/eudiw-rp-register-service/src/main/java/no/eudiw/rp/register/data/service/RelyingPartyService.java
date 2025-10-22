@@ -22,6 +22,7 @@ public class RelyingPartyService {
 
     private final RelyingPartyRepository relyingPartyRepository;
     private final EntitlementRepository entitlementRepository;
+    private final Converter converter;
 
     @Transactional
     public RelyingPartyResource createRelyingParty(CreateRelyingPartyResource request) {
@@ -32,8 +33,8 @@ public class RelyingPartyService {
 
         entitlementCheck(request.relyingPartyEntitlements());
 
-        RelyingParty relyingParty = Converter.toEntity(request);
-        return Converter.toResource(relyingPartyRepository.saveAndFlush(relyingParty));
+        RelyingParty relyingParty = converter.toEntity(request);
+        return converter.toResource(relyingPartyRepository.saveAndFlush(relyingParty));
     }
 
     private void entitlementCheck(List<RelyingPartyEntitlementResource> entitlements) {
@@ -55,7 +56,7 @@ public class RelyingPartyService {
             throw new ResourceDeletedException("No access to relying party resource");
         }
 
-        return Converter.toResource(relyingParty);
+        return converter.toResource(relyingParty);
     }
 
     @Transactional(readOnly = true)
@@ -79,7 +80,7 @@ public class RelyingPartyService {
             pageRequest
         );
 
-        return new PagedModel<>(page.map(Converter::toResource));
+        return new PagedModel<>(page.map(converter::toResource));
     }
 
     @Transactional
@@ -109,11 +110,11 @@ public class RelyingPartyService {
         relyingPartyRepository.saveAndFlush(relyingParty);
 
         relyingParty.setRelyingPartyEntitlements(
-            request.relyingPartyEntitlements().stream().map(Converter::toEntity).toList());
+            request.relyingPartyEntitlements().stream().map(converter::toEntity).toList());
         relyingParty.setRelyingPartyEaas(
-            request.relyingPartyEaas().stream().map(Converter::toEntity).toList());
+            request.relyingPartyEaas().stream().map(converter::toEntity).toList());
 
-        return Converter.toResource(relyingPartyRepository.saveAndFlush(relyingParty));
+        return converter.toResource(relyingPartyRepository.saveAndFlush(relyingParty));
     }
 
     @Transactional

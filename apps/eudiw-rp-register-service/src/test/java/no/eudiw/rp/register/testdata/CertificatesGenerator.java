@@ -1,5 +1,6 @@
 package no.eudiw.rp.register.testdata;
 
+import lombok.SneakyThrows;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
@@ -31,7 +32,8 @@ public class CertificatesGenerator extends TestDataGenerator {
         }
     }
 
-    public static X509Certificate generateX509Certificate() throws Exception {
+    @SneakyThrows
+    public static X509Certificate generateX509Certificate() {
         X500Name issuerName  = new X500Name("CN=issuer-" + generateName());
         X500Name subjectName = new X500Name("CN=subject-" + generateName());
 
@@ -51,7 +53,8 @@ public class CertificatesGenerator extends TestDataGenerator {
         return new JcaX509CertificateConverter().getCertificate(certHolder);
     }
 
-    public static PKCS10CertificationRequest generatePKCS10Csr() throws Exception {
+    @SneakyThrows
+    public static PKCS10CertificationRequest generatePKCS10Csr() {
         X500Name name = new X500Name("CN=" + generateName());
 
         ContentSigner signer = new JcaContentSignerBuilder("SHA256WithRSA").build(keyPair.getPrivate());

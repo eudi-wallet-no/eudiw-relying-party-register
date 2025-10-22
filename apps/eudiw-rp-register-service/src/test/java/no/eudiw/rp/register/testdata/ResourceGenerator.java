@@ -5,19 +5,32 @@ import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCsrResource;
 import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCertificateResource;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
 public class ResourceGenerator extends TestDataGenerator {
+
+    public static List<RelyingPartyEntitlementResource> sampleRelyingPartyEntitlementResources() {
+        return sampleRelyingPartyEntitlementResources(rng.nextInt(1, 4));
+    }
+    public static List<RelyingPartyEntitlementResource> sampleRelyingPartyEntitlementResources(int n) {
+        return sampleEntitlements(n)
+                   .stream()
+                   .map(e -> new RelyingPartyEntitlementResource(e, e, List.of(generateCertificateResource())))
+                   .toList();
+    }
+
+    public static RelyingPartyCertificateResource generateCertificateResource() {
+        return new RelyingPartyCertificateResource(
+            CertificatesGenerator.generateX509Certificate(), UUID.randomUUID());
+    }
 
     public static CreateRelyingPartyResource generateCreateRelyingPartyResource() {
         return new CreateRelyingPartyResource(
             generateValidOrgno(),
             generateName(),
             generatePublicSector(),
-            List.of(new RelyingPartyEntitlementResource("https://uri.etsi.org/19475/Entitlement/Service_Provider", new ArrayList<>()), new RelyingPartyEntitlementResource("https://uri.etsi.org/19475/Entitlement/QEAA_Provider", new ArrayList<>())),
+            sampleRelyingPartyEntitlementResources(),
             generateListBy(ResourceGenerator::generateRelyingPartyEaaResource)
         );
     }
@@ -26,7 +39,7 @@ public class ResourceGenerator extends TestDataGenerator {
         return new EditRelyingPartyResource(
             generateName(),
             generatePublicSector(),
-            List.of(new RelyingPartyEntitlementResource("https://uri.etsi.org/19475/Entitlement/Service_Provider", new ArrayList<>()), new RelyingPartyEntitlementResource("https://uri.etsi.org/19475/Entitlement/QEAA_Provider", new ArrayList<>())),
+            sampleRelyingPartyEntitlementResources(),
             generateListBy(ResourceGenerator::generateRelyingPartyEaaResource),
             true
        );
@@ -47,7 +60,7 @@ public class ResourceGenerator extends TestDataGenerator {
             generateValidOrgno(),
             generateName(),
             generatePublicSector(),
-            List.of(new RelyingPartyEntitlementResource("https://uri.etsi.org/19475/Entitlement/Service_Provider", new ArrayList<>()), new RelyingPartyEntitlementResource("https://uri.etsi.org/19475/Entitlement/QEAA_Provider", new ArrayList<>())),
+            sampleRelyingPartyEntitlementResources(),
             generateListBy(ResourceGenerator::generateRelyingPartyEaaResource),
             timeNow,
             timeNow,
@@ -55,13 +68,11 @@ public class ResourceGenerator extends TestDataGenerator {
         );
     }
 
-    public static RelyingPartyCsrResource generateRegisterRelyingPartyCsrResource()
-        throws Exception {
+    public static RelyingPartyCsrResource generateRegisterRelyingPartyCsrResource() {
         return new RelyingPartyCsrResource(CertificatesGenerator.generatePKCS10Csr());
     }
 
-    public static RelyingPartyCertificateResource generateRelyingPartyCertificateResource()
-        throws Exception {
+    public static RelyingPartyCertificateResource generateRelyingPartyCertificateResource() {
         return new RelyingPartyCertificateResource(
             CertificatesGenerator.generateX509Certificate(), UUID.randomUUID());
     }

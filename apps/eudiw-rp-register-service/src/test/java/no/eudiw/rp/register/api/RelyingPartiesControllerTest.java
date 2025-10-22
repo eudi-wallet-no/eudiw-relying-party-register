@@ -6,12 +6,10 @@ import no.eudiw.rp.register.api.resource.*;
 import no.eudiw.rp.register.data.entity.RelyingParty;
 import no.eudiw.rp.register.data.repository.RelyingPartyRepository;
 import no.eudiw.rp.register.data.service.Converter;
-import no.eudiw.rp.register.testdata.TestDataGenerator;
+import no.eudiw.rp.register.testdata.ResourceGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -47,6 +45,9 @@ public class RelyingPartiesControllerTest {
 
     @Autowired
     private RelyingPartyRepository relyingPartyRepository;
+
+    @Autowired
+    private Converter converter;
 
     @DisplayName("When using the Relying Parties API with valid API key")
     @Nested
@@ -214,9 +215,11 @@ public class RelyingPartiesControllerTest {
 
             @Test
             void testEditRelyingPartyMoreEntitlements() throws Exception {
+                List<RelyingPartyEntitlementResource> sampleEntitlements =
+                    ResourceGenerator.sampleRelyingPartyEntitlementResources(5);
+                RelyingPartyEntitlementResource sampleEntitlement = sampleEntitlements.getFirst();
                 List<RelyingPartyEntitlementResource> initialEntitlements =
-                    List.of(new RelyingPartyEntitlementResource("https://uri.etsi.org/19475/Entitlement/Service_Provider", new ArrayList<>()),
-                            new RelyingPartyEntitlementResource("https://uri.etsi.org/19475/Entitlement/Non_Q_EAA_Provider", new ArrayList<>()));
+                    sampleEntitlements.subList(1, 3);
 
                 CreateRelyingPartyResource resource =
                     generateCreateRelyingPartyResource()
@@ -237,7 +240,7 @@ public class RelyingPartiesControllerTest {
                 RelyingPartyResource relyingPartyResource = ApiTestUtils.toRelyingPartyResource(createResult);
 
                 List<RelyingPartyEntitlementResource> entitlements = new ArrayList<>(resource.relyingPartyEntitlements());
-                entitlements.add(new RelyingPartyEntitlementResource("https://uri.etsi.org/19475/Entitlement/PID_Provider", new ArrayList<>()));
+                entitlements.add(sampleEntitlement);
                 EditRelyingPartyResource editResource =
                     generateEditRelyingPartyResource()
                         .withRelyingPartyEntitlements(entitlements)
@@ -377,8 +380,8 @@ public class RelyingPartiesControllerTest {
                 assertEquals(2, relyingPartyResources.size());
 
                 assertAll(
-                    () -> assertTrue(relyingPartyResources.contains(Converter.toResource(relyingParty1))),
-                    () -> assertTrue(relyingPartyResources.contains(Converter.toResource(relyingParty2)))
+                    () -> assertTrue(relyingPartyResources.contains(converter.toResource(relyingParty1))),
+                    () -> assertTrue(relyingPartyResources.contains(converter.toResource(relyingParty2)))
                 );
             }
 
@@ -413,8 +416,8 @@ public class RelyingPartiesControllerTest {
                 assertEquals(2, relyingPartyResources.size());
 
                 assertAll(
-                    () -> assertTrue(relyingPartyResources.contains(Converter.toResource(relyingParty1))),
-                    () -> assertTrue(relyingPartyResources.contains(Converter.toResource(relyingParty3)))
+                    () -> assertTrue(relyingPartyResources.contains(converter.toResource(relyingParty1))),
+                    () -> assertTrue(relyingPartyResources.contains(converter.toResource(relyingParty3)))
                 );
             }
         }
