@@ -34,7 +34,6 @@ public class EditController {
     private static final String LOMMEBOK_12_EDIT_RP_REQUEST = "LOMMEBOK-12-EDIT-RP-REQUEST";
 
     private final RelyingPartiesService relyingPartiesService;
-    private final SearchSession searchSession;
 
     @GetMapping("/edit/{id}")
     @PreAuthorize("@permissionsService.userHasPrivilegedAccessTo(#id)")
@@ -85,7 +84,7 @@ public class EditController {
                 detailedViewDataAttrId, relyingPartyResource));
         if (!bindingResult.hasErrors()) {
             EditRelyingPartyResource editResource = editResourceSupplier.get();
-            searchSession.edit(relyingPartyResource.id(), editResource);
+            relyingPartiesService.edit(relyingPartyResource.id(), editResource);
             mav.setViewName("redirect:/details/" + relyingPartyResource.id());
         }
         return mav;
