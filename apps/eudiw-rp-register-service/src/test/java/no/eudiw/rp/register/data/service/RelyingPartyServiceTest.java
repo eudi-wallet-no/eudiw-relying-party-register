@@ -155,9 +155,7 @@ public class RelyingPartyServiceTest {
             assertNotNull(getResult4);
             assertEquals(editResource.relyingPartyEaas().size(), getResult4.relyingPartyEaas().size());
         }
-
-        // TODO: re-enable this one once we do something about entitlement deletion.
-        @Disabled
+        
         @Test
         void testEaaAndEntitlementsEditRelyingParty() {
             CreateRelyingPartyResource resource = generateCreateRelyingPartyResource();

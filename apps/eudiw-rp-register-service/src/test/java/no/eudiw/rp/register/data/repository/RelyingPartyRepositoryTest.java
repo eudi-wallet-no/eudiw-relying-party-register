@@ -353,7 +353,7 @@ public class RelyingPartyRepositoryTest {
 
             assertNotNull(relyingParties);
             assertTrue(relyingParties.hasContent());
-            assertEquals(3, relyingParties.getTotalElements());
+            assertEquals(2, relyingParties.getTotalElements());
             RelyingParty relyingParty = relyingParties.getContent().getFirst();
             assertNotNull(relyingParty);
 
