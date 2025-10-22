@@ -1,5 +1,9 @@
 # eudiw-trustlist-service
-EUDIW Trust List Service
+EUDIW Trust List Service for eidas2sandkasse in Norway.
+
+First version of trust list is static and requires manual deploys to be updated.
+
+Conforms to https://www.etsi.org/deliver/etsi_ts/119600_119699/119612/02.03.01_60/ts_119612v020301p.pdf, but will be changed later when new specifications are ready and published from EU.
 
 ## Requirements
 - Java 25
@@ -37,4 +41,4 @@ The application can be started with Docker compose:
 docker-compose up --build
 ```
 
-The application will run on http://trustlist-service:9230 .
+The application will run on http://trustlist-service:9230.

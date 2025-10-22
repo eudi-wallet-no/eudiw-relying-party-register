@@ -33,7 +33,7 @@ trustlist-service:
   scheme-information:
     scheme-name: Tillitsliste for norsk eidas2sandkasse
     sequence-number: 1
-    list-issue-datetime: 2025-09-24T06:00:00.00Z
+    list-issue-datetime: 2025-10-20T00:00:00.00Z
   # only support 1 trust service provider initially
   service-provider:
     name:
