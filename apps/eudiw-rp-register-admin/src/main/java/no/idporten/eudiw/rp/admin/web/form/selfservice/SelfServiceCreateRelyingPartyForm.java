@@ -19,7 +19,7 @@ public class SelfServiceCreateRelyingPartyForm {
 
     public static final List<RelyingPartyEntitlementResource> DEFAULT_NON_ADMIN_ENTITLEMENTS =
         List.of(new RelyingPartyEntitlementResource(
-            "https://uri.etsi.org/19475/Entitlement/Service_Provider", new ArrayList<>()));
+            "https://uri.etsi.org/19475/Entitlement/Service_Provider"));
 
     public CreateRelyingPartyResource toResource(
         String orgno, String name, boolean publicSector) {

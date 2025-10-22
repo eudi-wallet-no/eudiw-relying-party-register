@@ -3,7 +3,6 @@ package no.idporten.eudiw.rp.admin.web.form;
 import lombok.*;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyEntitlementResource;
 
-import java.util.ArrayList;
 
 @AllArgsConstructor
 @Getter
@@ -14,7 +13,7 @@ public class RelyingPartyEntitlementFormField {
 
     //TODO fix
     public RelyingPartyEntitlementResource toResource() {
-        return new RelyingPartyEntitlementResource(this.entitlement, new ArrayList<>());
+        return new RelyingPartyEntitlementResource(this.entitlement);
     }
     public static RelyingPartyEntitlementFormField fromResource(
         RelyingPartyEntitlementResource resource) {

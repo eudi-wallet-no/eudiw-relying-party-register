@@ -38,14 +38,14 @@
             <legend>
                 Rolle
             </legend>
-            <div class="ds-field" th:each="entitlement : ${@relyingPartiesService.getValidEntitlementValues()}">
-                <label th:for="|id-${entitlement}|" th:text="${entitlement}"></label>
-                <input th:id="|id-${entitlement}|"
+            <div class="ds-field" th:each="e : ${@relyingPartiesService.getValidEntitlements()}">
+                <label th:for="|id-${e.entitlement}|" th:text="${e.displayName}"></label>
+                <input th:id="|id-${e.entitlement}|"
                        type="checkbox"
                        class="ds-input"
                        name="requiredEntitlements"
-                       th:value="${entitlement}"
-                       th:checked="${#lists.contains(searchFormAttr.requiredEntitlementValues(), entitlement)}">
+                       th:value="${e.entitlement}"
+                       th:checked="${#lists.contains(searchFormAttr.requiredEntitlementValues(), e.entitlement)}">
             </div>
         </fieldset>
     </details>

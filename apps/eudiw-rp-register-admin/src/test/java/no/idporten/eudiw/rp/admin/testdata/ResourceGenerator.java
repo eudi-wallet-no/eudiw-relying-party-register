@@ -26,14 +26,13 @@ public class ResourceGenerator extends TestDataGenerator {
             .subList(0, rng.nextInt(1, 4))
             .stream()
             .map(e -> new RelyingPartyEntitlementResource(
-                e,
-                List.of(generateCertificateResource())))
+                e, e, List.of(generateCertificateResource())))
             .toList();
     }
 
     public static RelyingPartyEntitlementResource generateRelyingPartyEntitlementResource() {
         String e = EXAMPLE_ENTITLEMENTS.get(rng.nextInt(0, EXAMPLE_ENTITLEMENTS.size()));
-        return new RelyingPartyEntitlementResource(e, List.of());
+        return new RelyingPartyEntitlementResource(e);
     }
 
     public static RelyingPartyEaaResource generateRelyingPartyEaaResource() {
