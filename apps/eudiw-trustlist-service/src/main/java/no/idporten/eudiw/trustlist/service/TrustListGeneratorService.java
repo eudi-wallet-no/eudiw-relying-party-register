@@ -154,7 +154,7 @@ public class TrustListGeneratorService {
         return serviceDigitalIdentity;
     }
 
-    // Hardkpder adresse for Digdir, ut i konfig eller database senere?
+    // Hardkodar adresse for Digdir, ut i konfig eller database seinere?
     private AddressType createDigdirAddressType() {
         PostalAddresses postalAddresses = new PostalAddresses();
         PostalAddress postalAddress = new PostalAddress();

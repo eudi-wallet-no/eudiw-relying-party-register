@@ -11,10 +11,12 @@ import java.util.List;
 public record TLService(TSName name, ZonedDateTime startingTime, String serviceTypeIdentifier, String cert) {
     public static final String SERVICE_TYPE_IDENTIFIER_URI_RP_ACCESS = "http://uri.etsi.org/Svc/Svctype/CA/RPaccess";
     public static final String SERVICE_TYPE_IDENTIFIER_URI_EAA = "http://uri.etsi.org/TrstSvc/Svctype/EAA";
+    public static final String SERVICE_TYPE_IDENTIFIER_URI_PID = "http://uri.etsi.org/TrstSvc/Svctype/PID"; // from digdir, not from TL spec since not specified there yet.
 
     public static final List<String> SUPPORTED_SERVICE_TYPE_IDENTIFIERS = List.of(
             SERVICE_TYPE_IDENTIFIER_URI_RP_ACCESS,
-            SERVICE_TYPE_IDENTIFIER_URI_EAA
+            SERVICE_TYPE_IDENTIFIER_URI_EAA,
+            SERVICE_TYPE_IDENTIFIER_URI_PID
     );
 
     public static final String SERVICE_STATUS_URI = "http://uri.etsi.org/TrstSvc/TrustedList/Svcstatus/recognisedatnationallevel";
