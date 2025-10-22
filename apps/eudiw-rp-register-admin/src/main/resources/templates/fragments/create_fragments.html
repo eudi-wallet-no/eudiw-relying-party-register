@@ -74,14 +74,14 @@
                     data-weight="high">
                 Vel roller
             </legend>
-            <div class="ds-field" th:each="entitlement : ${@relyingPartiesService.getValidEntitlementValues()}">
-                <label th:for="|id-${entitlement}|" th:text="${entitlement}"></label>
-                <input th:id="|id-${entitlement}|"
+            <div class="ds-field" th:each="e : ${@relyingPartiesService.getValidEntitlements()}">
+                <label th:for="|id-${e.entitlement}|" th:text="${e.displayName}"></label>
+                <input th:id="|id-${e.entitlement}|"
                        type="checkbox"
                        class="ds-input"
                        name="entitlements"
-                       th:value="${entitlement}"
-                       th:checked="${#lists.contains(createFormAttr.getEntitlementValues(), entitlement)}"
+                       th:value="${e.entitlement}"
+                       th:checked="${#lists.contains(createFormAttr.getEntitlementValues(), e.entitlement)}"
                        th:disabled="${!isAdmin}"
                 >
             </div>

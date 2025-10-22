@@ -148,8 +148,8 @@
                         <tr><th>Rolle</th></tr>
                     </thead>
                     <tbody>
-                        <tr th:each="ent : ${rp.relyingPartyEntitlements}">
-                            <td th:text="${ent.entitlement}"></td>
+                        <tr th:each="e : ${rp.relyingPartyEntitlements}">
+                            <td th:text="${e.displayName}"></td>
                         </tr>
                     </tbody>
                 </table>

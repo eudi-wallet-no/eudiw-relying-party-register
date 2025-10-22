@@ -43,18 +43,10 @@ public record RelyingPartyResource(
     boolean active
 ) {
 
-    private static final String ENTITLEMENT_URI =
-        "https://uri.etsi.org/19475/Entitlement/";
-
     public String entitlementsDisplayForSearch() {
         return relyingPartyEntitlements.stream()
-            .map(RelyingPartyEntitlementResource::entitlement)
-            .filter(Objects::nonNull)
-            .map(String::trim)
-            .filter(s -> !s.isEmpty())
-            .map(s -> s.replaceFirst(ENTITLEMENT_URI, ""))
-            .map(s -> s.replace("_", " "))
-            .collect(Collectors.joining(System.lineSeparator()));
+                   .map(RelyingPartyEntitlementResource::displayName)
+                   .collect(Collectors.joining(System.lineSeparator()));
     }
 
     @JsonIgnore
