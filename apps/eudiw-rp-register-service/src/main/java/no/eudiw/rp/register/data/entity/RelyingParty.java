@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -70,9 +71,7 @@ public class RelyingParty extends BaseEntity {
                 .findFirst();
     }
 
-    private void addRelyingPartyEntitlement(
-        RelyingPartyEntitlement relyingPartyEntitlement) {
-
+    private void addRelyingPartyEntitlement(RelyingPartyEntitlement relyingPartyEntitlement) {
         boolean entitlementNotAlreadyExists =
             this.relyingPartyEntitlements
                 .stream()
@@ -85,11 +84,18 @@ public class RelyingParty extends BaseEntity {
         }
     }
 
-    public void setRelyingPartyEntitlements(
-        List<RelyingPartyEntitlement> relyingPartyEntitlements) {
+    public void setRelyingPartyEntitlements(List<RelyingPartyEntitlement> relyingPartyEntitlements) {
         if (relyingPartyEntitlements != null) {
+            this.removeEntitlementsWithoutIssuerCertificates(relyingPartyEntitlements);
             relyingPartyEntitlements.forEach(this::addRelyingPartyEntitlement);
         }
+    }
+
+    private void removeEntitlementsWithoutIssuerCertificates(List<RelyingPartyEntitlement> input) {
+        Set<String> incoming = input.stream().map(RelyingPartyEntitlement::getEntitlement).collect(Collectors.toSet());
+        this.relyingPartyEntitlements.removeIf(entitlement ->
+            !incoming.contains(entitlement.getEntitlement()) && entitlement.getIssuerCertificates().isEmpty()
+        );
     }
 
     public void setRelyingPartyEaas(List<RelyingPartyEaa> relyingPartyEaas) {
