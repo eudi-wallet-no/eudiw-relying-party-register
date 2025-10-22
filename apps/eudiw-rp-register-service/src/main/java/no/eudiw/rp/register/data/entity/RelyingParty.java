@@ -3,10 +3,7 @@ package no.eudiw.rp.register.data.entity;
 import jakarta.persistence.*;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -27,19 +24,16 @@ public class RelyingParty extends BaseEntity {
     private String name;
 
     @Column(name = "public_sector", nullable = false)
-    private Boolean publicSector;
+    private boolean publicSector;
 
-    // TODO: Jira EUW-24 (https://digdir.atlassian.net/browse/EUW-24)
     @Setter(AccessLevel.NONE)
     @OneToMany(
             mappedBy = "relyingParty",
             fetch = FetchType.EAGER,
             cascade = CascadeType.ALL,
             orphanRemoval = true)
-    private List<RelyingPartyEntitlement> relyingPartyEntitlements =
-        new ArrayList<>();
+    private List<RelyingPartyEntitlement> relyingPartyEntitlements = new ArrayList<>();
 
-    // TODO: Jira EUW-24 (https://digdir.atlassian.net/browse/EUW-24)
     @Setter(AccessLevel.NONE)
     @OneToMany(
             mappedBy = "relyingParty",
@@ -54,8 +48,7 @@ public class RelyingParty extends BaseEntity {
         fetch = FetchType.EAGER,
         cascade = CascadeType.ALL,
         orphanRemoval = true)
-    private List<AccessCertificate> accessCertificates =
-        new ArrayList<>();
+    private List<AccessCertificate> accessCertificates = new ArrayList<>();
 
     @Column(name = "created_ms", nullable = false)
     @Setter(AccessLevel.NONE)
@@ -66,41 +59,37 @@ public class RelyingParty extends BaseEntity {
     private long lastUpdatedMs;
 
     @Column(name = "active", nullable = false)
-    private boolean active;
+    private boolean active = true;
 
     @Column(name = "deleted", nullable = false)
-    private boolean deleted;
-
-    public void setRelyingPartyEntitlements(
-        List<RelyingPartyEntitlement> relyingPartyEntitlements
-    ) {
-        relyingPartyEntitlements.forEach(this::addRelyingPartyEntitlement);
-    }
-
-    public void addRelyingPartyEntitlement(
-        RelyingPartyEntitlement relyingPartyEntitlement
-    ) {
-        if (this.relyingPartyEntitlements == null) {
-            this.relyingPartyEntitlements = new ArrayList<>();
-        }
-
-        List<String> currentEntitlements = this.relyingPartyEntitlements.stream().map(RelyingPartyEntitlement::getEntitlement).toList();
-        if (!currentEntitlements.contains(relyingPartyEntitlement.getEntitlement())) {
-            relyingPartyEntitlement.setRelyingParty(this);
-            this.relyingPartyEntitlements.add(relyingPartyEntitlement);
-        }
-    }
-
-    public Optional<RelyingPartyEntitlement> getRelyingPartyEntitlement(UUID id) {
-        return relyingPartyEntitlements.stream()
-            .filter(entitlement -> id.equals(entitlement.getId()))
-            .findFirst();
-    }
+    private boolean deleted = false;
 
     public Optional<RelyingPartyEntitlement> getRelyingPartyEntitlement(String entitlementType) {
         return relyingPartyEntitlements.stream()
                 .filter(entitlement -> entitlementType.equals(entitlement.getEntitlement()))
                 .findFirst();
+    }
+
+    private void addRelyingPartyEntitlement(
+        RelyingPartyEntitlement relyingPartyEntitlement) {
+
+        boolean entitlementNotAlreadyExists =
+            this.relyingPartyEntitlements
+                .stream()
+                .map(RelyingPartyEntitlement::getEntitlement)
+                .noneMatch(e -> Objects.equals(e, relyingPartyEntitlement.getEntitlement()));
+
+        if (entitlementNotAlreadyExists) {
+            relyingPartyEntitlement.setRelyingParty(this);
+            this.relyingPartyEntitlements.add(relyingPartyEntitlement);
+        }
+    }
+
+    public void setRelyingPartyEntitlements(
+        List<RelyingPartyEntitlement> relyingPartyEntitlements) {
+        if (relyingPartyEntitlements != null) {
+            relyingPartyEntitlements.forEach(this::addRelyingPartyEntitlement);
+        }
     }
 
     public void setRelyingPartyEaas(List<RelyingPartyEaa> relyingPartyEaas) {
@@ -111,40 +100,27 @@ public class RelyingParty extends BaseEntity {
         }
     }
 
-    public void addRelyingPartyCertificate(
-        AccessCertificate accessCertificate) {
-        accessCertificate.setRelyingParty(this);
-        this.accessCertificates.add(accessCertificate);
-    }
-
     public void setAccessCertificates(
         List<AccessCertificate> accessCertificates) {
         this.accessCertificates.clear();
         if (accessCertificates != null) {
-            accessCertificates.forEach(this::addRelyingPartyCertificate);
+            accessCertificates.forEach(cert -> cert.setRelyingParty(this));
+            this.accessCertificates.addAll(accessCertificates);
         }
-    }
-
-    public RelyingParty(String name, String orgno, Boolean publicSector) {
-        this(name, orgno, publicSector, null, null, null);
     }
 
     public RelyingParty(String name,
                         String orgno,
-                        Boolean publicSector,
+                        boolean publicSector,
                         List<RelyingPartyEntitlement> relyingPartyEntitlements,
                         List<RelyingPartyEaa> relyingPartyEaas,
-                        List<AccessCertificate> accessCertificates
-                        ) {
-        this.id = null;
+                        List<AccessCertificate> accessCertificates) {
         this.name = name;
         this.orgno = orgno;
         this.publicSector = publicSector;
         this.setRelyingPartyEntitlements(relyingPartyEntitlements);
         this.setRelyingPartyEaas(relyingPartyEaas);
         this.setAccessCertificates(accessCertificates);
-        this.active = true;
-        this.deleted = false;
     }
 
     // for JPA instantiation.

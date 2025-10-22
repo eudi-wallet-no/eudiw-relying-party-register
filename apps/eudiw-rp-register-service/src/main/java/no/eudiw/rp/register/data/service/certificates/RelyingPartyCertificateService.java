@@ -1,7 +1,6 @@
 package no.eudiw.rp.register.data.service.certificates;
 
 import lombok.RequiredArgsConstructor;
-import no.eudiw.rp.register.api.resource.RelyingPartyEntitlementResource;
 import no.eudiw.rp.register.api.resource.RelyingPartyEntitlementsResource;
 import no.eudiw.rp.register.api.resource.certificates.IssuerCsrResource;
 import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCsrResource;
@@ -12,7 +11,7 @@ import no.eudiw.rp.register.data.certificates.X509CertificateConverter;
 import no.eudiw.rp.register.data.entity.*;
 import no.eudiw.rp.register.data.repository.EntitlementRepository;
 import no.eudiw.rp.register.data.repository.IssuerCertificateRepository;
-import no.eudiw.rp.register.data.repository.RelyingPartyCertificateRepository;
+import no.eudiw.rp.register.data.repository.AccessCertificateRepository;
 import no.eudiw.rp.register.data.repository.RelyingPartyRepository;
 import no.eudiw.rp.register.data.service.Converter;
 import no.eudiw.rp.register.data.service.exception.NotFoundException;
@@ -23,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 
 import java.security.cert.X509Certificate;
-import java.util.List;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -31,7 +29,7 @@ import java.util.UUID;
 public class RelyingPartyCertificateService {
 
     private final RelyingPartyRepository relyingPartyRepository;
-    private final RelyingPartyCertificateRepository relyingPartyCertificateRepository;
+    private final AccessCertificateRepository accessCertificateRepository;
     private final RestClient caRestClient;
     private final EntitlementRepository entitlementRepository;
     private final IssuerCertificateRepository issuerCertificateRepository;
@@ -61,7 +59,7 @@ public class RelyingPartyCertificateService {
             throw new NotFoundException("Certificate holder does not exist or has been deleted");
         }
         return Converter.toResource(
-            relyingPartyCertificateRepository
+            accessCertificateRepository
                 .findByIdAndRelyingPartyId(certificateId, relyingPartyId)
                 .orElseThrow(() -> new NotFoundException("Certificate does not exist"))
         );
@@ -137,7 +135,7 @@ public class RelyingPartyCertificateService {
         AccessCertificate certificateEntity =
             new AccessCertificate(certificate, relyingParty);
 
-        relyingPartyCertificateRepository.saveAndFlush(certificateEntity);
+        accessCertificateRepository.saveAndFlush(certificateEntity);
 
         return Converter.toResource(certificateEntity);
     }

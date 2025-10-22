@@ -50,7 +50,6 @@ public class RelyingPartiesController {
     private static final String RELYING_PARTY_DELETED = "RELYING-PARTY-DELETED";
     private static final String RELYING_PARTY_RETRIEVED = "RELYING-PARTY-RETRIEVED";
     private static final String RELYING_PARTIES_SEARCHED = "RELYING-PARTIES-SEARCHED";
-    private static final String RELYING_PARTIES_RETRIEVED = "RELYING-PARTIES-RETRIEVED";
 
     private final RelyingPartyService relyingPartyService;
 

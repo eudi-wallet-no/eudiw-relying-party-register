@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface RelyingPartyCertificateRepository
+public interface AccessCertificateRepository
     extends JpaRepository<AccessCertificate, UUID> {
 
     @Query("""

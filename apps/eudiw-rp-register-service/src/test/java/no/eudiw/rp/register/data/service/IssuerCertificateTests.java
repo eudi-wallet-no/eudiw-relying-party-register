@@ -22,6 +22,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.security.cert.X509Certificate;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -110,7 +111,8 @@ public class IssuerCertificateTests {
 
             RelyingParty relyingParty = EntityGenerator.generateRelyingPartyNoId();
             rpRepository.save(relyingParty);
-            relyingParty.addRelyingPartyEntitlement(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/Non_Q_EAA_Provider", relyingParty));
+            relyingParty.setRelyingPartyEntitlements(List.of(
+                new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/Non_Q_EAA_Provider")));
             rpRepository.saveAndFlush(relyingParty);
             X509Certificate certificateActual =
                 certService.requestIssuerCertificate(
@@ -142,7 +144,8 @@ public class IssuerCertificateTests {
 
             RelyingParty relyingParty = EntityGenerator.generateRelyingPartyNoId();
             rpRepository.save(relyingParty);
-            relyingParty.addRelyingPartyEntitlement(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/PUB_EAA_Provider", relyingParty));
+            relyingParty.setRelyingPartyEntitlements(List.of(
+                new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/PUB_EAA_Provider")));
             rpRepository.saveAndFlush(relyingParty);
             X509Certificate certificateActual =
                 certService.requestIssuerCertificate(
@@ -174,7 +177,8 @@ public class IssuerCertificateTests {
 
             RelyingParty relyingParty = EntityGenerator.generateRelyingPartyNoId();
             rpRepository.save(relyingParty);
-            relyingParty.addRelyingPartyEntitlement(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/PID_Provider", relyingParty));
+            relyingParty.setRelyingPartyEntitlements(List.of(
+                new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/PID_Provider")));
             rpRepository.saveAndFlush(relyingParty);
             X509Certificate certificateActual =
                 certService.requestIssuerCertificate(
