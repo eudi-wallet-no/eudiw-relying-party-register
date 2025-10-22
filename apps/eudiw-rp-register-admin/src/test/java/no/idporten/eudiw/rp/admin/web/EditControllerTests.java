@@ -75,9 +75,9 @@ public class EditControllerTests {
                                  .withRelyingPartyEaas(List.of());
             UUID id = rpResource.id();
             when(mockRpService.get(id)).thenReturn(rpResource);
+            when(mockRpService.search(any())).thenReturn(ResourceGenerator.generatePageResponse(List.of()));
 
-            AdminEditRelyingPartyForm editForm =
-                AdminEditRelyingPartyForm.prefillFromRelyingPartyResource(rpResource);
+            AdminEditRelyingPartyForm editForm = AdminEditRelyingPartyForm.prefillFromRelyingPartyResource(rpResource);
 
             mockMvc.perform(post("/admin/edit/%s".formatted(id))
                                 .formField("name", editForm.getName())

@@ -12,8 +12,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.SessionScope;
 
 import java.util.*;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Component("searchSession")
@@ -23,54 +21,31 @@ import java.util.stream.IntStream;
 public class SearchSession {
 
     @Getter(AccessLevel.NONE)
-    private HashMap<UUID, RelyingPartyResource> currentSearchResult = new HashMap<>();
-
-    @Getter(AccessLevel.NONE)
     private final RelyingPartiesService relyingPartiesService;
 
     @Setter
     private SearchForm lastSearchForm = SearchForm.empty();
 
+    @Setter
     private RelyingPartyOrdering ordering = SearchRelyingPartyResource.DEFAULT_ORDERING;
 
     private int numPages = 0;
     private int currentPageIdx = 0;
     private int pageSize = SearchRelyingPartyResource.DEFAULT_PAGE_SIZE;
 
-    private boolean initialized = false;
-
-    public void doFreshSearch(SearchForm searchForm) {
-        this.doSearch(searchForm, 0, this.pageSize, this.ordering);
+    public List<RelyingPartyResource> doFreshSearch(SearchForm searchForm) {
+        return this.doSearch(searchForm, 0, this.pageSize, this.ordering);
     }
 
-    public List<RelyingPartyResource> getCurrentSearchResultsPage() {
-        return new ArrayList<>(this.currentSearchResult.values());
-    }
-
-    public void edit(UUID id, EditRelyingPartyResource editResource) {
-        RelyingPartyResource edited = this.relyingPartiesService.edit(id, editResource);
-
-        // if RP is in current search results, reflect the changes there
-        if (this.currentSearchResult.containsKey(id)) {
-            this.currentSearchResult.put(id, edited);
-        }
+    public List<RelyingPartyResource> refreshSearch() {
+        return this.doSearch(this.lastSearchForm,
+                             this.currentPageIdx,
+                             this.pageSize,
+                             this.ordering);
     }
 
     public void setCurrentPageIdx(int nextPageIdx) {
-        nextPageIdx = Math.max(Math.min(nextPageIdx, numPages - 1), 0);
-        if (nextPageIdx != this.currentPageIdx) {
-            this.currentPageIdx = nextPageIdx;
-            this.refreshSearch();
-        }
-    }
-
-    public void setOrdering(RelyingPartyOrdering nextOrdering) {
-        if (nextOrdering != this.ordering) {
-            this.ordering = nextOrdering;
-            if (this.ordering != RelyingPartyOrdering.UNSORTED) {
-                this.refreshSearch();
-            }
-        }
+        this.currentPageIdx = Math.max(Math.min(nextPageIdx, numPages - 1), 0);
     }
 
     public int[] getPaginationWindow() {
@@ -83,16 +58,11 @@ public class SearchSession {
         return IntStream.range(lo, hi).map(k -> k + 1).toArray();
     }
 
-    private void refreshSearch() {
-        this.doSearch(this.lastSearchForm,
-                      this.currentPageIdx,
-                      this.pageSize,
-                      this.ordering);
-    }
-    private void doSearch(SearchForm searchForm,
-                          int pageIdx,
-                          int pageSize,
-                          RelyingPartyOrdering ordering) {
+    private List<RelyingPartyResource> doSearch(
+        SearchForm searchForm,
+        int pageIdx,
+        int pageSize,
+        RelyingPartyOrdering ordering) {
         SearchRelyingPartyResource searchResource =
             new SearchRelyingPartyResource(searchForm)
                 .withPage(pageIdx)
@@ -102,23 +72,11 @@ public class SearchSession {
         PagedResponse<RelyingPartyResource> searchResult =
             relyingPartiesService.search(searchResource);
 
-        this.currentSearchResult =
-            searchResult.content()
-                        .stream()
-                        .collect(relyingPartyLinkedMapCollector);
-
         this.numPages = Math.toIntExact(searchResult.page().totalPages());
         this.currentPageIdx = Math.toIntExact(searchResult.page().number());
 
         this.setLastSearchForm(searchForm);
-        this.initialized = true;
-    }
 
-    private static final
-    Collector<RelyingPartyResource, ?, LinkedHashMap<UUID, RelyingPartyResource>>
-        relyingPartyLinkedMapCollector =
-        Collectors.toMap(RelyingPartyResource::id,
-                         rp -> rp,
-                         (_, snd) -> snd,
-                         LinkedHashMap::new);
+        return searchResult.content();
+    }
 }
