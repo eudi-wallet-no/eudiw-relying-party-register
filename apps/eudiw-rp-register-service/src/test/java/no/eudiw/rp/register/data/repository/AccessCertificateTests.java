@@ -111,7 +111,7 @@ public class AccessCertificateTests {
             @DisplayName("then auxiliary fields are correctly extracted from the certificate")
             public void testAuxiliaryFieldsProperlyStoredInEntity() {
                 RelyingParty rpIn = EntityGenerator.generateRelyingPartyNoId();
-                rpIn.addRelyingPartyCertificate(EntityGenerator.generateCertificate());
+                rpIn.setAccessCertificates(List.of(EntityGenerator.generateCertificate()));
                 rpRepository.saveAndFlush(rpIn);
 
                 RelyingParty rpOut = rpRepository.findById(rpIn.getId()).orElse(null);

@@ -47,7 +47,7 @@ public class RelyingPartyRepositoryTest {
             assertAll(
                 () -> assertEquals(testRelyingParty.getOrgno(), rpOut.getOrgno()),
                 () -> assertEquals(testRelyingParty.getName(), rpOut.getName()),
-                () -> assertEquals(testRelyingParty.getPublicSector(), rpOut.getPublicSector())
+                () -> assertEquals(testRelyingParty.isPublicSector(), rpOut.isPublicSector())
             );
         }
 
@@ -76,7 +76,7 @@ public class RelyingPartyRepositoryTest {
             assertAll(
                 () -> assertEquals(testRelyingParty.getOrgno(), rpOut.getOrgno()),
                 () -> assertEquals(testRelyingParty.getName(), rpOut.getName()),
-                () -> assertEquals(testRelyingParty.getPublicSector(), rpOut.getPublicSector()),
+                () -> assertEquals(testRelyingParty.isPublicSector(), rpOut.isPublicSector()),
                 // ID must be valid UUID if non-null; else UUID constructor would have failed.
                 () -> assertNotNull(rpOut.getId())
             );

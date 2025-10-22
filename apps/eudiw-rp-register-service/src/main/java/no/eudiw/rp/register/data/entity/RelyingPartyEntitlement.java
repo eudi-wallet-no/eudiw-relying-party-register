@@ -46,22 +46,7 @@ public class RelyingPartyEntitlement extends BaseEntity {
     }
 
     public RelyingPartyEntitlement(String entitlement) {
-        this(entitlement, null, null);
-    }
-
-    public RelyingPartyEntitlement(String entitlement, RelyingParty relyingParty) {
-        this(entitlement, relyingParty, new ArrayList<>());
-    }
-
-    public RelyingPartyEntitlement(
-        String entitlement,
-        RelyingParty relyingParty,
-        List<IssuerCertificate> issuerCertificates
-    ) {
-        this.id = null;
         this.entitlement = entitlement;
-        this.relyingParty = relyingParty;
-        this.issuerCertificates = issuerCertificates;
     }
 
     // for JPA instantiation.

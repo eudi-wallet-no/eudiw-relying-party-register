@@ -120,7 +120,7 @@ public class RelyingPartyCertificateController {
     @ApiResponses({
         @ApiResponse(responseCode = "200",
             description = "Certificates returned",
-            content = @Content(examples = @ExampleObject(value = CERTIFICATES_RESOURCE_EXAMPLE))),
+            content = @Content(examples = @ExampleObject(value = ISSUER_CERTS_ENTITLEMENTS_RESOURCE_EXAMPLE))),
         @ApiResponse(responseCode = "404", description = "Relying party not found")
     })
     @Audit(auditId = ISSUER_CERTIFICATE_RETRIEVED)

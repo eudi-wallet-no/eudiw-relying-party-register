@@ -26,13 +26,8 @@ public class RelyingPartyEaa extends BaseEntity {
     private RelyingParty relyingParty;
 
     public RelyingPartyEaa(String namespace, String intent) {
-        this(namespace, intent, null);
-    }
-    public RelyingPartyEaa(String namespace, String intent, RelyingParty relyingParty) {
-        this.id = null;
         this.namespace = namespace;
         this.intent = intent;
-        this.relyingParty = relyingParty;
     }
 
     // for JPA instantiation.

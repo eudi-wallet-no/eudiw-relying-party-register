@@ -1,15 +1,16 @@
 package no.eudiw.rp.register.security;
 
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+@Getter
 @ResponseStatus(HttpStatus.UNAUTHORIZED)
 public class APIKeyAuthenticationException extends AuthenticationException {
 
     private final String error;
-    private HttpStatus httpStatus;
-
+    private final HttpStatus httpStatus;
 
     APIKeyAuthenticationException(String msg) {
         super(msg);
@@ -17,16 +18,7 @@ public class APIKeyAuthenticationException extends AuthenticationException {
         this.error = "invalid_request";
     }
 
-    public HttpStatus getHttpStatus() {
-        return httpStatus;
-    }
-
-    public String getError() {
-        return error;
-    }
-
     public String getErrorDescription() {
         return super.getMessage();
     }
-
 }

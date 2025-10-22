@@ -20,7 +20,7 @@ public class Converter {
             relyingParty.getId(),
             relyingParty.getOrgno(),
             relyingParty.getName(),
-            relyingParty.getPublicSector(),
+            relyingParty.isPublicSector(),
             relyingParty.getRelyingPartyEntitlements()
                         .stream()
                         .map(Converter::toResource)
@@ -41,7 +41,7 @@ public class Converter {
     public static RelyingPartyEntitlementResource toResource(RelyingPartyEntitlement entitlement) {
         return new RelyingPartyEntitlementResource(
             entitlement.getEntitlement(),
-            entitlement.getIssuerCertificates() != null ? entitlement.getIssuerCertificates().stream().map(Converter::toResource).toList() : new ArrayList<>()
+            entitlement.getIssuerCertificates().stream().map(Converter::toResource).toList()
         );
     }
 
@@ -73,9 +73,6 @@ public class Converter {
         return new RelyingPartyEaa(resource.namespace(), resource.intent());
     }
 
-    public static AccessCertificate toEntity(RelyingPartyCertificateResource resource) {
-        return new AccessCertificate(resource.certificate());
-    }
     public static RelyingPartyCertificateResource toResource(AccessCertificate entity) {
         return new RelyingPartyCertificateResource(entity.getCertificate(), entity.getId());
     }

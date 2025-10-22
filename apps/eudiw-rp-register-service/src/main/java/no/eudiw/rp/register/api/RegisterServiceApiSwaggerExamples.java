@@ -18,4 +18,7 @@ public class RegisterServiceApiSwaggerExamples {
             "MII...\\n...==\\n-----END CERTIFICATE-----\"}";
     protected static final String CERTIFICATES_RESOURCE_EXAMPLE =
         "{ \"certificates\": [" + CERTIFICATE_RESOURCE_EXAMPLE + "]}";
+
+    protected static final String ISSUER_CERTS_ENTITLEMENTS_RESOURCE_EXAMPLE =
+        "{ \"entitlements\": [{\"entitlement\": \"<entitlement URI>\", \"certificates\": " + CERTIFICATES_RESOURCE_EXAMPLE + "}]}";
 }

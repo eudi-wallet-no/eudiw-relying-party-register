@@ -6,7 +6,6 @@ import no.eudiw.rp.register.data.entity.Entitlement;
 import no.eudiw.rp.register.data.repository.EntitlementRepository;
 import no.eudiw.rp.register.data.service.exception.AlreadyExistsException;
 import no.eudiw.rp.register.data.service.exception.BadRequestException;
-import no.eudiw.rp.register.data.service.exception.NotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

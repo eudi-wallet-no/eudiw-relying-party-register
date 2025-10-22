@@ -6,7 +6,7 @@ import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCertificateRes
 import no.eudiw.rp.register.data.certificates.X509CertificateConverter;
 import no.eudiw.rp.register.data.entity.RelyingParty;
 import no.eudiw.rp.register.data.entity.AccessCertificate;
-import no.eudiw.rp.register.data.repository.RelyingPartyCertificateRepository;
+import no.eudiw.rp.register.data.repository.AccessCertificateRepository;
 import no.eudiw.rp.register.data.repository.RelyingPartyRepository;
 import no.eudiw.rp.register.data.service.certificates.RelyingPartyCertificateService;
 import no.eudiw.rp.register.data.service.exception.ErrorResponseException;
@@ -49,7 +49,7 @@ public class AccessCertificateServiceTests {
     private RelyingPartyCertificateService certService;
 
     @Autowired
-    private RelyingPartyCertificateRepository certRepository;
+    private AccessCertificateRepository certRepository;
 
     @Autowired
     private RelyingPartyRepository rpRepository;
