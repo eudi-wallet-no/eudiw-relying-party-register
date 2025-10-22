@@ -33,6 +33,7 @@ public class RelyingPartyCertificateService {
     private final RestClient caRestClient;
     private final EntitlementRepository entitlementRepository;
     private final IssuerCertificateRepository issuerCertificateRepository;
+    private final Converter converter;
 
     @Transactional(readOnly = true)
     public RelyingPartyCertificatesResource getCertificatesForRelyingParty(
@@ -43,7 +44,7 @@ public class RelyingPartyCertificateService {
                 .orElseThrow(() -> new NotFoundException("Relying party not found"))
                 .getAccessCertificates()
                 .stream()
-                .map(Converter::toResource)
+                .map(converter::toResource)
                 .toList()
         );
     }
@@ -58,7 +59,7 @@ public class RelyingPartyCertificateService {
         if (!relyingPartyRepository.existsByIdAndDeletedFalse(relyingPartyId)) {
             throw new NotFoundException("Certificate holder does not exist or has been deleted");
         }
-        return Converter.toResource(
+        return converter.toResource(
             accessCertificateRepository
                 .findByIdAndRelyingPartyId(certificateId, relyingPartyId)
                 .orElseThrow(() -> new NotFoundException("Certificate does not exist"))
@@ -68,7 +69,7 @@ public class RelyingPartyCertificateService {
     @Transactional(readOnly = true)
     public RelyingPartyCertificateResource getIssuerCertificate(
         UUID certificateId) {
-        return Converter.toResource(
+        return converter.toResource(
             issuerCertificateRepository.findById(certificateId)
                 .orElseThrow(() -> new NotFoundException("Certificate does not exist"))
         );
@@ -82,7 +83,7 @@ public class RelyingPartyCertificateService {
                 .orElseThrow(() -> new NotFoundException("Relying party not found"))
                 .getRelyingPartyEntitlements()
                 .stream()
-                .map(Converter::toResource)
+                .map(converter::toResource)
                 .toList()
         );
     }
@@ -115,7 +116,7 @@ public class RelyingPartyCertificateService {
 
         relyingPartyEntitlement.addIssuerCertificate(certificateEntity);
 
-        return Converter.toResource(issuerCertificateRepository.saveAndFlush(certificateEntity));
+        return converter.toResource(issuerCertificateRepository.saveAndFlush(certificateEntity));
     }
 
     @Transactional
@@ -135,7 +136,7 @@ public class RelyingPartyCertificateService {
 
         accessCertificateRepository.saveAndFlush(certificateEntity);
 
-        return Converter.toResource(certificateEntity);
+        return converter.toResource(certificateEntity);
     }
 
     private RelyingParty getRelyingParty(UUID relyingPartyId) {

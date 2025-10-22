@@ -10,10 +10,11 @@ import no.eudiw.rp.register.data.service.exception.BadRequestException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.MockedStatic;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,11 +24,20 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest
+@ActiveProfiles("test")
 class EntitlementServiceTest {
 
-    private final EntitlementRepository repository = mock(EntitlementRepository.class);
-    private final EntitlementService service = new EntitlementService(repository);
+    @MockitoBean
+    @SuppressWarnings("unused")
+    private EntitlementRepository repository;
+
+    @MockitoBean
+    @SuppressWarnings("unused")
+    private Converter converter;
+
+    @Autowired
+    private EntitlementService service;
 
     @Nested
     @DisplayName("register")
@@ -75,22 +85,20 @@ class EntitlementServiceTest {
             UUID id = UUID.randomUUID();
             EntitlementResource expectedResource = new EntitlementResource(id, "entitlement1", true, "entitlement1", "access");
 
-            try (MockedStatic<Converter> mocked = mockStatic(Converter.class)) {
-                mocked.when(() -> Converter.toResource(saved)).thenReturn(expectedResource);
+            when(converter.toResource(saved)).thenReturn(expectedResource);
 
-                EntitlementResource returned = service.register(new CreateEntitlementResource("entitlement1", "entitlement1", "access"));
+            EntitlementResource returned = service.register(new CreateEntitlementResource("entitlement1", "entitlement1", "access"));
 
-                ArgumentCaptor<Entitlement> captor = ArgumentCaptor.forClass(Entitlement.class);
-                verify(repository).saveAndFlush(captor.capture());
-                Entitlement toSave = captor.getValue();
-                assertThat(toSave.getEntitlement()).isEqualTo("entitlement1");
-                assertThat(toSave.isActive()).isTrue();
+            ArgumentCaptor<Entitlement> captor = ArgumentCaptor.forClass(Entitlement.class);
+            verify(repository).saveAndFlush(captor.capture());
+            Entitlement toSave = captor.getValue();
+            assertThat(toSave.getEntitlement()).isEqualTo("entitlement1");
+            assertThat(toSave.isActive()).isTrue();
 
-                mocked.verify(() -> Converter.toResource(saved));
-                assertThat(returned.id()).isEqualTo(id);
-                assertThat(returned.entitlement()).isEqualTo("entitlement1");
-                assertThat(returned.active()).isTrue();
-            }
+            verify(converter).toResource(saved);
+            assertThat(returned.id()).isEqualTo(id);
+            assertThat(returned.entitlement()).isEqualTo("entitlement1");
+            assertThat(returned.active()).isTrue();
         }
     }
 
@@ -114,18 +122,16 @@ class EntitlementServiceTest {
                 )
             );
 
-            try (MockedStatic<Converter> mocked = mockStatic(Converter.class)) {
-                mocked.when(() -> Converter.toEntitlementsResource(active)).thenReturn(expected);
+            when(converter.toEntitlementsResource(active)).thenReturn(expected);
 
-                EntitlementsResource result = service.findAllActive();
+            EntitlementsResource result = service.findAllActive();
 
-                verify(repository).findAllByActive(true);
-                mocked.verify(() -> Converter.toEntitlementsResource(active));
-                assertThat(result.entitlements()).hasSize(2);
-                assertThat(result.entitlements())
-                    .extracting(EntitlementResource::entitlement)
-                    .containsExactlyInAnyOrder("entitlement1", "entitlement2");
-            }
+            verify(repository).findAllByActive(true);
+            verify(converter).toEntitlementsResource(active);
+            assertThat(result.entitlements()).hasSize(2);
+            assertThat(result.entitlements())
+                .extracting(EntitlementResource::entitlement)
+                .containsExactlyInAnyOrder("entitlement1", "entitlement2");
         }
     }
 
@@ -171,18 +177,16 @@ class EntitlementServiceTest {
 
             EntitlementResource expected = new EntitlementResource(UUID.randomUUID(), "entitlement1", false, "entitlement1", "access");
 
-            try (MockedStatic<Converter> mocked = mockStatic(Converter.class)) {
-                mocked.when(() -> Converter.toResource(afterSave)).thenReturn(expected);
+            when(converter.toResource(afterSave)).thenReturn(expected);
 
-                EntitlementResource result = service.editEntitlement("entitlement1", false);
+            EntitlementResource result = service.editEntitlement("entitlement1", false);
 
-                assertThat(existing.isActive()).isFalse();
-                verify(repository).saveAndFlush(existing);
+            assertThat(existing.isActive()).isFalse();
+            verify(repository).saveAndFlush(existing);
 
-                mocked.verify(() -> Converter.toResource(afterSave));
-                assertThat(result.entitlement()).isEqualTo("entitlement1");
-                assertThat(result.active()).isFalse();
-            }
+            verify(converter).toResource(afterSave);
+            assertThat(result.entitlement()).isEqualTo("entitlement1");
+            assertThat(result.active()).isFalse();
         }
     }
 }

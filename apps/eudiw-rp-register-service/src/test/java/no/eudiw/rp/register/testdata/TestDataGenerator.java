@@ -1,7 +1,9 @@
 package no.eudiw.rp.register.testdata;
 
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -77,5 +79,24 @@ public class TestDataGenerator {
 
         buf.setCharAt(modifyIndex, Character.forDigit(invalidDigit, 1));
         return buf.toString();
+    }
+
+    private static final List<String> EXAMPLE_ENTITLEMENTS = new ArrayList<>(List.of(
+        // NOTE: the actual set of entitlements may change, but this is not important
+        // for the purposes of testing.
+        "https://uri.etsi.org/19475/Entitlement/Service_Provider",
+        "https://uri.etsi.org/19475/Entitlement/QEAA_Provider",
+        "https://uri.etsi.org/19475/Entitlement/Non_Q_EAA_Provider",
+        "https://uri.etsi.org/19475/Entitlement/PUB_EAA_Provider",
+        "https://uri.etsi.org/19475/Entitlement/PID_Provider"
+    ));
+
+    protected static List<String> sampleEntitlements(int n) {
+        if (n > EXAMPLE_ENTITLEMENTS.size()) {
+            throw new RuntimeException("Not enough sample entitlements (requested %s, max %s)"
+                                           .formatted(n, EXAMPLE_ENTITLEMENTS.size()));
+        }
+        Collections.shuffle(EXAMPLE_ENTITLEMENTS);
+        return EXAMPLE_ENTITLEMENTS.subList(0, n);
     }
 }

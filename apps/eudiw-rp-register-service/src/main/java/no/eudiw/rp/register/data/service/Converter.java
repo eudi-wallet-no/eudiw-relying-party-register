@@ -1,21 +1,22 @@
 package no.eudiw.rp.register.data.service;
 
+import lombok.RequiredArgsConstructor;
 import no.eudiw.rp.register.api.resource.*;
 import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCertificateResource;
 import no.eudiw.rp.register.data.entity.*;
+import no.eudiw.rp.register.data.repository.EntitlementRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
+@RequiredArgsConstructor
 public class Converter {
 
-    public static RelyingPartiesResource toResource(List<RelyingParty> relyingParties) {
-        return new RelyingPartiesResource(
-            relyingParties.stream().map(Converter::toResource).toList()
-        );
-    }
+    private final EntitlementRepository entitlementRepository;
 
-    public static RelyingPartyResource toResource(RelyingParty relyingParty) {
+    public RelyingPartyResource toResource(RelyingParty relyingParty) {
         return new RelyingPartyResource(
             relyingParty.getId(),
             relyingParty.getOrgno(),
@@ -23,11 +24,11 @@ public class Converter {
             relyingParty.isPublicSector(),
             relyingParty.getRelyingPartyEntitlements()
                         .stream()
-                        .map(Converter::toResource)
+                        .map(this::toResource)
                         .toList(),
             relyingParty.getRelyingPartyEaas()
                         .stream()
-                        .map(Converter::toResource)
+                        .map(this::toResource)
                         .toList(),
             relyingParty.getCreatedMs(),
             relyingParty.getLastUpdatedMs(),
@@ -35,49 +36,52 @@ public class Converter {
         );
     }
 
-    public static RelyingPartyEaaResource toResource(RelyingPartyEaa eaa) {
+    public RelyingPartyEaaResource toResource(RelyingPartyEaa eaa) {
         return new RelyingPartyEaaResource(eaa.getNamespace(), eaa.getIntent());
     }
-    public static RelyingPartyEntitlementResource toResource(RelyingPartyEntitlement entitlement) {
+
+    private String getDisplayNameForEntitlement(String entitlementUri) {
+        return entitlementRepository.findByEntitlement(entitlementUri)
+                                    .map(Entitlement::getDisplayName)
+                                    .orElse(entitlementUri);
+    }
+    public RelyingPartyEntitlementResource toResource(RelyingPartyEntitlement entitlement) {
         return new RelyingPartyEntitlementResource(
             entitlement.getEntitlement(),
-            entitlement.getIssuerCertificates().stream().map(Converter::toResource).toList()
+            getDisplayNameForEntitlement(entitlement.getEntitlement()),
+            entitlement.getIssuerCertificates().stream().map(this::toResource).toList()
         );
     }
 
-    public static EntitlementResource toResource(Entitlement entitlement) {
+    public EntitlementResource toResource(Entitlement entitlement) {
         return new EntitlementResource(entitlement.getId(), entitlement.getEntitlement(), entitlement.isActive(), entitlement.getDisplayName(), entitlement.getCaId());
     }
 
-    public static EntitlementsResource toEntitlementsResource(List<Entitlement> entitlements) {
+    public EntitlementsResource toEntitlementsResource(List<Entitlement> entitlements) {
         return new EntitlementsResource(
-            entitlements.stream().map(Converter::toResource).toList()
+            entitlements.stream().map(this::toResource).toList()
         );
     }
 
-    public static RelyingParty toEntity(CreateRelyingPartyResource resource) {
+    public RelyingParty toEntity(CreateRelyingPartyResource resource) {
         return new RelyingParty(
             resource.name(),
             resource.orgNr(),
             resource.publicSector(),
-            resource.relyingPartyEntitlements().stream().map(Converter::toEntity).toList(),
-            resource.relyingPartyEaas().stream().map(Converter::toEntity).toList(),
+            resource.relyingPartyEntitlements().stream().map(this::toEntity).toList(),
+            resource.relyingPartyEaas().stream().map(this::toEntity).toList(),
             new ArrayList<>()
         );
     }
 
-    public static RelyingPartyEntitlement toEntity(RelyingPartyEntitlementResource resource) {
+    public RelyingPartyEntitlement toEntity(RelyingPartyEntitlementResource resource) {
         return new RelyingPartyEntitlement(resource.entitlement());
     }
-    public static RelyingPartyEaa toEntity(RelyingPartyEaaResource resource) {
+    public RelyingPartyEaa toEntity(RelyingPartyEaaResource resource) {
         return new RelyingPartyEaa(resource.namespace(), resource.intent());
     }
 
-    public static RelyingPartyCertificateResource toResource(AccessCertificate entity) {
+    public RelyingPartyCertificateResource toResource(BaseCertificateEntity entity) {
         return new RelyingPartyCertificateResource(entity.getCertificate(), entity.getId());
     }
-    public static RelyingPartyCertificateResource toResource(IssuerCertificate entity) {
-        return new RelyingPartyCertificateResource(entity.getCertificate(), entity.getId());
-    }
-
 }

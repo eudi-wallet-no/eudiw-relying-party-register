@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class EntitlementService {
 
     private final EntitlementRepository entitlementRepository;
+    private final Converter converter;
 
     @Transactional
     public EntitlementResource register(CreateEntitlementResource entitlement) {
@@ -27,17 +28,17 @@ public class EntitlementService {
         }
 
         Entitlement entity = new Entitlement(entitlement.entitlement(), true, entitlement.displayName(), entitlement.caId());
-        return Converter.toResource(entitlementRepository.saveAndFlush(entity));
+        return converter.toResource(entitlementRepository.saveAndFlush(entity));
     }
 
     @Transactional(readOnly = true)
     public EntitlementsResource findAllActive() {
-        return Converter.toEntitlementsResource(entitlementRepository.findAllByActive(true));
+        return converter.toEntitlementsResource(entitlementRepository.findAllByActive(true));
     }
 
     @Transactional(readOnly = true)
     public EntitlementsResource findAllEntitlements() {
-        return Converter.toEntitlementsResource(entitlementRepository.findAll());
+        return converter.toEntitlementsResource(entitlementRepository.findAll());
     }
 
     @Transactional
@@ -50,6 +51,6 @@ public class EntitlementService {
                 .orElseThrow(() -> new BadRequestException("Entitlement not found"));
 
         entity.setActive(status);
-        return Converter.toResource(entitlementRepository.saveAndFlush(entity));
+        return converter.toResource(entitlementRepository.saveAndFlush(entity));
     }
 }

@@ -14,6 +14,9 @@ public record RelyingPartyEntitlementResource(
     @JsonProperty("entitlement")
     String entitlement,
 
+    @JsonProperty("display_name")
+    String displayName,
+
     @Valid
     @JsonProperty(value = "certificates")
     List<RelyingPartyCertificateResource> certificates
