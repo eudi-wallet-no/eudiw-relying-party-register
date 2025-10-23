@@ -51,7 +51,7 @@
 </form>
 
 <div th:fragment="results_table_fragment">
-    <div th:with="resultsPage=${@searchSession.getCurrentSearchResultsPage()}">
+    <div th:with="resultsPage=${resultsPageAttr}">
         <div th:if="${#lists.isEmpty(resultsPage)}">
             Fann ingen brukarstader.
         </div>
