@@ -33,7 +33,6 @@ public class RelyingPartiesService {
                 .getBody();
     }
 
-
     public RelyingPartyResource get(UUID id) {
         try {
             return restClient.get()
@@ -46,9 +45,8 @@ public class RelyingPartiesService {
         }
     }
 
-
-    public EntitlementsResource getValidEntitlements() {
-        return new EntitlementsResource(
+    public List<EntitlementResource> getValidEntitlements() {
+        return
             Objects.requireNonNull( // should never fire since the ResponseErrorHandler would fire first.
                        restClient.get()
                                  .uri("/entitlement")
@@ -58,14 +56,6 @@ public class RelyingPartiesService {
                    .entitlements()
                    .stream()
                    .filter(EntitlementResource::active)
-                   .toList()
-        );
-    }
-    public List<String> getValidEntitlementValues() {
-        return this.getValidEntitlements()
-                   .entitlements()
-                   .stream()
-                   .map(EntitlementResource::entitlement)
                    .toList();
     }
 

@@ -5,9 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.With;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @With
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -36,19 +34,4 @@ public record RelyingPartyResource(
 
     @JsonProperty(value = "last_updated_ms", required = true)
     long lastUpdatedMs
-
-) {
-    private static final String ENTITLEMENT_URI =
-        "https://uri.etsi.org/19475/Entitlement/";
-
-    public String entitlementsDisplayForSearch() {
-        return relyingPartyEntitlements.stream()
-            .map(RelyingPartyEntitlementResource::entitlement)
-            .filter(Objects::nonNull)
-            .map(String::trim)
-            .filter(s -> !s.isEmpty())
-            .map(s -> s.replaceFirst(ENTITLEMENT_URI, ""))
-            .map(s -> s.replace("_", " "))
-            .collect(Collectors.joining(System.lineSeparator()));
-    }
-}
+) { }

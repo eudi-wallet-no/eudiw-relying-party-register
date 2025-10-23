@@ -1,5 +1,5 @@
 <div th:fragment="general_info_content_fragment(rp)">
-    <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
+    <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.register.lookup.web.resource.RelyingPartyResource"*/-->
     <div style="padding-bottom: 2em;">
         <table class="ds-table">
             <tbody>
@@ -42,8 +42,8 @@
                         <tr><th>Rolle</th></tr>
                     </thead>
                     <tbody>
-                        <tr th:each="ent : ${rp.relyingPartyEntitlements}">
-                            <td th:text="${ent.entitlement}"></td>
+                        <tr th:each="e : ${rp.relyingPartyEntitlements}">
+                            <td th:text="${e.displayName}"></td>
                         </tr>
                     </tbody>
                 </table>

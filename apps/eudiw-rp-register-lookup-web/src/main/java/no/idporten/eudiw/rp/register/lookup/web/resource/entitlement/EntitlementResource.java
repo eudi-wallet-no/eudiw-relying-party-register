@@ -17,9 +17,14 @@ public record EntitlementResource(
     UUID id,
 
     @SaneStringConstraint
-    @NotBlank(message = "blank_name")
+    @NotBlank(message = "blank_entitlement")
     @JsonProperty(value = "entitlement", required = true)
     String entitlement,
+
+    @SaneStringConstraint
+    @NotBlank(message = "blank_display_name")
+    @JsonProperty(value = "display_name", required = true)
+    String displayName,
 
     @JsonProperty(value = "active", required = true)
     boolean active
