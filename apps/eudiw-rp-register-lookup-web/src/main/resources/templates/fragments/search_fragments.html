@@ -1,4 +1,4 @@
-<!--/*@thymesVar id="searchFormAttr" type="no.idporten.eudiw.rp.admin.web.form.SearchForm"*/-->
+<!--/*@thymesVar id="searchFormAttr" type="no.idporten.eudiw.rp.register.lookup.web.form.SearchForm"*/-->
 <form th:fragment="search_form_fragment"
       th:object="${searchFormAttr}"
       th:action="@{/}"
@@ -37,14 +37,15 @@
             <legend>
                 Rolle
             </legend>
-            <div class="ds-field" th:each="entitlement : ${@relyingPartiesService.getValidEntitlementValues()}">
-                <label th:for="|id-${entitlement}|" th:text="${entitlement}"></label>
-                <input th:id="|id-${entitlement}|"
+            <div class="ds-field" th:each="e : ${@relyingPartiesService.getValidEntitlements()}">
+                <!--/*@thymesVar id="e" type="no.idporten.eudiw.rp.register.lookup.web.resource.entitlement.EntitlementResource"*/-->
+                <label th:for="|id-${e.entitlement}|" th:text="${e.displayName}"></label>
+                <input th:id="|id-${e.entitlement}|"
                        type="checkbox"
                        class="ds-input"
                        name="requiredEntitlements"
-                       th:value="${entitlement}"
-                       th:checked="${#lists.contains(searchFormAttr.requiredEntitlementValues(), entitlement)}">
+                       th:value="${e.entitlement}"
+                       th:checked="${#lists.contains(searchFormAttr.requiredEntitlementValues(), e.entitlement)}">
             </div>
         </fieldset>
     </details>
@@ -92,7 +93,12 @@
             <tr th:each="rp : ${resultsPage}">
                 <td><a th:href="@{|/details/${rp.id}|}" style="cursor:pointer;"><div th:text="${rp.orgno}"></div></a> </td>
                 <td th:text="${rp.name}"></td>
-                <td th:text="${rp.entitlementsDisplayForSearch()}" style="white-space: pre-line;"></td>
+                <td>
+                    <div th:each="e : ${rp.relyingPartyEntitlements()}"
+                       th:text="${e.displayName}"
+                       style="display: block;">
+                    </div>
+                </td>
                 <td th:text="${@timestampFormatter.formatEpochMillis(rp.createdMs)}"></td>
                 <td th:text="${@timestampFormatter.formatEpochMillis(rp.lastUpdatedMs)}"></td>
             </tr>
