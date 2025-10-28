@@ -1,6 +1,10 @@
 package no.idporten.eudiw.rp.admin.web.security;
 
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
+import no.idporten.eudiw.rp.admin.service.enhetsregisteretservice.EnhetsregisteretService;
+import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenAuthorizationRequestResolver;
+import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenAuthzConfig;
+import no.idporten.eudiw.rp.admin.web.security.entraid.EntraIdProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
@@ -10,7 +14,6 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer;
 import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -51,7 +54,7 @@ public class BaseSecurityConfig {
     @Bean
     public SecurityFilterChain baseFilterChain(
         HttpSecurity http,
-        Customizer<OAuth2LoginConfigurer<HttpSecurity>> myOauth2LoginConfigurer,
+        AnsattportenAuthorizationRequestResolver ansattportenAuthorizationRequestResolver,
         LogoutSuccessHandler logoutHandler)
         throws Exception {
         PathPatternRequestMatcher.Builder matcherBuilder =
@@ -78,8 +81,10 @@ public class BaseSecurityConfig {
                 .oauth2Login(oauth -> oauth
                     .loginPage("/login")
                     .failureHandler(new SimpleUrlAuthenticationFailureHandler("/access-denied"))
+                    .authorizationEndpoint(
+                        endpoint -> endpoint.authorizationRequestResolver(
+                            ansattportenAuthorizationRequestResolver))
                 )
-                .oauth2Login(myOauth2LoginConfigurer)
                 .logout(logout -> logout
                     .logoutRequestMatcher(logoutMatcher)
                     .clearAuthentication(true)
@@ -88,6 +93,13 @@ public class BaseSecurityConfig {
                     .logoutSuccessHandler(logoutHandler)
                 )
                 .build();
+    }
+
+    @Bean
+    public CustomOidcUserService customOidcUserService(
+        EntraIdProperties entraIdProperties,
+        EnhetsregisteretService enhetsregisteretService) {
+        return new CustomOidcUserService(entraIdProperties, enhetsregisteretService);
     }
 
     @Bean
@@ -106,6 +118,14 @@ public class BaseSecurityConfig {
                 logoutHandler.onLogoutSuccess(request, response, authentication);
             }
         };
+    }
+
+    @Bean
+    public AnsattportenAuthorizationRequestResolver ansattportenAuthorizationRequestResolver(
+        ClientRegistrationRepository clientRegistrationRepository,
+        AnsattportenAuthzConfig ansattportenAuthzConfig) {
+        return new AnsattportenAuthorizationRequestResolver(
+            clientRegistrationRepository, ansattportenAuthzConfig);
     }
 
     @Bean

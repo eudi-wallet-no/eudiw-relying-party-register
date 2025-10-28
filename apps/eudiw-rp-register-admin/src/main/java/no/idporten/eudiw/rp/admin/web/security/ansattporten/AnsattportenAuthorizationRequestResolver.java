@@ -37,9 +37,12 @@ public class AnsattportenAuthorizationRequestResolver
     public OAuth2AuthorizationRequest resolve(HttpServletRequest request) {
         OAuth2AuthorizationRequest authorizationRequest =
             delegateResolver.resolve(request);
-        return authorizationRequest != null
-                   ? customizeAuthorizationRequest(authorizationRequest)
-                   : null;
+        if (authorizationRequest == null) {
+            return null;
+        }
+        return "ansattporten".equals(authorizationRequest.getAttributes().get("registration_id"))
+            ? customizeAnsattportenAuthzRequest(request, authorizationRequest)
+            : authorizationRequest;
     }
 
     @Override
@@ -47,20 +50,29 @@ public class AnsattportenAuthorizationRequestResolver
                                               String clientRegistrationId) {
         OAuth2AuthorizationRequest authorizationRequest =
             delegateResolver.resolve(request, clientRegistrationId);
-        return authorizationRequest != null
-                   ? customizeAuthorizationRequest(authorizationRequest)
-                   : null;
+        if (authorizationRequest == null) {
+            return null;
+        }
+        return "ansattporten".equals(clientRegistrationId)
+                   ? customizeAnsattportenAuthzRequest(request, authorizationRequest)
+                   : authorizationRequest;
     }
 
-    private OAuth2AuthorizationRequest customizeAuthorizationRequest(
+    private OAuth2AuthorizationRequest customizeAnsattportenAuthzRequest(
+        HttpServletRequest httpRequest,
         OAuth2AuthorizationRequest authorizationRequest) {
         Map<String, Object> attributes =
             new HashMap<>(authorizationRequest.getAttributes());
         Map<String, Object> additionalParameters =
             new HashMap<>(authorizationRequest.getAdditionalParameters());
 
-        addAuthzDetailsParameters(attributes, additionalParameters);
-        addPkceParameters(attributes, additionalParameters);
+        addPkce(attributes, additionalParameters);
+
+        // TODO: get this one from properties.
+        boolean allowSyntheticOrgnos = false;
+        if (!allowSyntheticOrgnos || !"true".equals(httpRequest.getParameter("use_synthetic_orgno"))) {
+            addAuthorizationDetails(attributes, additionalParameters);
+        }
 
         return OAuth2AuthorizationRequest.from(authorizationRequest)
                                          .attributes(attributes)
@@ -69,8 +81,8 @@ public class AnsattportenAuthorizationRequestResolver
     }
 
     @SneakyThrows
-    private void addAuthzDetailsParameters(Map<String, Object> attributes,
-                                           Map<String, Object> additionalParameters) {
+    private void addAuthorizationDetails(Map<String, Object> attributes,
+                                         Map<String, Object> additionalParameters) {
         attributes.put(
             OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER,
             ansattportenAuthzConfig.authorizationDetails());
@@ -82,8 +94,8 @@ public class AnsattportenAuthorizationRequestResolver
             OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER, authDetailsListString);
     }
 
-    private void addPkceParameters(Map<String, Object> attributes,
-                                   Map<String, Object> additionalParameters) {
+    private void addPkce(Map<String, Object> attributes,
+                         Map<String, Object> additionalParameters) {
         String codeVerifier = this.secureKeyGenerator.generateKey();
         attributes.put(OAuth2Constants.OAUTH2_CODE_VERIFIER_PARAMETER, codeVerifier);
         try {
