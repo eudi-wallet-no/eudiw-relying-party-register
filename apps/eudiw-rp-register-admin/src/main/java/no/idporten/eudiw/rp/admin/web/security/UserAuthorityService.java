@@ -1,10 +1,10 @@
 package no.idporten.eudiw.rp.admin.web.security;
 
+import no.idporten.eudiw.rp.admin.web.security.exception.InsufficientAuthorityException;
 import no.idporten.eudiw.rp.admin.web.security.oidcusers.ReporteeAuthority;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 
 import java.util.Objects;
 
@@ -33,8 +33,7 @@ public class UserAuthorityService {
 
     public void assertUserHasAccessTo(String orgno) {
         if (!userHasAccessTo(orgno)) {
-            throw new AuthenticationException(
-                OAuth2ErrorCodes.ACCESS_DENIED,
+            throw new InsufficientAuthorityException(
                 "User does not have access to RP with orgno=%s".formatted(orgno));
         }
     }
@@ -46,8 +45,7 @@ public class UserAuthorityService {
                    .filter(ReporteeAuthority.class::isInstance)
                    .map(authority -> (ReporteeAuthority) authority)
                    .findFirst()
-                   .orElseThrow(() -> new AuthenticationException(
-                       OAuth2ErrorCodes.INSUFFICIENT_SCOPE,
+                   .orElseThrow(() -> new InsufficientAuthorityException(
                        "No reportee authority found for user"));
     }
 }

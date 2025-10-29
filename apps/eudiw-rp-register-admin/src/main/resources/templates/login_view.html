@@ -28,12 +28,22 @@
         </div>
 
         <div>
-            <!--/*@thymesVar id="client" type="org.springframework.security.oauth2.client.registration.ClientRegistration"*/-->
-            <a th:each="client : ${@availableClients}"
-               th:href="@{|/oauth2/authorization/${client.getRegistrationId()}|}"
-               class="ds-button">
-                Logg inn via <span th:text="${client.getClientName()}"></span>
-            </a>
+            <th:block th:if="${@environment.matchesProfiles('selfservice')}">
+                <a th:href="@{/oauth2/authorization/ansattporten}"
+                   class="ds-button">
+                    Logg inn via Ansattporten
+                </a>
+                <a th:href="@{/oauth2/authorization/ansattporten?use-synthetic-orgno=true}"
+                   class="ds-button">
+                    Logg inn via Ansattporten med syntetisk organisasjon
+                </a>
+            </th:block>
+            <th:block th:if="${@environment.matchesProfiles('admin')}">
+                <a th:href="@{/oauth2/authorization/entra}"
+                   class="ds-button">
+                    Logg inn via Microsoft Entra ID
+                </a>
+            </th:block>
         </div>
     </main>
 

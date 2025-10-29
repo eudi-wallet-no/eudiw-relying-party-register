@@ -10,12 +10,12 @@ import org.springframework.web.servlet.ModelAndView;
 public class LoginController {
 
     @GetMapping("/login")
-    public ModelAndView loginView() {
+    public ModelAndView loginGet() {
         return new ModelAndView("login_view");
     }
 
     @GetMapping("/access-denied")
-    public ModelAndView accessDenied() {
-        return new ModelAndView("access_denied");
+    public ModelAndView accessDeniedGet() {
+        return new ModelAndView("error/access_denied");
     }
 }

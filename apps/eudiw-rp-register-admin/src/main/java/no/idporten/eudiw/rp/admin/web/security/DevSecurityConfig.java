@@ -6,10 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.web.SecurityFilterChain;
-
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -35,10 +32,5 @@ public class DevSecurityConfig {
     public SecurityFilterChain dummyPermitAllFilterChain(HttpSecurity http) throws Exception {
         return http.authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
                    .build();
-    }
-
-    @Bean
-    public List<ClientRegistration> availableClients() {
-        return List.of();
     }
 }
