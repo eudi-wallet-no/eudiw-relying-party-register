@@ -6,9 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.admin.service.enhetsregisteretservice.EnhetsregisteretService;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails.ResponseAuthorizationDetails;
 import no.idporten.eudiw.rp.admin.web.security.entraid.EntraIdProperties;
-import no.idporten.eudiw.rp.admin.web.security.oidcusers.AdminOidcUser;
-import no.idporten.eudiw.rp.admin.web.security.oidcusers.SelfServiceOidcUser;
-import no.idporten.eudiw.rp.admin.web.security.oidcusers.SelfServiceReportee;
+import no.idporten.eudiw.rp.admin.web.security.oidcusers.OidcUserWithCustomName;
+import no.idporten.eudiw.rp.admin.web.security.oidcusers.ReporteeAuthority;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -17,6 +16,7 @@ import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 
 import java.util.HashSet;
@@ -49,14 +49,15 @@ public class CustomOidcUserService extends OidcUserService {
         } catch (IllegalArgumentException e) {
             throw new InsufficientAuthenticationException("Invalid authz details claims", e);
         }
-        // authzDetails is expected to contain exactly one element.
-        if (authzDetails.isEmpty()) {
-            throw new InsufficientAuthenticationException("Authz details claims found but empty");
+        if (authzDetails.size() != 1) {
+            throw new InsufficientAuthenticationException(
+                "Expected exactly 1 authorization_details in token, found %s"
+                    .formatted(authzDetails.size()));
         }
         return authzDetails.getFirst();
     }
 
-    private SelfServiceReportee toSelfServiceReporteeWithSectorInfo(
+    private ReporteeAuthority toSelfServiceReporteeWithSectorInfo(
         ResponseAuthorizationDetails.Reportee reportee) {
         boolean isPublicSector = false;
         try {
@@ -64,7 +65,7 @@ public class CustomOidcUserService extends OidcUserService {
         } catch (Exception e) {
             log.warn("Failed to get public sector info from Enhetsregisteret (defaulting FALSE)", e);
         }
-        return new SelfServiceReportee(
+        return new ReporteeAuthority(
             reportee.orgno(),
             reportee.name(),
             isPublicSector);
@@ -74,18 +75,23 @@ public class CustomOidcUserService extends OidcUserService {
         ResponseAuthorizationDetails responseAuthzDetails =
             getAndValidateAuthzDetailsClaim(oidcUser.getIdToken());
 
-        List<SelfServiceReportee> reportees =
-            responseAuthzDetails.reportees()
-                                .stream()
-                                .map(this::toSelfServiceReporteeWithSectorInfo)
-                                .toList();
-        Set<GrantedAuthority> authorities = new HashSet<>(oidcUser.getAuthorities());
-        authorities.addAll(reportees);
+        if (responseAuthzDetails.reportees().size() != 1) {
+            throw new AuthenticationException(
+                OAuth2ErrorCodes.INVALID_SCOPE,
+                "Expected exactly 1 reportee, found %s".formatted(
+                responseAuthzDetails.reportees().size()));
+        }
 
-        return new SelfServiceOidcUser(authorities,
-                                       oidcUser.getIdToken(),
-                                       oidcUser.getUserInfo(),
-                                       reportees);
+        ReporteeAuthority reportee = toSelfServiceReporteeWithSectorInfo(
+            responseAuthzDetails.reportees().getFirst());
+        Set<GrantedAuthority> authorities = new HashSet<>(oidcUser.getAuthorities());
+        authorities.add(reportee);
+
+        String name = "%s - %s".formatted(oidcUser.getClaim("name"), reportee.name());
+        return new OidcUserWithCustomName(authorities,
+                                          oidcUser.getIdToken(),
+                                          oidcUser.getUserInfo(),
+                                          name);
     }
 
     private OidcUser mapEntraIdUser(OidcUser oidcUser) throws OAuth2AuthenticationException {
@@ -103,7 +109,7 @@ public class CustomOidcUserService extends OidcUserService {
         mapped.add(new SimpleGrantedAuthority(toAuthority(entraIdProperties.writeAccess())));
         mapped.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
 
-        return new AdminOidcUser(mapped, oidcUser.getIdToken(), oidcUser.getUserInfo());
+        return new DefaultOidcUser(mapped, oidcUser.getIdToken(), oidcUser.getUserInfo(), "preferred_username");
     }
 
     public static String toAuthority(String groupId) {

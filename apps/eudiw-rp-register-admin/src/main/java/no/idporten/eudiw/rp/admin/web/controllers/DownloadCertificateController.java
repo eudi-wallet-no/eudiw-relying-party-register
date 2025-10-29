@@ -4,9 +4,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.service.accesscertificates.X509CertificateConverter;
+import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificateResource;
+import no.idporten.eudiw.rp.admin.web.security.UserAuthorityService;
 import org.springframework.http.*;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,15 +22,17 @@ import java.util.UUID;
 public class DownloadCertificateController {
 
     private final RelyingPartiesService relyingPartiesService;
+    private final UserAuthorityService userAuthorityService;
 
     private static final String APPLICATION_X_PEM_FILE_VALUE = "application/x-pem-file";
 
     @GetMapping("/get-certificate/{rp-id}/{cert-id}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("@permissionsService.userHasPrivilegedAccessTo(#relyingPartyId)")
     public ResponseEntity<byte[]> downloadCertificate(
         @PathVariable("rp-id") UUID relyingPartyId,
         @PathVariable("cert-id") UUID certificateId) {
+        RelyingPartyResource relyingParty = relyingPartiesService.get(relyingPartyId);
+        userAuthorityService.assertUserHasAccessTo(relyingParty.orgno());
 
         return doDownloadCertificate(
             relyingPartiesService.getCertificate(relyingPartyId, certificateId));
@@ -37,10 +40,11 @@ public class DownloadCertificateController {
 
     @GetMapping("/get-certificate/{rp-id}/issuer/{cert-id}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("@permissionsService.userHasPrivilegedAccessTo(#relyingPartyId)")
     public ResponseEntity<byte[]> downloadIssuerCertificate(
         @PathVariable("rp-id") UUID relyingPartyId,
         @PathVariable("cert-id") UUID certificateId) {
+        RelyingPartyResource relyingParty = relyingPartiesService.get(relyingPartyId);
+        userAuthorityService.assertUserHasAccessTo(relyingParty.orgno());
 
         return doDownloadCertificate(
             relyingPartiesService.getIssuerCertificate(certificateId));
@@ -60,6 +64,5 @@ public class DownloadCertificateController {
                               .filename(filename)
                               .build());
         return ResponseEntity.ok().headers(headers).body(content);
-
     }
 }
