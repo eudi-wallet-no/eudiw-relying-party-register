@@ -11,4 +11,5 @@ eudiw-admin-web:
       api-key-value: xxx
   enhetsregisteret-service:
     enhetsregisteret-api-base-uri: http://localhost:${TEST_MOCK_WEB_SERVER_PORT}/
-  enable-security: false
+  security:
+    enabled: false

@@ -23,14 +23,14 @@ public class AnsattportenAuthorizationRequestResolver
         new Base64StringKeyGenerator(Base64.getUrlEncoder().withoutPadding(), 96);
 
     private final OAuth2AuthorizationRequestResolver delegateResolver;
-    private final AnsattportenAuthzConfig ansattportenAuthzConfig;
+    private final AnsattportenProperties ansattportenProperties;
 
     public AnsattportenAuthorizationRequestResolver(
         ClientRegistrationRepository clientRegistrationRepository,
-        AnsattportenAuthzConfig ansattportenAuthzConfig) {
+        AnsattportenProperties ansattportenProperties) {
         this.delegateResolver = new DefaultOAuth2AuthorizationRequestResolver(
             clientRegistrationRepository, "/oauth2/authorization");
-        this.ansattportenAuthzConfig = ansattportenAuthzConfig;
+        this.ansattportenProperties = ansattportenProperties;
     }
 
     @Override
@@ -68,9 +68,8 @@ public class AnsattportenAuthorizationRequestResolver
 
         addPkce(attributes, additionalParameters);
 
-        // TODO: get this one from properties.
-        boolean allowSyntheticOrgnos = false;
-        if (!allowSyntheticOrgnos || !"true".equals(httpRequest.getParameter("use_synthetic_orgno"))) {
+        if (!ansattportenProperties.allowSyntheticReportee()
+                || !"true".equals(httpRequest.getParameter("use_synthetic_reportee"))) {
             addAuthorizationDetails(attributes, additionalParameters);
         }
 
@@ -85,11 +84,11 @@ public class AnsattportenAuthorizationRequestResolver
                                          Map<String, Object> additionalParameters) {
         attributes.put(
             OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER,
-            ansattportenAuthzConfig.authorizationDetails());
+            ansattportenProperties.authorizationDetails());
 
         String authDetailsListString =
             new ObjectMapper().writeValueAsString(
-                List.of(ansattportenAuthzConfig.authorizationDetails()));
+                List.of(ansattportenProperties.authorizationDetails()));
         additionalParameters.put(
             OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER, authDetailsListString);
     }

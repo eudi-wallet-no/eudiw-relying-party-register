@@ -13,3 +13,6 @@ eudiw-admin-web:
       api-key-value: xxx
   enhetsregisteret-service:
     enhetsregisteret-api-base-uri: "https://data.ppe.brreg.no/enhetsregisteret/api/enheter"
+  security:
+    ansattporten:
+      allow-synthetic-reportee: true
