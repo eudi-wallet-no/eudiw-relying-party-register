@@ -6,8 +6,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
 @Validated
-@ConfigurationProperties(prefix = "eudiw-admin-web.ansattporten")
-public record AnsattportenAuthzConfig(
+@ConfigurationProperties(prefix = "eudiw-admin-web.security.ansattporten")
+public record AnsattportenProperties(
     @Valid
-    RequestAuthorizationDetails authorizationDetails
+    RequestAuthorizationDetails authorizationDetails,
+    boolean allowSyntheticReportee
 ) { }

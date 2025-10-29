@@ -2,7 +2,7 @@ package no.idporten.eudiw.rp.admin.web.security;
 
 import no.idporten.eudiw.rp.admin.service.enhetsregisteretservice.EnhetsregisteretService;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenAuthorizationRequestResolver;
-import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenAuthzConfig;
+import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenProperties;
 import no.idporten.eudiw.rp.admin.web.security.entraid.EntraIdProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProperty;
 import org.springframework.context.annotation.Bean;
@@ -24,7 +24,7 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@ConditionalOnBooleanProperty("eudiw-admin-web.enable-security")
+@ConditionalOnBooleanProperty(value = "eudiw-admin-web.security.enabled", matchIfMissing = true)
 public class BaseSecurityConfig {
 
     private static final String[] AUTHZ_ALLOWLIST = {
@@ -115,9 +115,9 @@ public class BaseSecurityConfig {
     @Bean
     public AnsattportenAuthorizationRequestResolver ansattportenAuthorizationRequestResolver(
         ClientRegistrationRepository clientRegistrationRepository,
-        AnsattportenAuthzConfig ansattportenAuthzConfig) {
+        AnsattportenProperties ansattportenProperties) {
         return new AnsattportenAuthorizationRequestResolver(
-            clientRegistrationRepository, ansattportenAuthzConfig);
+            clientRegistrationRepository, ansattportenProperties);
     }
 
     @Bean

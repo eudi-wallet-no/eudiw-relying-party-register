@@ -10,7 +10,7 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-@ConditionalOnBooleanProperty(value = "eudiw-admin-web.enable-security", havingValue = false)
+@ConditionalOnBooleanProperty(value = "eudiw-admin-web.security.enabled", havingValue = false)
 public class DevSecurityConfig {
     @Bean
     public UserAuthorityService userAuthorityService() {

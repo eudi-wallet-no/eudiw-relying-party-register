@@ -50,14 +50,6 @@ eudiw-admin-web:
     rest-client:
       connect-timeout-millis: 5000
       read-timeout-millis: 5000
-  entra:
-    enabled: false
-    write-access: ${WRITE_ACCESS}
-  ansattporten:
-    authorization-details:
-      type: ansattporten:altinn:service
-      resource: urn:altinn:resource:2480:40
-      allow-multiple-organizations: false
   enhetsregisteret-service:
     enhetsregisteret-api-base-uri: "https://data.brreg.no/enhetsregisteret/api/enheter"
     rest-client:
@@ -66,7 +58,17 @@ eudiw-admin-web:
     known-public-sector-codes:
       - "6100" # Statsforvaltningen
       - "6500" # Kommuneforvaltningen
-  enable-security: true
+  security:
+    enabled: true
+    entra:
+      write-access: ${WRITE_ACCESS}
+    ansattporten:
+      authorization-details:
+        type: ansattporten:altinn:service
+        resource: urn:altinn:resource:2480:40
+        allow-multiple-organizations: false
+      allow-synthetic-reportee: false
+
 
 external-dependency-health-checks:
   health-endpoints:
