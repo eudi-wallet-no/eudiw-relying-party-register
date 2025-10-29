@@ -6,9 +6,10 @@ import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.admin.service.enhetsregisteretservice.EnhetsregisteretService;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails.ResponseAuthorizationDetails;
 import no.idporten.eudiw.rp.admin.web.security.entraid.EntraIdProperties;
+import no.idporten.eudiw.rp.admin.web.security.exception.AuthenticationException;
+import no.idporten.eudiw.rp.admin.web.security.exception.InvalidClaimsException;
 import no.idporten.eudiw.rp.admin.web.security.oidcusers.OidcUserWithCustomName;
 import no.idporten.eudiw.rp.admin.web.security.oidcusers.ReporteeAuthority;
-import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
@@ -33,7 +34,7 @@ public class CustomOidcUserService extends OidcUserService {
 
     private ResponseAuthorizationDetails getAndValidateAuthzDetailsClaim(OidcIdToken idToken) {
         if (!idToken.hasClaim(OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER)) {
-            throw new InsufficientAuthenticationException("Authz details claim missing");
+            throw new InvalidClaimsException("Authz details claim missing");
         }
         List<Map<String, Object>> authzDetailsClaim =
             idToken.getClaim(OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER);
@@ -47,10 +48,10 @@ public class CustomOidcUserService extends OidcUserService {
                     .map(map -> om.convertValue(map, ResponseAuthorizationDetails.class))
                     .toList();
         } catch (IllegalArgumentException e) {
-            throw new InsufficientAuthenticationException("Invalid authz details claims", e);
+            throw new InvalidClaimsException("Ill-formed authz details claims", e);
         }
         if (authzDetails.size() != 1) {
-            throw new InsufficientAuthenticationException(
+            throw new InvalidClaimsException(
                 "Expected exactly 1 authorization_details in token, found %s"
                     .formatted(authzDetails.size()));
         }
@@ -71,15 +72,14 @@ public class CustomOidcUserService extends OidcUserService {
             isPublicSector);
     }
 
-    private OidcUser mapAnsattportenUser(OidcUser oidcUser) {
+    private OidcUser mapAnsattportenUser(OidcUser oidcUser) throws OAuth2AuthenticationException {
         ResponseAuthorizationDetails responseAuthzDetails =
             getAndValidateAuthzDetailsClaim(oidcUser.getIdToken());
 
         if (responseAuthzDetails.reportees().size() != 1) {
-            throw new AuthenticationException(
-                OAuth2ErrorCodes.INVALID_SCOPE,
+            throw new InvalidClaimsException(
                 "Expected exactly 1 reportee, found %s".formatted(
-                responseAuthzDetails.reportees().size()));
+                    responseAuthzDetails.reportees().size()));
         }
 
         ReporteeAuthority reportee = toSelfServiceReporteeWithSectorInfo(
@@ -101,8 +101,7 @@ public class CustomOidcUserService extends OidcUserService {
                 && oidcUser.getClaimAsStringList("groups")
                            .contains(entraIdProperties.writeAccess());
         if (!hasWriteAccess) {
-            throw new AuthenticationException(OAuth2ErrorCodes.INSUFFICIENT_SCOPE,
-                "Insufficient (or missing) access groups claims");
+            throw new InvalidClaimsException("Insufficient (or missing) access groups claims");
         }
 
         Set<GrantedAuthority> mapped = new HashSet<>(oidcUser.getAuthorities());
