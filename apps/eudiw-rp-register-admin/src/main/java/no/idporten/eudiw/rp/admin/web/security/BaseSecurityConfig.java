@@ -1,6 +1,5 @@
 package no.idporten.eudiw.rp.admin.web.security;
 
-import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.service.enhetsregisteretservice.EnhetsregisteretService;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenAuthorizationRequestResolver;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenAuthzConfig;
@@ -10,11 +9,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.oauth2.client.OAuth2LoginConfigurer;
 import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -129,8 +126,8 @@ public class BaseSecurityConfig {
     }
 
     @Bean
-    public PermissionsService permissionsService(RelyingPartiesService relyingPartiesService) {
-        return new PermissionsService(relyingPartiesService);
+    public UserAuthorityService userAuthorityService() {
+        return new UserAuthorityService();
     }
 
     @Bean

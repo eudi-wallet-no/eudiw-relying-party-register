@@ -8,7 +8,7 @@ import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyEntitlementResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary;
 import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyIssuerCertificateSummary;
-import org.springframework.security.access.prepost.PreAuthorize;
+import no.idporten.eudiw.rp.admin.web.security.UserAuthorityService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -28,6 +28,7 @@ public class DetailedViewController {
     public static final String issuerSummariesAttrId = "issuerSummariesAttr";
 
     private final RelyingPartiesService relyingPartiesService;
+    private final UserAuthorityService userAuthorityService;
 
     @GetMapping("/details")
     public ModelAndView detailsWithoutIdRedirectToSearch() {
@@ -35,10 +36,10 @@ public class DetailedViewController {
     }
 
     @GetMapping("/details/{id}")
-    @PreAuthorize("@permissionsService.userHasPrivilegedAccessTo(#id)")
     public ModelAndView detailsGet(@PathVariable("id") @Valid UUID id) {
-
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
+        userAuthorityService.assertUserHasAccessTo(relyingPartyResource.orgno());
+
         List<RelyingPartyAccessCertificateSummary> certificatesResource =
             relyingPartiesService.getCertificatesForRelyingParty(id)
                                  .toSummaries();

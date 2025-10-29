@@ -4,6 +4,7 @@ import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.service.accesscertificates.X509CertificateConverter;
 import no.idporten.eudiw.rp.admin.service.exception.NotFoundException;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
+import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificateResource;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -44,9 +45,11 @@ public class DownloadCertificateControllerTests {
 
             RelyingPartyCertificateResource certResource =
                 ResourceGenerator.generateCertificateResource();
-            UUID rpId = UUID.randomUUID();
+            RelyingPartyResource rpResource = ResourceGenerator.generateRelyingPartyResource();
+            UUID rpId = rpResource.id();
             UUID certId = UUID.randomUUID();
             when(mockRpService.getCertificate(rpId, certId)).thenReturn(certResource);
+            when(mockRpService.get(rpId)).thenReturn(rpResource);
 
             String expectedContentType = "application/x-pem-file";
             byte[] expectedContentBytes =
@@ -66,6 +69,8 @@ public class DownloadCertificateControllerTests {
         public void test404PageShownWhenCertificateNotExists() throws Exception {
             when(mockRpService.getCertificate(any(), any()))
                 .thenThrow(NotFoundException.class);
+            when(mockRpService.get(any()))
+                .thenReturn(ResourceGenerator.generateRelyingPartyResource());
 
             UUID rpId = UUID.randomUUID();
             UUID certId = UUID.randomUUID();

@@ -4,20 +4,17 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
-import no.idporten.eudiw.rp.admin.service.exception.AlreadyExistsException;
 import no.idporten.eudiw.rp.admin.service.exception.NotFoundException;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEntitlementFormField;
 import no.idporten.eudiw.rp.admin.web.form.selfservice.SelfServiceCreateRelyingPartyForm;
 import no.idporten.eudiw.rp.admin.web.form.admin.AdminCreateRelyingPartyForm;
 import no.idporten.eudiw.rp.admin.web.resource.CreateRelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
-import no.idporten.eudiw.rp.admin.web.security.oidcusers.BaseOidcUser;
-import no.idporten.eudiw.rp.admin.web.security.oidcusers.SelfServiceOidcUser;
-import no.idporten.eudiw.rp.admin.web.security.oidcusers.SelfServiceReportee;
+import no.idporten.eudiw.rp.admin.web.security.UserAuthorityService;
+import no.idporten.eudiw.rp.admin.web.security.oidcusers.ReporteeAuthority;
 import no.idporten.logging.audit.Audit;
 import no.idporten.logging.audit.AuditIgnore;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,13 +36,15 @@ public class CreateController {
     private static final String LOMMEBOK_10_CREATE_RP_REQUEST = "LOMMEBOK-10-CREATE-RP-REQUEST";
 
     private final RelyingPartiesService relyingPartiesService;
+    private final UserAuthorityService userAuthorityService;
 
     @GetMapping("/create")
-    public ModelAndView createGet(@AuthenticationPrincipal BaseOidcUser oidcUser) {
+    public ModelAndView createGet() {
         AdminCreateRelyingPartyForm createForm = new AdminCreateRelyingPartyForm();
 
-        if (oidcUser instanceof SelfServiceOidcUser selfServiceUser) {
-            SelfServiceReportee reportee = selfServiceUser.getReportee();
+        // if user does not have admin authority, they must have a reportee authority.
+        if (!userAuthorityService.userHasAdminAuthority()) {
+            ReporteeAuthority reportee = userAuthorityService.getReporteeAuthority();
             createForm = createForm
                 .withOrgno(reportee.orgno())
                 .withName(reportee.name())
@@ -61,18 +60,13 @@ public class CreateController {
     @PostMapping("/create")
     public ModelAndView selfServiceCreatePost(
         @ModelAttribute(createFormAttrId) @Valid SelfServiceCreateRelyingPartyForm createForm,
-        @AuditIgnore BindingResult createFormBindingResult,
-        @AuthenticationPrincipal SelfServiceOidcUser selfServiceUser) {
-        if (selfServiceUser == null) {
-            throw new NotFoundException("Non-selfservice user attempted to POST /create");
-        }
+        @AuditIgnore BindingResult createFormBindingResult) {
+        ReporteeAuthority reportee = userAuthorityService.getReporteeAuthority();
 
         ModelAndView mav = new ModelAndView("create_form_view",
             Map.of(createFormAttrId, createForm));
 
         if (!createFormBindingResult.hasErrors()) {
-            SelfServiceReportee reportee = selfServiceUser.getReportee();
-
             CreateRelyingPartyResource createResource =
                 createForm.toResource(reportee.orgno(),
                                       reportee.name(),
@@ -100,5 +94,4 @@ public class CreateController {
         }
         return mav;
     }
-
 }

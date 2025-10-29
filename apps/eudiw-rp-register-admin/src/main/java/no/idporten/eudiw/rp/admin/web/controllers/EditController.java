@@ -4,11 +4,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
-import no.idporten.eudiw.rp.admin.web.SearchSession;
 import no.idporten.eudiw.rp.admin.web.form.selfservice.SelfServiceEditRelyingPartyForm;
 import no.idporten.eudiw.rp.admin.web.form.admin.AdminEditRelyingPartyForm;
 import no.idporten.eudiw.rp.admin.web.resource.EditRelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
+import no.idporten.eudiw.rp.admin.web.security.UserAuthorityService;
 import no.idporten.logging.audit.Audit;
 import no.idporten.logging.audit.AuditIgnore;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -34,12 +34,13 @@ public class EditController {
     private static final String LOMMEBOK_12_EDIT_RP_REQUEST = "LOMMEBOK-12-EDIT-RP-REQUEST";
 
     private final RelyingPartiesService relyingPartiesService;
+    private final UserAuthorityService userAuthorityService;
 
     @GetMapping("/edit/{id}")
-    @PreAuthorize("@permissionsService.userHasPrivilegedAccessTo(#id)")
     public ModelAndView editGet(@PathVariable("id") @Valid UUID id) {
-
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
+        userAuthorityService.assertUserHasAccessTo(relyingPartyResource.orgno());
+
         AdminEditRelyingPartyForm editForm =
             AdminEditRelyingPartyForm.prefillFromRelyingPartyResource(relyingPartyResource);
 
@@ -50,13 +51,13 @@ public class EditController {
 
     @Audit(auditId = LOMMEBOK_12_EDIT_RP_REQUEST, includeResult = false, includeParameters = false)
     @PostMapping("/edit/{id}")
-    @PreAuthorize("@permissionsService.userHasPrivilegedAccessTo(#id)")
     public ModelAndView editPost(
         @PathVariable("id") UUID id,
         @ModelAttribute(editFormAttrId) @Valid SelfServiceEditRelyingPartyForm editForm,
         @AuditIgnore BindingResult editFormBindingResult) {
-
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
+        userAuthorityService.assertUserHasAccessTo(relyingPartyResource.orgno());
+
         Supplier<EditRelyingPartyResource> editResourceSupplier = () ->
             AdminEditRelyingPartyForm.prefillFromRelyingPartyResource(relyingPartyResource)
                                      .withEaas(editForm.getEaas())

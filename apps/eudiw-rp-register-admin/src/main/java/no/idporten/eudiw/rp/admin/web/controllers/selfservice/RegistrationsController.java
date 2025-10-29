@@ -4,9 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
-import no.idporten.eudiw.rp.admin.web.security.oidcusers.BaseOidcUser;
-import no.idporten.eudiw.rp.admin.web.security.oidcusers.SelfServiceOidcUser;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import no.idporten.eudiw.rp.admin.web.security.UserAuthorityService;
+import no.idporten.eudiw.rp.admin.web.security.oidcusers.ReporteeAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.servlet.ModelAndView;
@@ -19,17 +18,13 @@ import java.util.List;
 public class RegistrationsController {
     public static final String registrationsAttrId = "registrationsAttr";
     private final RelyingPartiesService relyingPartiesService;
+    private final UserAuthorityService userAuthorityService;
 
     @GetMapping("/registrations")
-    public ModelAndView registrationsGet(@AuthenticationPrincipal BaseOidcUser oidcUser) {
+    public ModelAndView registrationsGet() {
+        ReporteeAuthority reportee = userAuthorityService.getReporteeAuthority();
         List<RelyingPartyResource> registrations =
-            oidcUser instanceof SelfServiceOidcUser selfServiceUser
-                ? selfServiceUser.getReportees()
-                   .stream()
-                   .map(reportee -> relyingPartiesService.getAllByOrgno(reportee.orgno()))
-                   .flatMap(rpsResource -> rpsResource.relyingParties().stream())
-                   .toList()
-               : List.of();
+            relyingPartiesService.getAllByOrgno(reportee.orgno()).relyingParties();
         return new ModelAndView("registrations_view", registrationsAttrId, registrations);
     }
 }

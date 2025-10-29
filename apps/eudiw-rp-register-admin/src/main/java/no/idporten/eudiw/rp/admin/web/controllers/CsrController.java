@@ -11,9 +11,9 @@ import no.idporten.eudiw.rp.admin.web.form.CsrAccessForm;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.IssuerCsrResource;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificateResource;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCsrResource;
+import no.idporten.eudiw.rp.admin.web.security.UserAuthorityService;
 import no.idporten.logging.audit.Audit;
 import no.idporten.logging.audit.AuditIgnore;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -35,11 +35,13 @@ public class CsrController {
     private static final String LOMMEBOK_11_REGISTER_CSR_REQUEST = "LOMMEBOK-11-REGISTER-CSR-REQUEST";
 
     private final RelyingPartiesService relyingPartiesService;
+    private final UserAuthorityService userAuthorityService;
 
     @GetMapping("/csr/access/{id}")
-    @PreAuthorize("@permissionsService.userHasPrivilegedAccessTo(#id)")
     public ModelAndView registerAccessCsrGet(@PathVariable("id") @Valid UUID id) {
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
+        userAuthorityService.assertUserHasAccessTo(relyingPartyResource.orgno());
+
         return new ModelAndView("access_csr_form_view", Map.of(
             csrFormAttrId, CsrAccessForm.empty(),
             detailedViewDataAttrId, relyingPartyResource));
@@ -47,13 +49,14 @@ public class CsrController {
 
     @Audit(auditId = LOMMEBOK_11_REGISTER_CSR_REQUEST, includeResult = false)
     @PostMapping("/csr/access/{id}")
-    @PreAuthorize("@permissionsService.userHasPrivilegedAccessTo(#id)")
     public ModelAndView registerAccessCsrPost(
         @PathVariable("id") @Valid UUID id,
         @AuditIgnore @ModelAttribute(csrFormAttrId) @Valid CsrAccessForm csrAccessForm,
         @AuditIgnore BindingResult csrFormBindingResult
     ) {
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
+        userAuthorityService.assertUserHasAccessTo(relyingPartyResource.orgno());
+
         ModelAndView mav =
             new ModelAndView("access_csr_form_view", Map.of(detailedViewDataAttrId, relyingPartyResource));
 
@@ -78,9 +81,10 @@ public class CsrController {
     }
 
     @GetMapping("/csr/issuer/{id}")
-    @PreAuthorize("@permissionsService.userHasPrivilegedAccessTo(#id)")
     public ModelAndView registerIssuerCsrGet(@PathVariable("id") @Valid UUID id) {
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
+        userAuthorityService.assertUserHasAccessTo(relyingPartyResource.orgno());
+
         return new ModelAndView("issuer_csr_form_view", Map.of(
             csrFormAttrId, CsrIssuerForm.empty(),
             detailedViewDataAttrId, relyingPartyResource));
@@ -88,13 +92,14 @@ public class CsrController {
 
     @Audit(auditId = LOMMEBOK_11_REGISTER_CSR_REQUEST, includeResult = false)
     @PostMapping("/csr/issuer/{id}")
-    @PreAuthorize("@permissionsService.userHasPrivilegedAccessTo(#id)")
     public ModelAndView registerIssuerCsrPost(
         @PathVariable("id") @Valid UUID id,
         @AuditIgnore @ModelAttribute(csrFormAttrId) @Valid CsrIssuerForm csrIssuerForm,
         @AuditIgnore BindingResult csrFormBindingResult
     ) {
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
+        userAuthorityService.assertUserHasAccessTo(relyingPartyResource.orgno());
+
         ModelAndView mav =
             new ModelAndView("issuer_csr_form_view", Map.of(detailedViewDataAttrId, relyingPartyResource));
 
