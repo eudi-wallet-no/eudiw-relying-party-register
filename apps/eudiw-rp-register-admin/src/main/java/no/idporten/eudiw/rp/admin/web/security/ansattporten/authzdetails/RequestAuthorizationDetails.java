@@ -10,6 +10,6 @@ public record RequestAuthorizationDetails(
     @NotBlank
     @JsonProperty(value = "resource", required = true)
     String resource,
-    @JsonProperty("allow_multiple_organizations")
-    boolean allowMultipleOrganizations
+    @JsonProperty("representation_is_required")
+    boolean representationIsRequired
 ) { }
