@@ -66,7 +66,7 @@ eudiw-admin-web:
       authorization-details:
         type: ansattporten:altinn:service
         resource: urn:altinn:resource:2480:40
-        allow-multiple-organizations: false
+        representation-is-required: true
       allow-synthetic-reportee: false
 
 
