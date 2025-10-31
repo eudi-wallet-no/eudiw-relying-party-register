@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @ActiveProfiles("local-test")
 @DisplayName("When using the RP edit controller")
-@AutoConfigureMockMvc(addFilters = false)
+@AutoConfigureMockMvc
 public class EditControllerTests {
 
     @Autowired

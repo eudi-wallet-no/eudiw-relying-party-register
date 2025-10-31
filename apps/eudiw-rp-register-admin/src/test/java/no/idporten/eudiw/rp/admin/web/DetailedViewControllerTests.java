@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @ActiveProfiles("local-test")
 @DisplayName("When using the RP detailed view controller")
-@AutoConfigureMockMvc(addFilters = false)
+@AutoConfigureMockMvc
 public class DetailedViewControllerTests {
 
     @Autowired

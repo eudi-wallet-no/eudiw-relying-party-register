@@ -33,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @ActiveProfiles("local-test")
 @DisplayName("When using the CSR registration controller")
-@AutoConfigureMockMvc(addFilters = false)
+@AutoConfigureMockMvc
 public class CsrControllerTests {
 
     @Autowired
