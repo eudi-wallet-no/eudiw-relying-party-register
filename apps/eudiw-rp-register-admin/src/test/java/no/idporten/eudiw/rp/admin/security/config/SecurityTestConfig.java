@@ -1,4 +1,4 @@
-package no.idporten.eudiw.rp.admin.web.security.config;
+package no.idporten.eudiw.rp.admin.security.config;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;

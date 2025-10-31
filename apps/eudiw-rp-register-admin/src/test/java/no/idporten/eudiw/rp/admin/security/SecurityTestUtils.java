@@ -1,4 +1,4 @@
-package no.idporten.eudiw.rp.admin.web.security;
+package no.idporten.eudiw.rp.admin.security;
 
 import lombok.Getter;
 import no.idporten.eudiw.rp.admin.web.security.oidcusers.ReporteeAuthority;
