@@ -75,6 +75,14 @@
                href="mailto:servicedesk@digdir.no">
                 servicedesk@digdir.no
             </a>
+            <a sec:authorize="! hasRole('ADMIN')" class="ds-link"
+               href="https://digdir-samarbeid.slack.com/archives/C08RD6BK4Q3">
+                Slack: #produkt-digital-lommebok
+            </a>
+            <a sec:authorize="hasRole('ADMIN')" class="ds-link"
+               href="https://digdir.slack.com/archives/C06KFP6D4UA">
+                Slack: #digital-lommebok
+            </a>
             <a class="ds-link"
                href="https://www.digdir.no/digdir/kontakt-oss/943">
                 Kontakt oss
