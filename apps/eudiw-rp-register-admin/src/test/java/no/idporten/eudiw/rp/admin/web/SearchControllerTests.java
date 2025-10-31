@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @ActiveProfiles("local-test")
 @DisplayName("When using the search controller")
-@AutoConfigureMockMvc(addFilters = false)
+@AutoConfigureMockMvc
 public class SearchControllerTests {
 
     @Autowired

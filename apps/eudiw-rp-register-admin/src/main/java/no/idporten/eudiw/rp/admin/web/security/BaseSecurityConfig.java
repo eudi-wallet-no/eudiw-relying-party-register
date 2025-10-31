@@ -14,6 +14,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
@@ -113,11 +115,18 @@ public class BaseSecurityConfig {
     }
 
     @Bean
+    public DefaultOAuth2AuthorizationRequestResolver defaultOAuth2AuthorizationRequestResolver(
+        ClientRegistrationRepository clientRegistrationRepository) {
+        return new DefaultOAuth2AuthorizationRequestResolver(
+            clientRegistrationRepository, "/oauth2/authorization");
+    }
+
+    @Bean
     public AnsattportenAuthorizationRequestResolver ansattportenAuthorizationRequestResolver(
-        ClientRegistrationRepository clientRegistrationRepository,
+        OAuth2AuthorizationRequestResolver delegateAuthzRequestResolver,
         AnsattportenProperties ansattportenProperties) {
         return new AnsattportenAuthorizationRequestResolver(
-            clientRegistrationRepository, ansattportenProperties);
+            delegateAuthzRequestResolver, ansattportenProperties);
     }
 
     @Bean

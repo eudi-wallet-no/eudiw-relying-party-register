@@ -2,12 +2,11 @@ package no.idporten.eudiw.rp.admin.web.security.ansattporten;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import no.idporten.eudiw.rp.admin.web.security.OAuth2Constants;
 import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
 import org.springframework.security.crypto.keygen.StringKeyGenerator;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 
@@ -16,6 +15,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
+@RequiredArgsConstructor
 public class AnsattportenAuthorizationRequestResolver
     implements OAuth2AuthorizationRequestResolver {
 
@@ -24,14 +24,6 @@ public class AnsattportenAuthorizationRequestResolver
 
     private final OAuth2AuthorizationRequestResolver delegateResolver;
     private final AnsattportenProperties ansattportenProperties;
-
-    public AnsattportenAuthorizationRequestResolver(
-        ClientRegistrationRepository clientRegistrationRepository,
-        AnsattportenProperties ansattportenProperties) {
-        this.delegateResolver = new DefaultOAuth2AuthorizationRequestResolver(
-            clientRegistrationRepository, "/oauth2/authorization");
-        this.ansattportenProperties = ansattportenProperties;
-    }
 
     @Override
     public OAuth2AuthorizationRequest resolve(HttpServletRequest request) {
