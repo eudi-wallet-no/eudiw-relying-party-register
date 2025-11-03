@@ -8,7 +8,7 @@ spring:
             client-id: ${ANSATTPORTEN_CLIENT_ID}
             client-secret: ${ANSATTPORTEN_CLIENT_SECRET}
             provider: ansattporten
-            client-name: Ansattporten (systest)
+            client-name: Ansattporten (KT)
             authorization-grant-type: authorization_code
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
             scope:
@@ -16,4 +16,4 @@ spring:
               - profile
         provider:
           ansattporten:
-            issuer-uri: https://ansattporten.dev
+            issuer-uri: https://test.ansattporten.no
