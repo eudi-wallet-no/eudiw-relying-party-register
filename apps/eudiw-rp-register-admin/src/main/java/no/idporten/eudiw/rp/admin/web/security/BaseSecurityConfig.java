@@ -1,6 +1,9 @@
 package no.idporten.eudiw.rp.admin.web.security;
 
+import no.idporten.eudiw.rp.admin.exception.AdminServiceException;
 import no.idporten.eudiw.rp.admin.service.enhetsregisteretservice.EnhetsregisteretService;
+import no.idporten.eudiw.rp.admin.service.syntheticreportees.SyntheticReporteeProvider;
+import no.idporten.eudiw.rp.admin.service.syntheticreportees.InMemSyntheticReporteeService;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenAuthorizationRequestResolver;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenProperties;
 import no.idporten.eudiw.rp.admin.web.security.entraid.EntraIdProperties;
@@ -8,6 +11,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProp
 import org.springframework.context.annotation.Bean;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -92,8 +96,14 @@ public class BaseSecurityConfig {
     @Bean
     public CustomOidcUserService customOidcUserService(
         EntraIdProperties entraIdProperties,
-        EnhetsregisteretService enhetsregisteretService) {
-        return new CustomOidcUserService(entraIdProperties, enhetsregisteretService);
+        AnsattportenProperties ansattportenProperties,
+        EnhetsregisteretService enhetsregisteretService,
+        SyntheticReporteeProvider syntheticReporteeProvider) {
+        return new CustomOidcUserService(
+            entraIdProperties,
+            ansattportenProperties,
+            enhetsregisteretService,
+            syntheticReporteeProvider);
     }
 
     @Bean
@@ -133,4 +143,21 @@ public class BaseSecurityConfig {
     public UserAuthorityService userAuthorityService() {
         return new UserAuthorityService();
     }
+
+    @Bean
+    @Profile("!prod")
+    public SyntheticReporteeProvider inMemSyntheticReporteeService() {
+        return new InMemSyntheticReporteeService();
+    }
+
+    @Bean
+    @Profile("prod")
+    public SyntheticReporteeProvider explodingSyntheticReporteeProvider() {
+        return _ -> {
+            throw new AdminServiceException(
+                "Unexpected request for synthetic reportee in environment "
+                    + "where synthetic reportees never allowed!");
+        };
+    }
+
 }
