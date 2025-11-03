@@ -5,7 +5,7 @@ networks:
 
 services:
 
-  credential-register:
+  credential-registry:
     build:
       context: .
       dockerfile: docker/dev.Dockerfile

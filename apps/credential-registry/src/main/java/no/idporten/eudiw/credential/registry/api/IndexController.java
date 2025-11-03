@@ -1,4 +1,4 @@
-package no.idporten.eudiw.credential.registery.api;
+package no.idporten.eudiw.credential.registry.api;
 
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
