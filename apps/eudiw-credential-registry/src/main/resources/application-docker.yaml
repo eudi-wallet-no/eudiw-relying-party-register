@@ -1,0 +1,18 @@
+---
+server:
+  port: 9294
+
+spring:
+  application:
+    environment: docker
+
+
+# Spring Boot Actuator
+management:
+  server:
+    port: 9294
+
+
+credential-register:
+  credential-issuer-servers:
+    - http://issuer-server:9240/

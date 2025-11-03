@@ -1,0 +1,25 @@
+# See https://github.com/felleslosninger/github-workflows for reusable workflows used.
+
+name: Testing maven build
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - 'src/test/**'
+      - 'docker/**'
+      - 'docker-compose.yaml'
+      - '*.md'
+      - 'LICENSE'
+
+jobs:
+  call-workflow-maven-build:
+    uses: felleslosninger/github-workflows/.github/workflows/ci-maven-build.yml@main
+    with:
+      java-version: 25
+    secrets: inherit
+  call-container-scan:
+    uses: felleslosninger/github-workflows/.github/workflows/ci-spring-boot-container-scan.yml@main
+    with:
+      java-version: 25
+    secrets: inherit

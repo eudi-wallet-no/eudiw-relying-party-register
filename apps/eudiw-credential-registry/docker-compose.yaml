@@ -1,0 +1,33 @@
+name: digital-lommebok-issuer
+networks:
+  digital-lommebok:
+    name: digital-lommebok
+
+services:
+
+  credential-register:
+    build:
+      context: .
+      dockerfile: docker/dev.Dockerfile
+      args:
+        GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
+        GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
+    environment:
+      spring_profiles_active: docker
+      _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0 -Dotel.metrics.exporter=none -Dotel.traces.exporter=none -Dotel.span.exporter=none -Dotel.logs.exporter=none"
+    ports:
+      - "9294:9294"
+      - "9295:9295"
+    networks:
+      - digital-lommebok
+    entrypoint: "/bin/bash -c"
+    command:
+      - |
+        cd /usr/local/webapps/
+        java -javaagent:opentelemetry-javaagent.jar -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9295 -jar application.jar
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:9294/health/readiness || exit 1
+      interval: 15s
+      start_period: 5s
+      timeout: 5s
+      retries: 20

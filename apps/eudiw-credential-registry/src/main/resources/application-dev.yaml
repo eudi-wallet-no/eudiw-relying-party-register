@@ -1,0 +1,18 @@
+---
+server:
+  port: 9294
+
+spring:
+  application:
+    environment: dev
+
+
+# Spring Boot Actuator
+management:
+  server:
+    port: 9294
+
+
+credential-register:
+  credential-issuer-servers:
+    - http://localhost:9240/
