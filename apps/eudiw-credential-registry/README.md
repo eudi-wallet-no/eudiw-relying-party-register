@@ -1,5 +1,5 @@
-# eudiw-credential-register
-EUDI wallet: credential-register (bevisregister) for eidas2sandkasse.
+# eudiw-credential-registry
+EUDI wallet: credential-registry (bevisregister) for eidas2sandkasse.
 
 ## Requirements
 - Java 25
@@ -24,7 +24,7 @@ The `dev` and `docker` profiles runs the application with similar configuration.
 
 The local hosts file should include:
 ```
-127.0.0.1 credential-register
+127.0.0.1 credential-registry
 ```
 
 The application can be started with Maven:
@@ -37,4 +37,4 @@ The application can be started with Docker compose:
 docker-compose up --build
 ```
 
-The application will run on http://credential-register:9294.
+The application will run on http://credential-registry:9294.

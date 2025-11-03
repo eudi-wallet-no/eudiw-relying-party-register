@@ -1,4 +1,4 @@
-package no.idporten.eudiw.credential.registery;
+package no.idporten.eudiw.credential.registry;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

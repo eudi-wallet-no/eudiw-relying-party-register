@@ -3,6 +3,6 @@ spring:
   application:
     environment: test
 
-credential-register:
+credential-registry:
   credential-issuer-servers:
     - https://utsteder.test.eidas2sandkasse.net/

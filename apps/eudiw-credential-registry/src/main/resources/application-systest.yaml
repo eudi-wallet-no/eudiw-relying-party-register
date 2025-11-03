@@ -3,6 +3,6 @@ spring:
   application:
     environment: systest
 
-credential-register:
+credential-registry:
   credential-issuer-servers:
     - https://utsteder.eidas2sandkasse.dev/

@@ -1,4 +1,4 @@
-package no.idporten.eudiw.credential.registery;
+package no.idporten.eudiw.credential.registry;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

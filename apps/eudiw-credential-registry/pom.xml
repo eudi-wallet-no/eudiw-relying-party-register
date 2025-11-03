@@ -8,10 +8,10 @@
         <version>3.5.6</version>
     </parent>
     <groupId>no.idporten.eudiw</groupId>
-    <artifactId>eudiw-credential-register</artifactId>
+    <artifactId>eudiw-credential-registry</artifactId>
     <version>DEV-SNAPSHOT</version>
-    <name>eudiw-credential-register</name>
-    <description>EUDIW credential-register</description>
+    <name>eudiw-credential-registry</name>
+    <description>EUDIW credential-registry</description>
     <properties>
         <java.version>25</java.version>
         <idporten-actuator-starter.version>2.0.0</idporten-actuator-starter.version>
