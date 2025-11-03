@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.admin.service.enhetsregisteretservice.EnhetsregisteretService;
+import no.idporten.eudiw.rp.admin.service.syntheticreportees.SyntheticReporteeProvider;
+import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenProperties;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails.ResponseAuthorizationDetails;
 import no.idporten.eudiw.rp.admin.web.security.entraid.EntraIdProperties;
 import no.idporten.eudiw.rp.admin.web.security.exception.AuthenticationException;
@@ -20,21 +22,22 @@ import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Slf4j
 @RequiredArgsConstructor
 public class CustomOidcUserService extends OidcUserService {
 
     private final EntraIdProperties entraIdProperties;
+    private final AnsattportenProperties ansattportenProperties;
     private final EnhetsregisteretService enhetsregisteretService;
+    private final SyntheticReporteeProvider syntheticReporteeProvider;
 
-    private ResponseAuthorizationDetails getAndValidateAuthzDetailsClaim(OidcIdToken idToken) {
+    private ResponseAuthorizationDetails.Reportee
+    getAndValidateReporteeAuthorityClaim(OidcIdToken idToken) {
         if (!idToken.hasClaim(OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER)) {
-            throw new InvalidClaimsException("Authz details claim missing");
+            throw new InvalidClaimsException(
+                "authorization_details claim expected but missing");
         }
         List<Map<String, Object>> authzDetailsClaim =
             idToken.getClaim(OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER);
@@ -55,39 +58,52 @@ public class CustomOidcUserService extends OidcUserService {
                 "Expected exactly 1 authorization_details in token, found %s"
                     .formatted(authzDetails.size()));
         }
-        return authzDetails.getFirst();
+        List<ResponseAuthorizationDetails.Reportee> reportees =
+            authzDetails.getFirst().reportees();
+        if (reportees == null) {
+            throw new InvalidClaimsException("No reportees found in authorization_details");
+        }
+        if (reportees.size() != 1) {
+            throw new InvalidClaimsException(
+                "Expected exactly 1 reportee in authorization_details claim, found %s"
+                    .formatted(reportees.size()));
+        }
+        return reportees.getFirst();
     }
 
-    private ReporteeAuthority toSelfServiceReporteeWithSectorInfo(
-        ResponseAuthorizationDetails.Reportee reportee) {
-        boolean isPublicSector = false;
-        try {
-            isPublicSector = enhetsregisteretService.getPublicSectorForOrgno(reportee.orgno());
-        } catch (Exception e) {
-            log.warn("Failed to get public sector info from Enhetsregisteret (defaulting FALSE)", e);
+    private ReporteeAuthority getReporteeAuthorityForOidcUser(OidcUser oidcUser) {
+        if (oidcUser.getIdToken().hasClaim(
+            OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER)) {
+
+            ResponseAuthorizationDetails.Reportee reportee =
+                getAndValidateReporteeAuthorityClaim(oidcUser.getIdToken());
+            boolean isPublicSector = false;
+            try {
+                isPublicSector = enhetsregisteretService.getPublicSectorForOrgno(reportee.orgno());
+            } catch (Exception e) {
+                log.warn("Failed to get public sector info from Enhetsregisteret (defaulting FALSE)", e);
+            }
+            return new ReporteeAuthority(
+                reportee.orgno(), reportee.name(), isPublicSector);
         }
-        return new ReporteeAuthority(
-            reportee.orgno(),
-            reportee.name(),
-            isPublicSector);
+        if (ansattportenProperties.allowSyntheticReportee()) {
+            String userId = oidcUser.getIdToken().getClaim("pid");
+            return syntheticReporteeProvider.getSyntheticReporteeAuthority(userId);
+        }
+        throw new InvalidClaimsException(
+            "authorization_details claim missing, and synthetic reportees NOT allowed");
     }
 
     private OidcUser mapAnsattportenUser(OidcUser oidcUser) throws OAuth2AuthenticationException {
-        ResponseAuthorizationDetails responseAuthzDetails =
-            getAndValidateAuthzDetailsClaim(oidcUser.getIdToken());
 
-        if (responseAuthzDetails.reportees().size() != 1) {
-            throw new InvalidClaimsException(
-                "Expected exactly 1 reportee, found %s".formatted(
-                    responseAuthzDetails.reportees().size()));
-        }
-
-        ReporteeAuthority reportee = toSelfServiceReporteeWithSectorInfo(
-            responseAuthzDetails.reportees().getFirst());
         Set<GrantedAuthority> authorities = new HashSet<>(oidcUser.getAuthorities());
+        ReporteeAuthority reportee = getReporteeAuthorityForOidcUser(oidcUser);
         authorities.add(reportee);
 
-        String name = "%s - %s".formatted(oidcUser.getClaim("name"), reportee.name());
+        String username = oidcUser.getClaim(oidcUser.hasClaim("name") ? "name" : "pid");
+        String name = username != null
+                          ? "%s - %s".formatted(username, reportee.name())
+                          : reportee.name();
         return new OidcUserWithCustomName(authorities,
                                           oidcUser.getIdToken(),
                                           oidcUser.getUserInfo(),
