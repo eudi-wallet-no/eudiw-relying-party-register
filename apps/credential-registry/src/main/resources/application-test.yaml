@@ -1,0 +1,8 @@
+---
+spring:
+  application:
+    environment: test
+
+credential-register:
+  credential-issuer-servers:
+    - https://utsteder.test.eidas2sandkasse.net/

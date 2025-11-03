@@ -1,0 +1,29 @@
+---
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: digital-lommebok-credential-register
+    environment: default
+
+
+# Spring Boot Actuator
+management:
+  server:
+    port: 8090
+  endpoints:
+    web:
+      exposure:
+        include: info,version,prometheus,health
+      base-path: /
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.application.environment}
