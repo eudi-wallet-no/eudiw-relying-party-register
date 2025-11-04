@@ -4,10 +4,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenProperties.RequestAuthorizationDetails;
 import no.idporten.validators.orgnr.Orgnr;
 import org.springframework.boot.context.properties.bind.ConstructorBinding;
 
 import java.util.List;
+import java.util.Objects;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record ResponseAuthorizationDetails(
@@ -38,5 +40,9 @@ public record ResponseAuthorizationDetails(
             this.name = name;
             this.orgno = orgno.replaceFirst("^.*:", "");
         }
+    }
+    public boolean matches(RequestAuthorizationDetails requestAuthorizationDetails) {
+        return Objects.equals(type, requestAuthorizationDetails.getType())
+            && Objects.equals(resource, requestAuthorizationDetails.getResource());
     }
 }

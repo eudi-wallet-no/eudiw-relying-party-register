@@ -16,3 +16,12 @@ eudiw-admin-web:
   security:
     ansattporten:
       allow-synthetic-reportee: true
+      request-authorization-details:
+        - type: ansattporten:altinn:service
+          resource: urn:altinn:resource:5613:1
+        - type: ansattporten:altinn:service
+          resource: urn:altinn:resource:5621:1
+        - type: ansattporten:altinn:service
+          resource: urn:altinn:resource:5622:1
+        - type: ansattporten:altinn:service
+          resource: urn:altinn:resource:6061:1

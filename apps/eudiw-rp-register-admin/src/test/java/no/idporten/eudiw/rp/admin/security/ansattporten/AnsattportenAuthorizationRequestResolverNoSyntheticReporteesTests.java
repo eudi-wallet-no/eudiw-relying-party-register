@@ -1,16 +1,13 @@
 package no.idporten.eudiw.rp.admin.security.ansattporten;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import no.idporten.eudiw.rp.admin.exception.AdminServiceException;
 import no.idporten.eudiw.rp.admin.security.SecurityTestUtils;
-import no.idporten.eudiw.rp.admin.service.syntheticreportees.SyntheticReporteeProvider;
 import no.idporten.eudiw.rp.admin.web.security.OAuth2Constants;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenAuthorizationRequestResolver;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenProperties;
-import no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails.RequestAuthorizationDetails;
+import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenProperties.RequestAuthorizationDetails;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +17,8 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequ
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -55,18 +54,19 @@ public class AnsattportenAuthorizationRequestResolverNoSyntheticReporteesTests {
 
         OAuth2AuthorizationRequest spiedOauthRequest = oauthRequestCaptor.getResult();
 
-        RequestAuthorizationDetails spiedRequestAuthzDetailsAttribute =
+        List<RequestAuthorizationDetails> spiedRequestAuthzDetailsAttribute =
             spiedOauthRequest.getAttribute(OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER);
 
-        RequestAuthorizationDetails spiedRequestAuthzDetailsParameter = new ObjectMapper().readValue(
-            spiedOauthRequest.getAdditionalParameters()
-                             .get(OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER)
-                             .toString(),
-            RequestAuthorizationDetails[].class)[0];
+        List<RequestAuthorizationDetails> spiedRequestAuthzDetailsParameter =
+            new ObjectMapper().readValue(
+                spiedOauthRequest.getAdditionalParameters()
+                                 .get(OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER)
+                                 .toString(),
+                new TypeReference<>() { });
 
         assertAll(
-            () -> assertEquals(ansattportenProperties.authorizationDetails(), spiedRequestAuthzDetailsAttribute),
-            () -> assertEquals(ansattportenProperties.authorizationDetails(), spiedRequestAuthzDetailsParameter)
+            () -> assertEquals(ansattportenProperties.getRequestAuthorizationDetails(), spiedRequestAuthzDetailsAttribute),
+            () -> assertEquals(ansattportenProperties.getRequestAuthorizationDetails(), spiedRequestAuthzDetailsParameter)
         );
     }
 }

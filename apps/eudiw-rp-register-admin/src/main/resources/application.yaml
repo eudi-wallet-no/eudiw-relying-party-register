@@ -63,12 +63,14 @@ eudiw-admin-web:
     entra:
       write-access: ${WRITE_ACCESS}
     ansattporten:
-      authorization-details:
-        type: ansattporten:altinn:service
-        resource: urn:altinn:resource:2480:40
-        representation-is-required: true
+      request-authorization-details:
+        - type: ansattporten:altinn:service
+          resource: urn:altinn:resource:5613:1
+        - type: ansattporten:altinn:service
+          resource: urn:altinn:resource:5621:1
+        - type: ansattporten:altinn:service
+          resource: urn:altinn:resource:5622:1
       allow-synthetic-reportee: false
-
 
 external-dependency-health-checks:
   health-endpoints:
