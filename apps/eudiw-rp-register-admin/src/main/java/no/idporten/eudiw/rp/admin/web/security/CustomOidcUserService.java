@@ -33,8 +33,10 @@ public class CustomOidcUserService extends OidcUserService {
     private final EnhetsregisteretService enhetsregisteretService;
     private final SyntheticReporteeProvider syntheticReporteeProvider;
 
-    private ResponseAuthorizationDetails.Reportee
-    getAndValidateReporteeAuthorityClaim(OidcIdToken idToken) {
+    private static final ObjectMapper om = new ObjectMapper();
+
+    private List<ResponseAuthorizationDetails> parseAuthorizationDetailsFromIdToken(
+        OidcIdToken idToken) {
         if (!idToken.hasClaim(OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER)) {
             throw new InvalidClaimsException(
                 "authorization_details claim expected but missing");
@@ -42,33 +44,43 @@ public class CustomOidcUserService extends OidcUserService {
         List<Map<String, Object>> authzDetailsClaim =
             idToken.getClaim(OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER);
 
-        List<ResponseAuthorizationDetails> authzDetails;
         try {
-            ObjectMapper om = new ObjectMapper();
-            authzDetails =
-                authzDetailsClaim
-                    .stream()
-                    .map(map -> om.convertValue(map, ResponseAuthorizationDetails.class))
-                    .toList();
+            return authzDetailsClaim
+                .stream()
+                .map(map -> om.convertValue(map, ResponseAuthorizationDetails.class))
+                .toList();
         } catch (IllegalArgumentException e) {
             throw new InvalidClaimsException("Ill-formed authz details claims", e);
         }
-        if (authzDetails.size() != 1) {
-            throw new InvalidClaimsException(
-                "Expected exactly 1 authorization_details in token, found %s"
-                    .formatted(authzDetails.size()));
+    }
+
+    private boolean isValidAuthorizationDetailsWithReportees(
+        ResponseAuthorizationDetails authorizationDetails) {
+        boolean hasRecognizedTypeAndResource =
+            ansattportenProperties.getRequestAuthorizationDetails()
+                                  .stream()
+                                  .anyMatch(authorizationDetails::matches);
+        boolean hasReportee =
+            authorizationDetails.reportees() != null
+                && !authorizationDetails.reportees().isEmpty();
+        return hasRecognizedTypeAndResource && hasReportee;
+    }
+
+    private ResponseAuthorizationDetails.Reportee
+    getAndValidateReporteeAuthorityClaim(OidcIdToken idToken) {
+        List<ResponseAuthorizationDetails> authzDetails =
+            parseAuthorizationDetailsFromIdToken(idToken);
+        if (authzDetails.isEmpty()) {
+            throw new InvalidClaimsException("authorization_details found but empty");
         }
-        List<ResponseAuthorizationDetails.Reportee> reportees =
-            authzDetails.getFirst().reportees();
-        if (reportees == null) {
-            throw new InvalidClaimsException("No reportees found in authorization_details");
-        }
-        if (reportees.size() != 1) {
-            throw new InvalidClaimsException(
-                "Expected exactly 1 reportee in authorization_details claim, found %s"
-                    .formatted(reportees.size()));
-        }
-        return reportees.getFirst();
+        ResponseAuthorizationDetails firstValidAuthzDetailsWithReportees =
+            authzDetails.stream()
+                        .filter(this::isValidAuthorizationDetailsWithReportees)
+                        .findAny()
+                        .orElseThrow(
+                            () -> new InvalidClaimsException(
+                                "Found no valid authorization_details with reportees"));
+        return firstValidAuthzDetailsWithReportees.reportees().getFirst();
     }
 
     private ReporteeAuthority getReporteeAuthorityForOidcUser(OidcUser oidcUser) {
@@ -86,7 +98,7 @@ public class CustomOidcUserService extends OidcUserService {
             return new ReporteeAuthority(
                 reportee.orgno(), reportee.name(), isPublicSector);
         }
-        if (ansattportenProperties.allowSyntheticReportee()) {
+        if (ansattportenProperties.isAllowSyntheticReportee()) {
             String userId = oidcUser.getIdToken().getClaim("pid");
             return syntheticReporteeProvider.getSyntheticReporteeAuthority(userId);
         }

@@ -60,7 +60,7 @@ public class AnsattportenAuthorizationRequestResolver
 
         addPkce(attributes, additionalParameters);
 
-        if (!ansattportenProperties.allowSyntheticReportee()
+        if (!ansattportenProperties.isAllowSyntheticReportee()
                 || !"true".equals(httpRequest.getParameter("use_synthetic_reportee"))) {
             addAuthorizationDetails(attributes, additionalParameters);
         }
@@ -76,13 +76,13 @@ public class AnsattportenAuthorizationRequestResolver
                                          Map<String, Object> additionalParameters) {
         attributes.put(
             OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER,
-            ansattportenProperties.authorizationDetails());
+            ansattportenProperties.getRequestAuthorizationDetails());
 
-        String authDetailsListString =
+        String authzDetailsString =
             new ObjectMapper().writeValueAsString(
-                List.of(ansattportenProperties.authorizationDetails()));
+                ansattportenProperties.getRequestAuthorizationDetails());
         additionalParameters.put(
-            OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER, authDetailsListString);
+            OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER, authzDetailsString);
     }
 
     private void addPkce(Map<String, Object> attributes,
