@@ -1,12 +1,12 @@
 package no.idporten.eudiw.rp.admin.web.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.admin.service.enhetsregisteretservice.EnhetsregisteretService;
 import no.idporten.eudiw.rp.admin.service.syntheticreportees.SyntheticReporteeProvider;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenProperties;
-import no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails.ResponseAuthorizationDetails;
+import no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails.AuthorizationDetails;
+import no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails.AuthorizationDetailsMapper;
 import no.idporten.eudiw.rp.admin.web.security.entraid.EntraIdProperties;
 import no.idporten.eudiw.rp.admin.web.security.exception.AuthenticationException;
 import no.idporten.eudiw.rp.admin.web.security.exception.InvalidClaimsException;
@@ -32,62 +32,60 @@ public class CustomOidcUserService extends OidcUserService {
     private final AnsattportenProperties ansattportenProperties;
     private final EnhetsregisteretService enhetsregisteretService;
     private final SyntheticReporteeProvider syntheticReporteeProvider;
+    private final AuthorizationDetailsMapper authorizationDetailsMapper;
 
-    private static final ObjectMapper om = new ObjectMapper();
-
-    private List<ResponseAuthorizationDetails> parseAuthorizationDetailsFromIdToken(
+    private List<AuthorizationDetails.Response> parseAuthorizationDetailsFromIdToken(
         OidcIdToken idToken) {
         if (!idToken.hasClaim(OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER)) {
             throw new InvalidClaimsException(
                 "authorization_details claim expected but missing");
         }
-        List<Map<String, Object>> authzDetailsClaim =
-            idToken.getClaim(OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER);
-
         try {
+            List<Map<String, Object>> authzDetailsClaim =
+                idToken.getClaim(OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER);
             return authzDetailsClaim
                 .stream()
-                .map(map -> om.convertValue(map, ResponseAuthorizationDetails.class))
+                .map(authorizationDetailsMapper::asResponse)
                 .toList();
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             throw new InvalidClaimsException("Ill-formed authz details claims", e);
         }
     }
 
     private boolean isValidAuthorizationDetailsWithReportees(
-        ResponseAuthorizationDetails authorizationDetails) {
+        AuthorizationDetails.Response authorizationDetails) {
         boolean hasRecognizedTypeAndResource =
             ansattportenProperties.getRequestAuthorizationDetails()
                                   .stream()
-                                  .anyMatch(authorizationDetails::matches);
+                                  .anyMatch(authorizationDetails::canMatchRequest);
         boolean hasReportee =
-            authorizationDetails.reportees() != null
-                && !authorizationDetails.reportees().isEmpty();
+            authorizationDetails.getReportees() != null
+                && !authorizationDetails.getReportees().isEmpty();
         return hasRecognizedTypeAndResource && hasReportee;
     }
 
-    private ResponseAuthorizationDetails.Reportee
+    private AuthorizationDetails.Response.Reportee
     getAndValidateReporteeAuthorityClaim(OidcIdToken idToken) {
-        List<ResponseAuthorizationDetails> authzDetails =
+        List<AuthorizationDetails.Response> authzDetails =
             parseAuthorizationDetailsFromIdToken(idToken);
         if (authzDetails.isEmpty()) {
             throw new InvalidClaimsException("authorization_details found but empty");
         }
-        ResponseAuthorizationDetails firstValidAuthzDetailsWithReportees =
+        AuthorizationDetails.Response firstValidAuthzDetailsWithReportees =
             authzDetails.stream()
                         .filter(this::isValidAuthorizationDetailsWithReportees)
                         .findAny()
                         .orElseThrow(
                             () -> new InvalidClaimsException(
                                 "Found no valid authorization_details with reportees"));
-        return firstValidAuthzDetailsWithReportees.reportees().getFirst();
+        return firstValidAuthzDetailsWithReportees.getReportees().getFirst();
     }
 
     private ReporteeAuthority getReporteeAuthorityForOidcUser(OidcUser oidcUser) {
         if (oidcUser.getIdToken().hasClaim(
             OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER)) {
 
-            ResponseAuthorizationDetails.Reportee reportee =
+            AuthorizationDetails.Response.Reportee reportee =
                 getAndValidateReporteeAuthorityClaim(oidcUser.getIdToken());
             boolean isPublicSector = false;
             try {

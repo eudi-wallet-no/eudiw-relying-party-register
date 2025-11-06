@@ -6,6 +6,7 @@ import no.idporten.eudiw.rp.admin.service.syntheticreportees.SyntheticReporteePr
 import no.idporten.eudiw.rp.admin.service.syntheticreportees.InMemSyntheticReporteeService;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenAuthorizationRequestResolver;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenProperties;
+import no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails.AuthorizationDetailsMapper;
 import no.idporten.eudiw.rp.admin.web.security.entraid.EntraIdProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProperty;
 import org.springframework.context.annotation.Bean;
@@ -98,12 +99,14 @@ public class BaseSecurityConfig {
         EntraIdProperties entraIdProperties,
         AnsattportenProperties ansattportenProperties,
         EnhetsregisteretService enhetsregisteretService,
-        SyntheticReporteeProvider syntheticReporteeProvider) {
+        SyntheticReporteeProvider syntheticReporteeProvider,
+        AuthorizationDetailsMapper authorizationDetailsMapper) {
         return new CustomOidcUserService(
             entraIdProperties,
             ansattportenProperties,
             enhetsregisteretService,
-            syntheticReporteeProvider);
+            syntheticReporteeProvider,
+            authorizationDetailsMapper);
     }
 
     @Bean

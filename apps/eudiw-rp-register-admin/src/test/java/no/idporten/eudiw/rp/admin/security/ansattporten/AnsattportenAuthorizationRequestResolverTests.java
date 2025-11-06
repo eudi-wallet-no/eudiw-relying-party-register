@@ -6,7 +6,9 @@ import no.idporten.eudiw.rp.admin.web.security.OAuth2Constants;
 import no.idporten.eudiw.rp.admin.security.SecurityTestUtils;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenAuthorizationRequestResolver;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenProperties;
-import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenProperties.RequestAuthorizationDetails;
+import no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails.AltinnServiceDetails;
+import no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails.AuthorizationDetails;
+import no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails.AuthorizationDetailsMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -19,6 +21,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -33,6 +36,9 @@ public class AnsattportenAuthorizationRequestResolverTests {
     @MockitoSpyBean
     @SuppressWarnings("unused")
     private AnsattportenAuthorizationRequestResolver requestResolverSpy;
+
+    @Autowired
+    private AuthorizationDetailsMapper authorizationDetailsMapper;
 
     @Autowired
     private MockMvc mockMvc;
@@ -52,15 +58,18 @@ public class AnsattportenAuthorizationRequestResolverTests {
 
         OAuth2AuthorizationRequest spiedOauthRequest = oauthRequestCaptor.getResult();
 
-        List<RequestAuthorizationDetails> spiedRequestAuthzDetailsAttribute =
+        List<AuthorizationDetails.Request> spiedRequestAuthzDetailsAttribute =
             spiedOauthRequest.getAttribute(OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER);
 
-        List<RequestAuthorizationDetails> spiedRequestAuthzDetailsParameter =
+        List<AuthorizationDetails.Request> spiedRequestAuthzDetailsParameter =
             new ObjectMapper().readValue(
                 spiedOauthRequest.getAdditionalParameters()
                                  .get(OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER)
                                  .toString(),
-                new TypeReference<>() { });
+                new TypeReference<List<Map<String, Object>>>() { })
+                              .stream()
+                              .map(authorizationDetailsMapper::asRequest)
+                              .toList();
 
         assertAll(
             () -> assertEquals(ansattportenProperties.getRequestAuthorizationDetails(), spiedRequestAuthzDetailsAttribute),
