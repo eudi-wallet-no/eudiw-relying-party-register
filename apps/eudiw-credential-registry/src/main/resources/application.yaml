@@ -27,3 +27,9 @@ management:
     tags:
       application: ${spring.application.name}
       environment: ${spring.application.environment}
+
+credential-registry:
+  read-timeout: 3s
+  connect-timeout: 3s
+  credential-issuer-servers:
+    -https://utsteder.test.eidas2sandkasse.net/.well-known/openid-credential-issuer
