@@ -1,5 +1,6 @@
 package no.idporten.eudiw.rp.admin.web.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import no.idporten.eudiw.rp.admin.exception.AdminServiceException;
 import no.idporten.eudiw.rp.admin.service.enhetsregisteretservice.EnhetsregisteretService;
 import no.idporten.eudiw.rp.admin.service.syntheticreportees.SyntheticReporteeProvider;
@@ -137,9 +138,10 @@ public class BaseSecurityConfig {
     @Bean
     public AnsattportenAuthorizationRequestResolver ansattportenAuthorizationRequestResolver(
         OAuth2AuthorizationRequestResolver delegateAuthzRequestResolver,
-        AnsattportenProperties ansattportenProperties) {
+        AnsattportenProperties ansattportenProperties,
+        ObjectMapper objectMapper) {
         return new AnsattportenAuthorizationRequestResolver(
-            delegateAuthzRequestResolver, ansattportenProperties);
+            delegateAuthzRequestResolver, ansattportenProperties, objectMapper);
     }
 
     @Bean

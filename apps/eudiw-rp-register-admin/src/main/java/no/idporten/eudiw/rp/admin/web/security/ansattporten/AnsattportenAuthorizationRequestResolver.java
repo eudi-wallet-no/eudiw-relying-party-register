@@ -1,10 +1,13 @@
 package no.idporten.eudiw.rp.admin.web.security.ansattporten;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
+import no.idporten.eudiw.rp.admin.exception.AdminServiceException;
 import no.idporten.eudiw.rp.admin.web.security.OAuth2Constants;
+import no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails.AuthorizationDetails;
+import no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails.InvalidAuthorizationDetailsException;
 import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
 import org.springframework.security.crypto.keygen.StringKeyGenerator;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
@@ -24,6 +27,7 @@ public class AnsattportenAuthorizationRequestResolver
 
     private final OAuth2AuthorizationRequestResolver delegateResolver;
     private final AnsattportenProperties ansattportenProperties;
+    private final ObjectMapper objectMapper;
 
     @Override
     public OAuth2AuthorizationRequest resolve(HttpServletRequest request) {
@@ -53,48 +57,56 @@ public class AnsattportenAuthorizationRequestResolver
     private OAuth2AuthorizationRequest customizeAnsattportenAuthzRequest(
         HttpServletRequest httpRequest,
         OAuth2AuthorizationRequest authorizationRequest) {
-        Map<String, Object> attributes =
-            new HashMap<>(authorizationRequest.getAttributes());
-        Map<String, Object> additionalParameters =
-            new HashMap<>(authorizationRequest.getAdditionalParameters());
 
-        addPkce(attributes, additionalParameters);
+        OAuth2AuthorizationRequest.Builder builder =
+            OAuth2AuthorizationRequest.from(authorizationRequest);
+
+        builder = addPkce(builder);
 
         if (!ansattportenProperties.isAllowSyntheticReportee()
                 || !"true".equals(httpRequest.getParameter("use_synthetic_reportee"))) {
-            addAuthorizationDetails(attributes, additionalParameters);
+            builder = addAuthorizationDetails(builder);
         }
 
-        return OAuth2AuthorizationRequest.from(authorizationRequest)
-                                         .attributes(attributes)
-                                         .additionalParameters(additionalParameters)
-                                         .build();
+        return builder.build();
     }
 
-    @SneakyThrows
-    private void addAuthorizationDetails(Map<String, Object> attributes,
-                                         Map<String, Object> additionalParameters) {
-        attributes.put(
+    private OAuth2AuthorizationRequest.Builder addAuthorizationDetails(
+        OAuth2AuthorizationRequest.Builder requestBuilder) {
+
+        List<AuthorizationDetails.Request> authorizationDetails =
+            ansattportenProperties.getRequestAuthorizationDetails();
+
+        Map<String, Object> attributes = Map.of(
             OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER,
-            ansattportenProperties.getRequestAuthorizationDetails());
+            authorizationDetails);
 
-        String authzDetailsString =
-            new ObjectMapper().writeValueAsString(
-                ansattportenProperties.getRequestAuthorizationDetails());
-        additionalParameters.put(
-            OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER, authzDetailsString);
+        Map<String, Object> additionalParams = Map.of(
+            OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER,
+            requestAuthorizationDetailsToJson(authorizationDetails));
+
+        return requestBuilder.attributes(attributes)
+                             .additionalParameters(additionalParams);
     }
 
-    private void addPkce(Map<String, Object> attributes,
-                         Map<String, Object> additionalParameters) {
-        String codeVerifier = this.secureKeyGenerator.generateKey();
-        attributes.put(OAuth2Constants.OAUTH2_CODE_VERIFIER_PARAMETER, codeVerifier);
+    private OAuth2AuthorizationRequest.Builder addPkce(
+        OAuth2AuthorizationRequest.Builder requestBuilder) {
         try {
+            String codeVerifier = this.secureKeyGenerator.generateKey();
             String codeChallenge = sha256Hash(codeVerifier);
-            additionalParameters.put(OAuth2Constants.OAUTH2_CODE_CHALLENGE_PARAMETER, codeChallenge);
-            additionalParameters.put(OAuth2Constants.OAUTH2_CODE_CHALLENGE_METHOD_PARAMETER, "S256");
-        } catch (NoSuchAlgorithmException _) {
-            additionalParameters.put(OAuth2Constants.OAUTH2_CODE_CHALLENGE_PARAMETER, codeVerifier);
+
+            Map<String, Object> attributes = Map.of(
+                OAuth2Constants.OAUTH2_CODE_VERIFIER_PARAMETER, codeVerifier);
+            Map<String, Object> additionalParams = Map.of(
+                OAuth2Constants.OAUTH2_CODE_CHALLENGE_METHOD_PARAMETER, "S256",
+                OAuth2Constants.OAUTH2_CODE_CHALLENGE_PARAMETER, codeChallenge
+            );
+
+            return requestBuilder.attributes(attributes)
+                                 .additionalParameters(additionalParams);
+        } catch (NoSuchAlgorithmException e) {
+            throw new AdminServiceException(
+                "SHA-256 challenge required, but generation failed unexpectedly", e);
         }
     }
 
@@ -105,5 +117,15 @@ public class AnsattportenAuthorizationRequestResolver
         return Base64.getUrlEncoder()
                      .withoutPadding()
                      .encodeToString(sha256Digest);
+    }
+
+    private String requestAuthorizationDetailsToJson(
+        List<AuthorizationDetails.Request> requestAuthorizationDetails) {
+        try {
+            return objectMapper.writeValueAsString(requestAuthorizationDetails);
+        } catch (JsonProcessingException e) {
+            throw new InvalidAuthorizationDetailsException(
+                "Unexpected error in request authorization_details", e);
+        }
     }
 }
