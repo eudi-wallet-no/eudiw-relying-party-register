@@ -47,7 +47,7 @@ public class EnhetsregisteretServiceTests {
             String validOrgno = TestDataGenerator.generateValidOrgno();
 
             assertThrowsExactly(NotFoundException.class,
-                                () -> enhetsregisteretService.getPublicSectorForOrgno(validOrgno));
+                                () -> enhetsregisteretService.queryOrgno(validOrgno));
         }
 
         @DisplayName("then BadRequestException thrown on 400 responses from Enhetsregisteret")
@@ -59,7 +59,7 @@ public class EnhetsregisteretServiceTests {
             String invalidOrgno = "123123124";
 
             assertThrowsExactly(BadRequestException.class,
-                                () -> enhetsregisteretService.getPublicSectorForOrgno(invalidOrgno));
+                                () -> enhetsregisteretService.queryOrgno(invalidOrgno));
         }
 
         @DisplayName("then ErrorResponseException thrown on 500 responses from Enhetsregisteret")
@@ -71,7 +71,7 @@ public class EnhetsregisteretServiceTests {
             String validOrgno = TestDataGenerator.generateValidOrgno();
 
             assertThrowsExactly(ErrorResponseException.class,
-                                () -> enhetsregisteretService.getPublicSectorForOrgno(validOrgno));
+                                () -> enhetsregisteretService.queryOrgno(validOrgno));
         }
     }
 
@@ -83,9 +83,11 @@ public class EnhetsregisteretServiceTests {
         @DisplayName("then the result is false if no known public sector code was found")
         public void testPublicSectorIsFalseForNonPublicSectorSectorCodesResponse() {
 
+            String name = TestDataGenerator.generateName();
             String responseBodyJson = """
-                { "institusjonellSektorkode": { "kode": "1234,5678" } }
-            """;
+                { "institusjonellSektorkode": { "kode": "1234,5678" },
+                  "navn": "%s"}
+            """.formatted(name);
 
             MockResponse mockResponse =
                 new MockResponse()
@@ -95,18 +97,24 @@ public class EnhetsregisteretServiceTests {
             mockWebServer.enqueue(mockResponse);
 
             String validOrgno = TestDataGenerator.generateValidOrgno();
-            boolean isPublicSector = enhetsregisteretService.getPublicSectorForOrgno(validOrgno);
-            assertFalse(isPublicSector);
+            EnhetsregisteretService.EnhetsregisteretResponse response =
+                enhetsregisteretService.queryOrgno(validOrgno);
+            assertAll(
+                () -> assertEquals(name, response.name()),
+                () -> assertFalse(response.publicSector())
+            );
         }
 
         @Test
         @DisplayName("then the result is true if at least one sector code is known to be public")
         public void testPublicSectorIsTrueWhenAtLeastOneSectorCodeIsKnownToBePublic() {
 
+            String name = TestDataGenerator.generateName();
             String knownPublicSectorCode = "6100";
             String responseBodyJson = """
-                { "institusjonellSektorkode": { "kode": "1234,%s,1337" } }
-            """.formatted(knownPublicSectorCode);
+                { "institusjonellSektorkode": { "kode": "1234,%s,1337" },
+                  "navn": "%s"}
+            """.formatted(knownPublicSectorCode, name);
 
             MockResponse mockResponse =
                 new MockResponse()
@@ -116,8 +124,12 @@ public class EnhetsregisteretServiceTests {
             mockWebServer.enqueue(mockResponse);
 
             String validOrgno = TestDataGenerator.generateValidOrgno();
-            boolean isPublicSector = enhetsregisteretService.getPublicSectorForOrgno(validOrgno);
-            assertTrue(isPublicSector);
+            EnhetsregisteretService.EnhetsregisteretResponse response =
+                enhetsregisteretService.queryOrgno(validOrgno);
+            assertAll(
+                () -> assertEquals(name, response.name()),
+                () -> assertTrue(response.publicSector())
+            );
         }
     }
 }
