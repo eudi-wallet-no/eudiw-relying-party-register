@@ -48,8 +48,9 @@ public class EnhetsregisteretServiceConfig {
         return new EnhetsregisteretService(null, null) {
             private final Random rng = new Random();
             @Override
-            public boolean getPublicSectorForOrgno(String orgno) {
-                return rng.nextBoolean();
+            public EnhetsregisteretResponse queryOrgno(String orgno) {
+                String name = "RP-%s".formatted(orgno);
+                return new EnhetsregisteretResponse(name, rng.nextBoolean());
             }
         };
     }

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import no.idporten.validators.orgnr.Orgnr;
 
 import java.util.List;
 
@@ -23,12 +24,18 @@ public interface AuthorizationDetails {
 
         @JsonIgnoreProperties(ignoreUnknown = true)
         record Reportee(
-            @NotBlank
+            @NotNull
+            @Orgnr
             @JsonProperty(value = "ID", required = true)
             String orgno,
             @JsonProperty("Name")
             String name
-        ) { }
+        ) {
+            public Reportee(String orgno, String name) {
+                this.orgno = orgno.replaceFirst("^.*:", "");
+                this.name = name;
+            }
+        }
     }
 
     interface Request extends AuthorizationDetails { }

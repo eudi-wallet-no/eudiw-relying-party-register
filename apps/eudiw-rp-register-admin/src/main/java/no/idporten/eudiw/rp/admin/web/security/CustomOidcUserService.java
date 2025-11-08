@@ -87,14 +87,18 @@ public class CustomOidcUserService extends OidcUserService {
 
             AuthorizationDetails.Response.Reportee reportee =
                 getAndValidateReporteeAuthorityClaim(oidcUser.getIdToken());
+            String name = reportee.name() != null ? reportee.name() : reportee.orgno();
             boolean isPublicSector = false;
             try {
-                isPublicSector = enhetsregisteretService.getPublicSectorForOrgno(reportee.orgno());
+                EnhetsregisteretService.EnhetsregisteretResponse response =
+                    enhetsregisteretService.queryOrgno(reportee.orgno());
+                name = response.name();
+                isPublicSector = response.publicSector();
             } catch (Exception e) {
-                log.warn("Failed to get public sector info from Enhetsregisteret (defaulting FALSE)", e);
+                log.warn("Failed to get name/sector info from Enhetsregisteret "
+                             + "(using name=orgno, publicSector=FALSE)", e);
             }
-            return new ReporteeAuthority(
-                reportee.orgno(), reportee.name(), isPublicSector);
+            return new ReporteeAuthority(reportee.orgno(), name, isPublicSector);
         }
         if (ansattportenProperties.isAllowSyntheticReportee()) {
             String userId = oidcUser.getIdToken().getClaim("pid");

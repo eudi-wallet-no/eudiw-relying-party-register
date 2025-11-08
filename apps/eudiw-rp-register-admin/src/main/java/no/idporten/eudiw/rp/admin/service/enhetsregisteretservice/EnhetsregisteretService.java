@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -20,31 +21,42 @@ public class EnhetsregisteretService {
     private final RestClient enhetsregisteretRestClient;
     private final List<String> knownPublicSectorCodes;
 
-    public boolean getPublicSectorForOrgno(String orgno) {
-        EnhetsregisteretResponse response =
+    public EnhetsregisteretResponse queryOrgno(String orgno) {
+        EnhetsregisteretRawResponse response =
             enhetsregisteretRestClient.get()
                 .uri("/{orgno}", orgno)
                 .retrieve()
-                .toEntity(EnhetsregisteretResponse.class)
+                .toEntity(EnhetsregisteretRawResponse.class)
                 .getBody();
-        return Objects.requireNonNull(response) // error handler should fire before this one.
-                      .sectorCodes()
-                      .values()
-                      .stream()
-                      .anyMatch(knownPublicSectorCodes::contains);
+        Objects.requireNonNull(response); // error handler should fire before this one.
+        boolean publicSector =
+            response.sectorCodes()
+                    .values()
+                    .stream()
+                    .anyMatch(knownPublicSectorCodes::contains);
+        return new EnhetsregisteretResponse(response.name(), publicSector);
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
     public record EnhetsregisteretResponse(
+        String name,
+        boolean publicSector
+    ) { }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private record EnhetsregisteretRawResponse(
         @Valid
         @NotNull
         @JsonProperty("institusjonellSektorkode")
-        SectorCodes sectorCodes
+        SectorCodes sectorCodes,
+        @Valid
+        @NotBlank
+        @JsonProperty("navn")
+        String name
     ) {
         // brreg API specifies institusjonellSektorKode.kode as a comma-separated
         // string of 1 or more 4-digit sector codes.
         @JsonIgnoreProperties(ignoreUnknown = true)
-        public record SectorCodes(
+        private record SectorCodes(
             @NotEmpty
             List<@Pattern(regexp = "\\d{4}") String> values
         ) {
