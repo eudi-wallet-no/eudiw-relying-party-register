@@ -2,15 +2,16 @@ package no.idporten.eudiw.rp.admin.security.ansattporten;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import no.idporten.eudiw.rp.admin.security.SecurityTestUtils;
 import no.idporten.eudiw.rp.admin.web.security.OAuth2Constants;
+import no.idporten.eudiw.rp.admin.security.SecurityTestUtils;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenAuthorizationRequestResolver;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenProperties;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails.AuthorizationDetails;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails.AuthorizationDetailsMapper;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,15 +27,18 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
-@SpringBootTest(properties = "eudiw-admin-web.security.ansattporten.allow-synthetic-reportee=false")
+@SpringBootTest(properties = "eudiw-admin-web.security.ansattporten.allow-synthetic-reportee=true")
 @AutoConfigureMockMvc
 @ActiveProfiles("local-security-test")
-@DisplayName("When resolving authz requests with synthetic reportees DISABLED")
-public class AnsattportenAuthorizationRequestResolverNoSyntheticReporteesTests {
+@DisplayName("When resolving authz requests with synthetic reportees ENABLED")
+public class AnsattportenAuthorizationRequestResolverWithSyntheticReporteesTests {
 
     @MockitoSpyBean
     @SuppressWarnings("unused")
     private AnsattportenAuthorizationRequestResolver requestResolverSpy;
+
+    @Autowired
+    private AuthorizationDetailsMapper authorizationDetailsMapper;
 
     @Autowired
     private MockMvc mockMvc;
@@ -42,20 +46,20 @@ public class AnsattportenAuthorizationRequestResolverNoSyntheticReporteesTests {
     @Autowired
     private AnsattportenProperties ansattportenProperties;
 
-    @Autowired
-    private AuthorizationDetailsMapper authorizationDetailsMapper;
+    @BeforeAll
+    public static void assertProperties(@Autowired AnsattportenProperties ansattportenProperties) {
+        assertTrue(ansattportenProperties.isAllowSyntheticReportee());
+    }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"/oauth2/authorization/ansattporten?use_synthetic_reportee=true",
-                            "/oauth2/authorization/ansattporten"})
-    @DisplayName("then resolver ignores use_synthetic_reportee and always adds authz details for Ansattporten requests")
-    public void testRequestResolverIgnoresUseSyntheticReporteeForForAnsattportenRequests(String requestUri)
+    @Test
+    @DisplayName("then resolver adds authz details for Ansattporten requests without use_synthetic_reportee")
+    public void testRequestResolverAddsAuthzDetailsForAnsattportenRequests()
         throws Exception {
         SecurityTestUtils.ResultCaptor<OAuth2AuthorizationRequest> oauthRequestCaptor =
             new SecurityTestUtils.ResultCaptor<>();
         doAnswer(oauthRequestCaptor).when(requestResolverSpy).resolve(any());
 
-        mockMvc.perform(get(requestUri));
+        mockMvc.perform(get("/oauth2/authorization/ansattporten"));
 
         OAuth2AuthorizationRequest spiedOauthRequest = oauthRequestCaptor.getResult();
 
@@ -75,6 +79,29 @@ public class AnsattportenAuthorizationRequestResolverNoSyntheticReporteesTests {
         assertAll(
             () -> assertEquals(ansattportenProperties.getRequestAuthorizationDetails(), spiedRequestAuthzDetailsAttribute),
             () -> assertEquals(ansattportenProperties.getRequestAuthorizationDetails(), spiedRequestAuthzDetailsParameter)
+        );
+    }
+
+
+    @Test
+    @DisplayName("then resolver does not add authorization_details")
+    public void testRequestResolverDoesNotAddAuthzDetailsForAnsattportenRequestsWithUseSyntheticReporteeTrue()
+        throws Exception {
+
+        SecurityTestUtils.ResultCaptor<OAuth2AuthorizationRequest> oauthRequestCaptor =
+            new SecurityTestUtils.ResultCaptor<>();
+        doAnswer(oauthRequestCaptor).when(requestResolverSpy).resolve(any());
+
+        mockMvc.perform(get("/oauth2/authorization/ansattporten?use_synthetic_reportee=true"));
+
+        OAuth2AuthorizationRequest spiedOauthRequest = oauthRequestCaptor.getResult();
+
+        assertAll(
+            () -> assertNotNull(spiedOauthRequest),
+            () -> assertFalse(spiedOauthRequest.getAttributes().containsKey(
+                OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER)),
+            () -> assertFalse(spiedOauthRequest.getAdditionalParameters().containsKey(
+                OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER))
         );
     }
 }
