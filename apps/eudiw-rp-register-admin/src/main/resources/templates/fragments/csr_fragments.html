@@ -35,15 +35,15 @@
     </button>
 </form>
 
-<!--/*@thymesVar id="csrFormAttr" type="no.idporten.eudiw.rp.admin.web.form.CsrIssuerForm"*/-->
-<!--/*@thymesVar id="detailedViewDataAttr" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
 <form th:fragment="issuer_csr_form_fragment(id)"
       th:object="${csrFormAttr}"
       th:action="@{|/csr/issuer/${id}|}"
       method="POST">
+    <!--/*@thymesVar id="csrFormAttr" type="no.idporten.eudiw.rp.admin.web.form.CsrIssuerForm"*/-->
+    <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
 
     <fieldset
-            th:if="${!#lists.isEmpty(rp.getValidEntitlementsForIssuerCertificates)}"
+            th:if="${rp.hasIssuerEntitlements()}"
             class="ds-fieldset"
             style="margin-bottom: 1.5rem;"
     >
@@ -52,14 +52,13 @@
             Vel rolle
         </legend>
 
-        <div th:each="e, iter : ${rp.getValidEntitlementsForIssuerCertificates}" class="ds-field">
-            <input
-                    class="ds-input"
-                    type="radio"
-                    th:field="*{entitlement}"
-                    th:id="${'entitlement-' + iter.index}"
-                    th:value="${e.entitlement}" />
-            <label class="ds-label" th:for="${'entitlement-' + iter.index}" th:text="${e.entitlement}"></label>
+        <div th:each="e : ${rp.getIssuerEntitlements()}" class="ds-field">
+            <input class="ds-input"
+                   type="radio"
+                   th:field="*{entitlement}"
+                   th:id="|id-${e.entitlement()}|"
+                   th:value="${e.entitlement}" />
+            <label class="ds-label" th:for="|id-${e.entitlement()}|" th:text="${e.entitlement}"></label>
         </div>
     </fieldset>
 

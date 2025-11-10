@@ -9,19 +9,18 @@ import java.util.List;
 @With
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record CreateRelyingPartyResource(
+    @JsonProperty(value = "org_nr", required = true)
+    String orgno,
 
-        @JsonProperty(value = "org_nr", required = true)
-        String orgno,
+    @JsonProperty(value = "name", required = true)
+    String name,
 
-        @JsonProperty(value = "name", required = true)
-        String name,
+    @JsonProperty(value = "public_sector", required = true)
+    boolean publicSector,
 
-        @JsonProperty(value = "public_sector", required = true)
-        boolean publicSector,
+    @JsonProperty("relying_party_entitlements")
+    List<RelyingPartyEntitlementResource> relyingPartyEntitlements,
 
-        @JsonProperty("relying_party_entitlements")
-        List<RelyingPartyEntitlementResource> relyingPartyEntitlements,
-
-        @JsonProperty("relying_party_eaas")
-        List<RelyingPartyEaaResource> relyingPartyEaas
+    @JsonProperty("relying_party_eaas")
+    List<RelyingPartyEaaResource> relyingPartyEaas
 ) { }

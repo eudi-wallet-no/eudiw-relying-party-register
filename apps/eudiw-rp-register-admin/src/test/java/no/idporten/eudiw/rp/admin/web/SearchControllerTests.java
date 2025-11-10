@@ -47,7 +47,7 @@ public class SearchControllerTests {
 
                     List<RelyingPartyResource> content =
                         List.of(ResourceGenerator.generateRelyingPartyResource()
-                                                 .withName(searchResource.searchTerm()));
+                                                 .withName(searchResource.getSearchTerm()));
                     return ResourceGenerator.generatePageResponse(content);
                 });
         }

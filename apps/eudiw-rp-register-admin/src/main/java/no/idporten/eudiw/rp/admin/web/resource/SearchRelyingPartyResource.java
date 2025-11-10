@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import lombok.experimental.Accessors;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEntitlementFormField;
 import no.idporten.eudiw.rp.admin.web.form.SearchForm;
 
@@ -16,7 +15,6 @@ import java.util.List;
 @NoArgsConstructor
 @EqualsAndHashCode
 @Getter
-@Accessors(fluent = true)
 public class SearchRelyingPartyResource {
     public final static int DEFAULT_PAGE_SIZE = 25;
     public final static RelyingPartyOrdering DEFAULT_ORDERING = RelyingPartyOrdering.UNSORTED;
