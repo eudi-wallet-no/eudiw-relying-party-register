@@ -12,4 +12,7 @@ public class AuthConstants {
     public static final String ACR_VALUES_PARAMETER = "acr_values";
     public static final String ACR_ENTRAID_VALUE = "entraid";
     public static final String ACR_SUBSTANTIAL_VALUE = "substantial";
+
+    public static final String PROMPT_PARAMETER = "prompt";
+    public static final String PROMPT_LOGIN_VALUE = "login";
 }
