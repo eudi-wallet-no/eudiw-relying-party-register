@@ -36,13 +36,13 @@ public class CustomOidcUserService extends OidcUserService {
 
     private List<AuthorizationDetails.Response> getAuthorizationDetailsForOidcUser(
         OidcUser oidcUser) {
-        if (!oidcUser.hasClaim(OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER)) {
+        if (!oidcUser.hasClaim(AuthConstants.AUTHORIZATION_DETAILS_PARAMETER)) {
             throw new InvalidClaimsException(
                 "authorization_details claim expected but missing");
         }
         try {
             List<Map<String, Object>> authzDetailsClaim =
-                oidcUser.getClaim(OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER);
+                oidcUser.getClaim(AuthConstants.AUTHORIZATION_DETAILS_PARAMETER);
             return authzDetailsClaim
                 .stream()
                 .map(authorizationDetailsMapper::asResponse)
@@ -83,7 +83,7 @@ public class CustomOidcUserService extends OidcUserService {
     }
 
     private ReporteeAuthority getReporteeAuthorityForOidcUser(OidcUser oidcUser, boolean isEntraIdUser) {
-        if (oidcUser.hasClaim(OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER)) {
+        if (oidcUser.hasClaim(AuthConstants.AUTHORIZATION_DETAILS_PARAMETER)) {
 
             AuthorizationDetails.Response.Reportee reportee =
                 getAndValidateReporteeClaim(oidcUser, isEntraIdUser);
@@ -117,8 +117,9 @@ public class CustomOidcUserService extends OidcUserService {
         Set<GrantedAuthority> authorities = new HashSet<>(oidcUser.getAuthorities());
 
         boolean isEntraIdUser =
-            oidcUser.hasClaim("acr")
-                && oidcUser.getClaimAsString("acr").contains("entraid");
+            oidcUser.hasClaim(AuthConstants.ACR_PARAMETER)
+                && oidcUser.getClaimAsString(AuthConstants.ACR_PARAMETER)
+                           .contains(AuthConstants.ACR_ENTRAID_VALUE);
         if (isEntraIdUser && !ansattportenProperties.isAllowEntraId()) {
             throw new AuthenticationException(
                 OAuth2ErrorCodes.ACCESS_DENIED, "Ansattporten EntraID not accepted");

@@ -3,7 +3,7 @@ package no.idporten.eudiw.rp.admin.security.ansattporten;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.idporten.eudiw.rp.admin.security.SecurityTestUtils;
-import no.idporten.eudiw.rp.admin.web.security.OAuth2Constants;
+import no.idporten.eudiw.rp.admin.web.security.AuthConstants;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenAuthorizationRequestResolver;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenProperties;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails.AuthorizationDetails;
@@ -67,12 +67,12 @@ public class AnsattportenAuthorizationRequestResolverTests {
         OAuth2AuthorizationRequest spiedOauthRequest = oauthRequestCaptor.getResult();
 
         List<AuthorizationDetails.Request> spiedRequestAuthzDetailsAttribute =
-            spiedOauthRequest.getAttribute(OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER);
+            spiedOauthRequest.getAttribute(AuthConstants.AUTHORIZATION_DETAILS_PARAMETER);
 
         List<AuthorizationDetails.Request> spiedRequestAuthzDetailsParameter =
             new ObjectMapper().readValue(
                 spiedOauthRequest.getAdditionalParameters()
-                                 .get(OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER)
+                                 .get(AuthConstants.AUTHORIZATION_DETAILS_PARAMETER)
                                  .toString(),
                 new TypeReference<List<Map<String, Object>>>() { })
                               .stream()
@@ -101,24 +101,24 @@ public class AnsattportenAuthorizationRequestResolverTests {
         OAuth2AuthorizationRequest spiedOauthRequest = oauthRequestCaptor.getResult();
 
         List<AuthorizationDetails.Request> spiedRequestAuthzDetailsAttribute =
-            spiedOauthRequest.getAttribute(OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER);
+            spiedOauthRequest.getAttribute(AuthConstants.AUTHORIZATION_DETAILS_PARAMETER);
 
         List<AuthorizationDetails.Request> spiedRequestAuthzDetailsParameter =
             new ObjectMapper().readValue(
                                   spiedOauthRequest.getAdditionalParameters()
-                                                   .get(OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER)
+                                                   .get(AuthConstants.AUTHORIZATION_DETAILS_PARAMETER)
                                                    .toString(),
                                   new TypeReference<List<Map<String, Object>>>() { })
                               .stream()
                               .map(authorizationDetailsMapper::asRequest)
                               .toList();
 
-        String acrValuesAttribute = spiedOauthRequest.getAttribute("acr_values");
-        String acrValuesParameter = (String) spiedOauthRequest.getAdditionalParameters().get("acr_values");
+        String acrValuesAttribute = spiedOauthRequest.getAttribute(AuthConstants.ACR_VALUES_PARAMETER);
+        String acrValuesParameter = (String) spiedOauthRequest.getAdditionalParameters().get(AuthConstants.ACR_VALUES_PARAMETER);
 
         assertAll(
-            () -> assertTrue(acrValuesAttribute == null || !acrValuesAttribute.contains("entraid")),
-            () -> assertTrue(acrValuesParameter == null || !acrValuesParameter.contains("entraid")),
+            () -> assertTrue(acrValuesAttribute == null || !acrValuesAttribute.contains(AuthConstants.ACR_ENTRAID_VALUE)),
+            () -> assertTrue(acrValuesParameter == null || !acrValuesParameter.contains(AuthConstants.ACR_ENTRAID_VALUE)),
             () -> assertEquals(ansattportenProperties.getRequestAuthorizationDetails(), spiedRequestAuthzDetailsAttribute),
             () -> assertEquals(ansattportenProperties.getRequestAuthorizationDetails(), spiedRequestAuthzDetailsParameter)
         );
