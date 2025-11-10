@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.rp.admin.exception.AdminServiceException;
-import no.idporten.eudiw.rp.admin.web.security.OAuth2Constants;
+import no.idporten.eudiw.rp.admin.web.security.AuthConstants;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails.AuthorizationDetails;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails.InvalidAuthorizationDetailsException;
 import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
@@ -85,11 +85,11 @@ public class AnsattportenAuthorizationRequestResolver
             ansattportenProperties.getRequestAuthorizationDetails();
 
         Map<String, Object> attributes = Map.of(
-            OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER,
+            AuthConstants.AUTHORIZATION_DETAILS_PARAMETER,
             authorizationDetails);
 
         Map<String, Object> additionalParams = Map.of(
-            OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER,
+            AuthConstants.AUTHORIZATION_DETAILS_PARAMETER,
             requestAuthorizationDetailsToJson(authorizationDetails));
 
         return requestBuilder.attributes(attributes)
@@ -103,10 +103,10 @@ public class AnsattportenAuthorizationRequestResolver
             String codeChallenge = sha256Hash(codeVerifier);
 
             Map<String, Object> attributes = Map.of(
-                OAuth2Constants.OAUTH2_CODE_VERIFIER_PARAMETER, codeVerifier);
+                AuthConstants.CODE_VERIFIER_PARAMETER, codeVerifier);
             Map<String, Object> additionalParams = Map.of(
-                OAuth2Constants.OAUTH2_CODE_CHALLENGE_METHOD_PARAMETER, "S256",
-                OAuth2Constants.OAUTH2_CODE_CHALLENGE_PARAMETER, codeChallenge
+                AuthConstants.CODE_CHALLENGE_METHOD_PARAMETER, AuthConstants.CODE_CHALLENGE_METHOD_S256,
+                AuthConstants.CODE_CHALLENGE_PARAMETER, codeChallenge
             );
 
             return requestBuilder.attributes(attributes)
@@ -119,19 +119,20 @@ public class AnsattportenAuthorizationRequestResolver
 
     private OAuth2AuthorizationRequest.Builder addEntraIdParameters(
         OAuth2AuthorizationRequest.Builder requestBuilder) {
-        String acrValues = "entraid";
         List<AuthorizationDetails.Request> authorizationDetails =
             ansattportenProperties.getEntraIdRequestAuthorizationDetails();
 
         Map<String, Object> attributes = Map.of(
-            OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER,
+            AuthConstants.AUTHORIZATION_DETAILS_PARAMETER,
             authorizationDetails,
-            "acr_values", acrValues);
+            AuthConstants.ACR_VALUES_PARAMETER,
+            AuthConstants.ACR_ENTRAID_VALUE);
 
         Map<String, Object> additionalParams = Map.of(
-            OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER,
+            AuthConstants.AUTHORIZATION_DETAILS_PARAMETER,
             requestAuthorizationDetailsToJson(authorizationDetails),
-            "acr_values", acrValues);
+            AuthConstants.ACR_VALUES_PARAMETER,
+            AuthConstants.ACR_ENTRAID_VALUE);
 
         return requestBuilder.attributes(attributes)
                              .additionalParameters(additionalParams);
