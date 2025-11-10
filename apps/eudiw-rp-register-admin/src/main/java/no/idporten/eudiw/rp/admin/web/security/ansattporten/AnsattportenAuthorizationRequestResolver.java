@@ -61,7 +61,7 @@ public class AnsattportenAuthorizationRequestResolver
         OAuth2AuthorizationRequest.Builder builder =
             OAuth2AuthorizationRequest.from(authorizationRequest);
 
-        builder = addPkce(builder);
+        builder = addBaseAnsattportenAuthorizationParameters(builder);
 
         boolean entraIdRequested = "true".equals(httpRequest.getParameter("use_entra_id"));
         boolean syntheticReporteeRequested =
@@ -96,25 +96,28 @@ public class AnsattportenAuthorizationRequestResolver
                              .additionalParameters(additionalParams);
     }
 
-    private OAuth2AuthorizationRequest.Builder addPkce(
+    private OAuth2AuthorizationRequest.Builder addBaseAnsattportenAuthorizationParameters(
         OAuth2AuthorizationRequest.Builder requestBuilder) {
+
+        Map<String, Object> attributes = new HashMap<>();
+        attributes.put(AuthConstants.PROMPT_PARAMETER, AuthConstants.PROMPT_LOGIN_VALUE);
+
+        Map<String, Object> additionalParams = new HashMap<>(attributes);
+
         try {
             String codeVerifier = this.secureKeyGenerator.generateKey();
             String codeChallenge = sha256Hash(codeVerifier);
 
-            Map<String, Object> attributes = Map.of(
-                AuthConstants.CODE_VERIFIER_PARAMETER, codeVerifier);
-            Map<String, Object> additionalParams = Map.of(
-                AuthConstants.CODE_CHALLENGE_METHOD_PARAMETER, AuthConstants.CODE_CHALLENGE_METHOD_S256,
-                AuthConstants.CODE_CHALLENGE_PARAMETER, codeChallenge
-            );
-
-            return requestBuilder.attributes(attributes)
-                                 .additionalParameters(additionalParams);
+            attributes.put(AuthConstants.CODE_VERIFIER_PARAMETER, codeVerifier);
+            additionalParams.put(AuthConstants.CODE_CHALLENGE_PARAMETER, codeChallenge);
+            additionalParams.put(AuthConstants.CODE_CHALLENGE_METHOD_PARAMETER, AuthConstants.CODE_CHALLENGE_METHOD_S256);
         } catch (NoSuchAlgorithmException e) {
             throw new AdminServiceException(
                 "SHA-256 challenge required, but generation failed unexpectedly", e);
         }
+
+        return requestBuilder.attributes(attributes)
+                             .additionalParameters(additionalParams);
     }
 
     private OAuth2AuthorizationRequest.Builder addEntraIdParameters(

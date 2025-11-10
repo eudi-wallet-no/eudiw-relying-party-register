@@ -123,4 +123,41 @@ public class AnsattportenAuthorizationRequestResolverTests {
             () -> assertEquals(ansattportenProperties.getRequestAuthorizationDetails(), spiedRequestAuthzDetailsParameter)
         );
     }
+
+    @Test
+    @DisplayName("then resolver adds basic authz parameters to Ansattporten requests")
+    public void testRequestResolverAddsBasicAuthzParameters() throws Exception {
+
+        String requestUri = "/oauth2/authorization/ansattporten";
+
+        SecurityTestUtils.ResultCaptor<OAuth2AuthorizationRequest> oauthRequestCaptor =
+            new SecurityTestUtils.ResultCaptor<>();
+        doAnswer(oauthRequestCaptor).when(requestResolverSpy).resolve(any());
+
+        mockMvc.perform(get(requestUri));
+
+        OAuth2AuthorizationRequest spiedOauthRequest = oauthRequestCaptor.getResult();
+
+        String promptAttribute = spiedOauthRequest.getAttribute(AuthConstants.PROMPT_PARAMETER);
+        String promptParameter = (String) spiedOauthRequest.getAdditionalParameters().get(AuthConstants.PROMPT_PARAMETER);
+
+        String codeVerifierAttribute = spiedOauthRequest.getAttribute(AuthConstants.CODE_VERIFIER_PARAMETER);
+
+        String codeChallengeParameter =
+            (String) spiedOauthRequest.getAdditionalParameters()
+                                      .get(AuthConstants.CODE_CHALLENGE_PARAMETER);
+        String codeChallengeMethodParameter =
+            (String) spiedOauthRequest.getAdditionalParameters()
+                                      .get(AuthConstants.CODE_CHALLENGE_METHOD_PARAMETER);
+
+        assertAll(
+            () -> assertEquals(AuthConstants.PROMPT_LOGIN_VALUE, promptAttribute),
+            () -> assertEquals(AuthConstants.PROMPT_LOGIN_VALUE, promptParameter),
+
+            () -> assertNotNull(codeVerifierAttribute),
+
+            () -> assertNotNull(codeChallengeParameter),
+            () -> assertEquals(AuthConstants.CODE_CHALLENGE_METHOD_S256, codeChallengeMethodParameter)
+        );
+    }
 }
