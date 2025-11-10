@@ -58,7 +58,11 @@
                    th:field="*{entitlement}"
                    th:id="|id-${e.entitlement()}|"
                    th:value="${e.entitlement}" />
-            <label class="ds-label" th:for="|id-${e.entitlement()}|" th:text="${e.entitlement}"></label>
+            <label class="ds-label" th:for="|id-${e.entitlement()}|" th:text="${e.displayName()}"></label>
+        </div>
+        <div th:if="${#fields.hasErrors('entitlement')}"
+             class="ds-validation-message">
+            Må velge ein rolle.
         </div>
     </fieldset>
 
