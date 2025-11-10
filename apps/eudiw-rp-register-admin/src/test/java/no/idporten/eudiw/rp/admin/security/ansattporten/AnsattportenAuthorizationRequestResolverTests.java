@@ -56,7 +56,7 @@ public class AnsattportenAuthorizationRequestResolverTests {
     @ValueSource(strings = {"/oauth2/authorization/ansattporten?use_synthetic_reportee=true",
                             "/oauth2/authorization/ansattporten"})
     @DisplayName("then resolver ignores use_synthetic_reportee and always adds authz details for Ansattporten requests")
-    public void testRequestResolverIgnoresUseSyntheticReporteeForForAnsattportenRequests(String requestUri)
+    public void testRequestResolverIgnoresUseSyntheticReporteeForAnsattportenRequests(String requestUri)
         throws Exception {
         SecurityTestUtils.ResultCaptor<OAuth2AuthorizationRequest> oauthRequestCaptor =
             new SecurityTestUtils.ResultCaptor<>();
@@ -80,6 +80,45 @@ public class AnsattportenAuthorizationRequestResolverTests {
                               .toList();
 
         assertAll(
+            () -> assertEquals(ansattportenProperties.getRequestAuthorizationDetails(), spiedRequestAuthzDetailsAttribute),
+            () -> assertEquals(ansattportenProperties.getRequestAuthorizationDetails(), spiedRequestAuthzDetailsParameter)
+        );
+    }
+
+    @Test
+    @DisplayName("then resolver ignores use_entra_id for Ansattporten requests")
+    public void testRequestResolverIgnoresUseEntraIdFOrAnsattportenRequests()
+        throws Exception {
+
+        String requestUri = "/oauth2/authorization/ansattporten?use_entra_id=true";
+
+        SecurityTestUtils.ResultCaptor<OAuth2AuthorizationRequest> oauthRequestCaptor =
+            new SecurityTestUtils.ResultCaptor<>();
+        doAnswer(oauthRequestCaptor).when(requestResolverSpy).resolve(any());
+
+        mockMvc.perform(get(requestUri));
+
+        OAuth2AuthorizationRequest spiedOauthRequest = oauthRequestCaptor.getResult();
+
+        List<AuthorizationDetails.Request> spiedRequestAuthzDetailsAttribute =
+            spiedOauthRequest.getAttribute(OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER);
+
+        List<AuthorizationDetails.Request> spiedRequestAuthzDetailsParameter =
+            new ObjectMapper().readValue(
+                                  spiedOauthRequest.getAdditionalParameters()
+                                                   .get(OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER)
+                                                   .toString(),
+                                  new TypeReference<List<Map<String, Object>>>() { })
+                              .stream()
+                              .map(authorizationDetailsMapper::asRequest)
+                              .toList();
+
+        String acrValuesAttribute = spiedOauthRequest.getAttribute("acr_values");
+        String acrValuesParameter = (String) spiedOauthRequest.getAdditionalParameters().get("acr_values");
+
+        assertAll(
+            () -> assertTrue(acrValuesAttribute == null || !acrValuesAttribute.contains("entraid")),
+            () -> assertTrue(acrValuesParameter == null || !acrValuesParameter.contains("entraid")),
             () -> assertEquals(ansattportenProperties.getRequestAuthorizationDetails(), spiedRequestAuthzDetailsAttribute),
             () -> assertEquals(ansattportenProperties.getRequestAuthorizationDetails(), spiedRequestAuthzDetailsParameter)
         );

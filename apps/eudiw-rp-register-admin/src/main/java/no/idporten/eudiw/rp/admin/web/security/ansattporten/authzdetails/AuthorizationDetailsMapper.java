@@ -6,6 +6,7 @@ import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -21,6 +22,10 @@ public class AuthorizationDetailsMapper {
 
     public AuthorizationDetails.Request asRequest(Map<String, Object> map) {
         return (AuthorizationDetails.Request) fromMap(map, false);
+    }
+
+    public List<AuthorizationDetails.Request> asRequests(List<Map<String, Object>> maps) {
+        return maps.stream().map(this::asRequest).toList();
     }
 
     public AuthorizationDetails.Response asResponse(Map<String, Object> map) {
