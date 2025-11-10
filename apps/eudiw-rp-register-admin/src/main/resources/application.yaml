@@ -71,6 +71,7 @@ eudiw-admin-web:
         - type: ansattporten:altinn:service
           resource: urn:altinn:resource:5622:1
       allow-synthetic-reportee: false
+      allow-entra-id: false
 
 external-dependency-health-checks:
   health-endpoints:

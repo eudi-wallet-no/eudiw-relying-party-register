@@ -1,6 +1,7 @@
 package no.idporten.eudiw.rp.admin.web.security.ansattporten;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails.AuthorizationDetails;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails.AuthorizationDetailsMapper;
@@ -22,14 +23,27 @@ public class AnsattportenProperties {
     private AuthorizationDetailsMapper authorizationDetailsMapper;
 
     @Valid
+    @NotNull
     private List<AuthorizationDetails.Request> requestAuthorizationDetails = List.of();
+
+    @Valid
+    @NotNull
+    private List<AuthorizationDetails.Request> entraIdRequestAuthorizationDetails =
+        List.of();
 
     private boolean allowSyntheticReportee = false;
 
-    public void setRequestAuthorizationDetails(List<Map<String, Object>> requestAuthorizationDetails) {
+    private boolean allowEntraId = false;
+
+    public void setRequestAuthorizationDetails(
+        List<Map<String, Object>> requestAuthorizationDetails) {
         this.requestAuthorizationDetails =
-            requestAuthorizationDetails.stream()
-                                       .map(authorizationDetailsMapper::asRequest)
-                                       .toList();
+            authorizationDetailsMapper.asRequests(requestAuthorizationDetails);
+    }
+
+    public void setEntraIdRequestAuthorizationDetails(
+        List<Map<String, Object>> entraIdRequestAuthorizationDetails) {
+        this.entraIdRequestAuthorizationDetails =
+            authorizationDetailsMapper.asRequests(entraIdRequestAuthorizationDetails);
     }
 }

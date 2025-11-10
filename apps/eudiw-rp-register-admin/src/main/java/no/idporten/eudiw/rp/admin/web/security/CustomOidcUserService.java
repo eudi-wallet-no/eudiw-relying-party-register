@@ -18,11 +18,11 @@ import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
-import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -34,15 +34,15 @@ public class CustomOidcUserService extends OidcUserService {
     private final SyntheticReporteeProvider syntheticReporteeProvider;
     private final AuthorizationDetailsMapper authorizationDetailsMapper;
 
-    private List<AuthorizationDetails.Response> parseAuthorizationDetailsFromIdToken(
-        OidcIdToken idToken) {
-        if (!idToken.hasClaim(OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER)) {
+    private List<AuthorizationDetails.Response> getAuthorizationDetailsForOidcUser(
+        OidcUser oidcUser) {
+        if (!oidcUser.hasClaim(OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER)) {
             throw new InvalidClaimsException(
                 "authorization_details claim expected but missing");
         }
         try {
             List<Map<String, Object>> authzDetailsClaim =
-                idToken.getClaim(OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER);
+                oidcUser.getClaim(OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER);
             return authzDetailsClaim
                 .stream()
                 .map(authorizationDetailsMapper::asResponse)
@@ -52,41 +52,41 @@ public class CustomOidcUserService extends OidcUserService {
         }
     }
 
-    private boolean isValidAuthorizationDetailsWithReportees(
-        AuthorizationDetails.Response authorizationDetails) {
-        boolean hasRecognizedTypeAndResource =
-            ansattportenProperties.getRequestAuthorizationDetails()
-                                  .stream()
-                                  .anyMatch(authorizationDetails::canMatchRequest);
-        boolean hasReportee =
-            authorizationDetails.getReportees() != null
-                && !authorizationDetails.getReportees().isEmpty();
-        return hasRecognizedTypeAndResource && hasReportee;
+    private Predicate<AuthorizationDetails.Response> getAuthorizationDetailsTypeValidator(
+        boolean isEntraIdUser) {
+        List<AuthorizationDetails.Request> validRequests =
+            isEntraIdUser
+                ? ansattportenProperties.getEntraIdRequestAuthorizationDetails()
+                : ansattportenProperties.getRequestAuthorizationDetails();
+        return authzDetails ->
+                   validRequests.stream().anyMatch(authzDetails::canMatchRequest);
     }
 
-    private AuthorizationDetails.Response.Reportee
-    getAndValidateReporteeAuthorityClaim(OidcIdToken idToken) {
-        List<AuthorizationDetails.Response> authzDetails =
-            parseAuthorizationDetailsFromIdToken(idToken);
-        if (authzDetails.isEmpty()) {
-            throw new InvalidClaimsException("authorization_details found but empty");
-        }
+    private AuthorizationDetails.Response.Reportee getAndValidateReporteeClaim(
+        OidcUser oidcUser, boolean isEntraIdUser) {
+        List<AuthorizationDetails.Response> authorizationDetails =
+            getAuthorizationDetailsForOidcUser(oidcUser);
+
+        Predicate<AuthorizationDetails.Response> isAcceptedauthorizationDetailsType =
+            getAuthorizationDetailsTypeValidator(isEntraIdUser);
+
         AuthorizationDetails.Response firstValidAuthzDetailsWithReportees =
-            authzDetails.stream()
-                        .filter(this::isValidAuthorizationDetailsWithReportees)
-                        .findAny()
-                        .orElseThrow(
-                            () -> new InvalidClaimsException(
-                                "Found no valid authorization_details with reportees"));
+            authorizationDetails
+                .stream()
+                .filter(isAcceptedauthorizationDetailsType)
+                .filter(authorizationDetail -> !authorizationDetail.getReportees().isEmpty())
+                .findAny()
+                .orElseThrow(
+                    () -> new InvalidClaimsException(
+                        "Found no valid authorization_details with reportees"));
         return firstValidAuthzDetailsWithReportees.getReportees().getFirst();
     }
 
-    private ReporteeAuthority getReporteeAuthorityForOidcUser(OidcUser oidcUser) {
-        if (oidcUser.getIdToken().hasClaim(
-            OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER)) {
+    private ReporteeAuthority getReporteeAuthorityForOidcUser(OidcUser oidcUser, boolean isEntraIdUser) {
+        if (oidcUser.hasClaim(OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER)) {
 
             AuthorizationDetails.Response.Reportee reportee =
-                getAndValidateReporteeAuthorityClaim(oidcUser.getIdToken());
+                getAndValidateReporteeClaim(oidcUser, isEntraIdUser);
             String name = reportee.name() != null ? reportee.name() : reportee.orgno();
             boolean isPublicSector = false;
             try {
@@ -100,18 +100,31 @@ public class CustomOidcUserService extends OidcUserService {
             }
             return new ReporteeAuthority(reportee.orgno(), name, isPublicSector);
         }
-        if (ansattportenProperties.isAllowSyntheticReportee()) {
-            String userId = oidcUser.getIdToken().getClaim("pid");
-            return syntheticReporteeProvider.getSyntheticReporteeAuthority(userId);
+        if (isEntraIdUser) {
+            throw new InvalidClaimsException(
+                "Ansattporten EntraID user without authorization_details");
         }
-        throw new InvalidClaimsException(
-            "authorization_details claim missing, and synthetic reportees NOT allowed");
+        if (!ansattportenProperties.isAllowSyntheticReportee()) {
+            throw new InvalidClaimsException(
+                "authorization_details claim missing, and synthetic reportees NOT allowed");
+        }
+        String userId = oidcUser.getClaim("pid");
+        return syntheticReporteeProvider.getSyntheticReporteeAuthority(userId);
     }
 
     private OidcUser mapAnsattportenUser(OidcUser oidcUser) throws OAuth2AuthenticationException {
 
         Set<GrantedAuthority> authorities = new HashSet<>(oidcUser.getAuthorities());
-        ReporteeAuthority reportee = getReporteeAuthorityForOidcUser(oidcUser);
+
+        boolean isEntraIdUser =
+            oidcUser.hasClaim("acr")
+                && oidcUser.getClaimAsString("acr").contains("entraid");
+        if (isEntraIdUser && !ansattportenProperties.isAllowEntraId()) {
+            throw new AuthenticationException(
+                OAuth2ErrorCodes.ACCESS_DENIED, "Ansattporten EntraID not accepted");
+        }
+
+        ReporteeAuthority reportee = getReporteeAuthorityForOidcUser(oidcUser, isEntraIdUser);
         authorities.add(reportee);
 
         String username = oidcUser.getClaim(oidcUser.hasClaim("name") ? "name" : "pid");

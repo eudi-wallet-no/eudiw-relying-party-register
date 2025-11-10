@@ -63,8 +63,15 @@ public class AnsattportenAuthorizationRequestResolver
 
         builder = addPkce(builder);
 
-        if (!ansattportenProperties.isAllowSyntheticReportee()
-                || !"true".equals(httpRequest.getParameter("use_synthetic_reportee"))) {
+        boolean entraIdRequested = "true".equals(httpRequest.getParameter("use_entra_id"));
+        boolean syntheticReporteeRequested =
+            "true".equals(httpRequest.getParameter("use_synthetic_reportee"));
+
+        if (ansattportenProperties.isAllowEntraId() && entraIdRequested) {
+            builder = addEntraIdParameters(builder);
+        }
+        else if (!ansattportenProperties.isAllowSyntheticReportee()
+                     || !syntheticReporteeRequested) {
             builder = addAuthorizationDetails(builder);
         }
 
@@ -108,6 +115,26 @@ public class AnsattportenAuthorizationRequestResolver
             throw new AdminServiceException(
                 "SHA-256 challenge required, but generation failed unexpectedly", e);
         }
+    }
+
+    private OAuth2AuthorizationRequest.Builder addEntraIdParameters(
+        OAuth2AuthorizationRequest.Builder requestBuilder) {
+        String acrValues = "entraid";
+        List<AuthorizationDetails.Request> authorizationDetails =
+            ansattportenProperties.getEntraIdRequestAuthorizationDetails();
+
+        Map<String, Object> attributes = Map.of(
+            OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER,
+            authorizationDetails,
+            "acr_values", acrValues);
+
+        Map<String, Object> additionalParams = Map.of(
+            OAuth2Constants.OAUTH2_AUTHORIZATION_DETAILS_PARAMETER,
+            requestAuthorizationDetailsToJson(authorizationDetails),
+            "acr_values", acrValues);
+
+        return requestBuilder.attributes(attributes)
+                             .additionalParameters(additionalParams);
     }
 
     private static String sha256Hash(String s) throws NoSuchAlgorithmException {

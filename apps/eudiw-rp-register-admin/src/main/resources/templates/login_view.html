@@ -21,30 +21,65 @@
                 <span th:if="${@environment.matchesProfiles('test')}">
                     testmiljøet til sandkassa.
                 </span>
+                <span th:if="${@environment.matchesProfiles('prod')}">
+                    sandkassa.
+                </span>
                 <span th:if="${@environment.matchesProfiles('!(systest | test | prod)')}">
                     lokalt utviklingsmiljø.
                 </span>
             </p>
         </div>
 
-        <div>
+        <nav class="flex-container">
             <th:block th:if="${@environment.matchesProfiles('selfservice')}">
-                <a th:href="@{/oauth2/authorization/ansattporten}"
-                   class="ds-button">
-                    Logg inn via Ansattporten
-                </a>
-                <a th:href="@{/oauth2/authorization/ansattporten?use_synthetic_reportee=true}"
-                   class="ds-button">
-                    Logg inn via Ansattporten med syntetisk organisasjon
-                </a>
+
+                <div>
+                    <a th:if="${@environment.matchesProfiles('prod')}"
+                       class="ds-button"
+                       th:href="@{/oauth2/authorization/ansattporten}">
+                        Logg inn via Ansattporten
+                    </a>
+                </div>
+
+                <th:block th:if="${@environment.matchesProfiles('!prod')}">
+                    <div class="ds-card">
+                        <h2 class="ds-heading">
+                            Innlogging med organisasjonskopling
+                        </h2>
+                        <a th:href="@{/oauth2/authorization/ansattporten}"
+                           class="ds-button">
+                            Via Ansattporten
+                        </a>
+                        <a th:if="${@environment.matchesProfiles('!prod')}"
+                           th:href="@{/oauth2/authorization/ansattporten(use_entra_id=true)}"
+                           class="ds-button">
+                           Via Ansattporten med Entra-ID
+                        </a>
+                    </div>
+                    <div class="ds-card">
+                        <h2 class="ds-heading">
+                            Innlogging utan organisasjonskopling
+                        </h2>
+                        <a th:href="@{/oauth2/authorization/ansattporten(use_synthetic_reportee=true)}"
+                           class="ds-button">
+                            Via Ansattporten med syntetisk organisasjon
+                        </a>
+                    </div>
+                </th:block>
             </th:block>
+
             <th:block th:if="${@environment.matchesProfiles('admin')}">
-                <a th:href="@{/oauth2/authorization/entra}"
-                   class="ds-button">
-                    Logg inn via Microsoft Entra ID
-                </a>
+                <div class="ds-card">
+                    <h2 class="ds-heading">
+                        Administrator-innlogging
+                    </h2>
+                    <a th:href="@{/oauth2/authorization/entra}"
+                       class="ds-button">
+                        Via Microsoft Entra-ID
+                    </a>
+                </div>
             </th:block>
-        </div>
+        </nav>
     </main>
 
     <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
