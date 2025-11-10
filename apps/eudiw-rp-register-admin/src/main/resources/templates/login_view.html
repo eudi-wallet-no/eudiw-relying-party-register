@@ -48,7 +48,7 @@
                            class="ds-button">
                             Via Ansattporten
                         </a>
-                        <a th:if="${@environment.matchesProfiles('!prod')}"
+                        <a th:if="${@environment.matchesProfiles('!test')}"
                            th:href="@{/oauth2/authorization/ansattporten(use_entra_id=true)}"
                            class="ds-button">
                            Via Ansattporten med Entra-ID
