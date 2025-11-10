@@ -93,7 +93,11 @@
             <tr th:each="rp : ${resultsPage}">
                 <td><a th:href="@{|/details/${rp.id}|}" style="cursor:pointer;"><div th:text="${rp.orgno}"></div></a> </td>
                 <td th:text="${rp.name}"></td>
-                <td th:text="${rp.entitlementsDisplayForSearch()}" style="white-space: pre-line;"></td>
+                <td>
+                    <div th:each="e : ${rp.relyingPartyEntitlements()}"
+                         th:text="${e.displayName()}"
+                         style="display: block;"></div>
+                </td>
                 <td th:text="${@timestampFormatter.formatEpochMillis(rp.createdMs)}"></td>
                 <td th:text="${@timestampFormatter.formatEpochMillis(rp.lastUpdatedMs)}"></td>
             </tr>

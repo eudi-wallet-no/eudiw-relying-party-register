@@ -7,9 +7,7 @@ import lombok.With;
 import no.idporten.eudiw.rp.admin.entitlements.Entitlements;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @With
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -43,14 +41,8 @@ public record RelyingPartyResource(
     boolean active
 ) {
 
-    public String entitlementsDisplayForSearch() {
-        return relyingPartyEntitlements.stream()
-                   .map(RelyingPartyEntitlementResource::displayName)
-                   .collect(Collectors.joining(System.lineSeparator()));
-    }
-
     @JsonIgnore
-    public List<RelyingPartyEntitlementResource> getValidEntitlementsForIssuerCertificates() {
+    public List<RelyingPartyEntitlementResource> getIssuerEntitlements() {
         return relyingPartyEntitlements.stream()
             .filter(Entitlements::isIssuerEntitlement)
             .toList();
