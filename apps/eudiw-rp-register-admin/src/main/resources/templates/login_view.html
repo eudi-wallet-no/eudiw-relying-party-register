@@ -44,7 +44,8 @@
                         <h2 class="ds-heading">
                             Innlogging med organisasjonskopling
                         </h2>
-                        <a th:href="@{/oauth2/authorization/ansattporten}"
+                        <a th:if="${@environment.matchesProfiles('test')}"
+                           th:href="@{/oauth2/authorization/ansattporten}"
                            class="ds-button">
                             Via Ansattporten
                         </a>
