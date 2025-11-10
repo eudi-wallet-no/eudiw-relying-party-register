@@ -32,10 +32,8 @@
 
         <nav class="flex-container">
             <th:block th:if="${@environment.matchesProfiles('selfservice')}">
-
-                <div>
-                    <a th:if="${@environment.matchesProfiles('prod')}"
-                       class="ds-button"
+                <div th:if="${@environment.matchesProfiles('prod')}">
+                    <a class="ds-button"
                        th:href="@{/oauth2/authorization/ansattporten}">
                         Logg inn via Ansattporten
                     </a>
