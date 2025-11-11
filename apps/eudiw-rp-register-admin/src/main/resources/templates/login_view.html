@@ -32,38 +32,40 @@
 
         <nav class="flex-container">
             <th:block th:if="${@environment.matchesProfiles('selfservice')}">
-                <div th:if="${@environment.matchesProfiles('prod')}">
-                    <a class="ds-button"
-                       th:href="@{/oauth2/authorization/ansattporten}">
+
+                <th:block th:if="${@environment.matchesProfiles('docker | systest')}">
+                    <a th:href="@{/oauth2/authorization/ansattporten(use_entra_id=true)}"
+                       class="ds-card">
+                        <h2 class="ds-heading">Med organisasjonskopling</h2>
+                        Logg inn via Ansattporten med Entra-ID
+                    </a>
+                    <a th:href="@{/oauth2/authorization/ansattporten(use_synthetic_reportee=true)}"
+                       class="ds-card">
+                        <h2 class="ds-heading">Utan organisasjonskopling</h2>
+                        Logg inn via Ansattporten med syntetisk organisasjon
+                    </a>
+                </th:block>
+
+                <th:block th:if="${@environment.matchesProfiles('test')}">
+                    <a th:href="@{/oauth2/authorization/ansattporten}"
+                       class="ds-card">
+                        <h2 class="ds-heading">Med organisasjonskopling</h2>
                         Logg inn via Ansattporten
                     </a>
-                </div>
+                    <a th:href="@{/oauth2/authorization/ansattporten(use_synthetic_reportee=true)}"
+                       class="ds-card">
+                        <h2 class="ds-heading">Utan organisasjonskopling</h2>
+                        Logg inn via Ansattporten med syntetisk organisasjon
+                    </a>
+                </th:block>
 
-                <th:block th:if="${@environment.matchesProfiles('!prod')}">
-                    <div class="ds-card">
-                        <h2 class="ds-heading">
-                            Innlogging med organisasjonskopling
-                        </h2>
-                        <a th:if="${@environment.matchesProfiles('test')}"
-                           th:href="@{/oauth2/authorization/ansattporten}"
-                           class="ds-button">
-                            Via Ansattporten
-                        </a>
-                        <a th:if="${@environment.matchesProfiles('!test')}"
-                           th:href="@{/oauth2/authorization/ansattporten(use_entra_id=true)}"
-                           class="ds-button">
-                           Via Ansattporten med Entra-ID
-                        </a>
-                    </div>
-                    <div class="ds-card">
-                        <h2 class="ds-heading">
-                            Innlogging utan organisasjonskopling
-                        </h2>
-                        <a th:href="@{/oauth2/authorization/ansattporten(use_synthetic_reportee=true)}"
-                           class="ds-button">
-                            Via Ansattporten med syntetisk organisasjon
-                        </a>
-                    </div>
+                <th:block th:if="${@environment.matchesProfiles('prod')}">
+                    <a th:href="@{/oauth2/authorization/ansattporten}"
+                       class="ds-card">
+                        <h2 class="ds-heading">Logg inn med organisasjonskopling</h2>
+                        Via Ansattporten
+                    </a>
+                    <div></div> <!--/* empty div to use natural DS style spacing */-->
                 </th:block>
             </th:block>
 
