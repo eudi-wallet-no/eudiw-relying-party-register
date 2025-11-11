@@ -11,8 +11,6 @@ eudiw-admin-web:
     register-service-api:
       register-service-base-uri: http://rp-register-service:9200
       api-key-value: xxx
-  enhetsregisteret-service:
-    enhetsregisteret-api-base-uri: "https://data.ppe.brreg.no/enhetsregisteret/api/enheter"
   security:
     ansattporten:
       allow-synthetic-reportee: true
