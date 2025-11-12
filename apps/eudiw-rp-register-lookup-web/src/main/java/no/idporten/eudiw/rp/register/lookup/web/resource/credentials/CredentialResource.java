@@ -11,7 +11,7 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record CredentialResource(
     @NotNull
-    @Pattern(regexp = "mso_mdoc|dc+sd-jwt", message = "unrecognized_format")
+    @Pattern(regexp = "mso_mdoc|dc\\+sd-jwt", message = "unrecognized_format")
     String format,
 
     @NotBlank(message = "invalid_issuer")
