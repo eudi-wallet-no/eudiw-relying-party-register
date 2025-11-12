@@ -49,6 +49,12 @@ eudiw-rp-register-lookup-web:
     rest-client:
       connect-timeout-millis: 5000
       read-timeout-millis: 5000
+  credentials-service:
+    credentials-registry-api:
+      credentials-registry-base-uri: http://digital-lommebok-credential-registry-service:8080
+    rest-client:
+      connect-timeout-millis: 5000
+      read-timeout-millis: 5000
 
 external-dependency-health-checks:
   health-endpoints:

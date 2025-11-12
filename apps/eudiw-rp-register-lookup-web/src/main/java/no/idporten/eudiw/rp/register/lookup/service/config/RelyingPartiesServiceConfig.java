@@ -1,6 +1,7 @@
 package no.idporten.eudiw.rp.register.lookup.service.config;
 
 import lombok.RequiredArgsConstructor;
+import no.idporten.eudiw.rp.register.lookup.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.register.lookup.service.RelyingPartiesServiceResponseErrorHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,14 +18,14 @@ public class RelyingPartiesServiceConfig {
     private final RelyingPartiesServiceProperties rpServiceProperties;
     private static final String registerServiceApiEndpoint = "/v1";
 
-    @Bean
-    public RestClient restClient() {
+    private RestClient relyingPartiesServiceRestClient () {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout((int) rpServiceProperties.restClient().connectTimeoutMillis());
         requestFactory.setReadTimeout((int) rpServiceProperties.restClient().readTimeoutMillis());
         URI registerServiceRestClientBaseUrl = URI.create(
             rpServiceProperties.registerServiceApi().registerServiceBaseUri()
                 + registerServiceApiEndpoint);
+
         return
             RestClient.builder()
                       .defaultHeader("accept", MediaType.APPLICATION_JSON.toString())
@@ -35,5 +36,11 @@ public class RelyingPartiesServiceConfig {
                       .defaultStatusHandler(new RelyingPartiesServiceResponseErrorHandler())
                       .requestFactory(requestFactory)
                       .build();
+    }
+
+    @Bean
+    public RelyingPartiesService relyingPartiesService() {
+        RestClient relyingPartiesServiceRestClient = relyingPartiesServiceRestClient();
+        return new RelyingPartiesService(relyingPartiesServiceRestClient);
     }
 }

@@ -19,7 +19,6 @@ import java.util.Objects;
 import java.util.UUID;
 
 @RequiredArgsConstructor
-@Service
 public class RelyingPartiesService {
 
     private final RestClient restClient;
