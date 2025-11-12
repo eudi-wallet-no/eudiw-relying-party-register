@@ -5,3 +5,6 @@ eudiw-rp-register-lookup-web:
     register-service-api:
       register-service-base-uri: http://localhost:${TEST_MOCK_WEB_SERVER_PORT}/
       api-key-value: xxx
+  credentials-service:
+    credentials-registry-api:
+      credentials-registry-base-uri: http://localhost:${TEST_MOCK_WEB_SERVER_PORT}/

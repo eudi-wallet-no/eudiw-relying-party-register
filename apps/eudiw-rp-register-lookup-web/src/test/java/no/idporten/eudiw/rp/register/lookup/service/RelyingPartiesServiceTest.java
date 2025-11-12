@@ -33,7 +33,7 @@ import java.util.stream.Stream;
 @ActiveProfiles("local-test")
 @Import(MockWebServerConfiguration.class)
 @DisplayName("When using the lookup service directly")
-public class ServiceTest {
+public class RelyingPartiesServiceTest {
 
     @Autowired
     private RelyingPartiesService lookupService;
