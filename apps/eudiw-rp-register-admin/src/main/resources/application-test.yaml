@@ -16,4 +16,6 @@ eudiw-admin-web:
           resource: urn:altinn:resource:5622:1
         - type: ansattporten:altinn:service
           resource: urn:altinn:resource:6061:1
-      allow-entra-id: false
+      allow-entra-id: true
+      entra-id-request-authorization-details:
+        - type: ansattporten:orgno

@@ -12,81 +12,63 @@
                 Brukarstadsregister
             </h1>
         </div>
+
         <div>
-            <p class="ds-paragraph">
-                Her kan du administrere brukarstader i
-                <span th:if="${@environment.matchesProfiles('systest')}">
-                    systestmiljøet til sandkassa.
-                </span>
-                <span th:if="${@environment.matchesProfiles('test')}">
-                    testmiljøet til sandkassa.
-                </span>
-                <span th:if="${@environment.matchesProfiles('prod')}">
-                    sandkassa.
-                </span>
-                <span th:if="${@environment.matchesProfiles('!(systest | test | prod)')}">
-                    lokalt utviklingsmiljø.
-                </span>
+            <p th:if="${@environment.matchesProfiles('docker | systest | test')}"
+               class="ds-paragraph">
+                Du må alltid representere ei verksemd når du loggar inn i sandkassa.
+                Me tilbyr tre ulike val for slik representasjon:
+            </p>
+            <p th:if="${@environment.matchesProfiles('prod')}"
+                class="ds-paragraph">
+                Du må alltid representere ei verksemd når du loggar inn i sandkassa.
             </p>
         </div>
 
-        <nav class="flex-container">
+        <form th:if="${@environment.matchesProfiles('dev')}"
+              th:action="@{/login}"
+              method="POST">
+            <div style="margin-bottom: 1em;">
+                <label for="username_field" class="ds-label">
+                    Brukarnamn (vel "admin" for admin-rettar)
+                </label>
+                <p class="ds-paragraph">
+                    <input id="username_field"
+                           name="username"
+                           type="text"
+                           size="32"
+                           class="ds-input"
+                    >
+                </p>
+            </div>
+            <input name="password" type="hidden">
+            <button class="ds-button">Logg inn</button>
+        </form>
+
+        <nav th:if="${@environment.matchesProfiles('!dev')}"
+             class="flex-container">
             <th:block th:if="${@environment.matchesProfiles('selfservice')}">
-
-                <th:block th:if="${@environment.matchesProfiles('dev')}">
-                    <form th:action="@{/login}"
-                          method="POST">
-                        <div style="margin-bottom: 1em;">
-                            <label for="username_field" class="ds-label">
-                                Brukarnamn (vel "admin" for admin-rettar)
-                            </label>
-                            <p class="ds-paragraph">
-                                <input id="username_field"
-                                       name="username"
-                                       type="text"
-                                       size="32"
-                                       class="ds-input"
-                                >
-                            </p>
-                        </div>
-                        <input name="password" type="hidden">
-                        <button class="ds-button">Logg inn</button>
-                    </form>
-                </th:block>
-                <th:block th:if="${@environment.matchesProfiles('docker | systest')}">
-                    <a th:href="@{/oauth2/authorization/ansattporten(use_entra_id=true)}"
-                       class="ds-card">
-                        <h2 class="ds-heading">Med organisasjonskopling</h2>
-                        Logg inn via Ansattporten med Entra-ID
-                    </a>
+                <a th:href="@{/oauth2/authorization/ansattporten}"
+                   class="ds-card">
+                    <h2 class="ds-heading">Med Altinn-rettar</h2>
+                    Du må t.d. vere dagleg leiar for ei verksemd, eller ha
+                    fått delegert ei av Digdir sine sjølvbeteningsroller i Altinn.
+                </a>
+                <a th:href="@{/oauth2/authorization/ansattporten(use_entra_id=true)}"
+                   class="ds-card">
+                    <h2 class="ds-heading">Med Entra ID</h2>
+                    Verksemder som er Digdir-kunde kan også bruke sin
+                    Microsoft-konto til tillsettpålogging.
+                </a>
+                <th:block th:if="${@environment.matchesProfiles('docker | systest | test')}">
                     <a th:href="@{/oauth2/authorization/ansattporten(use_synthetic_reportee=true)}"
                        class="ds-card">
-                        <h2 class="ds-heading">Utan organisasjonskopling</h2>
-                        Logg inn via Ansattporten med syntetisk organisasjon
+                        <h2 class="ds-heading">Syntetisk organisasjon</h2>
+                        Dersom du ikkje ynskjer eller kan representere ei reell verksemd,
+                        vil du her bli tildelt ein tilfeldig syntetisk organisasjon.
                     </a>
                 </th:block>
 
-                <th:block th:if="${@environment.matchesProfiles('test')}">
-                    <a th:href="@{/oauth2/authorization/ansattporten}"
-                       class="ds-card">
-                        <h2 class="ds-heading">Med organisasjonskopling</h2>
-                        Logg inn via Ansattporten
-                    </a>
-                    <a th:href="@{/oauth2/authorization/ansattporten(use_synthetic_reportee=true)}"
-                       class="ds-card">
-                        <h2 class="ds-heading">Utan organisasjonskopling</h2>
-                        Logg inn via Ansattporten med syntetisk organisasjon
-                    </a>
-                </th:block>
-
-                <th:block th:if="${@environment.matchesProfiles('prod')}">
-                    <a th:href="@{/oauth2/authorization/ansattporten}"
-                       class="ds-card">
-                        <h2 class="ds-heading">Logg inn med organisasjonskopling</h2>
-                        Via Ansattporten
-                    </a>
-                    <div></div> <!--/* empty div to use natural DS style spacing */-->
-                </th:block>
             </th:block>
 
             <th:block th:if="${@environment.matchesProfiles('admin')}">
