@@ -33,6 +33,26 @@
         <nav class="flex-container">
             <th:block th:if="${@environment.matchesProfiles('selfservice')}">
 
+                <th:block th:if="${@environment.matchesProfiles('dev')}">
+                    <form th:action="@{/login}"
+                          method="POST">
+                        <div style="margin-bottom: 1em;">
+                            <label for="username_field" class="ds-label">
+                                Brukarnamn (vel "admin" for admin-rettar)
+                            </label>
+                            <p class="ds-paragraph">
+                                <input id="username_field"
+                                       name="username"
+                                       type="text"
+                                       size="32"
+                                       class="ds-input"
+                                >
+                            </p>
+                        </div>
+                        <input name="password" type="hidden">
+                        <button class="ds-button">Logg inn</button>
+                    </form>
+                </th:block>
                 <th:block th:if="${@environment.matchesProfiles('docker | systest')}">
                     <a th:href="@{/oauth2/authorization/ansattporten(use_entra_id=true)}"
                        class="ds-card">
