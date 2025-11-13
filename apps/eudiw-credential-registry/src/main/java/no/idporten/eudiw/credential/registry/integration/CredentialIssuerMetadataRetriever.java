@@ -45,6 +45,7 @@ public class CredentialIssuerMetadataRetriever {
     }
 
     private CredentialIssuer fetchCredentialIssuerFromMetadataRequest(URI uri) {
+        log.info("Fetching credential issuer from metadata request {}", uri);
         CredentialIssuer credentialIssuer = restClient.get()
                 .uri(uri)
                 .retrieve()
