@@ -91,7 +91,7 @@
             <tbody>
 
             <tr th:each="rp : ${resultsPage}">
-                <td><a th:href="@{|/details/${rp.id}|}" style="cursor:pointer;"><div th:text="${rp.orgno}"></div></a> </td>
+                <td><a th:href="@{|/details/${rp.id}|}" class="ds-link" style="cursor:pointer;"><div th:text="${rp.orgno}"></div></a> </td>
                 <td th:text="${rp.name}"></td>
                 <td>
                     <div th:each="e : ${rp.relyingPartyEntitlements()}"

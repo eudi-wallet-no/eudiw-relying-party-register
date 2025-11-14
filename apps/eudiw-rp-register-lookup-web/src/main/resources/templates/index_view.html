@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title>Innsynstenesta</title>
+</head>
+
+<body>
+    <header th:replace="~{fragments/general :: page_header_fragment}"></header>
+
+    <main>
+        <h1 class="ds-heading" data-size="lg">
+            Innsynsteneste: Nasjonal sandkasse for digital lommebok
+        </h1>
+
+        <nav class="flex-container">
+            <a th:href="@{/relying-parties}"
+               class="ds-card">
+                <h2 class="ds-heading">Brukarstader</h2>
+                Søk etter brukarstader i sandkassa
+            </a>
+            <a th:href="@{/credentials-catalogue}"
+               class="ds-card">
+                <h2 class="ds-heading">Beviskatalog</h2>
+                Få ein oversikt over gyldige bevistypar i sandkassa
+            </a>
+        </nav>
+
+    </main>
+    <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
+</body>
+</html>

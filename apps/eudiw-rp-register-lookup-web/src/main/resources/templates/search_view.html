@@ -2,6 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
 <head>
     <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <link rel="stylesheet" th:href="@{/css/simple_tabs.css}">
     <title>Register over brukerstader</title>
     <style>
         .clickableHeaders a {
@@ -23,6 +24,15 @@
     <header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
     <main>
+        <nav id="tabs_container">
+            <a th:href="@{/relying-parties}" class="tab" data-size="lg" aria-selected="true">
+                Brukarstader
+            </a>
+            <a th:href="@{/credentials-catalogue}" class="tab" data-size="lg">
+                Beviskatalog
+            </a>
+        </nav>
+
         <h1 class="ds-heading" data-size="lg">
             Register over brukerstader
         </h1>

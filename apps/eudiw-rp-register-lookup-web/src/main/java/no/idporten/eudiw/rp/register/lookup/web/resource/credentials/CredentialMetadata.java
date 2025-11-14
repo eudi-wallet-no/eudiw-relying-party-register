@@ -12,7 +12,7 @@ import java.util.List;
 public record CredentialMetadata(
     @NotNull(message = "null_display")
     @JsonProperty(value = "display", required = true)
-    List<@Valid Display> displays,
+    List<@Valid Display> credentialTypeDisplays,
 
     @NotNull(message = "null_claims")
     @JsonProperty(value = "claims", required = true)
@@ -30,4 +30,8 @@ public record CredentialMetadata(
         @JsonProperty(value = "display", required = true)
         List<@Valid Display> displays
     ) { }
+
+    public String getCredentialTypeDisplay(String locale) {
+        return Display.getDisplayForLocale(locale, this.credentialTypeDisplays);
+    }
 }
