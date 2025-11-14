@@ -7,7 +7,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
-import java.util.Locale;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record CredentialMetadata(
@@ -19,16 +18,6 @@ public record CredentialMetadata(
     @JsonProperty(value = "claims", required = true)
     List<@Valid Claims> claims
 ) {
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public record Display(
-        @NotBlank
-        @JsonProperty(value = "name", required = true)
-        String name,
-        @NotNull
-        @JsonProperty(value = "locale", required = true)
-        Locale locale
-    ) { }
-
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record Claims(
         @NotNull
