@@ -47,14 +47,12 @@ public class CredentialsServiceTests {
     @DisplayName("then deserialization and validation succeeds when credentials are valid")
     @Test
     public void testRestClientDeserializationOfValidCredentials() throws Exception {
-        Display display = new Display(TestDataGenerator.generateName(), "no");
-        var displays = List.of(display);
+        var displays = List.of(new Display(TestDataGenerator.generateName(), "no"));
         var paths = List.of("family_name");
         var claims = List.of(new CredentialMetadata.Claims(paths, displays));
-        List<CredentialMetadata> metadata = List.of(
-            new CredentialMetadata(displays, claims));
+        CredentialMetadata metadata = new CredentialMetadata(displays, claims);
         CredentialsResource credentials = new CredentialsResource(List.of(
-            new CredentialResource("mso_mdoc", "issuer", display, "config-id", "type", metadata)
+            new CredentialResource("mso_mdoc", "issuer", displays, "config-id", "type", metadata)
         ));
 
         String credentialsResponseBody = objectMapper.writeValueAsString(credentials);
@@ -76,14 +74,12 @@ public class CredentialsServiceTests {
     public void foobar() throws Exception {
         String invalidFormatType = "mdoc";
 
-        Display display = new Display(TestDataGenerator.generateName(), "no");
-        var displays = List.of(display);
+        var displays = List.of(new Display(TestDataGenerator.generateName(), "no"));
         var paths = List.of("family_name");
         var claims = List.of(new CredentialMetadata.Claims(paths, displays));
-        List<CredentialMetadata> metadata = List.of(
-            new CredentialMetadata(displays, claims));
+        CredentialMetadata metadata = new CredentialMetadata(displays, claims);
         CredentialsResource credentials = new CredentialsResource(List.of(
-            new CredentialResource(invalidFormatType, "issuer", display, "config-id", "type", metadata)
+            new CredentialResource(invalidFormatType, "issuer", displays, "config-id", "type", metadata)
         ));
 
         String credentialsResponseBody = objectMapper.writeValueAsString(credentials);

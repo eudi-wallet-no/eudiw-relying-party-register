@@ -25,12 +25,11 @@ import java.util.Optional;
 public class SearchController {
 
     public static final String searchFormAttrId = "searchFormAttr";
-    public static final String detailedViewDataAttrId = "detailedViewDataAttr";
     public static final String resultsPageAttrId = "resultsPageAttr";
 
     private final SearchSession searchSession;
 
-    @GetMapping("/")
+    @GetMapping("/relying-parties")
     public ModelAndView searchGet(
         @RequestParam(value = "page") Optional<Integer> oneIndexedPageNum,
         @RequestParam(value = "sort") Optional<RelyingPartyOrdering> ordering) {
@@ -44,7 +43,7 @@ public class SearchController {
             searchFormAttrId, searchSession.getLastSearchForm()));
     }
 
-    @PostMapping("/")
+    @PostMapping("/relying-parties")
     public ModelAndView searchPost(
         @ModelAttribute(searchFormAttrId) @Valid SearchForm searchForm,
         BindingResult bindingResult) {

@@ -39,7 +39,7 @@ public class LookupControllerTests {
     private RelyingPartiesService lookupService;
 
     @Nested
-    @DisplayName("when POST'ing the / endpoint")
+    @DisplayName("when POST'ing the /relying-parties endpoint")
     class SearchEndpointPostTests {
         @BeforeEach
         void setupMockRelyingPartiesService() {
@@ -56,7 +56,7 @@ public class LookupControllerTests {
 
         @Test
         public void testServiceCalledAndWithEmptyResource() throws Exception {
-            mockMvc.perform(post("/")
+            mockMvc.perform(post("/relying-parties")
                     .formField("searchTerm", SearchForm.empty().searchTerm()))
                 .andExpect(view().name("search_view"))
                 .andExpect(model().attribute(SearchController.searchFormAttrId, SearchForm.empty()));
@@ -70,7 +70,7 @@ public class LookupControllerTests {
         public void testServiceCalledAndWithCorrectSearchResource() throws Exception {
             SearchForm testSearchForm = ResourceGenerator.generateSearchForm();
 
-            mockMvc.perform(post("/")
+            mockMvc.perform(post("/relying-parties")
                                 .formField("searchTerm", testSearchForm.searchTerm()))
                    .andExpect(view().name("search_view"))
                    .andExpect(model().attribute(SearchController.searchFormAttrId, testSearchForm));
@@ -82,7 +82,7 @@ public class LookupControllerTests {
         @Test
         public void testInvalidSearchFormIsRejected() throws Exception {
             String invalidSearchTerm = "foobar$";
-            mockMvc.perform(post("/")
+            mockMvc.perform(post("/relying-parties")
                                 .formField("searchTerm", invalidSearchTerm))
                    .andExpect(view().name("search_view"))
                    .andExpect(model().attributeHasFieldErrors(SearchController.searchFormAttrId, "searchTerm"));

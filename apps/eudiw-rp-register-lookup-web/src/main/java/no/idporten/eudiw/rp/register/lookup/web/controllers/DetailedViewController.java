@@ -19,7 +19,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class DetailedViewController {
 
-    public static final String detailedViewDataAttrId = SearchController.detailedViewDataAttrId;
+    public static final String detailedViewDataAttrId = "detailedViewDataAttr";
 
     private final RelyingPartiesService relyingPartiesService;
 
