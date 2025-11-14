@@ -7,13 +7,11 @@ import no.idporten.eudiw.rp.register.lookup.service.exception.BadRequestExceptio
 import no.idporten.eudiw.rp.register.lookup.service.exception.ErrorResponseException;
 import no.idporten.eudiw.rp.register.lookup.service.exception.ResponseValidationException;
 import no.idporten.eudiw.rp.register.lookup.service.exception.UnrecognizedErrorResponseException;
-import no.idporten.eudiw.rp.register.lookup.web.form.SearchForm;
-import no.idporten.eudiw.rp.register.lookup.web.resource.PagedResponse;
-import no.idporten.eudiw.rp.register.lookup.web.resource.RelyingPartyResource;
-import no.idporten.eudiw.rp.register.lookup.web.resource.SearchRelyingPartyResource;
+import no.idporten.eudiw.rp.register.lookup.testdata.TestDataGenerator;
 import no.idporten.eudiw.rp.register.lookup.web.resource.credentials.CredentialMetadata;
 import no.idporten.eudiw.rp.register.lookup.web.resource.credentials.CredentialResource;
 import no.idporten.eudiw.rp.register.lookup.web.resource.credentials.CredentialsResource;
+import no.idporten.eudiw.rp.register.lookup.web.resource.credentials.Display;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.DisplayName;
@@ -27,7 +25,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -50,13 +47,14 @@ public class CredentialsServiceTests {
     @DisplayName("then deserialization and validation succeeds when credentials are valid")
     @Test
     public void testRestClientDeserializationOfValidCredentials() throws Exception {
-        var displays = List.of(new CredentialMetadata.Display("Norsk ID", Locale.of("no")));
+        Display display = new Display(TestDataGenerator.generateName(), "no");
+        var displays = List.of(display);
         var paths = List.of("family_name");
         var claims = List.of(new CredentialMetadata.Claims(paths, displays));
         List<CredentialMetadata> metadata = List.of(
             new CredentialMetadata(displays, claims));
         CredentialsResource credentials = new CredentialsResource(List.of(
-            new CredentialResource("mso_mdoc", "issuer", "config-id", "type", metadata)
+            new CredentialResource("mso_mdoc", "issuer", display, "config-id", "type", metadata)
         ));
 
         String credentialsResponseBody = objectMapper.writeValueAsString(credentials);
@@ -78,13 +76,14 @@ public class CredentialsServiceTests {
     public void foobar() throws Exception {
         String invalidFormatType = "mdoc";
 
-        var displays = List.of(new CredentialMetadata.Display("Norsk ID", Locale.of("no")));
+        Display display = new Display(TestDataGenerator.generateName(), "no");
+        var displays = List.of(display);
         var paths = List.of("family_name");
         var claims = List.of(new CredentialMetadata.Claims(paths, displays));
         List<CredentialMetadata> metadata = List.of(
             new CredentialMetadata(displays, claims));
         CredentialsResource credentials = new CredentialsResource(List.of(
-            new CredentialResource(invalidFormatType, "issuer", "config-id", "type", metadata)
+            new CredentialResource(invalidFormatType, "issuer", display, "config-id", "type", metadata)
         ));
 
         String credentialsResponseBody = objectMapper.writeValueAsString(credentials);

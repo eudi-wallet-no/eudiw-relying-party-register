@@ -18,6 +18,10 @@ public record CredentialResource(
     @JsonProperty(value = "credential_issuer", required = true)
     String issuer,
 
+    @NotNull
+    @JsonProperty(value = "display", required = true)
+    Display issuerDisplay,
+
     @NotBlank(message = "invalid_configuration_id")
     @JsonProperty(value = "credential_configuration_id", required = true)
     String configurationId,
