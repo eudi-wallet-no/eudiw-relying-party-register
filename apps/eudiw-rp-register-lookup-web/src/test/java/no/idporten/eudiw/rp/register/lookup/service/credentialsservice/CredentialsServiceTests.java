@@ -44,8 +44,8 @@ public class CredentialsServiceTests {
     @Autowired
     private MockWebServer mockWebServer;
 
-    @DisplayName("then deserialization and validation succeeds when credentials are valid")
     @Test
+    @DisplayName("then deserialization and validation succeeds when credentials are valid")
     public void testRestClientDeserializationOfValidCredentials() throws Exception {
         var displays = List.of(new Display(TestDataGenerator.generateName(), "no"));
         var paths = List.of("family_name");
@@ -69,9 +69,9 @@ public class CredentialsServiceTests {
         assertEquals(credentials, actualResponse);
     }
 
-    @DisplayName("then validation fails when credentials are invalid")
     @Test
-    public void foobar() throws Exception {
+    @DisplayName("then validation fails when credentials are invalid")
+    public void testProperExceptionThrownOnInvalidCredentials() throws Exception {
         String invalidFormatType = "mdoc";
 
         var displays = List.of(new Display(TestDataGenerator.generateName(), "no"));
@@ -103,8 +103,8 @@ public class CredentialsServiceTests {
     @DisplayName("when the response error handler fires")
     class ResponseErrorHandlerTests {
 
-        @DisplayName("then the ResponseErrorHandler properly handles valid 4xx responses")
         @Test
+        @DisplayName("then the ResponseErrorHandler properly handles valid 4xx responses")
         void testErrorResponseExceptionThrownOnValid4xxResponse() {
             MockResponse badRequestMockResponse = new MockResponse().setResponseCode(400);
             mockWebServer.enqueue(badRequestMockResponse);
@@ -114,8 +114,8 @@ public class CredentialsServiceTests {
             );
         }
 
-        @DisplayName("then the ResponseErrorHandler properly handles valid 5xx responses")
         @Test
+        @DisplayName("then the ResponseErrorHandler properly handles valid 5xx responses")
         void testErrorResponseExceptionThrownOnValid5xxResponse() {
             MockResponse serverErrorMockResponse = new MockResponse().setResponseCode(500);
             mockWebServer.enqueue(serverErrorMockResponse);
@@ -125,8 +125,8 @@ public class CredentialsServiceTests {
             );
         }
 
-        @DisplayName("then the ResponseErrorHandler properly handles unrecognized responses")
         @Test
+        @DisplayName("then the ResponseErrorHandler properly handles unrecognized responses")
         void testErrorResponseExceptionThrownOnUnrecognizedResponses() {
             MockResponse unrecognizedMockResponse = new MockResponse().setResponseCode(300);
             mockWebServer.enqueue(unrecognizedMockResponse);
