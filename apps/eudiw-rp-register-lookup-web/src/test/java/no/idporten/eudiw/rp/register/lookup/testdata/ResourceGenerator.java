@@ -2,12 +2,13 @@ package no.idporten.eudiw.rp.register.lookup.testdata;
 
 import no.idporten.eudiw.rp.register.lookup.web.form.SearchForm;
 import no.idporten.eudiw.rp.register.lookup.web.resource.*;
+import no.idporten.eudiw.rp.register.lookup.web.resource.credentials.CredentialMetadata;
+import no.idporten.eudiw.rp.register.lookup.web.resource.credentials.CredentialResource;
+import no.idporten.eudiw.rp.register.lookup.web.resource.credentials.CredentialsResource;
+import no.idporten.eudiw.rp.register.lookup.web.resource.credentials.Display;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class ResourceGenerator extends TestDataGenerator {
 
@@ -70,5 +71,45 @@ public class ResourceGenerator extends TestDataGenerator {
                 content.size(), 0, content.size(), 1
             )
         );
+    }
+
+    private static final List<String> localeStrs = new ArrayList<>(List.of("no", "en", "da"));
+
+    private static List<Display> generateDisplays() {
+        Collections.shuffle(localeStrs);
+        int n = rng.nextInt(1, localeStrs.size());
+        return localeStrs.stream()
+                         .limit(n)
+                         .map(s -> new Display(generateName(), s))
+                         .toList();
+    }
+
+    private static CredentialMetadata.Claims generateClaims() {
+        int n = rng.nextInt(1, 3);
+        var paths = generateListBy(n, TestDataGenerator::generateName);
+        var displays = generateDisplays();
+        return new CredentialMetadata.Claims(paths, displays);
+    }
+
+    private static CredentialMetadata generateMetadata() {
+        var displays = generateDisplays();
+        var claims = generateListBy(rng.nextInt(3, 10), ResourceGenerator::generateClaims);
+        return new CredentialMetadata(displays, claims);
+    }
+
+    public static CredentialResource generateCredentialResource() {
+        String format = rng.nextBoolean() ? "mso_mdoc" : "dc+sd-jwt";
+        String issuer = generateName();
+        String configurationId = generateName();
+        String credentialType = generateName();
+        CredentialMetadata metadata = generateMetadata();
+        List<Display> issuerDisplays = generateDisplays();
+        return new CredentialResource(format, issuer, issuerDisplays, configurationId, credentialType, metadata);
+    }
+
+    public static CredentialsResource generateCredentialsResource() {
+        return new CredentialsResource(
+            generateListBy(rng.nextInt(1, 5),
+                           ResourceGenerator::generateCredentialResource));
     }
 }
