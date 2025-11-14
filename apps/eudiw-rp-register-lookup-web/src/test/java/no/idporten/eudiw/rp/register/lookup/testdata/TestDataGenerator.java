@@ -27,7 +27,10 @@ public class TestDataGenerator {
     }
 
     protected static <T> List<T> generateListBy(Supplier<T> supplier) {
-        return IntStream.range(0, rng.nextInt(1, 10))
+        return generateListBy(rng.nextInt(1, 10), supplier);
+    }
+    protected static <T> List<T> generateListBy(int n, Supplier<T> supplier) {
+        return IntStream.range(0, n)
                         .mapToObj(_ -> supplier.get())
                         .toList();
     }

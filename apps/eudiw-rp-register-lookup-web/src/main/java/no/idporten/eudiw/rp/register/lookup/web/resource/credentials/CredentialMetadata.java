@@ -4,9 +4,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record CredentialMetadata(
@@ -18,18 +20,29 @@ public record CredentialMetadata(
     @JsonProperty(value = "claims", required = true)
     List<@Valid Claims> claims
 ) {
+
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record Claims(
-        @NotNull
+        @NotEmpty
         @Valid
         @JsonProperty(value = "path", required = true)
         List<@NotBlank String> paths,
 
-        @NotNull
+        @NotEmpty
         @Valid
         @JsonProperty(value = "display", required = true)
         List<@Valid Display> displays
-    ) { }
+    ) {
+        public String getClaimsDisplay(String locale) {
+            return Display.getDisplayForLocale(locale, this.displays);
+        }
+        public String getDcqlFormattedPaths() {
+            return "[%s]".formatted(
+                paths.stream()
+                     .map("\"%s\""::formatted)
+                     .collect(Collectors.joining(", ")));
+        }
+    }
 
     public String getCredentialTypeDisplay(String locale) {
         return Display.getDisplayForLocale(locale, this.credentialTypeDisplays);

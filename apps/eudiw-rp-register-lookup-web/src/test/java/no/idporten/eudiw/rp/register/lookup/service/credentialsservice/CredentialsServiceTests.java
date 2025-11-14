@@ -3,15 +3,15 @@ package no.idporten.eudiw.rp.register.lookup.service.credentialsservice;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.ConstraintViolation;
 import no.idporten.eudiw.rp.register.lookup.service.MockWebServerConfiguration;
+import no.idporten.eudiw.rp.register.lookup.service.exception.*;
+import no.idporten.eudiw.rp.register.lookup.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.register.lookup.service.exception.BadRequestException;
 import no.idporten.eudiw.rp.register.lookup.service.exception.ErrorResponseException;
 import no.idporten.eudiw.rp.register.lookup.service.exception.ResponseValidationException;
 import no.idporten.eudiw.rp.register.lookup.service.exception.UnrecognizedErrorResponseException;
 import no.idporten.eudiw.rp.register.lookup.testdata.TestDataGenerator;
-import no.idporten.eudiw.rp.register.lookup.web.resource.credentials.CredentialMetadata;
 import no.idporten.eudiw.rp.register.lookup.web.resource.credentials.CredentialResource;
 import no.idporten.eudiw.rp.register.lookup.web.resource.credentials.CredentialsResource;
-import no.idporten.eudiw.rp.register.lookup.web.resource.credentials.Display;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.DisplayName;
@@ -47,14 +47,7 @@ public class CredentialsServiceTests {
     @Test
     @DisplayName("then deserialization and validation succeeds when credentials are valid")
     public void testRestClientDeserializationOfValidCredentials() throws Exception {
-        var displays = List.of(new Display(TestDataGenerator.generateName(), "no"));
-        var paths = List.of("family_name");
-        var claims = List.of(new CredentialMetadata.Claims(paths, displays));
-        CredentialMetadata metadata = new CredentialMetadata(displays, claims);
-        CredentialsResource credentials = new CredentialsResource(List.of(
-            new CredentialResource("mso_mdoc", "issuer", displays, "config-id", "type", metadata)
-        ));
-
+        CredentialsResource credentials = ResourceGenerator.generateCredentialsResource();
         String credentialsResponseBody = objectMapper.writeValueAsString(credentials);
 
         MockResponse mockValidResponse =
@@ -70,17 +63,63 @@ public class CredentialsServiceTests {
     }
 
     @Test
+    @DisplayName("then a single credential can be retrieved by issuer and configuration ID")
+    public void testGetExistingCredential() throws Exception {
+        CredentialsResource credentials = ResourceGenerator.generateCredentialsResource();
+        String credentialsResponseBody = objectMapper.writeValueAsString(credentials);
+
+        MockResponse mockValidResponse =
+            new MockResponse()
+                .setResponseCode(200)
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody(credentialsResponseBody);
+        mockWebServer.enqueue(mockValidResponse);
+
+        // choose a credential to fetch by issuer and configuration ID
+        CredentialResource expectedResponse = credentials.credentials().getFirst();
+
+        CredentialResource actualResponse =
+            credentialsService.getCredential(
+                expectedResponse.issuer(), expectedResponse.configurationId());
+
+        assertEquals(expectedResponse, actualResponse);
+    }
+
+    @Test
+    @DisplayName("then service throws NotFoundException when credential does not exist")
+    public void testGetNonexistentCredential() throws Exception {
+        CredentialsResource credentials = ResourceGenerator.generateCredentialsResource();
+        String credentialsResponseBody = objectMapper.writeValueAsString(credentials);
+        MockResponse mockValidResponse =
+            new MockResponse()
+                .setResponseCode(200)
+                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .setBody(credentialsResponseBody);
+        mockWebServer.enqueue(mockValidResponse);
+
+        String randomIssuer = TestDataGenerator.generateName();
+        String randomConfigurationId = TestDataGenerator.generateName();
+        assertThrowsExactly(
+            NotFoundException.class,
+            () -> credentialsService.getCredential(randomIssuer, randomConfigurationId));
+    }
+
+    @Test
     @DisplayName("then validation fails when credentials are invalid")
     public void testProperExceptionThrownOnInvalidCredentials() throws Exception {
-        String invalidFormatType = "mdoc";
+        CredentialResource validCredential =
+            ResourceGenerator.generateCredentialResource();
 
-        var displays = List.of(new Display(TestDataGenerator.generateName(), "no"));
-        var paths = List.of("family_name");
-        var claims = List.of(new CredentialMetadata.Claims(paths, displays));
-        CredentialMetadata metadata = new CredentialMetadata(displays, claims);
-        CredentialsResource credentials = new CredentialsResource(List.of(
-            new CredentialResource(invalidFormatType, "issuer", displays, "config-id", "type", metadata)
-        ));
+        String invalidFormatType = "mdoc";
+        CredentialResource invalidCredential = new CredentialResource(
+            invalidFormatType,
+            validCredential.issuer(),
+            validCredential.issuerDisplays(),
+            validCredential.configurationId(),
+            validCredential.credentialType(),
+            validCredential.metadata());
+
+        CredentialsResource credentials = new CredentialsResource(List.of(invalidCredential));
 
         String credentialsResponseBody = objectMapper.writeValueAsString(credentials);
 
