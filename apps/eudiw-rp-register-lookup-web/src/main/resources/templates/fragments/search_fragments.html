@@ -1,7 +1,7 @@
 <!--/*@thymesVar id="searchFormAttr" type="no.idporten.eudiw.rp.register.lookup.web.form.SearchForm"*/-->
 <form th:fragment="search_form_fragment"
       th:object="${searchFormAttr}"
-      th:action="@{/}"
+      th:action="@{/relying-parties}"
       method="POST">
     <div style="margin-bottom: 1em;">
     <div class="ds-search"
@@ -66,23 +66,23 @@
             <thead class="clickableHeaders">
             <tr>
                 <th th:class="${currentOrdering == orderingOpts.ORGNO_ASC ? 'focused' : ''}">
-                    <a th:href="@{/(sort='ORGNO_ASC')}" class="ds-link">
+                    <a th:href="@{/relying-parties(sort='ORGNO_ASC')}" class="ds-link">
                         Org.nr.
                     </a>
                 </th>
                 <th th:class="${currentOrdering == orderingOpts.NAME_ASC ? 'focused' : ''}">
-                    <a th:href="@{/(sort='NAME_ASC')}" class="ds-link">
+                    <a th:href="@{/relying-parties(sort='NAME_ASC')}" class="ds-link">
                         Namn
                     </a>
                 </th>
                 <th>Roller</th>
                 <th th:class="${currentOrdering == orderingOpts.CREATED_ASC ? 'focused' : ''}">
-                    <a th:href="@{/(sort='CREATED_ASC')}" class="ds-link">
+                    <a th:href="@{/relying-parties(sort='CREATED_ASC')}" class="ds-link">
                         Oppretta
                     </a>
                 </th>
                 <th th:class="${currentOrdering == orderingOpts.LAST_UPDATED_ASC ? 'focused' : ''}">
-                    <a th:href="@{/(sort='LAST_UPDATED_ASC')}" class="ds-link">
+                    <a th:href="@{/relying-parties(sort='LAST_UPDATED_ASC')}" class="ds-link">
                         Sist endra
                     </a>
                 </th>
@@ -113,7 +113,7 @@
     >
         <ul th:if="${numPages > 1}">
             <li th:unless="${#lists.contains(pageWindow, 1)}">
-                <a th:href="@{/(page=1)}"
+                <a th:href="@{/relying-parties(page=1)}"
                    class="ds-button"
                    data-variant="tertiary">
                     <<
@@ -123,13 +123,13 @@
             <li th:each="pageNum : ${pageWindow}">
 
                 <a th:if="${pageNum == currentPageNum}"
-                   th:href="@{/(page=${pageNum})}"
+                   th:href="@{/relying-parties(page=${pageNum})}"
                    class="ds-button"
                    data-variant="primary">
                     <span th:text="${pageNum}"></span>
                 </a>
                 <a th:unless="${pageNum == currentPageNum}"
-                   th:href="@{/(page=${pageNum})}"
+                   th:href="@{/relying-parties(page=${pageNum})}"
                    class="ds-button"
                    data-variant="tertiary">
                     <span th:text="${pageNum}"></span>
@@ -137,7 +137,7 @@
             </li>
 
             <li th:unless="${#lists.contains(pageWindow, numPages)}">
-                <a th:href="@{/(page=${numPages})}"
+                <a th:href="@{/relying-parties(page=${numPages})}"
                    class="ds-button"
                    data-variant="tertiary">
                     >>
