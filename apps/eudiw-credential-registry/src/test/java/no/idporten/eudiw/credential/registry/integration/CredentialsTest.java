@@ -21,7 +21,7 @@ import java.util.List;
 
 @DisplayName("When reformating the data")
 @SpringBootTest
-@ActiveProfiles
+@ActiveProfiles("test")
 public class CredentialsTest {
 
     @MockitoSpyBean

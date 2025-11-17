@@ -5,4 +5,4 @@ spring:
 
 credential-registry:
   credential-issuer-servers:
-    - https://utsteder.test.eidas2sandkasse.net/.well-known/openid-credential-issuer
+    - https://utsteder.eidas2sandkasse.dev/.well-known/openid-credential-issuer
