@@ -17,6 +17,8 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Comparator;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -41,19 +43,88 @@ public class CredentialsCatalogueControllerTests {
     @DisplayName("when GET'ing the /credentials-catalogue endpoint")
     class CredentialsCatalogueGetTests {
 
+        private Comparator<CredentialResource> byNorwegianCredentialTypeDisplayName =
+            Comparator.comparing(credential ->
+                credential.metadata().getCredentialTypeDisplay("no"));
+
         @Test
-        @DisplayName("then the credentials service is invoked and credentials view is shown")
-        public void testGetAvailableCredentials() throws Exception {
+        @DisplayName("then credentials service invoked, and credentials view shown with default sorting")
+        public void testGetCredentialsWithDefaultSorting() throws Exception {
             CredentialsResource credentialsResource = ResourceGenerator.generateCredentialsResource();
             when(mockCredentialsService.getAvailableCredentials()).thenReturn(credentialsResource);
 
+            List<CredentialResource> credentialsWithDefaultSorting =
+                credentialsResource
+                    .credentials()
+                    .stream()
+                    .sorted(byNorwegianCredentialTypeDisplayName)
+                    .toList();
+
             mockMvc.perform(get("/credentials-catalogue"))
-                   .andExpect(status().isOk())
-                   .andExpect(view().name("credentials_view"))
-                   .andExpect(model().attribute(CredentialsCatalogueController.credentialsAttrId,
-                                                credentialsResource.credentials()));
+                .andExpectAll(
+                   status().isOk(),
+                   view().name("credentials_view"),
+                   model().attribute(CredentialsCatalogueController.credentialsAttrId,
+                                     credentialsWithDefaultSorting)
+                );
 
             verify(mockCredentialsService, times(1)).getAvailableCredentials();
+        }
+
+        @Nested
+        @DisplayName("when the sort request parameter is specified")
+        class WithSortRequestParameter {
+            @Test
+            @DisplayName("then credentials table is sorted accordingly")
+            public void testGetCredentialsSortedByNumClaims() throws Exception {
+                CredentialsResource credentialsResource = ResourceGenerator.generateCredentialsResource();
+                when(mockCredentialsService.getAvailableCredentials()).thenReturn(credentialsResource);
+
+                Comparator<CredentialResource> byNumClaims =
+                    Comparator.comparing(cred -> cred.metadata().claims().size());
+
+                List<CredentialResource> credentialsSortedByNumClaims =
+                    credentialsResource
+                        .credentials()
+                        .stream()
+                        .sorted(byNumClaims.thenComparing(byNorwegianCredentialTypeDisplayName))
+                        .toList();
+
+                mockMvc.perform(get("/credentials-catalogue?sort=num_claims"))
+                       .andExpectAll(
+                           status().isOk(),
+                           view().name("credentials_view"),
+                           model().attribute(CredentialsCatalogueController.credentialsAttrId,
+                                             credentialsSortedByNumClaims)
+                       );
+
+                verify(mockCredentialsService, times(1)).getAvailableCredentials();
+            }
+
+            @Test
+            @DisplayName("then default sorting is used when sort key is unrecognized")
+            public void testGetCredentialsWithUnknownSortKey() throws Exception {
+                CredentialsResource credentialsResource = ResourceGenerator.generateCredentialsResource();
+                when(mockCredentialsService.getAvailableCredentials()).thenReturn(credentialsResource);
+
+                List<CredentialResource> credentialsWithDefaultSorting =
+                    credentialsResource
+                        .credentials()
+                        .stream()
+                        .sorted(byNorwegianCredentialTypeDisplayName)
+                        .toList();
+
+                String unknownSortKey = TestDataGenerator.generateName();
+                mockMvc.perform(get("/credentials-catalogue?sort=%s".formatted(unknownSortKey)))
+                       .andExpectAll(
+                           status().isOk(),
+                           view().name("credentials_view"),
+                           model().attribute(CredentialsCatalogueController.credentialsAttrId,
+                                             credentialsWithDefaultSorting)
+                       );
+
+                verify(mockCredentialsService, times(1)).getAvailableCredentials();
+            }
         }
     }
 
