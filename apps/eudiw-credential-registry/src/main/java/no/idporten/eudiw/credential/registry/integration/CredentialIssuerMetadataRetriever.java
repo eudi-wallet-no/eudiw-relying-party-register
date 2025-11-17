@@ -5,9 +5,8 @@ import jakarta.validation.*;
 import no.idporten.eudiw.credential.registry.configuration.ConfigProperties;
 import no.idporten.eudiw.credential.registry.configuration.CredentialRegisterConfiguration;
 import no.idporten.eudiw.credential.registry.integration.model.CredentialIssuer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -23,7 +22,6 @@ import java.util.*;
 
 @Service
 public class CredentialIssuerMetadataRetriever {
-    private static final Logger log = LoggerFactory.getLogger(CredentialIssuerMetadataRetriever.class);
     private final ConfigProperties configProperties;
     private final CredentialRegisterConfiguration configuration;
     private final Validator validator;
@@ -33,10 +31,10 @@ public class CredentialIssuerMetadataRetriever {
 
     @Autowired
     public CredentialIssuerMetadataRetriever(final ConfigProperties configProperties, final CredentialRegisterConfiguration configuration, Validator validator, RestClient restClient) {
-        this.configProperties = configProperties;
         this.configuration = configuration;
         this.restClient = restClient;
         this.validator = validator;
+        this.configProperties = configProperties;
     }
 
     @PostConstruct
@@ -45,7 +43,6 @@ public class CredentialIssuerMetadataRetriever {
     }
 
     private CredentialIssuer fetchCredentialIssuerFromMetadataRequest(URI uri) {
-        log.info("Fetching credential issuer from metadata request {}", uri);
         CredentialIssuer credentialIssuer = restClient.get()
                 .uri(uri)
                 .retrieve()
@@ -57,6 +54,7 @@ public class CredentialIssuerMetadataRetriever {
         return credentialIssuer;
     }
 
+    @Scheduled(cron = "${credential-registry.scheduled-reading}")
     private void updateListOfIssuer() {
         this.listOfIssuer = configProperties.credentialIssuerServers().stream().map(this::fetchCredentialIssuerFromMetadataRequest).toList();
     }

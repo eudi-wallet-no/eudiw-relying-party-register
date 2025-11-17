@@ -55,7 +55,9 @@ public class CredentialsTest {
 
 
         assertAll(
-                () -> assertEquals("personal_administrative_number", credentials.credentials().get(0).credentialMetadata().claims().get(0).path().get(0).toString())
+                () -> assertEquals("personal_administrative_number", credentials.credentials().get(0).credentialMetadata().claims().get(0).path().get(0).toString()),
+                () -> assertEquals("Norsk identitetsnummer", credentials.credentials().get(0).credentialMetadata().claims().get(0).display().get(0).name()),
+                () -> assertEquals("MinID PID", credentials.credentials().get(0).credentialMetadata().display().get(0).name())
         );
     }
 }

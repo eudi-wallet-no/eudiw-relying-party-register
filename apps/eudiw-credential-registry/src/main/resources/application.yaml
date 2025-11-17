@@ -31,4 +31,6 @@ management:
 credential-registry:
   read-timeout: 3s
   connect-timeout: 3s
+  scheduled-reading: >
+    0 */5 * * * *
   credential-issuer-servers:
