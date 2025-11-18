@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record Display (
         String name,
-        String locale
+        String locale,
+        String description
 ){
 }
