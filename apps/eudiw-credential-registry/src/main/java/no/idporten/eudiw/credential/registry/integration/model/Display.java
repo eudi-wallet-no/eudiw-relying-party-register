@@ -11,6 +11,8 @@ public record Display(
         String name,
         @NotBlank
         @JsonProperty("locale")
-        String locale
+        String locale,
+        @JsonProperty("description")
+        String description
 ) {
 }

@@ -32,9 +32,9 @@ public class CredentialRegisterService {
     }
 
     private CredentialsIssuer inputDataToResponseIssuer(String issuer, String key, CredentialConfiguration credentialConfiguration, List<no.idporten.eudiw.credential.registry.integration.model.Display> issuerDisplay) {
-        List<Display> outerListOfDisplay = credentialConfiguration.credentialMetadata().display().stream().map(display -> new Display(display.name(), display.locale())).toList();
-        List<Claims> claimsList = credentialConfiguration.credentialMetadata().claims().stream().map(claims -> new Claims(claims.path(), claims.display().stream().map(display -> new Display(display.name(), display.locale())).toList())).toList();
-        List<Display> issuerPrettyName = issuerDisplay.stream().map(display -> new Display(display.name(), display.locale())).toList();
+        List<Display> outerListOfDisplay = credentialConfiguration.credentialMetadata().display().stream().map(display -> new Display(display.name(), display.locale(), display.description())).toList();
+        List<Claims> claimsList = credentialConfiguration.credentialMetadata().claims().stream().map(claims -> new Claims(claims.path(), claims.display().stream().map(display -> new Display(display.name(), display.locale(), display.description())).toList())).toList();
+        List<Display> issuerPrettyName = issuerDisplay.stream().map(display -> new Display(display.name(), display.locale(), display.description())).toList();
         CredentialMetadata newCredentialMetadata = new CredentialMetadata(outerListOfDisplay, claimsList);
         return new CredentialsIssuer(issuer, key, credentialConfiguration.doctype(), credentialConfiguration.format(), newCredentialMetadata, issuerPrettyName);
     }
