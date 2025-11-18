@@ -16,9 +16,19 @@ public record Display(
     String name,
     @NotBlank
     @JsonProperty(value = "locale", required = true)
-    String locale
+    String locale,
+    @JsonProperty(value = "description")
+    String description
 ) {
-    public static String getDisplayForLocale(String locale, List<Display> displays) {
+    public static String getDescriptionForLocale(String locale, List<Display> displays) {
+        return displays.stream()
+                       .filter(display -> display.locale().equalsIgnoreCase(locale)
+                                              && display.description != null)
+                       .findFirst()
+                       .map(Display::description)
+                       .orElse(null);
+    }
+    public static String getDisplayNameForLocale(String locale, List<Display> displays) {
         Optional<String> displayName =
             displays.stream()
                     .filter(display -> display.locale().equalsIgnoreCase(locale))

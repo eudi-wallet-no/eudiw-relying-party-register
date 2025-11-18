@@ -35,7 +35,7 @@ public record CredentialResource(
     @JsonProperty(value = "credential_metadata", required = true)
     CredentialMetadata metadata
 ) {
-    public String getIssuerDisplay(String locale) {
-        return Display.getDisplayForLocale(locale, this.issuerDisplays);
+    public String getIssuerDisplayName(String locale) {
+        return Display.getDisplayNameForLocale(locale, this.issuerDisplays);
     }
 }
