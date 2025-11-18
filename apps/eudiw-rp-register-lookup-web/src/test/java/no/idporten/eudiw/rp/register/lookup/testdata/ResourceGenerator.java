@@ -78,9 +78,11 @@ public class ResourceGenerator extends TestDataGenerator {
     private static List<Display> generateDisplays() {
         Collections.shuffle(localeStrs);
         int n = rng.nextInt(1, localeStrs.size());
+        // description is optional, so leave it out for some displays
+        String optionalDescription = rng.nextFloat() >= 0.6 ? generateName() : null;
         return localeStrs.stream()
                          .limit(n)
-                         .map(s -> new Display(generateName(), s))
+                         .map(s -> new Display(generateName(), s, optionalDescription))
                          .toList();
     }
 

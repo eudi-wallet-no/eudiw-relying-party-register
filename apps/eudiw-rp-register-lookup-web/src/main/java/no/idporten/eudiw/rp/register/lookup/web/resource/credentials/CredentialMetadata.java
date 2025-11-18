@@ -33,8 +33,8 @@ public record CredentialMetadata(
         @JsonProperty(value = "display", required = true)
         List<@Valid Display> displays
     ) {
-        public String getClaimsDisplay(String locale) {
-            return Display.getDisplayForLocale(locale, this.displays);
+        public String getClaimsDisplayName(String locale) {
+            return Display.getDisplayNameForLocale(locale, this.displays);
         }
         public String getDcqlFormattedPaths() {
             return "[%s]".formatted(
@@ -44,7 +44,10 @@ public record CredentialMetadata(
         }
     }
 
-    public String getCredentialTypeDisplay(String locale) {
-        return Display.getDisplayForLocale(locale, this.credentialTypeDisplays);
+    public String getCredentialTypeDisplayName(String locale) {
+        return Display.getDisplayNameForLocale(locale, this.credentialTypeDisplays);
+    }
+    public String getCredentialTypeDescription(String locale) {
+        return Display.getDescriptionForLocale(locale, this.credentialTypeDisplays);
     }
 }

@@ -18,11 +18,11 @@ public record CredentialsResource(
 
     private static final Function<String, Comparator<CredentialResource>> byCredentialTypeDisplayName =
         locale -> Comparator.comparing(
-            credential -> credential.metadata().getCredentialTypeDisplay(locale));
+            credential -> credential.metadata().getCredentialTypeDisplayName(locale));
 
     private static final Function<String, Comparator<CredentialResource>> byIssuer =
         locale -> Comparator.comparing(
-            credential -> credential.getIssuerDisplay(locale));
+            credential -> credential.getIssuerDisplayName(locale));
 
     private static final Comparator<CredentialResource> byNumClaims =
         Comparator.comparing(credential -> credential.metadata().claims().size());
