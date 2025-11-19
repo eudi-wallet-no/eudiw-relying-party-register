@@ -26,6 +26,7 @@ public class CredentialsTest {
 
     @MockitoSpyBean
     private CredentialIssuerMetadataRetriever credentialIssuerMetadataRetriever;
+    @Autowired
     private CredentialRegisterService credentialRegisterService;
 
 
@@ -48,7 +49,6 @@ public class CredentialsTest {
         CredentialIssuer credentialIssuer = objectMapper.readValue(METADATA, CredentialIssuer.class);
         List<CredentialIssuer> listOfIssuers = new ArrayList<>();
         listOfIssuers.add(credentialIssuer);
-        credentialRegisterService = new CredentialRegisterService(credentialIssuerMetadataRetriever);
         when(credentialIssuerMetadataRetriever.getListOfIssuer()).thenReturn(listOfIssuers);
         Credentials credentials = credentialRegisterService.getCredentials();
 
