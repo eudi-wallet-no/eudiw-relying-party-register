@@ -37,10 +37,6 @@ public class CredentialIssuerMetadataRetriever {
         this.configProperties = configProperties;
     }
 
-    @PostConstruct
-    public void initializeListOfIssuer() {
-        updateListOfIssuer();
-    }
 
     private CredentialIssuer fetchCredentialIssuerFromMetadataRequest(URI uri) {
         CredentialIssuer credentialIssuer = restClient.get()
@@ -54,8 +50,8 @@ public class CredentialIssuerMetadataRetriever {
         return credentialIssuer;
     }
 
-    @Scheduled(cron = "${credential-registry.scheduled-reading}")
-    private void updateListOfIssuer() {
+    //@Scheduled(cron = "${credential-registry.scheduled-reading}")
+    public void updateListOfIssuer() {
         this.listOfIssuer = configProperties.credentialIssuerServers().stream().map(this::fetchCredentialIssuerFromMetadataRequest).toList();
     }
 
