@@ -14,13 +14,6 @@ import org.springframework.web.servlet.ModelAndView;
 @Order(-1)
 public class SecurityControllerAdvice {
 
-    @ExceptionHandler(InvalidClaimsException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ModelAndView handleInvalidClaimsException(InvalidClaimsException e) {
-        log.info("User authentication failed due to invalid or missing claims", e);
-        return new ModelAndView("error/access_denied");
-    }
-
     @ExceptionHandler({InsufficientAuthorityException.class,
                        AccessDeniedException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)

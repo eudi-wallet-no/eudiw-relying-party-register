@@ -13,7 +13,7 @@
             </h1>
         </div>
 
-        <div>
+        <div th:unless="${authnErrorCodeAttr}">
             <p th:if="${@environment.matchesProfiles('docker | systest | test')}"
                class="ds-paragraph">
                 Du må alltid representere ei verksemd når du loggar inn i sandkassa.
@@ -23,6 +23,40 @@
                 class="ds-paragraph">
                 Du må alltid representere ei verksemd når du loggar inn i sandkassa.
             </p>
+        </div>
+
+        <div th:if="${authnErrorCodeAttr}"
+             th:switch="${authnErrorCodeAttr}"
+             class="ds-alert"
+             data-color="warning">
+
+            <span th:case="'insufficient_authority'">
+                Beklager, du mangler påkrevde rettar. Sjekk at du har valt rett
+                innloggingsmetode, og kontakt oss dersom du meiner noko er gale.
+            </span>
+
+            <span th:case="'invalid_authorization_details'">
+                Innlogginga feila på grunn av manglende eller ugyldig organisasjonskopling
+                i ID-tokenet ditt. Sjekk at du har valt rett innloggingsmetode og at du
+                har gyldige Altinn-tenestekoder (f.eks. tenestekode for daglege leiare,
+                eller en av Digdir sine sjølvbeteningsroller).
+            </span>
+
+            <span th:case="'entra_id_not_allowed'">
+                Beklager, Entra ID-innlogging via Ansattporten er ikkje lov i
+                dette miljø. Det kan hende at du har fått tak i et innloggingslenke
+                fra en av test-miljøene vor.
+            </span>
+
+            <span th:case="'invalid_token'">
+                Beklager, me kjenner ikkje igjen ID-tokenet ditt. Det kan skyldes feil
+                i tokenet, feil klient-ID, eller slik. Kontakt oss hvis du meiner noko er gale.
+            </span>
+
+            <span th:case="*">
+                Beklager! Innlogginga feila av uventa årsak. Feilen har blitt logga og me
+                skal kikke nærmere på saken.
+            </span>
         </div>
 
         <form th:if="${@environment.matchesProfiles('dev')}"

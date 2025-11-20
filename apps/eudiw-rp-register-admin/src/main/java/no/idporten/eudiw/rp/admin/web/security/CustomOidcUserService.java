@@ -8,8 +8,7 @@ import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenProperti
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails.AuthorizationDetails;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails.AuthorizationDetailsMapper;
 import no.idporten.eudiw.rp.admin.web.security.entraid.EntraIdProperties;
-import no.idporten.eudiw.rp.admin.web.security.exception.AuthenticationException;
-import no.idporten.eudiw.rp.admin.web.security.exception.InvalidClaimsException;
+import no.idporten.eudiw.rp.admin.web.security.exception.*;
 import no.idporten.eudiw.rp.admin.web.security.oidcusers.OidcUserWithCustomName;
 import no.idporten.eudiw.rp.admin.web.security.oidcusers.ReporteeAuthority;
 import org.springframework.security.core.GrantedAuthority;
@@ -37,7 +36,7 @@ public class CustomOidcUserService extends OidcUserService {
     private List<AuthorizationDetails.Response> getAuthorizationDetailsForOidcUser(
         OidcUser oidcUser) {
         if (!oidcUser.hasClaim(AuthConstants.AUTHORIZATION_DETAILS_PARAMETER)) {
-            throw new InvalidClaimsException(
+            throw new InvalidAuthorizationDetailsException(
                 "authorization_details claim expected but missing");
         }
         try {
@@ -48,7 +47,7 @@ public class CustomOidcUserService extends OidcUserService {
                 .map(authorizationDetailsMapper::asResponse)
                 .toList();
         } catch (Exception e) {
-            throw new InvalidClaimsException("Ill-formed authz details claims", e);
+            throw new InvalidAuthorizationDetailsException("Ill-formed authz details claims", e);
         }
     }
 
@@ -77,7 +76,7 @@ public class CustomOidcUserService extends OidcUserService {
                 .filter(authorizationDetail -> !authorizationDetail.getReportees().isEmpty())
                 .findAny()
                 .orElseThrow(
-                    () -> new InvalidClaimsException(
+                    () -> new InvalidAuthorizationDetailsException(
                         "Found no valid authorization_details with reportees"));
         return firstValidAuthzDetailsWithReportees.getReportees().getFirst();
     }
@@ -101,11 +100,11 @@ public class CustomOidcUserService extends OidcUserService {
             return new ReporteeAuthority(reportee.orgno(), name, isPublicSector);
         }
         if (isEntraIdUser) {
-            throw new InvalidClaimsException(
+            throw new InvalidAuthorizationDetailsException(
                 "Ansattporten EntraID user without authorization_details");
         }
         if (!ansattportenProperties.isAllowSyntheticReportee()) {
-            throw new InvalidClaimsException(
+            throw new InvalidAuthorizationDetailsException(
                 "authorization_details claim missing, and synthetic reportees NOT allowed");
         }
         String userId = oidcUser.getClaim("pid");
@@ -121,8 +120,10 @@ public class CustomOidcUserService extends OidcUserService {
                 && oidcUser.getClaimAsString(AuthConstants.ACR_PARAMETER)
                            .contains(AuthConstants.ACR_ENTRAID_VALUE);
         if (isEntraIdUser && !ansattportenProperties.isAllowEntraId()) {
-            throw new AuthenticationException(
-                OAuth2ErrorCodes.ACCESS_DENIED, "Ansattporten EntraID not accepted");
+            throw new CustomAuthenticationException(
+                OAuth2ErrorCodes.ACCESS_DENIED,
+                ErrorCodes.ENTRA_ID_NOT_ALLOWED,
+                "Ansattporten EntraID not accepted");
         }
 
         ReporteeAuthority reportee = getReporteeAuthorityForOidcUser(oidcUser, isEntraIdUser);
@@ -145,7 +146,8 @@ public class CustomOidcUserService extends OidcUserService {
                 && oidcUser.getClaimAsStringList("groups")
                            .contains(entraIdProperties.writeAccess());
         if (!hasWriteAccess) {
-            throw new InvalidClaimsException("Insufficient (or missing) access groups claims");
+            throw new InsufficientAuthorityException(
+                "Insufficient (or missing) access groups claims");
         }
 
         Set<GrantedAuthority> mapped = new HashSet<>(oidcUser.getAuthorities());
@@ -168,8 +170,10 @@ public class CustomOidcUserService extends OidcUserService {
             switch (userRequest.getClientRegistration().getRegistrationId()) {
                 case "ansattporten" -> mapAnsattportenUser(oidcUser);
                 case "entra" -> mapEntraIdUser(oidcUser);
-                default -> throw new AuthenticationException(
-                    OAuth2ErrorCodes.INVALID_CLIENT, "OidcUserRequest from unrecognized registration ID");
+                default -> throw new CustomAuthenticationException(
+                    OAuth2ErrorCodes.INVALID_CLIENT,
+                    ErrorCodes.INVALID_TOKEN,
+                    "OidcUserRequest from unrecognized registration ID");
             };
     }
 }
