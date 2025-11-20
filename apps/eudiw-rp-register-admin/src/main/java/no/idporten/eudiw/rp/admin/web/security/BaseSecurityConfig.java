@@ -23,7 +23,6 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
@@ -77,10 +76,9 @@ public class BaseSecurityConfig {
                     .anyRequest()
                     .authenticated()
                 )
-                .exceptionHandling(ex -> ex.accessDeniedPage("/access-denied"))
                 .oauth2Login(oauth -> oauth
                     .loginPage("/login")
-                    .failureHandler(new SimpleUrlAuthenticationFailureHandler("/access-denied"))
+                    .failureHandler(new CustomAuthenticationFailureHandler())
                     .authorizationEndpoint(
                         endpoint -> endpoint.authorizationRequestResolver(
                             ansattportenAuthorizationRequestResolver))
