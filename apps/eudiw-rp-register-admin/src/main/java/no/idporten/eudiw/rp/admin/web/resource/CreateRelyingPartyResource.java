@@ -15,6 +15,9 @@ public record CreateRelyingPartyResource(
     @JsonProperty(value = "name", required = true)
     String name,
 
+    @JsonProperty(value = "credential_issuer_url", required = false)
+    String credentialIssuerUrl,
+
     @JsonProperty(value = "public_sector", required = true)
     boolean publicSector,
 

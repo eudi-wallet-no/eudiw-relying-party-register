@@ -19,10 +19,13 @@ public record RelyingPartyEntitlementResource(
     String displayName,
 
     @JsonProperty("certificates")
-    List<RelyingPartyCertificateResource> certificates
+    List<RelyingPartyCertificateResource> certificates,
+
+    @JsonProperty("credential_issuer_url") // Dette er strengen som representerer url-en til .well-known/openid-credential-issuer
+    String credentialIssuerUrl
 ) {
     public RelyingPartyEntitlementResource(String entitlement) {
-        this(entitlement, entitlement, new ArrayList<>());
+        this(entitlement, entitlement, new ArrayList<>(), "");
     }
 
     public List<RelyingPartyIssuerCertificateSummary> toIssuerCertificateSummaries() {

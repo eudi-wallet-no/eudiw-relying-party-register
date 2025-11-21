@@ -18,7 +18,7 @@ public class SecurityTestUtils {
 
     public static SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor
     oidcLoginForOrgno(String orgno) {
-        return oidcLogin().authorities(new ReporteeAuthority(orgno, "dummy-name", true));
+        return oidcLogin().authorities(new ReporteeAuthority(orgno, "dummy-name", "https://utsteder.test.eidas2sandkasse.net/.well-known/openid-credential-issuer", true));
     }
 
     @Getter

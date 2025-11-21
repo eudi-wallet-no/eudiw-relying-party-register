@@ -69,6 +69,7 @@ public class CreateControllerTests {
                 new CreateRelyingPartyResource(
                     rpResource.orgno(),
                     rpResource.name(),
+                    rpResource.credentialIssuerUrl(),
                     rpResource.publicSector(),
                     rpResource.relyingPartyEntitlements(),
                     rpResource.relyingPartyEaas());
@@ -77,6 +78,7 @@ public class CreateControllerTests {
             mockMvc.perform(post("/admin/create")
                     .formField("orgno", createResource.orgno())
                     .formField("name", createResource.name())
+                    .formField("credentialIssuerUrl", createResource.credentialIssuerUrl())
                     .formField("publicSector",
                                Boolean.toString(createResource.publicSector()))
                     .formField("entitlements", entitlement.entitlement()))

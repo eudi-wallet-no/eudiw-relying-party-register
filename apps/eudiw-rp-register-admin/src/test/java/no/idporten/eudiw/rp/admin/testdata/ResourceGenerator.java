@@ -20,13 +20,15 @@ public class ResourceGenerator extends TestDataGenerator {
         "https://uri.etsi.org/19475/Entitlement/PID_Provider"
     ));
 
+    private static final String CREDENTIAL_ISSUER_URL = "https://utsteder.test.eidas2sandkasse.net/.well-known/openid-credential-issuer";
+
     public static List<RelyingPartyEntitlementResource> sampleRelyingPartyEntitlementResources() {
         Collections.shuffle(EXAMPLE_ENTITLEMENTS);
         return EXAMPLE_ENTITLEMENTS
             .subList(0, rng.nextInt(1, 4))
             .stream()
             .map(e -> new RelyingPartyEntitlementResource(
-                e, e, List.of(generateCertificateResource())))
+                e, e, List.of(generateCertificateResource()), CREDENTIAL_ISSUER_URL))
             .toList();
     }
 
@@ -46,6 +48,7 @@ public class ResourceGenerator extends TestDataGenerator {
         return new CreateRelyingPartyResource(
             generateValidOrgno(),
             generateName(),
+            CREDENTIAL_ISSUER_URL,
             generateBoolean(),
             sampleRelyingPartyEntitlementResources(),
             generateListBy(ResourceGenerator::generateRelyingPartyEaaResource)
@@ -64,6 +67,7 @@ public class ResourceGenerator extends TestDataGenerator {
             createResource.relyingPartyEaas(),
             timeNow,
             timeNow,
+            createResource.credentialIssuerUrl(),
             true
         );
     }

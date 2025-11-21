@@ -83,7 +83,7 @@ public class CustomOidcUserService extends OidcUserService {
 
     private ReporteeAuthority getReporteeAuthorityForOidcUser(OidcUser oidcUser, boolean isEntraIdUser) {
         if (oidcUser.hasClaim(AuthConstants.AUTHORIZATION_DETAILS_PARAMETER)) {
-
+            String credentialIssuerUrl = "";
             AuthorizationDetails.Response.Reportee reportee =
                 getAndValidateReporteeClaim(oidcUser, isEntraIdUser);
             String name = reportee.name() != null ? reportee.name() : reportee.orgno();
@@ -97,7 +97,7 @@ public class CustomOidcUserService extends OidcUserService {
                 log.warn("Failed to get name/sector info from Enhetsregisteret "
                              + "(using name=orgno, publicSector=FALSE)", e);
             }
-            return new ReporteeAuthority(reportee.orgno(), name, isPublicSector);
+            return new ReporteeAuthority(reportee.orgno(), name, credentialIssuerUrl, isPublicSector);
         }
         if (isEntraIdUser) {
             throw new InvalidAuthorizationDetailsException(
