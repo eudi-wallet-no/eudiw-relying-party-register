@@ -33,11 +33,13 @@ public class InMemSyntheticReporteeService implements SyntheticReporteeProvider 
                 + "orgno within a reasonable number of attempts");
     }
 
+    // Todo: Ikke hardkode wellknown openid issuer endepunktet?
     private ReporteeAuthority generateReporteeAuthority() {
         String orgno = getValidOrgnoNotInUse();
         String name = "Test-brukarstad-%s".formatted(orgno);
+        String credentialIssuerUrl = "https://utsteder.test.eidas2sandkasse.net/.well-known/openid-credential-issuer";
         boolean isPublicSector = rng.nextBoolean();
-        return new ReporteeAuthority(orgno, name, isPublicSector);
+        return new ReporteeAuthority(orgno, name, credentialIssuerUrl, isPublicSector);
     }
 
     @SneakyThrows

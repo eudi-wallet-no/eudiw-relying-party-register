@@ -45,6 +45,24 @@
             </ul>
 
             <p class="ds-paragraph">
+                <label for="url_field"
+                       class="ds-label">
+                    Url
+                </label>
+                <input id="url_field"
+                       th:field="*{credentialIssuerUrl}"
+                       type="text"
+                       placeholder="credential_issuer_url"
+                       class="ds-input"
+                       th:disabled="${!isAdmin}">
+            </p>
+            <ul th:if="${#fields.hasErrors('credentialIssuerUrl')}">
+                <li th:each="error : ${#fields.errors('credentialIssuerUrl')}"
+                    th:text="${error}"
+                    class="ds-validation-message"></li>
+            </ul>
+
+            <p class="ds-paragraph">
                 <label for="sector_field"
                        class="data-label">
                     Sektor

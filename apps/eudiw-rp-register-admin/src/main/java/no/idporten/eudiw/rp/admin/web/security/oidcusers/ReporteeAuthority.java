@@ -5,6 +5,7 @@ import org.springframework.security.core.GrantedAuthority;
 public record ReporteeAuthority(
     String orgno,
     String name,
+    String credentialIssuerUrl,
     boolean publicSector
 ) implements GrantedAuthority {
     @Override

@@ -84,6 +84,7 @@ public class EditControllerTests {
             mockMvc.perform(post("/admin/edit/%s".formatted(id))
                                 .formField("name", editForm.getName())
                                 .formField("publicSector", Boolean.toString(editForm.isPublicSector()))
+                                .formField("credentialIssuerUrl", editForm.getCredentialIssuerUrl())
                                 .formField("active", Boolean.toString(editForm.isActive()))
                                 .formField("entitlements", entitlement.entitlement()))
                 .andExpect(status().is3xxRedirection())
@@ -98,10 +99,12 @@ public class EditControllerTests {
         void testEditFormRejectedOnFieldInvalidation() throws Exception {
             RelyingPartyEntitlementResource entitlement = ResourceGenerator.generateRelyingPartyEntitlementResource();
             String invalidName = "fooBar$";
+            String invalidUrl = "";
             RelyingPartyResource rpResource =
                 ResourceGenerator.generateRelyingPartyResource()
                     .withName(invalidName)
                     .withRelyingPartyEntitlements(List.of(entitlement))
+                    .withCredentialIssuerUrl(invalidUrl)
                     .withRelyingPartyEaas(List.of());
             UUID id = UUID.randomUUID();
             when(mockRpService.get(id)).thenReturn(rpResource);
@@ -112,11 +115,12 @@ public class EditControllerTests {
             mockMvc.perform(post("/admin/edit/%s".formatted(id))
                                 .formField("name", invalidName)
                                 .formField("publicSector", Boolean.toString(rpResource.publicSector()))
+                            .formField("credentialIssuerUrl", invalidUrl)
                                 .formField("active", Boolean.toString(rpResource.active()))
                                 .formField("entitlements", entitlement.entitlement()))
                    // assert edit form invalid (should only have error in the name field)
                    .andExpect(model().attributeHasFieldErrors(EditController.editFormAttrId, "name"))
-                   .andExpect(model().attributeErrorCount(EditController.editFormAttrId, 1))
+                   .andExpect(model().attributeErrorCount(EditController.editFormAttrId, 2))
 
                    // assert that view returns to edit form, for the given RP and
                    // with the unsubmitted form data.
