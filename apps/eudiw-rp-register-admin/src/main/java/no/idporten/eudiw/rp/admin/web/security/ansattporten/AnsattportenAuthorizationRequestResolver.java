@@ -101,6 +101,7 @@ public class AnsattportenAuthorizationRequestResolver
 
         Map<String, Object> attributes = new HashMap<>();
         attributes.put(AuthConstants.PROMPT_PARAMETER, AuthConstants.PROMPT_LOGIN_VALUE);
+        attributes.put(AuthConstants.ACR_VALUES_PARAMETER, AuthConstants.ACR_SUBSTANTIAL_VALUE);
 
         Map<String, Object> additionalParams = new HashMap<>(attributes);
 
