@@ -138,6 +138,9 @@ public class AnsattportenAuthorizationRequestResolverTests {
 
         OAuth2AuthorizationRequest spiedOauthRequest = oauthRequestCaptor.getResult();
 
+        String acrValuesAttribute = spiedOauthRequest.getAttribute(AuthConstants.ACR_VALUES_PARAMETER);
+        String acrValuesParameter = (String) spiedOauthRequest.getAdditionalParameters().get(AuthConstants.ACR_VALUES_PARAMETER);
+
         String promptAttribute = spiedOauthRequest.getAttribute(AuthConstants.PROMPT_PARAMETER);
         String promptParameter = (String) spiedOauthRequest.getAdditionalParameters().get(AuthConstants.PROMPT_PARAMETER);
 
@@ -151,6 +154,9 @@ public class AnsattportenAuthorizationRequestResolverTests {
                                       .get(AuthConstants.CODE_CHALLENGE_METHOD_PARAMETER);
 
         assertAll(
+            () -> assertEquals(AuthConstants.ACR_SUBSTANTIAL_VALUE, acrValuesAttribute),
+            () -> assertEquals(AuthConstants.ACR_SUBSTANTIAL_VALUE, acrValuesParameter),
+
             () -> assertEquals(AuthConstants.PROMPT_LOGIN_VALUE, promptAttribute),
             () -> assertEquals(AuthConstants.PROMPT_LOGIN_VALUE, promptParameter),
 
