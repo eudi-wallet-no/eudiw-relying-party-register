@@ -3,8 +3,8 @@ package no.idporten.eudiw.rp.admin.web.security;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.idporten.eudiw.rp.admin.exception.AdminServiceException;
 import no.idporten.eudiw.rp.admin.service.enhetsregisteretservice.EnhetsregisteretService;
+import no.idporten.eudiw.rp.admin.service.syntheticreportees.StatelessPersistentSyntheticReporteeService;
 import no.idporten.eudiw.rp.admin.service.syntheticreportees.SyntheticReporteeProvider;
-import no.idporten.eudiw.rp.admin.service.syntheticreportees.InMemSyntheticReporteeService;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenAuthorizationRequestResolver;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenProperties;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails.AuthorizationDetailsMapper;
@@ -149,8 +149,8 @@ public class BaseSecurityConfig {
 
     @Bean
     @Profile("!prod")
-    public SyntheticReporteeProvider inMemSyntheticReporteeService() {
-        return new InMemSyntheticReporteeService();
+    public SyntheticReporteeProvider syntheticReporteeService() {
+        return new StatelessPersistentSyntheticReporteeService();
     }
 
     @Bean
