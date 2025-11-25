@@ -1,5 +1,6 @@
 package no.eudiw.rp.register.api.resource;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
@@ -12,6 +13,7 @@ import java.util.List;
 
 @With
 @JsonInclude(JsonInclude.Include.ALWAYS)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public record EditRelyingPartyResource(
 
     @SaneStringConstraint
