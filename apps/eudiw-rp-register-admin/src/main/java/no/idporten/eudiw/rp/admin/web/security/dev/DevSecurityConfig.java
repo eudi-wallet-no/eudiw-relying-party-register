@@ -1,6 +1,6 @@
 package no.idporten.eudiw.rp.admin.web.security.dev;
 
-import no.idporten.eudiw.rp.admin.service.syntheticreportees.InMemSyntheticReporteeService;
+import no.idporten.eudiw.rp.admin.service.syntheticreportees.StatelessPersistentSyntheticReporteeService;
 import no.idporten.eudiw.rp.admin.service.syntheticreportees.SyntheticReporteeProvider;
 import no.idporten.eudiw.rp.admin.web.security.UserAuthorityService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProperty;
@@ -46,7 +46,7 @@ public class DevSecurityConfig {
 
     @Bean
     public SyntheticReporteeProvider syntheticReporteeProvider() {
-        return new InMemSyntheticReporteeService();
+        return new StatelessPersistentSyntheticReporteeService();
     }
 
     @Bean
