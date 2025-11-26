@@ -27,7 +27,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@ActiveProfiles("test")
+@ActiveProfiles("junit")
 @Import(MockCaServerConfiguration.class)
 @DisplayName("Issuer certificate tests")
 public class IssuerCertificateTests {

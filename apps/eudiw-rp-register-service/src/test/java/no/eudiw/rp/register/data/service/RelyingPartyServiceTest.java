@@ -20,7 +20,7 @@ import java.util.stream.IntStream;
 
 @SpringBootTest
 @DisplayName("When using the Relying Party Service")
-@ActiveProfiles("test")
+@ActiveProfiles("junit")
 public class RelyingPartyServiceTest {
 
     @Autowired

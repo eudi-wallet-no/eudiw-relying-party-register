@@ -14,7 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("When accessing the root path of the application")
-@ActiveProfiles("test")
+@ActiveProfiles("junit")
 public class IndexControllerTest {
 
     @Autowired

@@ -21,7 +21,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@ActiveProfiles("test")
+@ActiveProfiles("junit")
 @DisplayName("When applying jakarta constraint validation to API resources")
 public class ValidationTests {
 

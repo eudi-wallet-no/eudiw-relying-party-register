@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.hamcrest.Matchers.*;
 
 @SpringBootTest
-@ActiveProfiles("test")
+@ActiveProfiles("junit")
 @DisplayName("When using the relying parties API with invalid resources ...")
 @AutoConfigureMockMvc
 public class IndexControllerValidationTests {
