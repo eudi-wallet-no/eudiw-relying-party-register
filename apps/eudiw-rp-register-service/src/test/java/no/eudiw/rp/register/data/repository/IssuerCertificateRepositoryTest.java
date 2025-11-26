@@ -18,7 +18,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@ActiveProfiles("test")
+@ActiveProfiles("junit")
 @DisplayName("When using IssuerCertificateRepository")
 public class IssuerCertificateRepositoryTest {
 

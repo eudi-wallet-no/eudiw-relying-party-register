@@ -19,7 +19,7 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@ActiveProfiles("test")
+@ActiveProfiles("junit")
 @DisplayName("When using RelyingPartyCertificates ...")
 public class AccessCertificateTests {
 

@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("When using the Entitlement API")
-@ActiveProfiles("test")
+@ActiveProfiles("junit")
 class EntitlementControllerTest {
 
     public static final String X_API_KEY_HEADER = "X-API-KEY";

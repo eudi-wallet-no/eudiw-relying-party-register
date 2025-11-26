@@ -27,7 +27,7 @@ import static org.mockito.Mockito.*;
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("When using the Relying Parties API with mock service")
-@ActiveProfiles("test")
+@ActiveProfiles("junit")
 public class RelyingPartiesControllerMockTests {
 
     private static final String X_API_KEY_HEADER = "X-API-KEY";

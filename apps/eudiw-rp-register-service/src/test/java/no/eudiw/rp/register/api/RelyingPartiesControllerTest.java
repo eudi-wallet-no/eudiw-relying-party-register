@@ -35,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("When using the Relying Parties API")
-@ActiveProfiles("test")
+@ActiveProfiles("junit")
 public class RelyingPartiesControllerTest {
 
     public static final String X_API_KEY_HEADER = "X-API-KEY";

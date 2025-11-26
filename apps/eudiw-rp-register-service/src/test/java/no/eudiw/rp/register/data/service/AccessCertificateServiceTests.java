@@ -40,7 +40,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @SpringBootTest
-@ActiveProfiles("test")
+@ActiveProfiles("junit")
 @Import(MockCaServerConfiguration.class)
 @DisplayName("When using the relying party certificates service")
 public class AccessCertificateServiceTests {
