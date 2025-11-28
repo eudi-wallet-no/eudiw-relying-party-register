@@ -16,7 +16,7 @@ public interface AccessCertificateRepository
     @Query("""
         SELECT cert
         FROM AccessCertificate cert
-        WHERE cert.id = :certId AND cert.relyingParty.id = :relyingPartyId
+        WHERE cert.id = :certId AND cert.relyingPartyInstance.id = :relyingPartyId
     """)
     Optional<AccessCertificate> findByIdAndRelyingPartyId(
         @Param("certId")         UUID certId,

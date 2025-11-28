@@ -1,14 +1,13 @@
 package no.eudiw.rp.register.data.repository;
 
-import jakarta.annotation.Resource;
 import no.eudiw.rp.register.data.entity.IssuerCertificate;
-import no.eudiw.rp.register.data.entity.RelyingParty;
+import no.eudiw.rp.register.data.entity.LegalEntity;
 import no.eudiw.rp.register.data.entity.RelyingPartyEntitlement;
 import no.eudiw.rp.register.testdata.CertificatesGenerator;
 import no.eudiw.rp.register.testdata.EntityGenerator;
-import no.eudiw.rp.register.testdata.TestDataGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -22,21 +21,21 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("When using IssuerCertificateRepository")
 public class IssuerCertificateRepositoryTest {
 
-    @Resource
+    @Autowired
     private IssuerCertificateRepository issuerCertificateRepository;
 
-    @Resource
-    private RelyingPartyRepository relyingPartyRepository;
+    @Autowired
+    private LegalEntityRepository legalEntityRepository;
 
 
     @Test
     @DisplayName("add issuer certificate and save via issuer-repo")
-    void addIssuerCertificateAndSaveViaIssuerRepo() throws Exception {
-        RelyingParty rp = EntityGenerator.generateRelyingPartyNoId();
-        relyingPartyRepository.save(rp);
+    void addIssuerCertificateAndSaveViaIssuerRepo() {
+        LegalEntity rp = EntityGenerator.generateRelyingParty();
+        LegalEntity saved = legalEntityRepository.save(rp);
 
-        RelyingParty savedRelyingParty = relyingPartyRepository.findById(rp.getId()).get();
-        RelyingPartyEntitlement entitlement = savedRelyingParty.getRelyingPartyEntitlements().stream().findFirst().get();
+        LegalEntity savedLegalEntity = legalEntityRepository.findById(saved.getId()).get();
+        RelyingPartyEntitlement entitlement = savedLegalEntity.getRelyingPartyInstances().getFirst().getRelyingPartyEntitlements().stream().findFirst().get();
         X509Certificate testCert = CertificatesGenerator.generateX509Certificate();
         IssuerCertificate issuerCertificate = new IssuerCertificate(testCert, entitlement);
         issuerCertificateRepository.save(issuerCertificate);
@@ -49,19 +48,19 @@ public class IssuerCertificateRepositoryTest {
 
     @Test
     @DisplayName("add issuer certificate and save via rp-repo")
-    void addIssuerCertificateAndSaveViaRP() throws Exception {
-        RelyingParty rp = EntityGenerator.generateRelyingPartyNoId();
-        relyingPartyRepository.save(rp);
+    void addIssuerCertificateAndSaveViaRP() {
+        LegalEntity rp = EntityGenerator.generateRelyingParty();
+        LegalEntity saved = legalEntityRepository.save(rp);
 
-        RelyingParty savedRelyingParty = relyingPartyRepository.findById(rp.getId()).get();
-        RelyingPartyEntitlement entitlement = savedRelyingParty.getRelyingPartyEntitlements().stream().findFirst().get();
+        LegalEntity savedLegalEntity = legalEntityRepository.findById(saved.getId()).get();
+        RelyingPartyEntitlement entitlement = savedLegalEntity.getRelyingPartyInstances().getFirst().getRelyingPartyEntitlements().stream().findFirst().get();
         X509Certificate testCert = CertificatesGenerator.generateX509Certificate();
         IssuerCertificate issuerCertificate = new IssuerCertificate(testCert, entitlement);
         entitlement.setIssuerCertificates(List.of(issuerCertificate));
-        relyingPartyRepository.save(savedRelyingParty);
+        legalEntityRepository.save(savedLegalEntity);
 
-        RelyingParty finalRelyingParty = relyingPartyRepository.findById(rp.getId()).get();
-        RelyingPartyEntitlement finalEntitlement = finalRelyingParty.getRelyingPartyEntitlements().stream().findFirst().get();
+        LegalEntity finalLegalEntity = legalEntityRepository.findById(rp.getId()).get();
+        RelyingPartyEntitlement finalEntitlement = finalLegalEntity.getRelyingPartyInstances().getFirst().getRelyingPartyEntitlements().stream().findFirst().get();
         assertEquals(entitlement.getIssuerCertificates().getFirst().getCertificate(), finalEntitlement.getIssuerCertificates().getFirst().getCertificate());
     }
 }
