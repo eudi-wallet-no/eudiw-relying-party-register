@@ -18,12 +18,15 @@ public class RelyingPartyEntitlement extends BaseEntity {
     @Column(name = "entitlement", nullable = false)
     private String entitlement;
 
+    @Column(name = "credential_issuer_url")
+    private String credentialIssuerUrl;
+
     @ManyToOne
-    @JoinColumn(name = "relying_party_id",
+    @JoinColumn(name = "relying_party_instance_id",
         columnDefinition = "UUID",
         nullable = false)
     @JdbcTypeCode(SqlTypes.UUID)
-    private RelyingParty relyingParty;
+    private RelyingPartyInstance relyingPartyInstance;
 
     @OneToMany(
         mappedBy = "entitlement",

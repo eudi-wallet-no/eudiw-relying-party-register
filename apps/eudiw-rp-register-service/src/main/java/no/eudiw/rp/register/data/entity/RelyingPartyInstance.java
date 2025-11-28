@@ -10,26 +10,22 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.AccessLevel;
 import lombok.ToString;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Getter
 @Setter
 @Entity
 @ToString
-@Table(name = "relying_party")
-public class RelyingParty extends BaseEntity {
+@Table(name = "relying_party_instance")
+public class RelyingPartyInstance extends BaseEntity {
 
-    @Column(name = "orgno", nullable = false)
-    private String orgno;
-
-    @Column(name = "name", nullable = false)
-    private String name;
-
-    @Column(name = "public_sector", nullable = false)
-    private boolean publicSector;
+    @Column(name = "trade_name", nullable = false)
+    private String tradeName;
 
     @Setter(AccessLevel.NONE)
     @OneToMany(
-            mappedBy = "relyingParty",
+            mappedBy = "relyingPartyInstance",
             fetch = FetchType.EAGER,
             cascade = CascadeType.ALL,
             orphanRemoval = true)
@@ -37,7 +33,7 @@ public class RelyingParty extends BaseEntity {
 
     @Setter(AccessLevel.NONE)
     @OneToMany(
-            mappedBy = "relyingParty",
+            mappedBy = "relyingPartyInstance",
             fetch = FetchType.EAGER,
             cascade = CascadeType.ALL,
             orphanRemoval = true)
@@ -45,11 +41,18 @@ public class RelyingParty extends BaseEntity {
 
     @Setter(AccessLevel.NONE)
     @OneToMany(
-        mappedBy = "relyingParty",
+        mappedBy = "relyingPartyInstance",
         fetch = FetchType.EAGER,
         cascade = CascadeType.ALL,
         orphanRemoval = true)
     private List<AccessCertificate> accessCertificates = new ArrayList<>();
+
+    @ManyToOne
+    @JoinColumn(name = "legal_entity_id",
+        columnDefinition = "UUID",
+        nullable = false)
+    @JdbcTypeCode(SqlTypes.UUID)
+    private LegalEntity legalEntity;
 
     @Column(name = "created_ms", nullable = false)
     @Setter(AccessLevel.NONE)
@@ -61,9 +64,6 @@ public class RelyingParty extends BaseEntity {
 
     @Column(name = "active", nullable = false)
     private boolean active = true;
-
-    @Column(name = "deleted", nullable = false)
-    private boolean deleted = false;
 
     public Optional<RelyingPartyEntitlement> getRelyingPartyEntitlement(String entitlementType) {
         return relyingPartyEntitlements.stream()
@@ -79,7 +79,7 @@ public class RelyingParty extends BaseEntity {
                 .noneMatch(e -> Objects.equals(e, relyingPartyEntitlement.getEntitlement()));
 
         if (entitlementNotAlreadyExists) {
-            relyingPartyEntitlement.setRelyingParty(this);
+            relyingPartyEntitlement.setRelyingPartyInstance(this);
             this.relyingPartyEntitlements.add(relyingPartyEntitlement);
         }
     }
@@ -101,7 +101,7 @@ public class RelyingParty extends BaseEntity {
     public void setRelyingPartyEaas(List<RelyingPartyEaa> relyingPartyEaas) {
         this.relyingPartyEaas.clear();
         if (relyingPartyEaas != null) {
-            relyingPartyEaas.forEach(eaa -> eaa.setRelyingParty(this));
+            relyingPartyEaas.forEach(eaa -> eaa.setRelyingPartyInstance(this));
             this.relyingPartyEaas.addAll(relyingPartyEaas);
         }
     }
@@ -110,27 +110,39 @@ public class RelyingParty extends BaseEntity {
         List<AccessCertificate> accessCertificates) {
         this.accessCertificates.clear();
         if (accessCertificates != null) {
-            accessCertificates.forEach(cert -> cert.setRelyingParty(this));
+            accessCertificates.forEach(cert -> cert.setRelyingPartyInstance(this));
             this.accessCertificates.addAll(accessCertificates);
         }
     }
 
-    public RelyingParty(String name,
-                        String orgno,
-                        boolean publicSector,
-                        List<RelyingPartyEntitlement> relyingPartyEntitlements,
-                        List<RelyingPartyEaa> relyingPartyEaas,
-                        List<AccessCertificate> accessCertificates) {
-        this.name = name;
-        this.orgno = orgno;
-        this.publicSector = publicSector;
+    public RelyingPartyInstance(
+        String tradeName,
+        List<RelyingPartyEntitlement> relyingPartyEntitlements,
+        List<RelyingPartyEaa> relyingPartyEaas,
+        List<AccessCertificate> accessCertificates
+    ) {
+        this.tradeName = tradeName;
         this.setRelyingPartyEntitlements(relyingPartyEntitlements);
         this.setRelyingPartyEaas(relyingPartyEaas);
         this.setAccessCertificates(accessCertificates);
     }
 
+    public RelyingPartyInstance(
+        String tradeName,
+        List<RelyingPartyEntitlement> relyingPartyEntitlements,
+        List<RelyingPartyEaa> relyingPartyEaas,
+        List<AccessCertificate> accessCertificates,
+        LegalEntity legalEntity
+    ) {
+        this.tradeName = tradeName;
+        this.setRelyingPartyEntitlements(relyingPartyEntitlements);
+        this.setRelyingPartyEaas(relyingPartyEaas);
+        this.setAccessCertificates(accessCertificates);
+        this.legalEntity = legalEntity;
+    }
+
     // for JPA instantiation.
-    protected RelyingParty() { }
+    protected RelyingPartyInstance() { }
 
     @PrePersist
     protected void onPrePersist() {

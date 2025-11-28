@@ -19,11 +19,11 @@ public class RelyingPartyEaa extends BaseEntity {
     private String intent;
 
     @ManyToOne
-    @JoinColumn(name = "relying_party_id",
+    @JoinColumn(name = "relying_party_instance_id",
         columnDefinition = "UUID",
         nullable = false)
     @JdbcTypeCode(SqlTypes.UUID)
-    private RelyingParty relyingParty;
+    private RelyingPartyInstance relyingPartyInstance;
 
     public RelyingPartyEaa(String namespace, String intent) {
         this.namespace = namespace;

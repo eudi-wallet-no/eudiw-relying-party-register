@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCsrResource;
 import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCertificateResource;
 import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCertificatesResource;
-import no.eudiw.rp.register.data.repository.RelyingPartyRepository;
+import no.eudiw.rp.register.data.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.data.service.certificates.RelyingPartyCertificateService;
 import no.eudiw.rp.register.testdata.ResourceGenerator;
 import org.junit.jupiter.api.*;
@@ -33,7 +33,7 @@ public class AccessCertificateControllerTests {
     public static final String VALID_API_KEY = "junit-api-key";
 
     @Autowired
-    private RelyingPartyRepository relyingPartyRepository;
+    private RelyingPartyInstanceRepository relyingPartyRepository;
 
     @Autowired
     private MockMvc mockMvc;

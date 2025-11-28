@@ -2,8 +2,8 @@ package no.eudiw.rp.register.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.eudiw.rp.register.api.resource.*;
-import no.eudiw.rp.register.data.entity.RelyingParty;
-import no.eudiw.rp.register.data.repository.RelyingPartyRepository;
+import no.eudiw.rp.register.data.entity.RelyingPartyInstance;
+import no.eudiw.rp.register.data.repository.RelyingPartyInstanceRepository;
 import static no.eudiw.rp.register.testdata.EntityGenerator.*;
 
 import org.junit.jupiter.api.DisplayName;
@@ -32,7 +32,7 @@ import static org.hamcrest.Matchers.*;
 public class IndexControllerValidationTests {
 
     @Autowired
-    private RelyingPartyRepository relyingPartyRepository;
+    private RelyingPartyInstanceRepository relyingPartyRepository;
 
     @Autowired
     private MockMvc mockMvc;
@@ -76,7 +76,7 @@ public class IndexControllerValidationTests {
         @Test
         @DisplayName("then validation is properly applied to edit resource")
         void testUnsaneNameEditResource() throws Exception {
-            RelyingParty relyingPartyIn = relyingPartyRepository.save(generateRelyingPartyNoId());
+            RelyingPartyInstance relyingPartyIn = relyingPartyRepository.save(generateRelyingPartyNoId());
             UUID id = relyingPartyIn.getId();
 
             String invalidName ="<script>Digdir</script>";

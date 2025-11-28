@@ -12,7 +12,7 @@ import no.eudiw.rp.register.data.entity.*;
 import no.eudiw.rp.register.data.repository.EntitlementRepository;
 import no.eudiw.rp.register.data.repository.IssuerCertificateRepository;
 import no.eudiw.rp.register.data.repository.AccessCertificateRepository;
-import no.eudiw.rp.register.data.repository.RelyingPartyRepository;
+import no.eudiw.rp.register.data.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.data.service.Converter;
 import no.eudiw.rp.register.data.service.exception.NotFoundException;
 import no.eudiw.rp.register.exception.RegisterServiceException;
@@ -28,7 +28,7 @@ import java.util.UUID;
 @Service
 public class RelyingPartyCertificateService {
 
-    private final RelyingPartyRepository relyingPartyRepository;
+    private final RelyingPartyInstanceRepository relyingPartyRepository;
     private final AccessCertificateRepository accessCertificateRepository;
     private final RestClient caRestClient;
     private final EntitlementRepository entitlementRepository;
@@ -36,11 +36,10 @@ public class RelyingPartyCertificateService {
     private final Converter converter;
 
     @Transactional(readOnly = true)
-    public RelyingPartyCertificatesResource getCertificatesForRelyingParty(
-        UUID relyingPartyId) {
+    public RelyingPartyCertificatesResource getCertificatesForRelyingParty(UUID relyingPartyId) {
         return new RelyingPartyCertificatesResource(
             relyingPartyRepository
-                .findByIdAndDeletedFalse(relyingPartyId)
+                .findById(relyingPartyId)
                 .orElseThrow(() -> new NotFoundException("Relying party not found"))
                 .getAccessCertificates()
                 .stream()
@@ -52,11 +51,7 @@ public class RelyingPartyCertificateService {
     @Transactional(readOnly = true)
     public RelyingPartyCertificateResource getCertificate(
         UUID certificateId, UUID relyingPartyId) {
-        // NOTE: it is currently possible to get certificates for RPs where
-        // deleted=true through the certificates repository.
-        // this might be fixed in a better way when revocation is implemented, but
-        // for now, use a separate check to assert RP exists.
-        if (!relyingPartyRepository.existsByIdAndDeletedFalse(relyingPartyId)) {
+        if (!relyingPartyRepository.existsById(relyingPartyId)) {
             throw new NotFoundException("Certificate holder does not exist or has been deleted");
         }
         return converter.toResource(
@@ -79,7 +74,7 @@ public class RelyingPartyCertificateService {
     public RelyingPartyEntitlementsResource getAllIssuerCertificatesFromRelyingParty(UUID relyingPartyId) {
         return new RelyingPartyEntitlementsResource(
             relyingPartyRepository
-                .findByIdAndDeletedFalse(relyingPartyId)
+                .findById(relyingPartyId)
                 .orElseThrow(() -> new NotFoundException("Relying party not found"))
                 .getRelyingPartyEntitlements()
                 .stream()
@@ -93,7 +88,7 @@ public class RelyingPartyCertificateService {
         UUID relyingPartyId,
         IssuerCsrResource csrResource
     ) {
-        RelyingParty relyingParty = getRelyingParty(relyingPartyId);
+        RelyingPartyInstance relyingParty = getRelyingParty(relyingPartyId);
 
         RelyingPartyEntitlement relyingPartyEntitlement = relyingParty.getRelyingPartyEntitlement(csrResource.entitlement())
             .orElseThrow(() -> new NotFoundException("RelyingPartyEntitlement does not exist"));
@@ -106,10 +101,10 @@ public class RelyingPartyCertificateService {
         }
 
         X509Certificate certificate = getCertificateFromCa(
-                csrResource.csr(),
-                relyingParty.getOrgno(),
-                relyingParty.getName(),
-                entitlement.getCaId());
+            csrResource.csr(),
+            relyingParty.getLegalEntity().getOrgno(),
+            relyingParty.getTradeName(),
+            entitlement.getCaId());
 
         IssuerCertificate certificateEntity =
             new IssuerCertificate(certificate, relyingPartyEntitlement);
@@ -123,12 +118,12 @@ public class RelyingPartyCertificateService {
     public RelyingPartyCertificateResource requestAccessCertificateForRelyingParty(
         UUID relyingPartyId, RelyingPartyCsrResource csrResource
     ) {
-        RelyingParty relyingParty = getRelyingParty(relyingPartyId);
+        RelyingPartyInstance relyingParty = getRelyingParty(relyingPartyId);
 
         X509Certificate certificate = getCertificateFromCa(
                 csrResource.csr(),
-                relyingParty.getOrgno(),
-                relyingParty.getName(),
+                relyingParty.getLegalEntity().getOrgno(),
+                relyingParty.getTradeName(),
                 "access");
 
         AccessCertificate certificateEntity =
@@ -139,9 +134,9 @@ public class RelyingPartyCertificateService {
         return converter.toResource(certificateEntity);
     }
 
-    private RelyingParty getRelyingParty(UUID relyingPartyId) {
+    private RelyingPartyInstance getRelyingParty(UUID relyingPartyId) {
         return relyingPartyRepository
-            .findByIdAndDeletedFalse(relyingPartyId)
+            .findById(relyingPartyId)
             .orElseThrow(() -> new NotFoundException("Certificate registree does not exist"));
     }
 

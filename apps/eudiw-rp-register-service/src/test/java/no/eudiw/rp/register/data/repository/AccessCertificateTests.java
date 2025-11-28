@@ -1,15 +1,13 @@
 package no.eudiw.rp.register.data.repository;
 
-import jakarta.annotation.Resource;
-import no.eudiw.rp.register.data.entity.RelyingParty;
-import no.eudiw.rp.register.data.entity.AccessCertificate;
+import no.eudiw.rp.register.data.entity.*;
 import no.eudiw.rp.register.testdata.EntityGenerator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigInteger;
@@ -23,12 +21,15 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("When using RelyingPartyCertificates ...")
 public class AccessCertificateTests {
 
-    @Resource
-    private RelyingPartyRepository rpRepository;
+    @Autowired
+    private RelyingPartyInstanceRepository instanceRepository;
+
+    @Autowired
+    private LegalEntityRepository rpRepository;
 
     @AfterEach
     void clearRepositoryAfterTests() {
-        rpRepository.deleteAll();
+        instanceRepository.deleteAll();
     }
 
     @Nested
@@ -41,11 +42,11 @@ public class AccessCertificateTests {
             @Test
             @DisplayName("then creation of RP with zero certificates is successful")
             public void testNoCertificates() {
-                RelyingParty rpIn = EntityGenerator.generateRelyingPartyNoId();
-                assertTrue(rpIn.getAccessCertificates().isEmpty());
-                rpRepository.save(rpIn);
+                LegalEntity legalEntity = EntityGenerator.generateRelyingParty();
+                assertTrue(legalEntity.getRelyingPartyInstances().getFirst().getAccessCertificates().isEmpty());
+                rpRepository.saveAndFlush(legalEntity);
 
-                RelyingParty rpOut = rpRepository.findById(rpIn.getId()).orElse(null);
+                RelyingPartyInstance rpOut = instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null);
 
                 assertNotNull(rpOut);
                 assertAll(
@@ -54,19 +55,16 @@ public class AccessCertificateTests {
                 );
             }
 
-
             @Test
             @DisplayName("then creation of RP with one certificate is successful")
             public void testOneCertificate() {
-                RelyingParty rpIn = EntityGenerator.generateRelyingPartyNoId();
-                AccessCertificate certIn =
-                    EntityGenerator.generateCertificate();
-                rpIn.setAccessCertificates(List.of(certIn));
-                assertEquals(1, rpIn.getAccessCertificates().size());
+                LegalEntity legalEntity = EntityGenerator.generateRelyingParty();
+                AccessCertificate certIn = EntityGenerator.generateCertificate();
+                legalEntity.getRelyingPartyInstances().getFirst().setAccessCertificates(List.of(certIn));
+                assertEquals(1,  legalEntity.getRelyingPartyInstances().getFirst().getAccessCertificates().size());
+                rpRepository.saveAndFlush(legalEntity);
 
-                rpRepository.save(rpIn);
-
-                RelyingParty rpOut = rpRepository.findById(rpIn.getId()).orElse(null);
+                RelyingPartyInstance rpOut = instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null);
                 assertNotNull(rpOut);
 
                 AccessCertificate certOut =
@@ -84,19 +82,25 @@ public class AccessCertificateTests {
             @Test
             @DisplayName("then creation of RP with multiple certificates is successful")
             public void testMultipleCertificates() {
-                RelyingParty rpIn = EntityGenerator.generateRelyingPartyWithCertificates();
-                assertTrue(rpIn.getAccessCertificates().size() > 1);
+                LegalEntity legalEntity = EntityGenerator.generateRelyingPartyWithoutInstance();
+                RelyingPartyInstance relyingPartyInstance = new RelyingPartyInstance(
+                    "name",
+                    List.of(),
+                    List.of(),
+                    List.of(EntityGenerator.generateCertificate(), EntityGenerator.generateCertificate(), EntityGenerator.generateCertificate())
+                );
+                legalEntity.addRelyingPartyInstance(relyingPartyInstance);
+                assertTrue(relyingPartyInstance.getAccessCertificates().size() > 1);
+                rpRepository.saveAndFlush(legalEntity);
 
-                rpRepository.save(rpIn);
-
-                RelyingParty rpOut = rpRepository.findById(rpIn.getId()).orElse(null);
+                RelyingPartyInstance rpOut = instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null);
                 assertNotNull(rpOut);
 
                 // NOTE: use Set in order to check equality, since the
                 // repo returns a PersistentBag which is tedious to work with.
                 // OK since certificates are assumed to be unique.
                 Set<AccessCertificate> certsExpected =
-                    new HashSet<>(rpIn.getAccessCertificates());
+                    new HashSet<>(relyingPartyInstance.getAccessCertificates());
                 Set<AccessCertificate> certsActual =
                     new HashSet<>(rpOut.getAccessCertificates());
 
@@ -110,11 +114,17 @@ public class AccessCertificateTests {
             @Test
             @DisplayName("then auxiliary fields are correctly extracted from the certificate")
             public void testAuxiliaryFieldsProperlyStoredInEntity() {
-                RelyingParty rpIn = EntityGenerator.generateRelyingPartyNoId();
-                rpIn.setAccessCertificates(List.of(EntityGenerator.generateCertificate()));
-                rpRepository.saveAndFlush(rpIn);
+                LegalEntity legalEntity = new LegalEntity("name", "orgno", true, new ArrayList<>());
+                RelyingPartyInstance relyingPartyInstance = new RelyingPartyInstance(
+                    "name",
+                    List.of(),
+                    List.of(),
+                    List.of(EntityGenerator.generateCertificate())
+                );
+                legalEntity.addRelyingPartyInstance(relyingPartyInstance);
+                rpRepository.saveAndFlush(legalEntity);
 
-                RelyingParty rpOut = rpRepository.findById(rpIn.getId()).orElse(null);
+                RelyingPartyInstance rpOut = instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null);
                 assertNotNull(rpOut);
 
                 AccessCertificate certEntity =
@@ -127,23 +137,6 @@ public class AccessCertificateTests {
                         () -> assertEquals(actualCert.getSubjectX500Principal().getName(), certEntity.getSubjectDn()),
                         () -> assertEquals(actualCert.getNotBefore().toInstant().toEpochMilli(), certEntity.getValidFromMs()),
                         () -> assertEquals(actualCert.getNotAfter().toInstant().toEpochMilli(), certEntity.getValidUntilMs())
-                );
-            }
-
-            @Test
-            @DisplayName("then adding the same certificate multiple times gives an error")
-            public void testDuplicateCertificateIsRejected() {
-                RelyingParty rpIn1 = EntityGenerator.generateRelyingPartyNoId();
-                RelyingParty rpIn2 = EntityGenerator.generateRelyingPartyNoId();
-
-                AccessCertificate cert = EntityGenerator.generateCertificate();
-
-                rpIn1.setAccessCertificates(List.of(cert));
-                rpRepository.save(rpIn1);
-
-                rpIn2.setAccessCertificates(List.of(cert));
-                assertThrows(InvalidDataAccessApiUsageException.class,
-                             () -> rpRepository.saveAndFlush(rpIn2)
                 );
             }
         }

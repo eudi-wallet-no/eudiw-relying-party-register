@@ -18,16 +18,16 @@ public class AccessCertificate extends BaseCertificateEntity {
     @ToString.Exclude
     @ManyToOne(optional = false)
     @JoinColumn(
-        name = "relying_party_id",
+        name = "relying_party_instance_id",
         columnDefinition = "UUID",
         nullable = false)
     @JdbcTypeCode(SqlTypes.UUID)
     @Setter(AccessLevel.PACKAGE)
-    private RelyingParty relyingParty;
+    private RelyingPartyInstance relyingPartyInstance;
 
-    public AccessCertificate(X509Certificate certificate, RelyingParty relyingParty) {
+    public AccessCertificate(X509Certificate certificate, RelyingPartyInstance relyingPartyInstance) {
         super(certificate);
-        this.relyingParty = relyingParty;
+        this.relyingPartyInstance = relyingPartyInstance;
     }
 
     // for JPA instantiation.
