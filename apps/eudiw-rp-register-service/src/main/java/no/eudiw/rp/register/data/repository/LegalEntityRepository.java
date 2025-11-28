@@ -21,24 +21,30 @@ public interface LegalEntityRepository
     boolean existsById(UUID id);
 
     @Query("""
-           SELECT DISTINCT entity
-           FROM LegalEntity entity
-           LEFT JOIN entity.relyingPartyInstances inst
-           WHERE (:searchTerm IS NULL OR :searchTerm = '' OR
-                 entity.name ILIKE %:searchTerm% OR
-                 entity.orgno ILIKE %:searchTerm% OR
-                 inst.tradeName ILIKE %:searchTerm% AND
-                 entity.active = TRUE AND
-                 ((SELECT COUNT(DISTINCT e.entitlement)
-                     FROM RelyingPartyEntitlement e
-                     WHERE e.relyingPartyInstance = inst
-                     AND e.entitlement IN :entitlements
-                 ) = :entitlementCount))
-           """)
+    SELECT DISTINCT entity
+    FROM LegalEntity entity
+    LEFT JOIN entity.relyingPartyInstances inst
+    WHERE
+      (
+        :searchTerm IS NULL OR :searchTerm = '' OR
+        entity.name ILIKE %:searchTerm% OR
+        entity.orgno ILIKE %:searchTerm% OR
+        inst.tradeName ILIKE %:searchTerm%
+      )
+      AND (entity.active = TRUE OR :includeInactive = TRUE)
+      AND (
+        (SELECT COUNT(DISTINCT e.entitlement)
+         FROM RelyingPartyEntitlement e
+         WHERE e.relyingPartyInstance = inst
+           AND e.entitlement IN :entitlements
+        ) = :entitlementCount
+      )
+    """)
     Page<LegalEntity> searchRelyingParties(
         @Param("searchTerm") String searchTerm,
         @Param("entitlements") List<String> entitlements,
         @Param("entitlementCount") int entitlementCount,
+        @Param("includeInactive") boolean includeInactive,
         Pageable pageable
     );
 }

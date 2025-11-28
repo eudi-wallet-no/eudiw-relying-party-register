@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
@@ -78,7 +79,8 @@ public class RelyingPartyService {
         Page<LegalEntity> page = legalEntityRepository.searchRelyingParties(
             searchResource.getSearchTerm(),
             entitlements,
-            entitlements.size(),
+            new HashSet<>(entitlements).size(),
+            searchResource.isIncludeInactive(),
             pageRequest
         );
 
