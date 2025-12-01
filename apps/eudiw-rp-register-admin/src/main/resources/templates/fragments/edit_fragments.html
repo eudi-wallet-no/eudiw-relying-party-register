@@ -3,7 +3,7 @@
       th:object="${editFormAttr}"
       th:action="@{|${isAdmin ? '/admin/edit' : '/edit'}/${rp.id}|}"
       method="POST">
-<!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
+    <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
     <!--/*@thymesVar id="editFormAttr" type="no.idporten.eudiw.rp.admin.web.form.admin.AdminEditRelyingPartyForm"*/-->
     <div style="margin-bottom: 8px;">
     <div class="ds-card">
@@ -27,19 +27,19 @@
             </p>
 
             <p class="ds-paragraph">
-                <label for="name_field"
+                <label for="trade_name_field"
                        class="ds-label">
-                    Namn
+                    Tenestenamn
                 </label>
-                <input id="name_field"
-                       th:field="*{name}"
+                <input id="trade_name_field"
+                       th:field="*{tradeName}"
                        type="text"
-                       placeholder="Namn"
+                       placeholder="Tenestenamn"
                        class="ds-input"
                        th:disabled="${!isAdmin}">
             </p>
-            <ul th:if="${#fields.hasErrors('name')}">
-                <li th:each="error : ${#fields.errors('name')}"
+            <ul th:if="${#fields.hasErrors('tradeName')}">
+                <li th:each="error : ${#fields.errors('tradeName')}"
                     th:text="${error}"
                     class="ds-validation-message"></li>
             </ul>
@@ -68,11 +68,10 @@
                     Sektor
                 </label>
                 <select id="sector_field"
-                        th:field="*{publicSector}"
                         class="ds-input"
-                        th:disabled="${!isAdmin}">
-                    <option value="true">Offentleg</option>
-                    <option value="false">Privat</option>
+                        disabled>
+                    <option th:text="${rp.publicSector() ? 'Offentleg' : 'Privat'}">
+                    </option>
                 </select>
             </p>
 
