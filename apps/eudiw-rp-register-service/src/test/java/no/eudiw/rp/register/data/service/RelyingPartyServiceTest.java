@@ -235,7 +235,7 @@ public class RelyingPartyServiceTest {
 
             Set<RelyingPartyResource> expectedSearchResult =
                 rpsIn.stream()
-                    .map(rp -> converter.toResource(rp, rp.getRelyingPartyInstances().getFirst()))
+                    .map(rp -> converter.toResource(rp.getRelyingPartyInstances().getFirst()))
                     .filter(rp -> rp.relyingPartyEntitlements().containsAll(requiredEntitlements))
                     .collect(Collectors.toSet());
 

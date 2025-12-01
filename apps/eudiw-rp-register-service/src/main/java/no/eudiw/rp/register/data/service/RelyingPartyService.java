@@ -49,7 +49,7 @@ public class RelyingPartyService {
         RelyingPartyInstance relyingPartyInstance = converter.toEntity(request);
         registeredLegalEntity.addRelyingPartyInstance(relyingPartyInstance);
         RelyingPartyInstance savedInstance = relyingPartyInstanceRepository.saveAndFlush(relyingPartyInstance);
-        return converter.toResource(registeredLegalEntity, savedInstance);
+        return converter.toResource(savedInstance);
     }
 
     @Transactional(readOnly = true)
@@ -59,7 +59,7 @@ public class RelyingPartyService {
             throw new NotFoundException("Relying party not found");
         }
 
-        return converter.toResource(relyingPartyInstance.getLegalEntity(), relyingPartyInstance);
+        return converter.toResource(relyingPartyInstance);
     }
 
     @Transactional(readOnly = true)
@@ -126,9 +126,9 @@ public class RelyingPartyService {
             request.relyingPartyEaas().stream().map(converter::toEntity).toList());
 
         RelyingPartyInstance returnInstance = relyingPartyInstanceRepository.saveAndFlush(relyingPartyInstance);
-        LegalEntity returnRp = legalEntityRepository.saveAndFlush(legalEntity);
+        legalEntityRepository.saveAndFlush(legalEntity);
 
-        return converter.toResource(returnRp, returnInstance);
+        return converter.toResource(returnInstance);
     }
 
     @Transactional

@@ -37,36 +37,37 @@ public class TestDataGenerator {
                         .collect(Collectors.toList());
     }
 
-    private static final int[] ORGNO_WEIGHTS = {3, 2, 7, 6, 5, 4, 3, 2, 0};
+    // orgno weights, from least to most significant digit.
+    private static final int[] ORGNO_WEIGHTS = {2, 3, 4, 5, 6, 7, 2, 3};
     public static final int ORGNO_LENGTH = 9;
 
-    private static int getControlDigit(int[] orgnoDigits) {
+    private static int getControlDigit(int orgno) {
         int sumOfProducts = 0;
-        for (int i = 0; i < ORGNO_LENGTH - 1; i++)
-            sumOfProducts += orgnoDigits[i] * ORGNO_WEIGHTS[i];
+        for (int i = 0; i < 8; i++) {
+            orgno /= 10;
+            int currentOrgnoDigit = orgno % 10;
+            sumOfProducts += currentOrgnoDigit * ORGNO_WEIGHTS[i];
+        }
         int remainder = sumOfProducts % 11;
         return remainder != 0 ? 11 - remainder : 0;
     }
 
+
     public static String generateValidOrgno() {
-        int[] randDigits = new int[ORGNO_LENGTH];
-        for (int i = 0; i < randDigits.length; i++)
-            randDigits[i] = rng.nextInt(0, 9);
+        int rawOrgno = rng.nextInt(800000000, 999999999 + 1); // generate orgnos starting with 8 and 9
 
-        int controlDigit = getControlDigit(randDigits);
+        int controlDigit = getControlDigit(rawOrgno);
         if (controlDigit == 10) {
-            // make control digit valid by adding 1 to a random index. works
-            // because a weighted orgno digit can never have 11 as a factor (given
-            // current orgno weights).
-            int modifyIndex = rng.nextInt(0, ORGNO_LENGTH - 1);
-            randDigits[modifyIndex] = (randDigits[modifyIndex] + 1) % 10;
-            controlDigit = getControlDigit(randDigits);
+            // make orgno valid by adding 1 to least significant non-control digit.
+            // works because a weighted orgno digit can never have 11 as a factor
+            // (given current orgno weights).
+            int leastSignificantNonControlDigit = rawOrgno / 10 % 10;
+            int newLeastSignificantNonControlDigit = (leastSignificantNonControlDigit + 1) % 10;
+            rawOrgno = rawOrgno - rawOrgno % 100 + newLeastSignificantNonControlDigit * 10;
+            controlDigit = getControlDigit(rawOrgno);
         }
-
-        randDigits[ORGNO_LENGTH - 1] = controlDigit;
-        return Arrays.stream(randDigits)
-                     .mapToObj(Integer::toString)
-                     .collect(Collectors.joining());
+        int orgno = rawOrgno - rawOrgno % 10 + controlDigit;
+        return Integer.toString(orgno);
     }
 
     public static String generateInvalidOrgno() {
