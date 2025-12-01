@@ -31,6 +31,11 @@ public class Converter {
                 .stream()
                 .map(this::toResource)
                 .toList(),
+            relyingPartyInstance
+                .getAccessCertificates()
+                .stream()
+                .map(this::toResource)
+                .toList(),
             relyingPartyInstance.getCreatedMs(),
             relyingPartyInstance.getLastUpdatedMs(),
             relyingPartyInstance.isActive()
@@ -70,7 +75,11 @@ public class Converter {
     }
 
     public EntitlementResource toResource(Entitlement entitlement) {
-        return new EntitlementResource(entitlement.getId(), entitlement.getEntitlement(), entitlement.isActive(), entitlement.getDisplayName(), entitlement.getCaId());
+        return new EntitlementResource(entitlement.getId(),
+                                       entitlement.getEntitlement(),
+                                       entitlement.isActive(),
+                                       entitlement.getDisplayName(),
+                                       entitlement.getCaId());
     }
 
     public EntitlementsResource toEntitlementsResource(List<Entitlement> entitlements) {
