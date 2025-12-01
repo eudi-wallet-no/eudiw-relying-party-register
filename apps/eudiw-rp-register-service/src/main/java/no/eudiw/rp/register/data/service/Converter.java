@@ -81,7 +81,7 @@ public class Converter {
 
     public RelyingPartyInstance toEntity(CreateRelyingPartyResource resource) {
         return new RelyingPartyInstance(
-            resource.name(),
+            resource.tradeName(),
             resource.relyingPartyEntitlements().stream().map(this::toEntity).toList(),
             resource.relyingPartyEaas().stream().map(this::toEntity).toList(),
             new ArrayList<>()

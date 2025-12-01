@@ -47,9 +47,7 @@ public class RelyingPartyServiceTest {
             assertNotNull(response);
 
             EditRelyingPartyResource editResource =
-                generateEditRelyingPartyResource()
-                    .withName(response.name())
-                    .withPublicSector(response.publicSector());
+                generateEditRelyingPartyResource().withTradeName(response.tradeName());
 
             RelyingPartyResource editResponse1 =
                 relyingPartyService.updateRelyingParty(response.id(), editResource);
@@ -83,23 +81,22 @@ public class RelyingPartyServiceTest {
             assertNotNull(response);
 
             EditRelyingPartyResource editResource =
-                generateEditRelyingPartyResource()
-                    .withName(response.name() + "new")
-                    .withPublicSector(!response.publicSector());
+                generateEditRelyingPartyResource().withTradeName(response.tradeName() + "new");
             RelyingPartyResource editResponse = relyingPartyService.updateRelyingParty(
                     response.id(),
                     editResource
             );
             assertNotNull(editResponse);
             assertEquals(editResource.relyingPartyEaas().size(), editResponse.relyingPartyEaas().size());
-            assertEquals(response.name() + "new", editResponse.name());
-            assertEquals(!response.publicSector(), editResponse.publicSector());
+            assertEquals(response.tradeName() + "new", editResponse.tradeName());
+            assertEquals(response.publicSector(), editResponse.publicSector());
 
             RelyingPartyResource getResult = relyingPartyService.findRelyingParty(response.id());
             assertNotNull(getResult);
             assertEquals(editResource.relyingPartyEaas().size(), getResult.relyingPartyEaas().size());
-            assertEquals(response.name() + "new", getResult.name());
-            assertEquals(!response.publicSector(), getResult.publicSector());
+            assertEquals(response.publicSector(), getResult.publicSector());
+            assertEquals(response.tradeName() + "new", getResult.tradeName());
+            assertEquals(response.publicSector(), getResult.publicSector());
         }
 
         @Test
@@ -110,9 +107,7 @@ public class RelyingPartyServiceTest {
             assertNotNull(response);
 
             EditRelyingPartyResource editResource =
-                generateEditRelyingPartyResource()
-                    .withName(response.name())
-                    .withPublicSector(response.publicSector());
+                generateEditRelyingPartyResource().withTradeName(response.tradeName());
 
             RelyingPartyResource editResponse1 =
                 relyingPartyService.updateRelyingParty(response.id(), editResource);
@@ -133,8 +128,7 @@ public class RelyingPartyServiceTest {
             assertEquals(editResource.relyingPartyEaas().size(), getResult2.relyingPartyEaas().size());
 
             EditRelyingPartyResource emptyEaasEditResource =
-                generateEditRelyingPartyResource()
-                    .withRelyingPartyEaas(List.of());
+                generateEditRelyingPartyResource().withRelyingPartyEaas(List.of());
             RelyingPartyResource editResponse3 =
                 relyingPartyService.updateRelyingParty(response.id(), emptyEaasEditResource);
             assertNotNull(editResponse3);
@@ -162,9 +156,7 @@ public class RelyingPartyServiceTest {
             assertNotNull(response);
 
             EditRelyingPartyResource editResource =
-                generateEditRelyingPartyResource()
-                    .withName(response.name())
-                    .withPublicSector(response.publicSector());
+                generateEditRelyingPartyResource().withTradeName(response.tradeName());
             RelyingPartyResource editResponse1 =
                 relyingPartyService.updateRelyingParty(response.id(), editResource);
             assertNotNull(editResponse1);
@@ -176,9 +168,7 @@ public class RelyingPartyServiceTest {
             assertEquals(editResource.relyingPartyEntitlements().size(), getResult1.relyingPartyEntitlements().size());
 
             EditRelyingPartyResource editResource2 =
-                generateEditRelyingPartyResource()
-                    .withName(response.name())
-                    .withPublicSector(response.publicSector());
+                generateEditRelyingPartyResource().withTradeName(response.tradeName());
 
             RelyingPartyResource editResponse2 =
                 relyingPartyService.updateRelyingParty(response.id(), editResource2);
@@ -200,9 +190,7 @@ public class RelyingPartyServiceTest {
             RelyingPartyResource response = relyingPartyService.createRelyingParty(resource);
             assertNotNull(response);
             EditRelyingPartyResource editResource =
-                generateEditRelyingPartyResource()
-                    .withName(response.name())
-                    .withPublicSector(response.publicSector());
+                generateEditRelyingPartyResource().withTradeName(response.tradeName());
 
             RelyingPartyResource editResponse1 =
                 relyingPartyService.updateRelyingParty(response.id(), editResource);

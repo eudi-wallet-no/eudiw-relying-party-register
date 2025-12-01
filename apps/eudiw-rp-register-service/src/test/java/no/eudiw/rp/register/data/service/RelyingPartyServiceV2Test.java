@@ -33,7 +33,6 @@ public class RelyingPartyServiceV2Test {
         CreateRelyingPartyResource createRelyingPartyResource = new CreateRelyingPartyResource(
             generateValidOrgno(),
             generateName(),
-            true,
             List.of(),
             List.of()
         );
@@ -41,14 +40,12 @@ public class RelyingPartyServiceV2Test {
         RelyingPartyResource result = relyingPartyService.createRelyingParty(createRelyingPartyResource);
 
         assertNotNull(result);
-        assertEquals(result.name(), createRelyingPartyResource.name());
-        assertEquals(result.publicSector(), createRelyingPartyResource.publicSector());
+        assertEquals(result.tradeName(), createRelyingPartyResource.tradeName());
 
         RelyingPartyInstance instance = relyingPartyInstanceRepository.findById(result.id()).get();
 
         assertNotNull(instance);
         assertNotEquals(result.id(), instance.getLegalEntity().getId());
-        assertEquals(result.name(), instance.getLegalEntity().getName());
         assertEquals(result.publicSector(), instance.getLegalEntity().isPublicSector());
     }
 
@@ -57,7 +54,6 @@ public class RelyingPartyServiceV2Test {
         CreateRelyingPartyResource createRelyingPartyResource = new CreateRelyingPartyResource(
             generateValidOrgno(),
             generateName(),
-            true,
             List.of(),
             List.of()
         );
@@ -74,7 +70,6 @@ public class RelyingPartyServiceV2Test {
         CreateRelyingPartyResource createRelyingPartyResource = new CreateRelyingPartyResource(
             generateValidOrgno(),
             generateName(),
-            true,
             List.of(),
             List.of()
         );
@@ -82,7 +77,7 @@ public class RelyingPartyServiceV2Test {
         RelyingPartyResource result = relyingPartyService.createRelyingParty(createRelyingPartyResource);
 
         PagedModel<RelyingPartyResource> searchResult = relyingPartyService.searchRelyingParties(
-            new SearchRelyingPartyResource(createRelyingPartyResource.name())
+            new SearchRelyingPartyResource(createRelyingPartyResource.tradeName())
         );
         
         assertEquals(searchResult.getContent().getFirst(), result);
@@ -93,7 +88,6 @@ public class RelyingPartyServiceV2Test {
         CreateRelyingPartyResource createRelyingPartyResource = new CreateRelyingPartyResource(
             generateValidOrgno(),
             generateName(),
-            true,
             List.of(new RelyingPartyEntitlementResource("https://uri.etsi.org/19475/Entitlement/QEAA_Provider", "QEAA Provider", new ArrayList<>())),
             List.of()
         );
@@ -102,14 +96,13 @@ public class RelyingPartyServiceV2Test {
 
         EditRelyingPartyResource editResource = new EditRelyingPartyResource(
             generateName(),
-            true,
             List.of(new RelyingPartyEntitlementResource("https://uri.etsi.org/19475/Entitlement/QEAA_Provider", "QEAA Provider", new ArrayList<>())),
             List.of(),
             true
         );
 
         RelyingPartyResource editResult = relyingPartyService.updateRelyingParty(createResult.id(), editResource);
-        assertEquals(editResult.name(), editResource.name());
+        assertEquals(editResult.tradeName(), editResource.tradeName());
     }
 
 }

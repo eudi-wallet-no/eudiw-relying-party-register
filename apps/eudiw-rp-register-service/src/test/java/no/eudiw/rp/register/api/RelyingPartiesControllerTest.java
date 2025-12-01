@@ -73,8 +73,7 @@ public class RelyingPartiesControllerTest {
                                 .content(json))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$.org_nr").value(resource.orgNr()))
-                        .andExpect(jsonPath("$.name").value(resource.name()))
-                        .andExpect(jsonPath("$.public_sector").value(resource.publicSector()));
+                        .andExpect(jsonPath("$.name").value(resource.tradeName()));
             }
 
             @Test
@@ -110,8 +109,7 @@ public class RelyingPartiesControllerTest {
                                 .content(json))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$.org_nr").value(resource.orgNr()))
-                        .andExpect(jsonPath("$.name").value(resource.name()))
-                        .andExpect(jsonPath("$.public_sector").value(resource.publicSector()));
+                        .andExpect(jsonPath("$.name").value(resource.tradeName()));
 
                 RelyingPartyResource response = ApiTestUtils.toRelyingPartyResource(createResult);
 
@@ -119,8 +117,7 @@ public class RelyingPartiesControllerTest {
                                 .accept(MediaType.APPLICATION_JSON)
                                 .header(X_API_KEY_HEADER, VALID_API_KEY))
                         .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.name").value(resource.name()))
-                        .andExpect(jsonPath("$.public_sector").value(resource.publicSector()));
+                        .andExpect(jsonPath("$.name").value(resource.tradeName()));
             }
 
             @Test
@@ -148,7 +145,7 @@ public class RelyingPartiesControllerTest {
 //                                        .content(json))
 //                                .andExpect(status().isOk())
 //                                .andExpect(jsonPath("$.org_nr").value(resource.orgNr()))
-//                                .andExpect(jsonPath("$.name").value(resource.name()))
+//                                .andExpect(jsonPath("$.name").value(resource.tradeName()))
 //                                .andExpect(jsonPath("$.public_sector").value(resource.publicSector()));
 //
 //                RelyingPartyResource relyingPartyResource = ApiTestUtils.toRelyingPartyResource(createResult);
@@ -194,8 +191,7 @@ public class RelyingPartiesControllerTest {
                                         .content(json))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.org_nr").value(resource.orgNr()))
-                                .andExpect(jsonPath("$.name").value(resource.name()))
-                                .andExpect(jsonPath("$.public_sector").value(resource.publicSector()));
+                                .andExpect(jsonPath("$.name").value(resource.tradeName()));
 
                 RelyingPartyResource relyingPartyResource = ApiTestUtils.toRelyingPartyResource(createResult);
 
@@ -209,7 +205,7 @@ public class RelyingPartiesControllerTest {
                                 .header(X_API_KEY_HEADER, VALID_API_KEY)
                                 .content(ow.writeValueAsString(editResource)))
                         .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.name").value(editResource.name()));
+                        .andExpect(jsonPath("$.name").value(editResource.tradeName()));
             }
 
             @Test
@@ -234,8 +230,7 @@ public class RelyingPartiesControllerTest {
                                         .content(json))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.org_nr").value(resource.orgNr()))
-                                .andExpect(jsonPath("$.name").value(resource.name()))
-                                .andExpect(jsonPath("$.public_sector").value(resource.publicSector()));
+                                .andExpect(jsonPath("$.name").value(resource.tradeName()));
                 RelyingPartyResource relyingPartyResource = ApiTestUtils.toRelyingPartyResource(createResult);
 
                 List<RelyingPartyEntitlementResource> entitlements = new ArrayList<>(resource.relyingPartyEntitlements());
@@ -250,8 +245,7 @@ public class RelyingPartiesControllerTest {
                                 .header(X_API_KEY_HEADER, VALID_API_KEY)
                                 .content(ow.writeValueAsString(editResource)))
                         .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.name").value(editResource.name()))
-                        .andExpect(jsonPath("$.public_sector").value(editResource.publicSector()));
+                        .andExpect(jsonPath("$.name").value(editResource.tradeName()));
             }
 
             @Test
@@ -269,8 +263,7 @@ public class RelyingPartiesControllerTest {
                                         .content(json))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.org_nr").value(resource.orgNr()))
-                                .andExpect(jsonPath("$.name").value(resource.name()))
-                                .andExpect(jsonPath("$.public_sector").value(resource.publicSector()));
+                                .andExpect(jsonPath("$.name").value(resource.tradeName()));
 
                 RelyingPartyResource relyingPartyResource = ApiTestUtils.toRelyingPartyResource(createResult);
                 EditRelyingPartyResource editResource =
@@ -282,7 +275,7 @@ public class RelyingPartiesControllerTest {
                                 .header(X_API_KEY_HEADER, VALID_API_KEY)
                                 .content(ow.writeValueAsString(editResource)))
                         .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.name").value(editResource.name()));
+                        .andExpect(jsonPath("$.name").value(editResource.tradeName()));
                 assertTrue(ApiTestUtils.toRelyingPartyResource(editResult).relyingPartyEntitlements().isEmpty());
             }
         }
