@@ -80,6 +80,7 @@ public class RelyingPartyService {
             entitlements,
             new HashSet<>(entitlements).size(),
             searchResource.isIncludeInactive(),
+            searchResource.isHideSyntheticOrgnos(),
             pageRequest
         );
 
