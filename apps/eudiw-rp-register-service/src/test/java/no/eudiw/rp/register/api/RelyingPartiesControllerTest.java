@@ -386,8 +386,8 @@ public class RelyingPartiesControllerTest {
                 assertEquals(2, relyingPartyResources.size());
 
                 assertAll(
-                    () -> assertTrue(relyingPartyResources.contains(converter.toResource(legalEntity1, legalEntity1.getRelyingPartyInstances().getFirst()))),
-                    () -> assertTrue(relyingPartyResources.contains(converter.toResource(legalEntity2, legalEntity2.getRelyingPartyInstances().getFirst())))
+                    () -> assertTrue(relyingPartyResources.contains(converter.toResource(legalEntity1.getRelyingPartyInstances().getFirst()))),
+                    () -> assertTrue(relyingPartyResources.contains(converter.toResource(legalEntity2.getRelyingPartyInstances().getFirst())))
                 );
             }
 
@@ -422,8 +422,8 @@ public class RelyingPartiesControllerTest {
                 assertEquals(2, relyingPartyResources.size());
 
                 assertAll(
-                    () -> assertTrue(relyingPartyResources.contains(converter.toResource(legalEntity1, legalEntity1.getRelyingPartyInstances().getFirst()))),
-                    () -> assertTrue(relyingPartyResources.contains(converter.toResource(legalEntity3, legalEntity3.getRelyingPartyInstances().getFirst())))
+                    () -> assertTrue(relyingPartyResources.contains(converter.toResource(legalEntity1.getRelyingPartyInstances().getFirst()))),
+                    () -> assertTrue(relyingPartyResources.contains(converter.toResource(legalEntity3.getRelyingPartyInstances().getFirst())))
                 );
             }
         }

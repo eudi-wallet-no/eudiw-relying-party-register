@@ -81,6 +81,14 @@ eudiw-rp-register-service:
     rest-client:
       connect-timeout-millis: 5000
       read-timeout-millis: 5000
+  enhetsregisteret-service:
+    enhetsregisteret-api-base-uri: "https://data.brreg.no/enhetsregisteret/api/enheter"
+    rest-client:
+      connect-timeout-millis: 2000
+      read-timeout-millis: 2000
+    known-public-sector-codes:
+      - "6100" # Statsforvaltningen
+      - "6500" # Kommuneforvaltningen
 
 ---
 spring:

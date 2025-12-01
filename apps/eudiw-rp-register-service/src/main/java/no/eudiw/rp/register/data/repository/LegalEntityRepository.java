@@ -19,6 +19,7 @@ public interface LegalEntityRepository
     Optional<LegalEntity> findById(UUID id);
     Optional<LegalEntity> findByOrgno(String orgno);
     boolean existsById(UUID id);
+    boolean existsByOrgno(String orgno);
 
     @Query("""
     SELECT DISTINCT entity

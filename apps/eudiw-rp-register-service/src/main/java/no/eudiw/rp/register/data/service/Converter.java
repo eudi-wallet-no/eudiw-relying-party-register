@@ -16,12 +16,12 @@ public class Converter {
 
     private final EntitlementRepository entitlementRepository;
 
-    public RelyingPartyResource toResource(LegalEntity legalEntity, RelyingPartyInstance relyingPartyInstance) {
+    public RelyingPartyResource toResource(RelyingPartyInstance relyingPartyInstance) {
         return new RelyingPartyResource(
             relyingPartyInstance.getId(),
-            legalEntity.getOrgno(),
+            relyingPartyInstance.getLegalEntity().getOrgno(),
             relyingPartyInstance.getTradeName(),
-            legalEntity.isPublicSector(),
+            relyingPartyInstance.getLegalEntity().isPublicSector(),
             relyingPartyInstance.getRelyingPartyEntitlements()
                 .stream()
                 .map(this::toResource)
@@ -37,7 +37,7 @@ public class Converter {
     }
 
     public List<RelyingPartyResource> toResource(LegalEntity legalEntity) {
-        return legalEntity.getRelyingPartyInstances().stream().map(rp -> toResource(legalEntity, rp)).toList();
+        return legalEntity.getRelyingPartyInstances().stream().map(this::toResource).toList();
     }
 
     public List<RelyingPartyResource> toResource(List<LegalEntity> legalEntities) {

@@ -68,13 +68,13 @@ public class RegisterServiceExceptionHandler {
     @ExceptionHandler(UnrecognizedErrorResponseException.class)
     public ResponseEntity<ErrorResponseResource> handleUnrecognizedErrorResponseException(
         UnrecognizedErrorResponseException e) {
-        return genericInternalErrorResponse("Unrecognized error response from CA service", e);
+        return genericInternalErrorResponse("Unrecognized error response from external service", e);
     }
 
     @ExceptionHandler(ErrorResponseException.class)
     public ResponseEntity<ErrorResponseResource> handleErrorResponseException(
         ErrorResponseException e) {
-        return genericInternalErrorResponse("Request rejected by CA service", e);
+        return genericInternalErrorResponse("Request rejected by external service", e);
     }
 
 
