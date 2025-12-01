@@ -20,12 +20,10 @@ import java.util.*;
 @EqualsAndHashCode
 public class AdminEditRelyingPartyForm {
     @SaneStringConstraint(message =
-        "Ugyldig namn. Gyldige teikn er: norske bokstavar, tal, mellemrom og symbola "
+        "Ugyldig tenestenamn. Gyldige teikn er: norske bokstavar, tal, mellemrom og symbola "
             + SaneStringValidator.ALLOWED_SYMBOLS)
-    @NotBlank(message = "Namn må fyllast ut")
-    private String name;
-
-    private boolean publicSector;
+    @NotBlank(message = "Tenestenamn må fyllast ut")
+    private String tradeName;
 
     @Valid
     @NotEmpty(message = "Brukerstedet må ha minst en entitlement")
@@ -42,13 +40,12 @@ public class AdminEditRelyingPartyForm {
 
     @SuppressWarnings("unused") // used in Spring data binding
     public AdminEditRelyingPartyForm() {
-        this("", true, new ArrayList<>(), new ArrayList<>(), "", true);
+        this("", new ArrayList<>(), new ArrayList<>(), "", true);
     }
 
     public EditRelyingPartyResource toResource() {
         return new EditRelyingPartyResource(
-            this.name,
-            this.publicSector,
+            this.tradeName,
             this.getEntitlements()
                 .stream()
                 .map(RelyingPartyEntitlementFormField::toResource)
@@ -66,8 +63,7 @@ public class AdminEditRelyingPartyForm {
     public static AdminEditRelyingPartyForm prefillFromRelyingPartyResource(
         RelyingPartyResource resource) {
         return new AdminEditRelyingPartyForm(
-            resource.name(),
-            resource.publicSector(),
+            resource.tradeName(),
             resource.relyingPartyEntitlements()
                     .stream()
                     .map(RelyingPartyEntitlementFormField::fromResource)

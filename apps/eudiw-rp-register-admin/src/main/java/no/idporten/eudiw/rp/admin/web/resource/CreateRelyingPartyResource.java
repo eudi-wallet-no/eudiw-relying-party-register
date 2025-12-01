@@ -13,13 +13,10 @@ public record CreateRelyingPartyResource(
     String orgno,
 
     @JsonProperty(value = "name", required = true)
-    String name,
+    String tradeName,
 
-    @JsonProperty(value = "credential_issuer_url", required = false)
+    @JsonProperty("credential_issuer_url")
     String credentialIssuerUrl,
-
-    @JsonProperty(value = "public_sector", required = true)
-    boolean publicSector,
 
     @JsonProperty("relying_party_entitlements")
     List<RelyingPartyEntitlementResource> relyingPartyEntitlements,

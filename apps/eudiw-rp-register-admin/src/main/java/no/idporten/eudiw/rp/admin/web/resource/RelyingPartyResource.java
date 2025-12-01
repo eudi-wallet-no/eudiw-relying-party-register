@@ -20,7 +20,7 @@ public record RelyingPartyResource(
     String orgno,
 
     @JsonProperty(value = "name", required = true)
-    String name,
+    String tradeName,
 
     @JsonProperty(value = "public_sector", required = true)
     boolean publicSector,

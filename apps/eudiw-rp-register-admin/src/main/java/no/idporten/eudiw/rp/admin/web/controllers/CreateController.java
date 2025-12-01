@@ -47,9 +47,8 @@ public class CreateController {
             ReporteeAuthority reportee = userAuthorityService.getReporteeAuthority();
             createForm = createForm
                 .withOrgno(reportee.orgno())
-                .withName(reportee.name())
+                .withTradeName(reportee.name())
                 .withCredentialIssuerUrl(reportee.credentialIssuerUrl())
-                .withPublicSector(reportee.publicSector())
                 .withEntitlements(List.of(new RelyingPartyEntitlementFormField(
                     "https://uri.etsi.org/19475/Entitlement/Service_Provider")));
         }
@@ -71,8 +70,7 @@ public class CreateController {
             CreateRelyingPartyResource createResource =
                 createForm.toResource(reportee.orgno(),
                                       reportee.name(),
-                                      reportee.credentialIssuerUrl(),
-                                      reportee.publicSector());
+                                      reportee.credentialIssuerUrl());
             RelyingPartyResource result = relyingPartiesService.create(createResource);
             return new ModelAndView("redirect:/details/" + result.id());
         }

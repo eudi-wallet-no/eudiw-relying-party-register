@@ -72,7 +72,7 @@
                 </th>
                 <th th:class="${currentOrdering == orderingOpts.NAME_ASC ? 'focused' : ''}">
                     <a th:href="@{search(sort='NAME_ASC')}" class="ds-link">
-                        Namn
+                        Tenestenamn
                     </a>
                 </th>
                 <th>Roller</th>
@@ -92,7 +92,7 @@
 
             <tr th:each="rp : ${resultsPage}">
                 <td><a th:href="@{|/details/${rp.id}|}" style="cursor:pointer;"><div th:text="${rp.orgno}"></div></a> </td>
-                <td th:text="${rp.name}"></td>
+                <td th:text="${rp.tradeName}"></td>
                 <td>
                     <div th:each="e : ${rp.relyingPartyEntitlements()}"
                          th:text="${e.displayName()}"

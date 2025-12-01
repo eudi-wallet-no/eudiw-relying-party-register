@@ -10,10 +10,7 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record EditRelyingPartyResource(
     @JsonProperty(value = "name")
-    String name,
-
-    @JsonProperty(value = "public_sector")
-    boolean publicSector,
+    String tradeName,
 
     @JsonProperty("relying_party_entitlements")
     List<RelyingPartyEntitlementResource> relyingPartyEntitlements,

@@ -3,7 +3,7 @@
       th:with="rp=${detailedViewDataAttr}">
 <head>
     <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
-    <title th:text="|Endre brukarstad: ${rp.name}|"></title>
+    <title th:text="|Endre brukarstad: ${rp.tradeName}|"></title>
     <style>
         div.ds-card + div.ds-card {margin-top: 8px;}
     </style>
@@ -16,12 +16,12 @@
     <main>
 
         <h1 class="ds-heading" data-size="lg">
-            Endre brukarstad: <span th:text="${rp.name}"></span>
+            Endre brukarstad: <span th:text="${rp.tradeName}"></span>
         </h1>
 
         <p class="ds-paragraph">
             <a th:href="@{|/details/${rp.id}|}" class="ds-button">
-                Tilbake til <span th:text="${rp.name}"></span>
+                Tilbake til <span th:text="${rp.tradeName}"></span>
             </a>
         </p>
         <div sec:authorize="hasRole('ADMIN')"

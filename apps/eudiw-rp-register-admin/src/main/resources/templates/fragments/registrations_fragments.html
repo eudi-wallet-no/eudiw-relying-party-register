@@ -11,7 +11,7 @@
             <thead>
             <tr>
                 <th>Org.nr.</th>
-                <th>Namn</th>
+                <th>Tenestenamn</th>
                 <th>Roller</th>
                 <th>Oppretta</th>
                 <th>Sist endra</th>
@@ -21,7 +21,7 @@
 
             <tr th:each="rp : ${registrations}">
                 <td><a th:href="@{|/details/${rp.id}|}" style="cursor:pointer;"><div th:text="${rp.orgno}"></div></a></td>
-                <td th:text="${rp.name}"></td>
+                <td th:text="${rp.tradeName}"></td>
                 <td>
                     <div th:each="e : ${rp.relyingPartyEntitlements()}"
                          th:text="${e.displayName()}"
