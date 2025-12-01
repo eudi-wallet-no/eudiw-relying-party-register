@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.With;
+import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCertificateResource;
 import no.eudiw.rp.register.validation.SaneStringConstraint;
 import no.idporten.validators.orgnr.Orgnr;
 
@@ -48,6 +49,11 @@ public record RelyingPartyResource(
     @NotNull(message = "null_eaas")
     @JsonProperty("relying_party_eaas")
     List<RelyingPartyEaaResource> relyingPartyEaas,
+
+    @Valid
+    @NotNull(message = "null_access_certificates")
+    @JsonProperty("access_certificates")
+    List<RelyingPartyCertificateResource> accessCertificates,
 
     @JsonProperty(value = "created_ms", required = false)
     long createdMs,

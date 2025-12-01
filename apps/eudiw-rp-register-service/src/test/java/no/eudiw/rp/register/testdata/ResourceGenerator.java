@@ -5,6 +5,7 @@ import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCsrResource;
 import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCertificateResource;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -61,6 +62,7 @@ public class ResourceGenerator extends TestDataGenerator {
             generatePublicSector(),
             sampleRelyingPartyEntitlementResources(),
             generateListBy(ResourceGenerator::generateRelyingPartyEaaResource),
+            new ArrayList<>(),
             timeNow,
             timeNow,
             true
