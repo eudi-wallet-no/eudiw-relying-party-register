@@ -34,7 +34,7 @@ public record RelyingPartyResource(
     @SaneStringConstraint
     @NotBlank(message = "blank_name")
     @JsonProperty(value = "name", required = true)
-    String name,
+    String tradeName,
 
     @JsonProperty(value = "public_sector", required = true)
     boolean publicSector,

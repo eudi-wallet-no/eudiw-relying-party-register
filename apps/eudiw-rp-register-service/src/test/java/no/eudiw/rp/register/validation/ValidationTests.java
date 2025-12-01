@@ -74,7 +74,7 @@ public class ValidationTests {
         void testNotBlankNameConstraint(String blankName) {
             CreateRelyingPartyResource resourceWithInvalidName =
                 generateCreateRelyingPartyResource()
-                    .withName(blankName);
+                    .withTradeName(blankName);
 
             Set<ConstraintViolation<CreateRelyingPartyResource>> violations =
                 doValidateResource(resourceWithInvalidName);

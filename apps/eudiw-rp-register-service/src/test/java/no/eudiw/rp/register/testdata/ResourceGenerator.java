@@ -29,7 +29,6 @@ public class ResourceGenerator extends TestDataGenerator {
         return new CreateRelyingPartyResource(
             generateValidOrgno(),
             generateName(),
-            generatePublicSector(),
             sampleRelyingPartyEntitlementResources(),
             generateListBy(ResourceGenerator::generateRelyingPartyEaaResource)
         );
@@ -38,7 +37,6 @@ public class ResourceGenerator extends TestDataGenerator {
     public static EditRelyingPartyResource generateEditRelyingPartyResource() {
         return new EditRelyingPartyResource(
             generateName(),
-            generatePublicSector(),
             sampleRelyingPartyEntitlementResources(),
             generateListBy(ResourceGenerator::generateRelyingPartyEaaResource),
             true

@@ -30,6 +30,7 @@ public class RelyingPartyService {
     private final EntitlementRepository entitlementRepository;
     private final Converter converter;
     private final RelyingPartyInstanceRepository relyingPartyInstanceRepository;
+    private final LegalEntityService legalEntityService;
 
     @Transactional
     public RelyingPartyResource createRelyingParty(CreateRelyingPartyResource request) {
@@ -38,9 +39,7 @@ public class RelyingPartyService {
         }
         entitlementCheck(request.relyingPartyEntitlements());
 
-        LegalEntity legalEntity = legalEntityRepository.findByOrgno(request.orgNr()).orElse(
-            new LegalEntity(request.name(), request.orgNr(), request.publicSector(), new ArrayList<>())
-        );
+        LegalEntity legalEntity = legalEntityService.getLegalEntityForOrgno(request.orgNr());
         if (!legalEntity.isActive()) {
             throw new BadRequestException("Legal entity is not active");
         }
@@ -112,11 +111,10 @@ public class RelyingPartyService {
             throw new BadRequestException("Relying party not found");
         }
 
-        relyingPartyInstance.setTradeName(request.name());
+        relyingPartyInstance.setTradeName(request.tradeName());
         relyingPartyInstance.setActive(request.active());
-        legalEntity.setName(request.name());
+        legalEntity.setName(request.tradeName());
         legalEntity.setActive(request.active());
-        legalEntity.setPublicSector(request.publicSector());
 
         relyingPartyInstance.getRelyingPartyEaas().clear();
 

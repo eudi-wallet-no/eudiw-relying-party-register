@@ -81,7 +81,7 @@ public class IndexControllerValidationTests {
 
             String invalidName ="<script>Digdir</script>";
             EditRelyingPartyResource resource =
-                generateEditRelyingPartyResource().withName(invalidName);
+                generateEditRelyingPartyResource().withTradeName(invalidName);
 
             mvcPerform(put("/v1/rp/" + id), resource)
                 .andExpect(status().isBadRequest())

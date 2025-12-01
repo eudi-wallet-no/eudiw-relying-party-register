@@ -3,12 +3,19 @@ package no.eudiw.rp.register.testdata;
 import no.eudiw.rp.register.data.entity.*;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class EntityGenerator extends TestDataGenerator {
 
     public static List<LegalEntity> generateRelyingParties(int n) {
-        return generateListBy(n, EntityGenerator::generateRelyingParty);
+        Collection<LegalEntity> distinctLegalEntities =
+            generateListBy(n, EntityGenerator::generateRelyingParty)
+                   .stream()
+                   .collect(Collectors.toMap(LegalEntity::getOrgno, le -> le))
+                   .values();
+        return new ArrayList<>(distinctLegalEntities);
     }
 
     public static RelyingPartyInstance generateRelyingPartyNoId() {
