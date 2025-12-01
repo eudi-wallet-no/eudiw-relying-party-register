@@ -33,6 +33,7 @@ public interface LegalEntityRepository
         inst.tradeName ILIKE %:searchTerm%
       )
       AND (entity.active = TRUE OR :includeInactive = TRUE)
+      AND (:hideSyntheticOrgnos = FALSE OR ((entity.orgno LIKE '8%') OR (entity.orgno LIKE '9%')))
       AND (
         (SELECT COUNT(DISTINCT e.entitlement)
          FROM RelyingPartyEntitlement e
@@ -46,6 +47,7 @@ public interface LegalEntityRepository
         @Param("entitlements") List<String> entitlements,
         @Param("entitlementCount") int entitlementCount,
         @Param("includeInactive") boolean includeInactive,
+        @Param("hideSyntheticOrgnos") boolean hideSyntheticOrgnos,
         Pageable pageable
     );
 }

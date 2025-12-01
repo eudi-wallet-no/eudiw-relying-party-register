@@ -4,6 +4,7 @@ import no.eudiw.rp.register.data.entity.LegalEntity;
 import no.eudiw.rp.register.data.entity.RelyingPartyEntitlement;
 import no.eudiw.rp.register.data.entity.RelyingPartyInstance;
 import no.eudiw.rp.register.testdata.EntityGenerator;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,11 @@ public class RelyingPartyRepositoryTest {
 
     @Autowired
     private LegalEntityRepository repository;
+
+    @BeforeEach
+    void setUp() {
+        repository.deleteAll();
+    }
 
     @Test
     @DisplayName("store and get")
@@ -67,13 +73,13 @@ public class RelyingPartyRepositoryTest {
             new ArrayList<>(),
             0,
             false,
+            false,
             Pageable.unpaged()
         );
 
         assertNotNull(searchResult);
         assertEquals(searchResult.getContent().getFirst(), returnFromSave);
 
-        repository.delete(returnFromSave);
     }
 
     @Test
@@ -87,13 +93,12 @@ public class RelyingPartyRepositoryTest {
             new ArrayList<>(),
             0,
             false,
+            false,
             Pageable.unpaged()
         );
 
         assertNotNull(searchResult);
         assertEquals(searchResult.getContent().getFirst(), returnFromSave);
-
-        repository.delete(returnFromSave);
     }
 
     @Test
@@ -108,13 +113,12 @@ public class RelyingPartyRepositoryTest {
             new ArrayList<>(),
             0,
             false,
+            false,
             Pageable.unpaged()
         );
 
         assertNotNull(searchResult);
         assertEquals(searchResult.getContent().getFirst(), returnFromSave);
-
-        repository.delete(returnFromSave);
     }
 
     @Test
@@ -136,11 +140,66 @@ public class RelyingPartyRepositoryTest {
             List.of("https://uri.etsi.org/19475/Entitlement/QEAA_Provider"),
             1,
             false,
+            false,
             Pageable.unpaged()
         );
 
         assertEquals(1, searchResult.getContent().size());
-        repository.deleteAll(List.of(le1, le2));
+    }
+
+
+
+    @Test
+    @DisplayName("filter away synthetic orgnumbers")
+    void filterAwaySyntheticOrgNumbers() {
+        LegalEntity le1 = EntityGenerator.generateRelyingParty();
+        le1.setOrgno("234234234"); // Syntetisk orgnummer
+        RelyingPartyInstance instance1 = le1.getRelyingPartyInstances().getFirst();
+        instance1.setRelyingPartyEntitlements(List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/QEAA_Provider")));
+        repository.saveAndFlush(le1);
+
+        LegalEntity le2 = EntityGenerator.generateRelyingParty();
+        le2.setOrgno("991825827");
+        RelyingPartyInstance instance2 = le2.getRelyingPartyInstances().getFirst();
+        instance2.setRelyingPartyEntitlements(List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/Service_Provider")));
+        repository.saveAndFlush(le2);
+
+        Page<LegalEntity> searchResult = repository.searchRelyingParties(
+                "",
+                List.of("https://uri.etsi.org/19475/Entitlement/QEAA_Provider"),
+                1,
+                false,
+                true,
+                Pageable.unpaged()
+        );
+
+        assertEquals(0, searchResult.getContent().size());
+
+
+        Page<LegalEntity> searchResultNew = repository.searchRelyingParties(
+                "",
+                List.of("https://uri.etsi.org/19475/Entitlement/Service_Provider"),
+                1,
+                false,
+                true,
+                Pageable.unpaged()
+        );
+
+        assertEquals(1, searchResultNew.getContent().size());
+        assertEquals("991825827", searchResultNew.getContent().getFirst().getOrgno());
+
+
+        Page<LegalEntity> searchResultLast = repository.searchRelyingParties(
+                "",
+                List.of("https://uri.etsi.org/19475/Entitlement/QEAA_Provider"),
+                1,
+                false,
+                false,
+                Pageable.unpaged()
+        );
+        assertEquals(1, searchResultLast.getContent().size());
+        assertEquals("234234234",  searchResultLast.getContent().getFirst().getOrgno());
+
     }
 
 }

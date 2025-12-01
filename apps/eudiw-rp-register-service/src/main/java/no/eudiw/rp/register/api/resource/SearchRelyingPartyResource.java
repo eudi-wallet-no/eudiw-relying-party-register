@@ -28,6 +28,9 @@ public class SearchRelyingPartyResource {
     @JsonProperty(value = "include_inactive", required = true)
     private boolean includeInactive = false;
 
+    @JsonProperty(value = "hide_synthetic_orgnos")
+    private boolean hideSyntheticOrgnos = false;
+
     @JsonProperty(value = "required_entitlements")
     @NotNull
     private List<RelyingPartyEntitlementResource> requiredEntitlements = List.of();
