@@ -28,6 +28,11 @@ public record RelyingPartyResource(
 
     @SaneStringConstraint
     @NotBlank(message = "blank_name")
+    @JsonProperty(value = "org_name", required = true)
+    String orgName,
+
+    @SaneStringConstraint
+    @NotBlank(message = "blank_name")
     @JsonProperty(value = "name", required = true)
     String name,
 

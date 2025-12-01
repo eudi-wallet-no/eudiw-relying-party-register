@@ -317,7 +317,7 @@ public class RelyingPartiesControllerTest {
 
                 RelyingPartyResource relyingPartyResource = relyingPartyResources.getFirst();
                 assertAll(
-                    () -> assertEquals(legalEntity.getRelyingPartyInstances().get(0).getTradeName(), relyingPartyResource.name())
+                    () -> assertEquals(legalEntity.getName(), relyingPartyResource.orgName())
                 );
 
                 legalEntityRepository.delete(legalEntity);
@@ -350,7 +350,7 @@ public class RelyingPartiesControllerTest {
 
                 RelyingPartyResource relyingPartyResource = relyingPartyResources.getFirst();
                 assertAll(
-                    () -> assertEquals(legalEntity.getRelyingPartyInstances().getFirst().getTradeName(), relyingPartyResource.name())
+                    () -> assertEquals(legalEntity.getName(), relyingPartyResource.orgName())
                 );
 
                 legalEntityRepository.delete(legalEntity);

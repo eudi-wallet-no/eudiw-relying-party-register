@@ -20,6 +20,7 @@ public class Converter {
         return new RelyingPartyResource(
             relyingPartyInstance.getId(),
             relyingPartyInstance.getLegalEntity().getOrgno(),
+            relyingPartyInstance.getLegalEntity().getName(),
             relyingPartyInstance.getTradeName(),
             relyingPartyInstance.getLegalEntity().isPublicSector(),
             relyingPartyInstance.getRelyingPartyEntitlements()
