@@ -59,6 +59,7 @@ public class ResourceGenerator extends TestDataGenerator {
             UUID.randomUUID(),
             generateValidOrgno(),
             generateName(),
+            generateName(),
             generatePublicSector(),
             sampleRelyingPartyEntitlementResources(),
             generateListBy(ResourceGenerator::generateRelyingPartyEaaResource),
