@@ -60,6 +60,7 @@ public class EditController {
 
         Supplier<EditRelyingPartyResource> editResourceSupplier = () ->
             AdminEditRelyingPartyForm.prefillFromRelyingPartyResource(relyingPartyResource)
+                                     .withTradeName(editForm.getTradeName())
                                      .withEaas(editForm.getEaas())
                                      .toResource();
         return doEdit(relyingPartyResource, editFormBindingResult, editResourceSupplier);
