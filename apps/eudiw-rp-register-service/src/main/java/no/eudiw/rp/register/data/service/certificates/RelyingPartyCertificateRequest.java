@@ -16,6 +16,10 @@ public class RelyingPartyCertificateRequest {
     private String orgno;
     @JsonProperty("name")
     private String name;
+    @JsonProperty("trade_name")
+    private String tradeName;
+    @JsonProperty("legal_name")
+    private String legalName;
     @JsonProperty("csr")
     private String csr;
 
