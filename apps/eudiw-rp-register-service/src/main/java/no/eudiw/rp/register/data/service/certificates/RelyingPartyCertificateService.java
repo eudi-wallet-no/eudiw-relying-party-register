@@ -103,6 +103,7 @@ public class RelyingPartyCertificateService {
         X509Certificate certificate = getCertificateFromCa(
             csrResource.csr(),
             relyingParty.getLegalEntity().getOrgno(),
+            relyingParty.getLegalEntity().getName(),
             relyingParty.getTradeName(),
             entitlement.getCaId());
 
@@ -123,6 +124,7 @@ public class RelyingPartyCertificateService {
         X509Certificate certificate = getCertificateFromCa(
                 csrResource.csr(),
                 relyingParty.getLegalEntity().getOrgno(),
+                relyingParty.getLegalEntity().getName(),
                 relyingParty.getTradeName(),
                 "access");
 
@@ -140,7 +142,7 @@ public class RelyingPartyCertificateService {
             .orElseThrow(() -> new NotFoundException("Certificate registree does not exist"));
     }
 
-    private X509Certificate getCertificateFromCa(PKCS10CertificationRequest csr, String orgNo, String name, String caId) {
+    private X509Certificate getCertificateFromCa(PKCS10CertificationRequest csr, String orgNo, String legalName, String tradeName, String caId) {
         String csrPemStr = PKCS10CertificationRequestConverter.convert(csr);
         String certificatePemStr =
             caRestClient.post()
@@ -148,7 +150,9 @@ public class RelyingPartyCertificateService {
                 .body(RelyingPartyCertificateRequest
                     .builder()
                     .orgno(orgNo)
-                    .name(name)
+                    .name(tradeName)
+                    .tradeName(tradeName)
+                    .legalName(legalName)
                     .csr(csrPemStr)
                     .build())
                 .retrieve()
