@@ -61,6 +61,7 @@ public class ResourceGenerator extends TestDataGenerator {
             UUID.randomUUID(),
             createResource.orgno(),
             createResource.tradeName(),
+            "Legal-entity-" + createResource.orgno(),
             rng.nextBoolean(),
             createResource.relyingPartyEntitlements(),
             createResource.relyingPartyEaas(),
