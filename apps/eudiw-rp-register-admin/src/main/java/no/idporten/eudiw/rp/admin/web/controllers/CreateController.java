@@ -68,9 +68,7 @@ public class CreateController {
 
         if (!createFormBindingResult.hasErrors()) {
             CreateRelyingPartyResource createResource =
-                createForm.toResource(reportee.orgno(),
-                                      reportee.name(),
-                                      reportee.credentialIssuerUrl());
+                createForm.toResource(reportee.orgno(), reportee.credentialIssuerUrl());
             RelyingPartyResource result = relyingPartiesService.create(createResource);
             return new ModelAndView("redirect:/details/" + result.id());
         }
