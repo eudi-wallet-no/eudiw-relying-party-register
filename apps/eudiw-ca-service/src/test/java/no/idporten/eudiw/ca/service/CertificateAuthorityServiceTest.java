@@ -74,7 +74,7 @@ public class CertificateAuthorityServiceTest {
                     IF5nyI5eYXYbBBQvdAZFJStX4YgEc+7j/QV3BlIGz2HE
                     -----END NEW CERTIFICATE REQUEST-----""";
             CertificateAuthority intermediate = certificateAuthorities.findIntermediate("access");
-            X509Certificate issuedCertificate = certificateAuthorityService.signLeafCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), "foo", "991825827");
+            X509Certificate issuedCertificate = certificateAuthorityService.signLeafCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), new SubjectAttributes("991825827", "foo", "tfoo"));
             assertAll(
                     () -> assertNotNull(issuedCertificate),
                     () -> assertTrue(issuedCertificate.getBasicConstraints() < 0),
@@ -87,7 +87,8 @@ public class CertificateAuthorityServiceTest {
                     () -> assertEquals("1.2.840.10045.4.3.4", issuedCertificate.getSigAlgOID()),
                     () -> assertNotNull(issuedCertificate.getExtensionValue(Extension.cRLDistributionPoints.getId())),
                     () -> assertTrue(issuedCertificate.getSubjectX500Principal().getName(X500Principal.RFC1779).contains("C=NO")),
-                    () -> assertTrue(issuedCertificate.getSubjectX500Principal().getName(X500Principal.RFC1779).contains("CN=foo")),
+                    () -> assertTrue(issuedCertificate.getSubjectX500Principal().getName(X500Principal.RFC1779).contains("O=foo")),
+                    () -> assertTrue(issuedCertificate.getSubjectX500Principal().getName(X500Principal.RFC1779).contains("CN=tfoo")),
                     () -> assertTrue(issuedCertificate.getSubjectX500Principal().getName(X500Principal.RFC1779).contains("NTRNO-NOFOR.99182582")),
                     () -> assertEquals(100,
                             ChronoUnit.DAYS.between(
@@ -135,7 +136,7 @@ public class CertificateAuthorityServiceTest {
                     DNS:bar.foo
              */
             CertificateAuthority intermediate = certificateAuthorities.findIntermediate("access");
-            X509Certificate issuedCertificate = certificateAuthorityService.signLeafCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), "foo", "991825827");
+            X509Certificate issuedCertificate = certificateAuthorityService.signLeafCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), new SubjectAttributes("991825827", "foo", "tfoo"));
             assertAll(
                     () -> assertTrue(issuedCertificate.getSubjectAlternativeNames().iterator().next().contains("eudiw-verifier-demo.idporten.dev")),
                     () -> assertFalse(issuedCertificate.getCriticalExtensionOIDs().contains(Extension.issuerAlternativeName.getId())),
@@ -166,7 +167,7 @@ public class CertificateAuthorityServiceTest {
                     61:4F:D6:CA:F0:27:B1:D9:AB:04:11:9B:FE:68:86:CB:53:CB:1B:66
              */
             CertificateAuthority intermediate = certificateAuthorities.findIntermediate("access");
-            X509Certificate issuedCertificate = certificateAuthorityService.signLeafCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), "foo", "991825827");
+            X509Certificate issuedCertificate = certificateAuthorityService.signLeafCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), new SubjectAttributes("991825827", "foo", "tfoo"));
             assertAll(
                     () -> assertNull(issuedCertificate.getSubjectAlternativeNames()),
                     () -> assertNotNull(issuedCertificate.getExtensionValue(Extension.subjectKeyIdentifier.getId()))
@@ -194,7 +195,7 @@ public class CertificateAuthorityServiceTest {
                     IF5nyI5eYXYbBBQvdAZFJStX4YgEc+7j/QV3BlIGz2HE
                     -----END NEW CERTIFICATE REQUEST-----""";
             CertificateAuthority intermediate = certificateAuthorities.findIntermediate("eaa_provider");
-            X509Certificate issuedCertificate = certificateAuthorityService.signLeafCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), "foo", "991825827");
+            X509Certificate issuedCertificate = certificateAuthorityService.signLeafCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), new SubjectAttributes("991825827", "foo", "tfoo"));
             assertAll(
                     () -> assertNotNull(issuedCertificate),
                     () -> assertTrue(issuedCertificate.getBasicConstraints() < 0),
@@ -205,7 +206,8 @@ public class CertificateAuthorityServiceTest {
                     () -> assertEquals("1.2.840.10045.4.3.4", issuedCertificate.getSigAlgOID()),
                     () -> assertNotNull(issuedCertificate.getExtensionValue(Extension.cRLDistributionPoints.getId())),
                     () -> assertTrue(issuedCertificate.getSubjectX500Principal().getName(X500Principal.RFC1779).contains("C=NO")),
-                    () -> assertTrue(issuedCertificate.getSubjectX500Principal().getName(X500Principal.RFC1779).contains("CN=foo")),
+                    () -> assertTrue(issuedCertificate.getSubjectX500Principal().getName(X500Principal.RFC1779).contains("O=foo")),
+                    () -> assertTrue(issuedCertificate.getSubjectX500Principal().getName(X500Principal.RFC1779).contains("CN=tfoo")),
                     () -> assertTrue(issuedCertificate.getSubjectX500Principal().getName(X500Principal.RFC1779).contains("NTRNO-NOFOR.99182582")),
                     () -> assertEquals(365,
                             ChronoUnit.DAYS.between(
@@ -241,7 +243,7 @@ public class CertificateAuthorityServiceTest {
                     -----END NEW CERTIFICATE REQUEST-----""";
             CertificateAuthority intermediate = certificateAuthorities.findIntermediate("pid_provider");
             System.out.println(CertificateEncodingUtils.encodeToPem(intermediate.getCertificate()));
-            X509Certificate issuedCertificate = certificateAuthorityService.signLeafCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), "foo", "991825827");
+            X509Certificate issuedCertificate = certificateAuthorityService.signLeafCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), new SubjectAttributes("991825827", "foo", "tfoo"));
 
             ASN1OctetString akiOc = ASN1OctetString.getInstance(issuedCertificate.getExtensionValue(Extension.qCStatements.getId()));
 
@@ -256,7 +258,8 @@ public class CertificateAuthorityServiceTest {
                     () -> assertEquals("1.2.840.10045.4.3.4", issuedCertificate.getSigAlgOID()),
                     () -> assertNotNull(issuedCertificate.getExtensionValue(Extension.cRLDistributionPoints.getId())),
                     () -> assertTrue(issuedCertificate.getSubjectX500Principal().getName(X500Principal.RFC1779).contains("C=NO")),
-                    () -> assertTrue(issuedCertificate.getSubjectX500Principal().getName(X500Principal.RFC1779).contains("CN=foo")),
+                    () -> assertTrue(issuedCertificate.getSubjectX500Principal().getName(X500Principal.RFC1779).contains("O=foo")),
+                    () -> assertTrue(issuedCertificate.getSubjectX500Principal().getName(X500Principal.RFC1779).contains("CN=tfoo")),
                     () -> assertTrue(issuedCertificate.getSubjectX500Principal().getName(X500Principal.RFC1779).contains("NTRNO-NOFOR.99182582")),
                     () -> assertEquals(365,
                             ChronoUnit.DAYS.between(

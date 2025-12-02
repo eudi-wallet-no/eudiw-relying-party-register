@@ -132,7 +132,7 @@ public class CertificateAuthorityService {
     /**
      * Signs an end-entity certificate for an organization with an intermediate CA certificate.
      */
-    public X509Certificate signLeafCertificate(CertificateAuthority certificateAuthority, PKCS10CertificationRequest csr, String name, String orgno) throws Exception {
+    public X509Certificate signLeafCertificate(CertificateAuthority certificateAuthority, PKCS10CertificationRequest csr, SubjectAttributes subjectAttributes) throws Exception {
         validateCSR(csr);
         List<Extension> extensions = new ArrayList<>();
         // basic + relation to CA
@@ -145,7 +145,7 @@ public class CertificateAuthorityService {
         addExtensionsFromCertificateProfile(certificateAuthority.getCertificateProfile(), extensions);
         // add extensions from CSR
         addSupportedExtensionsFromCsr(csr, extensions);
-        X500Name subject = createSubjectWithNameAndOrgno(csr.getSubject(), name, orgno);
+        X500Name subject = createLeafSubject(csr.getSubject(), subjectAttributes);
         X509Certificate certificate = signLeafCertificate(certificateAuthority, csr, subject, extensions);
         certificateRepository.save(new Certificate(certificate, certificateAuthority.getId()));
         return certificate;
@@ -233,11 +233,12 @@ public class CertificateAuthorityService {
         return x500NameBuilder.build();
     }
 
-    protected X500Name createSubjectWithNameAndOrgno(X500Name csrSubjectName, String name, String orgno) {
+    protected X500Name createLeafSubject(X500Name csrSubjectName, SubjectAttributes subjectAttributes) {
         X500NameBuilder x500NameBuilder = new X500NameBuilder();
         x500NameBuilder.addRDN(BCStyle.C, "NO");
-        x500NameBuilder.addRDN(BCStyle.CN, name);
-        x500NameBuilder.addRDN(ASN1ObjectIdentifier.tryFromID(OID_ORGANIZATION_NUMBER), "NTRNO-NOFOR.%s".formatted(orgno));
+        x500NameBuilder.addRDN(BCStyle.O, subjectAttributes.legalName());
+        x500NameBuilder.addRDN(BCStyle.CN, subjectAttributes.tradeName());
+        x500NameBuilder.addRDN(ASN1ObjectIdentifier.tryFromID(OID_ORGANIZATION_NUMBER), "NTRNO-NOFOR.%s".formatted(subjectAttributes.orgno()));
         return x500NameBuilder.build();
     }
 

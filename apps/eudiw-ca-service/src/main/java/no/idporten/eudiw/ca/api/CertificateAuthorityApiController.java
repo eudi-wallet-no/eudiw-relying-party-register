@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.ca.config.CertificateAuthorities;
 import no.idporten.eudiw.ca.service.CertificateAuthorityService;
+import no.idporten.eudiw.ca.service.SubjectAttributes;
 import no.idporten.eudiw.ca.util.CertificateEncodingUtils;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.springframework.http.MediaType;
@@ -191,8 +192,7 @@ public class CertificateAuthorityApiController {
                 certificateAuthorityService.signLeafCertificate(
                         certificateAuthorities.findIntermediate(intermediate),
                         pkcs10CertificationRequest,
-                        certificateRequest.getName(),
-                        certificateRequest.getOrgno());
+                        new SubjectAttributes(certificateRequest.getOrgno(), certificateRequest.getLegalName(), certificateRequest.getTradeName()));
         return ResponseEntity.ok(CertificateEncodingUtils.encodeToPem(signedCertificate));
     }
 
