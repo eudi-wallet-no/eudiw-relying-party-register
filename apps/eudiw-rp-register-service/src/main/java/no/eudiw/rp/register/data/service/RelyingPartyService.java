@@ -16,7 +16,6 @@ import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
@@ -44,11 +43,11 @@ public class RelyingPartyService {
             throw new BadRequestException("Legal entity is not active");
         }
 
-        LegalEntity registeredLegalEntity = legalEntityRepository.saveAndFlush(legalEntity);
         RelyingPartyInstance relyingPartyInstance = converter.toEntity(request);
-        registeredLegalEntity.addRelyingPartyInstance(relyingPartyInstance);
-        RelyingPartyInstance savedInstance = relyingPartyInstanceRepository.saveAndFlush(relyingPartyInstance);
-        return converter.toResource(savedInstance);
+        relyingPartyInstance.setLegalEntity(legalEntity);
+
+        relyingPartyInstanceRepository.saveAndFlush(relyingPartyInstance);
+        return converter.toResource(relyingPartyInstance);
     }
 
     @Transactional(readOnly = true)
@@ -107,15 +106,8 @@ public class RelyingPartyService {
             throw new BadRequestException("Relying party instance not found");
         }
 
-        LegalEntity legalEntity = relyingPartyInstance.getLegalEntity();
-        if (legalEntity == null) {
-            throw new BadRequestException("Relying party not found");
-        }
-
         relyingPartyInstance.setTradeName(request.tradeName());
         relyingPartyInstance.setActive(request.active());
-        legalEntity.setName(request.tradeName());
-        legalEntity.setActive(request.active());
 
         relyingPartyInstance.getRelyingPartyEaas().clear();
 
@@ -125,7 +117,6 @@ public class RelyingPartyService {
             request.relyingPartyEaas().stream().map(converter::toEntity).toList());
 
         RelyingPartyInstance returnInstance = relyingPartyInstanceRepository.saveAndFlush(relyingPartyInstance);
-        legalEntityRepository.saveAndFlush(legalEntity);
 
         return converter.toResource(returnInstance);
     }
