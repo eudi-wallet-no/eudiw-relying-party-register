@@ -116,7 +116,8 @@ public class CertificateAuthorityApiControllerTest {
         String certificateRequest = """
                 {
                   "orgno": "991825827",
-                  "name": "DigdirJunit",
+                  "legal_name": "Digdir",
+                  "trade_name": "Junit",
                   "csr": "-----BEGIN NEW CERTIFICATE REQUEST-----\\nMIIBbTCCARQCAQAwXzELMAkGA1UEBhMCbm8xDTALBgNVBAgTBFNvZ24xEjAQBgNV\\nBAcTCUxlaWthbmdlcjEPMA0GA1UEChMGRGlnZGlyMQ4wDAYDVQQLEwVFVURJVzEM\\nMAoGA1UEAxMDcnAyMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAELKyeEr6OlEgW\\nE0cRI3aCgzRnPu9IjoYCsPuV53/QwBe0pymYVafMPssBqiLEyuylH/AQ3Teltq66\\nL96/KVs1bqBTMFEGCSqGSIb3DQEJDjFEMEIwHQYDVR0OBBYEFFLDKogDLA5GDhgY\\noiRDkMpjeQDNMCEGA1UdEQQaMBiCFmp1bml0LnJwMS5pZHBvcnRlbi5kZXYwCgYI\\nKoZIzj0EAwMDRwAwRAIgVIhOFcOMK0KR9MvK3a76Hgma6susPfXDJ+HfZZe50N8C\\nIF5nyI5eYXYbBBQvdAZFJStX4YgEc+7j/QV3BlIGz2HE\\n-----END NEW CERTIFICATE REQUEST-----"
                 }""";
         MvcResult result = mockMvc.perform(post("/v1/certs/access")
@@ -138,7 +139,8 @@ public class CertificateAuthorityApiControllerTest {
         String certificateRequest = """
                 {
                   "orgno": "991825827",
-                  "name": "DigdirJunit",
+                  "legal_name": "Digdir",
+                  "trade_name": "Junit",
                   "csr": "-----BEGIN NEW CERTIFICATE REQUEST-----\\nMIIBbTCCARQCAQAwXzELMAkGA1UEBhMCbm8xDTALBgNVBAgTBFNvZ24xEjAQBgNV\\nBAcTCUxlaWthbmdlcjEPMA0GA1UEChMGRGlnZGlyMQ4wDAYDVQQLEwVFVURJVzEM\\nMAoGA1UEAxMDcnAyMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAELKyeEr6OlEgW\\nE0cRI3aCgzRnPu9IjoYCsPuV53/QwBe0pymYVafMPssBqiLEyuylH/AQ3Teltq66\\nL96/KVs1bqBTMFEGCSqGSIb3DQEJDjFEMEIwHQYDVR0OBBYEFFLDKogDLA5GDhgY\\noiRDkMpjeQDNMCEGA1UdEQQaMBiCFmp1bml0LnJwMS5pZHBvcnRlbi5kZXYwCgYI\\nKoZIzj0EAwMDRwAwRAIgVIhOFcOMK0KR9MvK3a76Hgma6susPfXDJ+HfZZe50N8C\\nIF5nyI5eYXYbBBQvdAZFJStX4YgEc+7j/QV3BlIGz2HE\\n-----END NEW CERTIFICATE REQUEST-----"
                 }""";
         MvcResult result = mockMvc.perform(post("/v1/certs/eaa_provider")
@@ -160,7 +162,8 @@ public class CertificateAuthorityApiControllerTest {
         String certificateRequest = """
                 {
                   "orgno": "991825827",
-                  "name": "DigdirJunit",
+                  "legal_name": "Digdir",
+                  "trade_name": "Junit",
                   "csr": "-----BEGIN NEW CERTIFICATE REQUEST-----\\nMIIBbTCCARQCAQAwXzELMAkGA1UEBhMCbm8xDTALBgNVBAgTBFNvZ24xEjAQBgNV\\nBAcTCUxlaWthbmdlcjEPMA0GA1UEChMGRGlnZGlyMQ4wDAYDVQQLEwVFVURJVzEM\\nMAoGA1UEAxMDcnAyMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAELKyeEr6OlEgW\\nE0cRI3aCgzRnPu9IjoYCsPuV53/QwBe0pymYVafMPssBqiLEyuylH/AQ3Teltq66\\nL96/KVs1bqBTMFEGCSqGSIb3DQEJDjFEMEIwHQYDVR0OBBYEFFLDKogDLA5GDhgY\\noiRDkMpjeQDNMCEGA1UdEQQaMBiCFmp1bml0LnJwMS5pZHBvcnRlbi5kZXYwCgYI\\nKoZIzj0EAwMDRwAwRAIgVIhOFcOMK0KR9MvK3a76Hgma6susPfXDJ+HfZZe50N8C\\nIF5nyI5eYXYbBBQvdAZFJStX4YgEc+7j/QV3BlIGz2HE\\n-----END NEW CERTIFICATE REQUEST-----"
                 }""";
         MvcResult result = mockMvc.perform(post("/v1/certs/access")

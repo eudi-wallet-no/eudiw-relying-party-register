@@ -19,11 +19,17 @@ public class CertificateRequest {
     @JsonProperty("orgno")
     private final String orgno;
 
-    @Schema(description = "Organization name.  Will be included in certificate subject DN",
+    @Schema(description = "Legal name.  Will be included in certificate subject DN",
             example = "Digitaliseringsdirektoratet")
-    @NotEmpty(message = "Empty name")
-    @JsonProperty("name")
-    private final String name;
+    @NotEmpty(message = "Empty legal name")
+    @JsonProperty("legal_name")
+    private final String legalName;
+
+    @Schema(description = "Trade name.  Will be included in certificate subject DN",
+            example = "Stjerneporten")
+    @NotEmpty(message = "Empty trade name")
+    @JsonProperty("trade_name")
+    private final String tradeName;
 
     @Schema(description = "Certificate Signing Request (PEM-encoded CSR - line breaks must be escaped)",
             example = """
