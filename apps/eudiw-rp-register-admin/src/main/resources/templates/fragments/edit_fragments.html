@@ -27,6 +27,18 @@
             </p>
 
             <p class="ds-paragraph">
+                <label for="org_name_field"
+                       class="ds-label">
+                    Organisasjon
+                </label>
+                <input id="org_name_field"
+                       th:value="${rp.orgName}"
+                       type="text"
+                       class="ds-input"
+                       disabled>
+            </p>
+
+            <p class="ds-paragraph">
                 <label for="trade_name_field"
                        class="ds-label">
                     Tenestenamn
@@ -35,8 +47,7 @@
                        th:field="*{tradeName}"
                        type="text"
                        placeholder="Tenestenamn"
-                       class="ds-input"
-                       th:disabled="${!isAdmin}">
+                       class="ds-input">
             </p>
             <ul th:if="${#fields.hasErrors('tradeName')}">
                 <li th:each="error : ${#fields.errors('tradeName')}"

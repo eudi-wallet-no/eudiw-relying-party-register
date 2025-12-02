@@ -22,6 +22,9 @@ public record RelyingPartyResource(
     @JsonProperty(value = "name", required = true)
     String tradeName,
 
+    @JsonProperty(value = "org_name", required = true)
+    String orgName,
+
     @JsonProperty(value = "public_sector", required = true)
     boolean publicSector,
 
