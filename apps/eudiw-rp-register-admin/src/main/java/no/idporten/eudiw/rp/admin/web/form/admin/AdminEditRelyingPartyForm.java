@@ -13,6 +13,7 @@ import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 
 import java.util.*;
 
+@NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
@@ -23,25 +24,20 @@ public class AdminEditRelyingPartyForm {
         "Ugyldig tenestenamn. Gyldige teikn er: norske bokstavar, tal, mellemrom og symbola "
             + SaneStringValidator.ALLOWED_SYMBOLS)
     @NotBlank(message = "Tenestenamn må fyllast ut")
-    private String tradeName;
+    private String tradeName = "";
 
     @Valid
     @NotEmpty(message = "Brukerstedet må ha minst en entitlement")
-    private List<RelyingPartyEntitlementFormField> entitlements;
+    private List<RelyingPartyEntitlementFormField> entitlements = new ArrayList<>();
 
     @Valid
-    private List<RelyingPartyEaaFormField> eaas;
+    private List<RelyingPartyEaaFormField> eaas = new ArrayList<>();
 
     @NotBlank(message = "url-en til .well-known/openid-credential-issuer endepunkt må registreres")
-    private String credentialIssuerUrl;
+    private String credentialIssuerUrl = "";
 
     @Valid
-    private boolean active;
-
-    @SuppressWarnings("unused") // used in Spring data binding
-    public AdminEditRelyingPartyForm() {
-        this("", new ArrayList<>(), new ArrayList<>(), "", true);
-    }
+    private boolean active = true;
 
     public EditRelyingPartyResource toResource() {
         return new EditRelyingPartyResource(

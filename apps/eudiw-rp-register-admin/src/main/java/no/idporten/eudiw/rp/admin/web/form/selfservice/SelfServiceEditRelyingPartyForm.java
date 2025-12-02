@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.*;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEaaFormField;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @NoArgsConstructor
@@ -12,5 +13,5 @@ import java.util.List;
 @EqualsAndHashCode
 public class SelfServiceEditRelyingPartyForm {
     @Valid
-    private List<RelyingPartyEaaFormField> eaas;
+    private List<RelyingPartyEaaFormField> eaas = new ArrayList<>();
 }
