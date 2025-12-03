@@ -3,7 +3,7 @@
       th:with="rp=${detailedViewDataAttr}">
 <head>
     <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
-    <title th:text="|Detaljar for ${rp.name}|"></title>
+    <title th:text="|Detaljar for ${rp.tradeName}|"></title>
 </head>
 <!--/*@thymesVar id="detailedViewDataAttr" type="no.idporten.eudiw.rp.register.lookup.web.resource.RelyingPartyResource"*/-->
 <body>
@@ -12,13 +12,13 @@
     <main>
 
         <p class="ds-paragraph">
-            <a th:href="@{/relying-parties}" class="ds-button">
+            <a th:href="@{/relying-parties}" class="ds-button" data-variant="secondary">
                 Tilbake til søk
             </a>
         </p>
 
         <h1 class="ds-heading" data-size="lg">
-            Detaljar for brukarstad: <span th:text="${rp.name}"/>
+            Detaljar for brukarstad: <span th:text="${rp.tradeName}"/>
         </h1>
 
         <div
