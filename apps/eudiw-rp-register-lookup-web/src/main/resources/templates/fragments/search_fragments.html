@@ -27,7 +27,15 @@
             th:text="${error}"
             class="ds-validation-message"></li>
     </ul>
+        <label for="syntetiskOrg">Gjem syntetiske orgnummer</label>
+        <input id="syntetiskOrg"
+               th:field="*{hideSyntheticOrgnos}"
+               type="checkbox"
+               class="ds-input"
+               th:checked="${#value}">
     </div>
+
+
 
     <details class="ds-details"
              style="width: fit-content;"
