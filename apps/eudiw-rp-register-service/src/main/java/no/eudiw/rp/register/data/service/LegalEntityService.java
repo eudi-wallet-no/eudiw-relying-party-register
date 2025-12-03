@@ -24,7 +24,7 @@ public class LegalEntityService {
         }
 
         LegalEntity newLegalEntity = new LegalEntity(
-            "Synthetic-legal-entity-%s".formatted(orgno),
+            "Syntetisk organisasjon %s".formatted(orgno),
             orgno,
             true,
             new ArrayList<>()
