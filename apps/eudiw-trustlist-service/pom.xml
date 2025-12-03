@@ -25,8 +25,8 @@
         <jakarta.xml.bind-api.version>4.0.4</jakarta.xml.bind-api.version>
         <jaxb-impl.version>4.0.6</jaxb-impl.version>
         <jaxb2-maven-plugin.version>4.0.0</jaxb2-maven-plugin.version>
-        <bcpkix-jdk18on.version>1.82</bcpkix-jdk18on.version>
-        <bcprov-jdk18on.version>1.82</bcprov-jdk18on.version>
+        <bcpkix-jdk18on.version>1.83</bcpkix-jdk18on.version>
+        <bcprov-jdk18on.version>1.83</bcprov-jdk18on.version>
         <dss-bom.version>6.3</dss-bom.version>
     </properties>
 
