@@ -33,9 +33,6 @@ public class AdminEditRelyingPartyForm {
     @Valid
     private List<RelyingPartyEaaFormField> eaas = new ArrayList<>();
 
-    @NotBlank(message = "url-en til .well-known/openid-credential-issuer endepunkt må registreres")
-    private String credentialIssuerUrl = "";
-
     @Valid
     private boolean active = true;
 
@@ -51,7 +48,6 @@ public class AdminEditRelyingPartyForm {
                 .filter(RelyingPartyEaaFormField::isSet)
                 .map(RelyingPartyEaaFormField::toResource)
                 .toList(),
-            this.credentialIssuerUrl,
             this.active
         );
     }
@@ -68,7 +64,6 @@ public class AdminEditRelyingPartyForm {
                     .stream()
                     .map(RelyingPartyEaaFormField::fromResource)
                     .toList(),
-            resource.credentialIssuerUrl(),
             resource.active()
         );
     }

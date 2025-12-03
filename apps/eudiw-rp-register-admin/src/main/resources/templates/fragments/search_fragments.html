@@ -92,9 +92,13 @@
             <tbody>
 
             <tr th:each="rp : ${resultsPage}">
-                <td><a th:href="@{|/details/${rp.id}|}" style="cursor:pointer;"><div th:text="${rp.orgno}"></div></a> </td>
+                <td th:text="${rp.orgno}"></td>
                 <td th:text="${rp.orgName}"></td>
-                <td th:text="${rp.tradeName}"></td>
+                <td>
+                    <a th:href="@{|/details/${rp.id}|}" style="cursor:pointer;">
+                        <div th:text="${rp.tradeName}"></div>
+                    </a>
+                </td>
                 <td>
                     <div th:each="e : ${rp.relyingPartyEntitlements()}"
                          th:text="${e.displayName()}"

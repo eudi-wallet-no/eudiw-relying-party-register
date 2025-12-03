@@ -48,7 +48,6 @@ public class ResourceGenerator extends TestDataGenerator {
         return new CreateRelyingPartyResource(
             generateValidOrgno(),
             generateName(),
-            CREDENTIAL_ISSUER_URL,
             sampleRelyingPartyEntitlementResources(),
             generateListBy(ResourceGenerator::generateRelyingPartyEaaResource)
         );
@@ -67,7 +66,6 @@ public class ResourceGenerator extends TestDataGenerator {
             createResource.relyingPartyEaas(),
             timeNow,
             timeNow,
-            createResource.credentialIssuerUrl(),
             true
         );
     }

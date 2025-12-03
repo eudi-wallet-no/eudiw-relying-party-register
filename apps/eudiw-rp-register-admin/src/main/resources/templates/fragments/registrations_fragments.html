@@ -10,7 +10,6 @@
                data-border="true">
             <thead>
             <tr>
-                <th>Org.nr.</th>
                 <th>Tenestenamn</th>
                 <th>Roller</th>
                 <th>Oppretta</th>
@@ -20,8 +19,11 @@
             <tbody>
 
             <tr th:each="rp : ${registrations}">
-                <td><a th:href="@{|/details/${rp.id}|}" style="cursor:pointer;"><div th:text="${rp.orgno}"></div></a></td>
-                <td th:text="${rp.tradeName}"></td>
+                <td>
+                    <a th:href="@{|/details/${rp.id}|}" style="cursor:pointer;">
+                        <div th:text="${rp.tradeName}"></div>
+                    </a>
+                </td>
                 <td>
                     <div th:each="e : ${rp.relyingPartyEntitlements()}"
                          th:text="${e.displayName()}"

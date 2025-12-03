@@ -12,7 +12,7 @@ public class StatelessPersistentSyntheticReporteeService implements SyntheticRep
         String name = "Test-brukarstad-%s".formatted(orgno);
 
         boolean isPublicSector = unsignedHash % 2 == 0;
-        return new ReporteeAuthority(orgno, name, null, isPublicSector);
+        return new ReporteeAuthority(orgno, name, isPublicSector);
     }
 
     // generates valid synthetic orgnos in the range 200000000 .. 399999999

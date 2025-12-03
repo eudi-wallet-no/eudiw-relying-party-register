@@ -56,24 +56,6 @@
             </ul>
 
             <p class="ds-paragraph">
-                <label for="url_field"
-                       class="ds-label">
-                    Url
-                </label>
-                <input id="url_field"
-                       th:field="*{credentialIssuerUrl}"
-                       type="text"
-                       placeholder="Url til discovery-endepunktet. Eks: https://utsteder.test.eidas2sandkasse.net/.well-known/openid-credential-issuer"
-                       class="ds-input"
-                       th:disabled="${!isAdmin}">
-            </p>
-            <ul th:if="${#fields.hasErrors('credentialIssuerUrl')}">
-                <li th:each="error : ${#fields.errors('credentialIssuerUrl')}"
-                    th:text="${error}"
-                    class="ds-validation-message"></li>
-            </ul>
-
-            <p class="ds-paragraph">
                 <label for="sector_field"
                        class="data-label">
                     Sektor
@@ -106,7 +88,9 @@
                     data-weight="high">
                 Endre roller for brukarstad
             </legend>
-            <div class="ds-field" th:each="e : ${@relyingPartiesService.getValidEntitlements()}">
+
+            <div class="ds-field" th:each="e : ${isAdmin ? @relyingPartiesService.getValidEntitlements()
+                                                         : rp.relyingPartyEntitlements()}">
                 <label th:for="|id-${e.entitlement}|" th:text="${e.displayName}"></label>
                 <input th:id="|id-${e.entitlement}|"
                        type="checkbox"
@@ -123,6 +107,7 @@
                 class="ds-validation-message"></li>
         </ul>
     </div>
+
     <div class="ds-card">
         <fieldset class="ds-fieldset"
                   data-size="sm"

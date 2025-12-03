@@ -18,9 +18,6 @@ public record EditRelyingPartyResource(
     @JsonProperty("relying_party_eaas")
     List<RelyingPartyEaaResource> relyingPartyEaas,
 
-    @JsonProperty("credential_issuer_url")
-    String credentialIssuerUrl,
-
     @JsonProperty(value = "active", required = true)
     boolean active
 ) { }
