@@ -31,7 +31,7 @@
 
     <details class="ds-details"
              style="width: fit-content;"
-             th:open="${!#lists.isEmpty(searchFormAttr.requiredEntitlements())}">
+             th:open="${!#lists.isEmpty(searchFormAttr.getRequiredEntitlements())}">
         <summary>Filter</summary>
         <fieldset class="ds-fieldset">
             <legend>
