@@ -57,7 +57,7 @@ public class LookupControllerTests {
         @Test
         public void testServiceCalledAndWithEmptyResource() throws Exception {
             mockMvc.perform(post("/relying-parties")
-                    .formField("searchTerm", SearchForm.empty().searchTerm()))
+                    .formField("searchTerm", SearchForm.empty().getSearchTerm()))
                 .andExpect(view().name("search_view"))
                 .andExpect(model().attribute(SearchController.searchFormAttrId, SearchForm.empty()));
 
@@ -71,7 +71,7 @@ public class LookupControllerTests {
             SearchForm testSearchForm = ResourceGenerator.generateSearchForm();
 
             mockMvc.perform(post("/relying-parties")
-                                .formField("searchTerm", testSearchForm.searchTerm()))
+                                .formField("searchTerm", testSearchForm.getSearchTerm()))
                    .andExpect(view().name("search_view"))
                    .andExpect(model().attribute(SearchController.searchFormAttrId, testSearchForm));
             SearchRelyingPartyResource expectedSearchResource =

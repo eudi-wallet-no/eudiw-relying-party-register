@@ -61,7 +61,9 @@ public class ResourceGenerator extends TestDataGenerator {
     }
 
     public static SearchForm generateSearchForm() {
-        return new SearchForm(generateName(), new ArrayList<>());
+        SearchForm searchForm = new SearchForm();
+        searchForm.setSearchTerm(generateName());
+        return searchForm;
     }
 
     public static PagedResponse<RelyingPartyResource> generatePageResponse(List<RelyingPartyResource> content) {

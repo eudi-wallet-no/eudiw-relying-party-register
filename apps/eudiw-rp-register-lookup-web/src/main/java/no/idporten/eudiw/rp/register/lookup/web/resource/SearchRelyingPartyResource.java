@@ -41,9 +41,9 @@ public class SearchRelyingPartyResource {
 
     public SearchRelyingPartyResource(SearchForm searchForm) {
         this();
-        this.searchTerm = searchForm.searchTerm();
+        this.searchTerm = searchForm.getSearchTerm();
         this.requiredEntitlements =
-            searchForm.requiredEntitlements()
+            searchForm.getRequiredEntitlements()
                       .stream()
                       .map(RelyingPartyEntitlementFormField::toResource)
                       .toList();
