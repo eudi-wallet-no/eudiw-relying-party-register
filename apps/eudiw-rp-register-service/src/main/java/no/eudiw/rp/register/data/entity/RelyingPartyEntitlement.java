@@ -49,7 +49,11 @@ public class RelyingPartyEntitlement extends BaseEntity {
     }
 
     public RelyingPartyEntitlement(String entitlement) {
+        this(entitlement, null);
+    }
+    public RelyingPartyEntitlement(String entitlement, String credentialIssuerUrl) {
         this.entitlement = entitlement;
+        this.credentialIssuerUrl = credentialIssuerUrl;
     }
 
     // for JPA instantiation.

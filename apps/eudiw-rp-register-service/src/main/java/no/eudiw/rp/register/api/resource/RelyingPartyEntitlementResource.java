@@ -8,14 +8,17 @@ import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCertificateRes
 
 import java.util.List;
 
-@JsonInclude(JsonInclude.Include.ALWAYS)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record RelyingPartyEntitlementResource(
-    @JsonProperty("entitlement")
+    @JsonProperty(value = "entitlement", required = true)
     String entitlement,
 
     @JsonProperty("display_name")
     String displayName,
+
+    @JsonProperty("credential_issuer_url")
+    String credentialIssuerUrl,
 
     @Valid
     @JsonProperty(value = "certificates")

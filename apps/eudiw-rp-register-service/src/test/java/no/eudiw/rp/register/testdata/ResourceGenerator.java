@@ -17,7 +17,7 @@ public class ResourceGenerator extends TestDataGenerator {
     public static List<RelyingPartyEntitlementResource> sampleRelyingPartyEntitlementResources(int n) {
         return sampleEntitlements(n)
                    .stream()
-                   .map(e -> new RelyingPartyEntitlementResource(e, e, List.of(generateCertificateResource())))
+                   .map(e -> new RelyingPartyEntitlementResource(e, e, null, List.of(generateCertificateResource())))
                    .toList();
     }
 

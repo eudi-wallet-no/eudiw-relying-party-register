@@ -85,10 +85,15 @@ public class RelyingPartyServiceV2Test {
 
     @Test
     void testEditRelyingPartyOnName() {
+        var entitlements = List.of(new RelyingPartyEntitlementResource(
+            "https://uri.etsi.org/19475/Entitlement/QEAA_Provider",
+            "QEAA Provider",
+            null,
+            new ArrayList<>()));
         CreateRelyingPartyResource createRelyingPartyResource = new CreateRelyingPartyResource(
             generateValidOrgno(),
             generateName(),
-            List.of(new RelyingPartyEntitlementResource("https://uri.etsi.org/19475/Entitlement/QEAA_Provider", "QEAA Provider", new ArrayList<>())),
+            entitlements,
             List.of()
         );
 
@@ -96,7 +101,7 @@ public class RelyingPartyServiceV2Test {
 
         EditRelyingPartyResource editResource = new EditRelyingPartyResource(
             generateName(),
-            List.of(new RelyingPartyEntitlementResource("https://uri.etsi.org/19475/Entitlement/QEAA_Provider", "QEAA Provider", new ArrayList<>())),
+            entitlements,
             List.of(),
             true
         );
