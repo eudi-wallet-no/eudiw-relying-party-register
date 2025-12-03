@@ -40,9 +40,6 @@ public record RelyingPartyResource(
     @JsonProperty(value = "last_updated_ms", required = true)
     long lastUpdatedMs,
 
-    @JsonProperty("credential_issuer_url")
-    String credentialIssuerUrl,
-
     @JsonProperty(value = "active", required = true)
     boolean active
 ) {

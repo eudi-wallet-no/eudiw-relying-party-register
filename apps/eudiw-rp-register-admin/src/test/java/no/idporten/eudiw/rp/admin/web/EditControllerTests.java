@@ -83,7 +83,6 @@ public class EditControllerTests {
 
             mockMvc.perform(post("/admin/edit/%s".formatted(id))
                                 .formField("tradeName", editForm.getTradeName())
-                                .formField("credentialIssuerUrl", editForm.getCredentialIssuerUrl())
                                 .formField("active", Boolean.toString(editForm.isActive()))
                                 .formField("entitlements", entitlement.entitlement()))
                 .andExpect(status().is3xxRedirection())
@@ -98,12 +97,10 @@ public class EditControllerTests {
         void testEditFormRejectedOnFieldInvalidation() throws Exception {
             RelyingPartyEntitlementResource entitlement = ResourceGenerator.generateRelyingPartyEntitlementResource();
             String invalidName = "fooBar$";
-            String invalidUrl = "";
             RelyingPartyResource rpResource =
                 ResourceGenerator.generateRelyingPartyResource()
                     .withTradeName(invalidName)
                     .withRelyingPartyEntitlements(List.of(entitlement))
-                    .withCredentialIssuerUrl(invalidUrl)
                     .withRelyingPartyEaas(List.of());
             UUID id = UUID.randomUUID();
             when(mockRpService.get(id)).thenReturn(rpResource);
@@ -114,12 +111,11 @@ public class EditControllerTests {
             mockMvc.perform(post("/admin/edit/%s".formatted(id))
                                 .formField("tradeName", invalidName)
                                 .formField("publicSector", Boolean.toString(rpResource.publicSector()))
-                                .formField("credentialIssuerUrl", invalidUrl)
                                 .formField("active", Boolean.toString(rpResource.active()))
                                 .formField("entitlements", entitlement.entitlement()))
                    // assert edit form invalid (should only have error in the name field)
                    .andExpect(model().attributeHasFieldErrors(EditController.editFormAttrId, "tradeName"))
-                   .andExpect(model().attributeErrorCount(EditController.editFormAttrId, 2))
+                   .andExpect(model().attributeErrorCount(EditController.editFormAttrId, 1))
 
                    // assert that view returns to edit form, for the given RP and
                    // with the unsubmitted form data.

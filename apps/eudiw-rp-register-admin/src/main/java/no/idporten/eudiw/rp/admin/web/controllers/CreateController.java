@@ -48,7 +48,6 @@ public class CreateController {
             createForm = createForm
                 .withOrgno(reportee.orgno())
                 .withTradeName(reportee.name())
-                .withCredentialIssuerUrl(reportee.credentialIssuerUrl())
                 .withEntitlements(List.of(new RelyingPartyEntitlementFormField(
                     "https://uri.etsi.org/19475/Entitlement/Service_Provider")));
         }
@@ -67,8 +66,7 @@ public class CreateController {
             Map.of(createFormAttrId, createForm));
 
         if (!createFormBindingResult.hasErrors()) {
-            CreateRelyingPartyResource createResource =
-                createForm.toResource(reportee.orgno(), reportee.credentialIssuerUrl());
+            CreateRelyingPartyResource createResource = createForm.toResource(reportee.orgno());
             RelyingPartyResource result = relyingPartiesService.create(createResource);
             return new ModelAndView("redirect:/details/" + result.id());
         }

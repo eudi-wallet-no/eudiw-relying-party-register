@@ -34,10 +34,6 @@ public class AdminCreateRelyingPartyForm {
     @NotBlank(message = "Tenestenamn må fyllast ut")
     private String tradeName = "";
 
-    //TODO: Dynamisk URL, ikke oppfordring til å legge inn denne. Gjøres når folk begynner å utstede sjolv
-    @NotBlank(message= "Utsteder url må legges til. Dette er: https://utsteder.test.eidas2sandkasse.net/.well-known/openid-credential-issuer inntil videre")
-    private String credentialIssuerUrl = "";
-
     @Valid
     @NotEmpty(message = "Brukarstaden må ha minst ein rolle valt")
     private List<RelyingPartyEntitlementFormField> entitlements = new ArrayList<>();
@@ -48,7 +44,6 @@ public class AdminCreateRelyingPartyForm {
         return new CreateRelyingPartyResource(
             this.orgno,
             this.tradeName,
-            this.credentialIssuerUrl,
             this.getEntitlements()
                 .stream()
                 .map(RelyingPartyEntitlementFormField::toResource)

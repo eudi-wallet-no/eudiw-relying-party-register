@@ -15,9 +15,6 @@ public record CreateRelyingPartyResource(
     @JsonProperty(value = "name", required = true)
     String tradeName,
 
-    @JsonProperty("credential_issuer_url")
-    String credentialIssuerUrl,
-
     @JsonProperty("relying_party_entitlements")
     List<RelyingPartyEntitlementResource> relyingPartyEntitlements,
 

@@ -31,11 +31,10 @@ public class SelfServiceCreateRelyingPartyForm {
         List.of(new RelyingPartyEntitlementResource(
             "https://uri.etsi.org/19475/Entitlement/Service_Provider"));
 
-    public CreateRelyingPartyResource toResource(String orgno, String credentialIssuerUrl) {
+    public CreateRelyingPartyResource toResource(String orgno) {
         return new CreateRelyingPartyResource(
             orgno,
             this.tradeName,
-            credentialIssuerUrl,
             DEFAULT_NON_ADMIN_ENTITLEMENTS,
             this.getEaas()
                 .stream()

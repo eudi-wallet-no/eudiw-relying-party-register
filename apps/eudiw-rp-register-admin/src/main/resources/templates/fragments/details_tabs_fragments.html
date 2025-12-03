@@ -100,19 +100,23 @@
     </div>
 </div>
 
-<div th:fragment="general_info_content_fragment(rp)">
+<div th:fragment="general_info_content_fragment(rp)"
+     xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+
     <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
     <div style="padding-bottom: 2em;">
         <table class="ds-table">
             <tbody>
-            <tr>
-                <th>Org.nr.</th>
-                <td th:text="${rp.orgno}"></td>
-            </tr>
-            <tr>
-                <th>Organisasjon</th>
-                <td th:text="${rp.orgName}"></td>
-            </tr>
+            <th:block sec:authorize="hasRole('ADMIN')">
+                <tr>
+                    <th>Org.nr.</th>
+                    <td th:text="${rp.orgno}"></td>
+                </tr>
+                <tr>
+                    <th>Organisasjon</th>
+                    <td th:text="${rp.orgName}"></td>
+                </tr>
+            </th:block>
             <tr>
                 <th>Tenestenamn</th>
                 <td th:text="${rp.tradeName}"></td>
