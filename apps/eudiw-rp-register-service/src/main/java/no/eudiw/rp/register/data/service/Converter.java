@@ -56,6 +56,7 @@ public class Converter {
         return new RelyingPartyEntitlementResource(
             entitlement.getEntitlement(),
             getDisplayNameForEntitlement(entitlement.getEntitlement()),
+            entitlement.getCredentialIssuerUrl(),
             entitlement.getIssuerCertificates().stream().map(this::toResource).toList()
         );
     }
@@ -98,7 +99,7 @@ public class Converter {
     }
 
     public RelyingPartyEntitlement toEntity(RelyingPartyEntitlementResource resource) {
-        return new RelyingPartyEntitlement(resource.entitlement());
+        return new RelyingPartyEntitlement(resource.entitlement(), resource.credentialIssuerUrl());
     }
     public RelyingPartyEaa toEntity(RelyingPartyEaaResource resource) {
         return new RelyingPartyEaa(resource.namespace(), resource.intent());
