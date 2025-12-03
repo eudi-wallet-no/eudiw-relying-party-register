@@ -9,7 +9,7 @@ public class StatelessPersistentSyntheticReporteeService implements SyntheticRep
         long unsignedHash = ((long) id.hashCode()) + Integer.MAX_VALUE;
 
         String orgno = PseudoRandomOrgnoGenerator.generateValidOrgno(unsignedHash);
-        String name = "Test-brukarstad-%s".formatted(orgno);
+        String name = "Syntetisk organisasjon %s".formatted(orgno);
 
         boolean isPublicSector = unsignedHash % 2 == 0;
         return new ReporteeAuthority(orgno, name, isPublicSector);
