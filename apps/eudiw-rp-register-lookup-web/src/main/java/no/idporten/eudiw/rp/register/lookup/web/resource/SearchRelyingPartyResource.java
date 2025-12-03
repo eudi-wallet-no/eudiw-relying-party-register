@@ -25,6 +25,9 @@ public class SearchRelyingPartyResource {
     @JsonProperty("search_term")
     private String searchTerm = "";
 
+    @JsonProperty("hide_synthetic_orgnos")
+    private boolean hideSyntheticOrgnos;
+
     @JsonProperty("required_entitlements")
     @NotNull
     private List<RelyingPartyEntitlementResource> requiredEntitlements = List.of();
@@ -42,6 +45,7 @@ public class SearchRelyingPartyResource {
     public SearchRelyingPartyResource(SearchForm searchForm) {
         this();
         this.searchTerm = searchForm.getSearchTerm();
+        this.hideSyntheticOrgnos = searchForm.isHideSyntheticOrgnos();
         this.requiredEntitlements =
             searchForm.getRequiredEntitlements()
                       .stream()

@@ -22,13 +22,14 @@ public class SearchForm {
         "søketerm får bare inneholde norske bokstaver, tall, mellemrom, og symbolene "
             + SaneStringValidator.ALLOWED_SYMBOLS,
                           nullable = false)
+
     private String searchTerm = "";
+    private boolean hideSyntheticOrgnos = false;
+
 
     public void setSearchTerm(String searchTerm) {
         this.searchTerm = searchTerm.strip();
     }
-
-    private boolean hideSyntheticOrgnos = false;
 
     @NotNull
     private List<RelyingPartyEntitlementFormField> requiredEntitlements = new ArrayList<>();
@@ -36,6 +37,7 @@ public class SearchForm {
     public static SearchForm empty() {
         return new SearchForm();
     }
+
 
     public List<String> requiredEntitlementValues() {
         return requiredEntitlements
