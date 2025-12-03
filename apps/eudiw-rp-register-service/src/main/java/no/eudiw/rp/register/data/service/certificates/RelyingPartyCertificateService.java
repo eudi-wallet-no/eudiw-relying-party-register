@@ -150,7 +150,6 @@ public class RelyingPartyCertificateService {
                 .body(RelyingPartyCertificateRequest
                     .builder()
                     .orgno(orgNo)
-                    .name(tradeName)
                     .tradeName(tradeName)
                     .legalName(legalName)
                     .csr(csrPemStr)
