@@ -1,6 +1,7 @@
 package no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
@@ -33,9 +34,11 @@ public abstract class AltinnServiceDetails implements AuthorizationDetails {
         }
     }
 
-    @Setter
+    @Getter
     @EqualsAndHashCode(callSuper = true)
-    public static class Request extends AltinnServiceDetails implements AuthorizationDetails.Request {
-        protected boolean representationIsRequired = true;
+    public static class Request
+        extends AltinnServiceDetails implements AuthorizationDetails.Request {
+        @JsonProperty(value = "representation_is_required", required = true)
+        private final boolean representationIsRequired = true;
     }
 }

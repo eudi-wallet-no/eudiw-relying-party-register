@@ -36,7 +36,11 @@ public abstract class OrgnoDetails implements AuthorizationDetails {
         }
     }
 
+    @Getter
     @EqualsAndHashCode(callSuper = true)
     public static class Request
-        extends OrgnoDetails implements AuthorizationDetails.Request { }
+        extends OrgnoDetails implements AuthorizationDetails.Request {
+        @JsonProperty(value = "representation_is_required", required = true)
+        private final boolean representationIsRequired = true;
+    }
 }
