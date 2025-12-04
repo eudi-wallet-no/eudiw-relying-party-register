@@ -66,6 +66,22 @@ public class RelyingPartyServiceV2Test {
     }
 
     @Test
+    void testStoreRelyingParty() {
+        CreateRelyingPartyResource createRelyingPartyResource = new CreateRelyingPartyResource(
+            generateValidOrgno(),
+            generateName(),
+            List.of(),
+            List.of()
+        );
+
+        RelyingPartyResource result = relyingPartyService.createRelyingParty(createRelyingPartyResource);
+
+        RelyingPartyResource getResult = relyingPartyService.findRelyingParty(result.id());
+
+        assertEquals(result, getResult);
+    }
+
+    @Test
     void testSearchRelyingPartyOnName() {
         CreateRelyingPartyResource createRelyingPartyResource = new CreateRelyingPartyResource(
             generateValidOrgno(),
