@@ -12,3 +12,10 @@ spring:
     password: junit
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
+
+eudiw-ca:
+  intermediates:
+    pid_provider:
+      certificate-profile:
+        qc-statements:
+          qc-type: id-etsi-qct-pid
