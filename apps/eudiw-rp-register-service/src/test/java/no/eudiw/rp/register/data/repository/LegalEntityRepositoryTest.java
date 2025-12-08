@@ -19,9 +19,9 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@DisplayName("When using RelyingPartyRepository")
+@DisplayName("When using LegalEntityRepository")
 @ActiveProfiles("junit")
-public class RelyingPartyRepositoryTest {
+public class LegalEntityRepositoryTest {
 
     @Autowired
     private LegalEntityRepository repository;
@@ -34,7 +34,7 @@ public class RelyingPartyRepositoryTest {
     @Test
     @DisplayName("store and get")
     void storeAndGet() {
-        LegalEntity rp = EntityGenerator.generateRelyingPartyWithoutInstance();
+        LegalEntity rp = EntityGenerator.generateLegalEntity();
 
         LegalEntity returnFromSave = repository.saveAndFlush(rp);
 
@@ -54,17 +54,18 @@ public class RelyingPartyRepositoryTest {
     @Test
     @DisplayName("orgno when exists")
     void getOrgnoExists() {
-        LegalEntity rp = EntityGenerator.generateRelyingPartyWithoutInstance();
+        LegalEntity rp = EntityGenerator.generateLegalEntity();
         repository.saveAndFlush(rp);
         LegalEntity actual = repository.findByOrgno(rp.getOrgno()).orElse(new LegalEntity("name", "orgno", true, new ArrayList<>()));
         assertNotNull(actual);
         assertEquals(actual.getName(), rp.getName());
     }
 
+
     @Test
     @DisplayName("search on name")
     void searchOnName() {
-        LegalEntity rp = EntityGenerator.generateRelyingPartyWithoutInstance();
+        LegalEntity rp = EntityGenerator.generateLegalEntity(0);
 
         LegalEntity returnFromSave = repository.saveAndFlush(rp);
 
@@ -85,7 +86,7 @@ public class RelyingPartyRepositoryTest {
     @Test
     @DisplayName("search on orgNo")
     void searchOnOrgno() {
-        LegalEntity rp = EntityGenerator.generateRelyingPartyWithoutInstance();
+        LegalEntity rp = EntityGenerator.generateLegalEntity(0);
         LegalEntity returnFromSave = repository.saveAndFlush(rp);
 
         Page<LegalEntity> searchResult = repository.searchRelyingParties(
@@ -104,7 +105,7 @@ public class RelyingPartyRepositoryTest {
     @Test
     @DisplayName("search on tradeName")
     void searchOnTradeName() {
-        LegalEntity rp = EntityGenerator.generateRelyingParty();
+        LegalEntity rp = EntityGenerator.generateLegalEntity(1);
 
         LegalEntity returnFromSave = repository.saveAndFlush(rp);
 
@@ -125,12 +126,12 @@ public class RelyingPartyRepositoryTest {
     @DisplayName("search on tradeName")
     void filterOnEntitlements() {
         repository.deleteAll();
-        LegalEntity le1 = EntityGenerator.generateRelyingParty();
+        LegalEntity le1 = EntityGenerator.generateLegalEntity(1);
         RelyingPartyInstance instance1 = le1.getRelyingPartyInstances().getFirst();
         instance1.setRelyingPartyEntitlements(List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/QEAA_Provider")));
         repository.saveAndFlush(le1);
 
-        LegalEntity le2 = EntityGenerator.generateRelyingParty();
+        LegalEntity le2 = EntityGenerator.generateLegalEntity(1);
         RelyingPartyInstance instance2 = le2.getRelyingPartyInstances().getFirst();
         instance2.setRelyingPartyEntitlements(List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/Service_Provider")));
         repository.saveAndFlush(le2);
@@ -152,13 +153,13 @@ public class RelyingPartyRepositoryTest {
     @Test
     @DisplayName("filter away synthetic orgnumbers")
     void filterAwaySyntheticOrgNumbers() {
-        LegalEntity le1 = EntityGenerator.generateRelyingParty();
+        LegalEntity le1 = EntityGenerator.generateLegalEntity(1);
         le1.setOrgno("234234234"); // Syntetisk orgnummer
         RelyingPartyInstance instance1 = le1.getRelyingPartyInstances().getFirst();
         instance1.setRelyingPartyEntitlements(List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/QEAA_Provider")));
         repository.saveAndFlush(le1);
 
-        LegalEntity le2 = EntityGenerator.generateRelyingParty();
+        LegalEntity le2 = EntityGenerator.generateLegalEntity(1);
         le2.setOrgno("991825827");
         RelyingPartyInstance instance2 = le2.getRelyingPartyInstances().getFirst();
         instance2.setRelyingPartyEntitlements(List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/Service_Provider")));

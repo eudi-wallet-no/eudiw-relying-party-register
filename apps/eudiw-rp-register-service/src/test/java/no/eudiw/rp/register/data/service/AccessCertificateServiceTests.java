@@ -69,10 +69,10 @@ public class AccessCertificateServiceTests {
         @Test
         @DisplayName("then only certificates for the requested RP are returned")
         public void testGetCertificatesForRelyingParty() {
-            LegalEntity legalEntity = EntityGenerator.generateRelyingParty();
+            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
             legalEntity.getRelyingPartyInstances().getFirst().setAccessCertificates(List.of(EntityGenerator.generateCertificate()));
 
-            LegalEntity otherLegalEntity = EntityGenerator.generateRelyingParty();
+            LegalEntity otherLegalEntity = EntityGenerator.generateLegalEntity();
             otherLegalEntity.getRelyingPartyInstances().getFirst().setAccessCertificates(List.of(EntityGenerator.generateCertificate()));
 
             legalEntityRepository.saveAllAndFlush(List.of(legalEntity, otherLegalEntity));
@@ -108,7 +108,7 @@ public class AccessCertificateServiceTests {
         @Test
         @DisplayName("then certificate is returned if its ID is registered for RP")
         public void testCertificateReturnedIfExistsAndBelongsToRelyingParty() {
-            LegalEntity legalEntity = EntityGenerator.generateRelyingParty();
+            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
             legalEntity.getRelyingPartyInstances().getFirst().setAccessCertificates(List.of(EntityGenerator.generateCertificate()));
             legalEntityRepository.saveAndFlush(legalEntity);
 
@@ -127,7 +127,7 @@ public class AccessCertificateServiceTests {
         @Test
         @DisplayName("then the service throws if RP ID is known but certificate ID is unknown")
         public void testErrorThrownIfRelyingPartyKnownButCertificateUnknown() {
-            LegalEntity legalEntity = EntityGenerator.generateRelyingParty();
+            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
             legalEntity.getRelyingPartyInstances().getFirst().setAccessCertificates(List.of(EntityGenerator.generateCertificate()));
             legalEntityRepository.saveAndFlush(legalEntity);
 
@@ -143,7 +143,7 @@ public class AccessCertificateServiceTests {
         @Test
         @DisplayName("then the service throws if certificate ID is known but RP ID is unknown")
         public void testErrorThrownIfCertificateKnownButRelyingPartyUnknown() {
-            LegalEntity legalEntity = EntityGenerator.generateRelyingParty();
+            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
             legalEntity.getRelyingPartyInstances().getFirst().setAccessCertificates(List.of(EntityGenerator.generateCertificate()));
             legalEntityRepository.saveAndFlush(legalEntity);
 
@@ -158,11 +158,11 @@ public class AccessCertificateServiceTests {
         @Test
         @DisplayName("then service throws if certificate and RP known but certificate held by different RP")
         public void testErrorThrownIfCertificateExistsForDifferentRelyingParty() {
-            LegalEntity legalEntity1 = EntityGenerator.generateRelyingParty();
+            LegalEntity legalEntity1 = EntityGenerator.generateLegalEntity();
             legalEntity1.getRelyingPartyInstances().getFirst().setAccessCertificates(List.of(EntityGenerator.generateCertificate()));
             legalEntityRepository.saveAndFlush(legalEntity1);
 
-            LegalEntity legalEntity2 = EntityGenerator.generateRelyingParty();
+            LegalEntity legalEntity2 = EntityGenerator.generateLegalEntity();
             legalEntity2.getRelyingPartyInstances().getFirst().setAccessCertificates(List.of(EntityGenerator.generateCertificate()));
             legalEntityRepository.saveAndFlush(legalEntity2);
 
@@ -199,7 +199,7 @@ public class AccessCertificateServiceTests {
         public void testCorrectDeserializationOfValidCertificateResponse() throws Exception {
             X509Certificate certificateExpected = enqueueMockCertificateResponse();
 
-            LegalEntity legalEntity = EntityGenerator.generateRelyingParty();
+            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
             legalEntity.getRelyingPartyInstances().getFirst().setAccessCertificates(List.of(EntityGenerator.generateCertificate()));
 
             UUID registreeId = legalEntityRepository.save(legalEntity).getRelyingPartyInstances().getFirst().getId();
@@ -224,7 +224,7 @@ public class AccessCertificateServiceTests {
         public void testCertificateFromCAProperlyStoredInRegisterServiceDatabase() throws Exception {
             RelyingPartyCsrResource csrResource = ResourceGenerator.generateRegisterRelyingPartyCsrResource();
 
-            LegalEntity legalEntity = EntityGenerator.generateRelyingParty();
+            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
             legalEntityRepository.saveAndFlush(legalEntity);
 
             X509Certificate certificateExpected = enqueueMockCertificateResponse();
@@ -265,7 +265,7 @@ public class AccessCertificateServiceTests {
         @Test
         @DisplayName("then a not-found-error is thrown if a CSR is registered for a deleted RP")
         public void testErrorThrownForDeletedRelyingParty() throws Exception {
-            RelyingPartyInstance relyingParty = EntityGenerator.generateRelyingPartyNoId();
+            RelyingPartyInstance relyingParty = EntityGenerator.generateRelyingParty();
 
             instanceRepository.saveAndFlush(relyingParty);
 
@@ -291,7 +291,7 @@ public class AccessCertificateServiceTests {
                     .setBody(errorResponseJson);
             mockCaServer.enqueue(mockErrorResponse);
 
-            LegalEntity legalEntity = EntityGenerator.generateRelyingParty();
+            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
             UUID knownRelyingPartyId = legalEntityRepository.saveAndFlush(legalEntity).getRelyingPartyInstances().getFirst().getId();
 
             RelyingPartyCsrResource dummyCsrResource =
@@ -316,7 +316,7 @@ public class AccessCertificateServiceTests {
                     .setHeader(HttpHeaders.CONTENT_TYPE, "application/x-pem-file")
                     .setBody(invalidCertificatePemStr);
             mockCaServer.enqueue(mockInvalidSuccessResponse);
-            LegalEntity legalEntity = EntityGenerator.generateRelyingParty();
+            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
 
             UUID knownRelyingPartyId = legalEntityRepository.saveAndFlush(legalEntity).getRelyingPartyInstances().getFirst().getId();
 
@@ -341,7 +341,7 @@ public class AccessCertificateServiceTests {
             mockCaServer.enqueue(mockInvalidSuccessResponse);
 
             UUID knownRelyingPartyId =
-                instanceRepository.saveAndFlush(EntityGenerator.generateRelyingPartyNoId())
+                instanceRepository.saveAndFlush(EntityGenerator.generateRelyingParty())
                             .getId();
             RelyingPartyCsrResource dummyCsrResource =
                 ResourceGenerator.generateRegisterRelyingPartyCsrResource();
@@ -356,7 +356,7 @@ public class AccessCertificateServiceTests {
         @Test
         @DisplayName("then returned cert resource has ID immediately, and this matches persisted ID")
         public void testNewCertResourceHasIdImmediatelyAndMatchesPersistedCert() throws Exception {
-            LegalEntity legalEntity = EntityGenerator.generateRelyingParty();
+            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
 
             legalEntityRepository.saveAndFlush(legalEntity);
 

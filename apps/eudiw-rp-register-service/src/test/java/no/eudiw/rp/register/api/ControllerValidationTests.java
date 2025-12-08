@@ -29,7 +29,7 @@ import static org.hamcrest.Matchers.*;
 @ActiveProfiles("junit")
 @DisplayName("When using the relying parties API with invalid resources ...")
 @AutoConfigureMockMvc
-public class IndexControllerValidationTests {
+public class ControllerValidationTests {
 
     @Autowired
     private RelyingPartyInstanceRepository relyingPartyRepository;
@@ -76,7 +76,7 @@ public class IndexControllerValidationTests {
         @Test
         @DisplayName("then validation is properly applied to edit resource")
         void testUnsaneNameEditResource() throws Exception {
-            RelyingPartyInstance relyingPartyIn = relyingPartyRepository.save(generateRelyingPartyNoId());
+            RelyingPartyInstance relyingPartyIn = relyingPartyRepository.save(generateRelyingParty());
             UUID id = relyingPartyIn.getId();
 
             String invalidName ="<script>Digdir</script>";

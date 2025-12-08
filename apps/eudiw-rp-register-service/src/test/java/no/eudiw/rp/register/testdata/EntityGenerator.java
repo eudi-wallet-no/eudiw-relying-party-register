@@ -3,48 +3,34 @@ package no.eudiw.rp.register.testdata;
 import no.eudiw.rp.register.data.entity.*;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 public class EntityGenerator extends TestDataGenerator {
 
-    public static List<LegalEntity> generateRelyingParties(int n) {
-        Collection<LegalEntity> distinctLegalEntities =
-            generateListBy(n, EntityGenerator::generateRelyingParty)
-                   .stream()
-                   .collect(Collectors.toMap(LegalEntity::getOrgno, le -> le))
-                   .values();
-        return new ArrayList<>(distinctLegalEntities);
+    public static List<LegalEntity> generateLegalEntities(int numLegalEntities) {
+        Map<String, LegalEntity> distinctLegalEntities = new HashMap<>();
+        while (distinctLegalEntities.size() < numLegalEntities) {
+            LegalEntity le = EntityGenerator.generateLegalEntity(1);
+            distinctLegalEntities.put(le.getOrgno(), le);
+        }
+        return new ArrayList<>(distinctLegalEntities.values());
     }
 
-    public static RelyingPartyInstance generateRelyingPartyNoId() {
-        return new RelyingPartyInstance(
-            generateName(),
-            List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/Service_Provider"), new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/QEAA_Provider")),
-            generateListBy(EntityGenerator::generateEaa),
-            // NOTE: certificates are very expensive to generate, so no
-            // certificates by default.
-            new ArrayList<>());
+    public static LegalEntity generateLegalEntity() {
+        return generateLegalEntity(rng.nextInt(1, 6));
     }
 
-    public static LegalEntity generateRelyingParty() {
-        LegalEntity legalEntity = generateRelyingPartyWithoutInstance();
-
-        legalEntity.addRelyingPartyInstance(generateRelyingPartyNoId(legalEntity));
-        return legalEntity;
-    }
-
-    public static LegalEntity generateRelyingPartyWithoutInstance() {
+    public static LegalEntity generateLegalEntity(int numInstances) {
         return new LegalEntity(
             generateName(),
             generateValidOrgno(),
             true,
-            new ArrayList<>()
-        );
+            generateListBy(numInstances, EntityGenerator::generateRelyingParty));
     }
 
-    public static RelyingPartyInstance generateRelyingPartyNoId(LegalEntity rp) {
+    public static RelyingPartyInstance generateRelyingParty() {
         return new RelyingPartyInstance(
             generateName(),
             List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/Service_Provider"), new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/QEAA_Provider")),
@@ -52,23 +38,15 @@ public class EntityGenerator extends TestDataGenerator {
             // NOTE: certificates are very expensive to generate, so no
             // certificates by default.
             new ArrayList<>(),
-            rp
+            null
         );
     }
 
-    public static LegalEntity generateRelyingParty(RelyingPartyInstance instance) {
-        return new LegalEntity(
-            generateName(),
-            generateValidOrgno(),
-            true,
-            List.of(instance)
-        );
-    }
-
-    public static RelyingPartyInstance generateRelyingPartyWithCertificates() {
-        RelyingPartyInstance relyingParty = generateRelyingPartyNoId();
-        relyingParty.setAccessCertificates(EntityGenerator.generateCertificates());
-        return relyingParty;
+    public static RelyingPartyInstance generateRelyingPartyWithLegalEntity() {
+        RelyingPartyInstance relyingPartyInstance = generateRelyingParty();
+        LegalEntity legalEntityWithZeroInstances = generateLegalEntity(0);
+        relyingPartyInstance.setLegalEntity(legalEntityWithZeroInstances);
+        return relyingPartyInstance;
     }
 
     public static RelyingPartyEaa generateEaa() {
@@ -83,8 +61,5 @@ public class EntityGenerator extends TestDataGenerator {
         catch (Exception e) {
             throw new RuntimeException("Failed to generate RelyingPartyCertificate", e);
         }
-    }
-    public static List<AccessCertificate> generateCertificates() {
-        return generateListBy(rng.nextInt(2, 4), EntityGenerator::generateCertificate);
     }
 }
