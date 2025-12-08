@@ -31,7 +31,7 @@ public class IssuerCertificateRepositoryTest {
     @Test
     @DisplayName("add issuer certificate and save via issuer-repo")
     void addIssuerCertificateAndSaveViaIssuerRepo() {
-        LegalEntity rp = EntityGenerator.generateRelyingParty();
+        LegalEntity rp = EntityGenerator.generateLegalEntity();
         LegalEntity saved = legalEntityRepository.save(rp);
 
         LegalEntity savedLegalEntity = legalEntityRepository.findById(saved.getId()).get();
@@ -49,7 +49,7 @@ public class IssuerCertificateRepositoryTest {
     @Test
     @DisplayName("add issuer certificate and save via rp-repo")
     void addIssuerCertificateAndSaveViaRP() {
-        LegalEntity rp = EntityGenerator.generateRelyingParty();
+        LegalEntity rp = EntityGenerator.generateLegalEntity();
         LegalEntity saved = legalEntityRepository.save(rp);
 
         LegalEntity savedLegalEntity = legalEntityRepository.findById(saved.getId()).get();

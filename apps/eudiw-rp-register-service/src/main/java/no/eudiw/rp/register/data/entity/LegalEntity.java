@@ -4,17 +4,14 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Getter
 @Setter
 @Entity
-@ToString
 @Table(name = "legal_entity")
 public class LegalEntity extends BaseEntity {
 
@@ -46,17 +43,11 @@ public class LegalEntity extends BaseEntity {
         orphanRemoval = true)
     private List<RelyingPartyInstance> relyingPartyInstances = new ArrayList<>();
 
-    public void addRelyingPartyInstance(RelyingPartyInstance relyingPartyInstance) {
-        boolean instanceNotAlreadyExists =
-            relyingPartyInstance.id == null ||
-                this.relyingPartyInstances
-                .stream()
-                .map(RelyingPartyInstance::getId)
-                .noneMatch(e -> Objects.equals(e, relyingPartyInstance.getId()));
-
-        if (instanceNotAlreadyExists) {
-            relyingPartyInstance.setLegalEntity(this);
-            relyingPartyInstances.add(relyingPartyInstance);
+    public void setRelyingPartyInstances(List<RelyingPartyInstance> relyingPartyInstances) {
+        this.relyingPartyInstances.clear();
+        if (relyingPartyInstances != null) {
+            relyingPartyInstances.forEach(rpi -> rpi.setLegalEntity(this));
+            this.relyingPartyInstances.addAll(relyingPartyInstances);
         }
     }
 
@@ -69,7 +60,7 @@ public class LegalEntity extends BaseEntity {
         this.name = name;
         this.orgno = orgno;
         this.publicSector = publicSector;
-        this.relyingPartyInstances = relyingPartyInstances;
+        this.setRelyingPartyInstances(relyingPartyInstances);
     }
 
     // for JPA instantiation.

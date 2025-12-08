@@ -1,38 +1,34 @@
 package no.eudiw.rp.register.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import no.eudiw.rp.register.api.resource.*;
-import no.eudiw.rp.register.data.entity.LegalEntity;
-import no.eudiw.rp.register.data.entity.RelyingPartyEaa;
-import no.eudiw.rp.register.data.entity.RelyingPartyEntitlement;
-import no.eudiw.rp.register.data.repository.LegalEntityRepository;
-import no.eudiw.rp.register.data.service.Converter;
-import no.eudiw.rp.register.testdata.EntityGenerator;
+import no.eudiw.rp.register.data.service.RelyingPartyService;
+import no.eudiw.rp.register.data.service.exception.NotFoundException;
 import no.eudiw.rp.register.testdata.ResourceGenerator;
+import no.eudiw.rp.register.testdata.TestDataGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static no.eudiw.rp.register.api.ApiTestUtils.toPage;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.hamcrest.Matchers.*;
-
 import static no.eudiw.rp.register.testdata.ResourceGenerator.*;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -45,11 +41,9 @@ public class RelyingPartiesControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private LegalEntityRepository legalEntityRepository;
-
-    @Autowired
-    private Converter converter;
+    @MockitoBean
+    @SuppressWarnings("unused")
+    private RelyingPartyService relyingPartyService;
 
     @DisplayName("When using the Relying Parties API with valid API key")
     @Nested
@@ -57,32 +51,59 @@ public class RelyingPartiesControllerTest {
 
         public static final String VALID_API_KEY = "junit-api-key";
 
+        private final ObjectMapper objectMapper = new ObjectMapper();
+
         @Nested
-        @DisplayName("When creating a relying party ...")
+        @DisplayName("When using the create endpoint ...")
         class CreateTests {
             @Test
+            @DisplayName("with a valid create resource for a known ID")
             void testCreateRelyingParty() throws Exception {
                 CreateRelyingPartyResource resource = generateCreateRelyingPartyResource();
 
-                ObjectWriter ow = new ObjectMapper().writer();
-                String json = ow.writeValueAsString(resource);
+                RelyingPartyResource expectedResponse = ResourceGenerator.generateRelyingPartyResource();
+                when(relyingPartyService.createRelyingParty(any())).thenReturn(expectedResponse);
 
-                mockMvc.perform(post("/v1/rp")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .header(X_API_KEY_HEADER, VALID_API_KEY)
-                                .content(json))
-                        .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.org_nr").value(resource.orgNr()))
-                        .andExpect(jsonPath("$.name").value(resource.tradeName()));
+                String json = objectMapper.writeValueAsString(resource);
+
+                RelyingPartyResource response =
+                    ApiTestUtils.toRelyingPartyResource(
+                        mockMvc.perform(post("/v1/rp")
+                                            .contentType(MediaType.APPLICATION_JSON)
+                                            .header(X_API_KEY_HEADER, VALID_API_KEY)
+                                            .content(json))
+                               .andExpect(status().isOk()));
+
+                assertEquals(expectedResponse, response);
+
+                verify(relyingPartyService, times(1)).createRelyingParty(resource);
+                verifyNoMoreInteractions(relyingPartyService);
             }
 
             @Test
+            @DisplayName("with a valid create resource for an unknown ID")
+            void testCreateRelyingPartyUnknownId() throws Exception {
+                when(relyingPartyService.createRelyingParty(any())).thenThrow(new NotFoundException(""));
+
+                CreateRelyingPartyResource resource = generateCreateRelyingPartyResource();
+                String json = objectMapper.writeValueAsString(resource);
+
+                mockMvc.perform(post("/v1/rp")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .header(X_API_KEY_HEADER, VALID_API_KEY)
+                                    .content(json))
+                       .andExpect(status().isNotFound());
+
+                verify(relyingPartyService, times(1)).createRelyingParty(resource);
+                verifyNoMoreInteractions(relyingPartyService);
+            }
+            @Test
+            @DisplayName("with an invalid create resource")
             void testCreateRelyingPartyInvalidOrgno() throws Exception {
                 CreateRelyingPartyResource resource =
                     generateCreateRelyingPartyResource().withOrgNr(generateInvalidOrgno());
 
-                ObjectWriter ow = new ObjectMapper().writer();
-                String json = ow.writeValueAsString(resource);
+                String json = objectMapper.writeValueAsString(resource);
 
                 mockMvc.perform(post("/v1/rp")
                                     .contentType(MediaType.APPLICATION_JSON)
@@ -91,337 +112,168 @@ public class RelyingPartiesControllerTest {
                        .andExpect(status().isBadRequest())
                        .andExpect(jsonPath("$.error").value("invalid_request"))
                        .andExpect(jsonPath("$.error_description", containsString("invalid_orgnr")));
+                verifyNoInteractions(relyingPartyService);
             }
         }
 
         @Nested
-        @DisplayName("When retrieving a relying party ...")
+        @DisplayName("When using the Get RP endpoint ...")
         class RetrieveTests {
+
             @Test
-            void testGetRelyingParty() throws Exception {
-                CreateRelyingPartyResource resource = generateCreateRelyingPartyResource();
-                ObjectWriter ow = new ObjectMapper().writer();
-                String json = ow.writeValueAsString(resource);
+            @DisplayName("with a valid and known ID")
+            void testGetRelyingPartyValidAndKnownID() throws Exception {
+                RelyingPartyResource expectedResponse = ResourceGenerator.generateRelyingPartyResource();
+                when(relyingPartyService.findRelyingParty(any())).thenReturn(expectedResponse);
 
-                ResultActions createResult = mockMvc.perform(post("/v1/rp")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .header(X_API_KEY_HEADER, VALID_API_KEY)
-                                .content(json))
-                        .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.org_nr").value(resource.orgNr()))
-                        .andExpect(jsonPath("$.name").value(resource.tradeName()));
+                RelyingPartyResource response =
+                    ApiTestUtils.toRelyingPartyResource(
+                        mockMvc.perform(get("/v1/rp/" + expectedResponse.id())
+                                            .accept(MediaType.APPLICATION_JSON)
+                                            .header(X_API_KEY_HEADER, VALID_API_KEY))
+                               .andExpect(status().isOk()));
 
-                RelyingPartyResource response = ApiTestUtils.toRelyingPartyResource(createResult);
+                assertEquals(expectedResponse, response);
 
-                mockMvc.perform(get("/v1/rp/" + response.id())
-                                .accept(MediaType.APPLICATION_JSON)
-                                .header(X_API_KEY_HEADER, VALID_API_KEY))
-                        .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.name").value(resource.tradeName()));
+                verify(relyingPartyService, times(1)).findRelyingParty(expectedResponse.id());
+                verifyNoMoreInteractions(relyingPartyService);
             }
 
             @Test
-            void testGetRelyingPartyNoneExists() throws Exception {
-                mockMvc.perform(get("/v1/rp/" + UUID.randomUUID())
-                                .accept(MediaType.APPLICATION_JSON)
-                                .header(X_API_KEY_HEADER, VALID_API_KEY))
-                        .andExpect(status().isNotFound());
-            }
-        }
+            @DisplayName("with a valid but unknown ID")
+            void testGetRelyingPartyValidButUnknownID() throws Exception {
+                when(relyingPartyService.findRelyingParty(any())).thenThrow(new NotFoundException(""));
 
-        @Nested
-        @DisplayName("When deleting a relying party ...")
-        class DeleteTests {
-//            @Test
-//            void testDeleteRelyingParty() throws Exception {
-//                CreateRelyingPartyResource resource = generateCreateRelyingPartyResource();
-//                ObjectWriter ow = new ObjectMapper().writer();
-//                String json = ow.writeValueAsString(resource);
-//
-//                ResultActions createResult =
-//                        mockMvc.perform(post("/v1/rp")
-//                                        .contentType(MediaType.APPLICATION_JSON)
-//                                        .header(X_API_KEY_HEADER, VALID_API_KEY)
-//                                        .content(json))
-//                                .andExpect(status().isOk())
-//                                .andExpect(jsonPath("$.org_nr").value(resource.orgNr()))
-//                                .andExpect(jsonPath("$.name").value(resource.tradeName()))
-//                                .andExpect(jsonPath("$.public_sector").value(resource.publicSector()));
-//
-//                RelyingPartyResource relyingPartyResource = ApiTestUtils.toRelyingPartyResource(createResult);
-//
-//                mockMvc.perform(delete("/v1/rp/" + relyingPartyResource.id())
-//                                .contentType(MediaType.APPLICATION_JSON)
-//                                .header(X_API_KEY_HEADER, VALID_API_KEY)
-//                        )
-//                        .andExpect(status().isNoContent());
-//
-//                mockMvc.perform(get("/v1/rp/" + relyingPartyResource.id())
-//                                .accept(MediaType.APPLICATION_JSON)
-//                                .header(X_API_KEY_HEADER, VALID_API_KEY)
-//                        )
-//                        .andExpect(status().isGone());
-//            }
+                UUID id = UUID.randomUUID();
+                mockMvc.perform(get("/v1/rp/" + id)
+                                    .accept(MediaType.APPLICATION_JSON)
+                                    .header(X_API_KEY_HEADER, VALID_API_KEY))
+                       .andExpect(status().isNotFound());
+
+                verify(relyingPartyService, times(1)).findRelyingParty(id);
+            }
 
             @Test
-            void testDeleteNotFoundRelyingParty() throws Exception {
-                mockMvc.perform(delete("/v1/rp/" + UUID.randomUUID())
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .header(X_API_KEY_HEADER, VALID_API_KEY)
-                        )
-                        .andExpect(status().isNotFound());
+            @DisplayName("with an invalid ID")
+            void testGetRelyingPartyInValidID() throws Exception {
+
+                String invalidId = UUID.randomUUID().toString().substring(0, 10);
+                mockMvc.perform(get("/v1/rp/" + invalidId)
+                                    .accept(MediaType.APPLICATION_JSON)
+                                    .header(X_API_KEY_HEADER, VALID_API_KEY))
+                       .andExpect(status().isBadRequest());
+
+                verifyNoInteractions(relyingPartyService);
             }
         }
 
         @Nested
-        @DisplayName("When editing relying party ...")
+        @DisplayName("When using the edit endpoint ...")
         class EditTests {
             @Test
-            void testEditRelyingPartySameEntitlements() throws Exception {
+            @DisplayName("with a valid edit resource for a known ID")
+            void testEditRelyingPartyValidEditResourceKnownId() throws Exception {
 
-                CreateRelyingPartyResource resource = generateCreateRelyingPartyResource();
+                RelyingPartyResource expectedResponse = ResourceGenerator.generateRelyingPartyResource();
+                when(relyingPartyService.updateRelyingParty(any(), any())).thenReturn(expectedResponse);
 
-                ObjectWriter ow = new ObjectMapper().writer();
-                String json = ow.writeValueAsString(resource);
+                EditRelyingPartyResource editResource = ResourceGenerator.generateEditRelyingPartyResource();
+                String json = objectMapper.writeValueAsString(editResource);
 
-                ResultActions createResult =
-                        mockMvc.perform(post("/v1/rp")
+                RelyingPartyResource response = ApiTestUtils.toRelyingPartyResource(
+                    mockMvc.perform(put("/v1/rp/" + expectedResponse.id())
                                         .contentType(MediaType.APPLICATION_JSON)
                                         .header(X_API_KEY_HEADER, VALID_API_KEY)
                                         .content(json))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.org_nr").value(resource.orgNr()))
-                                .andExpect(jsonPath("$.name").value(resource.tradeName()));
+                           .andExpect(status().isOk()));
 
-                RelyingPartyResource relyingPartyResource = ApiTestUtils.toRelyingPartyResource(createResult);
-
-                EditRelyingPartyResource editResource =
-                    generateEditRelyingPartyResource()
-                        .withRelyingPartyEntitlements(resource.relyingPartyEntitlements())
-                        .withRelyingPartyEaas(resource.relyingPartyEaas());
-
-                mockMvc.perform(put("/v1/rp/" + relyingPartyResource.id())
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .header(X_API_KEY_HEADER, VALID_API_KEY)
-                                .content(ow.writeValueAsString(editResource)))
-                        .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.name").value(editResource.tradeName()));
+                assertEquals(expectedResponse, response);
+                verify(relyingPartyService, times(1)).updateRelyingParty(expectedResponse.id(), editResource);
+                verifyNoMoreInteractions(relyingPartyService);
             }
 
             @Test
-            void testEditRelyingPartyMoreEntitlements() throws Exception {
-                List<RelyingPartyEntitlementResource> sampleEntitlements =
-                    ResourceGenerator.sampleRelyingPartyEntitlementResources(5);
-                RelyingPartyEntitlementResource sampleEntitlement = sampleEntitlements.getFirst();
-                List<RelyingPartyEntitlementResource> initialEntitlements =
-                    sampleEntitlements.subList(1, 3);
+            @DisplayName("with a valid edit resource for an unknown ID")
+            void testEditRelyingPartyValidEditResourceUnknownId() throws Exception {
 
-                CreateRelyingPartyResource resource =
-                    generateCreateRelyingPartyResource()
-                        .withRelyingPartyEntitlements(initialEntitlements);
+                RelyingPartyResource expectedResponse = ResourceGenerator.generateRelyingPartyResource();
+                when(relyingPartyService.updateRelyingParty(any(), any())).thenThrow(new NotFoundException(""));
 
-                ObjectWriter ow = new ObjectMapper().writer();
-                String json = ow.writeValueAsString(resource);
+                EditRelyingPartyResource editResource = ResourceGenerator.generateEditRelyingPartyResource();
+                String json = objectMapper.writeValueAsString(editResource);
 
-                ResultActions createResult =
-                        mockMvc.perform(post("/v1/rp")
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .header(X_API_KEY_HEADER, VALID_API_KEY)
-                                        .content(json))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.org_nr").value(resource.orgNr()))
-                                .andExpect(jsonPath("$.name").value(resource.tradeName()));
-                RelyingPartyResource relyingPartyResource = ApiTestUtils.toRelyingPartyResource(createResult);
+                mockMvc.perform(put("/v1/rp/" + expectedResponse.id())
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .header(X_API_KEY_HEADER, VALID_API_KEY)
+                                    .content(json))
+                       .andExpect(status().isNotFound());
 
-                List<RelyingPartyEntitlementResource> entitlements = new ArrayList<>(resource.relyingPartyEntitlements());
-                entitlements.add(sampleEntitlement);
-                EditRelyingPartyResource editResource =
-                    generateEditRelyingPartyResource()
-                        .withRelyingPartyEntitlements(entitlements)
-                        .withRelyingPartyEaas(resource.relyingPartyEaas());
-
-                mockMvc.perform(put("/v1/rp/" + relyingPartyResource.id())
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .header(X_API_KEY_HEADER, VALID_API_KEY)
-                                .content(ow.writeValueAsString(editResource)))
-                        .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.name").value(editResource.tradeName()));
+                verify(relyingPartyService, times(1)).updateRelyingParty(expectedResponse.id(), editResource);
+                verifyNoMoreInteractions(relyingPartyService);
             }
 
             @Test
-            void testEditRelyingPartyLessEntitlements() throws Exception {
+            @DisplayName("with invalid edit resource")
+            void testEditRelyingPartyInvalidEditResource() throws Exception {
 
-                CreateRelyingPartyResource resource = generateCreateRelyingPartyResource();
+                EditRelyingPartyResource invalidEditResource =
+                    ResourceGenerator.generateEditRelyingPartyResource()
+                                     .withTradeName("foobar$");
+                String json = objectMapper.writeValueAsString(invalidEditResource);
 
-                ObjectWriter ow = new ObjectMapper().writer();
-                String json = ow.writeValueAsString(resource);
+                UUID id = UUID.randomUUID();
+                mockMvc.perform(put("/v1/rp/" + id)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .header(X_API_KEY_HEADER, VALID_API_KEY)
+                                    .content(json))
+                       .andExpect(status().isBadRequest());
 
-                ResultActions createResult =
-                        mockMvc.perform(post("/v1/rp")
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .header(X_API_KEY_HEADER, VALID_API_KEY)
-                                        .content(json))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.org_nr").value(resource.orgNr()))
-                                .andExpect(jsonPath("$.name").value(resource.tradeName()));
-
-                RelyingPartyResource relyingPartyResource = ApiTestUtils.toRelyingPartyResource(createResult);
-                EditRelyingPartyResource editResource =
-                    generateEditRelyingPartyResource()
-                        .withRelyingPartyEntitlements(List.of());
-
-                ResultActions editResult = mockMvc.perform(put("/v1/rp/" + relyingPartyResource.id())
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .header(X_API_KEY_HEADER, VALID_API_KEY)
-                                .content(ow.writeValueAsString(editResource)))
-                        .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.name").value(editResource.tradeName()));
-                assertTrue(ApiTestUtils.toRelyingPartyResource(editResult).relyingPartyEntitlements().isEmpty());
+                verifyNoInteractions(relyingPartyService);
             }
         }
 
+
         @Nested
-        @DisplayName("When searching for relying parties ...")
+        @DisplayName("When using the search endpoint ...")
         class SearchTests {
             @Test
-            @DisplayName("then search successful when search term exists in an RP orgno")
-            void testSearchTermExistsInRpOrgno() throws Exception {
-                legalEntityRepository.deleteAll();
-                LegalEntity legalEntity = EntityGenerator.generateRelyingParty();
-                legalEntity.getRelyingPartyInstances().getFirst().setRelyingPartyEntitlements(List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/Service_Provider")));
-                legalEntity.getRelyingPartyInstances().getFirst().setRelyingPartyEaas(List.of(new RelyingPartyEaa("noe", "noe")));
-                legalEntityRepository.saveAndFlush(legalEntity);
+            @DisplayName("with a valid search resource")
+            void testSearchValidSearchResource() throws Exception {
+
+                List<RelyingPartyResource> dummySearchResult =
+                    List.of(ResourceGenerator.generateRelyingPartyResource());
+                when(relyingPartyService.searchRelyingParties(any()))
+                    .thenReturn(new PagedModel<>(new PageImpl<>(dummySearchResult)));
 
                 SearchRelyingPartyResource searchResource =
-                    new SearchRelyingPartyResource(legalEntity.getRelyingPartyInstances().getFirst().getTradeName());
+                    new SearchRelyingPartyResource(TestDataGenerator.generateName());
 
-                String searchJson = new ObjectMapper().writer().writeValueAsString(searchResource);
-                ResultActions actions =
-                    mockMvc.perform(post("/v1/rp/search")
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .header(X_API_KEY_HEADER, VALID_API_KEY)
-                                        .content(searchJson))
-                           .andExpect(status().isOk())
-                           .andExpect(jsonPath("$.content").exists());
+                String json = objectMapper.writeValueAsString(searchResource);
+                mockMvc.perform(post("/v1/rp/search")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .header(X_API_KEY_HEADER, VALID_API_KEY)
+                                    .content(json))
+                       .andExpect(status().isOk());
 
-                List<RelyingPartyResource> relyingPartyResources =
-                    toPage(actions, RelyingPartyResource.class).content();
-                assertEquals(1, relyingPartyResources.size());
-
-                RelyingPartyResource relyingPartyResource = relyingPartyResources.getFirst();
-                assertAll(
-                    () -> assertEquals(legalEntity.getName(), relyingPartyResource.orgName())
-                );
-
-                legalEntityRepository.delete(legalEntity);
+                verify(relyingPartyService, times(1)).searchRelyingParties(searchResource);
+                verifyNoMoreInteractions(relyingPartyService);
             }
 
             @Test
-            @DisplayName("then search successful when search term exists in an RP orgno")
-            void testSearchTermExistsInRpName() throws Exception {
-                legalEntityRepository.deleteAll();
-                LegalEntity legalEntity = EntityGenerator.generateRelyingParty();
-                legalEntity.getRelyingPartyInstances().getFirst().setRelyingPartyEntitlements(List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/Service_Provider")));
-                legalEntity.getRelyingPartyInstances().getFirst().setRelyingPartyEaas(List.of(new RelyingPartyEaa("noe", "noe")));
-                legalEntityRepository.saveAndFlush(legalEntity);
+            @DisplayName("with an inalid search resource")
+            void testSearchInvalidSearchResource() throws Exception {
 
-                SearchRelyingPartyResource searchResource =
-                    new SearchRelyingPartyResource(legalEntity.getRelyingPartyInstances().getFirst().getTradeName());
+                String invalidSearchResourceJson = "{ \"search_term\": null }";
 
-                String searchJson = new ObjectMapper().writer().writeValueAsString(searchResource);
-                ResultActions actions =
-                    mockMvc.perform(post("/v1/rp/search")
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .header(X_API_KEY_HEADER, VALID_API_KEY)
-                                        .content(searchJson))
-                           .andExpect(status().isOk())
-                           .andExpect(jsonPath("$.content").exists());
-
-                List<RelyingPartyResource> relyingPartyResources =
-                    toPage(actions, RelyingPartyResource.class).content();
-                assertEquals(1, relyingPartyResources.size());
-
-                RelyingPartyResource relyingPartyResource = relyingPartyResources.getFirst();
-                assertAll(
-                    () -> assertEquals(legalEntity.getName(), relyingPartyResource.orgName())
-                );
-
-                legalEntityRepository.delete(legalEntity);
-            }
-
-            @Test
-            @DisplayName("then search successful when search term exists in multiple RPs")
-            void testSearchTermExistsInDifferentFieldsOfDifferentRps() throws Exception {
-                LegalEntity legalEntity1 = EntityGenerator.generateRelyingParty();
-                LegalEntity legalEntity2 = EntityGenerator.generateRelyingParty();
-                LegalEntity legalEntity3 = EntityGenerator.generateRelyingParty();
-
-                // append some of rp1's orgno to the start of rp2's name
-                String searchStr = legalEntity1.getRelyingPartyInstances().getFirst().getTradeName().substring(0, 4);
-                legalEntity2.getRelyingPartyInstances().getFirst().setTradeName(searchStr + legalEntity2.getRelyingPartyInstances().getFirst().getTradeName());
-
-                legalEntityRepository.saveAll(List.of(legalEntity1, legalEntity2, legalEntity3));
-
-                SearchRelyingPartyResource searchResource =
-                    new SearchRelyingPartyResource(searchStr);
-
-                String searchJson = new ObjectMapper().writer().writeValueAsString(searchResource);
-                ResultActions actions =
-                    mockMvc.perform(post("/v1/rp/search")
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .header(X_API_KEY_HEADER, VALID_API_KEY)
-                                        .content(searchJson))
-                           .andExpect(status().isOk())
-                           .andExpect(jsonPath("$.content").exists());
-
-                List<RelyingPartyResource> relyingPartyResources =
-                    toPage(actions, RelyingPartyResource.class).content();
-                assertEquals(2, relyingPartyResources.size());
-
-                assertAll(
-                    () -> assertTrue(relyingPartyResources.contains(converter.toResource(legalEntity1.getRelyingPartyInstances().getFirst()))),
-                    () -> assertTrue(relyingPartyResources.contains(converter.toResource(legalEntity2.getRelyingPartyInstances().getFirst())))
-                );
-            }
-
-            @Test
-            @DisplayName("then search successful when search term exists in multiple RPs")
-            void testSearchMultipleRpsWithSameNamePrefix() throws Exception {
-                LegalEntity legalEntity1 = EntityGenerator.generateRelyingParty();
-                LegalEntity legalEntity2 = EntityGenerator.generateRelyingParty();
-                LegalEntity legalEntity3 = EntityGenerator.generateRelyingParty();
-
-                String searchStr = generateName();
-                legalEntity1.getRelyingPartyInstances().getFirst().setTradeName(searchStr + legalEntity1.getRelyingPartyInstances().getFirst().getTradeName());
-                legalEntity3.getRelyingPartyInstances().getFirst().setTradeName(searchStr + legalEntity3.getRelyingPartyInstances().getFirst().getTradeName());
-
-                legalEntityRepository.saveAll(List.of(legalEntity1, legalEntity2, legalEntity3));
-
-                SearchRelyingPartyResource searchResource =
-                    new SearchRelyingPartyResource(searchStr);
-
-                String searchJson = new ObjectMapper().writer().writeValueAsString(searchResource);
-                ResultActions actions =
-                    mockMvc.perform(post("/v1/rp/search")
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .header(X_API_KEY_HEADER, VALID_API_KEY)
-                                        .content(searchJson))
-                           .andExpect(status().isOk())
-                           .andExpect(jsonPath("$.content").exists());
-
-                List<RelyingPartyResource> relyingPartyResources =
-                    toPage(actions, RelyingPartyResource.class).content();
-
-                assertEquals(2, relyingPartyResources.size());
-
-                assertAll(
-                    () -> assertTrue(relyingPartyResources.contains(converter.toResource(legalEntity1.getRelyingPartyInstances().getFirst()))),
-                    () -> assertTrue(relyingPartyResources.contains(converter.toResource(legalEntity3.getRelyingPartyInstances().getFirst())))
-                );
+                mockMvc.perform(post("/v1/rp/search")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .header(X_API_KEY_HEADER, VALID_API_KEY)
+                                    .content(invalidSearchResourceJson))
+                       .andExpect(status().isBadRequest());
+                verifyNoInteractions(relyingPartyService);
             }
         }
     }
-
 
     @DisplayName("When using the Relying Parties API with invalid API key")
     @Nested
@@ -431,17 +283,17 @@ public class RelyingPartiesControllerTest {
         @Test
         void testGetAllRelyingPartiesWithMissingAPIKey() throws Exception {
             mockMvc.perform(get("/v1/rp")
-                            .accept(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isUnauthorized());
+                                .accept(MediaType.APPLICATION_JSON))
+                   .andExpect(status().isUnauthorized());
         }
 
         @DisplayName("then an error is created when API key is invalid")
         @Test
         void testGetAllRelyingPartiesWithInvalidAPIKey() throws Exception {
             mockMvc.perform(get("/v1/rp")
-                            .accept(MediaType.APPLICATION_JSON)
-                            .header(X_API_KEY_HEADER, "junit-invalid-api-key"))
-                    .andExpect(status().isUnauthorized());
+                                .accept(MediaType.APPLICATION_JSON)
+                                .header(X_API_KEY_HEADER, "junit-invalid-api-key"))
+                   .andExpect(status().isUnauthorized());
         }
     }
 }

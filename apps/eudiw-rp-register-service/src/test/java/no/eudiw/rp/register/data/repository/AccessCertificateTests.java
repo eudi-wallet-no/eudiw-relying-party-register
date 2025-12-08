@@ -42,7 +42,7 @@ public class AccessCertificateTests {
             @Test
             @DisplayName("then creation of RP with zero certificates is successful")
             public void testNoCertificates() {
-                LegalEntity legalEntity = EntityGenerator.generateRelyingParty();
+                LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
                 assertTrue(legalEntity.getRelyingPartyInstances().getFirst().getAccessCertificates().isEmpty());
                 rpRepository.saveAndFlush(legalEntity);
 
@@ -58,7 +58,7 @@ public class AccessCertificateTests {
             @Test
             @DisplayName("then creation of RP with one certificate is successful")
             public void testOneCertificate() {
-                LegalEntity legalEntity = EntityGenerator.generateRelyingParty();
+                LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
                 AccessCertificate certIn = EntityGenerator.generateCertificate();
                 legalEntity.getRelyingPartyInstances().getFirst().setAccessCertificates(List.of(certIn));
                 assertEquals(1,  legalEntity.getRelyingPartyInstances().getFirst().getAccessCertificates().size());
@@ -82,14 +82,14 @@ public class AccessCertificateTests {
             @Test
             @DisplayName("then creation of RP with multiple certificates is successful")
             public void testMultipleCertificates() {
-                LegalEntity legalEntity = EntityGenerator.generateRelyingPartyWithoutInstance();
+                LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
                 RelyingPartyInstance relyingPartyInstance = new RelyingPartyInstance(
                     "name",
                     List.of(),
                     List.of(),
                     List.of(EntityGenerator.generateCertificate(), EntityGenerator.generateCertificate(), EntityGenerator.generateCertificate())
                 );
-                legalEntity.addRelyingPartyInstance(relyingPartyInstance);
+                legalEntity.setRelyingPartyInstances(List.of(relyingPartyInstance));
                 assertTrue(relyingPartyInstance.getAccessCertificates().size() > 1);
                 rpRepository.saveAndFlush(legalEntity);
 
@@ -121,7 +121,7 @@ public class AccessCertificateTests {
                     List.of(),
                     List.of(EntityGenerator.generateCertificate())
                 );
-                legalEntity.addRelyingPartyInstance(relyingPartyInstance);
+                legalEntity.setRelyingPartyInstances(List.of(relyingPartyInstance));
                 rpRepository.saveAndFlush(legalEntity);
 
                 RelyingPartyInstance rpOut = instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null);

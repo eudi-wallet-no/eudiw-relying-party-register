@@ -65,7 +65,7 @@ public class IssuerCertificateTests {
         @Test
         @DisplayName("cert request is denied for issuer entitlement")
         public void test_Issuer_RegisterCert() {
-            LegalEntity legalEntity = EntityGenerator.generateRelyingParty();
+            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
             legalEntity.getRelyingPartyInstances().getFirst().setRelyingPartyEntitlements(List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/Service_Provider")));
 
             rpRepository.saveAndFlush(legalEntity);
@@ -85,7 +85,7 @@ public class IssuerCertificateTests {
         public void test_EAA_Provider_RegisterCert() throws Exception {
             X509Certificate certificateExpected = enqueueMockCertificateResponse();
 
-            LegalEntity legalEntity = EntityGenerator.generateRelyingParty();
+            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
             legalEntity.getRelyingPartyInstances().getFirst().setRelyingPartyEntitlements(
                 List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/QEAA_Provider")));
             rpRepository.saveAndFlush(legalEntity);
@@ -118,7 +118,7 @@ public class IssuerCertificateTests {
         public void test_Non_Q_EAA_Provider_RegisterCert() throws Exception {
             X509Certificate certificateExpected = enqueueMockCertificateResponse();
 
-            LegalEntity legalEntity = EntityGenerator.generateRelyingParty();
+            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
             legalEntity.getRelyingPartyInstances().getFirst().setRelyingPartyEntitlements(
                 List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/Non_Q_EAA_Provider")));
             rpRepository.saveAndFlush(legalEntity);
@@ -151,7 +151,7 @@ public class IssuerCertificateTests {
         public void test_PUB_EAA_Provider_RegisterCert() throws Exception {
             X509Certificate certificateExpected = enqueueMockCertificateResponse();
 
-            LegalEntity legalEntity = EntityGenerator.generateRelyingParty();
+            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
             legalEntity.getRelyingPartyInstances().getFirst().setRelyingPartyEntitlements(
                 List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/PUB_EAA_Provider")));
             rpRepository.saveAndFlush(legalEntity);
@@ -184,7 +184,7 @@ public class IssuerCertificateTests {
         public void test_PID_Provider_RegisterCert() throws Exception {
             X509Certificate certificateExpected = enqueueMockCertificateResponse();
 
-            LegalEntity legalEntity = EntityGenerator.generateRelyingParty();
+            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
             legalEntity.getRelyingPartyInstances().getFirst().setRelyingPartyEntitlements(
                 List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/PID_Provider")));
             rpRepository.saveAndFlush(legalEntity);

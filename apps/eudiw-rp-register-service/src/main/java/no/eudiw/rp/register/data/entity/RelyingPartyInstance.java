@@ -9,14 +9,12 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.AccessLevel;
-import lombok.ToString;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 @Getter
 @Setter
 @Entity
-@ToString
 @Table(name = "relying_party_instance")
 public class RelyingPartyInstance extends BaseEntity {
 
@@ -47,7 +45,7 @@ public class RelyingPartyInstance extends BaseEntity {
         orphanRemoval = true)
     private List<AccessCertificate> accessCertificates = new ArrayList<>();
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "legal_entity_id",
         columnDefinition = "UUID",
         nullable = false)

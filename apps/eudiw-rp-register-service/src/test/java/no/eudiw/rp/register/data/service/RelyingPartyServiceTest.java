@@ -211,7 +211,7 @@ public class RelyingPartyServiceTest {
         @DisplayName("then only RPs with the specified entitlements are returned")
         void testSearchWithEntitlementsFiltering() {
             int numRelyingParties = 1000;
-            List<LegalEntity> rpsIn = EntityGenerator.generateRelyingParties(numRelyingParties);
+            List<LegalEntity> rpsIn = EntityGenerator.generateLegalEntities(numRelyingParties);
             rpRepository.saveAllAndFlush(rpsIn);
 
             List<RelyingPartyEntitlementResource> requiredEntitlements =
@@ -246,7 +246,7 @@ public class RelyingPartyServiceTest {
         @Test
         @DisplayName("then each entitlement has a non-null display name")
         public void testAllEntitlementsHaveNonNullDisplayNames() {
-            LegalEntity legalEntity = EntityGenerator.generateRelyingParty();
+            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
             legalEntity.getRelyingPartyInstances().getFirst().setRelyingPartyEntitlements(
                 List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/QEAA_Provider")));
 
