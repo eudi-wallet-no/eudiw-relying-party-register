@@ -91,7 +91,7 @@ public class TestDataGenerator {
         "https://uri.etsi.org/19475/Entitlement/PID_Provider"
     ));
 
-    protected static List<String> sampleEntitlements(int n) {
+    public static List<String> sampleEntitlements(int n) {
         if (n > EXAMPLE_ENTITLEMENTS.size()) {
             throw new RuntimeException("Not enough sample entitlements (requested %s, max %s)"
                                            .formatted(n, EXAMPLE_ENTITLEMENTS.size()));
