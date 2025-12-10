@@ -12,7 +12,7 @@ public class EntityGenerator extends TestDataGenerator {
     public static List<LegalEntity> generateLegalEntities(int numLegalEntities) {
         Map<String, LegalEntity> distinctLegalEntities = new HashMap<>();
         while (distinctLegalEntities.size() < numLegalEntities) {
-            LegalEntity le = EntityGenerator.generateLegalEntity(1);
+            LegalEntity le = EntityGenerator.generateLegalEntity();
             distinctLegalEntities.put(le.getOrgno(), le);
         }
         return new ArrayList<>(distinctLegalEntities.values());

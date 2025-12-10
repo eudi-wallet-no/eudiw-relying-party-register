@@ -74,18 +74,16 @@ public class RelyingPartyService {
                 .map(RelyingPartyEntitlementResource::entitlement)
                 .toList();
 
-        Page<LegalEntity> page = legalEntityRepository.searchRelyingParties(
-            searchResource.getSearchTerm(),
-            entitlements,
-            new HashSet<>(entitlements).size(),
-            searchResource.isIncludeInactive(),
-            searchResource.isHideSyntheticOrgnos(),
-            pageRequest
-        );
+        Page<RelyingPartyInstance> searchQueryResult =
+            relyingPartyInstanceRepository.searchRelyingPartyInstances(
+                searchResource.getSearchTerm(),
+                entitlements,
+                searchResource.isIncludeInactive(),
+                searchResource.isHideSyntheticOrgnos(),
+                pageRequest
+            );
 
-        List<RelyingPartyResource> resources = converter.toResource(page.getContent());
-        Page<RelyingPartyResource> resourcePage = new PageImpl<>(resources, page.getPageable(), page.getTotalElements());
-        return new PagedModel<>(resourcePage);
+        return new PagedModel<>(searchQueryResult.map(converter::toResource));
     }
 
     @Transactional

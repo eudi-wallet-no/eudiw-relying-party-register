@@ -210,28 +210,29 @@ public class RelyingPartyServiceTest {
         @Test
         @DisplayName("then only RPs with the specified entitlements are returned")
         void testSearchWithEntitlementsFiltering() {
-            int numRelyingParties = 1000;
-            List<LegalEntity> rpsIn = EntityGenerator.generateLegalEntities(numRelyingParties);
-            rpRepository.saveAllAndFlush(rpsIn);
+            int numLegalEntities = 10;
+            List<LegalEntity> legalEntities = EntityGenerator.generateLegalEntities(numLegalEntities);
+            rpRepository.saveAllAndFlush(legalEntities);
 
             List<RelyingPartyEntitlementResource> requiredEntitlements =
-                rpsIn.getFirst().getRelyingPartyInstances().getFirst()
-                     .getRelyingPartyEntitlements()
-                     .stream()
-                     .map(converter::toResource)
-                     .toList();
+                legalEntities.getFirst().getRelyingPartyInstances().getFirst()
+                             .getRelyingPartyEntitlements()
+                             .stream()
+                             .map(converter::toResource)
+                             .toList();
 
             Set<RelyingPartyResource> expectedSearchResult =
-                rpsIn.stream()
-                    .map(rp -> converter.toResource(rp.getRelyingPartyInstances().getFirst()))
-                    .filter(rp -> rp.relyingPartyEntitlements().containsAll(requiredEntitlements))
-                    .collect(Collectors.toSet());
+                legalEntities.stream()
+                             .flatMap(le -> le.getRelyingPartyInstances().stream())
+                             .map(converter::toResource)
+                             .filter(rp -> rp.relyingPartyEntitlements().containsAll(requiredEntitlements))
+                             .collect(Collectors.toSet());
 
             SearchRelyingPartyResource searchResource =
                 new SearchRelyingPartyResource()
                     .withIncludeInactive(true)
                     .withRequiredEntitlements(requiredEntitlements)
-                    .withPageSize(numRelyingParties);
+                    .withPageSize(Integer.MAX_VALUE);
 
             Set<RelyingPartyResource> actualSearchResult =
                 new HashSet<>(relyingPartyService.searchRelyingParties(searchResource).getContent());
