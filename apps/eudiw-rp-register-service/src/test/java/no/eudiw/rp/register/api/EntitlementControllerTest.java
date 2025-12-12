@@ -2,10 +2,9 @@ package no.eudiw.rp.register.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import no.eudiw.rp.register.api.resource.CreateEntitlementResource;
-import no.eudiw.rp.register.api.resource.CreateRelyingPartyResource;
-import no.eudiw.rp.register.api.resource.EditEntitlementResource;
-import no.eudiw.rp.register.data.service.EntitlementService;
+import no.eudiw.rp.register.api.resource.entitlements.CreateEntitlementResource;
+import no.eudiw.rp.register.api.resource.entitlements.EditEntitlementResource;
+import no.eudiw.rp.register.service.EntitlementService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -16,7 +15,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static no.eudiw.rp.register.testdata.ResourceGenerator.generateCreateRelyingPartyResource;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;

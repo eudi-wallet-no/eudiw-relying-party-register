@@ -2,10 +2,13 @@ package no.eudiw.rp.register.validation;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ValidatorFactory;
-import no.eudiw.rp.register.api.resource.*;
 
 import static no.eudiw.rp.register.testdata.ResourceGenerator.*;
 
+import no.eudiw.rp.register.api.resource.relyingparty.CreateRelyingPartyResource;
+import no.eudiw.rp.register.api.resource.relyingparty.RelyingPartyEaaResource;
+import no.eudiw.rp.register.api.resource.relyingparty.RelyingPartyResource;
+import no.eudiw.rp.register.api.resource.relyingparty.SearchRelyingPartyResource;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

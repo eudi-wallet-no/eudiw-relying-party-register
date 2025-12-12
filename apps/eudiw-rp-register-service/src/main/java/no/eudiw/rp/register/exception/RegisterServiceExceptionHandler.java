@@ -2,7 +2,7 @@ package no.eudiw.rp.register.exception;
 
 import lombok.extern.slf4j.Slf4j;
 import no.eudiw.rp.register.api.resource.ErrorResponseResource;
-import no.eudiw.rp.register.data.service.exception.*;
+import no.eudiw.rp.register.service.exception.*;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

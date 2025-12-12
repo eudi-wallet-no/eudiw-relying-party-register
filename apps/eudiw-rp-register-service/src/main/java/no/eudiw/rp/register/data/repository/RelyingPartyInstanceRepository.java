@@ -1,6 +1,6 @@
 package no.eudiw.rp.register.data.repository;
 
-import no.eudiw.rp.register.data.entity.RelyingPartyInstance;
+import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyInstance;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

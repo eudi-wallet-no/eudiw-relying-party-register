@@ -1,13 +1,13 @@
 package no.eudiw.rp.register.data.service;
 
 import no.eudiw.rp.register.api.resource.certificates.IssuerCsrResource;
-import no.eudiw.rp.register.data.certificates.X509CertificateConverter;
+import no.eudiw.rp.register.data.entity.certificates.X509CertificateConverter;
 import no.eudiw.rp.register.data.entity.LegalEntity;
-import no.eudiw.rp.register.data.entity.RelyingPartyInstance;
-import no.eudiw.rp.register.data.entity.RelyingPartyEntitlement;
+import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyInstance;
+import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyEntitlement;
 import no.eudiw.rp.register.data.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.data.repository.LegalEntityRepository;
-import no.eudiw.rp.register.data.service.certificates.RelyingPartyCertificateService;
+import no.eudiw.rp.register.service.certificateservice.RelyingPartyCertificateService;
 import no.eudiw.rp.register.exception.RegisterServiceException;
 import no.eudiw.rp.register.testdata.CertificatesGenerator;
 import no.eudiw.rp.register.testdata.EntityGenerator;

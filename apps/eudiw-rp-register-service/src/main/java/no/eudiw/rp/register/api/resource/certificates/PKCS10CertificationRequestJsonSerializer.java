@@ -3,7 +3,7 @@ package no.eudiw.rp.register.api.resource.certificates;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import no.eudiw.rp.register.data.certificates.PKCS10CertificationRequestConverter;
+import no.eudiw.rp.register.data.entity.certificates.PKCS10CertificationRequestConverter;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 
 import java.io.IOException;

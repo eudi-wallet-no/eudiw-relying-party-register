@@ -1,6 +1,10 @@
 package no.eudiw.rp.register.testdata;
 
 import no.eudiw.rp.register.data.entity.*;
+import no.eudiw.rp.register.data.entity.certificates.AccessCertificate;
+import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyEaa;
+import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyEntitlement;
+import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyInstance;
 
 import java.util.ArrayList;
 import java.util.HashMap;

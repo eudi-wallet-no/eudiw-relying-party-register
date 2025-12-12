@@ -27,9 +27,9 @@ public class ApiKeySecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        APIKeyAuthenticationFilter apiKeyAuthenticationFilter =
-                new APIKeyAuthenticationFilter(apiKeySecurityProperties,
-                        apiKeySecurityProperties.excludePaths());
+        ApiKeyAuthenticationFilter apiKeyAuthenticationFilter =
+                new ApiKeyAuthenticationFilter(apiKeySecurityProperties,
+                                               apiKeySecurityProperties.excludePaths());
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
                         authorizationManagerRequestMatcherRegistry
