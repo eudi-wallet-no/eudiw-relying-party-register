@@ -1,8 +1,8 @@
 package no.eudiw.rp.register.testdata;
 
-import no.eudiw.rp.register.api.resource.*;
 import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCsrResource;
 import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCertificateResource;
+import no.eudiw.rp.register.api.resource.relyingparty.*;
 
 import java.time.Instant;
 import java.util.ArrayList;

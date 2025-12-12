@@ -1,6 +1,6 @@
 package no.eudiw.rp.register.data.repository;
 
-import no.eudiw.rp.register.data.entity.AccessCertificate;
+import no.eudiw.rp.register.data.entity.certificates.AccessCertificate;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

@@ -1,12 +1,14 @@
 package no.eudiw.rp.register.data.service;
 
-import no.eudiw.rp.register.api.resource.*;
 import static no.eudiw.rp.register.testdata.ResourceGenerator.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+import no.eudiw.rp.register.api.resource.relyingparty.*;
 import no.eudiw.rp.register.data.entity.LegalEntity;
-import no.eudiw.rp.register.data.entity.RelyingPartyEntitlement;
+import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyEntitlement;
 import no.eudiw.rp.register.data.repository.LegalEntityRepository;
+import no.eudiw.rp.register.service.Converter;
+import no.eudiw.rp.register.service.RelyingPartyService;
 import no.eudiw.rp.register.testdata.EntityGenerator;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;

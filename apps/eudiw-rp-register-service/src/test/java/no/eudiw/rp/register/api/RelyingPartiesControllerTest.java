@@ -1,9 +1,12 @@
 package no.eudiw.rp.register.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import no.eudiw.rp.register.api.resource.*;
-import no.eudiw.rp.register.data.service.RelyingPartyService;
-import no.eudiw.rp.register.data.service.exception.NotFoundException;
+import no.eudiw.rp.register.api.resource.relyingparty.CreateRelyingPartyResource;
+import no.eudiw.rp.register.api.resource.relyingparty.EditRelyingPartyResource;
+import no.eudiw.rp.register.api.resource.relyingparty.RelyingPartyResource;
+import no.eudiw.rp.register.api.resource.relyingparty.SearchRelyingPartyResource;
+import no.eudiw.rp.register.service.RelyingPartyService;
+import no.eudiw.rp.register.service.exception.NotFoundException;
 import no.eudiw.rp.register.testdata.ResourceGenerator;
 import no.eudiw.rp.register.testdata.TestDataGenerator;
 import org.junit.jupiter.api.DisplayName;

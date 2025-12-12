@@ -2,7 +2,7 @@ package no.eudiw.rp.register.exception;
 
 import lombok.extern.slf4j.Slf4j;
 import no.eudiw.rp.register.api.resource.ErrorResponseResource;
-import no.eudiw.rp.register.security.APIKeyAuthenticationException;
+import no.eudiw.rp.register.security.ApiKeyAuthenticationException;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -45,8 +45,8 @@ public class AppExceptionHandler {
     }
 
     // api key
-    @ExceptionHandler(APIKeyAuthenticationException.class)
-    public ResponseEntity<ErrorResponseResource> handleApiException(APIKeyAuthenticationException e) {
+    @ExceptionHandler(ApiKeyAuthenticationException.class)
+    public ResponseEntity<ErrorResponseResource> handleApiException(ApiKeyAuthenticationException e) {
         log.warn("Unauthorized request: {}", e.getMessage());
         return ResponseEntity
                 .status(e.getHttpStatus())

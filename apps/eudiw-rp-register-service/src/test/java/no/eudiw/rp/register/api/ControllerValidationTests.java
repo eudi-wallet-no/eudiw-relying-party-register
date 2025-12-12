@@ -1,8 +1,10 @@
 package no.eudiw.rp.register.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import no.eudiw.rp.register.api.resource.*;
-import no.eudiw.rp.register.data.entity.RelyingPartyInstance;
+import no.eudiw.rp.register.api.resource.relyingparty.CreateRelyingPartyResource;
+import no.eudiw.rp.register.api.resource.relyingparty.EditRelyingPartyResource;
+import no.eudiw.rp.register.api.resource.relyingparty.SearchRelyingPartyResource;
+import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyInstance;
 import no.eudiw.rp.register.data.repository.RelyingPartyInstanceRepository;
 import static no.eudiw.rp.register.testdata.EntityGenerator.*;
 

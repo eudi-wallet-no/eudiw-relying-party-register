@@ -4,8 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import no.eudiw.rp.register.api.resource.RelyingPartiesResource;
-import no.eudiw.rp.register.api.resource.RelyingPartyResource;
+import no.eudiw.rp.register.api.resource.relyingparty.RelyingPartiesResource;
+import no.eudiw.rp.register.api.resource.relyingparty.RelyingPartyResource;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.io.UnsupportedEncodingException;

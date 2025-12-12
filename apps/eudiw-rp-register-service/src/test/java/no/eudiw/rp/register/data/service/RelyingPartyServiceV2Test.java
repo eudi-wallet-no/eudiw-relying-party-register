@@ -1,8 +1,9 @@
 package no.eudiw.rp.register.data.service;
 
-import no.eudiw.rp.register.api.resource.*;
-import no.eudiw.rp.register.data.entity.RelyingPartyInstance;
+import no.eudiw.rp.register.api.resource.relyingparty.*;
+import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyInstance;
 import no.eudiw.rp.register.data.repository.RelyingPartyInstanceRepository;
+import no.eudiw.rp.register.service.RelyingPartyService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

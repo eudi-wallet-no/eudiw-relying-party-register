@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyInstance;
 
 import java.time.Instant;
 import java.util.ArrayList;

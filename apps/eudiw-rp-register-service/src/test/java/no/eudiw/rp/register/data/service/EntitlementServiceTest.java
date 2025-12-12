@@ -1,12 +1,14 @@
 package no.eudiw.rp.register.data.service;
 
-import no.eudiw.rp.register.api.resource.CreateEntitlementResource;
-import no.eudiw.rp.register.api.resource.EntitlementResource;
-import no.eudiw.rp.register.api.resource.EntitlementsResource;
+import no.eudiw.rp.register.api.resource.entitlements.CreateEntitlementResource;
+import no.eudiw.rp.register.api.resource.entitlements.EntitlementResource;
+import no.eudiw.rp.register.api.resource.entitlements.EntitlementsResource;
 import no.eudiw.rp.register.data.entity.Entitlement;
 import no.eudiw.rp.register.data.repository.EntitlementRepository;
-import no.eudiw.rp.register.data.service.exception.AlreadyExistsException;
-import no.eudiw.rp.register.data.service.exception.BadRequestException;
+import no.eudiw.rp.register.service.Converter;
+import no.eudiw.rp.register.service.EntitlementService;
+import no.eudiw.rp.register.service.exception.AlreadyExistsException;
+import no.eudiw.rp.register.service.exception.BadRequestException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

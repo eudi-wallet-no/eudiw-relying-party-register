@@ -2,8 +2,8 @@ package no.eudiw.rp.register.data.repository;
 
 import no.eudiw.rp.register.data.entity.BaseEntity;
 import no.eudiw.rp.register.data.entity.LegalEntity;
-import no.eudiw.rp.register.data.entity.RelyingPartyEntitlement;
-import no.eudiw.rp.register.data.entity.RelyingPartyInstance;
+import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyEntitlement;
+import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyInstance;
 import no.eudiw.rp.register.testdata.EntityGenerator;
 import no.eudiw.rp.register.testdata.TestDataGenerator;
 import org.junit.jupiter.api.*;

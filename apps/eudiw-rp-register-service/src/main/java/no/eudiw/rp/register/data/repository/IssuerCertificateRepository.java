@@ -1,6 +1,6 @@
 package no.eudiw.rp.register.data.repository;
 
-import no.eudiw.rp.register.data.entity.IssuerCertificate;
+import no.eudiw.rp.register.data.entity.certificates.IssuerCertificate;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
