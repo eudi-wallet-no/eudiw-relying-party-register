@@ -7,6 +7,8 @@ on:
       - 'src/test/**'
       - '*.md'
       - 'LICENSE'
+      - "catalog-info/**"
+      - "catalog-info.yaml"
 
 jobs:
   build-publish-image:
