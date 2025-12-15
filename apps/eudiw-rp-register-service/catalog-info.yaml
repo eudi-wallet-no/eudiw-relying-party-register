@@ -4,7 +4,7 @@ metadata:
   name: digital-lommebok-rp-register-service
   description: Digital lommebok - Relying Party Register Service
   annotations:
-    github.com/project-slug: felleslosninger/eudiw-rp-register-service
+    github.com/project-slug: eudi-wallet-no/eudiw-rp-register-service
 spec:
   type: application
   owner: team-digital-lommebok
@@ -13,3 +13,4 @@ spec:
   dependsOn:
     - digital-lommebok-rp-register-db
     - digital-lommebok-ca-service
+    
