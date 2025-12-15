@@ -14,5 +14,4 @@ management:
 
 
 credential-registry:
-  credential-issuer-servers:
-    - http://issuer-server:9240/
+  rp-register-service-url: http://rp-register-service:9200/v1/credential-issuers

@@ -14,5 +14,7 @@ management:
 
 
 credential-registry:
-  credential-issuer-servers:
-    - http://localhost:9240/
+  rp-register-service-url: http://rp-register-service:9200/v1/credential-issuers
+  api-key-header-id: X-API-KEY
+  api-key-value: xxx
+
