@@ -2,7 +2,3 @@
 spring:
   application:
     environment: test
-
-credential-registry:
-  credential-issuer-servers:
-    - https://utsteder.test.eidas2sandkasse.net/.well-known/openid-credential-issuer

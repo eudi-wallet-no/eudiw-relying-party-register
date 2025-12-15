@@ -6,6 +6,9 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import no.idporten.eudiw.credential.registry.response.CredentialRegisterService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import no.idporten.eudiw.credential.registry.response.model.Credentials;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +37,11 @@ public class CredentialsController {
 
 
     @GetMapping(value= "/v1/credentials", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Credentials credentials() {
-        return credentialRegisterService.getCredentials();
+    public ResponseEntity<Credentials> credentials() {
+        if (credentialRegisterService.getCredentials() != null) {
+            return ResponseEntity.ok(credentialRegisterService.getCredentials());
+        } else {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

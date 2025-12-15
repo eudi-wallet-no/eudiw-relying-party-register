@@ -3,6 +3,3 @@ spring:
   application:
     environment: systest
 
-credential-registry:
-  credential-issuer-servers:
-    - https://utsteder.eidas2sandkasse.dev/.well-known/openid-credential-issuer

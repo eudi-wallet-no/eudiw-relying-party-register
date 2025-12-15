@@ -7,3 +7,4 @@ CVE-2025-58188 #stdlib: validating certificates with DSA public keys. Fixed in 1
 CVE-2025-58189 #stdlib: Conn.Handshake fails during ALPN negotiation
 CVE-2025-61723 #stdlib: Parsing of untrusted PEM inputs
 CVE-2025-61724 #stdlib: Reader.ReadResponse
+CVE-2025-61729 #stdlib: HostnameError constructing error string. Fixed in 1.24.11, 1.25.5

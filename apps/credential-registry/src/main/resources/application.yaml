@@ -33,4 +33,7 @@ credential-registry:
   connect-timeout: 3s
   scheduled-reading: >
     0 */5 * * * *
-  credential-issuer-servers:
+  rp-register-service-url: http://digital-lommebok-rp-register-service-service:8080/v1/credential-issuers
+  api-key-header-id: X-API-KEY
+  api-key-value: ${REGISTER_SERVICE_API_KEY}
+
