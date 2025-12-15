@@ -17,6 +17,6 @@ public class IndexController {
         if (!userAuthorityService.userHasAdminAuthority()) {
             return new ModelAndView("redirect:/registrations");
         }
-        return new ModelAndView("index_view");
+        return new ModelAndView("redirect:/search");
     }
 }

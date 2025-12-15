@@ -23,9 +23,18 @@
     <header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
     <main>
-        <h1 class="ds-heading" data-size="lg">
-            Søk etter brukarstader
-        </h1>
+        <div style="display: flex;">
+            <h1 class="ds-heading" data-size="lg" style="margin-right: auto;">
+                Søk etter brukarstader
+            </h1>
+
+            <a th:href="@{/create}"
+               class="ds-button"
+               data-variant="secondary">
+                Registrer ny brukarstad
+            </a>
+        </div>
+
         <form th:replace="~{fragments/search_fragments :: search_form_fragment}">
         </form>
 
