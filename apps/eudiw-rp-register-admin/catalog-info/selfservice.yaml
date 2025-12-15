@@ -1,10 +1,10 @@
 apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
-  name: digital-lommebok-rp-register-admin
-  description: Digital lommebok - Relying Party Register Admin Service
+  name: digital-lommebok-rp-register-selfservice
+  description: Digital lommebok - Relying Party Register Selfservice
   annotations:
-    github.com/project-slug: felleslosninger/eudiw-rp-register-admin
+    github.com/project-slug: eudi-wallet-no/eudiw-rp-register-admin
 spec:
   type: application
   owner: team-digital-lommebok
