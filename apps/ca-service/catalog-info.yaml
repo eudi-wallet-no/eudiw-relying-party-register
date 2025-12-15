@@ -4,7 +4,7 @@ metadata:
   name: digital-lommebok-ca-service
   description: Digital lommebok - CA service
   annotations:
-    github.com/project-slug: felleslosninger/eudiw-ca-service
+    github.com/project-slug: eudi-wallet-no/eudiw-ca-service
 spec:
   type: application
   owner: team-digital-lommebok

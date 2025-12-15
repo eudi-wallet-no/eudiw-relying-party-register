@@ -10,3 +10,4 @@ CVE-2025-58189 #stdlib: ALPN negotiation errors
 CVE-2025-61723 #stdlib: invalid inputs
 CVE-2025-61724 #stdlib: Reader.ReadResponse
 CVE-2025-61725 #stdlib: ParseAddress
+CVE-2025-61729 #stdlib: crypto/x509
