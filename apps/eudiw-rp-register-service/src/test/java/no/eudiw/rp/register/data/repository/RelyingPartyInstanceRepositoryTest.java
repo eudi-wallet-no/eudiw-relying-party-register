@@ -1,5 +1,6 @@
 package no.eudiw.rp.register.data.repository;
 
+import no.eudiw.rp.register.data.RelyingPartyOrdering;
 import no.eudiw.rp.register.data.entity.BaseEntity;
 import no.eudiw.rp.register.data.entity.LegalEntity;
 import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyEntitlement;
@@ -7,9 +8,14 @@ import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyInstance;
 import no.eudiw.rp.register.testdata.EntityGenerator;
 import no.eudiw.rp.register.testdata.TestDataGenerator;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.*;
@@ -29,48 +35,48 @@ public class RelyingPartyInstanceRepositoryTest {
     @Autowired
     private LegalEntityRepository legalEntityRepository;
 
+    private static final Random rng = new Random();
+
+    // generates "realistic" data, with 1..4 instances per legal entity,
+    // roughly 20% inactive RPs, and 10% synthetic legal entities.
+    private static List<LegalEntity> generateRealisticTestData(int n) {
+        var legalEntities = EntityGenerator.generateLegalEntities(n);
+        List<RelyingPartyInstance> relyingPartyInstances =
+            legalEntities.stream().flatMap(le -> le.getRelyingPartyInstances().stream()).toList();
+
+        relyingPartyInstances.forEach(rpi -> {
+            if (rng.nextFloat() >= 0.8) {
+                rpi.setActive(false);
+            }
+        });
+        legalEntities.forEach(le -> {
+            if (rng.nextFloat() >= 0.9) {
+                String syntheticOrgno =
+                    le.getOrgno()
+                      .replaceFirst("\\d", rng.nextBoolean() ? "2" : "3");
+                le.setOrgno(syntheticOrgno);
+            }
+        });
+
+        return legalEntities;
+    }
+
+    @BeforeAll
+    static void initSearchTestData(
+        @Autowired LegalEntityRepository legalEntityRepository,
+        @Autowired RelyingPartyInstanceRepository relyingPartyInstanceRepository) {
+        legalEntityRepository.deleteAll();
+
+        int numTestLegalEntities = 50;
+        List<LegalEntity> testLegalEntities = generateRealisticTestData(numTestLegalEntities);
+        legalEntityRepository.saveAllAndFlush(testLegalEntities);
+
+        assertTrue(relyingPartyInstanceRepository.count() >= numTestLegalEntities);
+    }
+
     @Nested
     @DisplayName("when using the custom RP instance search query")
     class SearchQueryTests {
-
-        private static final Random rng = new Random();
-
-        // generates "realistic" data, with 1..4 instances per legal entity,
-        // roughly 20% inactive RPs, and 10% synthetic legal entities.
-        private static List<LegalEntity> generateRealisticTestData(int n) {
-            var legalEntities = EntityGenerator.generateLegalEntities(n);
-            List<RelyingPartyInstance> relyingPartyInstances =
-                legalEntities.stream().flatMap(le -> le.getRelyingPartyInstances().stream()).toList();
-
-            relyingPartyInstances.forEach(rpi -> {
-                if (rng.nextFloat() >= 0.8) {
-                    rpi.setActive(false);
-                }
-            });
-            legalEntities.forEach(le -> {
-                if (rng.nextFloat() >= 0.9) {
-                    String syntheticOrgno =
-                        le.getOrgno()
-                          .replaceFirst("\\d", rng.nextBoolean() ? "2" : "3");
-                    le.setOrgno(syntheticOrgno);
-                }
-            });
-
-            return legalEntities;
-        }
-
-        @BeforeAll
-        static void initSearchTestData(
-            @Autowired LegalEntityRepository legalEntityRepository,
-            @Autowired RelyingPartyInstanceRepository relyingPartyInstanceRepository) {
-            legalEntityRepository.deleteAll();
-
-            int numTestLegalEntities = 50;
-            List<LegalEntity> testLegalEntities = generateRealisticTestData(numTestLegalEntities);
-            legalEntityRepository.saveAllAndFlush(testLegalEntities);
-
-            assertTrue(relyingPartyInstanceRepository.count() >= numTestLegalEntities);
-        }
 
         @Test
         @DisplayName("then search by trade name uses substring matching")
@@ -278,6 +284,120 @@ public class RelyingPartyInstanceRepositoryTest {
             assertTrue(searchResult.stream()
                                    .map(rp -> rp.getLegalEntity().getOrgno())
                                    .allMatch(isNonsyntheticOrgno));
+        }
+    }
+
+    @Nested
+    @DisplayName("when using RelyingPartyOrdering and JPA sorting in conjunction")
+    class SearchQueryWithOrderingTests {
+        private static <T> boolean isSortedBy(List<T> lst, Comparator<T> comparator) {
+            for (int i = 0; i < lst.size() - 1; i++) {
+                if (comparator.compare(lst.get(i), lst.get(i + 1)) > 0) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {RelyingPartyOrdering.TRADE_NAME_KEY, "name"})
+        @DisplayName("then using RelyingPartyOrdering with known tradeName sort keys gives sorting by trade name")
+        void testSearchWithOrderingByTradename(String sortKey) {
+            Sort orderingByTradename = RelyingPartyOrdering.fromSortKey(sortKey);
+            List<RelyingPartyInstance> searchResultByTradename =
+                repository.searchRelyingPartyInstances(
+                    "",
+                    List.of(),
+                    true,
+                    false,
+                    PageRequest.of(0, Integer.MAX_VALUE, orderingByTradename)
+                ).getContent();
+
+            assertTrue(isSortedBy(searchResultByTradename,
+                                  Comparator.comparing(RelyingPartyInstance::getTradeName)));
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {RelyingPartyOrdering.ORGNO_KEY, "orgno"})
+        @DisplayName("then using RelyingPartyOrdering with known orgno sort keys gives sorting by orgno")
+        void testSearchWithOrderingByOrgno(String sortKey) {
+            Sort ordering = RelyingPartyOrdering.fromSortKey(sortKey);
+            List<RelyingPartyInstance> searchResultByOrgno =
+                repository.searchRelyingPartyInstances(
+                    "",
+                    List.of(),
+                    true,
+                    false,
+                    PageRequest.of(0, Integer.MAX_VALUE, ordering)
+                ).getContent();
+
+            assertTrue(isSortedBy(searchResultByOrgno,
+                                  Comparator.comparing(rp -> rp.getLegalEntity().getOrgno())));
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {RelyingPartyOrdering.CREATED_MS_KEY})
+        @DisplayName("then using RelyingPartyOrdering with the createdMs sort key gives sorting by createdMs")
+        void testSearchWithOrderingByCreatedMs(String sortKey) {
+            Sort ordering = RelyingPartyOrdering.fromSortKey(sortKey);
+            List<RelyingPartyInstance> searchResultByCreatedMs =
+                repository.searchRelyingPartyInstances(
+                    "",
+                    List.of(),
+                    true,
+                    false,
+                    PageRequest.of(0, Integer.MAX_VALUE, ordering)
+                ).getContent();
+
+            assertTrue(isSortedBy(searchResultByCreatedMs,
+                                  Comparator.comparing(RelyingPartyInstance::getCreatedMs)));
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {RelyingPartyOrdering.LAST_UPDATED_MS_KEY})
+        @DisplayName("then using RelyingPartyOrdering with the lastUpdatedMs sort key gives sorting by lastUpdatedMs")
+        void testSearchWithOrderingByLastUpdatedMs(String sortKey) {
+            Sort ordering = RelyingPartyOrdering.fromSortKey(sortKey);
+            List<RelyingPartyInstance> searchResultByLastUpdatedMs =
+                repository.searchRelyingPartyInstances(
+                    "",
+                    List.of(),
+                    true,
+                    false,
+                    PageRequest.of(0, Integer.MAX_VALUE, ordering)
+                ).getContent();
+
+            assertTrue(isSortedBy(searchResultByLastUpdatedMs,
+                                  Comparator.comparing(RelyingPartyInstance::getLastUpdatedMs)));
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {RelyingPartyOrdering.UNSORTED_KEY, "foobar", ""})
+        @NullSource
+        @DisplayName("then using RelyingPartyOrdering with \"unsorted\" and various unknown sort keys gives unsorted result")
+        void testSearchWithUnsortedOrUnknownSortKeyGivesUnsortedResult(String sortKey) {
+            Sort orderingByUnknownSortKey = RelyingPartyOrdering.fromSortKey(sortKey);
+
+            // there is no sorting to verify here, so just check that all RPs are present.
+            Set<UUID> searchResultByUnknownSortKey =
+                repository.searchRelyingPartyInstances(
+                              "",
+                              List.of(),
+                              true,
+                              false,
+                              PageRequest.of(0, Integer.MAX_VALUE, orderingByUnknownSortKey))
+                          .getContent()
+                          .stream()
+                          .map(BaseEntity::getId)
+                          .collect(Collectors.toSet());
+
+            Set<UUID> expectedResult =
+                repository.findAll()
+                          .stream()
+                          .map(BaseEntity::getId)
+                          .collect(Collectors.toSet());
+
+            assertEquals(expectedResult, searchResultByUnknownSortKey);
         }
     }
 }
