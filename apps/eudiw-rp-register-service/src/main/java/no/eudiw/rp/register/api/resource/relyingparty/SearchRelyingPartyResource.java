@@ -6,7 +6,6 @@ import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import no.eudiw.rp.register.data.RelyingPartyOrdering;
 import no.eudiw.rp.register.validation.SaneStringConstraint;
 
 import java.util.List;
@@ -49,9 +48,8 @@ public class SearchRelyingPartyResource {
         return (long) page * pageSize <= Integer.MAX_VALUE;
     }
 
-    @JsonProperty(value = "order_by")
-    @NotNull
-    private RelyingPartyOrdering ordering = RelyingPartyOrdering.UNSORTED;
+    @JsonProperty("order_by")
+    private String sortKey;
 
     public SearchRelyingPartyResource(String searchTerm) {
         this();

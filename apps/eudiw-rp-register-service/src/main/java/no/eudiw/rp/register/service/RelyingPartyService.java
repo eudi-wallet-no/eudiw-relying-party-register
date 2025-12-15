@@ -2,6 +2,7 @@ package no.eudiw.rp.register.service;
 
 import lombok.RequiredArgsConstructor;
 import no.eudiw.rp.register.api.resource.relyingparty.*;
+import no.eudiw.rp.register.data.RelyingPartyOrdering;
 import no.eudiw.rp.register.data.entity.LegalEntity;
 import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyInstance;
 import no.eudiw.rp.register.data.repository.EntitlementRepository;
@@ -62,9 +63,10 @@ public class RelyingPartyService {
     public PagedModel<RelyingPartyResource> searchRelyingParties(SearchRelyingPartyResource searchResource) {
 
         PageRequest pageRequest =
-            PageRequest.of(searchResource.getPage(),
+            PageRequest.of(
+                searchResource.getPage(),
                 searchResource.getPageSize(),
-                searchResource.getOrdering().toSort());
+                RelyingPartyOrdering.fromSortKey(searchResource.getSortKey()));
 
         List<String> entitlements =
             searchResource.getRequiredEntitlements()

@@ -1,21 +1,23 @@
 package no.eudiw.rp.register.data;
 
-import com.fasterxml.jackson.annotation.JsonValue;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 
-@RequiredArgsConstructor
-public enum RelyingPartyOrdering {
-    NAME_ASC ("name"),
-    ORGNO_ASC ("orgno"),
-    CREATED_MS_ASC ("createdMs"),
-    LAST_UPDATED_MS_ASC ("lastUpdatedMs"),
-    UNSORTED ("unsorted");
+public class RelyingPartyOrdering {
+    private RelyingPartyOrdering() { }
 
-    @JsonValue
-    private final String byColumn;
+    public static final String TRADE_NAME_KEY = "tradeName";
+    public static final String ORGNO_KEY = "legalEntity.orgno";
+    public static final String CREATED_MS_KEY = "createdMs";
+    public static final String LAST_UPDATED_MS_KEY = "lastUpdatedMs";
+    public static final String UNSORTED_KEY = "unsorted";
 
-    public Sort toSort() {
-        return this == UNSORTED ? Sort.unsorted() : Sort.by(byColumn);
+    public static Sort fromSortKey(String sortKey) {
+        return switch (sortKey) {
+            case "name", TRADE_NAME_KEY -> Sort.by(TRADE_NAME_KEY);
+            case "orgno", ORGNO_KEY -> Sort.by(ORGNO_KEY);
+            case CREATED_MS_KEY -> Sort.by(CREATED_MS_KEY);
+            case LAST_UPDATED_MS_KEY -> Sort.by(LAST_UPDATED_MS_KEY);
+            case null, default -> Sort.unsorted();
+        };
     }
 }
