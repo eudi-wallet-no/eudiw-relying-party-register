@@ -37,8 +37,11 @@ public class EntityGenerator extends TestDataGenerator {
     public static List<RelyingPartyEntitlement> sampleRelyingPartyEntitlements() {
         return sampleEntitlements(rng.nextInt(1, 4))
                    .stream()
-                   .map(entitlementValue ->
-                            new RelyingPartyEntitlement(entitlementValue, generateName()))
+                   .map(entitlementValue -> {
+                       boolean hasIssuerUrl = rng.nextFloat() >= 0.3;
+                       String issuerUrl = hasIssuerUrl ? generateIssuerUrl() : null;
+                       return new RelyingPartyEntitlement(entitlementValue, issuerUrl);
+                   })
                    .toList();
     }
 
