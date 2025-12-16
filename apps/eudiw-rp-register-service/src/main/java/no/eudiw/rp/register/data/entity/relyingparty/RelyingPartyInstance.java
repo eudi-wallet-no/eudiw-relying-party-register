@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 
 import java.time.Instant;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.function.Predicate;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -72,31 +72,29 @@ public class RelyingPartyInstance extends BaseEntity {
                 .findFirst();
     }
 
-    private void addRelyingPartyEntitlement(RelyingPartyEntitlement relyingPartyEntitlement) {
-        boolean entitlementNotAlreadyExists =
-            this.relyingPartyEntitlements
-                .stream()
-                .map(RelyingPartyEntitlement::getEntitlement)
-                .noneMatch(e -> Objects.equals(e, relyingPartyEntitlement.getEntitlement()));
-
-        if (entitlementNotAlreadyExists) {
-            relyingPartyEntitlement.setRelyingPartyInstance(this);
-            this.relyingPartyEntitlements.add(relyingPartyEntitlement);
+    private void addOrUpdateRelyingPartyEntitlement(RelyingPartyEntitlement newEntitlement) {
+        Optional<RelyingPartyEntitlement> existingEntitlement =
+            this.getRelyingPartyEntitlement(newEntitlement.getEntitlement());
+        if (existingEntitlement.isPresent()) {
+            existingEntitlement.get().setCredentialIssuerUrl(newEntitlement.getCredentialIssuerUrl());
+        } else {
+            this.relyingPartyEntitlements.add(newEntitlement);
+            newEntitlement.setRelyingPartyInstance(this);
         }
     }
 
     public void setRelyingPartyEntitlements(List<RelyingPartyEntitlement> relyingPartyEntitlements) {
-        if (relyingPartyEntitlements != null) {
-            this.removeEntitlementsWithoutIssuerCertificates(relyingPartyEntitlements);
-            relyingPartyEntitlements.forEach(this::addRelyingPartyEntitlement);
-        }
-    }
+        List<String> incomingEntitlementValues =
+            relyingPartyEntitlements.stream()
+                                    .map(RelyingPartyEntitlement::getEntitlement)
+                                    .toList();
 
-    private void removeEntitlementsWithoutIssuerCertificates(List<RelyingPartyEntitlement> input) {
-        Set<String> incoming = input.stream().map(RelyingPartyEntitlement::getEntitlement).collect(Collectors.toSet());
-        this.relyingPartyEntitlements.removeIf(entitlement ->
-            !incoming.contains(entitlement.getEntitlement()) && entitlement.getIssuerCertificates().isEmpty()
-        );
+        Predicate<RelyingPartyEntitlement> doRemoveEntitlement =
+            entitlement -> entitlement.getIssuerCertificates().isEmpty()
+                               && !incomingEntitlementValues.contains(entitlement.getEntitlement());
+        this.relyingPartyEntitlements.removeIf(doRemoveEntitlement);
+
+        relyingPartyEntitlements.forEach(this::addOrUpdateRelyingPartyEntitlement);
     }
 
     public void setRelyingPartyEaas(List<RelyingPartyEaa> relyingPartyEaas) {
@@ -107,8 +105,7 @@ public class RelyingPartyInstance extends BaseEntity {
         }
     }
 
-    public void setAccessCertificates(
-        List<AccessCertificate> accessCertificates) {
+    public void setAccessCertificates(List<AccessCertificate> accessCertificates) {
         this.accessCertificates.clear();
         if (accessCertificates != null) {
             accessCertificates.forEach(cert -> cert.setRelyingPartyInstance(this));
@@ -120,26 +117,11 @@ public class RelyingPartyInstance extends BaseEntity {
         String tradeName,
         List<RelyingPartyEntitlement> relyingPartyEntitlements,
         List<RelyingPartyEaa> relyingPartyEaas,
-        List<AccessCertificate> accessCertificates
-    ) {
+        List<AccessCertificate> accessCertificates) {
         this.tradeName = tradeName;
         this.setRelyingPartyEntitlements(relyingPartyEntitlements);
         this.setRelyingPartyEaas(relyingPartyEaas);
         this.setAccessCertificates(accessCertificates);
-    }
-
-    public RelyingPartyInstance(
-        String tradeName,
-        List<RelyingPartyEntitlement> relyingPartyEntitlements,
-        List<RelyingPartyEaa> relyingPartyEaas,
-        List<AccessCertificate> accessCertificates,
-        LegalEntity legalEntity
-    ) {
-        this.tradeName = tradeName;
-        this.setRelyingPartyEntitlements(relyingPartyEntitlements);
-        this.setRelyingPartyEaas(relyingPartyEaas);
-        this.setAccessCertificates(accessCertificates);
-        this.legalEntity = legalEntity;
     }
 
     // for JPA instantiation.

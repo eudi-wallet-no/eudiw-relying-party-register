@@ -34,15 +34,22 @@ public class EntityGenerator extends TestDataGenerator {
             generateListBy(numInstances, EntityGenerator::generateRelyingParty));
     }
 
+    public static List<RelyingPartyEntitlement> sampleRelyingPartyEntitlements() {
+        return sampleEntitlements(rng.nextInt(1, 4))
+                   .stream()
+                   .map(entitlementValue ->
+                            new RelyingPartyEntitlement(entitlementValue, generateName()))
+                   .toList();
+    }
+
     public static RelyingPartyInstance generateRelyingParty() {
         return new RelyingPartyInstance(
             generateName(),
-            List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/Service_Provider"), new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/QEAA_Provider")),
+            sampleRelyingPartyEntitlements(),
             generateListBy(EntityGenerator::generateEaa),
             // NOTE: certificates are very expensive to generate, so no
             // certificates by default.
-            new ArrayList<>(),
-            null
+            new ArrayList<>()
         );
     }
 

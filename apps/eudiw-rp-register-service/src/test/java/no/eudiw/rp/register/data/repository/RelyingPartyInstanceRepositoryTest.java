@@ -263,7 +263,7 @@ public class RelyingPartyInstanceRepositoryTest {
                       .stream()
                       .map(RelyingPartyEntitlement::getEntitlement)
                       .collect(Collectors.toSet());
-                assertEquals(requiredEntitlements, relyingPartyEntitlements);
+                assertTrue(relyingPartyEntitlements.containsAll(requiredEntitlements));
             });
         }
 

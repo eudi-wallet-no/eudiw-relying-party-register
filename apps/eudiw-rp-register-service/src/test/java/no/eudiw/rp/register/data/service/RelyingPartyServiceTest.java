@@ -222,12 +222,20 @@ public class RelyingPartyServiceTest {
                              .stream()
                              .map(converter::toResource)
                              .toList();
+            Set<String> requiredEntitlementValues =
+                requiredEntitlements.stream()
+                                    .map(RelyingPartyEntitlementResource::entitlement)
+                                    .collect(Collectors.toSet());
 
             Set<RelyingPartyResource> expectedSearchResult =
                 legalEntities.stream()
                              .flatMap(le -> le.getRelyingPartyInstances().stream())
                              .map(converter::toResource)
-                             .filter(rp -> rp.relyingPartyEntitlements().containsAll(requiredEntitlements))
+                             .filter(rp -> rp.relyingPartyEntitlements()
+                                             .stream()
+                                             .map(RelyingPartyEntitlementResource::entitlement)
+                                             .toList()
+                                             .containsAll(requiredEntitlementValues))
                              .collect(Collectors.toSet());
 
             SearchRelyingPartyResource searchResource =
