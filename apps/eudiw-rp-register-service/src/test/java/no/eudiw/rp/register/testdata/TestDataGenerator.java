@@ -99,4 +99,8 @@ public class TestDataGenerator {
         Collections.shuffle(EXAMPLE_ENTITLEMENTS);
         return EXAMPLE_ENTITLEMENTS.subList(0, n);
     }
+
+    public static String generateIssuerUrl() {
+        return "https://%s.net/".formatted(generateName());
+    }
 }
