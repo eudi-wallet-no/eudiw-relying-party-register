@@ -31,6 +31,7 @@ public class CredentialIssuerMetadataRetriever {
     private final CredentialRegisterConfiguration configuration;
     private final Validator validator;
     private final RestClient restClient;
+    private static final String CREDENTIAL_ISSUER_CONFIG_ENDPOINT = "/.well-known/openid-credential-issuer";
 
     private List<CredentialIssuer> listOfIssuer;
 
@@ -45,9 +46,10 @@ public class CredentialIssuerMetadataRetriever {
 
     private CredentialIssuer fetchCredentialIssuerFromMetadataRequest(URI uri) {
         CredentialIssuer credentialIssuer;
+        URI wellknown = uri.resolve(CREDENTIAL_ISSUER_CONFIG_ENDPOINT + uri.getPath());
         try {
             credentialIssuer = restClient.get()
-                    .uri(uri)
+                    .uri(wellknown)
                     .retrieve()
                     .body(CredentialIssuer.class);
         } catch (Exception e) {
@@ -61,6 +63,7 @@ public class CredentialIssuerMetadataRetriever {
         }
         return credentialIssuer;
     }
+
 
     public void updateListOfIssuer() throws BadRequestException {
         CredentialIssuerUrls uris;
