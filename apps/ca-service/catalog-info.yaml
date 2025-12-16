@@ -11,4 +11,4 @@ spec:
   lifecycle: test
   system: digital-lommebok
   dependsOn:
-    - id_eudiw_ca_prod
+    - resource:default/id_eudiw_ca_prod
