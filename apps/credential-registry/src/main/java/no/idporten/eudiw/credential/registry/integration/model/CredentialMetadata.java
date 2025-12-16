@@ -13,18 +13,18 @@ public class CredentialMetadata {
 
     private static final Logger log = LoggerFactory.getLogger(CredentialMetadata.class);
     @JsonProperty("display")
-    private List<DisplayWithRequiredName> display = new ArrayList<>();
+    private List<CredentialMetadataDisplay> display = new ArrayList<>();
     @JsonProperty("claims")
     private List<Claims> claims = new ArrayList<>();
 
     public CredentialMetadata(){}
 
 
-    public void setDisplay(List<DisplayWithRequiredName> display) {
+    public void setDisplay(List<CredentialMetadataDisplay> display) {
         this.display = display;
     }
 
-    public List<DisplayWithRequiredName> getDisplay() {
+    public List<CredentialMetadataDisplay> getDisplay() {
         return this.display;
     }
 

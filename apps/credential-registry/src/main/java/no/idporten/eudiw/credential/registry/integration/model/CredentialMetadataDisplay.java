@@ -2,14 +2,12 @@ package no.idporten.eudiw.credential.registry.integration.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.Validation;
-import jakarta.validation.Validator;
 import jakarta.validation.constraints.NotNull;
 
 import java.net.URI;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class DisplayWithRequiredName extends Display {
+public class CredentialMetadataDisplay extends Display {
     @JsonProperty("name")
     @NotNull
     private String name;
@@ -26,11 +24,11 @@ public class DisplayWithRequiredName extends Display {
     @JsonProperty("text_color")
     private String textColor = "";
 
-    public DisplayWithRequiredName() {
+    public CredentialMetadataDisplay() {
 
     }
 
-    public DisplayWithRequiredName(String name) {
+    public CredentialMetadataDisplay(String name) {
         super(name);
     }
 
