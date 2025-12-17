@@ -4,6 +4,7 @@ import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.admin.web.controllers.DetailedViewController;
 import no.idporten.eudiw.rp.admin.web.resource.*;
+import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificateResource;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificatesResource;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -47,25 +48,28 @@ public class DetailedViewControllerTests {
             RelyingPartyResource rpResource =
                 ResourceGenerator.generateRelyingPartyResource();
             UUID id = rpResource.id();
+
             when(mockRpService.get(id)).thenReturn(rpResource);
 
-            RelyingPartyCertificatesResource certsResource =
-                new RelyingPartyCertificatesResource(List.of(
-                    ResourceGenerator.generateCertificateResource()));
-            when(mockRpService.getCertificatesForRelyingParty(id))
-                .thenReturn(certsResource);
-            RelyingPartyEntitlementsResource resource = new RelyingPartyEntitlementsResource(List.of());
-            when(mockRpService.getIssuerCertificateForRelyingParty(id))
-                .thenReturn(resource);
+            var expectedAccessCerts =
+                rpResource.accessCertificates()
+                          .stream()
+                          .map(RelyingPartyCertificateResource::toSummary)
+                          .toList();
+            var expectedIssuerCerts =
+                rpResource.issuerCertificates()
+                          .stream()
+                          .map(RelyingPartyCertificateResource::toSummary)
+                          .toList();
 
             mockMvc.perform(get("/details/" + id))
                    .andExpect(status().isOk())
                    .andExpect(view().name("details_view"))
                    .andExpect(model().attribute(DetailedViewController.detailedViewDataAttrId, rpResource))
-                   .andExpect(model().attribute(DetailedViewController.certificateSummariesAttrId, certsResource.toSummaries()));
+                   .andExpect(model().attribute(DetailedViewController.certificateSummariesAttrId, expectedAccessCerts))
+                   .andExpect(model().attribute(DetailedViewController.issuerSummariesAttrId, expectedIssuerCerts));
 
             verify(mockRpService).get(eq(id));
-            verify(mockRpService).getCertificatesForRelyingParty(eq(id));
         }
     }
 }

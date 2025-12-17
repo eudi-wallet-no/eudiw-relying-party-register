@@ -5,8 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary;
-import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyIssuerCertificateSummary;
+import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyCertificateSummary;
 
 import javax.security.auth.x500.X500Principal;
 import java.security.cert.X509Certificate;
@@ -21,9 +20,10 @@ public record RelyingPartyCertificateResource(
     @JsonSerialize(using = X509CertificateJsonSerializer.class)
     X509Certificate certificate,
     @JsonProperty(value = "id", required = true)
-    UUID id
+    UUID id,
+    @JsonProperty("entitlement")
+    String entitlement
 ) {
-
 
     private String formatX500PrincipalName(X500Principal x500Principal) {
         return x500Principal.getName(
@@ -31,20 +31,9 @@ public record RelyingPartyCertificateResource(
                 Map.of("2.5.4.97", "organizationIdentifier"));
     }
 
-    public RelyingPartyAccessCertificateSummary toSummary() {
-        return new RelyingPartyAccessCertificateSummary(
-            this.certificate.getSerialNumber(),
-            formatX500PrincipalName(this.certificate.getSubjectX500Principal()),
-            formatX500PrincipalName(this.certificate.getIssuerX500Principal()),
-            this.certificate.getNotBefore().toInstant().toEpochMilli(),
-            this.certificate.getNotAfter().toInstant().toEpochMilli(),
-            this.id
-        );
-    }
-
-    public RelyingPartyIssuerCertificateSummary toIssuerSummary(String entitlement) {
-        return new RelyingPartyIssuerCertificateSummary(
-            entitlement,
+    public RelyingPartyCertificateSummary toSummary() {
+        return new RelyingPartyCertificateSummary(
+            this.entitlement,
             this.certificate.getSerialNumber(),
             formatX500PrincipalName(this.certificate.getSubjectX500Principal()),
             formatX500PrincipalName(this.certificate.getIssuerX500Principal()),
