@@ -75,12 +75,12 @@ public class RelyingPartyCertificateService {
     }
 
     @Transactional(readOnly = true)
-    public RelyingPartyEntitlementsResource getAllIssuerCertificatesFromRelyingParty(UUID relyingPartyId) {
-        return new RelyingPartyEntitlementsResource(
+    public RelyingPartyCertificatesResource getAllIssuerCertificatesFromRelyingParty(UUID relyingPartyId) {
+        return new RelyingPartyCertificatesResource(
             relyingPartyRepository
                 .findById(relyingPartyId)
                 .orElseThrow(() -> new NotFoundException("Relying party not found"))
-                .getRelyingPartyEntitlements()
+                .getIssuerCertificates()
                 .stream()
                 .map(converter::toResource)
                 .toList()

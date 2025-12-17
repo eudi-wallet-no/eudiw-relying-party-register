@@ -105,8 +105,7 @@ public class RelyingPartyServiceV2Test {
         var entitlements = List.of(new RelyingPartyEntitlementResource(
             "https://uri.etsi.org/19475/Entitlement/QEAA_Provider",
             "QEAA Provider",
-            null,
-            new ArrayList<>()));
+            null));
         CreateRelyingPartyResource createRelyingPartyResource = new CreateRelyingPartyResource(
             generateValidOrgno(),
             generateName(),

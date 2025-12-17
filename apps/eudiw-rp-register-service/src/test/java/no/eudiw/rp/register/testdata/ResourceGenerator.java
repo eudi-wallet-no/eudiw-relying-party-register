@@ -17,13 +17,8 @@ public class ResourceGenerator extends TestDataGenerator {
     public static List<RelyingPartyEntitlementResource> sampleRelyingPartyEntitlementResources(int n) {
         return sampleEntitlements(n)
                    .stream()
-                   .map(e -> new RelyingPartyEntitlementResource(e, e, null, List.of(generateCertificateResource())))
+                   .map(e -> new RelyingPartyEntitlementResource(e, e, null))
                    .toList();
-    }
-
-    public static RelyingPartyCertificateResource generateCertificateResource() {
-        return new RelyingPartyCertificateResource(
-            CertificatesGenerator.generateX509Certificate(), UUID.randomUUID());
     }
 
     public static CreateRelyingPartyResource generateCreateRelyingPartyResource() {
@@ -63,6 +58,7 @@ public class ResourceGenerator extends TestDataGenerator {
             sampleRelyingPartyEntitlementResources(),
             generateListBy(ResourceGenerator::generateRelyingPartyEaaResource),
             new ArrayList<>(),
+            new ArrayList<>(),
             timeNow,
             timeNow,
             true
@@ -74,7 +70,8 @@ public class ResourceGenerator extends TestDataGenerator {
     }
 
     public static RelyingPartyCertificateResource generateRelyingPartyCertificateResource() {
+        String entitlement = sampleEntitlements(1).getFirst();
         return new RelyingPartyCertificateResource(
-            CertificatesGenerator.generateX509Certificate(), UUID.randomUUID());
+            CertificatesGenerator.generateX509Certificate(), entitlement, UUID.randomUUID());
     }
 }

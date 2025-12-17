@@ -175,11 +175,12 @@ public class RelyingPartyInstanceRepositoryTest {
         @Test
         @DisplayName("using a search term which exists in both trade names, orgnos, and legal entity names")
         void testSearchTermInMultipleDifferentFields() {
+
             RelyingPartyInstance rpi1 = EntityGenerator.generateRelyingPartyWithLegalEntity();
             RelyingPartyInstance rpi2 = EntityGenerator.generateRelyingPartyWithLegalEntity();
             LegalEntity legalEntity = legalEntityRepository.findAll().getFirst();
 
-            String searchTerm = legalEntity.getOrgno().substring(0, 4);
+            String searchTerm = legalEntity.getOrgno();
             rpi1.setTradeName(searchTerm + rpi1.getTradeName());
             rpi2.setTradeName(rpi2.getTradeName() + searchTerm);
 

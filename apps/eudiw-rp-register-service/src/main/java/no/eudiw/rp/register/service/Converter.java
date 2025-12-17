@@ -9,11 +9,14 @@ import no.eudiw.rp.register.api.resource.relyingparty.RelyingPartyEaaResource;
 import no.eudiw.rp.register.api.resource.relyingparty.RelyingPartyEntitlementResource;
 import no.eudiw.rp.register.api.resource.relyingparty.RelyingPartyResource;
 import no.eudiw.rp.register.data.entity.*;
+import no.eudiw.rp.register.data.entity.certificates.AccessCertificate;
 import no.eudiw.rp.register.data.entity.certificates.BaseCertificateEntity;
+import no.eudiw.rp.register.data.entity.certificates.IssuerCertificate;
 import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyEaa;
 import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyEntitlement;
 import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyInstance;
 import no.eudiw.rp.register.data.repository.EntitlementRepository;
+import no.eudiw.rp.register.data.repository.IssuerCertificateRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -45,6 +48,11 @@ public class Converter {
                 .stream()
                 .map(this::toResource)
                 .toList(),
+            relyingPartyInstance
+                .getIssuerCertificates()
+                .stream()
+                .map(this::toResource)
+                .toList(),
             relyingPartyInstance.getCreatedMs(),
             relyingPartyInstance.getLastUpdatedMs(),
             relyingPartyInstance.isActive()
@@ -65,8 +73,7 @@ public class Converter {
         return new RelyingPartyEntitlementResource(
             entitlement.getEntitlement(),
             getDisplayNameForEntitlement(entitlement.getEntitlement()),
-            entitlement.getCredentialIssuerUrl(),
-            entitlement.getIssuerCertificates().stream().map(this::toResource).toList()
+            entitlement.getCredentialIssuerUrl()
         );
     }
 
@@ -76,8 +83,15 @@ public class Converter {
             .orElse(entitlementUri);
     }
 
-    public RelyingPartyCertificateResource toResource(BaseCertificateEntity entity) {
-        return new RelyingPartyCertificateResource(entity.getCertificate(), entity.getId());
+    public RelyingPartyCertificateResource toResource(AccessCertificate entity) {
+        return new RelyingPartyCertificateResource(entity.getCertificate(), null, entity.getId());
+    }
+
+    public RelyingPartyCertificateResource toResource(IssuerCertificate entity) {
+        return new RelyingPartyCertificateResource(
+            entity.getCertificate(),
+            entity.getEntitlement().getEntitlement(),
+            entity.getId());
     }
 
     public RelyingPartyEaaResource toResource(RelyingPartyEaa eaa) {

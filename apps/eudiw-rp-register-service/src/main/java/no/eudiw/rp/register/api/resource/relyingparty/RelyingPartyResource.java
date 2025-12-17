@@ -55,6 +55,11 @@ public record RelyingPartyResource(
     @JsonProperty("access_certificates")
     List<RelyingPartyCertificateResource> accessCertificates,
 
+    @Valid
+    @NotNull(message = "null_issuer_certificates")
+    @JsonProperty("issuer_certificates")
+    List<RelyingPartyCertificateResource> issuerCertificates,
+
     @JsonProperty(value = "created_ms", required = false)
     long createdMs,
 

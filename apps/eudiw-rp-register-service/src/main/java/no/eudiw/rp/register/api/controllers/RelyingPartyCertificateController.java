@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import no.eudiw.rp.register.api.RegisterServiceApiSwaggerExamples;
-import no.eudiw.rp.register.api.resource.relyingparty.RelyingPartyEntitlementsResource;
 import no.eudiw.rp.register.api.resource.certificates.IssuerCsrResource;
 import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCsrResource;
 import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCertificateResource;
@@ -127,7 +126,7 @@ public class RelyingPartyCertificateController {
     @Audit(auditId = ISSUER_CERTIFICATE_RETRIEVED)
     @GetMapping(path = "/{relying-party-id}/issuer-certs",
         produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<RelyingPartyEntitlementsResource> getIssuerCertificates(
+    public ResponseEntity<RelyingPartyCertificatesResource> getIssuerCertificates(
         @PathVariable("relying-party-id") @Valid UUID relyingPartyId) {
         return ResponseEntity.ok(
             certificatesService.getAllIssuerCertificatesFromRelyingParty(relyingPartyId));
