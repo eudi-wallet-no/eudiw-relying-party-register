@@ -12,6 +12,7 @@ import lombok.AccessLevel;
 import no.eudiw.rp.register.data.entity.BaseEntity;
 import no.eudiw.rp.register.data.entity.LegalEntity;
 import no.eudiw.rp.register.data.entity.certificates.AccessCertificate;
+import no.eudiw.rp.register.data.entity.certificates.IssuerCertificate;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -65,6 +66,13 @@ public class RelyingPartyInstance extends BaseEntity {
 
     @Column(name = "active", nullable = false)
     private boolean active = true;
+
+    public List<IssuerCertificate> getIssuerCertificates() {
+        return this.getRelyingPartyEntitlements()
+                   .stream()
+                   .flatMap(entitlement -> entitlement.getIssuerCertificates().stream())
+                   .toList();
+    }
 
     public Optional<RelyingPartyEntitlement> getRelyingPartyEntitlement(String entitlementType) {
         return relyingPartyEntitlements.stream()
