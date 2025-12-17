@@ -4,16 +4,14 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
-import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyEntitlementResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
-import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary;
-import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyIssuerCertificateSummary;
+import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificateResource;
+import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyCertificateSummary;
 import no.idporten.eudiw.rp.admin.web.security.UserAuthorityService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -40,20 +38,22 @@ public class DetailedViewController {
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
         userAuthorityService.assertUserHasAccessTo(relyingPartyResource.orgno());
 
-        List<RelyingPartyAccessCertificateSummary> certificatesResource =
-            relyingPartiesService.getCertificatesForRelyingParty(id)
-                                 .toSummaries();
+        List<RelyingPartyCertificateSummary> accessCertificates =
+            relyingPartyResource.accessCertificates()
+                                .stream()
+                                .map(RelyingPartyCertificateResource::toSummary)
+                                .toList();
 
-        List<RelyingPartyEntitlementResource> entitlements = relyingPartiesService.getIssuerCertificateForRelyingParty(id).entitlements();
-        List<RelyingPartyIssuerCertificateSummary> issuerCerts = new ArrayList<>();
-        for (RelyingPartyEntitlementResource entitlement : entitlements) {
-            issuerCerts.addAll(entitlement.toIssuerCertificateSummaries());
-        }
+        List<RelyingPartyCertificateSummary> issuerCertificates =
+            relyingPartyResource.issuerCertificates()
+                                .stream()
+                                .map(RelyingPartyCertificateResource::toSummary)
+                                .toList();
 
         return new ModelAndView("details_view", Map.of(
             detailedViewDataAttrId, relyingPartyResource,
-            certificateSummariesAttrId, certificatesResource,
-            issuerSummariesAttrId, issuerCerts)
+            certificateSummariesAttrId, accessCertificates,
+            issuerSummariesAttrId, issuerCertificates)
         );
     }
 }

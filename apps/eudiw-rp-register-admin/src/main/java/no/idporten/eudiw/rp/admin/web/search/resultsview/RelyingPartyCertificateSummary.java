@@ -3,7 +3,7 @@ package no.idporten.eudiw.rp.admin.web.search.resultsview;
 import java.math.BigInteger;
 import java.util.UUID;
 
-public record RelyingPartyIssuerCertificateSummary(
+public record RelyingPartyCertificateSummary(
     String entitlement,
     BigInteger serialNo,
     String subjectDn,

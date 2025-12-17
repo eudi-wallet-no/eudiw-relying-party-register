@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary;
+import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyCertificateSummary;
 
 import java.util.List;
 
@@ -17,7 +17,7 @@ public record RelyingPartyCertificatesResource(
     @JsonProperty(value = "certificates", required = true)
     List<RelyingPartyCertificateResource> certificates
 ) {
-    public List<RelyingPartyAccessCertificateSummary> toSummaries() {
+    public List<RelyingPartyCertificateSummary> toSummaries() {
         return this.certificates
                    .stream()
                    .map(RelyingPartyCertificateResource::toSummary)

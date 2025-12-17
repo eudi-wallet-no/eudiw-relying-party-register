@@ -24,7 +24,7 @@
             Issuer-sertifikat registrert!
         </h2>
 
-        <!--/*@thymesVar id="newCertificateAttr" type="no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyIssuerCertificateSummary"*/-->
+        <!--/*@thymesVar id="newCertificateAttr" type="no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyCertificateSummary"*/-->
         <table th:replace="~{fragments/csr_fragments
                               :: single_issuer_certificate_table_fragment(
                                   ${newCertificateAttr})}">

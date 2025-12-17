@@ -71,7 +71,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <!--/*@thymesVar id="cert" type="no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyIssuerCertificateSummary"*/-->
+                <!--/*@thymesVar id="cert" type="no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyCertificateSummary"*/-->
                 <tr th:each="cert : ${certs}">
                     <td th:text="${cert.entitlement()}" style="word-break: break-word;"></td>
                     <td th:text="${cert.serialNo.toString(16).replaceAll('(?<=..)(..)', ':$1')}"></td>

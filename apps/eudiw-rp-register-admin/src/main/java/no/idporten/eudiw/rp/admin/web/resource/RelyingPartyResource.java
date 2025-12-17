@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.With;
 import no.idporten.eudiw.rp.admin.entitlements.Entitlements;
+import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificateResource;
 
 import java.util.List;
 import java.util.UUID;
@@ -33,6 +34,12 @@ public record RelyingPartyResource(
 
     @JsonProperty(value = "relying_party_eaas", required = true)
     List<RelyingPartyEaaResource> relyingPartyEaas,
+
+    @JsonProperty(value = "access_certificates", required = true)
+    List<RelyingPartyCertificateResource> accessCertificates,
+
+    @JsonProperty(value = "issuer_certificates", required = true)
+    List<RelyingPartyCertificateResource> issuerCertificates,
 
     @JsonProperty(value = "created_ms", required = true)
     long createdMs,

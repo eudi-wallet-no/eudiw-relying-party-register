@@ -1,7 +1,9 @@
 package no.idporten.eudiw.rp.admin.testdata;
 
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -64,5 +66,20 @@ public class TestDataGenerator {
         return Arrays.stream(randDigits)
                      .mapToObj(Integer::toString)
                      .collect(Collectors.joining());
+    }
+
+    protected static final String ENTITLEMENT_PREFIX = "https://uri.etsi.org/19475/Entitlement/";
+    protected static final List<String> EXAMPLE_ENTITLEMENTS = List.of(
+        "https://uri.etsi.org/19475/Entitlement/Service_Provider",
+        "https://uri.etsi.org/19475/Entitlement/QEAA_Provider",
+        "https://uri.etsi.org/19475/Entitlement/Non_Q_EAA_Provider",
+        "https://uri.etsi.org/19475/Entitlement/PUB_EAA_Provider",
+        "https://uri.etsi.org/19475/Entitlement/PID_Provider"
+    );
+
+    public static List<String> sampleEntitlements(int n) {
+        List<String> copy = new ArrayList<>(EXAMPLE_ENTITLEMENTS);
+        Collections.shuffle(copy);
+        return copy.subList(0, n);
     }
 }
