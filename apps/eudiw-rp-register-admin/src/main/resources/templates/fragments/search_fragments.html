@@ -87,6 +87,8 @@
                         Sist endra
                     </a>
                 </th>
+                <th>Access-sertifikat</th>
+                <th>Issuer-sertifikat</th>
             </tr>
             </thead>
             <tbody>
@@ -106,6 +108,8 @@
                 </td>
                 <td th:text="${@timestampFormatter.formatEpochMillis(rp.createdMs)}"></td>
                 <td th:text="${@timestampFormatter.formatEpochMillis(rp.lastUpdatedMs)}"></td>
+                <td th:text="${rp.accessCertificates().size()}"></td>
+                <td th:text="${rp.issuerCertificates().size()}"></td>
             </tr>
             </tbody>
         </table>
