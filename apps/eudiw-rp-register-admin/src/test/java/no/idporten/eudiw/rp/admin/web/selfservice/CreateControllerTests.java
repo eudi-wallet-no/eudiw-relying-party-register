@@ -1,8 +1,9 @@
-package no.idporten.eudiw.rp.admin.web;
+package no.idporten.eudiw.rp.admin.web.selfservice;
 
+import no.idporten.eudiw.rp.admin.security.SecurityTestUtils;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
-import no.idporten.eudiw.rp.admin.web.controllers.CreateController;
+import no.idporten.eudiw.rp.admin.testdata.TestDataGenerator;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEaaFormField;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEntitlementFormField;
 import no.idporten.eudiw.rp.admin.web.form.admin.AdminCreateRelyingPartyForm;
@@ -14,10 +15,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
+
+import java.util.List;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -27,9 +30,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @ActiveProfiles("junit")
-@DisplayName("When using the admin create controller")
+@DisplayName("When using the /create controller as selfservice user")
 @AutoConfigureMockMvc
-@WithMockUser(roles = "ADMIN")
 public class CreateControllerTests {
 
     @Autowired
@@ -43,15 +45,12 @@ public class CreateControllerTests {
     @DisplayName("When GET'ing the /create endpoint")
     class CreateEndpointGetTests {
         @Test
-        @DisplayName("then the correct view with the expected create form is loaded")
-        void testCorrectViewAndModelAttributes() throws Exception {
-            AdminCreateRelyingPartyForm createForm = new AdminCreateRelyingPartyForm();
-
-            mockMvc.perform(get("/create"))
-                .andExpectAll(
-                    status().isOk(),
-                    view().name("create_form_view"),
-                    model().attribute(CreateController.createFormAttrId, createForm));
+        @DisplayName("then create view shown if user is authenticated")
+        void testEditViewShownWhenUserLoggedIn() throws Exception {
+            mockMvc.perform(get("/create").with(SecurityTestUtils.oidcLoginForOrgno(TestDataGenerator.generateValidOrgno())))
+                   .andExpectAll(
+                       status().isOk(),
+                       view().name("create_form_view"));
         }
     }
 
@@ -59,10 +58,12 @@ public class CreateControllerTests {
     @DisplayName("When POST'ing create forms to the /admin/create endpoint")
     class AdminCreateEndpointPostTests {
         @Test
-        @DisplayName("then form accepted if well-formed, and correct services called, view, and model")
+        @DisplayName("then form accepted if user is logged in, and unexpected entitlements are ignored")
         void testCreateFormAcceptedIfWellFormed() throws Exception {
             RelyingPartyResource rpResource =
                 ResourceGenerator.generateRelyingPartyResource();
+
+            when(mockRpService.create(any())).thenReturn(rpResource);
 
             AdminCreateRelyingPartyForm createForm = new AdminCreateRelyingPartyForm(
                 rpResource.orgno(),
@@ -73,13 +74,17 @@ public class CreateControllerTests {
             CreateRelyingPartyResource createResource = createForm.toResource();
 
             when(mockRpService.create(createResource)).thenReturn(rpResource);
-            var request = post("/admin/create").with(csrf());
+            var request = post("/create").with(SecurityTestUtils.oidcLoginForOrgno(rpResource.orgno())).with(csrf());
             mockMvc.perform(WebTestUtils.withCreateForm(request, createForm))
-                .andExpectAll(
-                    status().is3xxRedirection(),
-                    redirectedUrl("/details/" + rpResource.id()));
+                   .andExpectAll(
+                       status().is3xxRedirection(),
+                       redirectedUrl("/details/" + rpResource.id()));
 
-            verify(mockRpService).create(createResource);
+            CreateRelyingPartyResource expectedCreateResource =
+                createResource.withRelyingPartyEntitlements(List.of(
+                    new RelyingPartyEntitlementResource("https://uri.etsi.org/19475/Entitlement/Service_Provider")));
+
+            verify(mockRpService, times(1)).create(eq(expectedCreateResource));
         }
     }
 }

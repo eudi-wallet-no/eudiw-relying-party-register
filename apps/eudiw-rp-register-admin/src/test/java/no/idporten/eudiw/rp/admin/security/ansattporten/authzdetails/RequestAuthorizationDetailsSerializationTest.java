@@ -12,7 +12,7 @@ import org.springframework.test.context.ActiveProfiles;
 import java.util.Map;
 
 @SpringBootTest
-@ActiveProfiles("local-security-test")
+@ActiveProfiles("junit")
 public class RequestAuthorizationDetailsSerializationTest {
 
     @Autowired

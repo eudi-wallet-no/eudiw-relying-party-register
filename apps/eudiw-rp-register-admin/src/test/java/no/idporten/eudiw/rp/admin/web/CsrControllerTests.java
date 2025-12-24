@@ -26,13 +26,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.UUID;
 
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
 @SpringBootTest
-@ActiveProfiles("local-test")
+@ActiveProfiles("junit")
 @DisplayName("When using the CSR registration controller")
 @AutoConfigureMockMvc
 @WithMockUser(roles = "ADMIN")
@@ -57,7 +58,7 @@ public class CsrControllerTests {
             UUID id = rpResource.id();
             when(mockRpService.get(id)).thenReturn(rpResource);
 
-            mockMvc.perform(get("/csr/access/" + id))
+            mockMvc.perform(get("/csr/access/" + id).with(csrf()))
                    .andExpectAll(
                        status().isOk(),
                        view().name("access_csr_form_view"),
@@ -93,6 +94,7 @@ public class CsrControllerTests {
             String csrPemStr = PKCS10CertificationRequestConverter.toString(csr);
 
             mockMvc.perform(post("/csr/access/" + id)
+                                .with(csrf())
                                 .formField("csrField", csrPemStr))
                    .andExpectAll(
                        status().isOk(),
@@ -116,6 +118,7 @@ public class CsrControllerTests {
             String invalidCsrPemStr = validCsrPemStr.replace('\n', 'x');
 
             mockMvc.perform(post("/csr/access/" + id)
+                                .with(csrf())
                                 .formField("csrField", invalidCsrPemStr))
                    .andExpectAll(
                        status().isOk(),
@@ -139,6 +142,7 @@ public class CsrControllerTests {
                     ResourceGenerator.generateCsrResource().csr());
 
             mockMvc.perform(post("/csr/access/" + rpResource.id())
+                                .with(csrf())
                                 .formField("csrField", csrStr))
                 .andExpectAll(
                     status().isOk(),

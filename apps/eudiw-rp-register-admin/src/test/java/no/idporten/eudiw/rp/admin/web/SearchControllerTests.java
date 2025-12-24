@@ -20,12 +20,12 @@ import static org.mockito.ArgumentMatchers.any;
 
 import static org.mockito.Mockito.*;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-
 @SpringBootTest
-@ActiveProfiles("local-test")
+@ActiveProfiles("junit")
 @DisplayName("When using the search controller")
 @AutoConfigureMockMvc
 @WithMockUser(roles = "ADMIN")
@@ -57,6 +57,7 @@ public class SearchControllerTests {
         @Test
         public void testServiceCalledAndWithEmptyResource() throws Exception {
             mockMvc.perform(post("/search")
+                    .with(csrf())
                     .formField("searchTerm", SearchForm.empty().searchTerm())
                     .formField("includeInactive", Boolean.toString(SearchForm.empty().includeInactive())))
                 .andExpect(view().name("search_view"))
@@ -73,6 +74,7 @@ public class SearchControllerTests {
             String includeInactiveStr = Boolean.toString(testSearchForm.includeInactive());
 
             mockMvc.perform(post("/search")
+                                .with(csrf())
                                 .formField("searchTerm", testSearchForm.searchTerm())
                                 .formField("includeInactive", includeInactiveStr))
                    .andExpect(view().name("search_view"))
@@ -86,6 +88,7 @@ public class SearchControllerTests {
         public void testInvalidSearchFormIsRejected() throws Exception {
             String invalidSearchTerm = "foobar$";
             mockMvc.perform(post("/search")
+                                .with(csrf())
                                 .formField("searchTerm", invalidSearchTerm)
                                 .formField("includeInactive", "true"))
                    .andExpect(view().name("search_view"))

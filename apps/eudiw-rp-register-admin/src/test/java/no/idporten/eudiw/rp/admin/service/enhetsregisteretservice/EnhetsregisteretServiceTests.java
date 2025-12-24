@@ -22,7 +22,7 @@ import org.springframework.test.context.ActiveProfiles;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@ActiveProfiles("local-test")
+@ActiveProfiles("junit")
 @Import(MockWebServerConfiguration.class)
 @DisplayName("When using the Enhetsregisteret service to obtain sector info for orgnos")
 public class EnhetsregisteretServiceTests {

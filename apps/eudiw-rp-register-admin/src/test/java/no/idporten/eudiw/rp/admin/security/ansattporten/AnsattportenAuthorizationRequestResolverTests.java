@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("local-security-test")
+@ActiveProfiles("junit")
 @DisplayName("When resolving authz requests with default config (allowSyntheticReportee = false)")
 public class AnsattportenAuthorizationRequestResolverTests {
 

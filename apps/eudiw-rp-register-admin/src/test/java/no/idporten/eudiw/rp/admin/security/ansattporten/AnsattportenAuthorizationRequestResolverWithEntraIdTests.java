@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("local-security-test")
+@ActiveProfiles("junit")
 @DisplayName("When resolving authz requests with Ansattporten-EntraID enabled")
 @TestPropertySource(properties = {"eudiw-admin-web.security.ansattporten.allow-entra-id=true"})
 public class AnsattportenAuthorizationRequestResolverWithEntraIdTests {

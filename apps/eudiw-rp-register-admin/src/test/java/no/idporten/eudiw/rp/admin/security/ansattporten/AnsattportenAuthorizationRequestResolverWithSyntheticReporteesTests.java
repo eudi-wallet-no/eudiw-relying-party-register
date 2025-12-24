@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 @SpringBootTest(properties = "eudiw-admin-web.security.ansattporten.allow-synthetic-reportee=true")
 @AutoConfigureMockMvc
-@ActiveProfiles("local-security-test")
+@ActiveProfiles("junit")
 @DisplayName("When resolving authz requests with synthetic reportees ENABLED")
 public class AnsattportenAuthorizationRequestResolverWithSyntheticReporteesTests {
 

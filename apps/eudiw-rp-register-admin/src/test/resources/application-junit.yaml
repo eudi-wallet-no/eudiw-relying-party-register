@@ -8,8 +8,5 @@ eudiw-admin-web:
   relying-parties-service:
     register-service-api:
       register-service-base-uri: http://localhost:${TEST_MOCK_WEB_SERVER_PORT}/
-      api-key-value: xxx
   enhetsregisteret-service:
     enhetsregisteret-api-base-uri: http://localhost:${TEST_MOCK_WEB_SERVER_PORT}/
-  security:
-    enabled: false

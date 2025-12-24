@@ -13,7 +13,7 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequ
 import java.util.Map;
 
 @Configuration
-@Profile("local-security-test")
+@Profile("junit")
 public class SecurityTestConfig {
 
     // fallback ClientRegistrationRepository, since no such bean exists if there

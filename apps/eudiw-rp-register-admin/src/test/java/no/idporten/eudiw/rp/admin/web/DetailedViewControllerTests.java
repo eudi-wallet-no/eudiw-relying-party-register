@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
-@ActiveProfiles("local-test")
+@ActiveProfiles("junit")
 @DisplayName("When using the RP detailed view controller")
 @AutoConfigureMockMvc
 @WithMockUser(roles = "ADMIN")
