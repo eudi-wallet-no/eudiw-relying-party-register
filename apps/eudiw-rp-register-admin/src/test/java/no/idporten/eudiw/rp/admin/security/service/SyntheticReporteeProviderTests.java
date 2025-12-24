@@ -20,7 +20,7 @@ import java.util.stream.IntStream;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@ActiveProfiles("local-security-test")
+@ActiveProfiles("junit")
 @DisplayName("When using synthetic reportee providers ...")
 public class SyntheticReporteeProviderTests {
 

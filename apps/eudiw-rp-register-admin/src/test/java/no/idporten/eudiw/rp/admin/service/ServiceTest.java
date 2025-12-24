@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
 @SpringBootTest
-@ActiveProfiles("local-test")
+@ActiveProfiles("junit")
 @Import(MockWebServerConfiguration.class)
 @DisplayName("When using the lookup service directly")
 public class ServiceTest {

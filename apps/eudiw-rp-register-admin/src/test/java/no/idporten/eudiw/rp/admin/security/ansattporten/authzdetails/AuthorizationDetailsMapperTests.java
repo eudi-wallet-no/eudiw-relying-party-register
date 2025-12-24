@@ -15,7 +15,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@ActiveProfiles("local-security-test")
+@ActiveProfiles("junit")
 @DisplayName("When using the authorization_details mapper ...")
 public class AuthorizationDetailsMapperTests {
 
