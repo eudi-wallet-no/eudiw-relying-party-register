@@ -28,7 +28,7 @@
         <bcpkix.version>1.82</bcpkix.version>
         <idporten-audit-log.version>2.5.3</idporten-audit-log.version>
         <spring-security-test.version>7.0.0</spring-security-test.version>
-        <spring-security-oauth2-resource-server.version>6.5.6</spring-security-oauth2-resource-server.version>
+        <spring-security-oauth2-resource-server.version>7.0.2</spring-security-oauth2-resource-server.version>
     </properties>
 
     <dependencies>
