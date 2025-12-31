@@ -25,10 +25,10 @@
             </a>
         </p>
         <div sec:authorize="hasRole('ADMIN')"
-             th:replace="~{fragments/edit_fragments :: make_edit_form_fragment(isAdmin=true)}">
+             th:replace="~{fragments/edit_fragments :: make_admin_edit_form_fragment}">
         </div>
         <div sec:authorize="! hasRole('ADMIN')"
-             th:replace="~{fragments/edit_fragments :: make_edit_form_fragment(isAdmin=false)}">
+             th:replace="~{fragments/edit_fragments :: make_edit_form_fragment}">
         </div>
     </main>
 

@@ -1,187 +1,193 @@
-<form th:fragment="make_edit_form_fragment(isAdmin)"
+<div th:fragment="eaa_fields_fragment"
+     class="ds-card">
+    <fieldset class="ds-fieldset"
+              data-size="sm"
+              style="margin-bottom: 2em;">
+        <legend class="ds-label"
+                data-weight="high">
+            Endre bevistypar
+        </legend>
+
+        <div class="flex-container">
+            <div>
+                <p class="ds-paragraph"
+                   style="margin-bottom: 8px;">
+                    Bevistypar lagt inn
+                </p>
+                <table class="ds-table"
+                       data-border="true"
+                       style="table-layout: fixed; word-wrap: break-word;">
+                    <thead>
+                    <tr>
+                        <th>Bevistype</th>
+                        <th>Føremål</th>
+                        <th style="width: 4em;"></th>
+                    </tr>
+                    </thead>
+                    <tbody id="eaa_container"></tbody>
+                </table>
+            </div>
+
+            <div>
+                <fieldset class="ds-fieldset">
+                    <legend class="ds-legend">
+                        Legg til ny bevistype
+                    </legend>
+                    <div style="margin-bottom: 8px;">
+
+                        <label for="eaa_namespace_field"
+                               class="ds-label">
+                            Bevistype
+                        </label>
+                        <input id="eaa_namespace_field"
+                               type="text"
+                               placeholder="Bevistype ..."
+                               class="ds-input">
+                        <div id="eaa_namespace_error_msg"
+                             th:insert="~{fragments/general ::
+                                            generic_invalid_input_field_error_msg('EAA-namespace')}"
+                             style="display: none;"></div>
+
+                        <label for="eaa_intent_field"
+                               class="ds-label">
+                            Føremål
+                        </label>
+                        <input id="eaa_intent_field"
+                               type="text"
+                               placeholder="Føremål ..."
+                               class="ds-input">
+                        <div id="eaa_intent_error_msg"
+                             th:insert="~{fragments/general ::
+                                            generic_invalid_input_field_error_msg('EAA-intent')}"
+                             style="display: none;"></div>
+                    </div>
+                    <button type="button"
+                            onclick="addEaaOnclick()"
+                            class="ds-button"
+                            data-variant="secondary">
+                        Legg til
+                    </button>
+                </fieldset>
+            </div>
+
+        </div>
+    </fieldset>
+    <script src="/js/dynamic_edit_form_fields.js"></script>
+    <!--/* pre-fill EAA list with values from the RP to be edited */-->
+    <script th:each="eaa : ${editFormAttr.getEaas()}">
+        addEaa("[[${eaa.namespace}]]", "[[${eaa.intent}]]");
+    </script>
+</div>
+
+<th:block th:fragment="shared_general_fields_fragment">
+    <p class="ds-paragraph">
+        <label for="orgno_field"
+               data-weight="medium"
+               class="ds-label">
+            Org.nr.
+        </label>
+        <input disabled
+               id="orgno_field"
+               th:value="${rp.orgno}"
+               class="ds-input">
+    </p>
+
+    <p class="ds-paragraph">
+        <label for="org_name_field"
+               class="ds-label">
+            Organisasjon
+        </label>
+        <input disabled
+               id="org_name_field"
+               th:value="${rp.orgName}"
+               type="text"
+               class="ds-input">
+    </p>
+
+    <p class="ds-paragraph">
+        <label for="trade_name_field"
+               class="ds-label">
+            Tenestenamn
+        </label>
+        <input id="trade_name_field"
+               th:field="*{tradeName}"
+               type="text"
+               placeholder="Tenestenamn"
+               class="ds-input">
+    </p>
+    <ul th:if="${#fields.hasErrors('tradeName')}">
+        <li th:each="error : ${#fields.errors('tradeName')}"
+            th:text="${error}"
+            class="ds-validation-message"></li>
+    </ul>
+
+    <p class="ds-paragraph">
+        <label for="sector_field"
+               class="data-label">
+            Sektor
+        </label>
+        <select disabled
+                id="sector_field"
+                class="ds-input">
+            <option th:text="${rp.publicSector() ? 'Offentleg' : 'Privat'}">
+            </option>
+        </select>
+    </p>
+</th:block>
+
+<form th:fragment="make_edit_form_fragment"
       id="edit_form"
       th:object="${editFormAttr}"
-      th:action="@{|${isAdmin ? '/admin/edit' : '/edit'}/${rp.id}|}"
+      th:action="@{/edit/{id}(id=${rp.id})}"
       method="POST">
     <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
     <!--/*@thymesVar id="editFormAttr" type="no.idporten.eudiw.rp.admin.web.form.admin.AdminEditRelyingPartyForm"*/-->
     <div style="margin-bottom: 8px;">
-    <div class="ds-card">
-        <fieldset class="ds-fieldset"
-                  data-size="sm">
-            <legend class="ds-label"
-                    data-weight="high">
-                Generelt
-            </legend>
+        <div class="ds-card">
+            <fieldset class="ds-fieldset"
+                      data-size="sm">
+                <legend class="ds-label"
+                        data-weight="high">
+                    Generelt
+                </legend>
 
-            <p class="ds-paragraph">
-                <label for="orgno_field"
-                       data-weight="medium"
-                       class="ds-label">
-                    Org.nr.
-                </label>
-                <input disabled
-                       id="orgno_field"
-                       th:value="${rp.orgno}"
-                       class="ds-input">
-            </p>
+                <th:block th:replace="~{:: shared_general_fields_fragment}"></th:block>
 
-            <p class="ds-paragraph">
-                <label for="org_name_field"
-                       class="ds-label">
-                    Organisasjon
-                </label>
-                <input id="org_name_field"
-                       th:value="${rp.orgName}"
-                       type="text"
-                       class="ds-input"
-                       disabled>
-            </p>
+                <p class="ds-paragraph">
+                    <label for="active_field"
+                           class="ds-label">
+                        Aktiv
+                    </label>
+                    <input disabled
+                           id="active_field"
+                           type="checkbox"
+                           th:checked="${rp.active}"
+                           class="ds-input">
+                </p>
+            </fieldset>
+        </div>
 
-            <p class="ds-paragraph">
-                <label for="trade_name_field"
-                       class="ds-label">
-                    Tenestenamn
-                </label>
-                <input id="trade_name_field"
-                       th:field="*{tradeName}"
-                       type="text"
-                       placeholder="Tenestenamn"
-                       class="ds-input">
-            </p>
-            <ul th:if="${#fields.hasErrors('tradeName')}">
-                <li th:each="error : ${#fields.errors('tradeName')}"
-                    th:text="${error}"
-                    class="ds-validation-message"></li>
-            </ul>
+        <div class="ds-card">
+            <fieldset class="ds-fieldset" data-size="sm">
+                <legend class="ds-label"
+                        data-weight="high">
+                    Endre roller for brukarstad
+                </legend>
 
-            <p class="ds-paragraph">
-                <label for="sector_field"
-                       class="data-label">
-                    Sektor
-                </label>
-                <select id="sector_field"
-                        class="ds-input"
-                        disabled>
-                    <option th:text="${rp.publicSector() ? 'Offentleg' : 'Privat'}">
-                    </option>
-                </select>
-            </p>
-
-            <p class="ds-paragraph">
-                <label for="active_field"
-                       class="ds-label">
-                    Aktiv
-                </label>
-                <input id="active_field"
-                       type="checkbox"
-                       th:field="*{active}"
-                       class="ds-input"
-                       th:disabled="${!isAdmin}">
-            </p>
-        </fieldset>
-    </div>
-
-    <div class="ds-card">
-        <fieldset class="ds-fieldset" data-size="sm">
-            <legend class="ds-label"
-                    data-weight="high">
-                Endre roller for brukarstad
-            </legend>
-
-            <div class="ds-field" th:each="e : ${isAdmin ? @relyingPartiesService.getValidEntitlements()
-                                                         : rp.relyingPartyEntitlements()}">
-                <label th:for="|id-${e.entitlement}|" th:text="${e.displayName}"></label>
-                <input th:id="|id-${e.entitlement}|"
-                       type="checkbox"
-                       class="ds-input"
-                       name="entitlements"
-                       th:value="${e.entitlement}"
-                       th:checked="${#lists.contains(editFormAttr.getEntitlementValues(), e.entitlement)}"
-                       th:disabled="${!isAdmin}">
-            </div>
-        </fieldset>
-        <ul th:if="${#fields.hasErrors('entitlements')}">
-            <li th:each="error : ${#fields.errors('entitlements')}"
-                th:text="${error}"
-                class="ds-validation-message"></li>
-        </ul>
-    </div>
-
-    <div class="ds-card">
-        <fieldset class="ds-fieldset"
-                  data-size="sm"
-                  style="margin-bottom: 2em;">
-            <legend class="ds-label"
-                    data-weight="high">
-                Endre bevistypar
-            </legend>
-
-            <div class="flex-container">
-                <div>
-                    <p class="ds-paragraph"
-                       style="margin-bottom: 8px;">
-                        Bevistypar lagt inn
-                    </p>
-                    <table class="ds-table"
-                           data-border="true"
-                           style="table-layout: fixed; word-wrap: break-word;">
-                        <thead>
-                        <tr>
-                            <th>Bevistype</th>
-                            <th>Føremål</th>
-                            <th style="width: 4em;"></th>
-                        </tr>
-                        </thead>
-                        <tbody id="eaa_container"></tbody>
-                    </table>
+                <div class="ds-field" th:each="e : ${rp.relyingPartyEntitlements()}">
+                    <label th:for="|id-${e.entitlement}|" th:text="${e.displayName}"></label>
+                    <input disabled
+                           th:id="|id-${e.entitlement}|"
+                           type="checkbox"
+                           class="ds-input"
+                           th:value="${e.entitlement}"
+                           checked>
                 </div>
+            </fieldset>
+        </div>
 
-                <div>
-                    <fieldset class="ds-fieldset">
-                        <legend class="ds-legend">
-                            Legg til ny bevistype
-                        </legend>
-                        <div style="margin-bottom: 8px;">
+        <div th:replace="~{:: eaa_fields_fragment}"></div>
 
-                            <label for="eaa_namespace_field"
-                                   class="ds-label">
-                                Bevistype
-                            </label>
-                            <input id="eaa_namespace_field"
-                                   type="text"
-                                   placeholder="Bevistype ..."
-                                   class="ds-input">
-                            <div id="eaa_namespace_error_msg"
-                                 th:insert="~{fragments/general ::
-                                                generic_invalid_input_field_error_msg('EAA-namespace')}"
-                                 style="display: none;"></div>
-
-                            <label for="eaa_intent_field"
-                                   class="ds-label">
-                                Føremål
-                            </label>
-                            <input id="eaa_intent_field"
-                                   type="text"
-                                   placeholder="Føremål ..."
-                                   class="ds-input">
-                            <div id="eaa_intent_error_msg"
-                                 th:insert="~{fragments/general ::
-                                                generic_invalid_input_field_error_msg('EAA-intent')}"
-                                 style="display: none;"></div>
-                        </div>
-                        <button type="button"
-                                onclick="addEaaOnclick()"
-                                class="ds-button"
-                                data-variant="secondary">
-                            Legg til
-                        </button>
-                    </fieldset>
-                </div>
-
-            </div>
-        </fieldset>
-    </div>
     </div>
 
     <div class="flex-container">
@@ -200,10 +206,80 @@
             Avbryt
         </a>
     </div>
+</form>
 
-<script src="/js/dynamic_edit_form_fields.js"></script>
-<!--/* pre-fill EAA list with values from the RP to be edited */-->
-<th:block th:each="eaa : ${editFormAttr.getEaas()}">
-    <script>addEaa("[[${eaa.namespace}]]", "[[${eaa.intent}]]");</script>
-</th:block>
+<form th:fragment="make_admin_edit_form_fragment"
+      id="admin_edit_form"
+      th:object="${editFormAttr}"
+      th:action="@{/admin/edit/{id}(id=${rp.id})}"
+      method="POST">
+    <!--/*@thymesVar id="editFormAttr" type="no.idporten.eudiw.rp.admin.web.form.admin.AdminCreateRelyingPartyForm"*/-->
+    <div style="margin-bottom: 8px;">
+        <div class="ds-card">
+            <fieldset class="ds-fieldset"
+                      data-size="sm">
+                <legend class="ds-label"
+                        data-weight="high">
+                    Generelt
+                </legend>
+
+                <th:block th:replace="~{:: shared_general_fields_fragment}"></th:block>
+
+                <p class="ds-paragraph">
+                    <label for="active_field"
+                           class="ds-label">
+                        Aktiv
+                    </label>
+                    <input id="active_field"
+                           type="checkbox"
+                           th:field="*{active}"
+                           class="ds-input">
+
+                </p>
+            </fieldset>
+        </div>
+
+        <div class="ds-card">
+            <fieldset class="ds-fieldset" data-size="sm">
+                <legend class="ds-label"
+                        data-weight="high">
+                    Endre roller for brukarstad
+                </legend>
+
+                <div class="ds-field" th:each="e : ${@relyingPartiesService.getValidEntitlements()}">
+                    <label th:for="|id-${e.entitlement}|" th:text="${e.displayName}"></label>
+                    <input th:id="|id-${e.entitlement}|"
+                           type="checkbox"
+                           class="ds-input"
+                           name="entitlements"
+                           th:value="${e.entitlement}"
+                           th:checked="${#lists.contains(editFormAttr.getEntitlementValues(), e.entitlement)}">
+                </div>
+            </fieldset>
+            <ul th:if="${#fields.hasErrors('entitlements')}">
+                <li th:each="error : ${#fields.errors('entitlements')}"
+                    th:text="${error}"
+                    class="ds-validation-message"></li>
+            </ul>
+        </div>
+
+        <div th:replace="~{:: eaa_fields_fragment}"></div>
+    </div>
+
+    <div class="flex-container">
+        <button type="submit"
+                class="ds-button"
+                data-variant="primary">
+            Lagre endringar
+        </button>
+
+        <a th:href="@{|/details/${rp.id}|}"
+           class="ds-button"
+           type="button"
+           data-variant="secondary"
+           data-color="danger"
+           style="display: flex;">
+            Avbryt
+        </a>
+    </div>
 </form>
