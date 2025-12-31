@@ -1,11 +1,10 @@
-package no.idporten.eudiw.rp.admin.web.form.selfservice;
+package no.idporten.eudiw.rp.admin.web.form;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import no.idporten.eudiw.rp.admin.validation.SaneStringConstraint;
 import no.idporten.eudiw.rp.admin.validation.SaneStringValidator;
-import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEaaFormField;
 import no.idporten.eudiw.rp.admin.web.resource.CreateRelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyEntitlementResource;
 
@@ -16,7 +15,7 @@ import java.util.List;
 @Getter
 @Setter
 @EqualsAndHashCode
-public class SelfServiceCreateRelyingPartyForm {
+public class BaseCreateRelyingPartyForm {
 
     @SaneStringConstraint(message =
         "Ugyldig tenestenamn. Gyldige teikn er: norske bokstavar, tal, mellemrom og symbola "

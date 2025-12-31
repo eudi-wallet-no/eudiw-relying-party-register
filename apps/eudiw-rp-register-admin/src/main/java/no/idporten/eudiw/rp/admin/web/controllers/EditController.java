@@ -4,8 +4,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
-import no.idporten.eudiw.rp.admin.web.form.selfservice.SelfServiceEditRelyingPartyForm;
 import no.idporten.eudiw.rp.admin.web.form.admin.AdminEditRelyingPartyForm;
+import no.idporten.eudiw.rp.admin.web.form.selfservice.SelfServiceEditRelyingPartyForm;
 import no.idporten.eudiw.rp.admin.web.resource.EditRelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.security.UserAuthorityService;
@@ -22,7 +22,6 @@ import org.springframework.web.servlet.ModelAndView;
 
 import java.util.Map;
 import java.util.UUID;
-import java.util.function.Supplier;
 
 @Slf4j
 @Controller
@@ -58,12 +57,17 @@ public class EditController {
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
         userAuthorityService.assertUserHasAccessTo(relyingPartyResource.orgno());
 
-        Supplier<EditRelyingPartyResource> editResourceSupplier = () ->
-            AdminEditRelyingPartyForm.prefillFromRelyingPartyResource(relyingPartyResource)
-                                     .withTradeName(editForm.getTradeName())
-                                     .withEaas(editForm.getEaas())
-                                     .toResource();
-        return doEdit(relyingPartyResource, editFormBindingResult, editResourceSupplier);
+        if (editFormBindingResult.hasErrors()) {
+            return new ModelAndView("edit_form_view",
+                detailedViewDataAttrId, relyingPartyResource);
+        }
+
+        EditRelyingPartyResource editResource =
+            editForm.toResource()
+                    .withRelyingPartyEntitlements(relyingPartyResource.relyingPartyEntitlements())
+                    .withActive(relyingPartyResource.active());
+        relyingPartiesService.edit(relyingPartyResource.id(), editResource);
+        return new ModelAndView("redirect:/details/" + relyingPartyResource.id());
     }
 
     @Audit(auditId = LOMMEBOK_12_EDIT_RP_REQUEST, includeResult = false, includeParameters = false)
@@ -75,20 +79,13 @@ public class EditController {
         @AuditIgnore BindingResult editFormBindingResult) {
 
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
-        return doEdit(relyingPartyResource, editFormBindingResult, editForm::toResource);
-    }
 
-    private ModelAndView doEdit(RelyingPartyResource relyingPartyResource,
-                                BindingResult bindingResult,
-                                Supplier<EditRelyingPartyResource> editResourceSupplier) {
-        ModelAndView mav =
-            new ModelAndView("edit_form_view", Map.of(
-                detailedViewDataAttrId, relyingPartyResource));
-        if (!bindingResult.hasErrors()) {
-            EditRelyingPartyResource editResource = editResourceSupplier.get();
-            relyingPartiesService.edit(relyingPartyResource.id(), editResource);
-            mav.setViewName("redirect:/details/" + relyingPartyResource.id());
+        if (editFormBindingResult.hasErrors()) {
+            return new ModelAndView("edit_form_view",
+                detailedViewDataAttrId, relyingPartyResource);
         }
-        return mav;
+        EditRelyingPartyResource editResource = editForm.toResource();
+        relyingPartiesService.edit(relyingPartyResource.id(), editResource);
+        return new ModelAndView("redirect:/details/" + relyingPartyResource.id());
     }
 }

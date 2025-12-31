@@ -6,6 +6,7 @@ import lombok.*;
 import no.idporten.eudiw.rp.admin.validation.SaneStringConstraint;
 import no.idporten.eudiw.rp.admin.validation.SaneStringValidator;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEaaFormField;
+import no.idporten.eudiw.rp.admin.web.resource.EditRelyingPartyResource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,4 +25,17 @@ public class SelfServiceEditRelyingPartyForm {
 
     @Valid
     private List<RelyingPartyEaaFormField> eaas = new ArrayList<>();
+
+    public EditRelyingPartyResource toResource() {
+        return new EditRelyingPartyResource(
+            this.tradeName,
+            null,
+            this.getEaas()
+                .stream()
+                .filter(RelyingPartyEaaFormField::isSet)
+                .map(RelyingPartyEaaFormField::toResource)
+                .toList(),
+            true
+        );
+    }
 }

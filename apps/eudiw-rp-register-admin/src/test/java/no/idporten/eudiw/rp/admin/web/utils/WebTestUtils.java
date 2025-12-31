@@ -4,7 +4,7 @@ import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEaaFormField;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEntitlementFormField;
 import no.idporten.eudiw.rp.admin.web.form.admin.AdminCreateRelyingPartyForm;
 import no.idporten.eudiw.rp.admin.web.form.admin.AdminEditRelyingPartyForm;
-import no.idporten.eudiw.rp.admin.web.form.selfservice.SelfServiceCreateRelyingPartyForm;
+import no.idporten.eudiw.rp.admin.web.form.BaseCreateRelyingPartyForm;
 import no.idporten.eudiw.rp.admin.web.form.selfservice.SelfServiceEditRelyingPartyForm;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
@@ -57,7 +57,7 @@ public class WebTestUtils {
 
     public static MockHttpServletRequestBuilder withCreateForm(
         MockHttpServletRequestBuilder builder,
-        SelfServiceCreateRelyingPartyForm createForm) {
+        BaseCreateRelyingPartyForm createForm) {
 
         builder = builder.param("tradeName", createForm.getTradeName());
         builder = withEaaFormFields(builder, createForm.getEaas());
