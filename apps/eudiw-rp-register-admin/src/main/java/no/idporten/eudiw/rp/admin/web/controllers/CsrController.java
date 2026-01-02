@@ -27,11 +27,12 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CsrController {
 
-    public static final String detailedViewDataAttrId = SearchController.detailedViewDataAttrId;
-    public static final String csrFormAttrId = "csrFormAttr";
-    public static final String newCertificateAttrId = "newCertificateAttr";
+    public static final String DETAILED_VIEW_DATA_ATTR = SearchController.DETAILED_VIEW_DATA_ATTR;
+    public static final String CSR_FORM_ATTR = "csrFormAttr";
+    public static final String NEW_CERTIFICATE_ATTR = "newCertificateAttr";
 
-    public static final String errorResponseMsgAttrId = "errorResponseMsgAttr";
+    public static final String ERROR_RESPONSE_MSG_ATTR = "errorResponseMsgAttr";
+
     private static final String LOMMEBOK_11_REGISTER_CSR_REQUEST = "LOMMEBOK-11-REGISTER-CSR-REQUEST";
 
     private final RelyingPartiesService relyingPartiesService;
@@ -43,22 +44,22 @@ public class CsrController {
         userAuthorityService.assertUserHasAccessTo(relyingPartyResource.orgno());
 
         return new ModelAndView("access_csr_form_view", Map.of(
-            csrFormAttrId, CsrAccessForm.empty(),
-            detailedViewDataAttrId, relyingPartyResource));
+            CSR_FORM_ATTR, CsrAccessForm.empty(),
+            DETAILED_VIEW_DATA_ATTR, relyingPartyResource));
     }
 
     @Audit(auditId = LOMMEBOK_11_REGISTER_CSR_REQUEST, includeResult = false)
     @PostMapping("/csr/access/{id}")
     public ModelAndView registerAccessCsrPost(
         @PathVariable("id") @Valid UUID id,
-        @AuditIgnore @ModelAttribute(csrFormAttrId) @Valid CsrAccessForm csrAccessForm,
+        @AuditIgnore @ModelAttribute(CSR_FORM_ATTR) @Valid CsrAccessForm csrAccessForm,
         @AuditIgnore BindingResult csrFormBindingResult
     ) {
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
         userAuthorityService.assertUserHasAccessTo(relyingPartyResource.orgno());
 
         ModelAndView mav =
-            new ModelAndView("access_csr_form_view", Map.of(detailedViewDataAttrId, relyingPartyResource));
+            new ModelAndView("access_csr_form_view", Map.of(DETAILED_VIEW_DATA_ATTR, relyingPartyResource));
 
         if (!csrFormBindingResult.hasErrors()) {
             try {
@@ -68,12 +69,12 @@ public class CsrController {
                     relyingPartiesService.requestCertificateForRelyingParty(id, csrResource);
 
                 mav.setViewName("csr_submit_success_view");
-                mav.addObject(newCertificateAttrId, certResource.toSummary());
+                mav.addObject(NEW_CERTIFICATE_ATTR, certResource.toSummary());
                 return mav;
             }
             catch (ErrorResponseException e) {
                 log.info("CSR registration rejected for id={}", id, e);
-                mav.addObject(errorResponseMsgAttrId, "exception.error_response");
+                mav.addObject(ERROR_RESPONSE_MSG_ATTR, "exception.error_response");
             }
         }
 
@@ -86,22 +87,22 @@ public class CsrController {
         userAuthorityService.assertUserHasAccessTo(relyingPartyResource.orgno());
 
         return new ModelAndView("issuer_csr_form_view", Map.of(
-            csrFormAttrId, CsrIssuerForm.empty(),
-            detailedViewDataAttrId, relyingPartyResource));
+            CSR_FORM_ATTR, CsrIssuerForm.empty(),
+            DETAILED_VIEW_DATA_ATTR, relyingPartyResource));
     }
 
     @Audit(auditId = LOMMEBOK_11_REGISTER_CSR_REQUEST, includeResult = false)
     @PostMapping("/csr/issuer/{id}")
     public ModelAndView registerIssuerCsrPost(
         @PathVariable("id") @Valid UUID id,
-        @AuditIgnore @ModelAttribute(csrFormAttrId) @Valid CsrIssuerForm csrIssuerForm,
+        @AuditIgnore @ModelAttribute(CSR_FORM_ATTR) @Valid CsrIssuerForm csrIssuerForm,
         @AuditIgnore BindingResult csrFormBindingResult
     ) {
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
         userAuthorityService.assertUserHasAccessTo(relyingPartyResource.orgno());
 
         ModelAndView mav =
-            new ModelAndView("issuer_csr_form_view", Map.of(detailedViewDataAttrId, relyingPartyResource));
+            new ModelAndView("issuer_csr_form_view", Map.of(DETAILED_VIEW_DATA_ATTR, relyingPartyResource));
 
         if (!csrFormBindingResult.hasErrors()) {
             try {
@@ -110,12 +111,12 @@ public class CsrController {
                     relyingPartiesService.requestIssuerCertificateForEntitlement(id, csrResource);
 
                 mav.setViewName("csr_issuer_submit_success_view");
-                mav.addObject(newCertificateAttrId, certResource.toSummary());
+                mav.addObject(NEW_CERTIFICATE_ATTR, certResource.toSummary());
                 return mav;
             }
             catch (ErrorResponseException e) {
                 log.info("CSR registration rejected for id={}", id, e);
-                mav.addObject(errorResponseMsgAttrId, "exception.error_response");
+                mav.addObject(ERROR_RESPONSE_MSG_ATTR, "exception.error_response");
             }
         }
 

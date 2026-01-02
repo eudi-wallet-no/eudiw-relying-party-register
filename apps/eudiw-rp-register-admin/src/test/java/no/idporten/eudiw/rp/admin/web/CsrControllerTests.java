@@ -62,8 +62,8 @@ public class CsrControllerTests {
                    .andExpectAll(
                        status().isOk(),
                        view().name("access_csr_form_view"),
-                       model().attribute(SearchController.detailedViewDataAttrId, rpResource),
-                       model().attribute(CsrController.csrFormAttrId, CsrAccessForm.empty()));
+                       model().attribute(SearchController.DETAILED_VIEW_DATA_ATTR, rpResource),
+                       model().attribute(CsrController.CSR_FORM_ATTR, CsrAccessForm.empty()));
 
             verify(mockRpService, times(1)).get(eq(id));
         }
@@ -99,7 +99,7 @@ public class CsrControllerTests {
                    .andExpectAll(
                        status().isOk(),
                        view().name("csr_submit_success_view"),
-                       model().attribute(CsrController.newCertificateAttrId, dummyCertResource.toSummary()));
+                       model().attribute(CsrController.NEW_CERTIFICATE_ATTR, dummyCertResource.toSummary()));
 
             verify(mockRpService).get(eq(id));
             verify(mockRpService).requestCertificateForRelyingParty(eq(id), eq(csrResource));
@@ -124,7 +124,7 @@ public class CsrControllerTests {
                        status().isOk(),
                        view().name("access_csr_form_view"),
                        model().hasErrors(),
-                       model().attributeHasFieldErrors(CsrController.csrFormAttrId, "csrField"));
+                       model().attributeHasFieldErrors(CsrController.CSR_FORM_ATTR, "csrField"));
         }
 
         @Test
@@ -147,7 +147,7 @@ public class CsrControllerTests {
                 .andExpectAll(
                     status().isOk(),
                     view().name("access_csr_form_view"),
-                    model().attributeExists(CsrController.errorResponseMsgAttrId));
+                    model().attributeExists(CsrController.ERROR_RESPONSE_MSG_ATTR));
         }
     }
 }

@@ -5,7 +5,6 @@ import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.admin.web.controllers.DetailedViewController;
 import no.idporten.eudiw.rp.admin.web.resource.*;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificateResource;
-import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificatesResource;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -17,7 +16,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.Mockito.*;
@@ -65,9 +63,9 @@ public class DetailedViewControllerTests {
             mockMvc.perform(get("/details/" + id))
                    .andExpect(status().isOk())
                    .andExpect(view().name("details_view"))
-                   .andExpect(model().attribute(DetailedViewController.detailedViewDataAttrId, rpResource))
-                   .andExpect(model().attribute(DetailedViewController.certificateSummariesAttrId, expectedAccessCerts))
-                   .andExpect(model().attribute(DetailedViewController.issuerSummariesAttrId, expectedIssuerCerts));
+                   .andExpect(model().attribute(DetailedViewController.DETAILED_VIEW_DATA_ATTR, rpResource))
+                   .andExpect(model().attribute(DetailedViewController.ACCESS_CERTIFICATE_SUMMARIES_ATTR, expectedAccessCerts))
+                   .andExpect(model().attribute(DetailedViewController.ISSUER_CERTIFICATE_SUMMARIES_ATTR, expectedIssuerCerts));
 
             verify(mockRpService).get(eq(id));
         }

@@ -22,9 +22,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class SearchController {
 
-    public static final String searchFormAttrId = "searchFormAttr";
-    public static final String detailedViewDataAttrId = "detailedViewDataAttr";
-    public static final String resultsPageAttrId = "resultsPageAttr";
+    public static final String SEARCH_FORM_ATTR = "searchFormAttr";
+    public static final String DETAILED_VIEW_DATA_ATTR = "detailedViewDataAttr";
+    public static final String RESULTS_PAGE_ATTR = "resultsPageAttr";
 
     private final SearchSession searchSession;
 
@@ -39,20 +39,20 @@ public class SearchController {
 
         List<RelyingPartyResource> resultsPage = searchSession.refreshSearch();
         return new ModelAndView("search_view", Map.of(
-            resultsPageAttrId, resultsPage,
-            searchFormAttrId, searchSession.getLastSearchForm()));
+            RESULTS_PAGE_ATTR, resultsPage,
+            SEARCH_FORM_ATTR, searchSession.getLastSearchForm()));
     }
 
     @PostMapping("/search")
     @PreAuthorize("hasRole('ADMIN')")
     public ModelAndView searchPost(
-        @ModelAttribute(searchFormAttrId) @Valid SearchForm searchForm,
+        @ModelAttribute(SEARCH_FORM_ATTR) @Valid SearchForm searchForm,
         BindingResult bindingResult) {
 
-        ModelAndView mav = new ModelAndView("search_view", searchFormAttrId, searchForm);
+        ModelAndView mav = new ModelAndView("search_view", SEARCH_FORM_ATTR, searchForm);
         if (!bindingResult.hasErrors()) {
             List<RelyingPartyResource> resultsPage = searchSession.doFreshSearch(searchForm);
-            mav.addObject(resultsPageAttrId, resultsPage);
+            mav.addObject(RESULTS_PAGE_ATTR, resultsPage);
         }
         return mav;
     }

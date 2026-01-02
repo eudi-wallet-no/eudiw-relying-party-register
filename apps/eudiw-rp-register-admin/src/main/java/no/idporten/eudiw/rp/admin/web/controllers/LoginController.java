@@ -10,13 +10,13 @@ import org.springframework.web.servlet.ModelAndView;
 @Controller
 public class LoginController {
 
-    public static final String authenticationErrorCodeAttrId = "authnErrorCodeAttr";
+    public static final String AUTHENTICATION_ERROR_CODE_ATTR = "authnErrorCodeAttr";
 
     @GetMapping("/login")
     public ModelAndView loginGet(@RequestParam(value = "error", required = false) String errorCode) {
         ModelAndView mav = new ModelAndView("login_view");
         if (errorCode != null) {
-            mav.addObject(authenticationErrorCodeAttrId, errorCode);
+            mav.addObject(AUTHENTICATION_ERROR_CODE_ATTR, errorCode);
         }
         return mav;
     }

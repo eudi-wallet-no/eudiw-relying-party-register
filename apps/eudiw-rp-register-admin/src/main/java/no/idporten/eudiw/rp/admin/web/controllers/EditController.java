@@ -28,8 +28,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class EditController {
 
-    public static final String detailedViewDataAttrId = SearchController.detailedViewDataAttrId;
-    public static final String editFormAttrId = "editFormAttr";
+    public static final String DETAILED_VIEW_DATA_ATTR = SearchController.DETAILED_VIEW_DATA_ATTR;
+    public static final String EDIT_FORM_ATTR = "editFormAttr";
+
     private static final String LOMMEBOK_12_EDIT_RP_REQUEST = "LOMMEBOK-12-EDIT-RP-REQUEST";
 
     private final RelyingPartiesService relyingPartiesService;
@@ -44,22 +45,22 @@ public class EditController {
             AdminEditRelyingPartyForm.prefillFromRelyingPartyResource(relyingPartyResource);
 
         return new ModelAndView("edit_form_view", Map.of(
-            editFormAttrId, editForm,
-            detailedViewDataAttrId, relyingPartyResource));
+            EDIT_FORM_ATTR, editForm,
+            DETAILED_VIEW_DATA_ATTR, relyingPartyResource));
     }
 
     @Audit(auditId = LOMMEBOK_12_EDIT_RP_REQUEST, includeResult = false, includeParameters = false)
     @PostMapping("/edit/{id}")
     public ModelAndView editPost(
         @PathVariable("id") UUID id,
-        @ModelAttribute(editFormAttrId) @Valid SelfServiceEditRelyingPartyForm editForm,
+        @ModelAttribute(EDIT_FORM_ATTR) @Valid SelfServiceEditRelyingPartyForm editForm,
         @AuditIgnore BindingResult editFormBindingResult) {
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
         userAuthorityService.assertUserHasAccessTo(relyingPartyResource.orgno());
 
         if (editFormBindingResult.hasErrors()) {
             return new ModelAndView("edit_form_view",
-                detailedViewDataAttrId, relyingPartyResource);
+                DETAILED_VIEW_DATA_ATTR, relyingPartyResource);
         }
 
         EditRelyingPartyResource editResource =
@@ -75,14 +76,14 @@ public class EditController {
     @PreAuthorize("hasRole('ADMIN')")
     public ModelAndView adminEditPost(
         @PathVariable("id") UUID id,
-        @ModelAttribute(editFormAttrId) @Valid AdminEditRelyingPartyForm editForm,
+        @ModelAttribute(EDIT_FORM_ATTR) @Valid AdminEditRelyingPartyForm editForm,
         @AuditIgnore BindingResult editFormBindingResult) {
 
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
 
         if (editFormBindingResult.hasErrors()) {
             return new ModelAndView("edit_form_view",
-                detailedViewDataAttrId, relyingPartyResource);
+                DETAILED_VIEW_DATA_ATTR, relyingPartyResource);
         }
         EditRelyingPartyResource editResource = editForm.toResource();
         relyingPartiesService.edit(relyingPartyResource.id(), editResource);
