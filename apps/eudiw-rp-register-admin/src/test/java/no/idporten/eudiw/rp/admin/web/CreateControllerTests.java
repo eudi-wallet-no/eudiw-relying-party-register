@@ -51,7 +51,7 @@ public class CreateControllerTests {
                 .andExpectAll(
                     status().isOk(),
                     view().name("create_form_view"),
-                    model().attribute(CreateController.createFormAttrId, createForm));
+                    model().attribute(CreateController.CREATE_FORM_ATTR, createForm));
         }
     }
 

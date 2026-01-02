@@ -27,8 +27,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CreateController {
 
-    public static final String createFormAttrId = "createFormAttr";
-    public static final String reporteeAuthorityAttrId = "reporteeAuthorityAttr";
+    public static final String CREATE_FORM_ATTR = "createFormAttr";
+    public static final String REPORTEE_AUTHORITY_ATTR = "reporteeAuthorityAttr";
 
     private static final String LOMMEBOK_10_CREATE_RP_REQUEST = "LOMMEBOK-10-CREATE-RP-REQUEST";
 
@@ -39,26 +39,26 @@ public class CreateController {
     public ModelAndView createGet() {
         if (userAuthorityService.userHasAdminAuthority()) {
             return new ModelAndView("create_form_view",
-                createFormAttrId, new AdminCreateRelyingPartyForm());
+                CREATE_FORM_ATTR, new AdminCreateRelyingPartyForm());
         }
 
         // if user does not have admin authority, they must have a reportee authority.
         ReporteeAuthority reportee = userAuthorityService.getReporteeAuthority();
         return new ModelAndView("create_form_view", Map.of(
-            createFormAttrId, new BaseCreateRelyingPartyForm(),
-            reporteeAuthorityAttrId, reportee));
+            CREATE_FORM_ATTR, new BaseCreateRelyingPartyForm(),
+            REPORTEE_AUTHORITY_ATTR, reportee));
     }
 
     @Audit(auditId = LOMMEBOK_10_CREATE_RP_REQUEST, includeResult = false, includeParameters = false)
     @PostMapping("/create")
     public ModelAndView selfServiceCreatePost(
-        @ModelAttribute(createFormAttrId) @Valid BaseCreateRelyingPartyForm createForm,
+        @ModelAttribute(CREATE_FORM_ATTR) @Valid BaseCreateRelyingPartyForm createForm,
         @AuditIgnore BindingResult createFormBindingResult) {
         ReporteeAuthority reportee = userAuthorityService.getReporteeAuthority();
         if (createFormBindingResult.hasErrors()) {
             return new ModelAndView("create_form_view", Map.of(
-                createFormAttrId, createForm,
-                reporteeAuthorityAttrId, reportee));
+                CREATE_FORM_ATTR, createForm,
+                REPORTEE_AUTHORITY_ATTR, reportee));
         }
 
         CreateRelyingPartyResource createResource = createForm.toResource(reportee.orgno());
@@ -70,10 +70,10 @@ public class CreateController {
     @PostMapping("/admin/create")
     @PreAuthorize("hasRole('ADMIN')")
     public ModelAndView adminCreatePost(
-        @ModelAttribute(createFormAttrId) @Valid AdminCreateRelyingPartyForm createForm,
+        @ModelAttribute(CREATE_FORM_ATTR) @Valid AdminCreateRelyingPartyForm createForm,
         @AuditIgnore BindingResult createFormBindingResult) {
         if (createFormBindingResult.hasErrors()) {
-            return new ModelAndView("create_form_view", createFormAttrId, createForm);
+            return new ModelAndView("create_form_view", CREATE_FORM_ATTR, createForm);
         }
 
         CreateRelyingPartyResource createResource = createForm.toResource();

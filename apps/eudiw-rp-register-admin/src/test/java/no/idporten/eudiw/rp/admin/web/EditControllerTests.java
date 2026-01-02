@@ -5,7 +5,6 @@ import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.admin.web.controllers.EditController;
 import no.idporten.eudiw.rp.admin.web.form.admin.AdminEditRelyingPartyForm;
 import no.idporten.eudiw.rp.admin.web.resource.EditRelyingPartyResource;
-import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyEntitlementResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.utils.WebTestUtils;
 import org.junit.jupiter.api.DisplayName;
@@ -58,8 +57,8 @@ public class EditControllerTests {
             mockMvc.perform(get("/edit/%s".formatted(id)))
                 .andExpect(status().isOk())
                 .andExpect(view().name("edit_form_view"))
-                .andExpect(model().attribute(EditController.editFormAttrId, expectedEditForm))
-                .andExpect(model().attribute(EditController.detailedViewDataAttrId, rpResource));
+                .andExpect(model().attribute(EditController.EDIT_FORM_ATTR, expectedEditForm))
+                .andExpect(model().attribute(EditController.DETAILED_VIEW_DATA_ATTR, rpResource));
 
             verify(mockRpService).get(eq(id));
         }
@@ -103,15 +102,15 @@ public class EditControllerTests {
             var request = post("/admin/edit/%s".formatted(id)).with(csrf());
             mockMvc.perform(WebTestUtils.withEditForm(request, editForm))
                    // assert edit form invalid (should only have error in the name field)
-                   .andExpect(model().attributeHasFieldErrors(EditController.editFormAttrId, "tradeName"))
-                   .andExpect(model().attributeErrorCount(EditController.editFormAttrId, 1))
+                   .andExpect(model().attributeHasFieldErrors(EditController.EDIT_FORM_ATTR, "tradeName"))
+                   .andExpect(model().attributeErrorCount(EditController.EDIT_FORM_ATTR, 1))
 
                    // assert that view returns to edit form, for the given RP and
                    // with the unsubmitted form data.
                    .andExpect(status().isOk())
                    .andExpect(view().name("edit_form_view"))
-                   .andExpect(model().attribute(EditController.detailedViewDataAttrId, rpResource))
-                   .andExpect(model().attribute(EditController.editFormAttrId, editForm));
+                   .andExpect(model().attribute(EditController.DETAILED_VIEW_DATA_ATTR, rpResource))
+                   .andExpect(model().attribute(EditController.EDIT_FORM_ATTR, editForm));
 
             verify(mockRpService).get(id);
         }

@@ -21,9 +21,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class DetailedViewController {
 
-    public static final String detailedViewDataAttrId = SearchController.detailedViewDataAttrId;
-    public static final String certificateSummariesAttrId = "certificateSummariesAttr";
-    public static final String issuerSummariesAttrId = "issuerSummariesAttr";
+    public static final String DETAILED_VIEW_DATA_ATTR = SearchController.DETAILED_VIEW_DATA_ATTR;
+    public static final String ACCESS_CERTIFICATE_SUMMARIES_ATTR = "accessCertificateSummariesAttr";
+    public static final String ISSUER_CERTIFICATE_SUMMARIES_ATTR = "issuerCertificateSummariesAttr";
 
     private final RelyingPartiesService relyingPartiesService;
     private final UserAuthorityService userAuthorityService;
@@ -51,9 +51,9 @@ public class DetailedViewController {
                                 .toList();
 
         return new ModelAndView("details_view", Map.of(
-            detailedViewDataAttrId, relyingPartyResource,
-            certificateSummariesAttrId, accessCertificates,
-            issuerSummariesAttrId, issuerCertificates)
+            DETAILED_VIEW_DATA_ATTR, relyingPartyResource,
+            ACCESS_CERTIFICATE_SUMMARIES_ATTR, accessCertificates,
+            ISSUER_CERTIFICATE_SUMMARIES_ATTR, issuerCertificates)
         );
     }
 }

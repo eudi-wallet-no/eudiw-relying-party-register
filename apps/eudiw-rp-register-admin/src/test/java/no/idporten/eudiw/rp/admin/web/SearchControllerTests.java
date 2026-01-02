@@ -61,7 +61,7 @@ public class SearchControllerTests {
                     .formField("searchTerm", SearchForm.empty().searchTerm())
                     .formField("includeInactive", Boolean.toString(SearchForm.empty().includeInactive())))
                 .andExpect(view().name("search_view"))
-                .andExpect(model().attribute(SearchController.searchFormAttrId, SearchForm.empty()));
+                .andExpect(model().attribute(SearchController.SEARCH_FORM_ATTR, SearchForm.empty()));
 
             SearchRelyingPartyResource expectedSearchResource =
                 new SearchRelyingPartyResource(SearchForm.empty());
@@ -78,7 +78,7 @@ public class SearchControllerTests {
                                 .formField("searchTerm", testSearchForm.searchTerm())
                                 .formField("includeInactive", includeInactiveStr))
                    .andExpect(view().name("search_view"))
-                   .andExpect(model().attribute(SearchController.searchFormAttrId, testSearchForm));
+                   .andExpect(model().attribute(SearchController.SEARCH_FORM_ATTR, testSearchForm));
             SearchRelyingPartyResource expectedSearchResource =
                 new SearchRelyingPartyResource(testSearchForm);
             verify(mockRpService).search(eq(expectedSearchResource));
@@ -92,7 +92,7 @@ public class SearchControllerTests {
                                 .formField("searchTerm", invalidSearchTerm)
                                 .formField("includeInactive", "true"))
                    .andExpect(view().name("search_view"))
-                   .andExpect(model().attributeHasFieldErrors(SearchController.searchFormAttrId, "searchTerm"));
+                   .andExpect(model().attributeHasFieldErrors(SearchController.SEARCH_FORM_ATTR, "searchTerm"));
 
             verify(mockRpService, times(0)).search(any());
         }
