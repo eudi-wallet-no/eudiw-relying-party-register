@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import no.eudiw.rp.register.validation.SaneStringConstraint;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @AllArgsConstructor
@@ -32,7 +33,7 @@ public class SearchRelyingPartyResource {
 
     @JsonProperty(value = "required_entitlements")
     @NotNull
-    private List<RelyingPartyEntitlementResource> requiredEntitlements = List.of();
+    private List<String> requiredEntitlements = new ArrayList<>();
 
     @JsonProperty(value = "page")
     @Min(value = 0, message = "invalid_page_index")
