@@ -109,11 +109,12 @@ class EntitlementServiceTest {
     class FindAll {
 
         @Test
-        @DisplayName("returns converted list of active entitlements")
-        void returnsActiveConverted() {
+        @DisplayName("with includeInactive=false returns converted list of active entitlements")
+        void findAllEntitlementsWithIncludeInactiveFalseReturnsOnlyActiveEntitlements() {
             List<Entitlement> active = List.of(
                 new Entitlement("entitlement1", true, "entitlement1", "access"),
-                new Entitlement("entitlement2", true, "entitlement2", "access")
+                new Entitlement("entitlement2", true, "entitlement2", "access"),
+                new Entitlement("inactive-entitlement", false, "inactive-entitlement", "access")
             );
             when(repository.findAllByActive(true)).thenReturn(active);
 
@@ -126,7 +127,7 @@ class EntitlementServiceTest {
 
             when(converter.toEntitlementsResource(active)).thenReturn(expected);
 
-            EntitlementsResource result = service.findAllActive();
+            EntitlementsResource result = service.findAllEntitlements(false);
 
             verify(repository).findAllByActive(true);
             verify(converter).toEntitlementsResource(active);
@@ -134,6 +135,35 @@ class EntitlementServiceTest {
             assertThat(result.entitlements())
                 .extracting(EntitlementResource::entitlement)
                 .containsExactlyInAnyOrder("entitlement1", "entitlement2");
+            assertThat(result.entitlements()).allMatch(EntitlementResource::active);
+        }
+
+        @Test
+        @DisplayName("with includeInactive=true returns converted list of all entitlements")
+        void findAllEntitlementsWithIncludeInactiveTrueReturnsAllEntitlements() {
+            List<Entitlement> entitlements = List.of(
+                new Entitlement("entitlement1", true, "entitlement1", "access"),
+                new Entitlement("entitlement2", true, "entitlement2", "access"),
+                new Entitlement("inactive-entitlement", false, "inactive-entitlement", "access")
+            );
+            when(repository.findAll()).thenReturn(entitlements);
+
+            EntitlementsResource expected = new EntitlementsResource(
+                List.of(
+                    new EntitlementResource(UUID.randomUUID(), "entitlement1", true, "entitlement1", "access"),
+                    new EntitlementResource(UUID.randomUUID(), "entitlement2", true, "entitlement2", "access"),
+                    new EntitlementResource(UUID.randomUUID(), "inactive-entitlement", false, "inactive-entitlement", "access")
+                )
+            );
+
+            when(converter.toEntitlementsResource(entitlements)).thenReturn(expected);
+
+            EntitlementsResource result = service.findAllEntitlements(true);
+
+            verify(repository).findAll();
+            verify(converter).toEntitlementsResource(entitlements);
+            assertThat(result.entitlements()).hasSize(3);
+            assertThat(result.entitlements()).containsAll(expected.entitlements());
         }
     }
 

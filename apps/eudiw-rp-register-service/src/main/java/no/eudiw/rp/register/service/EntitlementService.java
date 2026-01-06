@@ -11,6 +11,8 @@ import no.eudiw.rp.register.service.exception.BadRequestException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 @Service
 public class EntitlementService {
@@ -34,13 +36,12 @@ public class EntitlementService {
     }
 
     @Transactional(readOnly = true)
-    public EntitlementsResource findAllActive() {
-        return converter.toEntitlementsResource(entitlementRepository.findAllByActive(true));
-    }
-
-    @Transactional(readOnly = true)
-    public EntitlementsResource findAllEntitlements() {
-        return converter.toEntitlementsResource(entitlementRepository.findAll());
+    public EntitlementsResource findAllEntitlements(boolean includeInactive) {
+        List<Entitlement> entitlements =
+            includeInactive
+                ? entitlementRepository.findAll()
+                : entitlementRepository.findAllByActive(true);
+        return converter.toEntitlementsResource(entitlements);
     }
 
     @Transactional
