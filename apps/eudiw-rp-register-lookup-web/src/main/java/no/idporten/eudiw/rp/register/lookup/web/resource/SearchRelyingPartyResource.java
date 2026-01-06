@@ -6,9 +6,9 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.Accessors;
 import no.idporten.eudiw.rp.register.lookup.web.search.resultsview.RelyingPartyOrdering;
-import no.idporten.eudiw.rp.register.lookup.web.form.RelyingPartyEntitlementFormField;
 import no.idporten.eudiw.rp.register.lookup.web.form.SearchForm;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -30,7 +30,7 @@ public class SearchRelyingPartyResource {
 
     @JsonProperty("required_entitlements")
     @NotNull
-    private List<RelyingPartyEntitlementResource> requiredEntitlements = List.of();
+    private List<String> requiredEntitlements = new ArrayList<>();
 
     @JsonProperty(value = "page")
     private int page = 0;
@@ -46,10 +46,6 @@ public class SearchRelyingPartyResource {
         this();
         this.searchTerm = searchForm.getSearchTerm();
         this.hideSyntheticOrgnos = searchForm.isHideSyntheticOrgnos();
-        this.requiredEntitlements =
-            searchForm.getRequiredEntitlements()
-                      .stream()
-                      .map(RelyingPartyEntitlementFormField::toResource)
-                      .toList();
+        this.requiredEntitlements = searchForm.getRequiredEntitlements();
     }
 }

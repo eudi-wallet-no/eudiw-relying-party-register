@@ -53,7 +53,7 @@
                        class="ds-input"
                        name="requiredEntitlements"
                        th:value="${e.entitlement}"
-                       th:checked="${#lists.contains(searchFormAttr.requiredEntitlementValues(), e.entitlement)}">
+                       th:checked="${#lists.contains(searchFormAttr.getRequiredEntitlements(), e.entitlement)}">
             </div>
         </fieldset>
     </details>

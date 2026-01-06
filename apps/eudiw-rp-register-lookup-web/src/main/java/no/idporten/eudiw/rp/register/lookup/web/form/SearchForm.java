@@ -32,17 +32,9 @@ public class SearchForm {
     }
 
     @NotNull
-    private List<RelyingPartyEntitlementFormField> requiredEntitlements = new ArrayList<>();
+    private List<String> requiredEntitlements = new ArrayList<>();
 
     public static SearchForm empty() {
         return new SearchForm();
-    }
-
-
-    public List<String> requiredEntitlementValues() {
-        return requiredEntitlements
-                .stream()
-                .map(RelyingPartyEntitlementFormField::getEntitlement)
-                .toList();
     }
 }
