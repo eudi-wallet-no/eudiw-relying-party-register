@@ -82,4 +82,8 @@ public class TestDataGenerator {
         Collections.shuffle(copy);
         return copy.subList(0, n);
     }
+
+    public static String generateIssuerUrl() {
+        return "https://%s.net".formatted(generateName());
+    }
 }

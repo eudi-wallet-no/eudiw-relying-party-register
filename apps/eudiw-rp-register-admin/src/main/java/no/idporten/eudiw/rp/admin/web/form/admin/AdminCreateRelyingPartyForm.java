@@ -46,6 +46,7 @@ public class AdminCreateRelyingPartyForm {
             this.tradeName,
             this.getEntitlements()
                 .stream()
+                .filter(RelyingPartyEntitlementFormField::isSet)
                 .map(RelyingPartyEntitlementFormField::toResource)
                 .toList(),
             this.getEaas()
