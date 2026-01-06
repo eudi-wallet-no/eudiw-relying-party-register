@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import no.eudiw.rp.register.api.RegisterServiceApiSwaggerExamples;
 import no.eudiw.rp.register.api.resource.entitlements.CreateEntitlementResource;
@@ -83,7 +84,7 @@ public class EntitlementController {
     @Audit(auditId = ENTITLEMENT_UPDATED)
     @PutMapping(path = "/{entitlement}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<EntitlementResource> editEntitlement(
-        @PathVariable("entitlement") String entitlement,
+        @PathVariable("entitlement") @NotBlank String entitlement,
         @Valid @RequestBody EditEntitlementResource request)
     {
         return ResponseEntity.ofNullable(entitlementService.editEntitlement(entitlement, request.active()));
@@ -98,7 +99,8 @@ public class EntitlementController {
     })
     @Audit(auditId = ENTITLEMENTS_RETRIEVED)
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<EntitlementsResource> getAllEntitlements() {
-        return ResponseEntity.ok(entitlementService.findAllEntitlements());
+    public ResponseEntity<EntitlementsResource> getAllEntitlements(
+        @RequestParam(value = "includeInactive", defaultValue = "false") boolean includeInactive) {
+        return ResponseEntity.ok(entitlementService.findAllEntitlements(includeInactive));
     }
 }
