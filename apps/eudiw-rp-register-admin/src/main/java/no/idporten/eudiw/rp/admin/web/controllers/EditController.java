@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.web.form.admin.AdminEditRelyingPartyForm;
-import no.idporten.eudiw.rp.admin.web.form.selfservice.SelfServiceEditRelyingPartyForm;
+import no.idporten.eudiw.rp.admin.web.form.BaseEditRelyingPartyForm;
 import no.idporten.eudiw.rp.admin.web.resource.EditRelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.security.UserAuthorityService;
@@ -53,7 +53,7 @@ public class EditController {
     @PostMapping("/edit/{id}")
     public ModelAndView editPost(
         @PathVariable("id") UUID id,
-        @ModelAttribute(EDIT_FORM_ATTR) @Valid SelfServiceEditRelyingPartyForm editForm,
+        @ModelAttribute(EDIT_FORM_ATTR) @Valid BaseEditRelyingPartyForm editForm,
         @AuditIgnore BindingResult editFormBindingResult) {
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
         userAuthorityService.assertUserHasAccessTo(relyingPartyResource.orgno());

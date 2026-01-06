@@ -11,21 +11,14 @@ import java.util.*;
 
 public class ResourceGenerator extends TestDataGenerator {
 
-    // private static final String CREDENTIAL_ISSUER_URL = "https://utsteder.test.eidas2sandkasse.net/.well-known/openid-credential-issuer";
-    // NOTE: null for the time being, since credential issuer URLs have not been
-    // added to create/edit forms yet.
-    private static final String CREDENTIAL_ISSUER_URL = null;
-
     public static List<RelyingPartyEntitlementResource> sampleRelyingPartyEntitlementResources() {
         return sampleEntitlements(rng.nextInt(1, 4))
             .stream()
-            .map(e -> new RelyingPartyEntitlementResource(e, e, CREDENTIAL_ISSUER_URL))
+            .map(e -> {
+                boolean hasIssuerUrl = Entitlements.isIssuerEntitlement(e) && rng.nextFloat() >= 0.3;
+                return new RelyingPartyEntitlementResource(e, e, hasIssuerUrl ? generateIssuerUrl() : null);
+            })
             .toList();
-    }
-
-    public static RelyingPartyEntitlementResource generateRelyingPartyEntitlementResource() {
-        String e = EXAMPLE_ENTITLEMENTS.get(rng.nextInt(0, EXAMPLE_ENTITLEMENTS.size()));
-        return new RelyingPartyEntitlementResource(e);
     }
 
     public static RelyingPartyEaaResource generateRelyingPartyEaaResource() {

@@ -246,12 +246,12 @@
                     Endre roller for brukarstad
                 </legend>
 
-                <div class="ds-field" th:each="e : ${@relyingPartiesService.getValidEntitlements()}">
+                <div class="ds-field" th:each="e, iter : ${@relyingPartiesService.getValidEntitlements()}">
                     <label th:for="|id-${e.entitlement}|" th:text="${e.displayName}"></label>
                     <input th:id="|id-${e.entitlement}|"
                            type="checkbox"
                            class="ds-input"
-                           name="entitlements"
+                           th:name="|entitlements[${iter.index}].entitlement|"
                            th:value="${e.entitlement}"
                            th:checked="${#lists.contains(editFormAttr.getEntitlementValues(), e.entitlement)}">
                 </div>

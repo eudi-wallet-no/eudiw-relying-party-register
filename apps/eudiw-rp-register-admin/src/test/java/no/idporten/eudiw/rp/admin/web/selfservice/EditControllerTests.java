@@ -6,7 +6,7 @@ import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.admin.testdata.TestDataGenerator;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEaaFormField;
 import no.idporten.eudiw.rp.admin.web.form.admin.AdminEditRelyingPartyForm;
-import no.idporten.eudiw.rp.admin.web.form.selfservice.SelfServiceEditRelyingPartyForm;
+import no.idporten.eudiw.rp.admin.web.form.BaseEditRelyingPartyForm;
 import no.idporten.eudiw.rp.admin.web.resource.EditRelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.utils.WebTestUtils;
@@ -88,7 +88,7 @@ public class EditControllerTests {
             UUID id = rpResource.id();
             when(mockRpService.get(id)).thenReturn(rpResource);
 
-            SelfServiceEditRelyingPartyForm editForm = new SelfServiceEditRelyingPartyForm();
+            BaseEditRelyingPartyForm editForm = new BaseEditRelyingPartyForm();
             editForm.setTradeName(rpResource.tradeName());
             editForm.setEaas(rpResource.relyingPartyEaas().stream().map(RelyingPartyEaaFormField::fromResource).toList());
 

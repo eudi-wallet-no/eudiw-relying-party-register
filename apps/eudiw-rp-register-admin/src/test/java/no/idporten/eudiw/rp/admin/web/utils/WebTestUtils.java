@@ -5,7 +5,7 @@ import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEntitlementFormField;
 import no.idporten.eudiw.rp.admin.web.form.admin.AdminCreateRelyingPartyForm;
 import no.idporten.eudiw.rp.admin.web.form.admin.AdminEditRelyingPartyForm;
 import no.idporten.eudiw.rp.admin.web.form.BaseCreateRelyingPartyForm;
-import no.idporten.eudiw.rp.admin.web.form.selfservice.SelfServiceEditRelyingPartyForm;
+import no.idporten.eudiw.rp.admin.web.form.BaseEditRelyingPartyForm;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import java.util.List;
@@ -15,8 +15,13 @@ public class WebTestUtils {
     public static MockHttpServletRequestBuilder withEntitlementFormFields(
         MockHttpServletRequestBuilder builder,
         List<RelyingPartyEntitlementFormField> entitlementFormFields) {
+        int index = 0;
         for (var entitlement : entitlementFormFields) {
-            builder = builder.param("entitlements", entitlement.getEntitlement());
+            builder = builder.param("entitlements[%s].entitlement".formatted(index),
+                                    entitlement.getEntitlement());
+            builder = builder.param("entitlements[%s].credentialIssuerUrl".formatted(index),
+                                    entitlement.getCredentialIssuerUrl());
+            index++;
         }
         return builder;
     }
@@ -35,7 +40,7 @@ public class WebTestUtils {
 
     public static MockHttpServletRequestBuilder withEditForm(
         MockHttpServletRequestBuilder builder,
-        SelfServiceEditRelyingPartyForm editForm) {
+        BaseEditRelyingPartyForm editForm) {
 
         builder = builder.param("tradeName", editForm.getTradeName());
         builder = withEaaFormFields(builder, editForm.getEaas());
