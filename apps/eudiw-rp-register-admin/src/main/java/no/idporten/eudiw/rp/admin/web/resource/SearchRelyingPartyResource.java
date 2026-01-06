@@ -4,9 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEntitlementFormField;
 import no.idporten.eudiw.rp.admin.web.form.SearchForm;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -27,7 +27,7 @@ public class SearchRelyingPartyResource {
 
     @JsonProperty("required_entitlements")
     @NotNull
-    private List<RelyingPartyEntitlementResource> requiredEntitlements = List.of();
+    private List<String> requiredEntitlements = new ArrayList<>();
 
     @JsonProperty(value = "page")
     private int page = 0;
@@ -43,10 +43,6 @@ public class SearchRelyingPartyResource {
         this();
         this.searchTerm = searchForm.searchTerm();
         this.includeInactive = searchForm.includeInactive();
-        this.requiredEntitlements =
-            searchForm.requiredEntitlements()
-                      .stream()
-                      .map(RelyingPartyEntitlementFormField::toResource)
-                      .toList();
+        this.requiredEntitlements = searchForm.requiredEntitlements();
     }
 }

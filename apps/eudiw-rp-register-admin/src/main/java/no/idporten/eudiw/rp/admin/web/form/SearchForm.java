@@ -17,7 +17,7 @@ public record SearchForm(
     String searchTerm,
     boolean includeInactive,
     @NotNull
-    List<RelyingPartyEntitlementFormField> requiredEntitlements
+    List<String> requiredEntitlements
 ) {
 
     public static SearchForm empty() {
@@ -27,17 +27,10 @@ public record SearchForm(
     public SearchForm(
         String searchTerm,
         boolean includeInactive,
-        List<RelyingPartyEntitlementFormField> requiredEntitlements
+        List<String> requiredEntitlements
     ) {
         this.searchTerm = searchTerm.strip();
         this.includeInactive = includeInactive;
         this.requiredEntitlements = requiredEntitlements != null ? requiredEntitlements : new ArrayList<>();
-    }
-
-    public List<String> requiredEntitlementValues() {
-        return requiredEntitlements
-                   .stream()
-                   .map(RelyingPartyEntitlementFormField::getEntitlement)
-                   .toList();
     }
 }
