@@ -81,15 +81,6 @@ public class RelyingPartiesService {
         }
     }
 
-    public RelyingPartyCertificatesResource getCertificatesForRelyingParty(
-        UUID id) {
-        return restClient.get()
-                .uri("/rp/{id}/certs", id)
-                .retrieve()
-                .toEntity(RelyingPartyCertificatesResource.class)
-                .getBody();
-    }
-
     public RelyingPartyCertificateResource getCertificate(
         UUID relyingPartyId, UUID certificateId) {
         return restClient.get()
@@ -130,16 +121,6 @@ public class RelyingPartiesService {
             .getBody();
     }
 
-    public RelyingPartyEntitlementsResource getIssuerCertificateForRelyingParty(
-        UUID id
-    ) {
-        return restClient.get()
-            .uri("/rp/{id}/issuer-certs", id)
-            .retrieve()
-            .toEntity(RelyingPartyEntitlementsResource.class)
-            .getBody();
-    }
-
     public List<EntitlementResource> getValidEntitlements() {
         return
             Objects.requireNonNull( // should never fire since the ResponseErrorHandler would fire first.
@@ -148,10 +129,7 @@ public class RelyingPartiesService {
                                  .retrieve()
                                  .toEntity(EntitlementsResource.class)
                                  .getBody())
-                   .entitlements()
-                   .stream()
-                   .filter(EntitlementResource::active)
-                   .toList();
+                   .entitlements();
     }
 
     @ExceptionHandler(Exception.class)
