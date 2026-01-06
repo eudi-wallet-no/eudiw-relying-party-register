@@ -216,16 +216,12 @@ public class RelyingPartyServiceTest {
             List<LegalEntity> legalEntities = EntityGenerator.generateLegalEntities(numLegalEntities);
             rpRepository.saveAllAndFlush(legalEntities);
 
-            List<RelyingPartyEntitlementResource> requiredEntitlements =
+            List<String> requiredEntitlements =
                 legalEntities.getFirst().getRelyingPartyInstances().getFirst()
                              .getRelyingPartyEntitlements()
                              .stream()
-                             .map(converter::toResource)
+                             .map(RelyingPartyEntitlement::getEntitlement)
                              .toList();
-            Set<String> requiredEntitlementValues =
-                requiredEntitlements.stream()
-                                    .map(RelyingPartyEntitlementResource::entitlement)
-                                    .collect(Collectors.toSet());
 
             Set<RelyingPartyResource> expectedSearchResult =
                 legalEntities.stream()
@@ -235,7 +231,7 @@ public class RelyingPartyServiceTest {
                                              .stream()
                                              .map(RelyingPartyEntitlementResource::entitlement)
                                              .toList()
-                                             .containsAll(requiredEntitlementValues))
+                                             .containsAll(requiredEntitlements))
                              .collect(Collectors.toSet());
 
             SearchRelyingPartyResource searchResource =

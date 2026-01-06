@@ -68,16 +68,10 @@ public class RelyingPartyService {
                 searchResource.getPageSize(),
                 RelyingPartyOrdering.fromSortKey(searchResource.getSortKey()));
 
-        List<String> entitlements =
-            searchResource.getRequiredEntitlements()
-                .stream()
-                .map(RelyingPartyEntitlementResource::entitlement)
-                .toList();
-
         Page<RelyingPartyInstance> searchQueryResult =
             relyingPartyInstanceRepository.searchRelyingPartyInstances(
                 searchResource.getSearchTerm(),
-                entitlements,
+                searchResource.getRequiredEntitlements(),
                 searchResource.isIncludeInactive(),
                 searchResource.isHideSyntheticOrgnos(),
                 pageRequest
