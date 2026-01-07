@@ -56,31 +56,32 @@ public class SearchControllerTests {
 
         @Test
         public void testServiceCalledAndWithEmptyResource() throws Exception {
+            SearchForm searchForm = SearchForm.empty();
             mockMvc.perform(post("/search")
                     .with(csrf())
-                    .formField("searchTerm", SearchForm.empty().searchTerm())
-                    .formField("includeInactive", Boolean.toString(SearchForm.empty().includeInactive())))
+                    .formField("searchTerm", searchForm.getSearchTerm())
+                    .formField("includeInactive", Boolean.toString(searchForm.isIncludeInactive())))
                 .andExpect(view().name("search_view"))
-                .andExpect(model().attribute(SearchController.SEARCH_FORM_ATTR, SearchForm.empty()));
+                .andExpect(model().attribute(SearchController.SEARCH_FORM_ATTR, searchForm));
 
             SearchRelyingPartyResource expectedSearchResource =
-                new SearchRelyingPartyResource(SearchForm.empty());
+                searchForm.toResource();
             verify(mockRpService).search(eq(expectedSearchResource));
         }
 
         @Test
         public void testServiceCalledAndWithCorrectSearchResource() throws Exception {
             SearchForm testSearchForm = ResourceGenerator.generateSearchForm();
-            String includeInactiveStr = Boolean.toString(testSearchForm.includeInactive());
+            String includeInactiveStr = Boolean.toString(testSearchForm.isIncludeInactive());
 
             mockMvc.perform(post("/search")
                                 .with(csrf())
-                                .formField("searchTerm", testSearchForm.searchTerm())
+                                .formField("searchTerm", testSearchForm.getSearchTerm())
                                 .formField("includeInactive", includeInactiveStr))
                    .andExpect(view().name("search_view"))
                    .andExpect(model().attribute(SearchController.SEARCH_FORM_ATTR, testSearchForm));
             SearchRelyingPartyResource expectedSearchResource =
-                new SearchRelyingPartyResource(testSearchForm);
+                testSearchForm.toResource();
             verify(mockRpService).search(eq(expectedSearchResource));
         }
 

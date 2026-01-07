@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.admin.web.SearchSession;
 import no.idporten.eudiw.rp.admin.web.form.SearchForm;
-import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyOrdering;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -32,7 +31,7 @@ public class SearchController {
     @PreAuthorize("hasRole('ADMIN')")
     public ModelAndView searchGet(
         @RequestParam(value = "page") Optional<Integer> oneIndexedPageNum,
-        @RequestParam(value = "sort") Optional<RelyingPartyOrdering> ordering) {
+        @RequestParam(value = "sort") Optional<String> ordering) {
 
         oneIndexedPageNum.ifPresent(i -> searchSession.setCurrentPageIdx(i - 1));
         ordering.ifPresent(searchSession::setOrdering);

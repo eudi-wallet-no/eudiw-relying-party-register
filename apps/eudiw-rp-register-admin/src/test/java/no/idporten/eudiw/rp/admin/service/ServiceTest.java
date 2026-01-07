@@ -50,7 +50,7 @@ public class ServiceTest {
         mockWebServer.enqueue(badRequestMockResponse);
 
         SearchRelyingPartyResource searchResource =
-            new SearchRelyingPartyResource(ResourceGenerator.generateSearchForm());
+            ResourceGenerator.generateSearchForm().toResource();
         assertThrowsExactly(UnauthorizedRequestException.class,
                             () -> relyingPartiesService.search(searchResource));
     }
@@ -72,7 +72,7 @@ public class ServiceTest {
 
         PagedResponse<RelyingPartyResource> actualSearchResultResource =
                 relyingPartiesService.search(
-                    new SearchRelyingPartyResource(SearchForm.empty()));
+                    SearchForm.empty().toResource());
         assertEquals(expectedSearchResultResource.getFirst(), actualSearchResultResource.content().getFirst());
     }
 
@@ -110,7 +110,7 @@ public class ServiceTest {
 
             mockWebServer.enqueue(serverErrorMockResponse);
             SearchRelyingPartyResource searchResource =
-                new SearchRelyingPartyResource(ResourceGenerator.generateSearchForm());
+                ResourceGenerator.generateSearchForm().toResource();
             assertThrowsExactly(UnrecognizedErrorResponseException.class,
                                 () -> relyingPartiesService.search(searchResource));
         }
