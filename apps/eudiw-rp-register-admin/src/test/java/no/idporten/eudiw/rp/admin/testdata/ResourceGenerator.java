@@ -60,7 +60,10 @@ public class ResourceGenerator extends TestDataGenerator {
     }
 
     public static SearchForm generateSearchForm() {
-        return new SearchForm(generateName(), generateBoolean(), new ArrayList<>());
+        SearchForm searchForm = new SearchForm();
+        searchForm.setSearchTerm(generateName());
+        searchForm.setIncludeInactive(generateBoolean());
+        return searchForm;
     }
 
     public static RelyingPartyCertificateResource generateCertificateResource() {

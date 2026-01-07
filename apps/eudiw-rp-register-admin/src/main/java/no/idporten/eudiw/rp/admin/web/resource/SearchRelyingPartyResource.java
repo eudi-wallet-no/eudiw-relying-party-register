@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import no.idporten.eudiw.rp.admin.web.form.SearchForm;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +16,7 @@ import java.util.List;
 @Getter
 public class SearchRelyingPartyResource {
     public final static int DEFAULT_PAGE_SIZE = 25;
-    public final static RelyingPartyOrdering DEFAULT_ORDERING = RelyingPartyOrdering.UNSORTED;
+    public final static String DEFAULT_ORDERING = RelyingPartyOrdering.UNSORTED;
 
     @JsonProperty("search_term")
     private String searchTerm = "";
@@ -37,12 +36,5 @@ public class SearchRelyingPartyResource {
 
     @JsonProperty(value = "order_by")
     @NotNull
-    private RelyingPartyOrdering ordering = DEFAULT_ORDERING;
-
-    public SearchRelyingPartyResource(SearchForm searchForm) {
-        this();
-        this.searchTerm = searchForm.searchTerm();
-        this.includeInactive = searchForm.includeInactive();
-        this.requiredEntitlements = searchForm.requiredEntitlements();
-    }
+    private String ordering = DEFAULT_ORDERING;
 }

@@ -27,7 +27,7 @@ public class SearchSession {
     private SearchForm lastSearchForm = SearchForm.empty();
 
     @Setter
-    private RelyingPartyOrdering ordering = SearchRelyingPartyResource.DEFAULT_ORDERING;
+    private String ordering = SearchRelyingPartyResource.DEFAULT_ORDERING;
 
     private int numPages = 0;
     private int currentPageIdx = 0;
@@ -62,12 +62,12 @@ public class SearchSession {
         SearchForm searchForm,
         int pageIdx,
         int pageSize,
-        RelyingPartyOrdering ordering) {
+        String ordering) {
         SearchRelyingPartyResource searchResource =
-            new SearchRelyingPartyResource(searchForm)
-                .withPage(pageIdx)
-                .withPageSize(pageSize)
-                .withOrdering(ordering);
+            searchForm.toResource()
+                      .withPage(pageIdx)
+                      .withPageSize(pageSize)
+                      .withOrdering(ordering);
 
         PagedResponse<RelyingPartyResource> searchResult =
             relyingPartiesService.search(searchResource);
