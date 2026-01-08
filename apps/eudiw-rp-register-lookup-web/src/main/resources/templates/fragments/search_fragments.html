@@ -74,24 +74,24 @@
             <thead class="clickableHeaders">
             <tr>
                 <th th:class="${currentOrdering == orderingOpts.ORGNO_ASC ? 'focused' : ''}">
-                    <a th:href="@{/relying-parties(sort='ORGNO_ASC')}" class="ds-link">
+                    <a th:href="@{/relying-parties(sort=|${orderingOpts.ORGNO_ASC}|)}" class="ds-link">
                         Org.nr.
                     </a>
                 </th>
                 <th>Organisasjon</th>
                 <th th:class="${currentOrdering == orderingOpts.NAME_ASC ? 'focused' : ''}">
-                    <a th:href="@{/relying-parties(sort='NAME_ASC')}" class="ds-link">
+                    <a th:href="@{/relying-parties(sort=|${orderingOpts.NAME_ASC}|)}" class="ds-link">
                         Tenestenamn
                     </a>
                 </th>
                 <th>Roller</th>
                 <th th:class="${currentOrdering == orderingOpts.CREATED_ASC ? 'focused' : ''}">
-                    <a th:href="@{/relying-parties(sort='CREATED_ASC')}" class="ds-link">
+                    <a th:href="@{/relying-parties(sort=|${orderingOpts.CREATED_ASC}|)}" class="ds-link">
                         Oppretta
                     </a>
                 </th>
                 <th th:class="${currentOrdering == orderingOpts.LAST_UPDATED_ASC ? 'focused' : ''}">
-                    <a th:href="@{/relying-parties(sort='LAST_UPDATED_ASC')}" class="ds-link">
+                    <a th:href="@{/relying-parties(sort=|${orderingOpts.LAST_UPDATED_ASC}|)}" class="ds-link">
                         Sist endra
                     </a>
                 </th>

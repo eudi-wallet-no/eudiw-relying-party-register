@@ -62,7 +62,7 @@ public class LookupControllerTests {
                 .andExpect(model().attribute(SearchController.searchFormAttrId, SearchForm.empty()));
 
             SearchRelyingPartyResource expectedSearchResource =
-                new SearchRelyingPartyResource(SearchForm.empty());
+                SearchForm.empty().toResource();
             verify(lookupService).search(eq(expectedSearchResource));
         }
 
@@ -75,7 +75,7 @@ public class LookupControllerTests {
                    .andExpect(view().name("search_view"))
                    .andExpect(model().attribute(SearchController.searchFormAttrId, testSearchForm));
             SearchRelyingPartyResource expectedSearchResource =
-                new SearchRelyingPartyResource(testSearchForm);
+                testSearchForm.toResource();
             verify(lookupService).search(eq(expectedSearchResource));
         }
 
