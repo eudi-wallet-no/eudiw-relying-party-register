@@ -138,16 +138,50 @@
                         data-weight="high">
                     Vel roller
                 </legend>
-                <div class="ds-field" th:each="e, iter : ${@relyingPartiesService.getValidEntitlements()}">
-                    <label th:for="|id-${e.entitlement}|" th:text="${e.displayName}"></label>
-                    <input th:id="|id-${e.entitlement}|"
-                           type="checkbox"
-                           class="ds-input"
-                           th:name="|entitlements[${iter.index}].entitlement|"
-                           th:value="${e.entitlement}"
-                           th:checked="${#lists.contains(createFormAttr.getEntitlementValues(), e.entitlement)}"
-                    >
-                </div>
+                <table class="ds-table">
+                    <thead>
+                    <tr>
+                        <th>Valt</th>
+                        <th>Rolle</th>
+                        <th>Utstedar-URL</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!--/*@thymesVar id="entitlementOptionsAttr" type="java.util.List<no.idporten.eudiw.rp.admin.web.form.RelyingPartyEntitlementFormField>"*/-->
+                    <tr th:each="e, iter : ${@relyingPartiesService.getValidEntitlementOptions()}">
+                        <!--/*@thymesVar id="e" type="no.idporten.eudiw.rp.admin.web.form.RelyingPartyEntitlementFormField"*/-->
+                        <td>
+                            <input th:id="|id-${e.getEntitlement()}|"
+                                   type="checkbox"
+                                   class="ds-input"
+                                   th:name="|entitlements[${iter.index}].entitlement|"
+                                   th:value="${e.getEntitlement()}"
+                                   th:checked="${#lists.contains(createFormAttr.getEntitlementValues(), e.getEntitlement())}">
+                        </td>
+                        <td>
+                            <label th:for="|id-${e.getEntitlement()}|" th:text="${e.getDisplayName()}"></label>
+                        </td>
+                        <td>
+                            <input type="text"
+                                   class="ds-input"
+                                   th:name="|entitlements[${iter.index}].credentialIssuerUrl|"
+                                   th:value="${e.getCredentialIssuerUrl()}"
+                                   th:disabled="${! T(no.idporten.eudiw.rp.admin.entitlements.Entitlements)
+                                                            .isIssuerEntitlement(e.getEntitlement())}"
+                            >
+                            <ul th:if="${iter.index < createFormAttr.getEntitlements().size() &&
+                                           #fields.hasErrors('entitlements[__${iter.index}__].credentialIssuerUrl')}"
+                                class="ds-list">
+                                <li th:each="error : ${#fields.errors('entitlements[__${iter.index}__].credentialIssuerUrl')}"
+                                    th:text="${error}"
+                                    class="ds-validation-message">
+                                </li>
+                            </ul>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+
             </fieldset>
             <ul th:if="${#fields.hasErrors('entitlements')}">
                 <li th:each="error : ${#fields.errors('entitlements')}"

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.rp.admin.exception.AdminServiceException;
 import no.idporten.eudiw.rp.admin.service.exception.NotFoundException;
 import no.idporten.eudiw.rp.admin.service.exception.RelyingPartyNotFoundException;
+import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEntitlementFormField;
 import no.idporten.eudiw.rp.admin.web.resource.*;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.IssuerCsrResource;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificateResource;
@@ -121,15 +122,20 @@ public class RelyingPartiesService {
             .getBody();
     }
 
-    public List<EntitlementResource> getValidEntitlements() {
-        return
-            Objects.requireNonNull( // should never fire since the ResponseErrorHandler would fire first.
-                       restClient.get()
-                                 .uri("/entitlement")
-                                 .retrieve()
-                                 .toEntity(EntitlementsResource.class)
-                                 .getBody())
-                   .entitlements();
+    public EntitlementsResource getValidEntitlements() {
+        return restClient.get()
+                         .uri("/entitlement")
+                         .retrieve()
+                         .toEntity(EntitlementsResource.class)
+                         .getBody();
+    }
+
+    public List<RelyingPartyEntitlementFormField> getValidEntitlementOptions() {
+        return this.getValidEntitlements()
+                   .entitlements()
+                   .stream()
+                   .map(e -> new RelyingPartyEntitlementFormField(e.entitlement(), null, e.displayName()))
+                   .toList();
     }
 
     @ExceptionHandler(Exception.class)

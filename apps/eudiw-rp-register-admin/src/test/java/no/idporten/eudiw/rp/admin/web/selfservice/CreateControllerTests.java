@@ -82,7 +82,7 @@ public class CreateControllerTests {
 
             CreateRelyingPartyResource expectedCreateResource =
                 createResource.withRelyingPartyEntitlements(List.of(
-                    new RelyingPartyEntitlementResource("https://uri.etsi.org/19475/Entitlement/Service_Provider")));
+                    new RelyingPartyEntitlementResource("https://uri.etsi.org/19475/Entitlement/Service_Provider", null, null)));
 
             verify(mockRpService, times(1)).create(eq(expectedCreateResource));
         }

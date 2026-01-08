@@ -28,7 +28,7 @@ public class BaseCreateRelyingPartyForm {
 
     public static final List<RelyingPartyEntitlementResource> DEFAULT_NON_ADMIN_ENTITLEMENTS =
         List.of(new RelyingPartyEntitlementResource(
-            "https://uri.etsi.org/19475/Entitlement/Service_Provider"));
+            "https://uri.etsi.org/19475/Entitlement/Service_Provider", null, null));
 
     public CreateRelyingPartyResource toResource(String orgno) {
         return new CreateRelyingPartyResource(
