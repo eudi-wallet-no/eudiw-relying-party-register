@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import no.idporten.eudiw.rp.register.lookup.validation.SaneStringConstraint;
 import no.idporten.eudiw.rp.register.lookup.validation.SaneStringValidator;
+import no.idporten.eudiw.rp.register.lookup.web.resource.SearchRelyingPartyResource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,5 +37,12 @@ public class SearchForm {
 
     public static SearchForm empty() {
         return new SearchForm();
+    }
+
+    public SearchRelyingPartyResource toResource() {
+        return new SearchRelyingPartyResource()
+                   .withSearchTerm(this.searchTerm)
+                   .withHideSyntheticOrgnos(this.hideSyntheticOrgnos)
+                   .withRequiredEntitlements(this.requiredEntitlements);
     }
 }

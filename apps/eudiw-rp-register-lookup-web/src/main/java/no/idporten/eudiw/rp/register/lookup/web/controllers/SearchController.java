@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.register.lookup.web.form.SearchForm;
 import no.idporten.eudiw.rp.register.lookup.web.resource.RelyingPartyResource;
-import no.idporten.eudiw.rp.register.lookup.web.search.resultsview.RelyingPartyOrdering;
 import no.idporten.eudiw.rp.register.lookup.web.search.resultsview.SearchSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -32,7 +31,7 @@ public class SearchController {
     @GetMapping("/relying-parties")
     public ModelAndView searchGet(
         @RequestParam(value = "page") Optional<Integer> oneIndexedPageNum,
-        @RequestParam(value = "sort") Optional<RelyingPartyOrdering> ordering) {
+        @RequestParam(value = "sort") Optional<String> ordering) {
 
         oneIndexedPageNum.ifPresent(i -> searchSession.setCurrentPageIdx(i - 1));
         ordering.ifPresent(searchSession::setOrdering);

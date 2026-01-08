@@ -50,8 +50,7 @@ public class RelyingPartiesServiceTest {
 
         assertThrowsExactly(UnauthorizedRequestException.class,
                             () -> lookupService.search(
-                                new SearchRelyingPartyResource(
-                                    ResourceGenerator.generateSearchForm())));
+                                ResourceGenerator.generateSearchForm().toResource()));
     }
 
     @Test
@@ -72,8 +71,7 @@ public class RelyingPartiesServiceTest {
         mockWebServer.enqueue(mockValidResponse);
 
         PagedResponse<RelyingPartyResource> actualSearchResultResource =
-            lookupService.search(
-                new SearchRelyingPartyResource(SearchForm.empty()));
+            lookupService.search(SearchForm.empty().toResource());
         assertEquals(expectedSearchResultResource, actualSearchResultResource);
     }
 
@@ -113,8 +111,7 @@ public class RelyingPartiesServiceTest {
 
             assertThrowsExactly(UnrecognizedErrorResponseException.class,
                                 () -> lookupService.search(
-                                    new SearchRelyingPartyResource(
-                                        ResourceGenerator.generateSearchForm())));
+                                    ResourceGenerator.generateSearchForm().toResource()));
         }
     }
 }

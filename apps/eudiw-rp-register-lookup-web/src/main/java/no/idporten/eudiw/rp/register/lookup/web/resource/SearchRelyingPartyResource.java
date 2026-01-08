@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.Accessors;
 import no.idporten.eudiw.rp.register.lookup.web.search.resultsview.RelyingPartyOrdering;
-import no.idporten.eudiw.rp.register.lookup.web.form.SearchForm;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +19,7 @@ import java.util.List;
 @Accessors(fluent = true)
 public class SearchRelyingPartyResource {
     public final static int DEFAULT_PAGE_SIZE = 25;
-    public final static RelyingPartyOrdering DEFAULT_ORDERING = RelyingPartyOrdering.NAME_ASC;
+    public final static String DEFAULT_ORDERING = RelyingPartyOrdering.NAME_ASC;
 
     @JsonProperty("search_term")
     private String searchTerm = "";
@@ -40,12 +39,5 @@ public class SearchRelyingPartyResource {
 
     @JsonProperty(value = "order_by")
     @NotNull
-    private RelyingPartyOrdering ordering = DEFAULT_ORDERING;
-
-    public SearchRelyingPartyResource(SearchForm searchForm) {
-        this();
-        this.searchTerm = searchForm.getSearchTerm();
-        this.hideSyntheticOrgnos = searchForm.isHideSyntheticOrgnos();
-        this.requiredEntitlements = searchForm.getRequiredEntitlements();
-    }
+    private String ordering = DEFAULT_ORDERING;
 }
