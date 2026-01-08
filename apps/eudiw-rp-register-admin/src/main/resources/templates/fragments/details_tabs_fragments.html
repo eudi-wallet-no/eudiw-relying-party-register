@@ -153,11 +153,15 @@
             <div th:unless="${ #lists.isEmpty(rp.relyingPartyEntitlements)}">
                 <table class="ds-table" data-sticky-header="true">
                     <thead>
-                        <tr><th>Rolle</th></tr>
+                        <tr>
+                            <th>Rolle</th>
+                            <th>Utstedar-URL</th>
+                        </tr>
                     </thead>
                     <tbody>
                         <tr th:each="e : ${rp.relyingPartyEntitlements}">
                             <td th:text="${e.displayName}"></td>
+                            <td th:text="${e.credentialIssuerUrl}"></td>
                         </tr>
                     </tbody>
                 </table>

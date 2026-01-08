@@ -15,8 +15,4 @@ public record RelyingPartyEntitlementResource(
 
     @JsonProperty("credential_issuer_url")
     String credentialIssuerUrl
-) {
-    public RelyingPartyEntitlementResource(String entitlement) {
-        this(entitlement, entitlement, null);
-    }
-}
+) { }
