@@ -10,17 +10,17 @@
     <header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
     <main>
-        <h1 class="ds-heading" data-size="lg">
-            Lag nytt issuer-sertifikat for <span th:text="${rp.tradeName}"></span>
-        </h1>
         <p class="ds-paragraph">
             <a th:href="@{|/details/${rp.id}#certificates|}"
                class="ds-button"
-               data-variant="secondary"
-               data-size="sm">
+               data-variant="secondary">
                 Tilbake til <span th:text="${rp.tradeName}"/>
             </a>
         </p>
+
+        <h1 class="ds-heading" data-size="lg">
+            Lag nytt issuer-sertifikat for <span th:text="${rp.tradeName}"></span>
+        </h1>
 
         <!--/*@thymesVar id="id" type="java.util.UUID"*/-->
         <form th:replace="~{fragments/csr_fragments :: issuer_csr_form_fragment(id=${rp.id})}">

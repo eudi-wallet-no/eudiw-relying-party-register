@@ -16,9 +16,16 @@
     <main>
 
         <p sec:authorize="hasRole('ADMIN')"
-                class="ds-paragraph">
+           class="ds-paragraph">
             <a th:href="@{/search}" class="ds-button" data-variant="secondary">
                 Tilbake til søk
+            </a>
+        </p>
+
+        <p sec:authorize="! hasRole('ADMIN')"
+           class="ds-paragraph">
+            <a th:href="@{/registrations}" class="ds-button" data-variant="secondary">
+                Tilbake til mine registreringar
             </a>
         </p>
 

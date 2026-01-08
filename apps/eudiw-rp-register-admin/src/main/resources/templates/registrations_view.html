@@ -8,15 +8,18 @@
     <header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
     <main>
-        <h1 class="ds-heading" data-size="lg">
-            Mine registreringar
-        </h1>
+        <div style="display: flex;">
+            <h1 class="ds-heading" data-size="lg" style="margin-right: auto;">
+                Mine registreringar
+            </h1>
 
-        <p class="ds-paragraph">
-            <a th:href="@{/create}" class="ds-button">
-                Registrer ny brukarstad
-            </a>
-        </p>
+            <p class="ds-paragraph">
+                <a th:href="@{/create}" class="ds-button" data-variant="secondary">
+                    Registrer ny brukarstad
+                </a>
+            </p>
+        </div>
+
         <div th:replace="~{fragments/registrations_fragments :: registrations_table_fragment}">
         </div>
     </main>
