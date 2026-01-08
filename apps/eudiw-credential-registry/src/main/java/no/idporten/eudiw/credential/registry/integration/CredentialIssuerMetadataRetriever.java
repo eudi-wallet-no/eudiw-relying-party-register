@@ -9,6 +9,7 @@ import no.idporten.eudiw.credential.registry.integration.model.CredentialIssuerU
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -57,10 +58,15 @@ public class CredentialIssuerMetadataRetriever {
     private CredentialIssuer fetchCredentialIssuerFromMetadataRequest(URI uri) {
         CredentialIssuer credentialIssuer;
         URI wellknown = buildWellKnown(uri);
+        if (!wellknown.getScheme().equals("https")) {
+            log.error("Issuer {} does not use https in its registered uri", uri);
+            return null;
+        }
         log.info("Prepared to fetch data from complete url {}", wellknown);
         try {
             credentialIssuer = restClient.get()
                     .uri(wellknown)
+                    .accept(MediaType.APPLICATION_JSON)
                     .retrieve()
                     .body(CredentialIssuer.class);
         } catch (Exception e) {
