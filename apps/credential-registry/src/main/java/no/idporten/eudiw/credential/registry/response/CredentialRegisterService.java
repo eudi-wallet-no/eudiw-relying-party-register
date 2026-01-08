@@ -2,17 +2,18 @@ package no.idporten.eudiw.credential.registry.response;
 
 
 import jakarta.annotation.PostConstruct;
+import no.idporten.eudiw.credential.registry.exception.CredentialRegisterException;
 import no.idporten.eudiw.credential.registry.integration.CredentialIssuerMetadataRetriever;
 import no.idporten.eudiw.credential.registry.integration.model.CredentialConfiguration;
 import no.idporten.eudiw.credential.registry.response.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Objects;
 
 
 @Service
@@ -36,7 +37,7 @@ public class CredentialRegisterService {
         try {
             this.credentialIssuerMetadataRetriever.updateListOfIssuer();
         } catch (Exception ex) {
-            log.error(ex.getMessage());
+            throw new CredentialRegisterException("Error updating credentials", "failed_update_credential_registry", HttpStatus.INTERNAL_SERVER_ERROR, ex);
         }
         if (this.credentialIssuerMetadataRetriever.getListOfIssuer() != null) {
             log.info("Updating credential metadata retriever");
