@@ -14,16 +14,16 @@
     <header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
     <main>
+        <p class="ds-paragraph">
+            <a th:href="@{|/details/${rp.id}|}" class="ds-button" data-variant="secondary">
+                Tilbake til <span th:text="${rp.tradeName}"></span>
+            </a>
+        </p>
 
         <h1 class="ds-heading" data-size="lg">
             Endre brukarstad: <span th:text="${rp.tradeName}"></span>
         </h1>
 
-        <p class="ds-paragraph">
-            <a th:href="@{|/details/${rp.id}|}" class="ds-button">
-                Tilbake til <span th:text="${rp.tradeName}"></span>
-            </a>
-        </p>
         <div sec:authorize="hasRole('ADMIN')"
              th:replace="~{fragments/edit_fragments :: make_admin_edit_form_fragment}">
         </div>
