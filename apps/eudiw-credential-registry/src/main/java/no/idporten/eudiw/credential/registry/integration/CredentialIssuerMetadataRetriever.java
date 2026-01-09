@@ -59,14 +59,14 @@ public class CredentialIssuerMetadataRetriever {
         return wellknown;
     }
 
-    private CredentialIssuer fetchCredentialIssuerFromMetadataRequest(URI uri) {
+    protected CredentialIssuer fetchCredentialIssuerFromMetadataRequest(URI uri) {
         CredentialIssuer credentialIssuer;
         URI wellknown = buildWellKnown(uri);
         if (wellknown == null) {
             log.error("Issuer {} is null in fetchCredentialIssuerFromMetadataRequest", uri);
             return null;
         }
-        if (!wellknown.getScheme().equals("https")) {
+        if (wellknown.getScheme()==null || !wellknown.getScheme().equals("https")) {
             log.error("Issuer {} does not use https in its registered uri", uri);
             return null;
         }
