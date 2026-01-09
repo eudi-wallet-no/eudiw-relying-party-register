@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClient;
@@ -47,19 +48,30 @@ public class CredentialIssuerMetadataRetriever {
     }
 
     public URI buildWellKnown(URI uri) {
-        try {
-            URI wellknown = uri.resolve(CREDENTIAL_ISSUER_CONFIG_ENDPOINT + uri.getPath());
-            return wellknown;
-        } catch (RuntimeException e) {
-            throw new CredentialRegisterException("error resolving well known URI from issuer "+ uri, e.getMessage(), HttpStatus.BAD_REQUEST, e);
+        if (uri == null) {
+            log.error("Issuer URL is null  "+ uri);
+            return null;
         }
+        if (uri.getPath().equals("/")){
+            return uri.resolve(CREDENTIAL_ISSUER_CONFIG_ENDPOINT);
+        }
+        URI wellknown = uri.resolve(CREDENTIAL_ISSUER_CONFIG_ENDPOINT + uri.getPath());
+        return wellknown;
     }
 
     private CredentialIssuer fetchCredentialIssuerFromMetadataRequest(URI uri) {
         CredentialIssuer credentialIssuer;
         URI wellknown = buildWellKnown(uri);
+        if (wellknown == null) {
+            log.error("Issuer {} is null in fetchCredentialIssuerFromMetadataRequest", uri);
+            return null;
+        }
         if (!wellknown.getScheme().equals("https")) {
             log.error("Issuer {} does not use https in its registered uri", uri);
+            return null;
+        }
+        if (!StringUtils.hasText(wellknown.getHost())) {
+            log.error("Issuer {} does not contain characters in host", uri);
             return null;
         }
         log.info("Prepared to fetch data from complete url {}", wellknown);
@@ -70,15 +82,17 @@ public class CredentialIssuerMetadataRetriever {
                     .retrieve()
                     .body(CredentialIssuer.class);
         } catch (Exception e) {
-            throw new CredentialRegisterException("error fetching content from well known- url of issuer" + uri, e.getMessage(), HttpStatus.BAD_REQUEST, e);
+            log.error("error fetching content from well known- url of issuer" + uri, e);
+            return null;
         }
         Set<ConstraintViolation<CredentialIssuer>> violations = validator.validate(credentialIssuer);
         if (!violations.isEmpty()) {
             String prettyViolations = violations.stream().map(ConstraintViolation::getMessage).collect(Collectors.joining(", "));
             String errorDescription = String.format("Issuer with uri %s has these violations %s and is therefore not included", uri, prettyViolations);
-            throw new CredentialRegisterException("Constraint violations error", errorDescription, HttpStatus.BAD_REQUEST);
+            log.error("Constraint violations error " + errorDescription);
+            return null;
         }
-        log.info("Successfully fetched credential issuer from complete url {} and with content {}", uri, credentialIssuer);
+        log.info("Successfully fetched credential issuer from complete url {} ", uri);
         return credentialIssuer;
     }
 
