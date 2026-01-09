@@ -1,7 +1,9 @@
 package no.idporten.eudiw.rp.register.lookup.web.resource.credentials;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -11,7 +13,7 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record CredentialResource(
     @NotNull
-    @Pattern(regexp = "mso_mdoc|dc\\+sd-jwt", message = "unrecognized_format")
+    @Pattern(regexp = "mso_mdoc|dc\\+sd-jwt|jwt_vc_json", message = "unrecognized_format")
     @JsonProperty(value = "format", required = true)
     String format,
 
@@ -27,8 +29,8 @@ public record CredentialResource(
     @JsonProperty(value = "credential_configuration_id", required = true)
     String configurationId,
 
-    @NotBlank(message = "invalid_credential_type")
-    @JsonProperty(value = "credential_type", required = true)
+    @Pattern(regexp = "\\s*\\S+\\s*", message = "nonnull_and_blank_credential_type") // like @NotBlank, but allow null
+    @JsonProperty("credential_type")
     String credentialType,
 
     @NotNull(message = "invalid_metadata")
@@ -37,5 +39,12 @@ public record CredentialResource(
 ) {
     public String getIssuerDisplayName(String locale) {
         return Display.getDisplayNameForLocale(locale, this.issuerDisplays);
+    }
+
+    @JsonIgnore
+    @AssertTrue(message = "credential_type_missing")
+    @SuppressWarnings("unused") // used by jakarta
+    public boolean isVcJsonOrNonNullCredentialType() {
+        return this.format.equals("jwt_vc_json") || this.credentialType != null;
     }
 }

@@ -2,11 +2,11 @@ package no.idporten.eudiw.rp.register.lookup.web.resource.credentials;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Slf4j
@@ -20,24 +20,41 @@ public record Display(
     @JsonProperty(value = "description")
     String description
 ) {
+    @Nullable
     public static String getDescriptionForLocale(String locale, List<Display> displays) {
-        return displays.stream()
-                       .filter(display -> display.locale().equalsIgnoreCase(locale)
-                                              && display.description != null)
-                       .findFirst()
-                       .map(Display::description)
-                       .orElse(null);
-    }
-    public static String getDisplayNameForLocale(String locale, List<Display> displays) {
-        Optional<String> displayName =
+        List<Display> displaysWithDescription =
             displays.stream()
-                    .filter(display -> display.locale().equalsIgnoreCase(locale))
-                    .findFirst()
-                    .map(Display::name);
-        if (displayName.isEmpty()) {
-            log.warn("No display-name found for locale {}, and no default locale set.", locale);
-            return "";
+                    .filter(d -> d.description != null)
+                    .sorted((d1, _) -> !d1.locale().equalsIgnoreCase(locale) ? 1 : -1)
+                    .toList();
+
+        if (displaysWithDescription.isEmpty()) {
+            log.info("No description found (for locale \"{}\" nor fallback)", locale);
+            return null;
         }
-        return displayName.get();
+
+        Display display = displaysWithDescription.getFirst();
+        if (!display.locale().equalsIgnoreCase(locale)) {
+            log.info("No description found for locale \"{}\", using fallback locale \"{}\".",
+                     locale,
+                     display.locale());
+        }
+        return display.description();
+    }
+
+    public static String getDisplayNameForLocale(String locale, List<Display> displays) {
+        Optional<Display> displayWithDesiredLocale =
+            displays.stream()
+                    .filter(d -> d.locale().equalsIgnoreCase(locale))
+                    .findFirst();
+
+        if (displayWithDesiredLocale.isEmpty()) {
+            Display fallbackDisplay = displays.getFirst();
+            log.info("No display name found for locale \"{}\", using fallback locale \"{}\".",
+                     locale,
+                     fallbackDisplay.locale());
+            return fallbackDisplay.name();
+        }
+        return displayWithDesiredLocale.get().name();
     }
 }
