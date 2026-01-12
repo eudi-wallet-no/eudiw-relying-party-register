@@ -143,9 +143,9 @@ public class CredentialsCatalogueControllerTests {
             when(mockCredentialsService.getCredential(issuer, configId))
                 .thenReturn(credentialResource);
 
-            String issuerUrlEncoded = URLEncoder.encode(issuer, StandardCharsets.US_ASCII);
-            String requestUri = "/credential/%s/%s".formatted(issuerUrlEncoded, configId);
-            mockMvc.perform(get(requestUri))
+            mockMvc.perform(get("/credential")
+                                .param("issuer", issuer)
+                                .param("config-id", configId))
                    .andExpectAll(
                        status().isOk(),
                        view().name("credential_details_view"),
