@@ -7,11 +7,8 @@ import no.idporten.eudiw.rp.register.lookup.web.resource.credentials.CredentialR
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Slf4j
@@ -38,13 +35,10 @@ public class CredentialsCatalogueController {
         return mav;
     }
 
-    @GetMapping("/credential/{issuer}/{config-id}")
+    @GetMapping("/credential")
     public ModelAndView credentialDetailsGet(
-        @PathVariable(value = "issuer") String issuer,
-        @PathVariable(value = "config-id") String configurationId) {
-
-        issuer = URLDecoder.decode(issuer, StandardCharsets.US_ASCII);
-        configurationId = URLDecoder.decode(configurationId, StandardCharsets.US_ASCII);
+        @RequestParam(value = "issuer") String issuer,
+        @RequestParam(value = "config-id") String configurationId) {
 
         CredentialResource credential =
             credentialsService.getCredential(issuer, configurationId);
