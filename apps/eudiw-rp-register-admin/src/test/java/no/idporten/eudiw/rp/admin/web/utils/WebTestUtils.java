@@ -44,6 +44,7 @@ public class WebTestUtils {
 
         builder = builder.param("tradeName", editForm.getTradeName());
         builder = withEaaFormFields(builder, editForm.getEaas());
+        builder = withEntitlementFormFields(builder, editForm.getEntitlements());
 
         return builder;
     }
