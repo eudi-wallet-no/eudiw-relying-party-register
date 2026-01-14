@@ -174,15 +174,44 @@
                     Endre roller for brukarstad
                 </legend>
 
-                <div class="ds-field" th:each="e : ${rp.relyingPartyEntitlements()}">
-                    <label th:for="|id-${e.entitlement}|" th:text="${e.displayName}"></label>
-                    <input disabled
-                           th:id="|id-${e.entitlement}|"
-                           type="checkbox"
-                           class="ds-input"
-                           th:value="${e.entitlement}"
-                           checked>
-                </div>
+                <table class="ds-table">
+                    <thead>
+                    <tr>
+                        <th>Rolle</th>
+                        <th>Utstedar-URL</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!--/*@thymesVar id="entitlementOptionsAttr" type="java.util.List<no.idporten.eudiw.rp.admin.web.form.RelyingPartyEntitlementFormField>"*/-->
+                    <tr th:each="e, iter : ${entitlementOptionsAttr}">
+                        <!--/*@thymesVar id="e" type="no.idporten.eudiw.rp.admin.web.form.RelyingPartyEntitlementFormField"*/-->
+                        <td>
+                            <input hidden
+                                   th:id="|id-${e.getEntitlement()}|"
+                                   th:name="|entitlements[${iter.index}].entitlement|"
+                                   th:value="${e.getEntitlement()}">
+                            <label th:for="|id-${e.getEntitlement()}|" th:text="${e.getDisplayName()}"></label>
+                        </td>
+                        <td>
+                            <input type="text"
+                                   class="ds-input"
+                                   th:name="|entitlements[${iter.index}].credentialIssuerUrl|"
+                                   th:value="${e.getCredentialIssuerUrl()}"
+                                   th:disabled="${! T(no.idporten.eudiw.rp.admin.entitlements.Entitlements)
+                                                            .isIssuerEntitlement(e.getEntitlement())}"
+                            >
+                            <ul th:if="${iter.index < editFormAttr.getEntitlements().size() &&
+                                           #fields.hasErrors('entitlements[__${iter.index}__].credentialIssuerUrl')}"
+                                class="ds-list">
+                                <li th:each="error : ${#fields.errors('entitlements[__${iter.index}__].credentialIssuerUrl')}"
+                                    th:text="${error}"
+                                    class="ds-validation-message">
+                                </li>
+                            </ul>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
             </fieldset>
         </div>
 

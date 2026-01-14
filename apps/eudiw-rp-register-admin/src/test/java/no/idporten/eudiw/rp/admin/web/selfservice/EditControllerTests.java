@@ -5,6 +5,7 @@ import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.admin.testdata.TestDataGenerator;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEaaFormField;
+import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEntitlementFormField;
 import no.idporten.eudiw.rp.admin.web.form.admin.AdminEditRelyingPartyForm;
 import no.idporten.eudiw.rp.admin.web.form.BaseEditRelyingPartyForm;
 import no.idporten.eudiw.rp.admin.web.resource.EditRelyingPartyResource;
@@ -20,6 +21,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.Mockito.*;
@@ -91,6 +93,7 @@ public class EditControllerTests {
             BaseEditRelyingPartyForm editForm = new BaseEditRelyingPartyForm();
             editForm.setTradeName(rpResource.tradeName());
             editForm.setEaas(rpResource.relyingPartyEaas().stream().map(RelyingPartyEaaFormField::fromResource).toList());
+            editForm.setEntitlements(rpResource.relyingPartyEntitlements().stream().map(RelyingPartyEntitlementFormField::fromResource).toList());
 
             var oidcLogin = SecurityTestUtils.oidcLoginForOrgno(rpResource.orgno());
             var request = post("/edit/%s".formatted(id))
@@ -101,16 +104,36 @@ public class EditControllerTests {
                 .andExpect(redirectedUrl("/details/" + id));
 
             EditRelyingPartyResource expectedEditResource =
-                new EditRelyingPartyResource(
-                    editForm.getTradeName(),
-                    rpResource.relyingPartyEntitlements(),
-                    editForm.getEaas()
-                            .stream()
-                            .map(RelyingPartyEaaFormField::toResource)
-                            .toList(),
-                    rpResource.active());
+                editForm.toResource().withActive(rpResource.active());
 
             verify(mockRpService).edit(id, expectedEditResource);
+        }
+
+        @Test
+        @DisplayName("then authorization error thrown when edit form contains illegal entitlements changes")
+        void testAuthorizationErrorWhenEditFormContainsInvalidEntitlementChanges() throws Exception {
+            RelyingPartyResource rpResource =
+                ResourceGenerator.generateRelyingPartyResource();
+            UUID id = rpResource.id();
+            when(mockRpService.get(id)).thenReturn(rpResource);
+
+            BaseEditRelyingPartyForm editForm = new BaseEditRelyingPartyForm();
+            editForm.setTradeName(rpResource.tradeName());
+            editForm.setEaas(rpResource.relyingPartyEaas().stream().map(RelyingPartyEaaFormField::fromResource).toList());
+
+            List<RelyingPartyEntitlementFormField> illegalEntitlementFields =
+                List.of(new RelyingPartyEntitlementFormField(
+                    "invalid-extra-entitlement", TestDataGenerator.generateIssuerUrl(), null));
+            editForm.setEntitlements(illegalEntitlementFields);
+
+            var oidcLogin = SecurityTestUtils.oidcLoginForOrgno(rpResource.orgno());
+            var request = post("/edit/%s".formatted(id))
+                              .with(csrf())
+                              .with(oidcLogin);
+            mockMvc.perform(WebTestUtils.withEditForm(request, editForm))
+                   .andExpect(status().isNotFound());
+
+            verify(mockRpService, times(0)).edit(any(), any());
         }
     }
 }

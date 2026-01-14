@@ -91,14 +91,20 @@ public class EditController {
         userAuthorityService.assertUserHasAccessTo(relyingPartyResource.orgno());
 
         if (editFormBindingResult.hasErrors()) {
-            return new ModelAndView("edit_form_view",
-                DETAILED_VIEW_DATA_ATTR, relyingPartyResource);
+            List<RelyingPartyEntitlementFormField> entitlementOptions =
+                getEntitlementOptionsForRelyingParty(relyingPartyResource);
+            return new ModelAndView("edit_form_view", Map.of(
+                ENTITLEMENT_OPTIONS_ATTR, entitlementOptions,
+                DETAILED_VIEW_DATA_ATTR, relyingPartyResource));
         }
 
         EditRelyingPartyResource editResource =
             editForm.toResource()
-                    .withRelyingPartyEntitlements(relyingPartyResource.relyingPartyEntitlements())
                     .withActive(relyingPartyResource.active());
+
+        userAuthorityService.assertIsLegalEditResourceForRelyingParty(
+            editResource, relyingPartyResource);
+
         relyingPartiesService.edit(relyingPartyResource.id(), editResource);
         return new ModelAndView("redirect:/details/" + relyingPartyResource.id());
     }

@@ -1,5 +1,9 @@
 package no.idporten.eudiw.rp.admin.web.security;
 
+import lombok.extern.slf4j.Slf4j;
+import no.idporten.eudiw.rp.admin.web.resource.EditRelyingPartyResource;
+import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyEntitlementResource;
+import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.security.exception.InsufficientAuthorityException;
 import no.idporten.eudiw.rp.admin.web.security.oidcusers.ReporteeAuthority;
 import org.springframework.security.core.Authentication;
@@ -7,7 +11,10 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+@Slf4j
 public class UserAuthorityService {
 
     private Authentication getAuthentication() {
@@ -47,5 +54,37 @@ public class UserAuthorityService {
                    .findFirst()
                    .orElseThrow(() -> new InsufficientAuthorityException(
                        "No reportee authority found for user"));
+    }
+
+    public boolean isLegalEditResourceForRelyingParty(
+        EditRelyingPartyResource editResource, RelyingPartyResource relyingPartyResource) {
+
+        if (userHasAdminAuthority()) {
+            return true;
+        }
+
+        boolean activeStatusPreserved = editResource.active() == relyingPartyResource.active();
+
+        Set<String> existingEntitlements =
+            relyingPartyResource.relyingPartyEntitlements()
+                                .stream()
+                                .map(RelyingPartyEntitlementResource::entitlement)
+                                .collect(Collectors.toSet());
+        Set<String> requestedEntitlements =
+            editResource.relyingPartyEntitlements()
+                        .stream()
+                        .map(RelyingPartyEntitlementResource::entitlement)
+                        .collect(Collectors.toSet());
+
+        boolean entitlementValuesPreserved = existingEntitlements.equals(requestedEntitlements);
+
+        return activeStatusPreserved && entitlementValuesPreserved;
+    }
+
+    public void assertIsLegalEditResourceForRelyingParty(
+        EditRelyingPartyResource editResource, RelyingPartyResource relyingPartyResource) {
+        if (!isLegalEditResourceForRelyingParty(editResource, relyingPartyResource)) {
+            throw new InsufficientAuthorityException("Unauthorized RP edit attempt");
+        }
     }
 }
