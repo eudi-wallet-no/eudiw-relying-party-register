@@ -7,7 +7,8 @@ import no.idporten.eudiw.credential.registry.response.model.Credentials;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -20,6 +21,7 @@ import java.net.URI;
 @ActiveProfiles("junit")
 public class CredentialsTest {
 
+    private static final Logger log = LoggerFactory.getLogger(CredentialsTest.class);
     @MockitoBean
     private CredentialRegisterService credentialRegisterService;
 
@@ -41,8 +43,9 @@ public class CredentialsTest {
 
         assertAll(
                 () -> assertEquals("mock_utsteder", credentials.credentials().get(0).credentialIssuer()),
-                () -> assertEquals("mdoc", credentials.credentials().get(0).format()),
-                () -> assertEquals("sd+jwt-vc", credentials.credentials().get(1).format())
+                () -> assertEquals("sd+jwt-vc", credentials.credentials().get(0).format()),
+                () -> assertEquals("mdoc", credentials.credentials().get(1).format()),
+                () -> assertEquals("jwt_vc_json", credentials.credentials().get(2).format())
         );
     }
     @DisplayName("When issuer uri is empty")
@@ -52,6 +55,7 @@ public class CredentialsTest {
         CredentialIssuer issuer = mockRetriever.fetchCredentialIssuerFromMetadataRequest(uri);
         assertNull(issuer);
     }
+
 
 // TODO: se på de siste testene seinere: Må mocke server/url for å få enabla de.
 //    @DisplayName("When issuer URL is not https")
