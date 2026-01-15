@@ -59,7 +59,7 @@ public class CredentialRegisterService {
         List<Claims> claimsList = credentialConfiguration.getCredentialMetadata().getClaims().stream().map(claims -> new Claims(claims.getPath(), claims.getDisplay().stream().map(display -> new Display(display.getName(), display.getLocale(), display.getDescription())).toList())).toList();
         List<Display> issuerPrettyName = issuerDisplay.stream().map(display -> new Display(display.getName(), display.getLocale(), display.getDescription())).toList();
         CredentialMetadata newCredentialMetadata = new CredentialMetadata(outerListOfDisplay, claimsList);
-        return new CredentialsIssuer(issuer, key, credentialConfiguration.doctype(), credentialConfiguration.getFormat(), newCredentialMetadata, issuerPrettyName);
+        return new CredentialsIssuer(issuer, key, credentialConfiguration.findTypeByFormat(), credentialConfiguration.getFormat(), newCredentialMetadata, issuerPrettyName);
     }
 
     public Credentials  getCredentials() {

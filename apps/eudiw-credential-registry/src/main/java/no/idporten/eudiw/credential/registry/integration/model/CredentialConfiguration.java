@@ -2,29 +2,35 @@ package no.idporten.eudiw.credential.registry.integration.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CredentialConfiguration{
+    @Pattern(regexp = "mso_mdoc|dc\\+sd-jwt|jwt_vc_json", message = "unrecognized_format")
     @JsonProperty("format")
     @NotBlank
     private String format;
     @JsonProperty("scope")
     private String scope = "";
     @JsonProperty("credential_signing_alg_values_supported")
-    private List<String> credentialSigningAlgValuesSupported = new ArrayList();
+    private List<String> credentialSigningAlgValuesSupported = new ArrayList<>();
     @JsonProperty("cryptographic_binding_methods_supported")
-    private List<String> cryptographicBindingMethodsSupported = new ArrayList();
+    private List<String> cryptographicBindingMethodsSupported = new ArrayList<>();
+    @Valid
+    @JsonProperty("credential_definition")
+    private CredentialDefinition credentialDefinition = null;
     @JsonProperty("proof_types_supported")
     private ProofTypesSupported proofTypesSupported= new ProofTypesSupported(new ProofSigningAlgValuesSupported(new ArrayList<>()));
     @JsonProperty("credential_metadata")
     private CredentialMetadata credentialMetadata = new CredentialMetadata();
-    @JsonProperty("doctype") //hva skal man gjøre med dette
+    @JsonProperty("doctype")
     private String doctype;
-    @JsonProperty("vct") //hva skal man gjøre med dette
+    @JsonProperty("vct")
     private String vct;
 
     public CredentialConfiguration() {}
@@ -33,8 +39,13 @@ public class CredentialConfiguration{
         this.format = format;
     }
 
-    public String doctype() {
-        return this.doctype != null ? this.doctype : this.vct;
+    public String findTypeByFormat() {
+        return switch (this.format) {
+            case "mso_mdoc" -> this.doctype;
+            case "dc+sd-jwt" -> this.vct;
+            case "jwt_vc_json" -> this.credentialDefinition.getType().get(1);
+            default -> null;
+        };
     }
 
     public void setScope(String scope){
@@ -85,4 +96,11 @@ public class CredentialConfiguration{
         return this.credentialMetadata;
     }
 
+    public void setCredentialDefinition(CredentialDefinition credentialDefinition) {
+            this.credentialDefinition = credentialDefinition;
+    }
+
+    public CredentialDefinition getCredentialDefinition() {
+        return this.credentialDefinition;
+    }
 }

@@ -18,6 +18,5 @@ public record CredentialsIssuer (
         CredentialMetadata credentialMetadata,
         @JsonProperty("display")
         List<Display> display
-
 ){
 }

@@ -1,10 +1,11 @@
 package no.idporten.eudiw.credential.registry.integration;
 
+import jakarta.validation.ValidationException;
 import no.idporten.eudiw.credential.registry.integration.model.CredentialConfiguration;
+import no.idporten.eudiw.credential.registry.integration.model.CredentialDefinition;
 import no.idporten.eudiw.credential.registry.integration.model.CredentialIssuer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -26,18 +27,35 @@ public class MockData {
         Map<String, CredentialConfiguration> credConfig = new HashMap<>();
         credConfig.put("utsteder", new CredentialConfiguration("sd+jwt-vc"));
         Map<String, CredentialConfiguration> credConfig2 = new HashMap<>();
-        credConfig.put("utstederTest", new CredentialConfiguration("mdoc"));
+        credConfig2.put("utstederTest", new CredentialConfiguration("mdoc"));
+        Map<String, CredentialConfiguration> credConfig3 = new HashMap<>();
+        CredentialConfiguration credentialConfiguration = new CredentialConfiguration("jwt_vc_json");
+        CredentialDefinition definition = new CredentialDefinition();
+        ArrayList<String> types = new ArrayList<>();
+        types.add("VerifiableCredential");
+        types.add("heiskort");
+        definition.setType(types);
+        credentialConfiguration.setCredentialDefinition(definition);
+        credConfig3.put("testjwtvcjson", credentialConfiguration);
+
         URL credential_endpoint1;
         URL credential_endpoint2;
+        URL credential_endpoint3;
         try {
             credential_endpoint1 = new URL("http://eksempel.com");
             credential_endpoint2 = new URL("http://eksempel2.com");
+            credential_endpoint3 = new URL("http://eksempel3.com");
+
             CredentialIssuer issuer1 = new CredentialIssuer("mock_utsteder", credential_endpoint1, credConfig);
             CredentialIssuer issuer2 = new CredentialIssuer("mock_utsteder2", credential_endpoint2, credConfig2);
+            CredentialIssuer issuer3 = new CredentialIssuer("mock_utsteder3", credential_endpoint3, credConfig3);
             credentialIssuers.add(issuer1);
             credentialIssuers.add(issuer2);
+            credentialIssuers.add(issuer3);
         } catch (MalformedURLException e){
             log.info("Feil i skaping av URL i test");
+        } catch (ValidationException e){
+            log.error("Valideringsfeil ", e);
         }
     }
 
