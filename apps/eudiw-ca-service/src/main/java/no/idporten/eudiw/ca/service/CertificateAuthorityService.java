@@ -158,6 +158,9 @@ public class CertificateAuthorityService {
      * @param extensions
      */
     private void addSupportedExtensionsFromCsr(PKCS10CertificationRequest csr, List<Extension> extensions) {
+        if (csr.getRequestedExtensions() == null) {
+            return;
+        }
         if (csr.getRequestedExtensions().getExtension(Extension.subjectAlternativeName) != null) {
             extensions.add(csr.getRequestedExtensions().getExtension(Extension.subjectAlternativeName));
         }
