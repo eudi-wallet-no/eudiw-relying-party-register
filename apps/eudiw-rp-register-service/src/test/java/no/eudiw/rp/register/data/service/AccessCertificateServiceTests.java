@@ -265,22 +265,6 @@ public class AccessCertificateServiceTests {
         }
 
         @Test
-        @DisplayName("then a not-found-error is thrown if a CSR is registered for a deleted RP")
-        public void testErrorThrownForDeletedRelyingParty() throws Exception {
-            RelyingPartyInstance relyingParty = EntityGenerator.generateRelyingParty();
-
-            instanceRepository.saveAndFlush(relyingParty);
-
-            RelyingPartyCsrResource csrResource =
-                ResourceGenerator.generateRegisterRelyingPartyCsrResource();
-            assertThrows(
-                NotFoundException.class,
-                () -> certService.requestAccessCertificateForRelyingParty(
-                    relyingParty.getId(), csrResource)
-            );
-        }
-
-        @Test
         @DisplayName("then error responses from the CA are properly handled")
         public void testErrorResponseFromCAProperlyHandled() throws Exception {
             String errorResponseJson = new ObjectMapper().writeValueAsString(

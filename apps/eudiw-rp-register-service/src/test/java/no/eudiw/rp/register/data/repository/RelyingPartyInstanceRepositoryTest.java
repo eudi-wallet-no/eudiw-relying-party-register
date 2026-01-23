@@ -81,7 +81,7 @@ public class RelyingPartyInstanceRepositoryTest {
         @Test
         @DisplayName("then search by trade name uses substring matching")
         void testSearchByTradeNameUsesSubstringMatching() {
-            RelyingPartyInstance relyingPartyInstance = EntityGenerator.generateRelyingPartyWithLegalEntity();
+            RelyingPartyInstance relyingPartyInstance = EntityGenerator.generateRelyingParty();
             String searchTerm = relyingPartyInstance.getTradeName();
 
             relyingPartyInstance.setTradeName(TestDataGenerator.generateName() + searchTerm + TestDataGenerator.generateName());
@@ -176,8 +176,8 @@ public class RelyingPartyInstanceRepositoryTest {
         @DisplayName("using a search term which exists in both trade names, orgnos, and legal entity names")
         void testSearchTermInMultipleDifferentFields() {
 
-            RelyingPartyInstance rpi1 = EntityGenerator.generateRelyingPartyWithLegalEntity();
-            RelyingPartyInstance rpi2 = EntityGenerator.generateRelyingPartyWithLegalEntity();
+            RelyingPartyInstance rpi1 = EntityGenerator.generateRelyingParty();
+            RelyingPartyInstance rpi2 = EntityGenerator.generateRelyingParty();
             LegalEntity legalEntity = legalEntityRepository.findAll().getFirst();
 
             String searchTerm = legalEntity.getOrgno();
