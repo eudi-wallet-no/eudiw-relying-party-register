@@ -6,7 +6,7 @@ import no.eudiw.rp.register.api.resource.relyingparty.EditRelyingPartyResource;
 import no.eudiw.rp.register.api.resource.relyingparty.SearchRelyingPartyResource;
 import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyInstance;
 import no.eudiw.rp.register.data.repository.RelyingPartyInstanceRepository;
-import static no.eudiw.rp.register.testdata.EntityGenerator.*;
+import no.eudiw.rp.register.testdata.EntityGenerator;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -78,7 +78,7 @@ public class ControllerValidationTests {
         @Test
         @DisplayName("then validation is properly applied to edit resource")
         void testUnsaneNameEditResource() throws Exception {
-            RelyingPartyInstance relyingPartyIn = relyingPartyRepository.save(generateRelyingParty());
+            RelyingPartyInstance relyingPartyIn = relyingPartyRepository.save(EntityGenerator.generateRelyingParty());
             UUID id = relyingPartyIn.getId();
 
             String invalidName ="<script>Digdir</script>";

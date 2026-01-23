@@ -31,7 +31,7 @@ public class EntityGenerator extends TestDataGenerator {
             generateName(),
             generateValidOrgno(),
             true,
-            generateListBy(numInstances, EntityGenerator::generateRelyingParty));
+            generateListBy(numInstances, EntityGenerator::generateRelyingPartyWithoutLegalEntity));
     }
 
     public static List<RelyingPartyEntitlement> sampleRelyingPartyEntitlements() {
@@ -45,7 +45,7 @@ public class EntityGenerator extends TestDataGenerator {
                    .toList();
     }
 
-    public static RelyingPartyInstance generateRelyingParty() {
+    public static RelyingPartyInstance generateRelyingPartyWithoutLegalEntity() {
         return new RelyingPartyInstance(
             generateName(),
             sampleRelyingPartyEntitlements(),
@@ -56,8 +56,8 @@ public class EntityGenerator extends TestDataGenerator {
         );
     }
 
-    public static RelyingPartyInstance generateRelyingPartyWithLegalEntity() {
-        RelyingPartyInstance relyingPartyInstance = generateRelyingParty();
+    public static RelyingPartyInstance generateRelyingParty() {
+        RelyingPartyInstance relyingPartyInstance = generateRelyingPartyWithoutLegalEntity();
         LegalEntity legalEntityWithZeroInstances = generateLegalEntity(0);
         relyingPartyInstance.setLegalEntity(legalEntityWithZeroInstances);
         return relyingPartyInstance;
