@@ -15,6 +15,8 @@ import java.util.*;
 public interface RelyingPartyInstanceRepository
     extends JpaRepository<RelyingPartyInstance, UUID> {
 
+    Optional<RelyingPartyInstance> findByIdAndActiveTrue(UUID id);
+
     @Query("""
     SELECT DISTINCT rpi
     FROM RelyingPartyInstance rpi

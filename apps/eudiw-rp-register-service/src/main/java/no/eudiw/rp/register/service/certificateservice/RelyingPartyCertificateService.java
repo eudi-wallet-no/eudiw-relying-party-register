@@ -1,7 +1,6 @@
 package no.eudiw.rp.register.service.certificateservice;
 
 import lombok.RequiredArgsConstructor;
-import no.eudiw.rp.register.api.resource.relyingparty.RelyingPartyEntitlementsResource;
 import no.eudiw.rp.register.api.resource.certificates.IssuerCsrResource;
 import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCsrResource;
 import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCertificateResource;
@@ -33,10 +32,12 @@ import java.util.UUID;
 public class RelyingPartyCertificateService {
 
     private final RelyingPartyInstanceRepository relyingPartyRepository;
-    private final AccessCertificateRepository accessCertificateRepository;
-    private final RestClient caRestClient;
+
     private final EntitlementRepository entitlementRepository;
+    private final AccessCertificateRepository accessCertificateRepository;
     private final IssuerCertificateRepository issuerCertificateRepository;
+
+    private final RestClient caRestClient;
     private final Converter converter;
 
     @Transactional(readOnly = true)
@@ -53,10 +54,9 @@ public class RelyingPartyCertificateService {
     }
 
     @Transactional(readOnly = true)
-    public RelyingPartyCertificateResource getCertificate(
-        UUID certificateId, UUID relyingPartyId) {
+    public RelyingPartyCertificateResource getCertificate(UUID certificateId, UUID relyingPartyId) {
         if (!relyingPartyRepository.existsById(relyingPartyId)) {
-            throw new NotFoundException("Certificate holder does not exist or has been deleted");
+            throw new NotFoundException("Certificate holder does not exist");
         }
         return converter.toResource(
             accessCertificateRepository
@@ -66,8 +66,7 @@ public class RelyingPartyCertificateService {
     }
 
     @Transactional(readOnly = true)
-    public RelyingPartyCertificateResource getIssuerCertificate(
-        UUID certificateId) {
+    public RelyingPartyCertificateResource getIssuerCertificate(UUID certificateId) {
         return converter.toResource(
             issuerCertificateRepository.findById(certificateId)
                 .orElseThrow(() -> new NotFoundException("Certificate does not exist"))
@@ -90,8 +89,7 @@ public class RelyingPartyCertificateService {
     @Transactional
     public RelyingPartyCertificateResource requestIssuerCertificate(
         UUID relyingPartyId,
-        IssuerCsrResource csrResource
-    ) {
+        IssuerCsrResource csrResource) {
         RelyingPartyInstance relyingParty = getRelyingParty(relyingPartyId);
 
         RelyingPartyEntitlement relyingPartyEntitlement = relyingParty.getRelyingPartyEntitlement(csrResource.entitlement())
@@ -121,8 +119,7 @@ public class RelyingPartyCertificateService {
 
     @Transactional
     public RelyingPartyCertificateResource requestAccessCertificateForRelyingParty(
-        UUID relyingPartyId, RelyingPartyCsrResource csrResource
-    ) {
+        UUID relyingPartyId, RelyingPartyCsrResource csrResource) {
         RelyingPartyInstance relyingParty = getRelyingParty(relyingPartyId);
 
         X509Certificate certificate = getCertificateFromCa(
@@ -142,18 +139,23 @@ public class RelyingPartyCertificateService {
 
     private RelyingPartyInstance getRelyingParty(UUID relyingPartyId) {
         return relyingPartyRepository
-            .findById(relyingPartyId)
-            .orElseThrow(() -> new NotFoundException("Certificate registree does not exist"));
+            .findByIdAndActiveTrue(relyingPartyId)
+            .orElseThrow(() -> new NotFoundException("Certificate registree does not exist or is inactive"));
     }
 
-    private X509Certificate getCertificateFromCa(PKCS10CertificationRequest csr, String orgNo, String legalName, String tradeName, String caId) {
+    private X509Certificate getCertificateFromCa(
+        PKCS10CertificationRequest csr,
+        String orgno,
+        String legalName,
+        String tradeName,
+        String caId) {
         String csrPemStr = PKCS10CertificationRequestConverter.convert(csr);
         String certificatePemStr =
             caRestClient.post()
                 .uri("/" + caId)
                 .body(RelyingPartyCertificateRequest
                     .builder()
-                    .orgno(orgNo)
+                    .orgno(orgno)
                     .tradeName(tradeName)
                     .legalName(legalName)
                     .csr(csrPemStr)

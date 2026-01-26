@@ -364,5 +364,22 @@ public class AccessCertificateServiceTests {
                                            legalEntity.getRelyingPartyInstances().getFirst().getId());
             assertEquals(expectedCertResource, immediatelyReturnedCertResource);
         }
+
+        @Test
+        @DisplayName("then CSR request is rejected for inactive RP instance")
+        public void testAccessCsrRejectedForInactiveRelyingPartyInstance() {
+            RelyingPartyInstance relyingPartyInstance = EntityGenerator.generateRelyingParty();
+            relyingPartyInstance.setActive(false);
+            instanceRepository.saveAndFlush(relyingPartyInstance);
+
+            RelyingPartyCsrResource csrResource =
+                ResourceGenerator.generateRegisterRelyingPartyCsrResource();
+
+            assertThrows(
+                NotFoundException.class,
+                () -> certService.requestAccessCertificateForRelyingParty(
+                    relyingPartyInstance.getId(), csrResource)
+            );
+        }
     }
 }
