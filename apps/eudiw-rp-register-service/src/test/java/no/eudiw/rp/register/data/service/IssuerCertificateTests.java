@@ -9,6 +9,7 @@ import no.eudiw.rp.register.data.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.data.repository.LegalEntityRepository;
 import no.eudiw.rp.register.service.certificateservice.RelyingPartyCertificateService;
 import no.eudiw.rp.register.exception.RegisterServiceException;
+import no.eudiw.rp.register.service.exception.NotFoundException;
 import no.eudiw.rp.register.testdata.CertificatesGenerator;
 import no.eudiw.rp.register.testdata.EntityGenerator;
 import okhttp3.mockwebserver.MockResponse;
@@ -210,6 +211,22 @@ public class IssuerCertificateTests {
             assertNotNull(entitlement);
             assertNotNull(entitlement.getIssuerCertificates());
             assertEquals(1, entitlement.getIssuerCertificates().size());
+        }
+
+        @Test
+        @DisplayName("then CSR is rejected for inactive RP instance")
+        public void testIssuerCsrRejectedForInactiveRelyingParty() {
+            RelyingPartyInstance relyingPartyInstance = EntityGenerator.generateRelyingParty();
+            relyingPartyInstance.setActive(false);
+            instanceRepository.saveAndFlush(relyingPartyInstance);
+
+            String entitlement = relyingPartyInstance.getRelyingPartyEntitlements().getFirst().getEntitlement();
+            IssuerCsrResource csrResource = new IssuerCsrResource(CertificatesGenerator.generatePKCS10Csr(), entitlement);
+
+            assertThrows(
+                NotFoundException.class,
+                () -> certService.requestIssuerCertificate(relyingPartyInstance.getId(), csrResource)
+            );
         }
     }
 }
