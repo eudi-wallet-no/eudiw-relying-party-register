@@ -45,7 +45,7 @@ public class CredentialRegisterService {
         }
     }
 
-    public void setResponse() {
+    protected void setResponse() {
         List<CredentialsIssuer> outputCredentials =
         this.credentialIssuerMetadataRetriever.getListOfIssuer().stream().flatMap((issuer) ->
             issuer.getCredentialConfiguration().entrySet().stream().map((key) ->

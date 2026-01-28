@@ -13,7 +13,7 @@ public class ApplicationExceptionHandler {
 
     @ExceptionHandler(CredentialRegisterException.class)
     public ResponseEntity<ErrorResponse> credentialRegisterException(CredentialRegisterException credentialRegisterException) {
-        log.error("Credential Registry exception ", credentialRegisterException);
+        log.warn("Credential Registry exception ", credentialRegisterException);
         return ResponseEntity
                 .status(credentialRegisterException.getHttpStatus())
                 .body(new ErrorResponse(credentialRegisterException.getError(), credentialRegisterException.getErrorDescription()));
