@@ -9,6 +9,7 @@ import no.eudiw.rp.register.service.Converter;
 import no.eudiw.rp.register.service.EntitlementService;
 import no.eudiw.rp.register.service.exception.AlreadyExistsException;
 import no.eudiw.rp.register.service.exception.BadRequestException;
+import no.eudiw.rp.register.service.exception.NotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -186,13 +187,13 @@ class EntitlementServiceTest {
         }
 
         @Test
-        @DisplayName("throws BadRequestException when entitlement is not found")
+        @DisplayName("throws NotFoundException when entitlement is not found")
         void notFound() {
             when(repository.findByEntitlement("MISSING")).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> service.editEntitlement("MISSING", false))
-                .isInstanceOf(BadRequestException.class)
-                .hasMessageContaining("not found");
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("does not exist");
 
             verify(repository).findByEntitlement("MISSING");
             verify(repository, never()).saveAndFlush(any());

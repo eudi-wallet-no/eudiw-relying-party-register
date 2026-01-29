@@ -25,8 +25,10 @@ public class IssuerCertificate extends BaseCertificateEntity {
     @JdbcTypeCode(SqlTypes.UUID)
     private RelyingPartyEntitlement entitlement;
 
-    public IssuerCertificate(X509Certificate certificate, RelyingPartyEntitlement relyingPartyEntitlement) {
-        super(certificate);
+    public IssuerCertificate(X509Certificate certificate,
+                             String caId,
+                             RelyingPartyEntitlement relyingPartyEntitlement) {
+        super(certificate, caId);
         this.entitlement = relyingPartyEntitlement;
     }
 

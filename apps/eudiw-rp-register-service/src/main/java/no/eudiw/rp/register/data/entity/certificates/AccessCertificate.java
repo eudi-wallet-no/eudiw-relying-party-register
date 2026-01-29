@@ -26,7 +26,7 @@ public class AccessCertificate extends BaseCertificateEntity {
     private RelyingPartyInstance relyingPartyInstance;
 
     public AccessCertificate(X509Certificate certificate, RelyingPartyInstance relyingPartyInstance) {
-        super(certificate);
+        super(certificate, "access");
         this.relyingPartyInstance = relyingPartyInstance;
     }
 
