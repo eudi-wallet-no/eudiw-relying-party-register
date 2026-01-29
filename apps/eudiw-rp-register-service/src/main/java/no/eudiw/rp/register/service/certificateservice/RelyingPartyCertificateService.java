@@ -12,11 +12,11 @@ import no.eudiw.rp.register.data.entity.certificates.X509CertificateConverter;
 import no.eudiw.rp.register.data.entity.*;
 import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyEntitlement;
 import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyInstance;
-import no.eudiw.rp.register.data.repository.EntitlementRepository;
 import no.eudiw.rp.register.data.repository.IssuerCertificateRepository;
 import no.eudiw.rp.register.data.repository.AccessCertificateRepository;
 import no.eudiw.rp.register.data.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.service.Converter;
+import no.eudiw.rp.register.service.EntitlementService;
 import no.eudiw.rp.register.service.exception.NotFoundException;
 import no.eudiw.rp.register.exception.RegisterServiceException;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
@@ -33,9 +33,10 @@ public class RelyingPartyCertificateService {
 
     private final RelyingPartyInstanceRepository relyingPartyRepository;
 
-    private final EntitlementRepository entitlementRepository;
     private final AccessCertificateRepository accessCertificateRepository;
     private final IssuerCertificateRepository issuerCertificateRepository;
+
+    private final EntitlementService entitlementService;
 
     private final RestClient caRestClient;
     private final Converter converter;
@@ -92,13 +93,13 @@ public class RelyingPartyCertificateService {
         IssuerCsrResource csrResource) {
         RelyingPartyInstance relyingParty = getRelyingParty(relyingPartyId);
 
-        RelyingPartyEntitlement relyingPartyEntitlement = relyingParty.getRelyingPartyEntitlement(csrResource.entitlement())
-            .orElseThrow(() -> new NotFoundException("RelyingPartyEntitlement does not exist"));
+        RelyingPartyEntitlement relyingPartyEntitlement =
+            relyingParty.getRelyingPartyEntitlement(csrResource.entitlement())
+                        .orElseThrow(() -> new NotFoundException("RelyingPartyEntitlement does not exist"));
 
-        Entitlement entitlement = entitlementRepository.findByEntitlement(csrResource.entitlement())
-            .orElseThrow(() -> new NotFoundException("Entitlement does not exist"));
+        String caId = entitlementService.getDefaultCaForEntitlementUri(csrResource.entitlement());
 
-        if (entitlement.getCaId() == null) {
+        if (caId == null) {
             throw new RegisterServiceException("Entitlement does not have a CA ID");
         }
 
@@ -107,10 +108,10 @@ public class RelyingPartyCertificateService {
             relyingParty.getLegalEntity().getOrgno(),
             relyingParty.getLegalEntity().getName(),
             relyingParty.getTradeName(),
-            entitlement.getCaId());
+            caId);
 
         IssuerCertificate certificateEntity =
-            new IssuerCertificate(certificate, relyingPartyEntitlement);
+            new IssuerCertificate(certificate, caId, relyingPartyEntitlement);
 
         relyingPartyEntitlement.addIssuerCertificate(certificateEntity);
 

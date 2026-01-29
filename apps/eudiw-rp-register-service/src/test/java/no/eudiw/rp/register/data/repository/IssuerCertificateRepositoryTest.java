@@ -37,7 +37,7 @@ public class IssuerCertificateRepositoryTest {
         LegalEntity savedLegalEntity = legalEntityRepository.findById(saved.getId()).get();
         RelyingPartyEntitlement entitlement = savedLegalEntity.getRelyingPartyInstances().getFirst().getRelyingPartyEntitlements().stream().findFirst().get();
         X509Certificate testCert = CertificatesGenerator.generateX509Certificate();
-        IssuerCertificate issuerCertificate = new IssuerCertificate(testCert, entitlement);
+        IssuerCertificate issuerCertificate = new IssuerCertificate(testCert, "caId", entitlement);
         issuerCertificateRepository.save(issuerCertificate);
 
         IssuerCertificate retrievedIssuerCertificate = issuerCertificateRepository.findById(issuerCertificate
@@ -55,7 +55,7 @@ public class IssuerCertificateRepositoryTest {
         LegalEntity savedLegalEntity = legalEntityRepository.findById(saved.getId()).get();
         RelyingPartyEntitlement entitlement = savedLegalEntity.getRelyingPartyInstances().getFirst().getRelyingPartyEntitlements().stream().findFirst().get();
         X509Certificate testCert = CertificatesGenerator.generateX509Certificate();
-        IssuerCertificate issuerCertificate = new IssuerCertificate(testCert, entitlement);
+        IssuerCertificate issuerCertificate = new IssuerCertificate(testCert, "caId", entitlement);
         entitlement.setIssuerCertificates(List.of(issuerCertificate));
         legalEntityRepository.save(savedLegalEntity);
 

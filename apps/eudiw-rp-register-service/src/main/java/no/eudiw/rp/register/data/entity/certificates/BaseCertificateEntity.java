@@ -22,9 +22,7 @@ public abstract class BaseCertificateEntity extends BaseEntity {
     protected String serialNo;
 
     @Column(name = "ca_id", nullable = false)
-
-    // Denne er midlertidig, da api ikke er oppdatert for å støtte forskjellige sertifikat typer
-    protected String caId = "caId";
+    protected String caId;
 
     @Column(name = "issuer", nullable = false)
     protected String issuer;
@@ -35,8 +33,9 @@ public abstract class BaseCertificateEntity extends BaseEntity {
     @Column(name = "valid_until_ms", nullable = false)
     protected long validUntilMs;
 
-    protected BaseCertificateEntity(X509Certificate certificate) {
+    protected BaseCertificateEntity(X509Certificate certificate, String caId) {
         this.id = null;
+        this.caId = caId;
 
         this.certificate = certificate;
         this.issuer = certificate.getIssuerX500Principal().getName();
