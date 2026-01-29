@@ -1,5 +1,9 @@
 package no.idporten.eudiw.rp.register.lookup.display;
 
+import no.idporten.eudiw.rp.register.lookup.testdata.ResourceGenerator;
+import no.idporten.eudiw.rp.register.lookup.testdata.TestDataGenerator;
+import no.idporten.eudiw.rp.register.lookup.web.resource.credentials.CredentialMetadata;
+import no.idporten.eudiw.rp.register.lookup.web.resource.credentials.CredentialResource;
 import no.idporten.eudiw.rp.register.lookup.web.resource.credentials.Display;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -71,6 +75,45 @@ public class DisplayTests {
             assertNull(description);
         }
 
+    }
+
+    @Nested
+    @DisplayName("when using the various display name wrapper methods")
+    class DisplayNameGetterTests {
+
+        @Test
+        @DisplayName("then issuer string is used when credential has no issuer display")
+        public void testIssuerIsReturnedWhenCredentialHasNoIssuerDisplay() {
+            CredentialResource credentialWithNullDisplay =
+                ResourceGenerator.generateCredentialResource()
+                    .withIssuerDisplays(null);
+
+            assertEquals(credentialWithNullDisplay.issuer(),
+                         credentialWithNullDisplay.getIssuerDisplayName("no"));
+        }
+
+        @Test
+        @DisplayName("then credential type string is used when credential metadata has no credential type display")
+        public void testCredentialTypeReturnedWhenCredentialMetadataHasNoCredentialTypeDisplay() {
+            CredentialMetadata metadataWithNullCredentialTypeDisplay =
+                new CredentialMetadata(null, List.of());
+
+            CredentialResource credentialResource =
+                ResourceGenerator.generateCredentialResource()
+                                 .withMetadata(metadataWithNullCredentialTypeDisplay);
+
+            assertEquals(credentialResource.credentialType(),
+                         credentialResource.getCredentialTypeDisplayName("no"));
+        }
+
+        @Test
+        @DisplayName("then a null string is returned when claims has no display")
+        public void testNullReturnedWhenClaimsHasNoDisplay() {
+            CredentialMetadata.Claims claimsWithNullDisplay =
+                new CredentialMetadata.Claims(List.of("foo"), null);
+
+            assertNull(claimsWithNullDisplay.getClaimsDisplayName("no"));
+        }
     }
 
 }

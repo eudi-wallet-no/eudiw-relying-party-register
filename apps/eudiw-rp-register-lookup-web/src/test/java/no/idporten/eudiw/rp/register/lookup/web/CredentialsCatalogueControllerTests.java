@@ -45,7 +45,7 @@ public class CredentialsCatalogueControllerTests {
 
         private Comparator<CredentialResource> byNorwegianCredentialTypeDisplayName =
             Comparator.comparing(credential ->
-                credential.metadata().getCredentialTypeDisplayName("no"));
+                credential.getCredentialTypeDisplayName("no"));
 
         @Test
         @DisplayName("then credentials service invoked, and credentials view shown with default sorting")
