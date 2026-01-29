@@ -1,13 +1,11 @@
 package no.idporten.eudiw.rp.register.lookup.service.credentialsservice;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.validation.ConstraintViolation;
 import no.idporten.eudiw.rp.register.lookup.service.MockWebServerConfiguration;
 import no.idporten.eudiw.rp.register.lookup.service.exception.*;
 import no.idporten.eudiw.rp.register.lookup.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.register.lookup.service.exception.BadRequestException;
 import no.idporten.eudiw.rp.register.lookup.service.exception.ErrorResponseException;
-import no.idporten.eudiw.rp.register.lookup.service.exception.ResponseValidationException;
 import no.idporten.eudiw.rp.register.lookup.service.exception.UnrecognizedErrorResponseException;
 import no.idporten.eudiw.rp.register.lookup.testdata.TestDataGenerator;
 import no.idporten.eudiw.rp.register.lookup.web.resource.credentials.CredentialResource;
@@ -25,7 +23,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -105,8 +102,8 @@ public class CredentialsServiceTests {
     }
 
     @Test
-    @DisplayName("then validation fails when credentials are invalid")
-    public void testProperExceptionThrownOnInvalidCredentials() throws Exception {
+    @DisplayName("then validation ensures invalid credentials are omitted from the result")
+    public void testInvalidCredentialsOmittedFromCredentialsResource() throws Exception {
         CredentialResource validCredential =
             ResourceGenerator.generateCredentialResource();
 
@@ -119,7 +116,7 @@ public class CredentialsServiceTests {
             validCredential.credentialType(),
             validCredential.metadata());
 
-        CredentialsResource credentials = new CredentialsResource(List.of(invalidCredential));
+        CredentialsResource credentials = new CredentialsResource(List.of(invalidCredential, validCredential));
 
         String credentialsResponseBody = objectMapper.writeValueAsString(credentials);
 
@@ -130,12 +127,10 @@ public class CredentialsServiceTests {
                 .setBody(credentialsResponseBody);
         mockWebServer.enqueue(mockInvalidResponse);
 
-        Set<ConstraintViolation<?>> validationViolations =
-            assertThrowsExactly(
-                ResponseValidationException.class,
-                () -> credentialsService.getAvailableCredentials()
-            ).getViolations();
-        assertFalse(validationViolations.isEmpty());
+        CredentialsResource credentialsResource = credentialsService.getAvailableCredentials();
+        assertEquals(1, credentialsResource.credentials().size());
+        assertTrue(credentialsResource.credentials().contains(validCredential));
+        assertFalse(credentialsResource.credentials().contains(invalidCredential));
     }
 
     @Nested

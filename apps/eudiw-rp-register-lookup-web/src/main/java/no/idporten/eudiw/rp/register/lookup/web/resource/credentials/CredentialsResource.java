@@ -13,7 +13,7 @@ import java.util.function.Function;
 public record CredentialsResource(
     @NotNull(message = "invalid_credentials")
     @JsonProperty(value = "credentials", required = true)
-    List<@Valid CredentialResource> credentials
+    List<@NotNull @Valid CredentialResource> credentials
 ) {
 
     private static final Function<String, Comparator<CredentialResource>> byCredentialTypeDisplayName =
