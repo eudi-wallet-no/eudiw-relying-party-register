@@ -3,10 +3,8 @@ package no.idporten.eudiw.rp.register.lookup.web.resource.credentials;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
 
 import java.util.List;
 
@@ -21,9 +19,9 @@ public record CredentialResource(
     @JsonProperty(value = "credential_issuer", required = true)
     String issuer,
 
-    @NotNull
-    @JsonProperty(value = "display", required = true)
-    List<Display> issuerDisplays,
+    @Size(min = 1, message = "empty_display") // like @NotEmpty but allows null
+    @JsonProperty("display")
+    List<@NotNull @Valid Display> issuerDisplays,
 
     @NotBlank(message = "invalid_configuration_id")
     @JsonProperty(value = "credential_configuration_id", required = true)
@@ -33,7 +31,8 @@ public record CredentialResource(
     @JsonProperty("credential_type")
     String credentialType,
 
-    @NotNull(message = "invalid_metadata")
+    @NotNull(message = "null_metadata")
+    @Valid
     @JsonProperty(value = "credential_metadata", required = true)
     CredentialMetadata metadata
 ) {
