@@ -33,7 +33,9 @@ public record CredentialMetadata(
         List<@NotNull @Valid Display> displays
     ) {
         public String getClaimsDisplayName(String locale) {
-            return Display.getDisplayNameForLocale(locale, this.displays);
+            return this.displays != null
+                       ? Display.getDisplayNameForLocale(locale, this.displays)
+                       : null;
         }
         public String getDcqlFormattedPaths() {
             return "[%s]".formatted(
@@ -41,12 +43,5 @@ public record CredentialMetadata(
                      .map("\"%s\""::formatted)
                      .collect(Collectors.joining(", ")));
         }
-    }
-
-    public String getCredentialTypeDisplayName(String locale) {
-        return Display.getDisplayNameForLocale(locale, this.credentialTypeDisplays);
-    }
-    public String getCredentialTypeDescription(String locale) {
-        return Display.getDescriptionForLocale(locale, this.credentialTypeDisplays);
     }
 }

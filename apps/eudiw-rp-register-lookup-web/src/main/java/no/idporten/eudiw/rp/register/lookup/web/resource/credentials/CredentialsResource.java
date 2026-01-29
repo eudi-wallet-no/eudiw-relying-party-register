@@ -18,7 +18,7 @@ public record CredentialsResource(
 
     private static final Function<String, Comparator<CredentialResource>> byCredentialTypeDisplayName =
         locale -> Comparator.comparing(
-            credential -> credential.metadata().getCredentialTypeDisplayName(locale));
+            credential -> credential.getCredentialTypeDisplayName(locale));
 
     private static final Function<String, Comparator<CredentialResource>> byIssuer =
         locale -> Comparator.comparing(

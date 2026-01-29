@@ -5,10 +5,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
+import lombok.With;
 
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@With
 public record CredentialResource(
     @NotNull
     @Pattern(regexp = "mso_mdoc|dc\\+sd-jwt|jwt_vc_json", message = "unrecognized_format")
@@ -37,7 +39,20 @@ public record CredentialResource(
     CredentialMetadata metadata
 ) {
     public String getIssuerDisplayName(String locale) {
-        return Display.getDisplayNameForLocale(locale, this.issuerDisplays);
+        return this.issuerDisplays != null
+                   ? Display.getDisplayNameForLocale(locale, this.issuerDisplays)
+                   : this.issuer;
+    }
+
+    public String getCredentialTypeDisplayName(String locale) {
+        return this.metadata().credentialTypeDisplays() != null
+                   ? Display.getDisplayNameForLocale(locale, this.metadata().credentialTypeDisplays())
+                   : this.credentialType;
+    }
+    public String getCredentialTypeDescription(String locale) {
+        return this.metadata.credentialTypeDisplays() != null
+                   ? Display.getDescriptionForLocale(locale, this.metadata().credentialTypeDisplays())
+                   : null;
     }
 
     @JsonIgnore
