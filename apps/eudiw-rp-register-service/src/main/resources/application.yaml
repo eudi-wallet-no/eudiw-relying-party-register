@@ -25,6 +25,7 @@ spring:
     open-in-view: false
   flyway:
     table: flyway_schema_history
+    locations: classpath:/db/migration,classpath:/mariadb/db/migration
   application:
     name: digital-lommebok-rp-register-service
     environment: default
