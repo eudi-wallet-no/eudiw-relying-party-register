@@ -42,8 +42,8 @@ public class CredentialsService {
                    .credentials()
                    .stream()
                    .filter(credential ->
-                       credential.issuer().equals(issuer)
-                           && credential.configurationId().equals(configurationId)
+                       credential.getIssuer().equals(issuer)
+                           && credential.getConfigurationId().equals(configurationId)
                    )
                    .findFirst()
                    .orElseThrow(() ->
@@ -61,8 +61,8 @@ public class CredentialsService {
                                     .map(ConstraintViolation::getMessage)
                                     .collect(Collectors.joining(", "));
             log.info("Ignoring invalid credential resource for issuer={}, config-id={}: {}",
-                     credential.issuer(),
-                     credential.configurationId(),
+                     credential.getIssuer(),
+                     credential.getConfigurationId(),
                      validationErrors);
             return false;
         }

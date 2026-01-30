@@ -77,7 +77,7 @@ public class CredentialsServiceTests {
 
         CredentialResource actualResponse =
             credentialsService.getCredential(
-                expectedResponse.issuer(), expectedResponse.configurationId());
+                expectedResponse.getIssuer(), expectedResponse.getConfigurationId());
 
         assertEquals(expectedResponse, actualResponse);
     }
@@ -110,11 +110,11 @@ public class CredentialsServiceTests {
         String invalidFormatType = "mdoc";
         CredentialResource invalidCredential = new CredentialResource(
             invalidFormatType,
-            validCredential.issuer(),
-            validCredential.issuerDisplays(),
-            validCredential.configurationId(),
-            validCredential.credentialType(),
-            validCredential.metadata());
+            validCredential.getIssuer(),
+            validCredential.getIssuerDisplays(),
+            validCredential.getConfigurationId(),
+            validCredential.getCredentialType(),
+            validCredential.getMetadata());
 
         CredentialsResource credentials = new CredentialsResource(List.of(invalidCredential, validCredential));
 
