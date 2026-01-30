@@ -15,6 +15,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.function.Function;
 
 
 @Service
@@ -70,15 +71,23 @@ public class CredentialRegisterService {
     }
 
     private List<Claims> issuerMetadataClaims(CredentialConfiguration credentialConfiguration) {
-        if(credentialConfiguration.getCredentialMetadata().getClaims() != null) {
-            if (credentialConfiguration.getCredentialMetadata().getClaims().stream().anyMatch(claims -> claims.getDisplay() != null)){
-                return credentialConfiguration.getCredentialMetadata().getClaims().stream().map(claims -> new Claims(claims.getPath(), claims.getDisplay().stream().map(display -> new Display(display.getName(), display.getLocale(), display.getDescription())).toList())).toList();
-            } else{
-                return credentialConfiguration.getCredentialMetadata().getClaims().stream().map(claims -> new Claims(claims.getPath(), null)).toList();
-            }
-        } else {
+        var metadataClaims = credentialConfiguration.getCredentialMetadata().getClaims();
+        if (metadataClaims == null) {
             return null;
         }
+        Function<List<no.idporten.eudiw.credential.registry.integration.model.Display>,
+                 List<Display>> displayMapper =
+            display ->
+                display != null
+                    ? display.stream()
+                             .map(d -> new Display(d.getName(), d.getLocale(), d.getDescription()))
+                             .toList()
+                    : null;
+
+        return metadataClaims
+                   .stream()
+                   .map(claims -> new Claims(claims.getPath(), displayMapper.apply(claims.getDisplay())))
+                   .toList();
     }
 
     private CredentialMetadata issuerMetadata(CredentialConfiguration credentialConfiguration) {
