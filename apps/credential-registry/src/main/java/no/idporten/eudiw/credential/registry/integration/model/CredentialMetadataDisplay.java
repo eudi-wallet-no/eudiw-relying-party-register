@@ -32,6 +32,13 @@ public class CredentialMetadataDisplay extends Display {
         super(name);
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+    public String getName() {
+        return name;
+    }
+
     public void setBackgroundColor(String backgroundColor) {
         this.backgroundColor = backgroundColor;
     }
