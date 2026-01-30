@@ -57,14 +57,12 @@ public class CredentialRegisterService {
 
     private CredentialsIssuer inputDataToResponseIssuer(CredentialIssuer issuer, String key, CredentialConfiguration credentialConfiguration) {
         List<Display> issuerPrettyDisplay = issuerPrettyDisplay(issuer);
-        List<Display> credentialMetadataDisplay = credentialMetadataDisplay(credentialConfiguration);
-        List<Claims> issuerMetadataClaims = issuerMetadataClaims(credentialConfiguration);
-        CredentialMetadata newCredentialMetadata = new CredentialMetadata(credentialMetadataDisplay, issuerMetadataClaims);
+        CredentialMetadata newCredentialMetadata = issuerMetadata(credentialConfiguration);
         return new CredentialsIssuer(issuer.getCredentialIssuer(), key, credentialConfiguration.findTypeByFormat(), credentialConfiguration.getFormat(), newCredentialMetadata, issuerPrettyDisplay);
     }
 
     private List<Display> credentialMetadataDisplay(CredentialConfiguration credentialConfiguration) {
-        if (credentialConfiguration.getCredentialMetadata() != null && credentialConfiguration.getCredentialMetadata().getDisplay() != null) {
+        if (credentialConfiguration.getCredentialMetadata().getDisplay() != null) {
             return credentialConfiguration.getCredentialMetadata().getDisplay().stream().map(display -> new Display(display.getName(), display.getLocale(), display.getDescription())).toList();
         } else {
             return null;
@@ -72,7 +70,7 @@ public class CredentialRegisterService {
     }
 
     private List<Claims> issuerMetadataClaims(CredentialConfiguration credentialConfiguration) {
-        if(credentialConfiguration.getCredentialMetadata() != null && credentialConfiguration.getCredentialMetadata().getClaims() != null) {
+        if(credentialConfiguration.getCredentialMetadata().getClaims() != null) {
             if (credentialConfiguration.getCredentialMetadata().getClaims().stream().anyMatch(claims -> claims.getDisplay() != null)){
                 return credentialConfiguration.getCredentialMetadata().getClaims().stream().map(claims -> new Claims(claims.getPath(), claims.getDisplay().stream().map(display -> new Display(display.getName(), display.getLocale(), display.getDescription())).toList())).toList();
             } else{
@@ -81,6 +79,15 @@ public class CredentialRegisterService {
         } else {
             return null;
         }
+    }
+
+    private CredentialMetadata issuerMetadata(CredentialConfiguration credentialConfiguration) {
+        if (credentialConfiguration.getCredentialMetadata() != null) {
+            List<Display> credentialMetadataDisplay = credentialMetadataDisplay(credentialConfiguration);
+            List<Claims> issuerMetadataClaims = issuerMetadataClaims(credentialConfiguration);
+            return new CredentialMetadata(credentialMetadataDisplay, issuerMetadataClaims);
+        }
+        return null;
     }
 
     private List<Display> issuerPrettyDisplay(CredentialIssuer issuer) {
