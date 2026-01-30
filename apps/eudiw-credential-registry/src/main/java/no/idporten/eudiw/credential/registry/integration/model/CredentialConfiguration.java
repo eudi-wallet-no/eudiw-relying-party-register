@@ -18,16 +18,17 @@ public class CredentialConfiguration{
     @JsonProperty("scope")
     private String scope = "";
     @JsonProperty("credential_signing_alg_values_supported")
-    private List<String> credentialSigningAlgValuesSupported = new ArrayList<>();
+    private List<String> credentialSigningAlgValuesSupported = null;
     @JsonProperty("cryptographic_binding_methods_supported")
-    private List<String> cryptographicBindingMethodsSupported = new ArrayList<>();
+    private List<String> cryptographicBindingMethodsSupported = null;
     @Valid
     @JsonProperty("credential_definition")
     private CredentialDefinition credentialDefinition = null;
     @JsonProperty("proof_types_supported")
     private ProofTypesSupported proofTypesSupported= new ProofTypesSupported(new ProofSigningAlgValuesSupported(new ArrayList<>()));
     @JsonProperty("credential_metadata")
-    private CredentialMetadata credentialMetadata = new CredentialMetadata();
+    @Valid
+    private CredentialMetadata credentialMetadata = null;
     @JsonProperty("doctype")
     private String doctype;
     @JsonProperty("vct")
