@@ -40,4 +40,5 @@ public class CredentialIssuerDataTest {
                   () -> assertEquals("personal_administrative_number", credentialIssuer.getCredentialConfiguration().get("no.minid.mpid_sd_jwt_vc").getCredentialMetadata().getClaims().get(0).getPath().get(0))
           );
     }
+
 }

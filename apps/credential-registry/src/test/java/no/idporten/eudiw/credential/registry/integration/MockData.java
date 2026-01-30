@@ -138,11 +138,7 @@ public class MockData {
                 new CredentialMetadata(
                         List.of(new Display("Utsteder c", "nb", "Testutsteder c")),
                         List.of(new Claims(List.of("path", "path2"), List.of(new Display("Utsteder c", "nb", "Testutsteder c"))))
-                ),
-                List.of(
-                        new Display("Mock utsteder", "nb", "En mock av utsteder"),
-                        new Display("Mock issuer", "en", "A mocked issuer")
-                )
+                ), null
         );
         return new Credentials(List.of(issuer1, issuer2, issuer3));
     }
