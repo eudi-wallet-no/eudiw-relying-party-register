@@ -6,36 +6,39 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record CredentialMetadata(
-    @Size(min = 1, message = "empty_display") // like @NotEmpty but allows null
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class CredentialMetadata {
     @JsonProperty("display")
-    List<@NotNull @Valid Display> credentialTypeDisplays,
+    private List<@NotNull @Valid Display> credentialTypeDisplays = new ArrayList<>();
 
-    @NotNull(message = "null_claims")
-    @JsonProperty(value = "claims", required = true)
-    List<@NotNull @Valid Claims> claims
-) {
+    @JsonProperty("claims")
+    private List<@NotNull @Valid Claims> claims = new ArrayList<>();
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public record Claims(
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Claims {
         @NotEmpty
         @JsonProperty(value = "path", required = true)
-        List<@NotBlank String> paths,
+        private List<@NotBlank String> paths;
 
-        @Size(min = 1, message = "empty_display") // like @NotEmpty but allows null
         @JsonProperty("display")
-        List<@NotNull @Valid Display> displays
-    ) {
+        private List<@NotNull @Valid Display> displays = new ArrayList<>();
+
         public String getClaimsDisplayName(String locale) {
-            return this.displays != null
-                       ? Display.getDisplayNameForLocale(locale, this.displays)
-                       : null;
+            return Display.getDisplayNameForLocale(locale, this.displays, null);
         }
         public String getDcqlFormattedPaths() {
             return "[%s]".formatted(

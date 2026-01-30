@@ -81,7 +81,7 @@ public class CredentialsCatalogueControllerTests {
                 when(mockCredentialsService.getAvailableCredentials()).thenReturn(credentialsResource);
 
                 Comparator<CredentialResource> byNumClaims =
-                    Comparator.comparing(cred -> cred.metadata().claims().size());
+                    Comparator.comparing(cred -> cred.getMetadata().getClaims().size());
 
                 List<CredentialResource> credentialsSortedByNumClaims =
                     credentialsResource

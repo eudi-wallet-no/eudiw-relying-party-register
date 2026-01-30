@@ -25,10 +25,10 @@ public record CredentialsResource(
             credential -> credential.getIssuerDisplayName(locale));
 
     private static final Comparator<CredentialResource> byNumClaims =
-        Comparator.comparing(credential -> credential.metadata().claims().size());
+        Comparator.comparing(credential -> credential.getMetadata().getClaims().size());
 
     private static final Comparator<CredentialResource> byFormat =
-        Comparator.comparing(CredentialResource::format);
+        Comparator.comparing(CredentialResource::getFormat);
 
     public List<CredentialResource> sortBy(String key, String locale) {
 

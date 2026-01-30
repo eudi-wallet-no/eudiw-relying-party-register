@@ -14,10 +14,9 @@ public record Display(
     @NotBlank
     @JsonProperty(value = "name", required = true)
     String name,
-    @NotBlank
-    @JsonProperty(value = "locale", required = true)
+    @JsonProperty("locale")
     String locale,
-    @JsonProperty(value = "description")
+    @JsonProperty("description")
     String description
 ) {
     @Nullable
@@ -42,6 +41,12 @@ public record Display(
         return display.description();
     }
 
+    public static String getDisplayNameForLocale(String locale, List<Display> displays, String fallback) {
+        if (displays.isEmpty()) {
+            return fallback;
+        }
+        return getDisplayNameForLocale(locale, displays);
+    }
     public static String getDisplayNameForLocale(String locale, List<Display> displays) {
         Optional<Display> displayWithDesiredLocale =
             displays.stream()

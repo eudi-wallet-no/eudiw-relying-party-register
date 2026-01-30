@@ -86,9 +86,9 @@ public class DisplayTests {
         public void testIssuerIsReturnedWhenCredentialHasNoIssuerDisplay() {
             CredentialResource credentialWithNullDisplay =
                 ResourceGenerator.generateCredentialResource()
-                    .withIssuerDisplays(null);
+                    .withIssuerDisplays(List.of());
 
-            assertEquals(credentialWithNullDisplay.issuer(),
+            assertEquals(credentialWithNullDisplay.getIssuer(),
                          credentialWithNullDisplay.getIssuerDisplayName("no"));
         }
 
@@ -96,13 +96,13 @@ public class DisplayTests {
         @DisplayName("then credential type string is used when credential metadata has no credential type display")
         public void testCredentialTypeReturnedWhenCredentialMetadataHasNoCredentialTypeDisplay() {
             CredentialMetadata metadataWithNullCredentialTypeDisplay =
-                new CredentialMetadata(null, List.of());
+                new CredentialMetadata(List.of(), List.of());
 
             CredentialResource credentialResource =
                 ResourceGenerator.generateCredentialResource()
                                  .withMetadata(metadataWithNullCredentialTypeDisplay);
 
-            assertEquals(credentialResource.credentialType(),
+            assertEquals(credentialResource.getCredentialType(),
                          credentialResource.getCredentialTypeDisplayName("no"));
         }
 
@@ -110,7 +110,7 @@ public class DisplayTests {
         @DisplayName("then a null string is returned when claims has no display")
         public void testNullReturnedWhenClaimsHasNoDisplay() {
             CredentialMetadata.Claims claimsWithNullDisplay =
-                new CredentialMetadata.Claims(List.of("foo"), null);
+                new CredentialMetadata.Claims(List.of("foo"), List.of());
 
             assertNull(claimsWithNullDisplay.getClaimsDisplayName("no"));
         }
