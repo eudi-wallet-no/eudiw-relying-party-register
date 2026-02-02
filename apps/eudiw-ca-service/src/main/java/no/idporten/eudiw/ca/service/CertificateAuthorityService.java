@@ -239,9 +239,9 @@ public class CertificateAuthorityService {
     protected X500Name createLeafSubject(X500Name csrSubjectName, SubjectAttributes subjectAttributes) {
         X500NameBuilder x500NameBuilder = new X500NameBuilder();
         x500NameBuilder.addRDN(BCStyle.C, "NO");
-        x500NameBuilder.addRDN(BCStyle.O, subjectAttributes.legalName());
-        x500NameBuilder.addRDN(BCStyle.CN, subjectAttributes.tradeName());
-        x500NameBuilder.addRDN(ASN1ObjectIdentifier.tryFromID(OID_ORGANIZATION_NUMBER), "NTRNO-NOFOR.%s".formatted(subjectAttributes.orgno()));
+        x500NameBuilder.addRDN(BCStyle.O, subjectAttributes.legalName().trim());
+        x500NameBuilder.addRDN(BCStyle.CN, subjectAttributes.tradeName().trim());
+        x500NameBuilder.addRDN(ASN1ObjectIdentifier.tryFromID(OID_ORGANIZATION_NUMBER), "NTRNO-NOFOR.%s".formatted(subjectAttributes.orgno().trim()));
         return x500NameBuilder.build();
     }
 
