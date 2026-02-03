@@ -76,26 +76,26 @@ public class CredentialsCatalogueControllerTests {
         class WithSortRequestParameter {
             @Test
             @DisplayName("then credentials table is sorted accordingly")
-            public void testGetCredentialsSortedByNumClaims() throws Exception {
+            public void testGetCredentialsSortedByCredentialType() throws Exception {
                 CredentialsResource credentialsResource = ResourceGenerator.generateCredentialsResource();
                 when(mockCredentialsService.getAvailableCredentials()).thenReturn(credentialsResource);
 
-                Comparator<CredentialResource> byNumClaims =
-                    Comparator.comparing(cred -> cred.getMetadata().getClaims().size());
+                Comparator<CredentialResource> byCredentialType =
+                    Comparator.comparing(CredentialResource::getCredentialType);
 
-                List<CredentialResource> credentialsSortedByNumClaims =
+                List<CredentialResource> credentialsSortedByCredentialType =
                     credentialsResource
                         .credentials()
                         .stream()
-                        .sorted(byNumClaims.thenComparing(byNorwegianCredentialTypeDisplayName))
+                        .sorted(byCredentialType.thenComparing(byNorwegianCredentialTypeDisplayName))
                         .toList();
 
-                mockMvc.perform(get("/credentials-catalogue?sort=num_claims"))
+                mockMvc.perform(get("/credentials-catalogue?sort=credential_type"))
                        .andExpectAll(
                            status().isOk(),
                            view().name("credentials_view"),
                            model().attribute(CredentialsCatalogueController.credentialsAttrId,
-                                             credentialsSortedByNumClaims)
+                                             credentialsSortedByCredentialType)
                        );
 
                 verify(mockCredentialsService, times(1)).getAvailableCredentials();

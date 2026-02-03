@@ -24,8 +24,8 @@ public record CredentialsResource(
         locale -> Comparator.comparing(
             credential -> credential.getIssuerDisplayName(locale));
 
-    private static final Comparator<CredentialResource> byNumClaims =
-        Comparator.comparing(credential -> credential.getMetadata().getClaims().size());
+    private static final Comparator<CredentialResource> byCredentialType =
+        Comparator.comparing(CredentialResource::getCredentialType);
 
     private static final Comparator<CredentialResource> byFormat =
         Comparator.comparing(CredentialResource::getFormat);
@@ -37,7 +37,7 @@ public record CredentialsResource(
 
         Comparator<CredentialResource> comparator = switch (key) {
             case "issuer" -> byIssuer.apply(locale).thenComparing(defaultComparator);
-            case "num_claims" -> byNumClaims.thenComparing(defaultComparator);
+            case "credential_type" -> byCredentialType.thenComparing(defaultComparator);
             case "format" -> byFormat.thenComparing(defaultComparator);
             default -> defaultComparator;
         };

@@ -1,14 +1,6 @@
 # <CVE> # <package/affected code>. Fixed in <version>.
 CVE-2025-47907 # stdlib
 
-# Lagt til 31.10.25
-CVE-2025-47912 # stdlib: IPv6 validation. Fixed in 1.24.8, 1.25.2
-CVE-2025-58183 # stdlib: GNU sparse map
-CVE-2025-58185 # stdlib: DER payload
-CVE-2025-58186 # stdlib: cookies
-CVE-2025-58187 # stdlib: name constraints. Fixed in 1.24.9, 1.25.3
-CVE-2025-58188 # stdlib: validating certificates with DSA public keys. Fixed in 1.24.8, 1.25.2
-CVE-2025-58189 # stdlib: ALPN negotiation errors
-CVE-2025-61723 # stdlib: invalid inputs
-CVE-2025-61724 # stdlib: Reader.ReadResponse
-CVE-2025-61725 # stdlib: ParseAddress
+# Lagt til 03.02.26
+CVE-2025-61726 # stdlib: query parameter parsing. Fixed in 1.24.12, 1.25.6
+CVE-2025-61728 # stdlib: building archive index in archive/zip. Fixed in 1.24.12, 1.25.6
