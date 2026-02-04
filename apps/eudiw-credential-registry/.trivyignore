@@ -1,1 +1,3 @@
 # CVE # Desc # Fixed
+CVE-2025-61726 # stdlib net/url. Fixed 1.25.5
+CVE-2025-61728 # golang zip
