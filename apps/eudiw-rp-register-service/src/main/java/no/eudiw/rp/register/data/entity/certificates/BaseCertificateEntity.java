@@ -11,6 +11,9 @@ import java.security.cert.X509Certificate;
 @MappedSuperclass
 @Getter
 public abstract class BaseCertificateEntity extends BaseEntity {
+    public static final int NOT_REVOKED = -1;
+    public static final int REVOKED = 0;
+
     @Column(name = "certificate_pem", nullable = false)
     @Convert(converter = X509CertificateConverter.class)
     protected X509Certificate certificate;
@@ -33,9 +36,13 @@ public abstract class BaseCertificateEntity extends BaseEntity {
     @Column(name = "valid_until_ms", nullable = false)
     protected long validUntilMs;
 
+    @Column(name = "revocation_status", nullable = false)
+    protected int revocationStatus;
+
     protected BaseCertificateEntity(X509Certificate certificate, String caId) {
         this.id = null;
         this.caId = caId;
+        revocationStatus = NOT_REVOKED;
 
         this.certificate = certificate;
         this.issuer = certificate.getIssuerX500Principal().getName();
@@ -47,4 +54,12 @@ public abstract class BaseCertificateEntity extends BaseEntity {
 
     // for JPA instantiation.
     protected BaseCertificateEntity() { }
+
+    public void revoke() {
+        this.revoke(REVOKED);
+    }
+
+    public void revoke(int revocationStatus) {
+        this.revocationStatus = revocationStatus;
+    }
 }
