@@ -15,7 +15,7 @@
     <properties>
         <java.version>25</java.version>
         <idporten-actuator-starter.version>3.0.0</idporten-actuator-starter.version>
-        <idporten-access-log.version>3.0.0</idporten-access-log.version>
+        <idporten-access-log.version>3.0.1-rc1</idporten-access-log.version>
         <opentelemetry-api.version>1.58.0</opentelemetry-api.version>
         <springdoc.version>3.0.1</springdoc.version>
         <surefire.plugin.version>3.5.3</surefire.plugin.version>
@@ -59,25 +59,6 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>ch.qos.logback</groupId>
-                <artifactId>logback-classic</artifactId>
-                <version>1.5.22</version>
-            </dependency>
-            <dependency>
-                <groupId>ch.qos.logback</groupId>
-                <artifactId>logback-core</artifactId>
-                <version>1.5.22</version>
-            </dependency>
-            <dependency>
-                <groupId>ch.qos.logback.access</groupId>
-                <artifactId>logback-access-common</artifactId>
-                <version>2.0.7</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
     <build>
         <plugins>
             <plugin>
