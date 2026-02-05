@@ -1,18 +1,13 @@
 package no.idporten.eudiw.rp.register.lookup.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import no.idporten.eudiw.rp.register.lookup.service.exception.UnauthorizedRequestException;
 import no.idporten.eudiw.rp.register.lookup.service.exception.UnrecognizedErrorResponseException;
 import no.idporten.eudiw.rp.register.lookup.testdata.ResourceGenerator;
+import no.idporten.eudiw.rp.register.lookup.web.form.SearchForm;
 import no.idporten.eudiw.rp.register.lookup.web.resource.PagedResponse;
 import no.idporten.eudiw.rp.register.lookup.web.resource.RelyingPartyResource;
-import no.idporten.eudiw.rp.register.lookup.web.form.SearchForm;
-import no.idporten.eudiw.rp.register.lookup.web.resource.SearchRelyingPartyResource;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -24,10 +19,14 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
 @SpringBootTest
 @ActiveProfiles("local-test")
