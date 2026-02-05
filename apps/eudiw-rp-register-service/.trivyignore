@@ -1,3 +1,2 @@
-CVE-2025-48988 # tomcat-embed-core. Temp ignore until newer docker-image/OS from paketo
-CVE-2025-47907 # stdlib
-CVE-2025-61729 # stdlib: HostnameError.error(). Fixed in 1.24.11, 1.25.5.
+CVE-2025-61726 # stdlib Query parameter parsing. Fixed in 1.24.12, 1.25.6
+CVE-2025-61728 # golang Archive zip
