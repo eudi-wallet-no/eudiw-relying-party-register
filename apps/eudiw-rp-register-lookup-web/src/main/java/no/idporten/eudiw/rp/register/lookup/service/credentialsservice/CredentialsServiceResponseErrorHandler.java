@@ -1,6 +1,5 @@
 package no.idporten.eudiw.rp.register.lookup.service.credentialsservice;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import no.idporten.eudiw.rp.register.lookup.exception.LookupServiceException;
 import no.idporten.eudiw.rp.register.lookup.service.exception.BadRequestException;
 import no.idporten.eudiw.rp.register.lookup.service.exception.ErrorResponseException;
@@ -11,6 +10,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.lang.NonNull;
 import org.springframework.web.client.ResponseErrorHandler;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.net.URI;

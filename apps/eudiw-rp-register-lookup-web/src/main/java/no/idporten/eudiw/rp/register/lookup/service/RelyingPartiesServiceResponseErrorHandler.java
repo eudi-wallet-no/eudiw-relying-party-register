@@ -1,6 +1,5 @@
 package no.idporten.eudiw.rp.register.lookup.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import no.idporten.eudiw.rp.register.lookup.exception.LookupServiceException;
 import no.idporten.eudiw.rp.register.lookup.service.exception.ErrorResponseException;
 import no.idporten.eudiw.rp.register.lookup.service.exception.NotFoundException;
@@ -13,6 +12,8 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.lang.NonNull;
 import org.springframework.web.client.ResponseErrorHandler;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.exc.MismatchedInputException;
 
 import java.io.IOException;
 import java.net.URI;
@@ -48,7 +49,7 @@ public class RelyingPartiesServiceResponseErrorHandler
                 new ObjectMapper().readValue(
                     response.getBody(), ErrorResponseResource.class);
             throw ErrorResponseException.fromResource(errorResource);
-        } catch (IOException e) {
+        } catch (IOException | MismatchedInputException e) {
             throw new UnrecognizedErrorResponseException(
                 "Unrecognized error response from register service");
         }

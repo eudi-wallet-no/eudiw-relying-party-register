@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.7</version>
+        <version>4.0.2</version>
     </parent>
     <groupId>no.idporten.eudiw</groupId>
     <artifactId>rp-register-lookup-web</artifactId>
@@ -16,12 +16,10 @@
     <properties>
         <java.version>25</java.version>
         <idporten-actuator-starter.version>3.0.0</idporten-actuator-starter.version>
-        <idporten-access-log.version>3.0.0</idporten-access-log.version>
-
+        <idporten-access-log.version>3.0.1-rc1</idporten-access-log.version>
         <opentelemetry-instrumentation-api.version>1.58.0</opentelemetry-instrumentation-api.version>
-        <logback.version>1.5.25</logback.version>
-        <springdoc.version>2.8.13</springdoc.version>
-        <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
+        <springdoc.version>3.0.1</springdoc.version>
+        <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
         <mockwebserver.version>5.3.2</mockwebserver.version>
         <lombok.version>1.18.42</lombok.version>
     </properties>
@@ -29,12 +27,7 @@
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>${springdoc.version}</version>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -45,18 +38,13 @@
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
         <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>${logback.version}</version>
-        </dependency>
-        <dependency>
             <groupId>no.idporten.actuator</groupId>
-            <artifactId>idporten-actuator-starter</artifactId>
+            <artifactId>idporten-actuator-4-starter</artifactId>
             <version>${idporten-actuator-starter.version}</version>
         </dependency>
         <dependency>
             <groupId>no.idporten.logging</groupId>
-            <artifactId>idporten-access-log-spring-boot-3-starter</artifactId>
+            <artifactId>idporten-access-log-spring-boot-4-starter</artifactId>
             <version>${idporten-access-log.version}</version>
         </dependency>
         <dependency>
@@ -66,7 +54,7 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -82,7 +70,6 @@
             <version>${lombok.version}</version>
         </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>

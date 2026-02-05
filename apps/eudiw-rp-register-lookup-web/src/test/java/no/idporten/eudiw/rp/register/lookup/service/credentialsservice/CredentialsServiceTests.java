@@ -1,6 +1,5 @@
 package no.idporten.eudiw.rp.register.lookup.service.credentialsservice;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import no.idporten.eudiw.rp.register.lookup.service.MockWebServerConfiguration;
 import no.idporten.eudiw.rp.register.lookup.service.exception.*;
 import no.idporten.eudiw.rp.register.lookup.testdata.ResourceGenerator;
@@ -21,6 +20,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
