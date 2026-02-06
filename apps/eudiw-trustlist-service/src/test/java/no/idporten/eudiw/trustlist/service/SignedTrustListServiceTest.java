@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -19,7 +19,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @DisplayName("SignedTrustListServiceTest")
-@ExtendWith(SpringExtension.class)
+@ExtendWith(MockitoExtension.class)
 class SignedTrustListServiceTest {
 
     @Mock
