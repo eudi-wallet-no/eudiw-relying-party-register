@@ -8,7 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -24,16 +24,16 @@ public class APIKeyAuthenticationFilter extends OncePerRequestFilter {
     public final static String API_KEY_HEADER_NAME = "X-API-KEY";
 
     private final ApiKeySecurityProperties apiKeySecurityProperties;
-    private final List<AntPathRequestMatcher> excludeMatchers;
+    private final List<PathPatternRequestMatcher> excludeMatchers;
 
     protected APIKeyAuthenticationFilter(ApiKeySecurityProperties apiKeySecurityProperties, String... excludePaths) {
         super();
         this.apiKeySecurityProperties = apiKeySecurityProperties;
-        this.excludeMatchers = createMathcers(excludePaths);
+        this.excludeMatchers = createMatchers(excludePaths);
     }
 
-    private List<AntPathRequestMatcher> createMathcers(String... paths) {
-        return Stream.of(paths).map(AntPathRequestMatcher::new).toList();
+    private List<PathPatternRequestMatcher> createMatchers(String... paths) {
+        return Stream.of(paths).map(path -> PathPatternRequestMatcher.withDefaults().matcher(path)).toList();
     }
 
     @Override

@@ -17,6 +17,8 @@ spring:
     type: org.springframework.jdbc.datasource.SimpleDriverDataSource
     url: "jdbc:h2:mem:ca;MODE=MySQL;DB_CLOSE_DELAY=-1"
     driver-class-name: org.h2.Driver
+    username: ca
+    password: ca
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
 
