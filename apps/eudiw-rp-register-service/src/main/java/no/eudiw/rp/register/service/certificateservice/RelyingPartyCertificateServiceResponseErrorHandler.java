@@ -1,6 +1,6 @@
 package no.eudiw.rp.register.service.certificateservice;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import no.eudiw.rp.register.service.exception.ErrorResponseException;
 import no.eudiw.rp.register.service.exception.UnauthorizedRequestException;
 import no.eudiw.rp.register.service.exception.UnrecognizedErrorResponseException;

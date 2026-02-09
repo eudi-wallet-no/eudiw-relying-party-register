@@ -1,2 +1,4 @@
 CVE-2025-61726 # stdlib Query parameter parsing. Fixed in 1.24.12, 1.25.6
 CVE-2025-61728 # golang Archive zip
+CVE-2025-68121 # session resumption in crypto/tls. Fixed in  1.24.13, 1.25.7, 1.26.0-rc.3
+CVE-2025-61730 # TLS 1.3 handshake. Fixed in 1.24.12, 1.25.6

@@ -1,16 +1,17 @@
 package no.eudiw.rp.register.api.resource.certificates;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
+
 import no.eudiw.rp.register.data.entity.certificates.X509CertificateConverter;
 import no.eudiw.rp.register.exception.CertificateConversionException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.ValueDeserializer;
 
 import java.io.IOException;
 import java.security.cert.X509Certificate;
 
 public class X509CertificateJsonDeserializer
-    extends JsonDeserializer<X509Certificate> {
+    extends ValueDeserializer<X509Certificate> {
 
     @Override
     public X509Certificate deserialize(
@@ -19,7 +20,7 @@ public class X509CertificateJsonDeserializer
         try {
             String csrPemStr = jsonParser.getValueAsString();
             return X509CertificateConverter.convert(csrPemStr);
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new CertificateConversionException(
                 "Failed to parse X.509 PEM from json", e);
         }
