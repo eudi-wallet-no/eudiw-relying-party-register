@@ -1,12 +1,13 @@
 package no.eudiw.rp.register.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import no.eudiw.rp.register.api.resource.relyingparty.RelyingPartiesResource;
 import no.eudiw.rp.register.api.resource.relyingparty.RelyingPartyResource;
 import org.springframework.test.web.servlet.ResultActions;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.UnsupportedEncodingException;
 import java.util.List;
@@ -36,8 +37,8 @@ public class ApiTestUtils {
     }
 
     public static <T> PagedResponse<T> toPage(ResultActions result, Class<T> itemClass) throws Exception {
-        ObjectMapper mapper = new ObjectMapper()
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        ObjectMapper mapper = new JsonMapper().builder()
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
 
         String json = result.andReturn().getResponse().getContentAsString();
 

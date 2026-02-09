@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.6</version>
+        <version>4.0.2</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>no.idporten.eudiw</groupId>
@@ -18,19 +18,19 @@
         <java.version>25</java.version>
         <idporten-actuator.version>3.0.0</idporten-actuator.version>
         <idporten-validators.version>1.6.0</idporten-validators.version>
-        <idporten-access-log.version>3.0.0</idporten-access-log.version>
+        <idporten-access-log.version>3.0.1-rc1</idporten-access-log.version>
         <opentelemetry-api.version>1.58.0</opentelemetry-api.version>
         <mariadb-java-client.version>3.5.7</mariadb-java-client.version>
-        <springdoc.version>2.8.13</springdoc.version>
+        <springdoc.version>3.0.1</springdoc.version>
         <lombok.version>1.18.42</lombok.version>
-        <idporten-audit-log.version>2.5.3</idporten-audit-log.version>
+        <idporten-audit-log.version>3.0.0</idporten-audit-log.version>
         <mockwebserver.version>5.3.2</mockwebserver.version>
         <bcpkix.version>1.83</bcpkix.version>
     </properties>
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springdoc</groupId>
@@ -50,8 +50,8 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-core</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-flyway</artifactId>
         </dependency>
         <dependency>
             <groupId>org.flywaydb</groupId>
@@ -59,7 +59,7 @@
         </dependency>
         <dependency>
             <groupId>no.idporten.logging</groupId>
-            <artifactId>idporten-log-audit-spring-boot-3-starter</artifactId>
+            <artifactId>idporten-log-audit-spring-boot-4-starter</artifactId>
             <version>${idporten-audit-log.version}</version>
         </dependency>
         <dependency>
@@ -80,7 +80,7 @@
         </dependency>
         <dependency>
             <groupId>no.idporten.actuator</groupId>
-            <artifactId>idporten-actuator-starter</artifactId>
+            <artifactId>idporten-actuator-4-starter</artifactId>
             <version>${idporten-actuator.version}</version>
             <exclusions>
                 <exclusion>
@@ -96,12 +96,12 @@
         </dependency>
         <dependency>
             <groupId>no.idporten.logging</groupId>
-            <artifactId>idporten-access-log-spring-boot-3-starter</artifactId>
+            <artifactId>idporten-access-log-spring-boot-4-starter</artifactId>
             <version>${idporten-access-log.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
