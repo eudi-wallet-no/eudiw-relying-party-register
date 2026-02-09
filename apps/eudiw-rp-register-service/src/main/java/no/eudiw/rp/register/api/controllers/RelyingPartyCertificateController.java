@@ -58,6 +58,10 @@ public class RelyingPartyCertificateController {
         "RELYING-PARTY-ACCESS-CERTIFICATE-RETRIEVED";
     private static final String ISSUER_CERTIFICATE_RETRIEVED =
         "ISSUER-CERTIFICATE-RETRIEVED";
+    private static final String RELYING_PARTY_ACCESS_CERTIFICATE_REVOKED =
+            "RELYING-PARTY-ACCESS-CERTIFICATE-REVOKED";
+    private static final String ISSUER_CERTIFICATE_REVOKED =
+            "ISSUER-CERTIFICATE-REVOKED";
 
     private final RelyingPartyCertificateService certificatesService;
 
@@ -194,4 +198,44 @@ public class RelyingPartyCertificateController {
             certificatesService.getIssuerCertificate(
                 certificateId));
     }
+
+    @Operation(
+            summary = "Revoke specific access-certificate",
+            description = "Revoke access-certificate by its relying party id and its certificate id",
+            tags = {"relying-parties-certs-api"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204",
+                    description = "Certificate revoked"),
+            @ApiResponse(responseCode = "404", description = "Certificate not found")
+    })
+    @Audit(auditId = RELYING_PARTY_ACCESS_CERTIFICATE_REVOKED)
+    @PutMapping(path = "/{relying-party-id}/certs/revoke/{certificate-id}")
+    public ResponseEntity<RelyingPartyCertificateResource> revokeAccessCertificate(
+            @PathVariable("relying-party-id") @Valid UUID relyingPartyId,
+            @PathVariable("certificate-id") @Valid UUID certificateId) {
+        return ResponseEntity.ok(
+                certificatesService.revokeAccessCertificate(
+                        certificateId, relyingPartyId));
+    }
+
+    @Operation(
+            summary = "Revoke specific issuer-certificate",
+            description = "Revoke issuer-certificate by its certificate ID",
+            tags = {"relying-parties-certs-api"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204",
+                    description = "Certificate revoked"),
+            @ApiResponse(responseCode = "404", description = "Certificate not found")
+    })
+    @Audit(auditId = ISSUER_CERTIFICATE_REVOKED)
+    @PutMapping(path = "/certs/revoke/{certificate-id}")
+    public ResponseEntity<RelyingPartyCertificateResource> revokeIssuerCertificate(
+            @PathVariable("certificate-id") @Valid UUID certificateId) {
+        return ResponseEntity.ok(
+                certificatesService.revokeIssuerCertificate(
+                        certificateId));
+    }
+
 }

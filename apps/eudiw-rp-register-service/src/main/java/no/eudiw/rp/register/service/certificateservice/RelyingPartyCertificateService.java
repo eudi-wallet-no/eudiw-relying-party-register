@@ -171,4 +171,14 @@ public class RelyingPartyCertificateService {
 
         return X509CertificateConverter.convert(certificatePemStr);
     }
+
+    //TODO: lag innmaten
+    public RelyingPartyCertificateResource revokeAccessCertificate(UUID certificateId, UUID relyingPartyId) {
+        return null;
+    }
+
+    //TODO: lag innmaten
+    public RelyingPartyCertificateResource revokeIssuerCertificate(UUID certificateId) {
+        return null;
+    }
 }
