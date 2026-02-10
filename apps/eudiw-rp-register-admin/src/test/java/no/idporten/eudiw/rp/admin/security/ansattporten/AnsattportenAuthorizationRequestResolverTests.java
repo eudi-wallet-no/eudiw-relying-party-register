@@ -1,7 +1,5 @@
 package no.idporten.eudiw.rp.admin.security.ansattporten;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import no.idporten.eudiw.rp.admin.security.SecurityTestUtils;
 import no.idporten.eudiw.rp.admin.web.security.AuthConstants;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenAuthorizationRequestResolver;
@@ -14,12 +12,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.List;
 import java.util.Map;
@@ -70,7 +70,7 @@ public class AnsattportenAuthorizationRequestResolverTests {
             spiedOauthRequest.getAttribute(AuthConstants.AUTHORIZATION_DETAILS_PARAMETER);
 
         List<AuthorizationDetails.Request> spiedRequestAuthzDetailsParameter =
-            new ObjectMapper().readValue(
+            new JsonMapper().readValue(
                 spiedOauthRequest.getAdditionalParameters()
                                  .get(AuthConstants.AUTHORIZATION_DETAILS_PARAMETER)
                                  .toString(),
@@ -104,7 +104,7 @@ public class AnsattportenAuthorizationRequestResolverTests {
             spiedOauthRequest.getAttribute(AuthConstants.AUTHORIZATION_DETAILS_PARAMETER);
 
         List<AuthorizationDetails.Request> spiedRequestAuthzDetailsParameter =
-            new ObjectMapper().readValue(
+            new JsonMapper().readValue(
                                   spiedOauthRequest.getAdditionalParameters()
                                                    .get(AuthConstants.AUTHORIZATION_DETAILS_PARAMETER)
                                                    .toString(),

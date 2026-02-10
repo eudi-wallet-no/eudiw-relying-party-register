@@ -1,7 +1,6 @@
 package no.idporten.eudiw.rp.admin.web.security.ansattporten;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.rp.admin.exception.AdminServiceException;
@@ -12,6 +11,8 @@ import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
 import org.springframework.security.crypto.keygen.StringKeyGenerator;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -27,7 +28,7 @@ public class AnsattportenAuthorizationRequestResolver
 
     private final OAuth2AuthorizationRequestResolver delegateResolver;
     private final AnsattportenProperties ansattportenProperties;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
 
     @Override
     public OAuth2AuthorizationRequest resolve(HttpServletRequest request) {
@@ -154,8 +155,8 @@ public class AnsattportenAuthorizationRequestResolver
     private String requestAuthorizationDetailsToJson(
         List<AuthorizationDetails.Request> requestAuthorizationDetails) {
         try {
-            return objectMapper.writeValueAsString(requestAuthorizationDetails);
-        } catch (JsonProcessingException e) {
+            return jsonMapper.writeValueAsString(requestAuthorizationDetails);
+        } catch (JacksonException e) {
             throw new InvalidAuthorizationDetailsException(
                 "Unexpected error in request authorization_details", e);
         }

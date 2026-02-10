@@ -1,10 +1,10 @@
 package no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.List;
 import java.util.Map;
@@ -17,7 +17,7 @@ public class AuthorizationDetailsMapper {
 
     public static final String TYPE_KEY = "type";
 
-    private final ObjectMapper om;
+    private final JsonMapper jsonMapper;
     private final Validator validator;
 
     public AuthorizationDetails.Request asRequest(Map<String, Object> map) {
@@ -34,7 +34,7 @@ public class AuthorizationDetailsMapper {
 
     private AuthorizationDetails fromMap(Map<String, Object> map, boolean doMapToResponse) {
         Class<? extends AuthorizationDetails> targetClass = getTargetClass(map, doMapToResponse);
-        AuthorizationDetails authorizationDetails = om.convertValue(map, targetClass);
+        AuthorizationDetails authorizationDetails = jsonMapper.convertValue(map, targetClass);
         return doValidate(authorizationDetails);
     }
 

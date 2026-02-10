@@ -1,6 +1,5 @@
 package no.idporten.eudiw.rp.admin.web.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import no.idporten.eudiw.rp.admin.exception.AdminServiceException;
 import no.idporten.eudiw.rp.admin.service.enhetsregisteretservice.EnhetsregisteretService;
 import no.idporten.eudiw.rp.admin.service.syntheticreportees.StatelessPersistentSyntheticReporteeService;
@@ -10,8 +9,8 @@ import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenProperti
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails.AuthorizationDetailsMapper;
 import no.idporten.eudiw.rp.admin.web.security.entraid.EntraIdProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProperty;
+import org.springframework.boot.security.autoconfigure.web.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
-import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpMethod;
@@ -27,6 +26,7 @@ import org.springframework.security.web.authentication.logout.LogoutSuccessHandl
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+import tools.jackson.databind.json.JsonMapper;
 
 @Configuration
 @EnableWebSecurity
@@ -137,9 +137,9 @@ public class BaseSecurityConfig {
     public AnsattportenAuthorizationRequestResolver ansattportenAuthorizationRequestResolver(
         OAuth2AuthorizationRequestResolver delegateAuthzRequestResolver,
         AnsattportenProperties ansattportenProperties,
-        ObjectMapper objectMapper) {
+        JsonMapper jsonMapper) {
         return new AnsattportenAuthorizationRequestResolver(
-            delegateAuthzRequestResolver, ansattportenProperties, objectMapper);
+            delegateAuthzRequestResolver, ansattportenProperties, jsonMapper);
     }
 
     @Bean
