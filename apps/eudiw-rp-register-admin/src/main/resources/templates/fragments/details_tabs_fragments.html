@@ -16,6 +16,7 @@
                         <th>Utstedar</th>
                         <th>Gyldig frå</th>
                         <th>Gyldig til</th>
+                        <th>Status</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -28,11 +29,23 @@
                         <td th:text="${@timestampFormatter.formatEpochMillis(cert.validFromMs)}"></td>
                         <td th:text="${@timestampFormatter.formatEpochMillis(cert.validUntilMs)}"></td>
                         <td>
-                            <a th:href="@{|/get-certificate/${rp.id}/${cert.id}|}"
-                               class="ds-button"
-                               download>
-                                Last ned
-                            </a>
+                            <div th:replace="~{fragments/details_tabs_fragments :: certificate_revocation_status_badge(${cert.status()})}"></div>
+                        </td>
+                        <td>
+                            <div style="display: flex; flex-direction: column; gap: 10px;">
+                                <a th:href="@{|/get-certificate/${rp.id}/${cert.id}|}"
+                                   style="display:flex; white-space: nowrap; margin: 0;"
+                                   download
+                                   class="ds-button">
+                                    Last ned
+                                </a>
+                                <a th:if="${cert.revocationStatus == -1}"
+                                   th:href="@{|/get-certificate/${rp.id}/revoke/${cert.id}|}"
+                                   style="display:flex; white-space: nowrap; margin: 0;"
+                                   class="ds-button" data-variant="secondary" data-color="danger">
+                                    Revoker
+                                </a>
+                            </div>
                         </td>
                     </tr>
                 </tbody>
@@ -67,6 +80,7 @@
                     <th>Utstedar</th>
                     <th>Gyldig frå</th>
                     <th>Gyldig til</th>
+                    <th>Status</th>
                     <th></th>
                 </tr>
                 </thead>
@@ -80,11 +94,23 @@
                     <td th:text="${@timestampFormatter.formatEpochMillis(cert.validFromMs)}"></td>
                     <td th:text="${@timestampFormatter.formatEpochMillis(cert.validUntilMs)}"></td>
                     <td>
-                        <a th:href="@{|/get-certificate/${rp.id}/issuer/${cert.id}|}"
-                           class="ds-button"
-                           download>
-                            Last ned
-                        </a>
+                        <div th:replace="~{fragments/details_tabs_fragments :: certificate_revocation_status_badge(${cert.status()})}"></div>
+                    </td>
+                    <td>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <a th:href="@{|/get-certificate/${rp.id}/issuer/${cert.id}|}"
+                               style="display:flex; white-space: nowrap; margin: 0;"
+                               download
+                               class="ds-button">
+                                Last ned
+                            </a>
+                            <a th:if="${cert.revocationStatus == -1}"
+                               th:href="@{|/get-certificate/${rp.id}/issuer/revoke/${cert.id}|}"
+                               style="display:flex; white-space: nowrap; margin: 0;"
+                               class="ds-button" data-variant="secondary" data-color="danger">
+                                Revoker
+                            </a>
+                        </div>
                     </td>
                 </tr>
                 </tbody>
@@ -98,6 +124,14 @@
             Legg til nytt issuer-sertifikat
         </a>
     </div>
+</div>
+
+<div th:fragment="certificate_revocation_status_badge(status)">
+    <span
+        th:text="${status.text()}"
+        class="status-badge"
+        th:classappend="|status-badge-${status.style()}|" >
+    </span>
 </div>
 
 <div th:fragment="general_info_content_fragment(rp)"

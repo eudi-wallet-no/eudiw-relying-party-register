@@ -164,3 +164,22 @@ header {
     list-style-type: none;
     padding: 0
 }
+
+.status-badge {
+    display: inline-block;
+    padding: var(--ds-size-2) var(--ds-size-5);
+    border-radius: 999px;
+    white-space: nowrap;
+}
+.status-badge-success {
+    background-color: var(--ds-color-success-surface-tinted);
+    color: var(--ds-color-success-text-default);
+}
+.status-badge-danger {
+    background-color: var(--ds-color-danger-surface-tinted);
+    color: var(--ds-color-danger-text-default);
+}
+.status-badge-warning {
+    background-color: var(--ds-color-warning-surface-tinted);
+    color: var(--ds-color-warning-text-default);
+}

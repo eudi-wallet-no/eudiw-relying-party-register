@@ -7,7 +7,9 @@ import no.idporten.eudiw.rp.admin.testdata.TestDataGenerator;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEaaFormField;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEntitlementFormField;
 import no.idporten.eudiw.rp.admin.web.form.admin.AdminCreateRelyingPartyForm;
-import no.idporten.eudiw.rp.admin.web.resource.*;
+import no.idporten.eudiw.rp.admin.web.resource.CreateRelyingPartyResource;
+import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyEntitlementResource;
+import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.utils.WebTestUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -18,7 +20,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
 
 import java.util.List;
 

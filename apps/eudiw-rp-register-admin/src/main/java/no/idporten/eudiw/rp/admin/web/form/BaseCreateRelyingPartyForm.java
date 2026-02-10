@@ -2,7 +2,10 @@ package no.idporten.eudiw.rp.admin.web.form;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import no.idporten.eudiw.rp.admin.validation.SaneStringConstraint;
 import no.idporten.eudiw.rp.admin.validation.SaneStringValidator;
 import no.idporten.eudiw.rp.admin.web.resource.CreateRelyingPartyResource;

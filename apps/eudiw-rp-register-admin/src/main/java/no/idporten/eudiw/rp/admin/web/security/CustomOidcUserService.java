@@ -8,7 +8,10 @@ import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenProperti
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails.AuthorizationDetails;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails.AuthorizationDetailsMapper;
 import no.idporten.eudiw.rp.admin.web.security.entraid.EntraIdProperties;
-import no.idporten.eudiw.rp.admin.web.security.exception.*;
+import no.idporten.eudiw.rp.admin.web.security.exception.CustomAuthenticationException;
+import no.idporten.eudiw.rp.admin.web.security.exception.ErrorCodes;
+import no.idporten.eudiw.rp.admin.web.security.exception.InsufficientAuthorityException;
+import no.idporten.eudiw.rp.admin.web.security.exception.InvalidAuthorizationDetailsException;
 import no.idporten.eudiw.rp.admin.web.security.oidcusers.OidcUserWithCustomName;
 import no.idporten.eudiw.rp.admin.web.security.oidcusers.ReporteeAuthority;
 import org.springframework.security.core.GrantedAuthority;
@@ -20,7 +23,10 @@ import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 
 @Slf4j

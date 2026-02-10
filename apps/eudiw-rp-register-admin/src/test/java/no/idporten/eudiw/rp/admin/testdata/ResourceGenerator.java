@@ -7,7 +7,8 @@ import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertific
 import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCsrResource;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.List;
+import java.util.UUID;
 
 public class ResourceGenerator extends TestDataGenerator {
 
@@ -72,7 +73,9 @@ public class ResourceGenerator extends TestDataGenerator {
         return new RelyingPartyCertificateResource(
             CertificatesGenerator.generateX509Certificate(),
             UUID.randomUUID(),
-            isIssuerEntitlement ? entitlement : null);
+            isIssuerEntitlement ? entitlement : null,
+            -1
+        );
     }
 
     public static RelyingPartyCsrResource generateCsrResource() throws Exception {

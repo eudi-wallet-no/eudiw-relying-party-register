@@ -1,6 +1,5 @@
 package no.idporten.eudiw.rp.admin.web.security.ansattporten;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.rp.admin.exception.AdminServiceException;
@@ -17,7 +16,10 @@ import tools.jackson.databind.json.JsonMapper;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RequiredArgsConstructor
 public class AnsattportenAuthorizationRequestResolver

@@ -7,11 +7,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.web.form.SearchForm;
-import no.idporten.eudiw.rp.admin.web.resource.*;
+import no.idporten.eudiw.rp.admin.web.resource.PagedResponse;
+import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
+import no.idporten.eudiw.rp.admin.web.resource.SearchRelyingPartyResource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.SessionScope;
 
-import java.util.*;
+import java.util.List;
 import java.util.stream.IntStream;
 
 @Component("searchSession")

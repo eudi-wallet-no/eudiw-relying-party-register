@@ -10,7 +10,6 @@ import no.idporten.eudiw.rp.admin.validation.SaneStringValidator;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEaaFormField;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEntitlementFormField;
 import no.idporten.eudiw.rp.admin.web.resource.CreateRelyingPartyResource;
-
 import no.idporten.validators.orgnr.Orgnr;
 
 import java.util.ArrayList;

@@ -2,8 +2,8 @@ package no.idporten.eudiw.rp.admin.service;
 
 import no.idporten.eudiw.rp.admin.service.exception.UnauthorizedRequestException;
 import no.idporten.eudiw.rp.admin.service.exception.UnrecognizedErrorResponseException;
-import no.idporten.eudiw.rp.admin.web.form.SearchForm;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
+import no.idporten.eudiw.rp.admin.web.form.SearchForm;
 import no.idporten.eudiw.rp.admin.web.resource.PagedResponse;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.resource.SearchRelyingPartyResource;

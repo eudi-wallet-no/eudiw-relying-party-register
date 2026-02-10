@@ -1,7 +1,10 @@
 package no.idporten.eudiw.rp.admin.service;
 
 import no.idporten.eudiw.rp.admin.exception.AdminServiceException;
-import no.idporten.eudiw.rp.admin.service.exception.*;
+import no.idporten.eudiw.rp.admin.service.exception.ErrorResponseException;
+import no.idporten.eudiw.rp.admin.service.exception.NotFoundException;
+import no.idporten.eudiw.rp.admin.service.exception.UnauthorizedRequestException;
+import no.idporten.eudiw.rp.admin.service.exception.UnrecognizedErrorResponseException;
 import no.idporten.eudiw.rp.admin.web.resource.ErrorResponseResource;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
