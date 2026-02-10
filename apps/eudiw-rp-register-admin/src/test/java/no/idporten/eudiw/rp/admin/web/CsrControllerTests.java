@@ -7,10 +7,11 @@ import no.idporten.eudiw.rp.admin.testdata.CertificatesGenerator;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.admin.web.controllers.CsrController;
 import no.idporten.eudiw.rp.admin.web.controllers.SearchController;
-import no.idporten.eudiw.rp.admin.web.resource.*;
 import no.idporten.eudiw.rp.admin.web.form.CsrAccessForm;
+import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificateResource;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCsrResource;
+import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyCertificateSummaryBuilder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -41,6 +42,9 @@ public class CsrControllerTests {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    RelyingPartyCertificateSummaryBuilder relyingPartyCertificateSummaryBuilder;
 
     @SuppressWarnings("unused")
     @MockitoBean
@@ -99,7 +103,7 @@ public class CsrControllerTests {
                    .andExpectAll(
                        status().isOk(),
                        view().name("csr_submit_success_view"),
-                       model().attribute(CsrController.NEW_CERTIFICATE_ATTR, dummyCertResource.toSummary()));
+                       model().attribute(CsrController.NEW_CERTIFICATE_ATTR, relyingPartyCertificateSummaryBuilder.build(dummyCertResource)));
 
             verify(mockRpService).get(eq(id));
             verify(mockRpService).requestCertificateForRelyingParty(eq(id), eq(csrResource));

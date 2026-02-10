@@ -3,8 +3,8 @@ package no.idporten.eudiw.rp.admin.web;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.admin.web.controllers.DetailedViewController;
-import no.idporten.eudiw.rp.admin.web.resource.*;
-import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificateResource;
+import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
+import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyCertificateSummaryBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -32,6 +32,9 @@ public class DetailedViewControllerTests {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private RelyingPartyCertificateSummaryBuilder relyingPartyCertificateSummaryBuilder;
+
     @SuppressWarnings("unused")
     @MockitoBean
     private RelyingPartiesService mockRpService;
@@ -52,12 +55,12 @@ public class DetailedViewControllerTests {
             var expectedAccessCerts =
                 rpResource.accessCertificates()
                           .stream()
-                          .map(RelyingPartyCertificateResource::toSummary)
+                          .map(relyingPartyCertificateSummaryBuilder::build)
                           .toList();
             var expectedIssuerCerts =
                 rpResource.issuerCertificates()
                           .stream()
-                          .map(RelyingPartyCertificateResource::toSummary)
+                          .map(relyingPartyCertificateSummaryBuilder::build)
                           .toList();
 
             mockMvc.perform(get("/details/" + id))

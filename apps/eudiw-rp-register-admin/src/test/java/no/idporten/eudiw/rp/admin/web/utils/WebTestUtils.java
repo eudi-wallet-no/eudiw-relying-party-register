@@ -1,11 +1,11 @@
 package no.idporten.eudiw.rp.admin.web.utils;
 
+import no.idporten.eudiw.rp.admin.web.form.BaseCreateRelyingPartyForm;
+import no.idporten.eudiw.rp.admin.web.form.BaseEditRelyingPartyForm;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEaaFormField;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEntitlementFormField;
 import no.idporten.eudiw.rp.admin.web.form.admin.AdminCreateRelyingPartyForm;
 import no.idporten.eudiw.rp.admin.web.form.admin.AdminEditRelyingPartyForm;
-import no.idporten.eudiw.rp.admin.web.form.BaseCreateRelyingPartyForm;
-import no.idporten.eudiw.rp.admin.web.form.BaseEditRelyingPartyForm;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import java.util.List;

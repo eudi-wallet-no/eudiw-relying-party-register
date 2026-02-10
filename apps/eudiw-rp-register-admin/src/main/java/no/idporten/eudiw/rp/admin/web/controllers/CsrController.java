@@ -5,18 +5,22 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.service.exception.ErrorResponseException;
+import no.idporten.eudiw.rp.admin.web.form.CsrAccessForm;
 import no.idporten.eudiw.rp.admin.web.form.CsrIssuerForm;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
-import no.idporten.eudiw.rp.admin.web.form.CsrAccessForm;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.IssuerCsrResource;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificateResource;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCsrResource;
+import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyCertificateSummaryBuilder;
 import no.idporten.eudiw.rp.admin.web.security.UserAuthorityService;
 import no.idporten.logging.audit.Audit;
 import no.idporten.logging.audit.AuditIgnore;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.Map;
@@ -37,6 +41,7 @@ public class CsrController {
 
     private final RelyingPartiesService relyingPartiesService;
     private final UserAuthorityService userAuthorityService;
+    private final RelyingPartyCertificateSummaryBuilder relyingPartyCertificateSummaryBuilder;
 
     @GetMapping("/csr/access/{id}")
     public ModelAndView registerAccessCsrGet(@PathVariable("id") @Valid UUID id) {
@@ -69,7 +74,7 @@ public class CsrController {
                     relyingPartiesService.requestCertificateForRelyingParty(id, csrResource);
 
                 mav.setViewName("csr_submit_success_view");
-                mav.addObject(NEW_CERTIFICATE_ATTR, certResource.toSummary());
+                mav.addObject(NEW_CERTIFICATE_ATTR, relyingPartyCertificateSummaryBuilder.build(certResource));
                 return mav;
             }
             catch (ErrorResponseException e) {
@@ -111,7 +116,7 @@ public class CsrController {
                     relyingPartiesService.requestIssuerCertificateForEntitlement(id, csrResource);
 
                 mav.setViewName("csr_issuer_submit_success_view");
-                mav.addObject(NEW_CERTIFICATE_ATTR, certResource.toSummary());
+                mav.addObject(NEW_CERTIFICATE_ATTR, relyingPartyCertificateSummaryBuilder.build(certResource));
                 return mav;
             }
             catch (ErrorResponseException e) {

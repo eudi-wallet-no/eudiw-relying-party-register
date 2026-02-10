@@ -5,11 +5,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
-import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificateResource;
 import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyCertificateSummary;
+import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyCertificateSummaryBuilder;
 import no.idporten.eudiw.rp.admin.web.security.UserAuthorityService;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.List;
@@ -27,6 +28,7 @@ public class DetailedViewController {
 
     private final RelyingPartiesService relyingPartiesService;
     private final UserAuthorityService userAuthorityService;
+    private final RelyingPartyCertificateSummaryBuilder relyingPartyCertificateSummaryBuilder;
 
     @GetMapping("/details")
     public ModelAndView detailsWithoutIdRedirectToSearch() {
@@ -41,13 +43,14 @@ public class DetailedViewController {
         List<RelyingPartyCertificateSummary> accessCertificates =
             relyingPartyResource.accessCertificates()
                                 .stream()
-                                .map(RelyingPartyCertificateResource::toSummary)
+                                .map(relyingPartyCertificateSummaryBuilder::build)
                                 .toList();
+
 
         List<RelyingPartyCertificateSummary> issuerCertificates =
             relyingPartyResource.issuerCertificates()
                                 .stream()
-                                .map(RelyingPartyCertificateResource::toSummary)
+                                .map(relyingPartyCertificateSummaryBuilder::build)
                                 .toList();
 
         return new ModelAndView("details_view", Map.of(

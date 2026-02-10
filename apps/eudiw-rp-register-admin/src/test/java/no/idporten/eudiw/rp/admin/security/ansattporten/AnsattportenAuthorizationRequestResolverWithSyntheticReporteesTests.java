@@ -1,7 +1,7 @@
 package no.idporten.eudiw.rp.admin.security.ansattporten;
 
-import no.idporten.eudiw.rp.admin.web.security.AuthConstants;
 import no.idporten.eudiw.rp.admin.security.SecurityTestUtils;
+import no.idporten.eudiw.rp.admin.web.security.AuthConstants;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenAuthorizationRequestResolver;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenProperties;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails.AuthorizationDetails;
@@ -23,7 +23,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 @SpringBootTest(properties = "eudiw-admin-web.security.ansattporten.allow-synthetic-reportee=true")

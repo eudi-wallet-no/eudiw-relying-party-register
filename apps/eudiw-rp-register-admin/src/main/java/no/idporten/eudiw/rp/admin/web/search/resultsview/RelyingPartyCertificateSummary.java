@@ -10,5 +10,9 @@ public record RelyingPartyCertificateSummary(
     String issuerDn,
     long validFromMs,
     long validUntilMs,
-    UUID id
-) { }
+    UUID id,
+    int revocationStatus,
+    StatusDisplayData status
+) {
+    public record StatusDisplayData(String text, String style) { }
+}
