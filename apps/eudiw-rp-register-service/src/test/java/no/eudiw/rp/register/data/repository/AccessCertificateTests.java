@@ -143,4 +143,37 @@ public class AccessCertificateTests {
             }
         }
     }
+
+    @Test
+    @DisplayName("RP with multiple certificates created and revocation is successfull")
+    public void testMultipleCertificatesWithRevocation() {
+        LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
+        RelyingPartyInstance relyingPartyInstance = new RelyingPartyInstance(
+                "name",
+                List.of(),
+                List.of(),
+                List.of(EntityGenerator.generateCertificate(), EntityGenerator.generateCertificate(), EntityGenerator.generateCertificate())
+        );
+        legalEntity.setRelyingPartyInstances(List.of(relyingPartyInstance));
+        assertTrue(relyingPartyInstance.getAccessCertificates().size() > 1);
+        rpRepository.saveAndFlush(legalEntity);
+
+        RelyingPartyInstance rpOut = instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null);
+        assertNotNull(rpOut);
+
+        // NOTE: use Set in order to check equality, since the
+        // repo returns a PersistentBag which is tedious to work with.
+        // OK since certificates are assumed to be unique.
+        Set<AccessCertificate> certsExpected =
+                new HashSet<>(relyingPartyInstance.getAccessCertificates());
+        Set<AccessCertificate> certsActual =
+                new HashSet<>(rpOut.getAccessCertificates());
+
+        assertEquals(certsExpected, certsActual);
+
+        rpOut.getAccessCertificates().getFirst().revoke(0);
+        instanceRepository.saveAndFlush(rpOut);
+        assertEquals(0, instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null).getAccessCertificates().getFirst().getRevocationStatus());
+        assertEquals(-1, instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null).getAccessCertificates().get(1).getRevocationStatus());
+    }
 }

@@ -63,4 +63,26 @@ public class IssuerCertificateRepositoryTest {
         RelyingPartyEntitlement finalEntitlement = finalLegalEntity.getRelyingPartyInstances().getFirst().getRelyingPartyEntitlements().stream().findFirst().get();
         assertEquals(entitlement.getIssuerCertificates().getFirst().getCertificate(), finalEntitlement.getIssuerCertificates().getFirst().getCertificate());
     }
+
+    @Test
+    @DisplayName("rp repo issuer certificate revocation test")
+    void rpRepoIssuerCertificateRevocationTest() {
+        LegalEntity rp = EntityGenerator.generateLegalEntity();
+        LegalEntity saved = legalEntityRepository.save(rp);
+
+        LegalEntity savedLegalEntity = legalEntityRepository.findById(saved.getId()).get();
+        RelyingPartyEntitlement entitlement = savedLegalEntity.getRelyingPartyInstances().getFirst().getRelyingPartyEntitlements().stream().findFirst().get();
+        X509Certificate testCert = CertificatesGenerator.generateX509Certificate();
+        IssuerCertificate issuerCertificate = new IssuerCertificate(testCert, "caId", entitlement);
+        entitlement.setIssuerCertificates(List.of(issuerCertificate));
+        legalEntityRepository.save(savedLegalEntity);
+
+        LegalEntity finalLegalEntity = legalEntityRepository.findById(rp.getId()).get();
+        RelyingPartyEntitlement finalEntitlement = finalLegalEntity.getRelyingPartyInstances().getFirst().getRelyingPartyEntitlements().stream().findFirst().get();
+        assertEquals(entitlement.getIssuerCertificates().getFirst().getCertificate(), finalEntitlement.getIssuerCertificates().getFirst().getCertificate());
+        finalLegalEntity.getRelyingPartyInstances().getFirst().getIssuerCertificates().getFirst().revoke(0);
+
+        legalEntityRepository.save(finalLegalEntity);
+        assertEquals(0, legalEntityRepository.findById(finalLegalEntity.getId()).get().getRelyingPartyInstances().getFirst().getIssuerCertificates().getFirst().getRevocationStatus());
+    }
 }

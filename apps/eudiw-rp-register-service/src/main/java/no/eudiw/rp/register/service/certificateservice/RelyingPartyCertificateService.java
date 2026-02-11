@@ -5,10 +5,7 @@ import no.eudiw.rp.register.api.resource.certificates.IssuerCsrResource;
 import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCsrResource;
 import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCertificateResource;
 import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCertificatesResource;
-import no.eudiw.rp.register.data.entity.certificates.AccessCertificate;
-import no.eudiw.rp.register.data.entity.certificates.IssuerCertificate;
-import no.eudiw.rp.register.data.entity.certificates.PKCS10CertificationRequestConverter;
-import no.eudiw.rp.register.data.entity.certificates.X509CertificateConverter;
+import no.eudiw.rp.register.data.entity.certificates.*;
 import no.eudiw.rp.register.data.entity.*;
 import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyEntitlement;
 import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyInstance;
@@ -17,20 +14,27 @@ import no.eudiw.rp.register.data.repository.AccessCertificateRepository;
 import no.eudiw.rp.register.data.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.service.Converter;
 import no.eudiw.rp.register.service.EntitlementService;
+import no.eudiw.rp.register.service.exception.BadRequestException;
 import no.eudiw.rp.register.service.exception.NotFoundException;
 import no.eudiw.rp.register.exception.RegisterServiceException;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 
 import java.security.cert.X509Certificate;
+import java.util.Optional;
 import java.util.UUID;
 
 @RequiredArgsConstructor
 @Service
 public class RelyingPartyCertificateService {
 
+    private static final Logger log = LoggerFactory.getLogger(RelyingPartyCertificateService.class);
     private final RelyingPartyInstanceRepository relyingPartyRepository;
 
     private final AccessCertificateRepository accessCertificateRepository;
@@ -172,13 +176,63 @@ public class RelyingPartyCertificateService {
         return X509CertificateConverter.convert(certificatePemStr);
     }
 
-    //TODO: lag innmaten
-    public RelyingPartyCertificateResource revokeAccessCertificate(UUID certificateId, UUID relyingPartyId) {
-        return null;
+    public HttpStatusCode revokeAccessCertificate(UUID certificateId, UUID relyingPartyId) {
+        if(accessCertificateRepository.findByIdAndRelyingPartyId(certificateId, relyingPartyId).isEmpty()) {
+            throw new NotFoundException("Certificate id and certificate holder does not match, or one of them " +
+                    "does not exist");
+        }
+        if (accessCertificateRepository.findById(certificateId).get().getRevocationStatus() >=0) {
+            throw new RegisterServiceException("Certificate has already been revoked");
+        }
+        HttpStatusCode statusCode = revocationContactWithCa(accessCertificateRepository.findById(
+                certificateId).get().getSerialNo(), 0, accessCertificateRepository.findById(certificateId)
+                .get().getCaId());
+        if (statusCode == HttpStatus.valueOf(204)) {
+            Optional<AccessCertificate> cert = accessCertificateRepository.findById(certificateId);
+            cert.get().revoke(0);
+            accessCertificateRepository.saveAndFlush(cert.get());
+            return statusCode;
+        }
+        log.warn("Error when certificate with id {} was tried revoked through CA. Status code from CA is {}",
+                certificateId, statusCode);
+        throw new BadRequestException("Error when in contact with CA");
     }
 
-    //TODO: lag innmaten
-    public RelyingPartyCertificateResource revokeIssuerCertificate(UUID certificateId) {
-        return null;
+    public HttpStatusCode revokeIssuerCertificate(UUID certificateId, UUID relyingPartyId) {
+        if (!relyingPartyRepository.existsById(relyingPartyId)) {
+            throw new NotFoundException("Certificate holder with id " + relyingPartyId + " does not exist");
+        }
+        if (!issuerCertificateRepository.existsById(certificateId)) {
+            throw new NotFoundException("Certificate with id " + certificateId + " does not exist");
+        }
+        if (issuerCertificateRepository.findById(certificateId).get().getRevocationStatus() >=0) {
+            throw new RegisterServiceException("Certificate has already been revoked");
+        }
+        HttpStatusCode statusCode = revocationContactWithCa(issuerCertificateRepository.findById(
+                certificateId).get().getSerialNo(), 0, issuerCertificateRepository.findById(certificateId)
+                .get().getCaId());
+        if (statusCode == HttpStatus.valueOf(204)) {
+            Optional<IssuerCertificate> cert = issuerCertificateRepository.findById(certificateId);
+            cert.get().revoke(0);
+            issuerCertificateRepository.saveAndFlush(cert.get());
+            return statusCode;
+        }
+        log.warn("Error when certificate with id {} was tried revoked through CA. Status code from CA is {}",
+                certificateId, statusCode);
+            throw new BadRequestException("Error when in contact with CA");
+    }
+
+
+    private HttpStatusCode revocationContactWithCa(String serialNumber, int reason, String caId) {
+        return caRestClient.put()
+                .uri("/" + caId)
+                .body(RevocationRequest
+                        .builder()
+                        .serialNumber(serialNumber)
+                        .reason(reason)
+                        .build())
+                .retrieve()
+                .toEntity(String.class)
+                .getStatusCode();
     }
 }
