@@ -15,6 +15,7 @@ import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCertificateRes
 import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCertificatesResource;
 import no.eudiw.rp.register.service.certificateservice.RelyingPartyCertificateService;
 import no.idporten.logging.audit.Audit;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -209,14 +210,14 @@ public class RelyingPartyCertificateController {
                     description = "Certificate revoked"),
             @ApiResponse(responseCode = "404", description = "Certificate not found")
     })
+
     @Audit(auditId = RELYING_PARTY_ACCESS_CERTIFICATE_REVOKED)
-    @PutMapping(path = "/{relying-party-id}/certs/revoke/{certificate-id}")
-    public ResponseEntity<RelyingPartyCertificateResource> revokeAccessCertificate(
+    @PatchMapping(path = "/{relying-party-id}/certs/access/{certificate-id}/revoke")
+    public HttpStatusCode revokeAccessCertificate(
             @PathVariable("relying-party-id") @Valid UUID relyingPartyId,
             @PathVariable("certificate-id") @Valid UUID certificateId) {
-        return ResponseEntity.ok(
-                certificatesService.revokeAccessCertificate(
-                        certificateId, relyingPartyId));
+        return certificatesService.revokeAccessCertificate(
+                        certificateId, relyingPartyId);
     }
 
     @Operation(
@@ -230,12 +231,12 @@ public class RelyingPartyCertificateController {
             @ApiResponse(responseCode = "404", description = "Certificate not found")
     })
     @Audit(auditId = ISSUER_CERTIFICATE_REVOKED)
-    @PutMapping(path = "/certs/revoke/{certificate-id}")
-    public ResponseEntity<RelyingPartyCertificateResource> revokeIssuerCertificate(
+    @PatchMapping(path = "/{relying-party-id}/certs/issuer/{certificate-id}/revoke")
+    public HttpStatusCode revokeIssuerCertificate(
+            @PathVariable("relying-party-id") @Valid UUID relyingPartyId,
             @PathVariable("certificate-id") @Valid UUID certificateId) {
-        return ResponseEntity.ok(
-                certificatesService.revokeIssuerCertificate(
-                        certificateId));
+        return certificatesService.revokeIssuerCertificate(
+                        certificateId, relyingPartyId);
     }
 
 }
