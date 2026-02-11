@@ -1,7 +1,7 @@
 package no.idporten.eudiw.rp.admin.web.search.resultsview;
 
+import no.idporten.eudiw.rp.admin.service.config.RelyingPartiesServiceProperties;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificateResource;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.security.auth.x500.X500Principal;
@@ -12,10 +12,9 @@ public class RelyingPartyCertificateSummaryBuilder {
     private final int daysRemainingWarning;
 
     public RelyingPartyCertificateSummaryBuilder(
-            @Value("${relying-party.certificate.days-remaining-warning}")
-            int daysRemainingWarning
+            RelyingPartiesServiceProperties relyingPartiesServiceProperties
     ) {
-        this.daysRemainingWarning = daysRemainingWarning;
+        this.daysRemainingWarning = relyingPartiesServiceProperties.certificateConfig().daysRemainingWarning();
     }
 
 

@@ -1,11 +1,13 @@
 package no.idporten.eudiw.rp.admin.web.search.resultsview;
 
+import no.idporten.eudiw.rp.admin.service.config.RelyingPartiesServiceProperties;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificateResource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.security.auth.x500.X500Principal;
@@ -14,26 +16,36 @@ import java.util.Date;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @DisplayName("When getting status from relying party certificate")
 @ExtendWith(MockitoExtension.class)
 public class RelyingPartyCertificateSummaryTests {
     private RelyingPartyCertificateSummaryBuilder  relyingPartyCertificateSummaryBuilder;
-    private RelyingPartyCertificateResource relyingPartyResource;
-    private X509Certificate certificate;
+
     private long dateNow;
     X500Principal principal = new X500Principal("CN=Test User, OU=Engineering, O=Test Corp, C=US");
+    int daysRemainingWarning = 30;
+
+    @Mock
+    private RelyingPartyCertificateResource relyingPartyResource;
+
+    @Mock
+    private X509Certificate certificate;
+
+    @Mock
+    RelyingPartiesServiceProperties serviceProperties;
+
+    @Mock
+    RelyingPartiesServiceProperties.RelyingPartyCertificateConfig relyingPartyCertificateConfig;
 
     @BeforeEach
     public void setup() {
-        int daysRemainingWarning = 30;
-        relyingPartyCertificateSummaryBuilder = new RelyingPartyCertificateSummaryBuilder(daysRemainingWarning);
-        dateNow = System.currentTimeMillis();
+        when(serviceProperties.certificateConfig()).thenReturn(relyingPartyCertificateConfig);
+        when(relyingPartyCertificateConfig.daysRemainingWarning()).thenReturn(daysRemainingWarning);
+        relyingPartyCertificateSummaryBuilder = new RelyingPartyCertificateSummaryBuilder(serviceProperties);
 
-        relyingPartyResource = mock(RelyingPartyCertificateResource.class);
-        certificate = mock(X509Certificate.class);
+        dateNow = System.currentTimeMillis();
 
         when(relyingPartyResource.id()).thenReturn(UUID.randomUUID());
         when(relyingPartyResource.certificate()).thenReturn(certificate);
@@ -79,7 +91,7 @@ public class RelyingPartyCertificateSummaryTests {
         @Test
         @DisplayName("then is should display warning color and x days remaining text for revocationStatus -1")
         public void shouldBeDaysLeft() {
-            when(certificate.getNotAfter()).thenReturn(new Date(dateNow + 30L * 24 * 60 * 60 * 1000));
+            when(certificate.getNotAfter()).thenReturn(new Date(dateNow + (long) daysRemainingWarning * 24 * 60 * 60 * 1000));
             when( relyingPartyResource.revocationStatus()).thenReturn(-1);
 
             var result = relyingPartyCertificateSummaryBuilder.build(relyingPartyResource);
@@ -123,7 +135,7 @@ public class RelyingPartyCertificateSummaryTests {
     @Test
     @DisplayName("then is should display success color and valid text for revocationStatus -1")
     public void shouldBeOutOfTime() {
-        when(certificate.getNotAfter()).thenReturn(new Date(dateNow + 31L * 24 * 60 * 60 * 1000));
+        when(certificate.getNotAfter()).thenReturn(new Date(dateNow + (long)(daysRemainingWarning + 1) * 24 * 60 * 60 * 1000));
         when( relyingPartyResource.revocationStatus()).thenReturn(-1);
 
         var result = relyingPartyCertificateSummaryBuilder.build(relyingPartyResource);

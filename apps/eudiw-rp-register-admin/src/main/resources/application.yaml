@@ -50,6 +50,8 @@ eudiw-admin-web:
     rest-client:
       connect-timeout-millis: 5000
       read-timeout-millis: 5000
+    certificate-config:
+      days-remaining-warning: 30
   enhetsregisteret-service:
     enhetsregisteret-api-base-uri: "https://data.brreg.no/enhetsregisteret/api/enheter"
     rest-client:
@@ -84,7 +86,3 @@ external-dependency-health-checks:
       connect-timeout-ms: 2000
       read-timeout-ms: 1000
       map-down-status-to: DOWN
-
-relying-party:
-  certificate:
-    days-remaining-warning: 30
