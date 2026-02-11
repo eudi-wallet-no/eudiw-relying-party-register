@@ -1,6 +1,5 @@
 # <CVE> # <package/affected code>. Fixed in <version>.
 CVE-2025-47907 # stdlib
-
-# Lagt til 03.02.26
 CVE-2025-61726 # stdlib: query parameter parsing. Fixed in 1.24.12, 1.25.6
 CVE-2025-61728 # stdlib: building archive index in archive/zip. Fixed in 1.24.12, 1.25.6
+CVE-2025-68121 # stdlib handshake. Fixed 1.24.13, 1.25.7, 1.26.0-rc.3
