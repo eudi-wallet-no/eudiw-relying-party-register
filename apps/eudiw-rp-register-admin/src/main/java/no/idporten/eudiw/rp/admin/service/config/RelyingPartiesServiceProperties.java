@@ -9,7 +9,8 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties(prefix = "eudiw-admin-web.relying-parties-service")
 public record RelyingPartiesServiceProperties(
     RegisterServiceApi registerServiceApi,
-    RestClient restClient
+    RestClient restClient,
+    RelyingPartyCertificateConfig certificateConfig
 ) {
     public record RegisterServiceApi(
         @NotBlank String registerServiceBaseUri,
@@ -20,5 +21,9 @@ public record RelyingPartiesServiceProperties(
     public record RestClient(
         @Min(0) long connectTimeoutMillis,
         @Min(0) long readTimeoutMillis
+    ) { }
+
+    public record RelyingPartyCertificateConfig(
+        @Min(1) int daysRemainingWarning
     ) { }
 }
