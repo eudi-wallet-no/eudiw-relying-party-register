@@ -14,7 +14,7 @@
     <description>EUDIW Certificate Authority Service</description>
     <properties>
         <java.version>25</java.version>
-        <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
+        <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
         <lombok.version>1.18.42</lombok.version>
         <idporten-actuator-starter.version>3.0.0</idporten-actuator-starter.version>
         <idporten-access-log.version>3.0.1-rc1</idporten-access-log.version>
