@@ -1,3 +1,4 @@
 # CVE # Desc # Fixed
 CVE-2025-61726 # stdlib net/url. Fixed 1.25.5
 CVE-2025-61728 # golang zip
+CVE-2025-68121 # stdlib crypto/tls.  Fixed in 1.24.13, 1.25.7, 1.26.0-rc.3
