@@ -20,7 +20,7 @@ public class TestDataGenerator {
     }
 
     public static String generateName() {
-        return generateRandomString(5, 15);
+        return generateRandomString(10, 20);
     }
 
     public static boolean generateBoolean() {
@@ -68,7 +68,6 @@ public class TestDataGenerator {
                      .collect(Collectors.joining());
     }
 
-    protected static final String ENTITLEMENT_PREFIX = "https://uri.etsi.org/19475/Entitlement/";
     protected static final List<String> EXAMPLE_ENTITLEMENTS = List.of(
         "https://uri.etsi.org/19475/Entitlement/Service_Provider",
         "https://uri.etsi.org/19475/Entitlement/QEAA_Provider",

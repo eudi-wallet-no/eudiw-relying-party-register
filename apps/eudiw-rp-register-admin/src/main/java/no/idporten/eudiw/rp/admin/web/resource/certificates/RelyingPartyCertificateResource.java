@@ -3,7 +3,7 @@ package no.idporten.eudiw.rp.admin.web.resource.certificates;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import tools.jackson.databind.annotation.JsonSerialize;
 import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.security.cert.X509Certificate;
@@ -21,5 +21,5 @@ public record RelyingPartyCertificateResource(
     @JsonProperty("entitlement")
     String entitlement,
     @JsonProperty("revocation_status")
-    int revocationStatus
+    Integer revocationStatus
 ) { }

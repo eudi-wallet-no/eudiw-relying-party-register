@@ -25,7 +25,12 @@ public class RelyingPartyCertificateSummaryBuilder {
     public RelyingPartyCertificateSummary build(RelyingPartyCertificateResource relyingPartyResource) {
         long validFromMs =  relyingPartyResource.certificate().getNotBefore().toInstant().toEpochMilli();
         long validToMs =  relyingPartyResource.certificate().getNotAfter().toInstant().toEpochMilli();
-        int revocationStatus = relyingPartyResource.revocationStatus();
+        int revocationStatus;
+        if (relyingPartyResource.revocationStatus() == null) {
+            revocationStatus = -1;
+        } else {
+            revocationStatus = relyingPartyResource.revocationStatus();
+        }
         return new RelyingPartyCertificateSummary(
                 relyingPartyResource.entitlement(),
                 relyingPartyResource.certificate().getSerialNumber(),
