@@ -1,8 +1,8 @@
 package no.idporten.eudiw.rp.admin.web.resource.certificates;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueSerializer;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 
 import java.io.IOException;
@@ -10,12 +10,12 @@ import java.io.StringWriter;
 import java.security.cert.X509Certificate;
 
 public class X509CertificateJsonSerializer
-    extends JsonSerializer<X509Certificate> {
+    extends ValueSerializer<X509Certificate> {
 
     @Override
     public void serialize(X509Certificate certificate,
                           JsonGenerator jsonGen,
-                          SerializerProvider _unused) throws IOException {
+                          SerializationContext _unused){
         jsonGen.writeString(convert(certificate));
     }
 
