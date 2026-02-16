@@ -2,6 +2,7 @@ package no.idporten.eudiw.rp.admin.web.controllers;
 
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.admin.exception.AdminServiceException;
+import no.idporten.eudiw.rp.admin.service.exception.CertificateNotFoundException;
 import no.idporten.eudiw.rp.admin.service.exception.NotFoundException;
 import no.idporten.eudiw.rp.admin.service.exception.RelyingPartyNotFoundException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -10,6 +11,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import java.util.Map;
 import java.util.UUID;
 
 @ControllerAdvice
@@ -18,6 +20,7 @@ public class AdminWebControllerAdvice {
 
     public static final String requestedIdOrOrgnoAttrId = "requestedIdOrOrgnoAttr";
     public static final String rejectedIdAttrId = "rejectedIdAttr";
+    public static final String certificateId = "certificateId";
 
     @ExceptionHandler(NoResourceFoundException.class)
     public ModelAndView handleNoResourceFoundException(
@@ -41,6 +44,15 @@ public class AdminWebControllerAdvice {
         return new ModelAndView("error/relying_party_not_found",
                                 requestedIdOrOrgnoAttrId,
                                 e.getRequested());
+    }
+
+    @ExceptionHandler(CertificateNotFoundException.class)
+    public ModelAndView handleCertificateNotFoundException(CertificateNotFoundException e) {
+        return new ModelAndView("error/certificate_not_found",
+                Map.of(
+                    requestedIdOrOrgnoAttrId, e.getRpId(),
+                    certificateId, e.getCertificateId()
+                ));
     }
 
     @ExceptionHandler(NotFoundException.class)

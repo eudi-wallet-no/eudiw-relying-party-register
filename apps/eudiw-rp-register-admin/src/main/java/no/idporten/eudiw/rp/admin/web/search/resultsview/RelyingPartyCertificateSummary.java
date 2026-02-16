@@ -14,5 +14,5 @@ public record RelyingPartyCertificateSummary(
     int revocationStatus,
     StatusDisplayData status
 ) {
-    public record StatusDisplayData(String text, String style) { }
+    public record StatusDisplayData(String text, String style, boolean valid) { }
 }
