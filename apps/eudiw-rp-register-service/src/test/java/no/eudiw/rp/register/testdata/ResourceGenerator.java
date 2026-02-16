@@ -72,6 +72,6 @@ public class ResourceGenerator extends TestDataGenerator {
     public static RelyingPartyCertificateResource generateRelyingPartyCertificateResource() {
         String entitlement = sampleEntitlements(1).getFirst();
         return new RelyingPartyCertificateResource(
-            CertificatesGenerator.generateX509Certificate(), entitlement, UUID.randomUUID());
+            CertificatesGenerator.generateX509Certificate(), entitlement, UUID.randomUUID(), -1);
     }
 }

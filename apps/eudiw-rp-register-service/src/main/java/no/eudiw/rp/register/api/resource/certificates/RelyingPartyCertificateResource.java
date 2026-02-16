@@ -20,5 +20,7 @@ public record RelyingPartyCertificateResource(
     @JsonProperty("entitlement")
     String entitlement,
     @JsonProperty(value = "id")
-    UUID id
+    UUID id,
+    @JsonProperty("revocation_status")
+    Integer revocationStatus
 ) { }
