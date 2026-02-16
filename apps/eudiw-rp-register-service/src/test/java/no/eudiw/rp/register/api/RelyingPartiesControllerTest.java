@@ -1,5 +1,6 @@
 package no.eudiw.rp.register.api;
 
+import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCertificateResource;
 import tools.jackson.databind.ObjectMapper;
 import no.eudiw.rp.register.api.resource.relyingparty.CreateRelyingPartyResource;
 import no.eudiw.rp.register.api.resource.relyingparty.EditRelyingPartyResource;
@@ -233,6 +234,30 @@ public class RelyingPartiesControllerTest {
 
                 verifyNoInteractions(relyingPartyService);
             }
+
+
+//            @Test
+//            @DisplayName("with a valid and known ID and cert is revoked")
+//            void testGetRelyingPartyValidAndKnownIDThatIsRevoked() throws Exception {
+//                RelyingPartyResource expectedResponse = ResourceGenerator.generateRelyingPartyResource();
+//                RelyingPartyCertificateResource certs = ResourceGenerator.generateRelyingPartyCertificateResource();
+//
+//                int status = expectedResponse.accessCertificates().getFirst().revocationStatus();
+//                when(relyingPartyService.findRelyingParty(any())).thenReturn(expectedResponse);
+//
+//                RelyingPartyResource response =
+//                        ApiTestUtils.toRelyingPartyResource(
+//                                mockMvc.perform(get("/v1/rp/" + expectedResponse.id())
+//                                                .accept(MediaType.APPLICATION_JSON)
+//                                                .header(X_API_KEY_HEADER, VALID_API_KEY))
+//                                        .andExpect(status().isOk()));
+//
+//                assertEquals(expectedResponse, response);
+//
+//                verify(relyingPartyService, times(1)).findRelyingParty(expectedResponse.id());
+//                verifyNoMoreInteractions(relyingPartyService);
+//                assertEquals(-1, relyingPartyService.findRelyingParty(expectedResponse.id()).accessCertificates().getFirst().revocationStatus());
+//            }
         }
 
 

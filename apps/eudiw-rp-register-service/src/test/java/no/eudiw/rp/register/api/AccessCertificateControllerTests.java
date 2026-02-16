@@ -5,6 +5,7 @@ import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCertificateRes
 import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCertificatesResource;
 import no.eudiw.rp.register.data.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.service.certificateservice.RelyingPartyCertificateService;
+import no.eudiw.rp.register.service.certificateservice.RevocationRequest;
 import no.eudiw.rp.register.testdata.ResourceGenerator;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -202,6 +203,31 @@ public class AccessCertificateControllerTests {
                    .andExpect(jsonPath("$.error_description").exists());
 
             verifyNoInteractions(mockCsrService);
+        }
+    }
+
+    @Nested
+    @DisplayName("when revoking certificates ..")
+    class RevokeCertificatesTests {
+
+        @Test
+        @DisplayName("When revoking access certificate")
+        public void test204whenRevokingAccessCertificateSuccessfully() throws Exception {
+            UUID relyingPartyId = UUID.randomUUID();
+            RevocationRequest request = new RevocationRequest();
+            request.setReason(0);
+            UUID certificateId = UUID.randomUUID();
+            String serialNumber = "12345678910";
+            request.setSerialNumber(serialNumber);
+            String validContent = new ObjectMapper().writeValueAsString(request);
+            mockMvc.perform(patch("/v1/rp/%s/certs/access/%s/revoke".formatted(relyingPartyId, certificateId))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .accept(MediaType.APPLICATION_JSON)
+                            .header(X_API_KEY_HEADER, VALID_API_KEY)
+                            .content(validContent))
+                    .andExpect(status().is2xxSuccessful());
+
+            verify(mockCsrService, times(1)).revokeAccessCertificate(certificateId, relyingPartyId);
         }
     }
 }

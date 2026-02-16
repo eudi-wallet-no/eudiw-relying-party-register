@@ -42,7 +42,7 @@ public abstract class BaseCertificateEntity extends BaseEntity {
     protected BaseCertificateEntity(X509Certificate certificate, String caId) {
         this.id = null;
         this.caId = caId;
-        revocationStatus = NOT_REVOKED;
+        this.revocationStatus = NOT_REVOKED;
 
         this.certificate = certificate;
         this.issuer = certificate.getIssuerX500Principal().getName();

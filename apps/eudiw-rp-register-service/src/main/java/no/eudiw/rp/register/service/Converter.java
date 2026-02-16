@@ -10,13 +10,11 @@ import no.eudiw.rp.register.api.resource.relyingparty.RelyingPartyEntitlementRes
 import no.eudiw.rp.register.api.resource.relyingparty.RelyingPartyResource;
 import no.eudiw.rp.register.data.entity.*;
 import no.eudiw.rp.register.data.entity.certificates.AccessCertificate;
-import no.eudiw.rp.register.data.entity.certificates.BaseCertificateEntity;
 import no.eudiw.rp.register.data.entity.certificates.IssuerCertificate;
 import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyEaa;
 import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyEntitlement;
 import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyInstance;
 import no.eudiw.rp.register.data.repository.EntitlementRepository;
-import no.eudiw.rp.register.data.repository.IssuerCertificateRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -84,14 +82,15 @@ public class Converter {
     }
 
     public RelyingPartyCertificateResource toResource(AccessCertificate entity) {
-        return new RelyingPartyCertificateResource(entity.getCertificate(), null, entity.getId());
+        return new RelyingPartyCertificateResource(entity.getCertificate(), null, entity.getId(), entity.getRevocationStatus());
     }
 
     public RelyingPartyCertificateResource toResource(IssuerCertificate entity) {
         return new RelyingPartyCertificateResource(
             entity.getCertificate(),
             entity.getEntitlement().getEntitlement(),
-            entity.getId());
+            entity.getId(),
+                entity.getRevocationStatus());
     }
 
     public RelyingPartyEaaResource toResource(RelyingPartyEaa eaa) {
