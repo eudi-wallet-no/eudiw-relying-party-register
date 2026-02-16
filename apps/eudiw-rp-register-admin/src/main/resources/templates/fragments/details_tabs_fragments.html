@@ -1,4 +1,4 @@
-<div th:fragment="access_certificates_content_fragment(rp, certs)">
+<div th:fragment="access_certificates_content_fragment(rp, certs)" xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
     <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
     <div style="padding-bottom: 2em;">
         <div th:if="${ #lists.isEmpty(certs)}">
@@ -39,12 +39,20 @@
                                    class="ds-button">
                                     Last ned
                                 </a>
-                                <a th:if="${cert.revocationStatus == -1}"
-                                   th:href="@{|/get-certificate/${rp.id}/revoke/${cert.id}|}"
-                                   style="display:flex; white-space: nowrap; margin: 0;"
-                                   class="ds-button" data-variant="secondary" data-color="danger">
-                                    Revoker
-                                </a>
+                                <th:block sec:authorize="hasRole('ADMIN')">
+                                    <form th:if="${cert.status().valid()}"
+                                          th:action="@{|/revoke-certificate/${rp.id}/access/${cert.id}|}"
+                                          method="post"
+                                          style="display:inline; margin: 0;"
+                                          onsubmit="return confirm('Er du sikker på at du vil revokere dette sertifikatet?');">
+                                        <button type="submit"
+                                                class="ds-button"
+                                                data-variant="secondary"
+                                                data-color="danger">
+                                            Revoker
+                                        </button>
+                                    </form>
+                                </th:block>
                             </div>
                         </td>
                     </tr>
@@ -61,7 +69,7 @@
     </div>
 </div>
 
-<div th:fragment="issuer_certificates_content_fragment(rp, certs)">
+<div th:fragment="issuer_certificates_content_fragment(rp, certs)"  xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
     <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
     <div style="padding-bottom: 2em;">
         <div th:if="${ #lists.isEmpty(certs)}">
@@ -104,12 +112,20 @@
                                class="ds-button">
                                 Last ned
                             </a>
-                            <a th:if="${cert.revocationStatus == -1}"
-                               th:href="@{|/get-certificate/${rp.id}/issuer/revoke/${cert.id}|}"
-                               style="display:flex; white-space: nowrap; margin: 0;"
-                               class="ds-button" data-variant="secondary" data-color="danger">
-                                Revoker
-                            </a>
+                            <th:block sec:authorize="hasRole('ADMIN')">
+                                <form th:if="${cert.status().valid()} "
+                                      th:action="@{|/revoke-certificate/${rp.id}/issuer/${cert.id}|}"
+                                      method="post"
+                                      style="display:inline; margin: 0;"
+                                      onsubmit="return confirm('Er du sikker på at du vil revokere dette sertifikatet?');">
+                                    <button type="submit"
+                                            class="ds-button"
+                                            data-variant="secondary"
+                                            data-color="danger">
+                                        Revoker
+                                    </button>
+                                </form>
+                            </th:block>
                         </div>
                     </td>
                 </tr>

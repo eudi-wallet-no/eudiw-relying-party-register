@@ -63,7 +63,7 @@ public class RelyingPartyCertificateSummaryTests {
 
         var result = relyingPartyCertificateSummaryBuilder.build(relyingPartyResource);
 
-        var expected = new RelyingPartyCertificateSummary.StatusDisplayData("Utgått",  "danger");
+        var expected = new RelyingPartyCertificateSummary.StatusDisplayData("Utgått",  "danger", false);
         assertEquals(expected, result.status());
     }
 
@@ -79,7 +79,7 @@ public class RelyingPartyCertificateSummaryTests {
         when( relyingPartyResource.revocationStatus()).thenReturn(1);
         var result2 = relyingPartyCertificateSummaryBuilder.build(relyingPartyResource);
 
-        var expected = new RelyingPartyCertificateSummary.StatusDisplayData("Revokert",  "danger");
+        var expected = new RelyingPartyCertificateSummary.StatusDisplayData("Revokert",  "danger", false);
 
         assertEquals(expected, result1.status());
         assertEquals(expected, result2.status());
@@ -97,7 +97,7 @@ public class RelyingPartyCertificateSummaryTests {
             var result = relyingPartyCertificateSummaryBuilder.build(relyingPartyResource);
 
 
-            var expected = new RelyingPartyCertificateSummary.StatusDisplayData("Gyldig i 29 dager",  "warning");
+            var expected = new RelyingPartyCertificateSummary.StatusDisplayData("Gyldig i 29 dager",  "warning", true);
 
             assertEquals(expected, result.status());
         }
@@ -111,7 +111,7 @@ public class RelyingPartyCertificateSummaryTests {
             var result = relyingPartyCertificateSummaryBuilder.build(relyingPartyResource);
 
 
-            var expected = new RelyingPartyCertificateSummary.StatusDisplayData("Gyldig i 23 timer",  "warning");
+            var expected = new RelyingPartyCertificateSummary.StatusDisplayData("Gyldig i 23 timer",  "warning", true);
 
             assertEquals(expected, result.status());
         }
@@ -125,7 +125,7 @@ public class RelyingPartyCertificateSummaryTests {
             var result = relyingPartyCertificateSummaryBuilder.build(relyingPartyResource);
 
 
-            var expected = new RelyingPartyCertificateSummary.StatusDisplayData("Gyldig i 59 minutter",  "warning");
+            var expected = new RelyingPartyCertificateSummary.StatusDisplayData("Gyldig i 59 minutter",  "warning", true);
 
             assertEquals(expected, result.status());
         }
@@ -141,7 +141,7 @@ public class RelyingPartyCertificateSummaryTests {
         var result = relyingPartyCertificateSummaryBuilder.build(relyingPartyResource);
 
 
-        var expected = new RelyingPartyCertificateSummary.StatusDisplayData("Gyldig",  "success");
+        var expected = new RelyingPartyCertificateSummary.StatusDisplayData("Gyldig",  "success", true);
 
         assertEquals(expected, result.status());
     }

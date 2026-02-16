@@ -5,7 +5,7 @@ import no.idporten.eudiw.rp.admin.service.RelyingPartiesServiceResponseErrorHand
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
 import java.net.URI;
@@ -19,8 +19,8 @@ public class RelyingPartiesServiceConfig {
 
     @Bean
     public RestClient restClient() {
-        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout((int) rpServiceProperties.restClient().connectTimeoutMillis());
+        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+        requestFactory.setConnectionRequestTimeout((int) rpServiceProperties.restClient().connectTimeoutMillis());
         requestFactory.setReadTimeout((int) rpServiceProperties.restClient().readTimeoutMillis());
         URI registerServiceRestClientBaseUrl = URI.create(
             rpServiceProperties.registerServiceApi().registerServiceBaseUri()

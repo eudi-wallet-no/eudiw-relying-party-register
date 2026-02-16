@@ -46,16 +46,16 @@ public class RelyingPartyCertificateSummaryBuilder {
 
     protected RelyingPartyCertificateSummary.StatusDisplayData getStatus(int revocationStatus, long validFromMs, long validUntilMs) {
         if (revocationStatus >= 0) {
-            return new RelyingPartyCertificateSummary.StatusDisplayData("Revokert", "danger");
+            return new RelyingPartyCertificateSummary.StatusDisplayData("Revokert", "danger", false);
         }
 
         long currentTime = currentTimeMillis();
 
         if (currentTime > validUntilMs) {
-            return new RelyingPartyCertificateSummary.StatusDisplayData("Utgått", "danger");
+            return new RelyingPartyCertificateSummary.StatusDisplayData("Utgått", "danger", false);
         }
         if (currentTime < validFromMs) {
-            return new RelyingPartyCertificateSummary.StatusDisplayData("Ikke gyldig ennå", "warning");
+            return new RelyingPartyCertificateSummary.StatusDisplayData("Ikke gyldig ennå", "warning", true);
         }
 
         long timeRemainingMs = validUntilMs - currentTime;
@@ -82,7 +82,7 @@ public class RelyingPartyCertificateSummaryBuilder {
             style = "warning";
         }
 
-        return new RelyingPartyCertificateSummary.StatusDisplayData(text, style);
+        return new RelyingPartyCertificateSummary.StatusDisplayData(text, style, true);
     }
 
 
