@@ -1,49 +1,48 @@
 package no.eudiw.rp.register.data.service;
 
-import tools.jackson.databind.ObjectMapper;
-import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCsrResource;
+import no.eudiw.rp.register.api.resource.ErrorResponseResource;
 import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCertificateResource;
+import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCsrResource;
+import no.eudiw.rp.register.data.entity.LegalEntity;
 import no.eudiw.rp.register.data.entity.certificates.AccessCertificate;
 import no.eudiw.rp.register.data.entity.certificates.X509CertificateConverter;
-import no.eudiw.rp.register.data.entity.*;
 import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyInstance;
 import no.eudiw.rp.register.data.repository.AccessCertificateRepository;
-import no.eudiw.rp.register.data.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.data.repository.LegalEntityRepository;
+import no.eudiw.rp.register.data.repository.RelyingPartyInstanceRepository;
+import no.eudiw.rp.register.exception.CertificateConversionException;
+import no.eudiw.rp.register.exception.RegisterServiceException;
 import no.eudiw.rp.register.service.certificateservice.RelyingPartyCertificateService;
 import no.eudiw.rp.register.service.exception.ErrorResponseException;
 import no.eudiw.rp.register.service.exception.NotFoundException;
-import no.eudiw.rp.register.exception.RegisterServiceException;
-import no.eudiw.rp.register.exception.CertificateConversionException;
-import no.eudiw.rp.register.api.resource.ErrorResponseResource;
 import no.eudiw.rp.register.testdata.CertificatesGenerator;
 import no.eudiw.rp.register.testdata.EntityGenerator;
 import no.eudiw.rp.register.testdata.ResourceGenerator;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
-import static org.junit.jupiter.api.Assertions.*;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import tools.jackson.databind.ObjectMapper;
 
+import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 @SpringBootTest
 @ActiveProfiles("junit")
-@Import(MockCaServerConfiguration.class)
+@AutoConfigureMockMvc
 @DisplayName("When using the relying party certificates service")
 public class AccessCertificateServiceTests {
 
@@ -62,6 +61,7 @@ public class AccessCertificateServiceTests {
     @BeforeEach
     public void clearRepositoryBeforeEachTest() {
         instanceRepository.deleteAll();
+        legalEntityRepository.deleteAll();
     }
 
     @Nested
@@ -181,10 +181,23 @@ public class AccessCertificateServiceTests {
     @DisplayName("When requesting new certificates for relying parties ...")
     class RequestCertificateForRelyingPartyTests {
 
-        @Autowired
+        @Value("${TEST_MOCK_CA_SERVER_PORT}")
+        int caServicePort;
+
         private MockWebServer mockCaServer;
 
-        private X509Certificate enqueueMockCertificateResponse() throws Exception {
+        @BeforeEach
+        public void setup() throws Exception {
+            mockCaServer = new MockWebServer();
+            mockCaServer.start(caServicePort);
+        }
+
+        @AfterEach
+        void cleanUp() throws IOException {
+            mockCaServer.close();
+        }
+
+        private X509Certificate enqueueMockCertificateResponse() {
             X509Certificate certificate = CertificatesGenerator.generateX509Certificate();
             String certificateInPem = X509CertificateConverter.convert(certificate);
             MockResponse mockValidCertificateResponse =
@@ -223,7 +236,7 @@ public class AccessCertificateServiceTests {
 
         @Test
         @DisplayName("then the certificate returned by CA is properly stored in the database")
-        public void testCertificateFromCAProperlyStoredInRegisterServiceDatabase() throws Exception {
+        public void testCertificateFromCAProperlyStoredInRegisterServiceDatabase() {
             RelyingPartyCsrResource csrResource = ResourceGenerator.generateRegisterRelyingPartyCsrResource();
 
             LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
@@ -253,7 +266,7 @@ public class AccessCertificateServiceTests {
 
         @Test
         @DisplayName("then error is thrown if a CSR is registered for an unknown RP")
-        public void testErrorThrownForUnknownRelyingParty() throws Exception {
+        public void testErrorThrownForUnknownRelyingParty() {
             RelyingPartyCsrResource csrResource =
                 ResourceGenerator.generateRegisterRelyingPartyCsrResource();
             UUID unknownRelyingPartyId = UUID.randomUUID();
@@ -266,7 +279,7 @@ public class AccessCertificateServiceTests {
 
         @Test
         @DisplayName("then error responses from the CA are properly handled")
-        public void testErrorResponseFromCAProperlyHandled() throws Exception {
+        public void testErrorResponseFromCAProperlyHandled() {
             String errorResponseJson = new ObjectMapper().writeValueAsString(
                 new ErrorResponseResource("invalid_request", "some error description")
             );
@@ -292,7 +305,7 @@ public class AccessCertificateServiceTests {
 
         @Test
         @DisplayName("then invalid certificates from the CA are properly handled")
-        public void testInvalidCertificateResponseFromCAProperlyHandled() throws Exception {
+        public void testInvalidCertificateResponseFromCAProperlyHandled() {
             String validCertificatePemStr = X509CertificateConverter.convert(CertificatesGenerator.generateX509Certificate());
             String invalidCertificatePemStr = validCertificatePemStr.toLowerCase();
 
@@ -318,7 +331,7 @@ public class AccessCertificateServiceTests {
 
         @Test
         @DisplayName("then null response bodies from the CA are properly handled")
-        public void testNullCertificateResponseFromCAProperlyHandled() throws Exception {
+        public void testNullCertificateResponseFromCAProperlyHandled() {
 
             MockResponse mockInvalidSuccessResponse =
                 new MockResponse()
@@ -341,7 +354,7 @@ public class AccessCertificateServiceTests {
 
         @Test
         @DisplayName("then returned cert resource has ID immediately, and this matches persisted ID")
-        public void testNewCertResourceHasIdImmediatelyAndMatchesPersistedCert() throws Exception {
+        public void testNewCertResourceHasIdImmediatelyAndMatchesPersistedCert() {
             LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
 
             legalEntityRepository.saveAndFlush(legalEntity);

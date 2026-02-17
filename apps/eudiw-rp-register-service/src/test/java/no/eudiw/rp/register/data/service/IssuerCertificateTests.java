@@ -1,30 +1,29 @@
 package no.eudiw.rp.register.data.service;
 
 import no.eudiw.rp.register.api.resource.certificates.IssuerCsrResource;
-import no.eudiw.rp.register.data.entity.certificates.X509CertificateConverter;
 import no.eudiw.rp.register.data.entity.LegalEntity;
-import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyInstance;
+import no.eudiw.rp.register.data.entity.certificates.X509CertificateConverter;
 import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyEntitlement;
-import no.eudiw.rp.register.data.repository.RelyingPartyInstanceRepository;
+import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyInstance;
 import no.eudiw.rp.register.data.repository.LegalEntityRepository;
-import no.eudiw.rp.register.service.certificateservice.RelyingPartyCertificateService;
+import no.eudiw.rp.register.data.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.exception.RegisterServiceException;
+import no.eudiw.rp.register.service.certificateservice.RelyingPartyCertificateService;
 import no.eudiw.rp.register.service.exception.NotFoundException;
 import no.eudiw.rp.register.testdata.CertificatesGenerator;
 import no.eudiw.rp.register.testdata.EntityGenerator;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
@@ -32,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("junit")
-@Import(MockCaServerConfiguration.class)
+@AutoConfigureMockMvc
 @DisplayName("Issuer certificate tests")
 public class IssuerCertificateTests {
 
@@ -49,22 +48,34 @@ public class IssuerCertificateTests {
     @DisplayName("when registering a new issuer certificate")
     class RegisterIssuerCertificatesForEntitlementsTests {
 
-        @BeforeEach
-        void clearRepositoryBeforeEachTest() {
-            rpRepository.deleteAll();
-        }
+        @Value("${TEST_MOCK_CA_SERVER_PORT}")
+        int caServicePort;
 
-        @Autowired
         private MockWebServer mockCaServer;
 
-        private X509Certificate enqueueMockCertificateResponse() throws Exception {
+
+        @BeforeEach
+        void setup() throws IOException {
+            rpRepository.deleteAll();
+            instanceRepository.deleteAll();
+            mockCaServer = new MockWebServer();
+            mockCaServer.start(caServicePort);
+        }
+
+        @AfterEach
+        void cleanUp() throws IOException {
+            mockCaServer.close();
+        }
+
+
+        private X509Certificate enqueueMockCertificateResponse() {
             X509Certificate certificate = CertificatesGenerator.generateX509Certificate();
             String certificateInPem = X509CertificateConverter.convert(certificate);
             MockResponse mockValidCertificateResponse =
-                new MockResponse()
-                    .setResponseCode(200)
-                    .setHeader(HttpHeaders.CONTENT_TYPE, "application/x-pem-file")
-                    .setBody(certificateInPem);
+                    new MockResponse()
+                            .setResponseCode(200)
+                            .setHeader(HttpHeaders.CONTENT_TYPE, "application/x-pem-file")
+                            .setBody(certificateInPem);
             mockCaServer.enqueue(mockValidCertificateResponse);
             return certificate;
         }
@@ -78,13 +89,13 @@ public class IssuerCertificateTests {
             rpRepository.saveAndFlush(legalEntity);
 
             assertThrows(RegisterServiceException.class,
-                () -> certService.requestIssuerCertificate(
-                    legalEntity.getRelyingPartyInstances().getFirst().getId(),
-                    new IssuerCsrResource(
-                        CertificatesGenerator.generatePKCS10Csr(),
-                        "https://uri.etsi.org/19475/Entitlement/Service_Provider"
-                    )
-                ));
+                    () -> certService.requestIssuerCertificate(
+                            legalEntity.getRelyingPartyInstances().getFirst().getId(),
+                            new IssuerCsrResource(
+                                    CertificatesGenerator.generatePKCS10Csr(),
+                                    "https://uri.etsi.org/19475/Entitlement/Service_Provider"
+                            )
+                    ));
         }
 
         @Test
@@ -94,26 +105,26 @@ public class IssuerCertificateTests {
 
             LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
             legalEntity.getRelyingPartyInstances().getFirst().setRelyingPartyEntitlements(
-                List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/QEAA_Provider")));
+                    List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/QEAA_Provider")));
             rpRepository.saveAndFlush(legalEntity);
 
             X509Certificate certificateActual =
-                certService.requestIssuerCertificate(
-                    legalEntity.getRelyingPartyInstances().getFirst().getId(),
-                    new IssuerCsrResource(
-                        CertificatesGenerator.generatePKCS10Csr(),
-                        "https://uri.etsi.org/19475/Entitlement/QEAA_Provider"
-                        )
+                    certService.requestIssuerCertificate(
+                            legalEntity.getRelyingPartyInstances().getFirst().getId(),
+                            new IssuerCsrResource(
+                                    CertificatesGenerator.generatePKCS10Csr(),
+                                    "https://uri.etsi.org/19475/Entitlement/QEAA_Provider"
+                            )
                     ).certificate();
 
             assertEquals(certificateExpected, certificateActual);
             RecordedRequest recordedRequest = mockCaServer.takeRequest();
             assertAll(
-                () -> assertEquals("POST", recordedRequest.getMethod())
-             //   () -> assertEquals("/v1/certs/eaa_provider", recordedRequest.getPath())
+                    () -> assertEquals("POST", recordedRequest.getMethod()),
+                    () -> assertEquals("/v1/certs/eaa_provider", recordedRequest.getPath())
             );
 
-            RelyingPartyInstance resultRp = instanceRepository.findById(legalEntity.getRelyingPartyInstances().get(0).getId()).get();
+            RelyingPartyInstance resultRp = instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).get();
             RelyingPartyEntitlement entitlement = resultRp.getRelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/QEAA_Provider").get();
             assertNotNull(entitlement);
             assertNotNull(entitlement.getIssuerCertificates());
@@ -127,26 +138,26 @@ public class IssuerCertificateTests {
 
             LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
             legalEntity.getRelyingPartyInstances().getFirst().setRelyingPartyEntitlements(
-                List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/Non_Q_EAA_Provider")));
+                    List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/Non_Q_EAA_Provider")));
             rpRepository.saveAndFlush(legalEntity);
 
             X509Certificate certificateActual =
-                certService.requestIssuerCertificate(
-                    legalEntity.getRelyingPartyInstances().getFirst().getId(),
-                    new IssuerCsrResource(
-                        CertificatesGenerator.generatePKCS10Csr(),
-                        "https://uri.etsi.org/19475/Entitlement/Non_Q_EAA_Provider"
-                    )
-                ).certificate();
+                    certService.requestIssuerCertificate(
+                            legalEntity.getRelyingPartyInstances().getFirst().getId(),
+                            new IssuerCsrResource(
+                                    CertificatesGenerator.generatePKCS10Csr(),
+                                    "https://uri.etsi.org/19475/Entitlement/Non_Q_EAA_Provider"
+                            )
+                    ).certificate();
 
             assertEquals(certificateExpected, certificateActual);
             RecordedRequest recordedRequest = mockCaServer.takeRequest();
             assertAll(
-                () -> assertEquals("POST", recordedRequest.getMethod())
-            //    () -> assertEquals("/v1/certs/eaa_provider", recordedRequest.getPath())
+                    () -> assertEquals("POST", recordedRequest.getMethod()),
+                    () -> assertEquals("/v1/certs/eaa_provider", recordedRequest.getPath())
             );
 
-            RelyingPartyInstance resultRp = instanceRepository.findById(legalEntity.getRelyingPartyInstances().get(0).getId()).get();
+            RelyingPartyInstance resultRp = instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).get();
             RelyingPartyEntitlement entitlement = resultRp.getRelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/Non_Q_EAA_Provider").get();
             assertNotNull(entitlement);
             assertNotNull(entitlement.getIssuerCertificates());
@@ -159,24 +170,25 @@ public class IssuerCertificateTests {
             X509Certificate certificateExpected = enqueueMockCertificateResponse();
 
             LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
+
             legalEntity.getRelyingPartyInstances().getFirst().setRelyingPartyEntitlements(
-                List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/PUB_EAA_Provider")));
+                    List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/PUB_EAA_Provider")));
             rpRepository.saveAndFlush(legalEntity);
 
             X509Certificate certificateActual =
-                certService.requestIssuerCertificate(
-                    legalEntity.getRelyingPartyInstances().getFirst().getId(),
-                    new IssuerCsrResource(
-                        CertificatesGenerator.generatePKCS10Csr(),
-                        "https://uri.etsi.org/19475/Entitlement/PUB_EAA_Provider"
-                    )
-                ).certificate();
+                    certService.requestIssuerCertificate(
+                            legalEntity.getRelyingPartyInstances().getFirst().getId(),
+                            new IssuerCsrResource(
+                                    CertificatesGenerator.generatePKCS10Csr(),
+                                    "https://uri.etsi.org/19475/Entitlement/PUB_EAA_Provider"
+                            )
+                    ).certificate();
 
             assertEquals(certificateExpected, certificateActual);
             RecordedRequest recordedRequest = mockCaServer.takeRequest();
             assertAll(
-             () -> assertEquals("POST", recordedRequest.getMethod())
-//                () -> assertEquals("/v1/certs/eaa_provider", recordedRequest.getPath())
+                    () -> assertEquals("POST", recordedRequest.getMethod()),
+                    () -> assertEquals("/v1/certs/eaa_provider", recordedRequest.getPath())
             );
 
             RelyingPartyInstance resultRp = instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).get();
@@ -193,26 +205,26 @@ public class IssuerCertificateTests {
 
             LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
             legalEntity.getRelyingPartyInstances().getFirst().setRelyingPartyEntitlements(
-                List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/PID_Provider")));
+                    List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/PID_Provider")));
             rpRepository.saveAndFlush(legalEntity);
 
             X509Certificate certificateActual =
-                certService.requestIssuerCertificate(
-                    legalEntity.getRelyingPartyInstances().getFirst().getId(),
-                    new IssuerCsrResource(
-                        CertificatesGenerator.generatePKCS10Csr(),
-                        "https://uri.etsi.org/19475/Entitlement/PID_Provider"
-                    )
-                ).certificate();
+                    certService.requestIssuerCertificate(
+                            legalEntity.getRelyingPartyInstances().getFirst().getId(),
+                            new IssuerCsrResource(
+                                    CertificatesGenerator.generatePKCS10Csr(),
+                                    "https://uri.etsi.org/19475/Entitlement/PID_Provider"
+                            )
+                    ).certificate();
 
             assertEquals(certificateExpected, certificateActual);
             RecordedRequest recordedRequest = mockCaServer.takeRequest();
             assertAll(
-                () -> assertEquals("POST", recordedRequest.getMethod())
-         //       () -> assertEquals("/v1/certs/pid_provider", recordedRequest.getPath())
+                    () -> assertEquals("POST", recordedRequest.getMethod()),
+                    () -> assertEquals("/v1/certs/pid_provider", recordedRequest.getPath())
             );
 
-            RelyingPartyInstance resultRp = instanceRepository.findById(legalEntity.getRelyingPartyInstances().get(0).getId()).get();
+            RelyingPartyInstance resultRp = instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).get();
             RelyingPartyEntitlement entitlement = resultRp.getRelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/PID_Provider").get();
             assertNotNull(entitlement);
             assertNotNull(entitlement.getIssuerCertificates());
@@ -230,8 +242,8 @@ public class IssuerCertificateTests {
             IssuerCsrResource csrResource = new IssuerCsrResource(CertificatesGenerator.generatePKCS10Csr(), entitlement);
 
             assertThrows(
-                NotFoundException.class,
-                () -> certService.requestIssuerCertificate(relyingPartyInstance.getId(), csrResource)
+                    NotFoundException.class,
+                    () -> certService.requestIssuerCertificate(relyingPartyInstance.getId(), csrResource)
             );
         }
     }
