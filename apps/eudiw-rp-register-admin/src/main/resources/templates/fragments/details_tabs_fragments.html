@@ -39,7 +39,7 @@
                                    class="ds-button">
                                     Last ned
                                 </a>
-                                <th:block sec:authorize="hasRole('ADMIN')">
+                                <th:block>
                                     <form th:if="${cert.status().valid()}"
                                           th:action="@{|/revoke-certificate/${rp.id}/access/${cert.id}|}"
                                           method="post"
@@ -112,7 +112,7 @@
                                class="ds-button">
                                 Last ned
                             </a>
-                            <th:block sec:authorize="hasRole('ADMIN')">
+                            <th:block>
                                 <form th:if="${cert.status().valid()} "
                                       th:action="@{|/revoke-certificate/${rp.id}/issuer/${cert.id}|}"
                                       method="post"
