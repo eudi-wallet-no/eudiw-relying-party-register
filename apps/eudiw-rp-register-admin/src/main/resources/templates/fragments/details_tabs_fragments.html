@@ -60,7 +60,7 @@
             </table>
         </div>
     </div>
-    <div>
+    <div th:if="${rp.active}">
         <a th:href="@{|/csr/access/${rp.id}|}"
            class="ds-button"
            data-variant="primary">
@@ -133,7 +133,7 @@
             </table>
         </div>
     </div>
-    <div>
+    <div th:if="${rp.active}">
         <a th:href="@{|/csr/issuer/${rp.id}|}"
            class="ds-button"
            data-variant="primary">
