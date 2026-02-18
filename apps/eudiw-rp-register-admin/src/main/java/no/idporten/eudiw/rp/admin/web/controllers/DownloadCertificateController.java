@@ -38,7 +38,7 @@ public class DownloadCertificateController {
         userAuthorityService.assertUserHasAccessTo(relyingParty.orgno());
 
         return doDownloadCertificate(
-            relyingPartiesService.getCertificate(relyingPartyId, certificateId));
+            relyingPartiesService.getAccessCertificate(relyingPartyId, certificateId));
     }
 
     @GetMapping("/get-certificate/{rp-id}/issuer/{cert-id}")
@@ -50,7 +50,7 @@ public class DownloadCertificateController {
         userAuthorityService.assertUserHasAccessTo(relyingParty.orgno());
 
         return doDownloadCertificate(
-            relyingPartiesService.getIssuerCertificate(certificateId));
+            relyingPartiesService.getIssuerCertificate(relyingPartyId, certificateId));
     }
 
     private ResponseEntity<byte[]> doDownloadCertificate(
