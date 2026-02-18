@@ -18,7 +18,7 @@ profiles.
 
 Profiles in the [resources](/src/main/resources) folder:
 
-Environment specific profiles:
+Environment specific profiles :
 
 | Profile   | Description                                |
 |-----------|--------------------------------------------|
