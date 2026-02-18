@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 
 import java.security.cert.X509Certificate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -48,57 +49,69 @@ public class RelyingPartyCertificateService {
     @Transactional(readOnly = true)
     public RelyingPartyCertificatesResource getCertificatesForRelyingParty(UUID relyingPartyId) {
         return new RelyingPartyCertificatesResource(
-            relyingPartyRepository
-                .findById(relyingPartyId)
-                .orElseThrow(() -> new NotFoundException("Relying party not found"))
-                .getAccessCertificates()
-                .stream()
-                .map(converter::toResource)
-                .toList()
+                relyingPartyRepository
+                        .findById(relyingPartyId)
+                        .orElseThrow(() -> new NotFoundException("Relying party not found"))
+                        .getAccessCertificates()
+                        .stream()
+                        .map(converter::toResource)
+                        .toList()
         );
     }
 
     @Transactional(readOnly = true)
     public RelyingPartyCertificateResource getCertificate(UUID certificateId, UUID relyingPartyId) {
         if (!relyingPartyRepository.existsById(relyingPartyId)) {
-            throw new NotFoundException("Certificate holder does not exist");
+            throw new NotFoundException("Access certificate holder does not exist");
         }
         return converter.toResource(
-            accessCertificateRepository
-                .findByIdAndRelyingPartyId(certificateId, relyingPartyId)
-                .orElseThrow(() -> new NotFoundException("Certificate does not exist"))
+                accessCertificateRepository
+                        .findByIdAndRelyingPartyId(certificateId, relyingPartyId)
+                        .orElseThrow(() -> new NotFoundException("Certificate does not exist"))
         );
     }
 
     @Transactional(readOnly = true)
-    public RelyingPartyCertificateResource getIssuerCertificate(UUID certificateId) {
-        return converter.toResource(
-            issuerCertificateRepository.findById(certificateId)
-                .orElseThrow(() -> new NotFoundException("Certificate does not exist"))
-        );
+    public RelyingPartyCertificateResource getIssuerCertificate(UUID certificateId, UUID relyingPartyId) {
+
+        Optional<RelyingPartyInstance> rp = relyingPartyRepository.findById(relyingPartyId);
+        if (rp.isEmpty()) {
+            throw new NotFoundException("Issuer certificate holder does not exist", "Failed to find relying party with uuid=%s for certificateId uuid=%s ".formatted(relyingPartyId, certificateId));
+        }
+        IssuerCertificate issuerCert = issuerCertificateRepository.findById(certificateId).orElseThrow(() -> new NotFoundException("Certificate does not exist", "Certificate with uuid %s does not exist in database".formatted(certificateId)));
+        List<RelyingPartyEntitlement> relyingPartyEntitlements = rp.get().getRelyingPartyEntitlements();
+        if (relyingPartyEntitlements == null || issuerCert.getEntitlement() == null) {
+            throw new NotFoundException("No entitlements found for relying party for issuer certificate or in certificate", "No entitlements found for relying party with uuid %s for certificate uuid %s".formatted(relyingPartyId, certificateId));
+        }
+        boolean sameEntitlement = relyingPartyEntitlements.stream().anyMatch(e -> e.getEntitlement().equals(issuerCert.getEntitlement().getEntitlement()));
+        if (!sameEntitlement) {
+            throw new NotFoundException("Requested certificate does not belong to the specified relying party", "CertificateId uuid=%s with entitlement %s does not match entitlement in relying party with uuid=%s for ".formatted(certificateId, issuerCert.getEntitlement().getEntitlement(), relyingPartyId));
+        }
+        return converter.toResource(issuerCert);
+
     }
 
     @Transactional(readOnly = true)
     public RelyingPartyCertificatesResource getAllIssuerCertificatesFromRelyingParty(UUID relyingPartyId) {
         return new RelyingPartyCertificatesResource(
-            relyingPartyRepository
-                .findById(relyingPartyId)
-                .orElseThrow(() -> new NotFoundException("Relying party not found"))
-                .getIssuerCertificates()
-                .stream()
-                .map(converter::toResource)
-                .toList()
+                relyingPartyRepository
+                        .findById(relyingPartyId)
+                        .orElseThrow(() -> new NotFoundException("Relying party not found"))
+                        .getIssuerCertificates()
+                        .stream()
+                        .map(converter::toResource)
+                        .toList()
         );
     }
 
     @Transactional
     public RelyingPartyCertificateResource requestIssuerCertificate(
-        UUID relyingPartyId,
-        IssuerCsrResource csrResource) {
+            UUID relyingPartyId,
+            IssuerCsrResource csrResource) {
         RelyingPartyInstance relyingParty = getRelyingParty(relyingPartyId);
 
         RelyingPartyEntitlement relyingPartyEntitlement =
-            relyingParty.getRelyingPartyEntitlement(csrResource.entitlement())
+                relyingParty.getRelyingPartyEntitlement(csrResource.entitlement())
                         .orElseThrow(() -> new NotFoundException("RelyingPartyEntitlement does not exist"));
 
         String caId = entitlementService.getDefaultCaForEntitlementUri(csrResource.entitlement());
@@ -108,14 +121,14 @@ public class RelyingPartyCertificateService {
         }
 
         X509Certificate certificate = getCertificateFromCa(
-            csrResource.csr(),
-            relyingParty.getLegalEntity().getOrgno(),
-            relyingParty.getLegalEntity().getName(),
-            relyingParty.getTradeName(),
-            caId);
+                csrResource.csr(),
+                relyingParty.getLegalEntity().getOrgno(),
+                relyingParty.getLegalEntity().getName(),
+                relyingParty.getTradeName(),
+                caId);
 
         IssuerCertificate certificateEntity =
-            new IssuerCertificate(certificate, caId, relyingPartyEntitlement);
+                new IssuerCertificate(certificate, caId, relyingPartyEntitlement);
 
         relyingPartyEntitlement.addIssuerCertificate(certificateEntity);
 
@@ -124,7 +137,7 @@ public class RelyingPartyCertificateService {
 
     @Transactional
     public RelyingPartyCertificateResource requestAccessCertificateForRelyingParty(
-        UUID relyingPartyId, RelyingPartyCsrResource csrResource) {
+            UUID relyingPartyId, RelyingPartyCsrResource csrResource) {
         RelyingPartyInstance relyingParty = getRelyingParty(relyingPartyId);
 
         X509Certificate certificate = getCertificateFromCa(
@@ -135,7 +148,7 @@ public class RelyingPartyCertificateService {
                 "access");
 
         AccessCertificate certificateEntity =
-            new AccessCertificate(certificate, relyingParty);
+                new AccessCertificate(certificate, relyingParty);
 
         accessCertificateRepository.saveAndFlush(certificateEntity);
 
@@ -144,30 +157,30 @@ public class RelyingPartyCertificateService {
 
     private RelyingPartyInstance getRelyingParty(UUID relyingPartyId) {
         return relyingPartyRepository
-            .findByIdAndActiveTrue(relyingPartyId)
-            .orElseThrow(() -> new NotFoundException("Certificate registree does not exist or is inactive"));
+                .findByIdAndActiveTrue(relyingPartyId)
+                .orElseThrow(() -> new NotFoundException("Certificate registree does not exist or is inactive"));
     }
 
     private X509Certificate getCertificateFromCa(
-        PKCS10CertificationRequest csr,
-        String orgno,
-        String legalName,
-        String tradeName,
-        String caId) {
+            PKCS10CertificationRequest csr,
+            String orgno,
+            String legalName,
+            String tradeName,
+            String caId) {
         String csrPemStr = PKCS10CertificationRequestConverter.convert(csr);
         String certificatePemStr =
-            caRestClient.post()
-                .uri("/" + caId)
-                .body(RelyingPartyCertificateRequest
-                    .builder()
-                    .orgno(orgno)
-                    .tradeName(tradeName)
-                    .legalName(legalName)
-                    .csr(csrPemStr)
-                    .build())
-                .retrieve()
-                .toEntity(String.class)
-                .getBody();
+                caRestClient.post()
+                        .uri("/" + caId)
+                        .body(RelyingPartyCertificateRequest
+                                .builder()
+                                .orgno(orgno)
+                                .tradeName(tradeName)
+                                .legalName(legalName)
+                                .csr(csrPemStr)
+                                .build())
+                        .retrieve()
+                        .toEntity(String.class)
+                        .getBody();
 
         if (certificatePemStr == null) {
             throw new RegisterServiceException("Null body in ca-service success response");
@@ -177,11 +190,11 @@ public class RelyingPartyCertificateService {
     }
 
     public HttpStatusCode revokeAccessCertificate(UUID certificateId, UUID relyingPartyId) {
-        if(accessCertificateRepository.findByIdAndRelyingPartyId(certificateId, relyingPartyId).isEmpty()) {
+        if (accessCertificateRepository.findByIdAndRelyingPartyId(certificateId, relyingPartyId).isEmpty()) {
             throw new NotFoundException("Certificate id and certificate holder does not match, or one of them " +
-                    "does not exist");
+                                        "does not exist");
         }
-        if (accessCertificateRepository.findById(certificateId).get().getRevocationStatus() >=0) {
+        if (accessCertificateRepository.findById(certificateId).get().getRevocationStatus() >= 0) {
             throw new RegisterServiceException("Certificate has already been revoked");
         }
         HttpStatusCode statusCode = revocationContactWithCa(accessCertificateRepository.findById(
@@ -205,7 +218,7 @@ public class RelyingPartyCertificateService {
         if (!issuerCertificateRepository.existsById(certificateId)) {
             throw new NotFoundException("Certificate with id " + certificateId + " does not exist");
         }
-        if (issuerCertificateRepository.findById(certificateId).get().getRevocationStatus() >=0) {
+        if (issuerCertificateRepository.findById(certificateId).get().getRevocationStatus() >= 0) {
             throw new RegisterServiceException("Certificate has already been revoked");
         }
         HttpStatusCode statusCode = revocationContactWithCa(issuerCertificateRepository.findById(
@@ -219,7 +232,7 @@ public class RelyingPartyCertificateService {
         }
         log.warn("Error when certificate with id {} was tried revoked through CA. Status code from CA is {}",
                 certificateId, statusCode);
-            throw new BadRequestException("Error when in contact with CA");
+        throw new BadRequestException("Error when in contact with CA");
     }
 
 

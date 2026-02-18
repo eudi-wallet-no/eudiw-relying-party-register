@@ -49,8 +49,7 @@ public class RegisterServiceExceptionHandler {
             HttpStatus.BAD_REQUEST, "invalid_request", e.getMessage());
     }
 
-    private ResponseEntity<ErrorResponseResource> genericInternalErrorResponse(
-        String errorDescription, Exception e) {
+    private ResponseEntity<ErrorResponseResource> genericInternalErrorResponse(String errorDescription, Exception e) {
         log.error("{}: {}", errorDescription, e.getMessage(), e);
         return AppExceptionHandler.errorResponseEntity(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -77,10 +76,9 @@ public class RegisterServiceExceptionHandler {
         return genericInternalErrorResponse("Request rejected by external service", e);
     }
 
-
     @ExceptionHandler(RegisterServiceException.class)
     public ResponseEntity<ErrorResponseResource> handleServiceException(RegisterServiceException e) {
-        return genericInternalErrorResponse(e.getMessage(), e);
+        return genericInternalErrorResponse(e.getLogMessage(), e);
     }
 
 }
