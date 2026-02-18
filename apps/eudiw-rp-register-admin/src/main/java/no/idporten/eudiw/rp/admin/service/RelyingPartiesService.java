@@ -80,18 +80,18 @@ public class RelyingPartiesService {
         }
     }
 
-    public RelyingPartyCertificateResource getCertificate(
+    public RelyingPartyCertificateResource getAccessCertificate(
         UUID relyingPartyId, UUID certificateId) {
         return restClient.get()
-                         .uri("/rp/{rp-id}/certs/{cert-id}", relyingPartyId, certificateId)
+                         .uri("/rp/{rp-id}/certs/access/{cert-id}", relyingPartyId, certificateId)
                          .retrieve()
                          .toEntity(RelyingPartyCertificateResource.class)
                          .getBody();
     }
 
-    public RelyingPartyCertificateResource getIssuerCertificate(UUID certificateId) {
+    public RelyingPartyCertificateResource getIssuerCertificate(UUID relyingPartyId, UUID certificateId) {
         return restClient.get()
-            .uri("/rp/certs/issuer/{cert-id}", certificateId)
+            .uri("/rp/{rp-id}/certs/issuer/{cert-id}", relyingPartyId, certificateId)
             .retrieve()
             .toEntity(RelyingPartyCertificateResource.class)
             .getBody();
@@ -113,7 +113,7 @@ public class RelyingPartiesService {
         IssuerCsrResource csrResource
     ) {
         return restClient.post()
-            .uri("/rp/{id}/issuer", id)
+            .uri("/rp/{id}/certs/issuer", id)
             .body(csrResource)
             .retrieve()
             .toEntity(RelyingPartyCertificateResource.class)

@@ -51,7 +51,7 @@ public class DownloadCertificateControllerTests {
             RelyingPartyResource rpResource = ResourceGenerator.generateRelyingPartyResource();
             UUID rpId = rpResource.id();
             UUID certId = UUID.randomUUID();
-            when(mockRpService.getCertificate(rpId, certId)).thenReturn(certResource);
+            when(mockRpService.getAccessCertificate(rpId, certId)).thenReturn(certResource);
             when(mockRpService.get(rpId)).thenReturn(rpResource);
 
             String expectedContentType = "application/x-pem-file";
@@ -70,7 +70,7 @@ public class DownloadCertificateControllerTests {
         @Test
         @DisplayName("then 404 view shown when certificate not exists")
         public void test404PageShownWhenCertificateNotExists() throws Exception {
-            when(mockRpService.getCertificate(any(), any()))
+            when(mockRpService.getAccessCertificate(any(), any()))
                 .thenThrow(NotFoundException.class);
             when(mockRpService.get(any()))
                 .thenReturn(ResourceGenerator.generateRelyingPartyResource());
