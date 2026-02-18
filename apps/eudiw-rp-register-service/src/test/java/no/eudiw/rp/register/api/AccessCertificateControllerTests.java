@@ -64,7 +64,7 @@ public class AccessCertificateControllerTests {
     }
 
     @Nested
-    @DisplayName("When reading certificates for a specific relying party ...")
+    @DisplayName("When reading access certificates for a specific relying party ...")
     class GetCertificatesEndpointTests {
 
         @Test
@@ -72,7 +72,7 @@ public class AccessCertificateControllerTests {
         public void testEndpointCallsServiceWithCorrectArguments() throws Exception {
             UUID id = UUID.randomUUID();
 
-            mockMvc.perform(get("/v1/rp/%s/certs".formatted(id))
+            mockMvc.perform(get("/v1/rp/%s/certs/access".formatted(id))
                                 .accept(MediaType.APPLICATION_JSON)
                                 .header(X_API_KEY_HEADER, VALID_API_KEY))
                 .andExpect(status().isOk())
@@ -85,7 +85,7 @@ public class AccessCertificateControllerTests {
         @Test
         @DisplayName("then a 400 error response resource is returned on invalid ID")
         public void test404ErrorResponseReturnedOnInvalidRelyingPartyId() throws Exception {
-            mockMvc.perform(get("/v1/rp/invalid_id/certs")
+            mockMvc.perform(get("/v1/rp/invalid_id/certs/access")
                                 .accept(MediaType.APPLICATION_JSON)
                                 .header(X_API_KEY_HEADER, VALID_API_KEY))
                    .andExpect(status().isBadRequest())
@@ -97,7 +97,7 @@ public class AccessCertificateControllerTests {
     }
 
     @Nested
-    @DisplayName("When reading a specific certificate by its ID and ID of its holder ...")
+    @DisplayName("When reading a specific access certificate by its ID and ID of its holder ...")
     class GetCertificateEndpointTests {
 
         @Test
@@ -106,7 +106,7 @@ public class AccessCertificateControllerTests {
 
             UUID certificateId = UUID.randomUUID();
             UUID relyingPartyId = UUID.randomUUID();
-            String requestUrl = "/v1/rp/%s/certs/%s".formatted(relyingPartyId, certificateId);
+            String requestUrl = "/v1/rp/%s/certs/access/%s".formatted(relyingPartyId, certificateId);
             mockMvc.perform(get(requestUrl)
                                 .accept(MediaType.APPLICATION_JSON)
                                 .header(X_API_KEY_HEADER, VALID_API_KEY))
@@ -121,7 +121,7 @@ public class AccessCertificateControllerTests {
         public void test400ErrorResponseReturnedOnInvalidIds() throws Exception {
             UUID validId = UUID.randomUUID();
             String invalidIdStr = "foo";
-            mockMvc.perform(get("/v1/rp/%s/certs/%s".formatted(validId, invalidIdStr))
+            mockMvc.perform(get("/v1/rp/%s/certs/access/%s".formatted(validId, invalidIdStr))
                                 .accept(MediaType.APPLICATION_JSON_VALUE)
                                 .header(X_API_KEY_HEADER, VALID_API_KEY))
                    .andExpect(status().isBadRequest())

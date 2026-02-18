@@ -19,7 +19,6 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -31,7 +30,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("junit")
-@AutoConfigureMockMvc
 @DisplayName("Issuer certificate tests")
 public class IssuerCertificateTests {
 
@@ -124,6 +122,7 @@ public class IssuerCertificateTests {
                     () -> assertEquals("/v1/certs/eaa_provider", recordedRequest.getPath())
             );
 
+            assertTrue(instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).isPresent(), "legal entity with at least one RelyingPartyInstances should be present in repository");
             RelyingPartyInstance resultRp = instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).get();
             RelyingPartyEntitlement entitlement = resultRp.getRelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/QEAA_Provider").get();
             assertNotNull(entitlement);
@@ -157,6 +156,7 @@ public class IssuerCertificateTests {
                     () -> assertEquals("/v1/certs/eaa_provider", recordedRequest.getPath())
             );
 
+            assertTrue(instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).isPresent(), "legal entity with at least one RelyingPartyInstances should be present in repository");
             RelyingPartyInstance resultRp = instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).get();
             RelyingPartyEntitlement entitlement = resultRp.getRelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/Non_Q_EAA_Provider").get();
             assertNotNull(entitlement);
@@ -191,6 +191,7 @@ public class IssuerCertificateTests {
                     () -> assertEquals("/v1/certs/eaa_provider", recordedRequest.getPath())
             );
 
+            assertTrue(instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).isPresent(), "legal entity with at least one RelyingPartyInstances should be present in repository");
             RelyingPartyInstance resultRp = instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).get();
             RelyingPartyEntitlement entitlement = resultRp.getRelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/PUB_EAA_Provider").get();
             assertNotNull(entitlement);
@@ -224,6 +225,7 @@ public class IssuerCertificateTests {
                     () -> assertEquals("/v1/certs/pid_provider", recordedRequest.getPath())
             );
 
+            assertTrue(instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).isPresent(), "legal entity with at least one RelyingPartyInstances should be present in repository");
             RelyingPartyInstance resultRp = instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).get();
             RelyingPartyEntitlement entitlement = resultRp.getRelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/PID_Provider").get();
             assertNotNull(entitlement);

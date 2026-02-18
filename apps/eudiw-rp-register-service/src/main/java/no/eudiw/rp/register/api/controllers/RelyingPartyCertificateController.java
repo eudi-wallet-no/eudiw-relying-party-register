@@ -104,7 +104,7 @@ public class RelyingPartyCertificateController {
         @ApiResponse(responseCode = "400", description = "CSR is rejected")
     })
     @Audit(auditId = ISSUER_NEW_CERTIFICATE_REQUESTED)
-    @PostMapping(path = "/{relying-party-id}/issuer",
+    @PostMapping(path = "/{relying-party-id}/certs/issuer",
         consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<RelyingPartyCertificateResource> requestIssuerCertificate(
@@ -129,7 +129,7 @@ public class RelyingPartyCertificateController {
         @ApiResponse(responseCode = "404", description = "Relying party not found")
     })
     @Audit(auditId = ISSUER_CERTIFICATE_RETRIEVED)
-    @GetMapping(path = "/{relying-party-id}/issuer-certs",
+    @GetMapping(path = "/{relying-party-id}/certs/issuer",
         produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<RelyingPartyCertificatesResource> getIssuerCertificates(
         @PathVariable("relying-party-id") @Valid UUID relyingPartyId) {
@@ -149,7 +149,7 @@ public class RelyingPartyCertificateController {
         @ApiResponse(responseCode = "404", description = "Relying party not found")
     })
     @Audit(auditId = RELYING_PARTY_ACCESS_CERTIFICATE_RETRIEVED)
-    @GetMapping(path = "/{relying-party-id}/certs",
+    @GetMapping(path = "/{relying-party-id}/certs/access",
                 produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<RelyingPartyCertificatesResource> getAccessCertificates(
         @PathVariable("relying-party-id") @Valid UUID relyingPartyId) {
@@ -169,7 +169,7 @@ public class RelyingPartyCertificateController {
         @ApiResponse(responseCode = "404", description = "Certificate not found")
     })
     @Audit(auditId = RELYING_PARTY_ACCESS_CERTIFICATE_RETRIEVED)
-    @GetMapping(path = "/{relying-party-id}/certs/{certificate-id}",
+    @GetMapping(path = "/{relying-party-id}/certs/access/{certificate-id}",
                 produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<RelyingPartyCertificateResource> getAccessCertificate(
         @PathVariable("relying-party-id") @Valid UUID relyingPartyId,
@@ -190,14 +190,13 @@ public class RelyingPartyCertificateController {
             content = @Content(examples = @ExampleObject(value = CERTIFICATE_RESOURCE_EXAMPLE))),
         @ApiResponse(responseCode = "404", description = "Certificate not found")
     })
-    @Audit(auditId = RELYING_PARTY_ACCESS_CERTIFICATE_RETRIEVED)
-    @GetMapping(path = "/certs/issuer/{certificate-id}",
+    @Audit(auditId = ISSUER_CERTIFICATE_RETRIEVED)
+    @GetMapping(path = "/{relying-party-id}/certs/issuer/{certificate-id}",
         produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<RelyingPartyCertificateResource> getIssuerCertificate(
+        @PathVariable("relying-party-id") @Valid UUID relyingPartyId,
         @PathVariable("certificate-id") @Valid UUID certificateId) {
-        return ResponseEntity.ok(
-            certificatesService.getIssuerCertificate(
-                certificateId));
+        return ResponseEntity.ok(certificatesService.getIssuerCertificate(certificateId, relyingPartyId));
     }
 
     @Operation(
