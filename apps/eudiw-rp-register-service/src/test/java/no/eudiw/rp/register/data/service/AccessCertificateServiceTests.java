@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import tools.jackson.databind.ObjectMapper;
@@ -205,6 +206,11 @@ public class AccessCertificateServiceTests {
                     .setBody(certificateInPem);
             mockCaServer.enqueue(mockValidCertificateResponse);
             return certificate;
+        }
+
+        private void enqueueMockRevocationCall() {
+            mockCaServer.enqueue(new MockResponse().setBody("")
+                    .setResponseCode(204));
         }
 
         @Test
@@ -391,6 +397,66 @@ public class AccessCertificateServiceTests {
                 () -> certService.requestAccessCertificateForRelyingParty(
                     relyingPartyInstance.getId(), csrResource)
             );
+        }
+
+        @Test
+        @DisplayName("access certificate is default not revoked")
+        public void testAccessCertificateIsDefaultNotRevoked() throws InterruptedException {
+            RelyingPartyCsrResource csrResource = ResourceGenerator.generateRegisterRelyingPartyCsrResource();
+
+            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
+            legalEntityRepository.saveAndFlush(legalEntity);
+
+            X509Certificate certificateExpected = enqueueMockCertificateResponse();
+
+            // assert that immediately returned certificate is correct.
+            X509Certificate certificateActual1 =
+                    certService.requestAccessCertificateForRelyingParty(legalEntity.getRelyingPartyInstances().getFirst().getId(), csrResource)
+                            .certificate();
+            assertEquals(certificateExpected, certificateActual1);
+
+            RecordedRequest recordedRequest = mockCaServer.takeRequest();
+
+            RelyingPartyInstance relyingPartyOut =
+                    instanceRepository.findById(legalEntityRepository.findById(legalEntity.getId()).orElseThrow().getRelyingPartyInstances().getFirst().getId()).orElse(null);
+            assertNotNull(relyingPartyOut);
+            assertEquals("POST", recordedRequest.getMethod());
+            assertEquals("/v1/certs/access", recordedRequest.getPath());
+            assertEquals(1, relyingPartyOut.getAccessCertificates().size());
+            assertEquals(certificateActual1.getSerialNumber().toString(), relyingPartyOut.getAccessCertificates().getFirst().getSerialNo());
+            assertEquals(-1, relyingPartyOut.getAccessCertificates().getFirst().getRevocationStatus());
+
+        }
+        @Test
+        @DisplayName("access certificate is revoked properly")
+        public void testAccessCertificateIsRevokeProperly() throws InterruptedException {
+            RelyingPartyCsrResource csrResource = ResourceGenerator.generateRegisterRelyingPartyCsrResource();
+
+            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
+            legalEntityRepository.saveAndFlush(legalEntity);
+
+            X509Certificate certificateExpected = enqueueMockCertificateResponse();
+
+            X509Certificate certificateActual1 =
+                    certService.requestAccessCertificateForRelyingParty(legalEntity.getRelyingPartyInstances().getFirst().getId(), csrResource)
+                            .certificate();
+            assertEquals(certificateExpected, certificateActual1);
+
+
+            RelyingPartyInstance relyingPartyOut =
+                    instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null);
+
+            enqueueMockRevocationCall();
+
+            HttpStatusCode code = certService.revokeAccessCertificate(relyingPartyOut.getAccessCertificates().getFirst().getId(), relyingPartyOut.getId());
+            RecordedRequest recordedRequest1 = mockCaServer.takeRequest();
+            RecordedRequest recordedRequest2 = mockCaServer.takeRequest();
+            assertEquals(HttpStatusCode.valueOf(204), code);
+            assertEquals("POST", recordedRequest1.getMethod());
+            assertEquals("PUT", recordedRequest2.getMethod());
+            assertEquals("/v1/certs/access", recordedRequest2.getPath());
+
+
         }
     }
 }

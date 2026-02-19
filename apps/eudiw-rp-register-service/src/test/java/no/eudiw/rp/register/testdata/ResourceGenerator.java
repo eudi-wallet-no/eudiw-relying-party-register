@@ -1,8 +1,10 @@
 package no.eudiw.rp.register.testdata;
 
+import no.eudiw.rp.register.api.resource.certificates.IssuerCsrResource;
 import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCsrResource;
 import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCertificateResource;
 import no.eudiw.rp.register.api.resource.relyingparty.*;
+import no.eudiw.rp.register.data.entity.Entitlement;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -73,5 +75,10 @@ public class ResourceGenerator extends TestDataGenerator {
         String entitlement = sampleEntitlements(1).getFirst();
         return new RelyingPartyCertificateResource(
             CertificatesGenerator.generateX509Certificate(), entitlement, UUID.randomUUID(), -1);
+    }
+
+    public static IssuerCsrResource generateIssuerCsrResource(String entitlement) {
+
+        return new IssuerCsrResource(CertificatesGenerator.generatePKCS10Csr(), entitlement);
     }
 }
