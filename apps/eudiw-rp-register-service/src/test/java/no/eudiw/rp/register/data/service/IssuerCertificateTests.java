@@ -1,6 +1,8 @@
 package no.eudiw.rp.register.data.service;
 
 import no.eudiw.rp.register.api.resource.certificates.IssuerCsrResource;
+import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCsrResource;
+import no.eudiw.rp.register.api.resource.entitlements.EntitlementResource;
 import no.eudiw.rp.register.data.entity.LegalEntity;
 import no.eudiw.rp.register.data.entity.certificates.X509CertificateConverter;
 import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyEntitlement;
@@ -9,9 +11,11 @@ import no.eudiw.rp.register.data.repository.LegalEntityRepository;
 import no.eudiw.rp.register.data.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.exception.RegisterServiceException;
 import no.eudiw.rp.register.service.certificateservice.RelyingPartyCertificateService;
+import no.eudiw.rp.register.service.certificateservice.RevocationRequest;
 import no.eudiw.rp.register.service.exception.NotFoundException;
 import no.eudiw.rp.register.testdata.CertificatesGenerator;
 import no.eudiw.rp.register.testdata.EntityGenerator;
+import no.eudiw.rp.register.testdata.ResourceGenerator;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
@@ -20,10 +24,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.io.IOException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -76,6 +82,10 @@ public class IssuerCertificateTests {
                             .setBody(certificateInPem);
             mockCaServer.enqueue(mockValidCertificateResponse);
             return certificate;
+        }
+
+        private void enqueueMockRevocationCall() {
+            mockCaServer.enqueue(new MockResponse().setBody("").setResponseCode(204));
         }
 
         @Test
@@ -247,6 +257,74 @@ public class IssuerCertificateTests {
                     NotFoundException.class,
                     () -> certService.requestIssuerCertificate(relyingPartyInstance.getId(), csrResource)
             );
+        }
+        @Test
+        @DisplayName("issuer certificate is default not revoked")
+        public void testIssuerCertificateIsDefaultNotRevoked() {
+            RelyingPartyCsrResource csrResource = ResourceGenerator.generateRegisterRelyingPartyCsrResource();
+
+            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
+            List<RelyingPartyEntitlement> listOfEntitlements = new ArrayList<>();
+            RelyingPartyEntitlement entitlement = new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/PID_Provider");
+            listOfEntitlements.add(entitlement);
+            legalEntity.getRelyingPartyInstances().getFirst().setRelyingPartyEntitlements(listOfEntitlements);
+            rpRepository.saveAndFlush(legalEntity);
+
+            X509Certificate certificateExpected = enqueueMockCertificateResponse();
+
+            // assert that immediately returned certificate is correct.
+            X509Certificate certificateActual1 =
+                    certService.requestIssuerCertificate(legalEntity.getRelyingPartyInstances().getFirst().getId(),
+                                    ResourceGenerator.generateIssuerCsrResource(legalEntity.getRelyingPartyInstances()
+                                            .getFirst().getRelyingPartyEntitlements().getFirst().getEntitlement()))
+                            .certificate();
+            assertEquals(certificateExpected, certificateActual1);
+
+            RelyingPartyInstance relyingPartyOut =
+                    instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null);
+
+            assertNotNull(relyingPartyOut);
+            assertEquals(1, relyingPartyOut.getIssuerCertificates().size());
+            assertEquals(-1, relyingPartyOut.getIssuerCertificates().getFirst().getRevocationStatus());
+
+        }
+
+        @Test
+        @DisplayName("issuer certificate is revoked properly")
+        public void testIssuerCertificateIsRevokeProperly() throws InterruptedException {
+            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
+            legalEntity.getRelyingPartyInstances().getFirst().setRelyingPartyEntitlements(
+                    List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/PID_Provider")));
+            rpRepository.saveAndFlush(legalEntity);
+
+            X509Certificate certificateExpected = enqueueMockCertificateResponse();
+
+
+            X509Certificate certificateActual1 =
+                    certService.requestIssuerCertificate(legalEntity.getRelyingPartyInstances().getFirst().getId(),
+                                    ResourceGenerator.generateIssuerCsrResource(legalEntity.getRelyingPartyInstances()
+                                            .getFirst().getRelyingPartyEntitlements().getFirst().getEntitlement()))
+                            .certificate();
+            assertEquals(certificateExpected, certificateActual1);
+            RecordedRequest recordedRequest1 = mockCaServer.takeRequest();
+
+            RelyingPartyInstance relyingPartyOut =
+                    instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null);
+
+            enqueueMockRevocationCall();
+
+            certService.revokeIssuerCertificate(relyingPartyOut.getIssuerCertificates().getFirst().getId(), relyingPartyOut.getId());
+            RecordedRequest recordedRequest2 = mockCaServer.takeRequest();
+
+            RelyingPartyInstance relyingPartyFinished =
+                    instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null);
+
+
+            assertEquals("POST", recordedRequest1.getMethod());
+            assertEquals("/v1/certs/pid_provider", recordedRequest2.getPath());
+
+            assertEquals("PUT", recordedRequest2.getMethod());
+            assertEquals(0, relyingPartyFinished.getIssuerCertificates().getFirst().getRevocationStatus());
         }
     }
 }
