@@ -26,7 +26,7 @@ import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@DisplayName("When using the relying party certificates API")
+@DisplayName("When using the relying party certificates API : access")
 @ActiveProfiles("junit")
 public class AccessCertificateControllerTests {
 
