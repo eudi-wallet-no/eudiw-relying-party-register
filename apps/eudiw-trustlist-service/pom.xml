@@ -129,11 +129,11 @@
                         </goals>
                         <configuration>
                             <xjbSources>
-                                <xjbSource>src/main/resources/global.xjb</xjbSource>
+                                <xjbSource>src/main/resources/119_612/global.xjb</xjbSource>
                             </xjbSources>
-                            <catalog>src/main/resources/catalog.xml</catalog>
+                            <catalog>src/main/resources/119_612/catalog.xml</catalog>
                             <sources>
-                                <source>src/main/resources/19612_xsd.xsd</source>
+                                <source>src/main/resources/119_612/19612_xsd.xsd</source>
                             </sources>
                             <outputDirectory>${basedir}/target/generated-sources/src/java</outputDirectory>
                             <clearOutputDir>false</clearOutputDir>
@@ -146,11 +146,11 @@
                         </goals>
                         <configuration>
                             <xjbSources>
-                                <xjbSource>src/main/resources/global.xjb</xjbSource>
+                                <xjbSource>src/main/resources/119_612/global.xjb</xjbSource>
                             </xjbSources>
-                            <catalog>src/main/resources/catalog.xml</catalog>
+                            <catalog>src/main/resources/119_612/catalog.xml</catalog>
                             <sources>
-                                <source>src/main/resources/19612_additionaltypes_xsd.xsd</source>
+                                <source>src/main/resources/119_612/19612_additionaltypes_xsd.xsd</source>
                             </sources>
                             <outputDirectory>${basedir}/target/generated-sources/src/java</outputDirectory>
                             <clearOutputDir>false</clearOutputDir>
@@ -163,11 +163,11 @@
                         </goals>
                         <configuration>
                             <xjbSources>
-                                <xjbSource>src/main/resources/global.xjb</xjbSource>
+                                <xjbSource>src/main/resources/119_612/global.xjb</xjbSource>
                             </xjbSources>
-                            <catalog>src/main/resources/catalog.xml</catalog>
+                            <catalog>src/main/resources/119_612/catalog.xml</catalog>
                             <sources>
-                                <source>src/main/resources/19612_sie_xsd.xsd</source>
+                                <source>src/main/resources/119_612/19612_sie_xsd.xsd</source>
                             </sources>
                             <outputDirectory>${basedir}/target/generated-sources/src/java</outputDirectory>
                             <clearOutputDir>false</clearOutputDir>
