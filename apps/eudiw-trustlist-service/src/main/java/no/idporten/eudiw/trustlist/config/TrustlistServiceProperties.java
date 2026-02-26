@@ -1,11 +1,14 @@
 package no.idporten.eudiw.trustlist.config;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import no.idporten.eudiw.trustlist.domain.TLSchemeInformation;
-import no.idporten.eudiw.trustlist.domain.TLServiceProvider;
+import no.idporten.eudiw.trustlist.domain.Tsl612;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
 
 /**
  * Application properties.
@@ -13,18 +16,18 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Validated
 @ConfigurationProperties(prefix = "trustlist-service")
 public class TrustlistServiceProperties {
 
-    private String trustlistPath;
-    private String trustlistPathXtsl;
-    private String trustlistPathSha2;
+    @NotBlank
     private String environmentName;
 
+    @Valid
+    @NotNull
     public KeyStoreProperties keyStore;
 
-    private TLSchemeInformation schemeInformation;
-
-    private TLServiceProvider serviceProvider;
-
+    @Valid
+    @NotNull
+    private Tsl612 tsl612;
 }

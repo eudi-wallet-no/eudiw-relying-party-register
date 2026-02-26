@@ -26,38 +26,40 @@ management:
       environment: ${spring.application.environment}
 
 trustlist-service:
-  trustlist-path: /no_eidas2sandkasse_tsl
-  trustlist-path-xtsl: ${trustlist-service.trustlist-path}.xtsl
-  trustlist-path-sha2: ${trustlist-service.trustlist-path}.sha2
-  environment-name: ""
-  scheme-information:
-    scheme-name: Tillitsliste for norsk eidas2sandkasse
-    sequence-number: 1
-    list-issue-datetime: 2025-10-20T00:00:00.00Z
-  # only support 1 trust service provider initially
-  service-provider:
-    name:
-      lang-no: Digitaliseringsdirektoratet
-      lang-en: Norwegian Digitalisation Agency
-    trade-name:
-      lang-no: NTRNO-991825827
-      lang-en: NTRNO-991825827
-      # use hard-coded values for now reused also for scheme-information
-#    address:
-#      postal-adress:
-#        street-address: Lørenfaret 1C
-#        locality: Oslo
-#        postal-code: 0580
-#        country-name: NO
-#      electronic-address:
-#        lang-no:
-#          - mailto:servicedesk@digdir.no
-#          - https://www.digdir.no/
-#        lang-en:
-#          - mailto:servicedesk@digdir.no
-#          - https://www.digdir.no/
-    information-uri:
-      lang-no: https://docs.digdir.no/docs/lommebok/lommebok_om.html
+  environment-name: ${spring.application.environment}
+  tsl-612:
+    trustlist-path: /no_eidas2sandkasse_${trustlist-service.environment-name}_tsl
+    trustlist-path-xtsl: ${trustlist-service.tsl-612.trustlist-path}.xtsl
+    trustlist-path-sha2: ${trustlist-service.tsl-612.trustlist-path}.sha2
+
+    scheme-information:
+      scheme-name: Tillitsliste for norsk eidas2sandkasse i ${trustlist-service.environment-name}
+      sequence-number: 1
+      list-issue-datetime: 2025-10-20T00:00:00.00Z
+    # only support 1 trust service provider initially
+    service-provider:
+      name:
+        lang-no: Digitaliseringsdirektoratet
+        lang-en: Norwegian Digitalisation Agency
+      trade-name:
+        lang-no: NTRNO-991825827
+        lang-en: NTRNO-991825827
+        # use hard-coded values for now reused also for scheme-information
+  #    address:
+  #      postal-adress:
+  #        street-address: Lørenfaret 1C
+  #        locality: Oslo
+  #        postal-code: 0580
+  #        country-name: NO
+  #      electronic-address:
+  #        lang-no:
+  #          - mailto:servicedesk@digdir.no
+  #          - https://www.digdir.no/
+  #        lang-en:
+  #          - mailto:servicedesk@digdir.no
+  #          - https://www.digdir.no/
+      information-uri:
+        lang-no: https://docs.digdir.no/docs/lommebok/lommebok_om.html
   keystore:
     type: ${TSL_SIGN_KEYSTORE_TYPE}
     location: ${TSL_SIGN_KEYSTORE}

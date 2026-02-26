@@ -41,14 +41,14 @@ public class TrustListControllerTest {
     private TrustlistServiceProperties properties;
 
     private String getPathXtsl() {
-        return properties.getTrustlistPathXtsl();
+        return properties.getTsl612().trustlistPathXtsl();
     }
 
     private String getPathSha2() {
-        return properties.getTrustlistPathSha2();
+        return properties.getTsl612().trustlistPathSha2();
     }
     private String getPathDefault() {
-        return properties.getTrustlistPath();
+        return properties.getTsl612().trustlistPath();
     }
 
     @DisplayName("then the TSL is signed")
@@ -138,6 +138,7 @@ public class TrustListControllerTest {
                 .andReturn();
 
         String eTag1 = mvcResult1.getResponse().getHeader("ETag");
+        assertNotNull(eTag1);
         assertTrue(mvcResult1.getResponse().getContentLength() > 0);
 
         MvcResult mvcResult2 = mockMvc.perform(get(getPathSha2()).header("If-None-Match", eTag1))
