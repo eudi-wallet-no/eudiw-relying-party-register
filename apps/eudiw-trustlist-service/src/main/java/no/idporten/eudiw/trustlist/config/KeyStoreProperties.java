@@ -1,12 +1,9 @@
 package no.idporten.eudiw.trustlist.config;
 
+import jakarta.validation.constraints.NotNull;
+
 /**
  * Properties for opening a keystore and loading private keys.
  */
-public record KeyStoreProperties(String type, String location, String password, String keyAlias, String keyPassword) {
-    public KeyStoreProperties {
-        if (type == null || location == null || password == null || keyAlias == null || keyPassword == null) {
-            throw new IllegalArgumentException("All fields must be non-null");
-        }
-    }
+public record KeyStoreProperties(@NotNull String type, @NotNull String location, @NotNull String password, @NotNull String keyAlias, @NotNull String keyPassword) {
 }

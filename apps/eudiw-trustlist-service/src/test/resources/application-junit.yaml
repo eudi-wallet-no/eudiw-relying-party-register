@@ -6,12 +6,13 @@ spring:
     import: file:.env[.properties]
 
 trustlist-service:
-  service-provider:
-    services:
-      - name:
-          lang-no: CA for relying parties access certificates in eidas2sandkasse
-          lang-en: CA for relying parties access certificates in eidas2sandkasse
-        starting-time: 2025-07-03T12:00:00.00Z
-        service-type-identifier: http://uri.etsi.org/Svc/Svctype/CA/RPaccess
-        cert: MIIB1DCCAXqgAwIBAgIUSS2LdLU31QbGqpWbkegBmJ4ymIcwCgYIKoZIzj0EAwQwajELMAkGA1UEBhMCTk8xEjAQBgNVBAcMCUxlaWthbmdlcjEPMA0GA1UECgwGRGlnZGlyMRkwFwYDVQQLDBBkaWdpdGFsLWxvbW1lYm9rMRswGQYDVQQDDBJ1bml0dGVzdC10cnVzdGxpc3QwHhcNMjUwODEyMTIxMjUyWhcNMjYwODEyMTIxMjUyWjBqMQswCQYDVQQGEwJOTzESMBAGA1UEBwwJTGVpa2FuZ2VyMQ8wDQYDVQQKDAZEaWdkaXIxGTAXBgNVBAsMEGRpZ2l0YWwtbG9tbWVib2sxGzAZBgNVBAMMEnVuaXR0ZXN0LXRydXN0bGlzdDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABADhJlaNSR35FOCqL/HU+/bjRaMgBQHOUwtwFbDfVwN54icYqc4Gugsjz3QvQIuI9H9NrgObRgv9nMTAkc5Sq2YwCgYIKoZIzj0EAwQDSAAwRQIhAIcn6Bva5N/nGIndmNYMQUYFjJWh/VWufoHBKnJx1ATTAiBhS2MnqSFU0QvEoZ7s56kVvcPuL42bsJDjYuayUnKcBw==
+  tsl-612:
+    service-provider:
+      services:
+        - name:
+            lang-no: CA for relying parties access certificates in eidas2sandkasse
+            lang-en: CA for relying parties access certificates in eidas2sandkasse
+          starting-time: 2025-07-03T12:00:00.00Z
+          service-type-identifier: http://uri.etsi.org/Svc/Svctype/CA/RPaccess
+          cert: MIIB1DCCAXqgAwIBAgIUSS2LdLU31QbGqpWbkegBmJ4ymIcwCgYIKoZIzj0EAwQwajELMAkGA1UEBhMCTk8xEjAQBgNVBAcMCUxlaWthbmdlcjEPMA0GA1UECgwGRGlnZGlyMRkwFwYDVQQLDBBkaWdpdGFsLWxvbW1lYm9rMRswGQYDVQQDDBJ1bml0dGVzdC10cnVzdGxpc3QwHhcNMjUwODEyMTIxMjUyWhcNMjYwODEyMTIxMjUyWjBqMQswCQYDVQQGEwJOTzESMBAGA1UEBwwJTGVpa2FuZ2VyMQ8wDQYDVQQKDAZEaWdkaXIxGTAXBgNVBAsMEGRpZ2l0YWwtbG9tbWVib2sxGzAZBgNVBAMMEnVuaXR0ZXN0LXRydXN0bGlzdDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABADhJlaNSR35FOCqL/HU+/bjRaMgBQHOUwtwFbDfVwN54icYqc4Gugsjz3QvQIuI9H9NrgObRgv9nMTAkc5Sq2YwCgYIKoZIzj0EAwQDSAAwRQIhAIcn6Bva5N/nGIndmNYMQUYFjJWh/VWufoHBKnJx1ATTAiBhS2MnqSFU0QvEoZ7s56kVvcPuL42bsJDjYuayUnKcBw==
 

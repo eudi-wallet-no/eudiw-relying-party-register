@@ -1,6 +1,7 @@
 package no.idporten.eudiw.trustlist.service;
 
 import no.idporten.eudiw.trustlist.config.TrustlistServiceProperties;
+import no.idporten.eudiw.trustlist.domain.TLSchemeInformation;
 import no.idporten.eudiw.trustlist.domain.TLService;
 import no.idporten.eudiw.trustlist.domain.TLServiceProvider;
 import no.idporten.eudiw.trustlist.web.ApplicationException;
@@ -46,7 +47,7 @@ public class TrustListGeneratorService {
 
         // • identify the TSPs recognized by the scheme;
         TrustServiceProviderList trustServiceProviderList = new TrustServiceProviderList();
-        TrustServiceProvider trustServiceProvider = createTrustServiceProvider(properties.getServiceProvider());
+        TrustServiceProvider trustServiceProvider = createTrustServiceProvider(properties.getTsl612().serviceProvider());
         trustServiceProviderList.getTrustServiceProviders().add(trustServiceProvider);
         trustServiceStatusList.setTrustServiceProviderList(trustServiceProviderList);
 
@@ -57,7 +58,8 @@ public class TrustListGeneratorService {
         // all info skal minimum på engelsk (en) og helst på språket til land som kontrollerer (no)
         SchemeInformation schemeInformation = new SchemeInformation();
         schemeInformation.setTSLVersionIdentifier(BigInteger.valueOf(6));
-        schemeInformation.setTSLSequenceNumber(properties.getSchemeInformation().sequenceNumber());
+        TLSchemeInformation tlSchemeInformation = properties.getTsl612().schemeInformation();
+        schemeInformation.setTSLSequenceNumber(tlSchemeInformation.sequenceNumber());
 
         schemeInformation.setTSLType(TSL_TYPE_URI);
         schemeInformation.setSchemeOperatorName(createInternationalNamesType(
@@ -65,7 +67,7 @@ public class TrustListGeneratorService {
                 createMultiLangNormStringType(LANG_CODE_EN, DIGITALISERINGSDIREKTORATET_LEGAL_NAME_EN)));
         schemeInformation.setSchemeOperatorAddress(createDigdirAddressType());
         schemeInformation.setSchemeName(createInternationalNamesType(
-                createMultiLangNormStringType(LANG_CODE_NO, properties.getSchemeInformation().schemeName()),
+                createMultiLangNormStringType(LANG_CODE_NO, tlSchemeInformation.schemeName()),
                 createMultiLangNormStringType(LANG_CODE_EN, "Trust list for eidas2sandkasse.net")
         ));
         schemeInformation.setSchemeInformationURI(new NonEmptyMultiLangURIListType());
@@ -76,7 +78,7 @@ public class TrustListGeneratorService {
         schemeInformation.setSchemeTypeCommunityRules(new NonEmptyMultiLangURIListType());
         schemeInformation.getSchemeTypeCommunityRules().getURIS().add(createNonEmptyMultiLangURIType(LANG_CODE_NO, SCHEME_TYPE_COMMUNITY_RULES_URI));
         schemeInformation.setHistoricalInformationPeriod(BigInteger.valueOf(65534));
-        ZonedDateTime issuedDateTime = properties.getSchemeInformation().listIssueDateTime();
+        ZonedDateTime issuedDateTime = tlSchemeInformation.listIssueDateTime();
         schemeInformation.setListIssueDateTime(issuedDateTime);
         NextUpdate nextUpdate = new NextUpdate();
         nextUpdate.setDateTime(issuedDateTime.plusMonths(6));

@@ -21,10 +21,10 @@ public class IndexController {
     }
 
     private String createPageContent() {
-        String trustlistPathXtsl = properties.getTrustlistPathXtsl();
-        String trustlistPath = properties.getTrustlistPath();
-        String trustlistPathSha2 = properties.getTrustlistPathSha2();
-        String title = properties.getSchemeInformation().schemeName();
+        String trustlistPathXtsl = properties.getTsl612().trustlistPathXtsl();
+        String trustlistPath = properties.getTsl612().trustlistPath();
+        String trustlistPathSha2 = properties.getTsl612().trustlistPathSha2();
+        String title = properties.getTsl612().schemeInformation().schemeName();
 
         return """
                 <html>
@@ -32,9 +32,10 @@ public class IndexController {
                       <title>Trust List Service</title>
                    </head>
                    <body>
-                      <h1>Tillitsliste</h1>
-                      %s <a href="%s">[ Last ned ]</a><a href="%s"> [ Vis ]</a>
-                      <a href="%s"> [ Sha2 ]</a>
+                      <h1>Tillitslister</h1>
+                      <ul>
+                        <li>%s <a href="%s">[ Last ned ]</a><a href="%s"> [ Vis ]</a> <a href="%s"> [ Sha2 ]</a></li>
+                      </ul>
                    </body>
                 </html>""".formatted(title, trustlistPathXtsl, trustlistPath, trustlistPathSha2);
     }
