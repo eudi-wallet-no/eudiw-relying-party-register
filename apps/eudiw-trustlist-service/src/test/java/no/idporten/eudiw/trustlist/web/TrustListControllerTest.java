@@ -4,7 +4,7 @@ import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.xml.utils.DomUtils;
 import eu.europa.esig.trustedlist.TrustedListUtils;
-import no.idporten.eudiw.trustlist.config.TrustlistServiceProperties;
+import no.idporten.eudiw.trustlist.config.TrustList612Properties;
 import no.idporten.eudiw.trustlist.service.XMLSignerService;
 import no.idporten.eudiw.trustlist.xml.XMLUtils;
 import org.junit.jupiter.api.DisplayName;
@@ -38,17 +38,17 @@ public class TrustListControllerTest {
     private XMLSignerService xmlSignerService;
 
     @Autowired
-    private TrustlistServiceProperties properties;
+    private TrustList612Properties properties;
 
     private String getPathXtsl() {
-        return properties.getTsl612().trustlistPathXtsl();
+        return properties.trustlistPathXtsl();
     }
 
     private String getPathSha2() {
-        return properties.getTsl612().trustlistPathSha2();
+        return properties.trustlistPathSha2();
     }
     private String getPathDefault() {
-        return properties.getTsl612().trustlistPath();
+        return properties.trustlistPath();
     }
 
     @DisplayName("then the TSL is signed")

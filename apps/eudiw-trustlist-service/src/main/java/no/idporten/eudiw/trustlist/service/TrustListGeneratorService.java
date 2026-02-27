@@ -1,6 +1,6 @@
 package no.idporten.eudiw.trustlist.service;
 
-import no.idporten.eudiw.trustlist.config.TrustlistServiceProperties;
+import no.idporten.eudiw.trustlist.config.TrustList612Properties;
 import no.idporten.eudiw.trustlist.domain.TLSchemeInformation;
 import no.idporten.eudiw.trustlist.domain.TLService;
 import no.idporten.eudiw.trustlist.domain.TLServiceProvider;
@@ -31,9 +31,9 @@ public class TrustListGeneratorService {
 
     private final Logger log = LoggerFactory.getLogger(TrustListGeneratorService.class);
 
-    private final TrustlistServiceProperties properties;
+    private final TrustList612Properties properties;
 
-    public TrustListGeneratorService(TrustlistServiceProperties properties) {
+    public TrustListGeneratorService(TrustList612Properties properties) {
         this.properties = properties;
     }
 
@@ -47,7 +47,7 @@ public class TrustListGeneratorService {
 
         // • identify the TSPs recognized by the scheme;
         TrustServiceProviderList trustServiceProviderList = new TrustServiceProviderList();
-        TrustServiceProvider trustServiceProvider = createTrustServiceProvider(properties.getTsl612().serviceProvider());
+        TrustServiceProvider trustServiceProvider = createTrustServiceProvider(properties.serviceProvider());
         trustServiceProviderList.getTrustServiceProviders().add(trustServiceProvider);
         trustServiceStatusList.setTrustServiceProviderList(trustServiceProviderList);
 
@@ -58,7 +58,7 @@ public class TrustListGeneratorService {
         // all info skal minimum på engelsk (en) og helst på språket til land som kontrollerer (no)
         SchemeInformation schemeInformation = new SchemeInformation();
         schemeInformation.setTSLVersionIdentifier(BigInteger.valueOf(6));
-        TLSchemeInformation tlSchemeInformation = properties.getTsl612().schemeInformation();
+        TLSchemeInformation tlSchemeInformation = properties.schemeInformation();
         schemeInformation.setTSLSequenceNumber(tlSchemeInformation.sequenceNumber());
 
         schemeInformation.setTSLType(TSL_TYPE_URI);
@@ -67,9 +67,9 @@ public class TrustListGeneratorService {
                 createMultiLangNormStringType(LANG_CODE_EN, DIGITALISERINGSDIREKTORATET_LEGAL_NAME_EN)));
         schemeInformation.setSchemeOperatorAddress(createDigdirAddressType());
         schemeInformation.setSchemeName(createInternationalNamesType(
-                createMultiLangNormStringType(LANG_CODE_NO, tlSchemeInformation.schemeName()),
-                createMultiLangNormStringType(LANG_CODE_EN, "Trust list for eidas2sandkasse.net")
-        ));
+                createMultiLangNormStringType(LANG_CODE_NO, tlSchemeInformation.schemeName().langNo()),
+                createMultiLangNormStringType(LANG_CODE_EN, tlSchemeInformation.schemeName().langEn()
+        )));
         schemeInformation.setSchemeInformationURI(new NonEmptyMultiLangURIListType());
         schemeInformation.getSchemeInformationURI().getURIS().add(createNonEmptyMultiLangURIType(LANG_CODE_NO, "https://www.digdir.no/"));
         schemeInformation.getSchemeInformationURI().getURIS().add(createNonEmptyMultiLangURIType(LANG_CODE_EN, "https://www.digdir.no/"));

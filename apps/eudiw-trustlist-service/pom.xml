@@ -187,6 +187,7 @@
                     <sourceDirectory>${basedir}/src/main/resources/119_602</sourceDirectory>
                     <targetPackage>no.idporten.eudiw.trustlist.etsi119602.pojo</targetPackage>
                     <includeAdditionalProperties>false</includeAdditionalProperties>
+                    <annotationStyle>jackson3</annotationStyle>
                 </configuration>
                 <executions>
                     <execution>

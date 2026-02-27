@@ -14,7 +14,7 @@ spring:
 
 trustlist-service:
   environment-name: local
-  tsl-612:
+  tsl612:
     service-provider:
       services:
         - name:

@@ -1,7 +1,7 @@
 package no.idporten.eudiw.trustlist.service;
 
-import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.trustlist.config.KeyProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -27,7 +27,6 @@ import java.util.List;
 /**
  * Service for XML signing.
  */
-@RequiredArgsConstructor
 @Service
 public class XMLSignerService {
 
@@ -42,6 +41,11 @@ public class XMLSignerService {
     public static final String MECHANISM_DOM = "DOM";
 
     private final KeyProvider tslKeyProvider;
+
+    @Autowired
+    public XMLSignerService(KeyProvider tslKeyProvider) {
+        this.tslKeyProvider = tslKeyProvider;
+    }
 
     private SignedInfo createSignedInfo(XMLSignatureFactory xmlSignatureFactory) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException {
         CanonicalizationMethod c14nMethod = xmlSignatureFactory.newCanonicalizationMethod(CanonicalizationMethod.EXCLUSIVE, (C14NMethodParameterSpec) null);

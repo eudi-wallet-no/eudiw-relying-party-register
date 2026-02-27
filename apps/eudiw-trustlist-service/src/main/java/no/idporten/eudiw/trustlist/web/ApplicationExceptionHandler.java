@@ -68,6 +68,13 @@ public class ApplicationExceptionHandler {
         return errorResponseEntity(e.getStatusCode(), errorMessageForHttpStatus(e.getStatusCode()), e.getReason());
     }
 
+    // TODO: temp exception handler.
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e) {
+        log.error("IllegalArgumentException occurred", e);
+        return errorResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, errorMessageForHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR), e.getMessage());
+    }
+
     protected String errorMessageForHttpStatus(HttpStatusCode httpStatus) {
         if (httpStatus.is4xxClientError()) {
             return INVALID_REQUEST;

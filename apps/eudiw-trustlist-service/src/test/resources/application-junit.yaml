@@ -6,7 +6,7 @@ spring:
     import: file:.env[.properties]
 
 trustlist-service:
-  tsl-612:
+  tsl612:
     service-provider:
       services:
         - name:
