@@ -27,6 +27,16 @@ management:
 
 trustlist-service:
   environment-name: ${spring.application.environment}
+  digdir:
+    name-no: Digitaliseringsdirektoratet
+    name-en: Norwegian Digitalisation Agency
+    email: mailto:servicedesk@digdir.no
+    web: https://www.digdir.no/
+    postal-address:
+      street-address: Lørenfaret 1C
+      postal-code: 0580
+      locality: Oslo
+      country: NO
   tsl612:
     trustlist-path: /no_eidas2sandkasse_${trustlist-service.environment-name}_tsl
     trustlist-path-xtsl: ${trustlist-service.tsl612.trustlist-path}.xtsl
@@ -46,20 +56,6 @@ trustlist-service:
       trade-name:
         lang-no: NTRNO-991825827
         lang-en: NTRNO-991825827
-        # use hard-coded values for now reused also for scheme-information
-  #    address:
-  #      postal-adress:
-  #        street-address: Lørenfaret 1C
-  #        locality: Oslo
-  #        postal-code: 0580
-  #        country-name: NO
-  #      electronic-address:
-  #        lang-no:
-  #          - mailto:servicedesk@digdir.no
-  #          - https://www.digdir.no/
-  #        lang-en:
-  #          - mailto:servicedesk@digdir.no
-  #          - https://www.digdir.no/
       information-uri:
         lang-no: https://docs.digdir.no/docs/lommebok/lommebok_om.html
 

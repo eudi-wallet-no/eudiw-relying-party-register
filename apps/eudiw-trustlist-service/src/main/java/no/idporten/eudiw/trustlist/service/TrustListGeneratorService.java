@@ -1,6 +1,8 @@
 package no.idporten.eudiw.trustlist.service;
 
+import no.idporten.eudiw.trustlist.config.DigdirProperties;
 import no.idporten.eudiw.trustlist.config.TrustList612Properties;
+import no.idporten.eudiw.trustlist.domain.Address;
 import no.idporten.eudiw.trustlist.domain.TLSchemeInformation;
 import no.idporten.eudiw.trustlist.domain.TLService;
 import no.idporten.eudiw.trustlist.domain.TLServiceProvider;
@@ -15,6 +17,9 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
 
+import static no.idporten.eudiw.trustlist.service.LangCode.EN;
+import static no.idporten.eudiw.trustlist.service.LangCode.NO;
+
 @Service
 public class TrustListGeneratorService {
 
@@ -23,18 +28,14 @@ public class TrustListGeneratorService {
     public static final String STATUS_DETERMINATION_APPROACH_URI = "http://uri.etsi.org/TrstSvc/TrustedList/StatusDetn/EUappropriate";
     public static final String SCHEME_TYPE_COMMUNITY_RULES_URI = "http://uri.etsi.org/TrstSvc/TrustedList/schemerules/EUcommon";
 
-    public static final String DIGITALISERINGSDIREKTORATET_LEGAL_NAME_NO = "Digitaliseringsdirektoratet";
-    public static final String DIGITALISERINGSDIREKTORATET_LEGAL_NAME_EN = "Norwegian Digitalisation Agency";
-    public static final String LANG_CODE_NO = "no";
-    public static final String LANG_CODE_EN = "en";
-
-
     private final Logger log = LoggerFactory.getLogger(TrustListGeneratorService.class);
 
     private final TrustList612Properties properties;
+    private final DigdirProperties digdirProperties;
 
-    public TrustListGeneratorService(TrustList612Properties properties) {
+    public TrustListGeneratorService(TrustList612Properties properties, DigdirProperties digdirProperties) {
         this.properties = properties;
+        this.digdirProperties = digdirProperties;
     }
 
     public TrustServiceStatusList generateTrustServiceStatusList() {
@@ -63,20 +64,20 @@ public class TrustListGeneratorService {
 
         schemeInformation.setTSLType(TSL_TYPE_URI);
         schemeInformation.setSchemeOperatorName(createInternationalNamesType(
-                createMultiLangNormStringType(LANG_CODE_NO, DIGITALISERINGSDIREKTORATET_LEGAL_NAME_NO),
-                createMultiLangNormStringType(LANG_CODE_EN, DIGITALISERINGSDIREKTORATET_LEGAL_NAME_EN)));
+                createMultiLangNormStringType(NO.getCode(), digdirProperties.nameNo()),
+                createMultiLangNormStringType(EN.getCode(), digdirProperties.nameEn())));
         schemeInformation.setSchemeOperatorAddress(createDigdirAddressType());
         schemeInformation.setSchemeName(createInternationalNamesType(
-                createMultiLangNormStringType(LANG_CODE_NO, tlSchemeInformation.schemeName().langNo()),
-                createMultiLangNormStringType(LANG_CODE_EN, tlSchemeInformation.schemeName().langEn()
-        )));
+                createMultiLangNormStringType(NO.getCode(), tlSchemeInformation.schemeName().langNo()),
+                createMultiLangNormStringType(EN.getCode(), tlSchemeInformation.schemeName().langEn()
+                )));
         schemeInformation.setSchemeInformationURI(new NonEmptyMultiLangURIListType());
-        schemeInformation.getSchemeInformationURI().getURIS().add(createNonEmptyMultiLangURIType(LANG_CODE_NO, "https://www.digdir.no/"));
-        schemeInformation.getSchemeInformationURI().getURIS().add(createNonEmptyMultiLangURIType(LANG_CODE_EN, "https://www.digdir.no/"));
+        schemeInformation.getSchemeInformationURI().getURIS().add(createNonEmptyMultiLangURIType(NO.getCode(), "https://www.digdir.no/"));
+        schemeInformation.getSchemeInformationURI().getURIS().add(createNonEmptyMultiLangURIType(EN.getCode(), "https://www.digdir.no/"));
         schemeInformation.setStatusDeterminationApproach(STATUS_DETERMINATION_APPROACH_URI);
         schemeInformation.setSchemeTerritory("NO");
         schemeInformation.setSchemeTypeCommunityRules(new NonEmptyMultiLangURIListType());
-        schemeInformation.getSchemeTypeCommunityRules().getURIS().add(createNonEmptyMultiLangURIType(LANG_CODE_NO, SCHEME_TYPE_COMMUNITY_RULES_URI));
+        schemeInformation.getSchemeTypeCommunityRules().getURIS().add(createNonEmptyMultiLangURIType(NO.getCode(), SCHEME_TYPE_COMMUNITY_RULES_URI));
         schemeInformation.setHistoricalInformationPeriod(BigInteger.valueOf(65534));
         ZonedDateTime issuedDateTime = tlSchemeInformation.listIssueDateTime();
         schemeInformation.setListIssueDateTime(issuedDateTime);
@@ -100,14 +101,14 @@ public class TrustListGeneratorService {
         TSPInformation tspInformation = new TSPInformation();
 
         tspInformation.setTSPTradeName(createInternationalNamesType(
-                createMultiLangNormStringType(LANG_CODE_NO, serviceProviderData.tradeName().langNo()),
-                createMultiLangNormStringType(LANG_CODE_EN, serviceProviderData.tradeName().langEn())));
+                createMultiLangNormStringType(NO.getCode(), serviceProviderData.tradeName().langNo()),
+                createMultiLangNormStringType(EN.getCode(), serviceProviderData.tradeName().langEn())));
         tspInformation.setTSPInformationURI(createNonEmptyMultiLangURIListType(
-                createNonEmptyMultiLangURIType(LANG_CODE_NO, serviceProviderData.informationUri().langNo())));
-        tspInformation.setTSPAddress(createDigdirAddressType()); // still hard-coded to Digdir address, should be configurable
+                createNonEmptyMultiLangURIType(NO.getCode(), serviceProviderData.informationUri().langNo())));
+        tspInformation.setTSPAddress(createDigdirAddressType());
         tspInformation.setTSPName(createInternationalNamesType(
-                createMultiLangNormStringType(LANG_CODE_NO, serviceProviderData.name().langNo()),
-                createMultiLangNormStringType(LANG_CODE_EN, serviceProviderData.name().langEn())));
+                createMultiLangNormStringType(NO.getCode(), serviceProviderData.name().langNo()),
+                createMultiLangNormStringType(EN.getCode(), serviceProviderData.name().langEn())));
 
         trustServiceProvider.setTSPInformation(tspInformation);
 
@@ -123,8 +124,8 @@ public class TrustListGeneratorService {
         TSPService tspService = new TSPService();
         ServiceInformation serviceInformation = new ServiceInformation();
         serviceInformation.setServiceName(createInternationalNamesType(
-                createMultiLangNormStringType(LANG_CODE_NO, rpAccessService.name().langNo()),
-                createMultiLangNormStringType(LANG_CODE_EN, rpAccessService.name().langEn())));
+                createMultiLangNormStringType(NO.getCode(), rpAccessService.name().langNo()),
+                createMultiLangNormStringType(EN.getCode(), rpAccessService.name().langEn())));
         serviceInformation.setServiceTypeIdentifier(rpAccessService.serviceTypeIdentifier());
         try {
             serviceInformation.setServiceDigitalIdentity(createServiceDigitalIdentity(rpAccessService.getCertificate()));
@@ -156,21 +157,22 @@ public class TrustListGeneratorService {
         return serviceDigitalIdentity;
     }
 
-    // Hardkodar adresse for Digdir, ut i konfig eller database seinere?
     private AddressType createDigdirAddressType() {
+        Address digdirAddress = digdirProperties.postalAddress();
+
         PostalAddresses postalAddresses = new PostalAddresses();
         PostalAddress postalAddress = new PostalAddress();
-        postalAddress.setLang(LANG_CODE_NO);
-        postalAddress.setStreetAddress("Lørenfaret 1C");
-        postalAddress.setPostalCode("0580");
-        postalAddress.setLocality("Oslo");
-        postalAddress.setCountryName("NO");
+        postalAddress.setLang(NO.getCode());
+        postalAddress.setStreetAddress(digdirAddress.streetAddress());
+        postalAddress.setPostalCode(digdirAddress.postalCode());
+        postalAddress.setLocality(digdirAddress.locality());
+        postalAddress.setCountryName(digdirAddress.country());
 
         ElectronicAddress electronicAddress = new ElectronicAddress();
-        electronicAddress.getURIS().add(createNonEmptyMultiLangURIType(LANG_CODE_NO, "mailto:servicedesk@digdir.no"));
-        electronicAddress.getURIS().add(createNonEmptyMultiLangURIType(LANG_CODE_EN, "mailto:servicedesk@digdir.no"));
-        electronicAddress.getURIS().add(createNonEmptyMultiLangURIType(LANG_CODE_NO, "https://www.digdir.no/"));
-        electronicAddress.getURIS().add(createNonEmptyMultiLangURIType(LANG_CODE_EN, "https://www.digdir.no/"));
+        electronicAddress.getURIS().add(createNonEmptyMultiLangURIType(NO.getCode(), digdirProperties.email()));
+        electronicAddress.getURIS().add(createNonEmptyMultiLangURIType(EN.getCode(), digdirProperties.email()));
+        electronicAddress.getURIS().add(createNonEmptyMultiLangURIType(NO.getCode(), digdirProperties.web()));
+        electronicAddress.getURIS().add(createNonEmptyMultiLangURIType(EN.getCode(), digdirProperties.web()));
         AddressType addressType = new AddressType();
         postalAddresses.getPostalAddresses().add(postalAddress);
         addressType.setPostalAddresses(postalAddresses);
