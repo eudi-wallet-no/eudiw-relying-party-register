@@ -27,15 +27,17 @@ management:
 
 trustlist-service:
   environment-name: ${spring.application.environment}
-  tsl-612:
+  tsl612:
     trustlist-path: /no_eidas2sandkasse_${trustlist-service.environment-name}_tsl
-    trustlist-path-xtsl: ${trustlist-service.tsl-612.trustlist-path}.xtsl
-    trustlist-path-sha2: ${trustlist-service.tsl-612.trustlist-path}.sha2
+    trustlist-path-xtsl: ${trustlist-service.tsl612.trustlist-path}.xtsl
+    trustlist-path-sha2: ${trustlist-service.tsl612.trustlist-path}.sha2
 
     scheme-information:
-      scheme-name: Tillitsliste for norsk eidas2sandkasse i ${trustlist-service.environment-name}
+      scheme-name:
+        lang-no: Tillitsliste for norsk eidas2sandkasse i ${trustlist-service.environment-name}
+        lang-en: Trust list for eidas2sandkasse in ${trustlist-service.environment-name}
       sequence-number: 1
-      list-issue-datetime: 2025-10-20T00:00:00.00Z
+      list-issue-datetime: 2026-02-27T00:00:00.00Z
     # only support 1 trust service provider initially
     service-provider:
       name:
@@ -60,6 +62,18 @@ trustlist-service:
   #          - https://www.digdir.no/
       information-uri:
         lang-no: https://docs.digdir.no/docs/lommebok/lommebok_om.html
+
+  tsl-aca:
+    path: no_eidas2sandkasse_${trustlist-service.environment-name}_aca
+    scheme-information:
+      scheme-name:
+        lang-no: NO:Tillitsliste for Access Certificate Authorities i eidas2sandkasse i ${trustlist-service.environment-name}
+        lang-en: NO:Trust list for Access Certificate Authorities in eidas2sandkasse in ${trustlist-service.environment-name}
+      sequence-number: 1
+      list-issue-datetime: 2026-02-27T00:00:00.00Z
+
+
+
   keystore:
     type: ${TSL_SIGN_KEYSTORE_TYPE}
     location: ${TSL_SIGN_KEYSTORE}

@@ -11,7 +11,7 @@ spring:
     environment: docker
 
 trustlist-service:
-  tsl-612:
+  tsl612:
     service-provider:
       services:
         - name:

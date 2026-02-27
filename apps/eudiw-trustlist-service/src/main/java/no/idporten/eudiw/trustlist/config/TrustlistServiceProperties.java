@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import no.idporten.eudiw.trustlist.domain.Tsl612;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
@@ -27,7 +26,4 @@ public class TrustlistServiceProperties {
     @NotNull
     public KeyStoreProperties keyStore;
 
-    @Valid
-    @NotNull
-    private Tsl612 tsl612;
 }
