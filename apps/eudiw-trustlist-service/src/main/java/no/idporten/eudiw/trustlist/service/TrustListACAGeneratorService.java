@@ -1,11 +1,10 @@
 package no.idporten.eudiw.trustlist.service;
 
 
-import jakarta.validation.constraints.NotEmpty;
+import no.idporten.eudiw.trustlist.config.DigdirProperties;
 import no.idporten.eudiw.trustlist.config.TrustListACAProperties;
 import no.idporten.eudiw.trustlist.domain.TLSchemeInformation;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -13,15 +12,20 @@ import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
 
+import static no.idporten.eudiw.trustlist.service.Common602Converter.*;
+import static no.idporten.eudiw.trustlist.service.LangCode.EN;
+import static no.idporten.eudiw.trustlist.service.LangCode.NO;
+
 @Service
 public class TrustListACAGeneratorService {
 
 
     private final TrustListACAProperties acaProperties;
+    private final DigdirProperties digdirProperties;
 
-    @Autowired
-    public TrustListACAGeneratorService(TrustListACAProperties acaProperties) {
+    public TrustListACAGeneratorService(TrustListACAProperties acaProperties, DigdirProperties digdirProperties) {
         this.acaProperties = acaProperties;
+        this.digdirProperties = digdirProperties;
     }
 
     public LoTE generateTrustlistACA() {
@@ -35,13 +39,13 @@ public class TrustListACAGeneratorService {
         return lote;
     }
 
-    private static ListAndSchemeInformation createListAndSchemeInformation(TLSchemeInformation schemaProps) {
+    private ListAndSchemeInformation createListAndSchemeInformation(TLSchemeInformation schemaProps) {
         ListAndSchemeInformation listAndSchemeInformation = new ListAndSchemeInformation();
 
         listAndSchemeInformation.setLoTEVersionIdentifier(1);
         listAndSchemeInformation.setLoTESequenceNumber(schemaProps.sequenceNumber().intValue());
         listAndSchemeInformation.setSchemeOperatorName(createSchemeOperatorName());
-        listAndSchemeInformation.setSchemeOperatorAddress(createSchemeOperatorAddress());
+        listAndSchemeInformation.setSchemeOperatorAddress(createSchemeOperatorAddress(digdirProperties));
         listAndSchemeInformation.setSchemeName(createSchemaName(schemaProps));
         listAndSchemeInformation.setSchemeInformationURI(createInformationURIs());
 
@@ -62,51 +66,27 @@ public class TrustListACAGeneratorService {
         return List.of(createNonEmptyMultiLangURI("no", "https://docs.digdir.no/docs/lommebok/lommebok_om.html"), createNonEmptyMultiLangURI("no", "https://docs.digdir.no/docs/lommebok/wallet_sandbox_summary.html"));
     }
 
-    private static List<MultiLangString> createSchemeOperatorName() {
-        return List.of(createMultiLangString("no", "Digitaliseringsdirektoratet"), createMultiLangString("en", "Norwegian Digitalisation Agency"));
+    private List<MultiLangString> createSchemeOperatorName() {
+        return List.of(createMultiLangString(NO.getCode(), digdirProperties.nameNo()), createMultiLangString(EN.getCode(), digdirProperties.nameEn()));
     }
 
-    private static SchemeOperatorAddress createSchemeOperatorAddress() {
+    private static SchemeOperatorAddress createSchemeOperatorAddress(DigdirProperties digdirProperties) {
         SchemeOperatorAddress schemeOperatorAddress = new SchemeOperatorAddress();
 
-        PostalAddress postalAddress = new PostalAddress();
-        postalAddress.setLang("no");
-        postalAddress.setStreetAddress("Lørenfaret 1C");
-        postalAddress.setPostalCode("0580");
-        postalAddress.setLocality("Oslo");
-        postalAddress.setCountry("NO");
-
+        PostalAddress postalAddress = createPostalAddress(digdirProperties.postalAddress());
         schemeOperatorAddress.setSchemeOperatorPostalAddress(List.of(postalAddress));
 
-        NonEmptyMultiLangURI emailNo = createNonEmptyMultiLangURI("no", "mailto:servicedesk@digdir.no");
-        NonEmptyMultiLangURI emailEn = createNonEmptyMultiLangURI("en", "mailto:servicedesk@digdir.no");
-        NonEmptyMultiLangURI webPageNo = createNonEmptyMultiLangURI("no", "https://www.digdir.no/");
-        NonEmptyMultiLangURI webPageEn = createNonEmptyMultiLangURI("en", "https://www.digdir.no/");
-
-        schemeOperatorAddress.setSchemeOperatorElectronicAddress(List.of(emailNo, emailEn, webPageNo, webPageEn));
+        List<NonEmptyMultiLangURI> electronicAddresses = createListOfElectronicAddresses(digdirProperties);
+        schemeOperatorAddress.setSchemeOperatorElectronicAddress(electronicAddresses);
 
         return schemeOperatorAddress;
     }
 
-    private static NonEmptyMultiLangURI createNonEmptyMultiLangURI(String lang, String uriString) {
-        NonEmptyMultiLangURI multiLangUri = new NonEmptyMultiLangURI();
-        multiLangUri.setLang(lang);
-        multiLangUri.setUriValue(URI.create(uriString));
-        return multiLangUri;
-    }
-
     private static List<MultiLangString> createSchemaName(TLSchemeInformation schemaProps) {
-        MultiLangString schemeNameNo = createMultiLangString("no", schemaProps.schemeName().langNo());
-        MultiLangString schemeNameEn = createMultiLangString("en", schemaProps.schemeName().langEn());
+        MultiLangString schemeNameNo = createMultiLangString(NO.getCode(), schemaProps.schemeName().langNo());
+        MultiLangString schemeNameEn = createMultiLangString(EN.getCode(), schemaProps.schemeName().langEn());
 
         return List.of(schemeNameNo, schemeNameEn);
-    }
-
-    private static MultiLangString createMultiLangString(String lang, @NotEmpty String value) {
-        MultiLangString schemeNameEn = new MultiLangString();
-        schemeNameEn.setLang(lang);
-        schemeNameEn.setValue(value);
-        return schemeNameEn;
     }
 
 }

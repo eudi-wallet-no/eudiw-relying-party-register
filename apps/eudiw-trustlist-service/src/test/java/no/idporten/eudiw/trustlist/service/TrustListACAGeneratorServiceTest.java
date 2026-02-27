@@ -1,5 +1,6 @@
 package no.idporten.eudiw.trustlist.service;
 
+import no.idporten.eudiw.trustlist.config.DigdirProperties;
 import no.idporten.eudiw.trustlist.config.TrustListACAProperties;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.LoTE;
 import org.junit.jupiter.api.Test;
@@ -16,9 +17,12 @@ class TrustListACAGeneratorServiceTest {
     @Autowired
     TrustListACAProperties acaProperties;
 
+    @Autowired
+    DigdirProperties digdirProperties;
+
     @Test
     void generateTrustlistACA() {
-        TrustListACAGeneratorService service = new TrustListACAGeneratorService(acaProperties);
+        TrustListACAGeneratorService service = new TrustListACAGeneratorService(acaProperties, digdirProperties);
         LoTE loTE = service.generateTrustlistACA();
         assertNotNull(loTE);
     }
