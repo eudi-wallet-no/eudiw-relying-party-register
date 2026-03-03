@@ -1,4 +1,4 @@
-package no.idporten.eudiw.trustlist.web;
+package no.idporten.eudiw.trustlist.exception;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;

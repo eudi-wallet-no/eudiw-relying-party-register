@@ -1,7 +1,7 @@
 package no.idporten.eudiw.trustlist.service;
 
 import jakarta.xml.bind.JAXBException;
-import no.idporten.eudiw.trustlist.web.ApplicationException;
+import no.idporten.eudiw.trustlist.exception.ApplicationException;
 import org.etsi.uri._02231.v2_.TrustServiceStatusList;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;

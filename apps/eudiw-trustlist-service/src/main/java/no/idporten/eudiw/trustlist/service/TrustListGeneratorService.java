@@ -6,7 +6,7 @@ import no.idporten.eudiw.trustlist.domain.Address;
 import no.idporten.eudiw.trustlist.domain.TLSchemeInformation;
 import no.idporten.eudiw.trustlist.domain.TLService;
 import no.idporten.eudiw.trustlist.domain.TLServiceProvider;
-import no.idporten.eudiw.trustlist.web.ApplicationException;
+import no.idporten.eudiw.trustlist.exception.ApplicationException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.etsi.uri._02231.v2_.*;
 import org.slf4j.Logger;
