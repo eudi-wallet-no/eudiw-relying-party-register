@@ -2,7 +2,7 @@ package no.idporten.eudiw.trustlist.service;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.xml.bind.JAXBException;
-import no.idporten.eudiw.trustlist.web.ApplicationException;
+import no.idporten.eudiw.trustlist.exception.ApplicationException;
 import no.idporten.eudiw.trustlist.xml.XMLUtils;
 import org.etsi.uri._02231.v2_.TrustServiceStatusList;
 import org.slf4j.Logger;

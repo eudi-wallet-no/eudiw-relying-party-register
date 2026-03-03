@@ -2,6 +2,7 @@ package no.idporten.eudiw.trustlist.web;
 
 import no.idporten.eudiw.trustlist.config.TrustList612Properties;
 import no.idporten.eudiw.trustlist.config.TrustListACAProperties;
+import org.jspecify.annotations.NonNull;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,7 +21,7 @@ public class IndexController {
 
 
     @GetMapping(value = "/", produces = MediaType.TEXT_HTML_VALUE)
-    public ResponseEntity<String> index() {
+    public ResponseEntity<@NonNull String> index() {
         return ResponseEntity.ok(createPageContent());
     }
 
@@ -49,8 +50,8 @@ public class IndexController {
     }
 
     private String getTrustlistLinks(String title, String trustlistPath) {
-        // Tillitsliste tittel [ Last ned ]
-        return "%s <a href=\"%s\">[ Last ned ]</a>".formatted(title, trustlistPath);
+        // Tillitsliste tittel [ Last ned ] [ Vis JSON ]
+        return "%s <a href=\"%s.jws\">[ Last ned ]</a><a href=\"%s\"> [ Vis JSON ]</a>".formatted(title, trustlistPath, trustlistPath);
     }
 
 }

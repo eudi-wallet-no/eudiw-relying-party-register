@@ -1,4 +1,4 @@
-package no.idporten.eudiw.trustlist.web;
+package no.idporten.eudiw.trustlist.exception;
 
 /**
  * Custom exception class for application-specific errors (business logic).

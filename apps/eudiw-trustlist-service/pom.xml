@@ -28,6 +28,7 @@
         <bcpkix-jdk18on.version>1.83</bcpkix-jdk18on.version>
         <bcprov-jdk18on.version>1.83</bcprov-jdk18on.version>
         <dss.version>6.3</dss.version>
+        <nimbus-jose-jwt.version>10.8</nimbus-jose-jwt.version>
     </properties>
 
     <dependencies>
@@ -81,6 +82,12 @@
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
             <scope>provided</scope>
+        </dependency>
+        <!-- Source: https://mvnrepository.com/artifact/com.nimbusds/nimbus-jose-jwt -->
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>${nimbus-jose-jwt.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
