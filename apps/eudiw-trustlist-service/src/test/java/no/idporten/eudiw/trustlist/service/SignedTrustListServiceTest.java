@@ -13,6 +13,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import static no.idporten.eudiw.trustlist.TestDataGenerator.createSignedTrustlist;
+import static no.idporten.eudiw.trustlist.TestDataGenerator.createTrustServiceStatusList;
 import static no.idporten.eudiw.trustlist.xml.XMLUtils.parseTrustlist;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -64,20 +66,6 @@ class SignedTrustListServiceTest {
         verify(xmlSignerService, never()).createEnvelopedSignature(any(Document.class));
     }
 
-    private static Document createSignedTrustlist() throws JAXBException {
-        Document trustlist = parseTrustlist(createTrustServiceStatusList());
-        Element signature = trustlist.createElement("Signature");
-        signature.setAttribute("fakeSignature", "but I do not care");
-        trustlist.getDocumentElement().appendChild(signature);
-        return trustlist;
-    }
-
-    @NotNull
-    private static TrustServiceStatusList createTrustServiceStatusList() {
-        TrustServiceStatusList trustServiceStatusList = new TrustServiceStatusList();
-        trustServiceStatusList.setId("trustlist-id");
-        return trustServiceStatusList;
-    }
 
     @Test
     @DisplayName("getSha2 generate a valid sha-256 hash of the trustlist")

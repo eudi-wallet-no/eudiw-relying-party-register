@@ -60,7 +60,7 @@ trustlist-service:
         lang-no: https://docs.digdir.no/docs/lommebok/lommebok_om.html
 
   tsl-aca:
-    path: no_eidas2sandkasse_${trustlist-service.environment-name}_aca
+    path: /no_eidas2sandkasse_${trustlist-service.environment-name}_aca
     scheme-information:
       scheme-name:
         lang-no: NO:Tillitsliste for Access Certificate Authorities i eidas2sandkasse i ${trustlist-service.environment-name}

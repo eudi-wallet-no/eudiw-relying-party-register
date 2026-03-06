@@ -5,6 +5,7 @@ import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jose.util.Base64;
+import no.idporten.eudiw.trustlist.TestDataGenerator;
 import no.idporten.eudiw.trustlist.config.KeyProvider;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.ListAndSchemeInformation;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.LoTE;
@@ -42,17 +43,9 @@ class JsonSignerServiceTest {
 
     @BeforeEach
     public void setup() {
-        loTE = createLoTETrustlist();
+        loTE = TestDataGenerator.createLoTETrustlist();
     }
 
-    private static LoTE createLoTETrustlist() {
-        LoTE loTE = new LoTE();
-        ListAndSchemeInformation listAndSchemeInformation = new ListAndSchemeInformation();
-        listAndSchemeInformation.setSchemeTerritory("NO");
-        listAndSchemeInformation.setLoTEType(URI.create("http://aca-trustlist-type"));
-        loTE.setListAndSchemeInformation(listAndSchemeInformation);
-        return loTE;
-    }
 
     @DisplayName("then signed json should be verified with keystore public key")
     @Test
