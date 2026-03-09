@@ -1,4 +1,3 @@
-# CVE # Desc # Fixed
-CVE-2025-61726 # stdlib net/url. Fixed 1.25.5
-CVE-2025-61728 # golang zip
-CVE-2025-68121 # stdlib crypto/tls.  Fixed in 1.24.13, 1.25.7, 1.26.0-rc.3
+# <CVE> # <package/affected code>. Fixed in <version>.
+GHSA-72hv-8253-57qq # Jackson number length. Fixed in 3.1.0
+CVE-2026-29062 # Jackson nesting length. Fixed in 3.1.0
