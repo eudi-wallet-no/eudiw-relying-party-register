@@ -9,6 +9,8 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -51,10 +53,11 @@ public class CertificateAuthorityApiControllerTest {
         certificateRepository.deleteAll();
     }
 
-    @DisplayName("then the root certificate can be downloaded")
-    @Test
-    void testGetRootCertificate() throws Exception {
-        MvcResult result = mockMvc.perform(get("/v1/certs/root.cer"))
+    @DisplayName("then root certificate can be downloaded")
+    @ValueSource(strings = {"root", "root2"})
+    @ParameterizedTest
+    void testGetRootCertificate(String caId) throws Exception {
+        MvcResult result = mockMvc.perform(get("/v1/certs/{root}.cer", caId))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/pkix-cert"))
                 .andReturn();
@@ -63,10 +66,11 @@ public class CertificateAuthorityApiControllerTest {
         assertEquals(certificate.getIssuer(), certificate.getSubject());
     }
 
-    @DisplayName("then the root certificate's CRL can be downloaded")
-    @Test
-    void testGetRootCertificateCRL() throws Exception {
-        MvcResult result = mockMvc.perform(get("/v1/certs/root.crl"))
+    @DisplayName("then root certificate's CRL can be downloaded")
+    @ValueSource(strings = {"root", "root2"})
+    @ParameterizedTest
+    void testGetRootCertificateCRL(String caId) throws Exception {
+        MvcResult result = mockMvc.perform(get("/v1/certs/{root}.crl", caId))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/pkix-crl"))
                 .andReturn();

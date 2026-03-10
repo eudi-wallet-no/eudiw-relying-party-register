@@ -1,7 +1,6 @@
 package no.idporten.eudiw.ca.config;
 
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.ca.exception.CertificateAuthorityException;
 import org.springframework.beans.factory.InitializingBean;
@@ -9,7 +8,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -22,14 +20,14 @@ import java.util.Optional;
 @ConfigurationProperties(prefix = "eudiw-ca")
 public class CertificateAuthorities implements InitializingBean {
 
-    @Getter
     @NotNull
-    private final CertificateAuthority root;
+    private final Map<String, CertificateAuthority> roots;
+
     @NotNull
     private final Map<String, CertificateAuthority> intermediates;
 
-    public List<CertificateAuthority> getIntermediates() {
-        return List.copyOf(intermediates.values());
+    public CertificateAuthority findRoot(String name) {
+        return Optional.ofNullable(roots.get(name)).orElseThrow(() -> new CertificateAuthorityException("invalid_request", "Unknown root CA", HttpStatus.NOT_FOUND));
     }
 
     public CertificateAuthority findIntermediate(String name) {
@@ -38,11 +36,13 @@ public class CertificateAuthorities implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        root.init("root");
-        root.validate(root);
+        for (Map.Entry<String, CertificateAuthority> rootEntry : roots.entrySet()) {
+            rootEntry.getValue().init(rootEntry.getKey());
+            rootEntry.getValue().validate(rootEntry.getValue());
+        }
         for (Map.Entry<String, CertificateAuthority> intermediateEntry : intermediates.entrySet()) {
             intermediateEntry.getValue().init(intermediateEntry.getKey());
-            intermediateEntry.getValue().validate(root);
+            intermediateEntry.getValue().validate(findRoot(intermediateEntry.getValue().getRoot()));
         }
     }
 

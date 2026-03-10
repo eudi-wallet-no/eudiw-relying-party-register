@@ -297,7 +297,7 @@ public class CertificateAuthorityServiceTest {
         @DisplayName("then a self signed root contains the expected extensions")
         @Test
         void testSelfSignedRootCA() throws Exception {
-            CertificateAuthority certificateAuthority = certificateAuthorities.getRoot();
+            CertificateAuthority certificateAuthority = certificateAuthorities.findRoot("root");
             PKCS10CertificationRequest csr = certificateAuthorityService.createCSR(certificateAuthority);
             X509Certificate certificate = certificateAuthorityService.signRootCertificate(certificateAuthority, csr);
             assertAll(
@@ -320,8 +320,8 @@ public class CertificateAuthorityServiceTest {
         @DisplayName("then an intermediate CA is signed by the root CA and can be used for certificate and CRL signing")
         @Test
         void testSignIntermediateCA() throws Exception {
-            CertificateAuthority root = certificateAuthorities.getRoot();
             CertificateAuthority intermediate = certificateAuthorities.findIntermediate("access");
+            CertificateAuthority root = certificateAuthorities.findRoot(intermediate.getRoot());
             PKCS10CertificationRequest csr = certificateAuthorityService.createCSR(intermediate);
             X509Certificate certificate = certificateAuthorityService.signIntermediateCertificate(root, csr);
             assertAll(
