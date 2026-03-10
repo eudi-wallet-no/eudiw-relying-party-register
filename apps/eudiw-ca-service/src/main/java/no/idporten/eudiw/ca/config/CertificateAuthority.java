@@ -20,8 +20,21 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class CertificateAuthority {
 
-    private final boolean root;
+    /**
+     * CA identifier.  Used to reference CA in URL and configuration.
+     */
     private String id;
+
+    /**
+     * Root CA identifier.  Used to locate the CA that signed this CA.
+     */
+    @NotNull
+    private final String root;
+
+    private boolean isRoot() {
+        return Objects.equals(id, root);
+    }
+
     @Min(1)
     @Max(365)
     private final int lifetimeDays;

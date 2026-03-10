@@ -66,9 +66,9 @@ public class CertificateAuthorityApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "DER-encoded certificate", content = @Content(mediaType = APPLICATION_X_PKIX_CERT_VALUE))
     })
-    @GetMapping(path = {"/v1/certs/root.crt", "/v1/certs/root.cer"}, produces = APPLICATION_X_PKIX_CERT_VALUE)
-    public ResponseEntity<byte[]> getRootCertificate() throws Exception {
-        return ResponseEntity.ok(certificateAuthorities.getRoot().getCertificate().getEncoded());
+    @GetMapping(path = {"/v1/certs/{root}.crt", "/v1/certs/{root}.cer"}, produces = APPLICATION_X_PKIX_CERT_VALUE)
+    public ResponseEntity<byte[]> getRootCertificate(@PathVariable("root") String root) throws Exception {
+        return ResponseEntity.ok(certificateAuthorities.findRoot(root).getCertificate().getEncoded());
     }
 
     @Operation(
@@ -78,9 +78,9 @@ public class CertificateAuthorityApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "PEM-encoded certificate", content = @Content(mediaType = APPLICATION_X_PEM_FILE_VALUE))
     })
-    @GetMapping(path = "/v1/certs/root.pem", produces = APPLICATION_X_PEM_FILE_VALUE)
-    public ResponseEntity<String> getRootCertificatePem() throws Exception {
-        return ResponseEntity.ok(CertificateEncodingUtils.encodeToPem(certificateAuthorities.getRoot().getCertificate()));
+    @GetMapping(path = "/v1/certs/{root}.pem", produces = APPLICATION_X_PEM_FILE_VALUE)
+    public ResponseEntity<String> getRootCertificatePem(@PathVariable("root") String root) throws Exception {
+        return ResponseEntity.ok(CertificateEncodingUtils.encodeToPem(certificateAuthorities.findRoot(root).getCertificate()));
     }
 
     @Operation(
@@ -90,9 +90,9 @@ public class CertificateAuthorityApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "DER-encoded CRL", content = @Content(mediaType = APPLICATION_X_PKIX_CRL_VALUE))
     })
-    @GetMapping(path = "/v1/certs/root.crl", produces = APPLICATION_X_PKIX_CRL_VALUE)
-    public ResponseEntity<byte[]> getRootCrl() throws Exception {
-        return ResponseEntity.ok(certificateAuthorityService.createCRL(certificateAuthorities.getRoot()).getEncoded());
+    @GetMapping(path = "/v1/certs/{root}.crl", produces = APPLICATION_X_PKIX_CRL_VALUE)
+    public ResponseEntity<byte[]> getRootCrl(@PathVariable("root") String root) throws Exception {
+        return ResponseEntity.ok(certificateAuthorityService.createCRL(certificateAuthorities.findRoot(root)).getEncoded());
     }
 
     @Operation(
