@@ -6,7 +6,6 @@ import no.idporten.eudiw.ca.config.CertificateAuthority;
 import no.idporten.eudiw.ca.data.Certificate;
 import no.idporten.eudiw.ca.data.CertificateRepository;
 import no.idporten.eudiw.ca.data.SerialNumberUtils;
-import no.idporten.eudiw.ca.util.CertificateEncodingUtils;
 import org.bouncycastle.asn1.ASN1OctetString;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.qualified.QCStatement;
@@ -86,8 +85,8 @@ public class CertificateAuthorityServiceTest {
                     () -> assertEquals(intermediate.getCertificate().getSubjectX500Principal(), issuedCertificate.getIssuerX500Principal()),
                     () -> assertNotNull(issuedCertificate.getExtendedKeyUsage()),
                     () -> assertTrue(issuedCertificate.getExtendedKeyUsage().contains("1.0.18013.5.1.6")),
-                    () -> assertEquals("SHA512WITHECDSA", issuedCertificate.getSigAlgName()),
-                    () -> assertEquals("1.2.840.10045.4.3.4", issuedCertificate.getSigAlgOID()),
+                    () -> assertEquals("SHA256WITHECDSA", issuedCertificate.getSigAlgName()),
+                    () -> assertEquals("1.2.840.10045.4.3.2", issuedCertificate.getSigAlgOID()),
                     () -> assertNotNull(issuedCertificate.getExtensionValue(Extension.cRLDistributionPoints.getId())),
                     () -> assertTrue(issuedCertificate.getSubjectX500Principal().getName(X500Principal.RFC1779).contains("C=NO")),
                     () -> assertTrue(issuedCertificate.getSubjectX500Principal().getName(X500Principal.RFC1779).contains("O=foo")),
@@ -205,8 +204,8 @@ public class CertificateAuthorityServiceTest {
                     () -> assertArrayEquals(new boolean[]{true, false, true, false, false, false, false, false, false}, issuedCertificate.getKeyUsage()),
                     () -> assertTrue(issuedCertificate.getSubjectAlternativeNames().iterator().next().contains("junit.rp1.idporten.dev")),
                     () -> assertEquals(intermediate.getCertificate().getSubjectX500Principal(), issuedCertificate.getIssuerX500Principal()),
-                    () -> assertEquals("SHA512WITHECDSA", issuedCertificate.getSigAlgName()),
-                    () -> assertEquals("1.2.840.10045.4.3.4", issuedCertificate.getSigAlgOID()),
+                    () -> assertEquals("SHA256WITHECDSA", issuedCertificate.getSigAlgName()),
+                    () -> assertEquals("1.2.840.10045.4.3.2", issuedCertificate.getSigAlgOID()),
                     () -> assertNotNull(issuedCertificate.getExtensionValue(Extension.cRLDistributionPoints.getId())),
                     () -> assertTrue(issuedCertificate.getSubjectX500Principal().getName(X500Principal.RFC1779).contains("C=NO")),
                     () -> assertTrue(issuedCertificate.getSubjectX500Principal().getName(X500Principal.RFC1779).contains("O=foo")),
@@ -245,11 +244,7 @@ public class CertificateAuthorityServiceTest {
                     IF5nyI5eYXYbBBQvdAZFJStX4YgEc+7j/QV3BlIGz2HE
                     -----END NEW CERTIFICATE REQUEST-----""";
             CertificateAuthority intermediate = certificateAuthorities.findIntermediate("pid_provider");
-            System.out.println(CertificateEncodingUtils.encodeToPem(intermediate.getCertificate()));
             X509Certificate issuedCertificate = certificateAuthorityService.signLeafCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), new SubjectAttributes("991825827", "foo", "tfoo"));
-
-            ASN1OctetString akiOc = ASN1OctetString.getInstance(issuedCertificate.getExtensionValue(Extension.qCStatements.getId()));
-
 
             assertAll(
                     () -> assertNotNull(issuedCertificate),
@@ -257,8 +252,8 @@ public class CertificateAuthorityServiceTest {
                     () -> assertArrayEquals(new boolean[]{true, false, true, false, false, false, false, false, false}, issuedCertificate.getKeyUsage()),
                     () -> assertTrue(issuedCertificate.getSubjectAlternativeNames().iterator().next().contains("junit.rp1.idporten.dev")),
                     () -> assertEquals(intermediate.getCertificate().getSubjectX500Principal(), issuedCertificate.getIssuerX500Principal()),
-                    () -> assertEquals("SHA512WITHECDSA", issuedCertificate.getSigAlgName()),
-                    () -> assertEquals("1.2.840.10045.4.3.4", issuedCertificate.getSigAlgOID()),
+                    () -> assertEquals("SHA256WITHECDSA", issuedCertificate.getSigAlgName()),
+                    () -> assertEquals("1.2.840.10045.4.3.2", issuedCertificate.getSigAlgOID()),
                     () -> assertNotNull(issuedCertificate.getExtensionValue(Extension.cRLDistributionPoints.getId())),
                     () -> assertTrue(issuedCertificate.getSubjectX500Principal().getName(X500Principal.RFC1779).contains("C=NO")),
                     () -> assertTrue(issuedCertificate.getSubjectX500Principal().getName(X500Principal.RFC1779).contains("O=foo")),
@@ -272,7 +267,6 @@ public class CertificateAuthorityServiceTest {
                     () -> assertEquals("id-etsi-qct-pid", QCStatement.getInstance(ASN1OctetString.getInstance(issuedCertificate.getExtensionValue(Extension.qCStatements.getId())).getOctets()).getStatementInfo().toString())
             );
             issuedCertificate.verify(intermediate.getPublicKey());
-            System.out.println(CertificateEncodingUtils.encodeToPem(issuedCertificate));
             verify(certificateRepository).save(certificateCaptor.capture());
             Certificate savedCertificate = certificateCaptor.getValue();
             assertAll(

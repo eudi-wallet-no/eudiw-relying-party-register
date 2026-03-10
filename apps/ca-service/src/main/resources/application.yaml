@@ -76,6 +76,17 @@ eudiw-ca:
         password: ${ROOT_KEYSTORE_PASSWORD}
         key-alias: ${ROOT_KEYSTORE_KEY_ALIAS}
         key-password: ${ROOT_KEYSTORE_KEY_PASSWORD}
+    root2:
+      root: root2
+      lifetime-days: 1825
+      crl-distribution-point: ${eudiw-ca.base-uri}/v1/certs/root2.crl
+      certificate-uri: ${eudiw-ca.base-uri}/v1/certs/root2.cer
+      keystore:
+        type: pkcs12
+        location: ${ROOT_2_KEYSTORE_LOCATION}
+        password: ${ROOT_2_KEYSTORE_PASSWORD}
+        key-alias: ${ROOT_2_KEYSTORE_KEY_ALIAS}
+        key-password: ${ROOT_2_KEYSTORE_KEY_PASSWORD}
   intermediates:
     access:
       root: root
@@ -116,6 +127,17 @@ eudiw-ca:
         password: ${INTERMEDIATE_PID_PROVIDER_KEYSTORE_PASSWORD}
         key-alias: ${INTERMEDIATE_PID_PROVIDER_KEYSTORE_KEY_ALIAS}
         key-password: ${INTERMEDIATE_PID_PROVIDER_KEYSTORE_KEY_PASSWORD}
+    pid_provider2:
+      root: root2
+      lifetime-days: 365
+      crl-distribution-point: ${eudiw-ca.base-uri}/v1/certs/intermediates/pid_provider2.crl
+      certificate-uri: ${eudiw-ca.base-uri}/v1/certs/intermediates/pid_provider2.cer
+      keystore:
+        type: pkcs12
+        location: ${INTERMEDIATE_PID_PROVIDER_2_KEYSTORE_LOCATION}
+        password: ${INTERMEDIATE_PID_PROVIDER_2_KEYSTORE_PASSWORD}
+        key-alias: ${INTERMEDIATE_PID_PROVIDER_2_KEYSTORE_KEY_ALIAS}
+        key-password: ${INTERMEDIATE_PID_PROVIDER_2_KEYSTORE_KEY_PASSWORD}
     eaa_provider:
       root: root
       lifetime-days: 365
@@ -127,6 +149,17 @@ eudiw-ca:
         password: ${INTERMEDIATE_EAA_PROVIDER_KEYSTORE_PASSWORD}
         key-alias: ${INTERMEDIATE_EAA_PROVIDER_KEYSTORE_KEY_ALIAS}
         key-password: ${INTERMEDIATE_EAA_PROVIDER_KEYSTORE_KEY_PASSWORD}
+    eaa_provider2:
+      root: root2
+      lifetime-days: 365
+      crl-distribution-point: ${eudiw-ca.base-uri}/v1/certs/intermediates/eaa_provider2.crl
+      certificate-uri: ${eudiw-ca.base-uri}/v1/certs/intermediates/eaa_provider2.cer
+      keystore:
+        type: pkcs12
+        location: ${INTERMEDIATE_EAA_PROVIDER_2_KEYSTORE_LOCATION}
+        password: ${INTERMEDIATE_EAA_PROVIDER_2_KEYSTORE_PASSWORD}
+        key-alias: ${INTERMEDIATE_EAA_PROVIDER_2_KEYSTORE_KEY_ALIAS}
+        key-password: ${INTERMEDIATE_EAA_PROVIDER_2_KEYSTORE_KEY_PASSWORD}
     pub_eaa_provider:
       root: root
       lifetime-days: 365

@@ -1,16 +1,16 @@
 #!/bin/bash
 
 # Better than nothing-script to set up a intermediate CA
-# change variabkes before running!
+# change variables before running!
 
-root_alias=systest_root
+root_alias=root2
 root_password=$1
 root_crl_url=https://ca.eidas2sandkasse.dev/v1/certs/root.crl
 root_cert_url=https://ca.eidas2sandkasse.dev/v1/certs/root.cer
 
-ca_alias=systest_access_ca
-ca_password=$2
-ca_dname="CN=eidas2sandkasse Relying Party Access CA systest, OU=Digdir, C=no, 2.5.4.97=NTRNO-991825827"
+ca_alias=eaa_provider2
+ca_password=changeit
+ca_dname="CN=eidas2sandkasse EAA Provider CA 2 dev, O=DIGITALISERINGSDIREKTORATET, C=NO, organizationIdentifier=NTRNO-NOFOR.991825827"
 
 # Generate intermediate and csr
 keytool \
@@ -40,6 +40,7 @@ keytool \
 -storepass $root_password \
 -gencert \
 -alias $root_alias \
+-sigalg SHA256withECDSA \
 -ext bc:ca:true \
 -ext ku:c=keyCertSign,cRLSign \
 -ext aia=caIssuers:uri:$root_cert_url \
