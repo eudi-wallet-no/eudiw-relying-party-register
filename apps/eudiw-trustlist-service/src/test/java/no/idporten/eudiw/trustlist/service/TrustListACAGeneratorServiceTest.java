@@ -51,25 +51,24 @@ class TrustListACAGeneratorServiceTest {
         assertNotNull(lote.getListAndSchemeInformation().getSchemeName());
         assertNotNull(lote.getListAndSchemeInformation().getLoTEVersionIdentifier());
         assertNotNull(lote.getListAndSchemeInformation().getNextUpdate());
-        //verifyTrustedEntityHasContent(lote.getTrustedEntitiesList());
+        verifyTrustedEntityHasContent(lote.getTrustedEntitiesList());
 
     }
-//
-//    private static void verifyTrustedEntityHasContent(List<TrustedEntity> trustedEntities) {
-//        assertFalse(trustedEntities.isEmpty());
-//        TrustedEntity te = trustedEntities.getFirst();
-//        assertNotNull(te);
-//        assertNotNull(te.getTrustedEntityInformation().getTEInformationURI());
-//        assertNotNull(te.getTrustedEntityInformation().getTEName());
-//        assertFalse(te.getTrustedEntityInformation().getTEName().isEmpty());
-//        assertNotNull(te.getTrustedEntityInformation().getTEAddress());
-//        assertNotNull(te.getTrustedEntityInformation().getTETradeName());
-//        assertFalse(te.getTrustedEntityInformation().getTETradeName().isEmpty());
-//
-//        List<TrustedEntityService> teServices = te.getTrustedEntityServices();
-//        verify1TrustedEntityServiceHasContent(teServices);
-//    }
-//
+
+    private static void verifyTrustedEntityHasContent(List<TrustedEntity> trustedEntities) {
+        assertFalse(trustedEntities.isEmpty());
+        TrustedEntity te = trustedEntities.getFirst();
+        assertNotNull(te);
+        assertNotNull(te.getTrustedEntityInformation().getTEInformationURI());
+        assertNotNull(te.getTrustedEntityInformation().getTEName());
+        assertFalse(te.getTrustedEntityInformation().getTEName().isEmpty());
+        assertNotNull(te.getTrustedEntityInformation().getTEAddress());
+        assertNotNull(te.getTrustedEntityInformation().getTEInformationURI());
+
+      //  List<TrustedEntityService> teServices = te.getTrustedEntityServices();
+       // verify1TrustedEntityServiceHasContent(teServices);
+    }
+
 //    private static void verify1TrustedEntityServiceHasContent(List<TrustedEntityService> teServices) {
 //        assertNotNull(teServices);
 //        assertFalse(teServices.isEmpty(), "TSPServices should not be empty");

@@ -9,12 +9,13 @@ import org.springframework.stereotype.Service;
 
 import java.net.URI;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import static no.idporten.eudiw.trustlist.service.Common602Converter.*;
-import static no.idporten.eudiw.trustlist.service.LangCode.EN;
-import static no.idporten.eudiw.trustlist.service.LangCode.NO;
+import static no.idporten.eudiw.trustlist.service.LangCode.*;
+
 
 @Service
 public class TrustListACAGeneratorService {
@@ -35,6 +36,7 @@ public class TrustListACAGeneratorService {
 
         ListAndSchemeInformation listAndSchemeInformation = createListAndSchemeInformation(schemaProps);
         lote.setListAndSchemeInformation(listAndSchemeInformation);
+        lote.setTrustedEntitiesList(createListOfTrustedEntity(digdirProperties, acaProperties));
 
         return lote;
     }
@@ -89,4 +91,42 @@ public class TrustListACAGeneratorService {
         return List.of(schemeNameNo, schemeNameEn);
     }
 
+    public List<TrustedEntity> createListOfTrustedEntity(DigdirProperties digdirProperties, TrustListACAProperties acaProperties) {
+
+        List<no.idporten.eudiw.trustlist.domain.TrustedEntity> te = acaProperties.trustedEntities();
+        List<TrustedEntity> finishedList = new ArrayList<>();
+        for (no.idporten.eudiw.trustlist.domain.TrustedEntity entity : te) {
+            TrustedEntityInformation trustedEntityInformation = new TrustedEntityInformation();
+            MultiLangString teNameNO = createMultiLangString(NO.getCode(), digdirProperties.nameNo());
+            MultiLangString teNameEN = createMultiLangString(EN.getCode(), digdirProperties.nameEn());
+            trustedEntityInformation.setTEName(List.of(teNameNO, teNameEN));
+
+            trustedEntityInformation.setTEAddress(createTEAddress());
+
+            NonEmptyMultiLangURI a = createNonEmptyMultiLangURI(
+                    NO.getCode(),entity.trustedEntityInformation().informationUri().a());
+
+            NonEmptyMultiLangURI c = createNonEmptyMultiLangURI(
+                    NO.getCode(), entity.trustedEntityInformation().informationUri().c());
+
+            trustedEntityInformation.setTEInformationURI(List.of(a, c));
+            TrustedEntity trustedEntity = new TrustedEntity();
+            trustedEntity.setTrustedEntityInformation(trustedEntityInformation);
+            finishedList.add(trustedEntity);
+        }
+        return finishedList;
+    }
+
+
+    public TEAddress createTEAddress() {
+
+        PostalAddress postalAddress = createPostalAddress(digdirProperties.postalAddress());
+        List<NonEmptyMultiLangURI> electronicAddresses = createListOfElectronicAddresses(digdirProperties);
+
+        TEAddress teAddress = new TEAddress();
+        teAddress.setTEElectronicAddress(electronicAddresses);
+        teAddress.setTEPostalAddress(List.of(postalAddress));
+
+        return teAddress;
+    }
 }
