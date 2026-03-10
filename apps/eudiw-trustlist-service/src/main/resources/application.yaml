@@ -36,7 +36,7 @@ trustlist-service:
       street-address: Lørenfaret 1C
       postal-code: 0580
       locality: Oslo
-      country: NO
+      country: "NO"
   tsl612:
     trustlist-path: /no_eidas2sandkasse_${trustlist-service.environment-name}_tsl
     trustlist-path-xtsl: ${trustlist-service.tsl612.trustlist-path}.xtsl
@@ -67,6 +67,12 @@ trustlist-service:
         lang-en: NO:Trust list for Access Certificate Authorities in eidas2sandkasse in ${trustlist-service.environment-name}
       sequence-number: 1
       list-issue-datetime: 2026-02-27T00:00:00.00Z
+
+    trusted-entities:
+      - trusted-entity-information:
+          information-uri:
+            a: https://docs.digdir.no/docs/lommebok/lommebok_om.html
+            c: http://uri.etsi.org/19602/ListOfTrustedEntities/WRPACProvider/NO
 
 
 
