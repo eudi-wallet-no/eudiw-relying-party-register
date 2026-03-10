@@ -16,11 +16,11 @@ spring:
 eudiw-ca:
   roots:
     # Additional CAs for testing multiple root CAs
-    root2:
-      root: root2
+    root3:
+      root: root3
       lifetime-days: 1825
-      crl-distribution-point: ${eudiw-ca.base-uri}/v1/certs/root2.crl
-      certificate-uri: ${eudiw-ca.base-uri}/v1/certs/root2.cer
+      crl-distribution-point: ${eudiw-ca.base-uri}/v1/certs/root3.crl
+      certificate-uri: ${eudiw-ca.base-uri}/v1/certs/root3.cer
       keystore:
         type: pkcs12
         location: "base64:MIIEugIBAzCCBGQGCSqGSIb3DQEHAaCCBFUEggRRMIIETTCCATQGCSqGSIb3DQEHAaCCASUEggEhMIIBHTCCARkGCyqGSIb3DQEMCgECoIG9MIG6MGYGCSqGSIb3DQEFDTBZMDgGCSqGSIb3DQEFDDArBBQRoIqjmSJeaNt3ntYSB/5iMdQdqwICJxACASAwDAYIKoZIhvcNAgkFADAdBglghkgBZQMEASoEEKWWuRxxe/Gfrey7cQ6kIWwEUAHRiyggImcHYVxao81IwThMgJbLkw0g+8qKEJGe7vc+pYaWfTegTgBZBAUTm6vM9FEIUo03hJWIhlhRQlgLXOkYmSiajAA+5acw9L/ClhNUMUowJQYJKoZIhvcNAQkUMRgeFgBqAHUAbgBpAHQAXwByAG8AbwB0ADIwIQYJKoZIhvcNAQkVMRQEElRpbWUgMTc3MzA3NDYxOTgyMDCCAxEGCSqGSIb3DQEHBqCCAwIwggL+AgEAMIIC9wYJKoZIhvcNAQcBMGYGCSqGSIb3DQEFDTBZMDgGCSqGSIb3DQEFDDArBBRiBCUAGDdvdXIspiWIcVQvCousLwICJxACASAwDAYIKoZIhvcNAgkFADAdBglghkgBZQMEASoEEKeTEblDmaEDAmBxqm2sULeAggKABjfexzDVvTBwZDtqp+16C4bWEniG9v3HQAUDe4+cVV9V1fBdia7nlQgxGd5gNzgz9N7UixUG7/Z2NePE/4QbGTFQJ8eDchlz6Hg/0i2AqnX2pAeGbLuYohBrogZAxcvIRVGMAbcj8tRJYT3JTSFF2eur8qzn/3ROqmaScX6d2LxIcOq3/Rt5byyVXdwO2LxFjyp4ERJ/JqphwaRXaCJFEb6BZFkeLm/4AgQYFDqFju8lqbYcAdg7i4FaPS4muhkO5yVUV1T8e2ThVH32pncFdbylnWxSjo45sxeNYdfLWlN1aYzUInMJPdfpR2epvtoelrYDp8Jp88K+PCOwWgyaXPzlxYGx/yW0WKE4x80lUVUtpOsZPW5q+HdpwDpL3P+rv5ZbDqwC+RVNuADj08eaGEPJuvMhN6AJbJ+Pv8nKCjgz/9tenOB/+930hdLWlWve6kkHkrcw4e2JhdwNrOXttC775fWgVDISxkbMDSfeG+l62lTUBSvblWik0vse9tMPTlM9KjR4mDs5W51sL55DRCP/WMBq27h9OkigmMOqsCmklFSCQrfPqgUo/MWF5tpIyb9fvBoe6IwmqypiRV/cRay7xRNR8CB3dhy9TnKk9+NaDHA4iH6VGF+3KKV0BY1iZNEvqs6N4/ZJphB1Det2SHwRQebg1oeMCZzA1n27mA3ioZWKU1JUi1y25HpkFaSWVWtZmfyBI8cdBmTOJwv3ga2yzMdZpzEfNUoYimW+EzHaDuSTSS68tGmJSB+YncTIocy8XlKQN/jPuGgEck/JJ1GEenRskWdf9fwl/9MCa9+IXNWJDjaSf8uXelnEp+tNM4CjrgwVO3KXt7o4LsJfrDBNMDEwDQYJYIZIAWUDBAIBBQAEIPFZDUVBFxwZEQzUiwLa9wEe4Ngq3BfmPbpjNd5VZRW3BBRwWPH05Ve8+ZBGvYu6TbNta9i9KwICJxA="
@@ -34,7 +34,7 @@ eudiw-ca:
         qc-statements:
           qc-type: id-etsi-qct-pid
     junit2:
-      root: root2
+      root: root3
       lifetime-days: 365
       crl-distribution-point: ${eudiw-ca.base-uri}/v1/certs/intermediates/junit2.crl
       certificate-uri: ${eudiw-ca.base-uri}/v1/certs/intermediates/junit2.cer

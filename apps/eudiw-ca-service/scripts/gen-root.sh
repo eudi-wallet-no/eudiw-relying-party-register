@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Better than nothing-script to set up a intermediate CA
-# change variabkes before running!
+# change variables before running!
 
-root_alias=systest_root
+root_alias=root2
 root_password=$1
-dname="CN=eidas2sandkasse root CA systest, OU=Digdir, C=no, 2.5.4.97=NTRNO-991825827"
+dname="CN=eidas2sandkasse root CA 2 dev, O=DIGITALISERINGSDIREKTORATET, C=NO, 2.5.4.97=NTRNO-NOFOR.991825827"
 
 # Generate root
 keytool \

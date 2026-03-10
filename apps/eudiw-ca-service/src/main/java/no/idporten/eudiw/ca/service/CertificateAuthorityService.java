@@ -57,7 +57,7 @@ public class CertificateAuthorityService {
 
     public static final String DIGDIR_ORGNO = "991825827";
     public static final String OID_ORGANIZATION_NUMBER = "2.5.4.97";
-    public static final String SIGNATURE_ALGORITHM_SHA_512_WITH_ECDSA = "SHA512WITHECDSA";
+    public static final String SIGNATURE_ALGORITHM_SHA_256_WITH_ECDSA = "SHA256WITHECDSA";
 
     private final CertificateRepository certificateRepository;
 
@@ -209,7 +209,7 @@ public class CertificateAuthorityService {
         for (Extension extension : extensions) {
             x509v3CertificateBuilder.addExtension(extension);
         }
-        AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find(SIGNATURE_ALGORITHM_SHA_512_WITH_ECDSA);
+        AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find(SIGNATURE_ALGORITHM_SHA_256_WITH_ECDSA);
         AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
         AsymmetricKeyParameter caPrivateKey = PrivateKeyFactory.createKey(certificateAuthority.getPrivateKey().getEncoded());
         ContentSigner sigGen = new BcECContentSignerBuilder(sigAlgId, digAlgId).build(caPrivateKey);
@@ -300,7 +300,7 @@ public class CertificateAuthorityService {
         for (Certificate revokedCertificate : revokedCertificates) {
             crlBuilder.addCRLEntry(SerialNumberUtils.convertFromString(revokedCertificate.getSerialNo()), new Date(revokedCertificate.getRevokedAtMs()), revokedCertificate.getRevocationReason());
         }
-        AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find(SIGNATURE_ALGORITHM_SHA_512_WITH_ECDSA);
+        AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find(SIGNATURE_ALGORITHM_SHA_256_WITH_ECDSA);
         AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
         AsymmetricKeyParameter caPrivateKey = PrivateKeyFactory.createKey(certificateAuthority.getPrivateKey().getEncoded());
         ContentSigner sigGen = new BcECContentSignerBuilder(sigAlgId, digAlgId).build(caPrivateKey);
@@ -320,7 +320,7 @@ public class CertificateAuthorityService {
                 new JcaPKCS10CertificationRequestBuilder(
                         certificateAuthority.getCertificate().getSubjectX500Principal(),
                         certificateAuthority.getPublicKey());
-        JcaContentSignerBuilder csBuilder = new JcaContentSignerBuilder(SIGNATURE_ALGORITHM_SHA_512_WITH_ECDSA);
+        JcaContentSignerBuilder csBuilder = new JcaContentSignerBuilder(SIGNATURE_ALGORITHM_SHA_256_WITH_ECDSA);
         ContentSigner signer = csBuilder.build(certificateAuthority.getPrivateKey());
         return p10Builder.build(signer);
     }
