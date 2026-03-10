@@ -21,13 +21,13 @@
         <lombok.version>1.18.42</lombok.version>
         <idporten-actuator-starter.version>3.0.0</idporten-actuator-starter.version>
         <idporten-access-log.version>4.0.0</idporten-access-log.version>
-        <opentelemetry-api.version>1.59.0</opentelemetry-api.version>
+        <opentelemetry-api.version>1.60.1</opentelemetry-api.version>
         <jakarta.xml.bind-api.version>4.0.5</jakarta.xml.bind-api.version>
         <jaxb-impl.version>4.0.6</jaxb-impl.version>
         <jaxb2-maven-plugin.version>4.1.0</jaxb2-maven-plugin.version>
         <bcpkix-jdk18on.version>1.83</bcpkix-jdk18on.version>
         <bcprov-jdk18on.version>1.83</bcprov-jdk18on.version>
-        <dss.version>6.3</dss.version>
+        <dss.version>6.4</dss.version>
         <nimbus-jose-jwt.version>10.8</nimbus-jose-jwt.version>
     </properties>
 
