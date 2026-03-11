@@ -129,7 +129,7 @@ public class IssuerCertificateTests {
             RecordedRequest recordedRequest = mockCaServer.takeRequest();
             assertAll(
                     () -> assertEquals("POST", recordedRequest.getMethod()),
-                    () -> assertEquals("/v1/certs/eaa_provider", recordedRequest.getPath())
+                    () -> assertEquals("/v1/certs/eaa_provider2", recordedRequest.getPath())
             );
 
             assertTrue(instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).isPresent(), "legal entity with at least one RelyingPartyInstances should be present in repository");
@@ -163,7 +163,7 @@ public class IssuerCertificateTests {
             RecordedRequest recordedRequest = mockCaServer.takeRequest();
             assertAll(
                     () -> assertEquals("POST", recordedRequest.getMethod()),
-                    () -> assertEquals("/v1/certs/eaa_provider", recordedRequest.getPath())
+                    () -> assertEquals("/v1/certs/eaa_provider2", recordedRequest.getPath())
             );
 
             assertTrue(instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).isPresent(), "legal entity with at least one RelyingPartyInstances should be present in repository");
@@ -198,7 +198,7 @@ public class IssuerCertificateTests {
             RecordedRequest recordedRequest = mockCaServer.takeRequest();
             assertAll(
                     () -> assertEquals("POST", recordedRequest.getMethod()),
-                    () -> assertEquals("/v1/certs/eaa_provider", recordedRequest.getPath())
+                    () -> assertEquals("/v1/certs/eaa_provider2", recordedRequest.getPath())
             );
 
             assertTrue(instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).isPresent(), "legal entity with at least one RelyingPartyInstances should be present in repository");
@@ -232,7 +232,7 @@ public class IssuerCertificateTests {
             RecordedRequest recordedRequest = mockCaServer.takeRequest();
             assertAll(
                     () -> assertEquals("POST", recordedRequest.getMethod()),
-                    () -> assertEquals("/v1/certs/pid_provider", recordedRequest.getPath())
+                    () -> assertEquals("/v1/certs/pid_provider2", recordedRequest.getPath())
             );
 
             assertTrue(instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).isPresent(), "legal entity with at least one RelyingPartyInstances should be present in repository");
@@ -321,7 +321,7 @@ public class IssuerCertificateTests {
 
 
             assertEquals("POST", recordedRequest1.getMethod());
-            assertEquals("/v1/certs/pid_provider", recordedRequest2.getPath());
+            assertEquals("/v1/certs/pid_provider2", recordedRequest2.getPath());
 
             assertEquals("PUT", recordedRequest2.getMethod());
             assertEquals(0, relyingPartyFinished.getIssuerCertificates().getFirst().getRevocationStatus());
