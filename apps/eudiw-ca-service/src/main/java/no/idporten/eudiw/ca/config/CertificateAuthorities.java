@@ -3,6 +3,8 @@ package no.idporten.eudiw.ca.config;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.ca.exception.CertificateAuthorityException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.http.HttpStatus;
@@ -19,6 +21,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @ConfigurationProperties(prefix = "eudiw-ca")
 public class CertificateAuthorities implements InitializingBean {
+
+    private static final Logger log = LoggerFactory.getLogger(CertificateAuthorities.class);
 
     @NotNull
     private final Map<String, CertificateAuthority> roots;
@@ -37,10 +41,12 @@ public class CertificateAuthorities implements InitializingBean {
     @Override
     public void afterPropertiesSet() throws Exception {
         for (Map.Entry<String, CertificateAuthority> rootEntry : roots.entrySet()) {
+            log.info("Initializing root CA {}", rootEntry.getKey());
             rootEntry.getValue().init(rootEntry.getKey());
             rootEntry.getValue().validate(rootEntry.getValue());
         }
         for (Map.Entry<String, CertificateAuthority> intermediateEntry : intermediates.entrySet()) {
+            log.info("Initializing intermediate CA {}", intermediateEntry.getKey());
             intermediateEntry.getValue().init(intermediateEntry.getKey());
             intermediateEntry.getValue().validate(findRoot(intermediateEntry.getValue().getRoot()));
         }
