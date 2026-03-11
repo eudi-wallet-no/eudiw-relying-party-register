@@ -67,7 +67,14 @@ public class CertificateAuthorityApiController {
             @ApiResponse(responseCode = "200", description = "DER-encoded certificate", content = @Content(mediaType = APPLICATION_X_PKIX_CERT_VALUE))
     })
     @GetMapping(path = {"/v1/certs/{root}.crt", "/v1/certs/{root}.cer"}, produces = APPLICATION_X_PKIX_CERT_VALUE)
-    public ResponseEntity<byte[]> getRootCertificate(@PathVariable("root") String root) throws Exception {
+    public ResponseEntity<byte[]> getRootCertificate(
+            @Parameter(
+                    description = "Root CA name",
+                    examples = {
+                            @ExampleObject(name = "root2", value = "root2", description = "Root CA 2"),
+                            @ExampleObject(name = "root", value = "root", description = "Root CA")},
+                    required = true)
+            @PathVariable("root") String root) throws Exception {
         return ResponseEntity.ok(certificateAuthorities.findRoot(root).getCertificate().getEncoded());
     }
 
@@ -79,7 +86,14 @@ public class CertificateAuthorityApiController {
             @ApiResponse(responseCode = "200", description = "PEM-encoded certificate", content = @Content(mediaType = APPLICATION_X_PEM_FILE_VALUE))
     })
     @GetMapping(path = "/v1/certs/{root}.pem", produces = APPLICATION_X_PEM_FILE_VALUE)
-    public ResponseEntity<String> getRootCertificatePem(@PathVariable("root") String root) throws Exception {
+    public ResponseEntity<String> getRootCertificatePem(
+            @Parameter(
+                    description = "Root CA name",
+                    examples = {
+                            @ExampleObject(name = "root2", value = "root2", description = "Root CA 2"),
+                            @ExampleObject(name = "root", value = "root", description = "Root CA")},
+                    required = true)
+            @PathVariable("root") String root) throws Exception {
         return ResponseEntity.ok(CertificateEncodingUtils.encodeToPem(certificateAuthorities.findRoot(root).getCertificate()));
     }
 
@@ -91,7 +105,14 @@ public class CertificateAuthorityApiController {
             @ApiResponse(responseCode = "200", description = "DER-encoded CRL", content = @Content(mediaType = APPLICATION_X_PKIX_CRL_VALUE))
     })
     @GetMapping(path = "/v1/certs/{root}.crl", produces = APPLICATION_X_PKIX_CRL_VALUE)
-    public ResponseEntity<byte[]> getRootCrl(@PathVariable("root") String root) throws Exception {
+    public ResponseEntity<byte[]> getRootCrl(
+            @Parameter(
+                    description = "Root CA name",
+                    examples = {
+                            @ExampleObject(name = "root2", value = "root2", description = "Root CA 2"),
+                            @ExampleObject(name = "root", value = "root", description = "Root CA")},
+                    required = true)
+            @PathVariable("root") String root) throws Exception {
         return ResponseEntity.ok(certificateAuthorityService.createCRL(certificateAuthorities.findRoot(root)).getEncoded());
     }
 
@@ -107,11 +128,14 @@ public class CertificateAuthorityApiController {
             @Parameter(
                     description = "Intermediate CA name",
                     examples = {
+                            @ExampleObject(name = "access2", value = "access2", description = "RP access CA 2"),
+                            @ExampleObject(name = "pid_provider2", value = "pid_provider2", description = "PID_Provider CA 2"),
+                            @ExampleObject(name = "eaa_provider2", value = "eaa_provider2", description = "QEAA_Provider/Non_Q_EAA_Provider CA 2"),
                             @ExampleObject(name = "access", value = "access", description = "RP access CA"),
                             @ExampleObject(name = "pid_provider", value = "pid_provider", description = "PID_Provider CA"),
                             @ExampleObject(name = "eaa_provider", value = "eaa_provider", description = "QEAA_Provider/Non_Q_EAA_Provider CA"),
-                            @ExampleObject(name = "pub_eaa_provider", value = "pub_eaa_provider", description = "PUB_EAA_Provider CA"),
-                            @ExampleObject(name = "issuer", value = "issuer", description = "Issuer CA")},
+                            @ExampleObject(name = "pub_eaa_provider", value = "pub_eaa_provider", description = "PUB_EAA_Provider CA (deprecated)"),
+                            @ExampleObject(name = "issuer", value = "issuer", description = "Issuer CA (deprecated)")},
                     required = true)
             @PathVariable("intermediate") String intermediate) throws Exception {
         return ResponseEntity.ok(certificateAuthorities.findIntermediate(intermediate).getCertificate().getEncoded());
@@ -129,11 +153,14 @@ public class CertificateAuthorityApiController {
             @Parameter(
                     description = "Intermediate CA name",
                     examples = {
+                            @ExampleObject(name = "access2", value = "access2", description = "RP access CA 2"),
+                            @ExampleObject(name = "pid_provider2", value = "pid_provider2", description = "PID_Provider CA 2"),
+                            @ExampleObject(name = "eaa_provider2", value = "eaa_provider2", description = "QEAA_Provider/Non_Q_EAA_Provider CA 2"),
                             @ExampleObject(name = "access", value = "access", description = "RP access CA"),
                             @ExampleObject(name = "pid_provider", value = "pid_provider", description = "PID_Provider CA"),
                             @ExampleObject(name = "eaa_provider", value = "eaa_provider", description = "QEAA_Provider/Non_Q_EAA_Provider CA"),
-                            @ExampleObject(name = "pub_eaa_provider", value = "pub_eaa_provider", description = "PUB_EAA_Provider CA"),
-                            @ExampleObject(name = "issuer", value = "issuer", description = "Issuer CA")},
+                            @ExampleObject(name = "pub_eaa_provider", value = "pub_eaa_provider", description = "PUB_EAA_Provider CA (deprecated)"),
+                            @ExampleObject(name = "issuer", value = "issuer", description = "Issuer CA (deprecated)")},
                     required = true)
             @PathVariable("intermediate") String intermediate) throws Exception {
         return ResponseEntity.ok(CertificateEncodingUtils.encodeToPem(certificateAuthorities.findIntermediate(intermediate).getCertificate()));
@@ -151,11 +178,14 @@ public class CertificateAuthorityApiController {
             @Parameter(
                     description = "Intermediate CA name",
                     examples = {
+                            @ExampleObject(name = "access2", value = "access2", description = "RP access CA 2"),
+                            @ExampleObject(name = "pid_provider2", value = "pid_provider2", description = "PID_Provider CA 2"),
+                            @ExampleObject(name = "eaa_provider2", value = "eaa_provider2", description = "QEAA_Provider/Non_Q_EAA_Provider CA 2"),
                             @ExampleObject(name = "access", value = "access", description = "RP access CA"),
                             @ExampleObject(name = "pid_provider", value = "pid_provider", description = "PID_Provider CA"),
                             @ExampleObject(name = "eaa_provider", value = "eaa_provider", description = "QEAA_Provider/Non_Q_EAA_Provider CA"),
-                            @ExampleObject(name = "pub_eaa_provider", value = "pub_eaa_provider", description = "PUB_EAA_Provider CA"),
-                            @ExampleObject(name = "issuer", value = "issuer", description = "Issuer CA")},
+                            @ExampleObject(name = "pub_eaa_provider", value = "pub_eaa_provider", description = "PUB_EAA_Provider CA (deprecated)"),
+                            @ExampleObject(name = "issuer", value = "issuer", description = "Issuer CA (deprecated)")},
                     required = true)
             @PathVariable("intermediate") String intermediate) throws Exception {
         return ResponseEntity.ok(certificateAuthorityService.createCRL(certificateAuthorities.findIntermediate(intermediate)).getEncoded());
@@ -180,11 +210,14 @@ public class CertificateAuthorityApiController {
             @Parameter(
                     description = "Intermediate CA name",
                     examples = {
+                            @ExampleObject(name = "access2", value = "access2", description = "RP access CA 2"),
+                            @ExampleObject(name = "pid_provider2", value = "pid_provider2", description = "PID_Provider CA 2"),
+                            @ExampleObject(name = "eaa_provider2", value = "eaa_provider2", description = "QEAA_Provider/Non_Q_EAA_Provider CA 2"),
                             @ExampleObject(name = "access", value = "access", description = "RP access CA"),
                             @ExampleObject(name = "pid_provider", value = "pid_provider", description = "PID_Provider CA"),
                             @ExampleObject(name = "eaa_provider", value = "eaa_provider", description = "QEAA_Provider/Non_Q_EAA_Provider CA"),
-                            @ExampleObject(name = "pub_eaa_provider", value = "pub_eaa_provider", description = "PUB_EAA_Provider CA"),
-                            @ExampleObject(name = "issuer", value = "issuer", description = "Issuer CA")},
+                            @ExampleObject(name = "pub_eaa_provider", value = "pub_eaa_provider", description = "PUB_EAA_Provider CA (deprecated)"),
+                            @ExampleObject(name = "issuer", value = "issuer", description = "Issuer CA (deprecated)")},
                     required = true)
             @PathVariable("intermediate") String intermediate) throws Exception {
         PKCS10CertificationRequest pkcs10CertificationRequest = certificateAuthorityService.decodeCsr(certificateRequest.getCsr());
@@ -215,11 +248,14 @@ public class CertificateAuthorityApiController {
             @Parameter(
                     description = "Intermediate CA name",
                     examples = {
+                            @ExampleObject(name = "access2", value = "access2", description = "RP access CA 2"),
+                            @ExampleObject(name = "pid_provider2", value = "pid_provider2", description = "PID_Provider CA 2"),
+                            @ExampleObject(name = "eaa_provider2", value = "eaa_provider2", description = "QEAA_Provider/Non_Q_EAA_Provider CA 2"),
                             @ExampleObject(name = "access", value = "access", description = "RP access CA"),
                             @ExampleObject(name = "pid_provider", value = "pid_provider", description = "PID_Provider CA"),
                             @ExampleObject(name = "eaa_provider", value = "eaa_provider", description = "QEAA_Provider/Non_Q_EAA_Provider CA"),
-                            @ExampleObject(name = "pub_eaa_provider", value = "pub_eaa_provider", description = "PUB_EAA_Provider CA"),
-                            @ExampleObject(name = "issuer", value = "issuer", description = "Issuer CA")},
+                            @ExampleObject(name = "pub_eaa_provider", value = "pub_eaa_provider", description = "PUB_EAA_Provider CA (deprecated)"),
+                            @ExampleObject(name = "issuer", value = "issuer", description = "Issuer CA (deprecated)")},
                     required = true)
             @PathVariable("intermediate") String intermediate) {
         certificateAuthorityService.revokeCertificate(
