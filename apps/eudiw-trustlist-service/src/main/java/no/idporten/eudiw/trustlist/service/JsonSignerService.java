@@ -3,10 +3,12 @@ package no.idporten.eudiw.trustlist.service;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.util.Base64;
-import jakarta.validation.constraints.NotNull;
+import jakarta.annotation.PostConstruct;
 import no.idporten.eudiw.trustlist.config.KeyProvider;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.LoTE;
+import no.idporten.eudiw.trustlist.exception.ApplicationException;
 import no.idporten.eudiw.trustlist.exception.JsonSignException;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import tools.jackson.core.JacksonException;
@@ -21,15 +23,31 @@ import java.util.List;
 @Service
 public class JsonSignerService {
 
+    private String signedTrustlist;
+
+    private final TrustListACAGeneratorService generatorService;
+
     private final KeyProvider keyProvider;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public JsonSignerService(KeyProvider keyProvider) {
+    private final static Logger log = LoggerFactory.getLogger(JsonSignerService.class);
+
+    public JsonSignerService(TrustListACAGeneratorService generatorService, KeyProvider keyProvider) {
+        this.generatorService = generatorService;
         this.keyProvider = keyProvider;
     }
 
-    public String signedJson(@NotNull LoTE loTE) {
+    public String getSignedTrustlist() {
+        if (this.signedTrustlist == null) {
+            log.warn("ACA trustlist is not initialized, try generating again.");
+            this.signedTrustlist = signedJson();
+        }
+        return this.signedTrustlist;
+    }
+
+    protected String signedJson() {
+        LoTE loTE = generatorService.generateTrustlistACA();
         String loteType = getListType(loTE); // For logging/errorhandling messages
         String json = convertLoTEtoJsonString(loTE, loteType);
         return signJson(json, loteType);
@@ -85,5 +103,17 @@ public class JsonSignerService {
         } catch (CertificateEncodingException e) {
             throw new JsonSignException("Failed to get certificateChain from keystore for trustlist %s".formatted(loteType), e);
         }
+    }
+
+    // Only generate ACA trustlist once at application startup
+    @PostConstruct
+    public void initTrustlist() {
+        try {
+            this.signedTrustlist = getSignedTrustlist();
+        } catch (ApplicationException e) {
+            log.error("Failed to generate ACA Trust Service Status List on startup", e);
+            throw e;
+        }
+
     }
 }
