@@ -39,11 +39,12 @@ public class TrustListACAControllerTest {
 
     @MockitoBean
     private JsonSignerService signerService;
+
     @Autowired
     private JsonSignerService jsonSignerService;
 
     @Test
-    @DisplayName("When GETTING LoTE")
+    @DisplayName("When GETTING LoTE then return as JSON with ListAndSchemeInformation with content")
     void testAcaControllerReturnsLoTE() throws Exception {
 
         LoTE lote = TestDataGenerator.createLoTETrustlist();
@@ -61,10 +62,10 @@ public class TrustListACAControllerTest {
     }
 
     @Test
-    @DisplayName("When GETTING signed trustlist")
+    @DisplayName("When GETTING signed trustlist then return JWS with content")
     void testACAControllerReturnsSignedTrustlist() throws Exception {
 
-        when(jsonSignerService.signedJson(any())).thenReturn("test");
+        when(jsonSignerService.getSignedTrustlist()).thenReturn("test");
 
         mockMvc.perform(get(properties.path() + ".jws"))
                 .andExpect(content().contentType("application/jose+json"))

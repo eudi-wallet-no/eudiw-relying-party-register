@@ -25,13 +25,25 @@ public class TrustListACAController {
         this.signerService = signerService;
     }
 
+    /**
+     * Format:
+     * - JWS Header: x5c (x509 certificate chain), alg, iat
+     * - JWS Payload: ACA Trustlist as JSON
+     * - JWS Signature
+     *
+     * @return ACA Trustlist as JSON in the payload of JWS.
+     */
     @GetMapping(value = "${trustlist-service.tsl-aca.path}.jws", produces = "application/jose+json")
     public ResponseEntity<@NonNull String> getSignedTrustListACA() {
-        LoTE loTE = generatorService.generateTrustlistACA();
-        String jws = signerService.signedJson(loTE);
+        String jws = signerService.getSignedTrustlist();
         return ResponseEntity.ok(jws);
     }
 
+    /**
+     *  Only for human convenience. List in JSON format for easy reading.
+     *
+     * @return ACA Trustlist as JSON
+     */
     @GetMapping(value = "${trustlist-service.tsl-aca.path}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<@NonNull LoTE> getTrustListACAAsJson() {
         LoTE loTE = generatorService.generateTrustlistACA();
