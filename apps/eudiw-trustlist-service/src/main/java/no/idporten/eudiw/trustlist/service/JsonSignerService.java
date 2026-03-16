@@ -64,6 +64,7 @@ public class JsonSignerService {
     private String convertLoTEtoJsonString(LoTE loTE, String loteType) {
 
         try {
+            // TODO: Dytt inn mere konfig for aa fjerne tomme felter i json
             return mapper.writeValueAsString(loTE);
         } catch (JacksonException e) {
             throw new JsonSignException("Failed to serialize LoTE to JSON for trustlist %s".formatted(loteType), e);

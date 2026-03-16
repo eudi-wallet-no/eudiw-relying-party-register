@@ -29,7 +29,7 @@ trustlist-service:
   environment-name: ${spring.application.environment}
   digdir:
     name-no: Digitaliseringsdirektoratet
-    name-en: Norwegian Digitalisation Agency
+    name-en: Digitaliseringsdirektoratet
     email: mailto:servicedesk@digdir.no
     web: https://www.digdir.no/
     postal-address:
@@ -73,6 +73,16 @@ trustlist-service:
           information-uri:
             a: https://docs.digdir.no/docs/lommebok/lommebok_om.html
             c: http://uri.etsi.org/19602/ListOfTrustedEntities/WRPACProvider/NO
+        trusted-entity-services:
+          - service-information:
+              service-name:
+                lang-no: CA for relying parties access certificates in eidas2sandkasse
+                lang-en: CA for relying parties access certificates in eidas2sandkasse
+              service-digital-identity:
+                cert: cert
+
+
+
 
 
 

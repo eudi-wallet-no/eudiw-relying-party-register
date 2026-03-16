@@ -1,4 +1,4 @@
-package no.idporten.eudiw.trustlist.domain;
+package no.idporten.eudiw.trustlist.domain.etsi602;
 
 import jakarta.validation.constraints.NotBlank;
 

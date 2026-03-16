@@ -3,16 +3,16 @@ package no.idporten.eudiw.trustlist.service;
 import no.idporten.eudiw.trustlist.config.DigdirProperties;
 import no.idporten.eudiw.trustlist.config.TrustListACAProperties;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.LoTE;
+import no.idporten.eudiw.trustlist.etsi119602.pojo.PkiOb;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.TrustedEntity;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.TrustedEntityService;
-import org.etsi.uri._02231.v2_.TSPService;
-import org.etsi.uri._02231.v2_.TrustServiceProvider;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.security.cert.X509Certificate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -65,22 +65,20 @@ class TrustListACAGeneratorServiceTest {
         assertNotNull(te.getTrustedEntityInformation().getTEAddress());
         assertNotNull(te.getTrustedEntityInformation().getTEInformationURI());
 
-      //  List<TrustedEntityService> teServices = te.getTrustedEntityServices();
-       // verify1TrustedEntityServiceHasContent(teServices);
+        List<TrustedEntityService> teServices = te.getTrustedEntityServices();
+        verify1TrustedEntityServiceHasContent(teServices);
     }
 
-//    private static void verify1TrustedEntityServiceHasContent(List<TrustedEntityService> teServices) {
-//        assertNotNull(teServices);
-//        assertFalse(teServices.isEmpty(), "TSPServices should not be empty");
-//        TrustedEntityService service = teServices.getFirst();
-//        assertNotNull(service);
-//        assertNotNull(service.getServiceInformation());
-//        assertNotNull(service.getServiceInformation().getServiceName());
-//        assertFalse(service.getServiceInformation().getServiceName().isEmpty());
-//        assertNotNull(service.getServiceInformation().getServiceStatus());
-//        assertNotNull(service.getServiceInformation().getServiceTypeIdentifier());
-//        assertNotNull(service.getServiceInformation().getServiceDigitalIdentity());
-//        assertFalse(service.getServiceInformation().getServiceDigitalIdentity().getOtherIds().isEmpty());
-//    }
+    private static void verify1TrustedEntityServiceHasContent(List<TrustedEntityService> teServices) {
+        assertNotNull(teServices);
+        assertFalse(teServices.isEmpty(), "TSPServices should not be empty");
+        TrustedEntityService service = teServices.getFirst();
+        assertNotNull(service);
+        assertNotNull(service.getServiceInformation());
+        assertNotNull(service.getServiceInformation().getServiceName());
+        assertFalse(service.getServiceInformation().getServiceName().isEmpty());
+        assertNotNull(service.getServiceInformation().getServiceDigitalIdentity().getX509Certificates());
+        assertEquals(PkiOb.class, service.getServiceInformation().getServiceDigitalIdentity().getX509Certificates().getFirst().getClass());
+    }
 
 }
