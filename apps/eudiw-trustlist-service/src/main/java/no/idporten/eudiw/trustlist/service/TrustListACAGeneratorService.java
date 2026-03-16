@@ -5,6 +5,9 @@ import no.idporten.eudiw.trustlist.config.DigdirProperties;
 import no.idporten.eudiw.trustlist.config.TrustListACAProperties;
 import no.idporten.eudiw.trustlist.domain.TLSchemeInformation;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.*;
+import no.idporten.eudiw.trustlist.exception.ApplicationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -17,9 +20,11 @@ import static no.idporten.eudiw.trustlist.service.Common602Converter.*;
 import static no.idporten.eudiw.trustlist.service.LangCode.*;
 
 
+
 @Service
 public class TrustListACAGeneratorService {
 
+    private final static Logger log = LoggerFactory.getLogger(TrustListACAGeneratorService.class);
 
     private final TrustListACAProperties acaProperties;
     private final DigdirProperties digdirProperties;
@@ -29,14 +34,19 @@ public class TrustListACAGeneratorService {
         this.digdirProperties = digdirProperties;
     }
 
-    public LoTE generateTrustlistACA() {
+    public LoTE generateTrustlistACA(){
         TLSchemeInformation schemaProps = acaProperties.schemeInformation();
 
         LoTE lote = new LoTE();
 
         ListAndSchemeInformation listAndSchemeInformation = createListAndSchemeInformation(schemaProps);
         lote.setListAndSchemeInformation(listAndSchemeInformation);
-        lote.setTrustedEntitiesList(createListOfTrustedEntity(digdirProperties, acaProperties));
+        try{
+            lote.setTrustedEntitiesList(createListOfTrustedEntity(acaProperties));
+        } catch (ApplicationException e) {
+            log.warn("Det har skjedd en feil ved setting av Trusted Entity lista til "
+                    +  lote.getListAndSchemeInformation().getSchemeName().getFirst().getValue() + e);
+        }
 
         return lote;
     }
@@ -91,14 +101,14 @@ public class TrustListACAGeneratorService {
         return List.of(schemeNameNo, schemeNameEn);
     }
 
-    public List<TrustedEntity> createListOfTrustedEntity(DigdirProperties digdirProperties, TrustListACAProperties acaProperties) {
+    public List<TrustedEntity> createListOfTrustedEntity(TrustListACAProperties acaProperties) {
 
-        List<no.idporten.eudiw.trustlist.domain.TrustedEntity> te = acaProperties.trustedEntities();
+        List<no.idporten.eudiw.trustlist.domain.etsi602.TrustedEntity> te = acaProperties.trustedEntities();
         List<TrustedEntity> finishedList = new ArrayList<>();
-        for (no.idporten.eudiw.trustlist.domain.TrustedEntity entity : te) {
+        for (no.idporten.eudiw.trustlist.domain.etsi602.TrustedEntity entity : te) {
             TrustedEntityInformation trustedEntityInformation = new TrustedEntityInformation();
-            MultiLangString teNameNO = createMultiLangString(NO.getCode(), digdirProperties.nameNo());
-            MultiLangString teNameEN = createMultiLangString(EN.getCode(), digdirProperties.nameEn());
+            MultiLangString teNameNO = createMultiLangString(NO.getCode(), entity.trustedEntityInformation().teName());
+            MultiLangString teNameEN = createMultiLangString(EN.getCode(), entity.trustedEntityInformation().teName());
             trustedEntityInformation.setTEName(List.of(teNameNO, teNameEN));
 
             trustedEntityInformation.setTEAddress(createTEAddress());
@@ -112,6 +122,9 @@ public class TrustListACAGeneratorService {
             trustedEntityInformation.setTEInformationURI(List.of(a, c));
             TrustedEntity trustedEntity = new TrustedEntity();
             trustedEntity.setTrustedEntityInformation(trustedEntityInformation);
+
+            TrustedEntityService trustedEntityService = createRpAccessTrustedEntityService(entity, acaProperties);
+            trustedEntity.setTrustedEntityServices(List.of(trustedEntityService));
             finishedList.add(trustedEntity);
         }
         return finishedList;
@@ -128,5 +141,24 @@ public class TrustListACAGeneratorService {
         teAddress.setTEPostalAddress(List.of(postalAddress));
 
         return teAddress;
+    }
+
+    private TrustedEntityService createRpAccessTrustedEntityService(no.idporten.eudiw.trustlist.domain.etsi602.TrustedEntity trustedEntity, TrustListACAProperties acaProperties)  {
+     no.idporten.eudiw.trustlist.etsi119602.pojo.TrustedEntityService trustedEntityService = new TrustedEntityService();
+
+        MultiLangString serviceNameNo = createMultiLangString(NO.getCode(), acaProperties.trustedEntities().getFirst().trustedEntityServices().getFirst().serviceInformation().serviceName().langNo());
+        MultiLangString serviceNameEn = createMultiLangString(EN.getCode(), acaProperties.trustedEntities().getFirst().trustedEntityServices().getFirst().serviceInformation().serviceName().langEn());
+        ServiceInformation serviceInformation = new ServiceInformation();
+        serviceInformation.setServiceName(List.of(serviceNameNo, serviceNameEn));
+        ServiceDigitalIdentity serviceDigitalIdentity = new ServiceDigitalIdentity();
+
+        List<PkiOb> list = new ArrayList<>();
+        PkiOb pkiOb = new PkiOb();
+        pkiOb.setVal(trustedEntity.trustedEntityServices().getFirst().serviceInformation().serviceDigitalIdentity().cert());
+        list.add(pkiOb);
+        serviceDigitalIdentity.setX509Certificates(list);
+        serviceInformation.setServiceDigitalIdentity(serviceDigitalIdentity);
+        trustedEntityService.setServiceInformation(serviceInformation);
+        return trustedEntityService;
     }
 }

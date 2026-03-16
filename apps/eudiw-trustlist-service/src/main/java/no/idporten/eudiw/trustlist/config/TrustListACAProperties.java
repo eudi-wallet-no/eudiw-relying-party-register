@@ -4,7 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import no.idporten.eudiw.trustlist.domain.TLSchemeInformation;
-import no.idporten.eudiw.trustlist.domain.TrustedEntity;
+import no.idporten.eudiw.trustlist.domain.etsi602.TrustedEntity;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
