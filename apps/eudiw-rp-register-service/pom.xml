@@ -23,7 +23,7 @@
         <mariadb-java-client.version>3.5.7</mariadb-java-client.version>
         <springdoc.version>3.0.2</springdoc.version>
         <lombok.version>1.18.44</lombok.version>
-        <idporten-audit-log.version>3.0.0</idporten-audit-log.version>
+        <idporten-audit-log.version>4.0.0</idporten-audit-log.version>
         <mockwebserver.version>5.3.2</mockwebserver.version>
         <bcpkix.version>1.83</bcpkix.version>
     </properties>
