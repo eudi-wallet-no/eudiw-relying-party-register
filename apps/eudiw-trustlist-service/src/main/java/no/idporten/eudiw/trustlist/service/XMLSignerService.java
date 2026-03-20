@@ -1,6 +1,8 @@
 package no.idporten.eudiw.trustlist.service;
 
-import no.idporten.eudiw.trustlist.config.KeyProvider;
+import no.idporten.eudiw.trustlist.config.TrustList612Properties;
+import no.idporten.lib.keystore.KeyProvider;
+import no.idporten.lib.keystore.KeystoreManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
@@ -40,11 +42,18 @@ public class XMLSignerService {
     public static final String ELEMENT_SIGNATURE = "Signature";
     public static final String MECHANISM_DOM = "DOM";
 
-    private final KeyProvider tslKeyProvider;
+    private final TrustList612Properties properties;
+    private final KeystoreManager keystoreManager;
+
 
     @Autowired
-    public XMLSignerService(KeyProvider tslKeyProvider) {
-        this.tslKeyProvider = tslKeyProvider;
+    public XMLSignerService(KeystoreManager keystoreManager, TrustList612Properties properties) {
+        this.keystoreManager = keystoreManager;
+        this.properties = properties;
+    }
+
+    private KeyProvider getKeystore(){
+        return keystoreManager.getKeyProvider(properties.keystore());
     }
 
     private SignedInfo createSignedInfo(XMLSignatureFactory xmlSignatureFactory) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException {
@@ -61,7 +70,7 @@ public class XMLSignerService {
     }
 
     private KeyInfo createKeyInfo(XMLSignatureFactory xmlSignatureFactory) {
-        Certificate certificate = tslKeyProvider.getCertificate();
+        Certificate certificate = getKeystore().certificate();
         KeyInfoFactory keyInfoFactory = xmlSignatureFactory.getKeyInfoFactory();
         X509Data x509Data = keyInfoFactory.newX509Data(List.of(certificate));
         return keyInfoFactory.newKeyInfo(List.of(x509Data));
@@ -69,7 +78,7 @@ public class XMLSignerService {
 
 
     public Document createEnvelopedSignature(Document document) {
-        PrivateKey privateKey = tslKeyProvider.getPrivateKey();
+        PrivateKey privateKey = getKeystore().privateKey();
         XMLSignatureFactory xmlSignatureFactory;
         try {
             xmlSignatureFactory = XMLSignatureFactory.getInstance(MECHANISM_DOM, PROVIDER_XMLDSIG);
@@ -97,7 +106,7 @@ public class XMLSignerService {
 
     public boolean validateEnvelopedSignature(Document document) {
         Node signatureNode = document.getElementsByTagNameNS(XMLSignature.XMLNS, ELEMENT_SIGNATURE).item(0);
-        DOMValidateContext validateContext = new DOMValidateContext(KeySelector.singletonKeySelector(tslKeyProvider.getPublicKey()), signatureNode);
+        DOMValidateContext validateContext = new DOMValidateContext(KeySelector.singletonKeySelector(getKeystore().publicKey()), signatureNode);
         XMLSignatureFactory factory = XMLSignatureFactory.getInstance(MECHANISM_DOM);
         XMLSignature signature;
         try {

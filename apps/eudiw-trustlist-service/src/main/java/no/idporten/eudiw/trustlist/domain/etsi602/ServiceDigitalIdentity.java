@@ -26,7 +26,7 @@ public record ServiceDigitalIdentity(@NotEmpty String cert) {
         try {
             return (X509CertificateHolder) pemParser.readObject();
         } catch (IOException e) {
-            throw new ApplicationException("Feil i lesing av x509 sertifikatet i tillitsliste 602 " + e);
+            throw new ApplicationException("Feil i lesing av x509 sertifikat i tillitsliste 602", e);
         }
     }
 }

@@ -13,6 +13,7 @@ import org.springframework.validation.annotation.Validated;
 public record TrustList612Properties(@NotEmpty String trustlistPath,
                                      @NotEmpty String trustlistPathXtsl,
                                      @NotEmpty String trustlistPathSha2,
+                                     @NotEmpty String keystore,
                                      @Valid @NotNull TLSchemeInformation schemeInformation,
                                      @Valid TLServiceProvider serviceProvider
 

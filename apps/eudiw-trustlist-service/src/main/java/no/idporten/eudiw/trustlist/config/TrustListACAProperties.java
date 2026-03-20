@@ -13,6 +13,7 @@ import java.util.List;
 @Validated
 @ConfigurationProperties(prefix = "trustlist-service.tsl-aca")
 public record TrustListACAProperties(@NotEmpty String path,
+                                     @NotEmpty String keystore,
                                      @Valid @NotNull TLSchemeInformation schemeInformation,
                                      @Valid @NotNull List<TrustedEntity> trustedEntities
 ) { }
