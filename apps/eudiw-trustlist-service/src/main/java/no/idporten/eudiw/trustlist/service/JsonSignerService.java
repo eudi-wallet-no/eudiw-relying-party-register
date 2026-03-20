@@ -1,13 +1,15 @@
 package no.idporten.eudiw.trustlist.service;
 
 import com.nimbusds.jose.*;
-import com.nimbusds.jose.crypto.RSASSASigner;
+import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.util.Base64;
 import jakarta.annotation.PostConstruct;
-import no.idporten.eudiw.trustlist.config.KeyProvider;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.LoTE;
 import no.idporten.eudiw.trustlist.exception.ApplicationException;
 import no.idporten.eudiw.trustlist.exception.JsonSignException;
+import no.idporten.lib.keystore.KeyProvider;
+import no.idporten.lib.keystore.KeystoreManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -27,15 +29,20 @@ public class JsonSignerService {
 
     private final TrustListACAGeneratorService generatorService;
 
-    private final KeyProvider keyProvider;
+    private final KeystoreManager keystoreManager;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
     private final static Logger log = LoggerFactory.getLogger(JsonSignerService.class);
 
-    public JsonSignerService(TrustListACAGeneratorService generatorService, KeyProvider keyProvider) {
+    public JsonSignerService(TrustListACAGeneratorService generatorService, KeystoreManager keystoreManager) {
         this.generatorService = generatorService;
-        this.keyProvider = keyProvider;
+        this.keystoreManager = keystoreManager;
+    }
+
+    private KeyProvider getKeystore(){
+        String keystoreName = generatorService.getTrustListKeystoreName();
+        return keystoreManager.getKeyProvider(keystoreName);
     }
 
     public String getSignedTrustlist() {
@@ -74,7 +81,7 @@ public class JsonSignerService {
     private String signJson(String json, String loteType) {
 
         List<Base64> certBase64chain = getCertificateChainFromKeystore(loteType);
-        JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.PS512)
+        JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256)
                 .x509CertChain(certBase64chain)
                 .customParam("iat", Instant.now().getEpochSecond())
                 .build();
@@ -82,10 +89,10 @@ public class JsonSignerService {
         Payload payload = new Payload(json);
         JWSObject jwsObject = new JWSObject(header, payload);
 
-        PrivateKey privateKey = keyProvider.getPrivateKey();
-        JWSSigner signer = new RSASSASigner(privateKey);
+        PrivateKey privateKey = getKeystore().privateKey();
 
         try {
+            JWSSigner signer = new ECDSASigner(privateKey, Curve.P_256);
             jwsObject.sign(signer);
         } catch (JOSEException e) {
             throw new JsonSignException("Failed signing trustlist %s".formatted(loteType), e);
@@ -94,7 +101,7 @@ public class JsonSignerService {
     }
 
     private List<Base64> getCertificateChainFromKeystore(String loteType) {
-        List<Certificate> certificateChain = keyProvider.getCertificateChain();
+        List<Certificate> certificateChain = getKeystore().certificateChain();
         return certificateChain.stream().map(certificate -> certificateToBase64(certificate, loteType)).toList();
     }
 

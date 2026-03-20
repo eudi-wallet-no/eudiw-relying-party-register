@@ -41,7 +41,7 @@ trustlist-service:
     trustlist-path: /no_eidas2sandkasse_${trustlist-service.environment-name}_tsl
     trustlist-path-xtsl: ${trustlist-service.tsl612.trustlist-path}.xtsl
     trustlist-path-sha2: ${trustlist-service.tsl612.trustlist-path}.sha2
-
+    keystore: signing-612
     scheme-information:
       scheme-name:
         lang-no: Tillitsliste for norsk eidas2sandkasse i ${trustlist-service.environment-name}
@@ -61,6 +61,7 @@ trustlist-service:
 
   tsl-aca:
     path: /no_eidas2sandkasse_${trustlist-service.environment-name}_aca
+    keystore: signing-602
     scheme-information:
       scheme-name:
         lang-no: NO:Tillitsliste for Access Certificate Authorities i eidas2sandkasse i ${trustlist-service.environment-name}
@@ -82,14 +83,18 @@ trustlist-service:
                 cert: cert
 
 
-
-
-
-
-  keystore:
-    type: ${TSL_SIGN_KEYSTORE_TYPE}
-    location: ${TSL_SIGN_KEYSTORE}
-    password: ${TSL_SIGN_KEYSTORE_KEY_PASSWORD}
-    key-alias: ${TSL_SIGN_KEYSTORE_KEY_ALIAS}
-    key-password: ${TSL_SIGN_KEYSTORE_KEY_PASSWORD}
-
+idporten-key-manager:
+  default-keystore: signing-612  # Optional, first keystore becomes default if not specified
+  keystores:
+    signing-612:
+      key-store-location: ${TSL_612_SIGN_KEYSTORE}
+      key-store-type: ${TSL_612_SIGN_KEYSTORE_TYPE}
+      key-store-password: ${TSL_612_SIGN_KEYSTORE_KEY_PASSWORD}
+      key-alias: ${TSL_612_SIGN_KEYSTORE_KEY_ALIAS}
+      key-password: ${TSL_612_SIGN_KEYSTORE_KEY_PASSWORD}
+    signing-602:
+      key-store-location: ${TSL_602_SIGN_KEYSTORE}
+      key-store-type: ${TSL_602_SIGN_KEYSTORE_TYPE}
+      key-store-password: ${TSL_602_SIGN_KEYSTORE_KEY_PASSWORD}
+      key-alias: ${TSL_602_SIGN_KEYSTORE_KEY_ALIAS}
+      key-password: ${TSL_602_SIGN_KEYSTORE_KEY_PASSWORD}
