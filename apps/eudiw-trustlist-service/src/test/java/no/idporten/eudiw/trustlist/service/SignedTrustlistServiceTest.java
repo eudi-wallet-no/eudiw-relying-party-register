@@ -1,9 +1,7 @@
 package no.idporten.eudiw.trustlist.service;
 
-import jakarta.xml.bind.JAXBException;
 import no.idporten.eudiw.trustlist.exception.ApplicationException;
 import org.etsi.uri._02231.v2_.TrustServiceStatusList;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,27 +9,25 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import static no.idporten.eudiw.trustlist.TestDataGenerator.createSignedTrustlist;
 import static no.idporten.eudiw.trustlist.TestDataGenerator.createTrustServiceStatusList;
-import static no.idporten.eudiw.trustlist.xml.XMLUtils.parseTrustlist;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @DisplayName("SignedTrustListServiceTest")
 @ExtendWith(MockitoExtension.class)
-class SignedTrustListServiceTest {
+class SignedTrustlistServiceTest {
 
     @Mock
-    private TrustListGeneratorService trustListGeneratorService;
+    private TrustlistGeneratorService trustListGeneratorService;
 
     @Mock
     private XMLSignerService xmlSignerService;
 
     @InjectMocks
-    private SignedTrustListService signedTrustListService;
+    private SignedTrustlistService signedTrustListService;
 
     @Test
     @DisplayName("getTrustlist returns a non-null signed trustlist")

@@ -19,20 +19,17 @@ import static no.idporten.eudiw.trustlist.service.LangCode.NO;
 
 
 @Service
-public class TrustListACAGeneratorService {
+public class TrustlistACAGeneratorService {
 
     private final TrustListACAProperties acaProperties;
     private final DigdirProperties digdirProperties;
 
-    public TrustListACAGeneratorService(TrustListACAProperties acaProperties, DigdirProperties digdirProperties) {
+    public TrustlistACAGeneratorService(TrustListACAProperties acaProperties, DigdirProperties digdirProperties) {
         this.acaProperties = acaProperties;
         this.digdirProperties = digdirProperties;
     }
 
 
-    public String getTrustListKeystoreName() {
-        return acaProperties.keystore();
-    }
 
     public LoTE generateTrustlistACA() {
         TLSchemeInformation schemaProps = acaProperties.schemeInformation();

@@ -6,6 +6,7 @@ import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.util.Base64;
 import no.idporten.eudiw.trustlist.TestDataGenerator;
+import no.idporten.eudiw.trustlist.config.TrustListACAProperties;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.LoTE;
 import no.idporten.lib.keystore.KeystoreConfig;
 import no.idporten.lib.keystore.KeystoreManager;
@@ -29,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,10 +38,12 @@ class JsonSignerServiceTest {
 
     private KeystoreManager keyProvider;
 
-    @Mock
-    private TrustListACAGeneratorService trustListACAGeneratorService;
-
     private JsonSignerService jsonSignerService;
+
+    @Mock
+    private TrustListACAProperties acaProperties;
+
+    private LoTE loTE;
 
     private final static String keystoreAlias = "unittest-trustlist";
     private final static String defaultKeystore = "signing-602";
@@ -49,12 +51,11 @@ class JsonSignerServiceTest {
     @BeforeEach
     public void setup() {
         keyProvider = createKeyManager();
-        jsonSignerService = new JsonSignerService(trustListACAGeneratorService, keyProvider);
+        jsonSignerService = new JsonSignerService(acaProperties, keyProvider);
 
-        LoTE loTE = TestDataGenerator.createLoTETrustlist();
+        loTE = TestDataGenerator.createLoTETrustlist();
 
-        when(trustListACAGeneratorService.generateTrustlistACA()).thenReturn(loTE);
-        when(trustListACAGeneratorService.getTrustListKeystoreName()).thenReturn(defaultKeystore);
+        when(acaProperties.keystore()).thenReturn(defaultKeystore);
     }
 
     private static @NonNull KeystoreManager createKeyManager() {
@@ -70,7 +71,7 @@ class JsonSignerServiceTest {
     @Test
     void signedJsonVerifiedWithKeystore() throws ParseException, JOSEException {
 
-        String signedJwt = jsonSignerService.getSignedTrustlist();
+        String signedJwt = jsonSignerService.signedTrustlist(loTE);
         assertNotNull(signedJwt);
 
         JWSObject jwsObject = JWSObject.parse(signedJwt);
@@ -78,13 +79,12 @@ class JsonSignerServiceTest {
         PublicKey publicKey = keyProvider.getKeyProvider(defaultKeystore).publicKey();
         JWSVerifier verifier = new ECDSAVerifier((ECPublicKey) publicKey);
         assertTrue(jwsObject.verify(verifier));
-        verify(trustListACAGeneratorService).generateTrustlistACA();
     }
 
     @DisplayName("then signed json should be verified with X509 certificate chain in header")
     @Test
     void signedJsonVerifiedWithX509cHeader() throws Exception {
-        String signedJwt = jsonSignerService.getSignedTrustlist();
+        String signedJwt = jsonSignerService.signedTrustlist(loTE);
         assertNotNull(signedJwt);
 
         JWSObject jwsObject = JWSObject.parse(signedJwt);
@@ -104,7 +104,6 @@ class JsonSignerServiceTest {
 
         JWSVerifier verifier = new ECDSAVerifier(ecPublicKey);
         assertTrue(jwsObject.verify(verifier));
-        verify(trustListACAGeneratorService).generateTrustlistACA();
     }
 
     private static X509Certificate getX509Certificate(Base64 certBase64) throws CertificateException {

@@ -2,8 +2,7 @@ package no.idporten.eudiw.trustlist.web;
 
 
 import no.idporten.eudiw.trustlist.etsi119602.pojo.LoTE;
-import no.idporten.eudiw.trustlist.service.JsonSignerService;
-import no.idporten.eudiw.trustlist.service.TrustListACAGeneratorService;
+import no.idporten.eudiw.trustlist.service.Signed602TrustlistService;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -13,16 +12,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 @RestController
-public class TrustListACAController {
+public class TrustlistACAController {
 
 
-    private final TrustListACAGeneratorService generatorService;
-    private final JsonSignerService signerService;
+    private final Signed602TrustlistService service;
 
     @Autowired
-    public TrustListACAController(TrustListACAGeneratorService generatorService, JsonSignerService signerService) {
-        this.generatorService = generatorService;
-        this.signerService = signerService;
+    public TrustlistACAController(Signed602TrustlistService service) {
+        this.service = service;
     }
 
     /**
@@ -35,7 +32,7 @@ public class TrustListACAController {
      */
     @GetMapping(value = "${trustlist-service.tsl-aca.path}.jws", produces = "application/jose+json")
     public ResponseEntity<@NonNull String> getSignedTrustListACA() {
-        String jws = signerService.getSignedTrustlist();
+        String jws = service.getSignedACATrustlist();
         return ResponseEntity.ok(jws);
     }
 
@@ -46,7 +43,7 @@ public class TrustListACAController {
      */
     @GetMapping(value = "${trustlist-service.tsl-aca.path}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<@NonNull LoTE> getTrustListACAAsJson() {
-        LoTE loTE = generatorService.generateTrustlistACA();
+        LoTE loTE = service.getACATrustlistAsLoTE();
         return ResponseEntity.ok(loTE);
     }
 

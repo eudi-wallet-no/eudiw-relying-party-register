@@ -6,7 +6,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles("junit")
 @SpringBootTest
-class TrustListServiceApplicationTests {
+class TrustlistServiceApplicationTests {
 
 	@Test
 	void contextLoads() {

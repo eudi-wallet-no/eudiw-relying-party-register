@@ -21,19 +21,19 @@ import static no.idporten.eudiw.trustlist.service.LangCode.EN;
 import static no.idporten.eudiw.trustlist.service.LangCode.NO;
 
 @Service
-public class TrustListGeneratorService {
+public class TrustlistGeneratorService {
 
     public static final String TLS_TAG_URI = "http://uri.etsi.org/19612/TSLTag";
     public static final String TSL_TYPE_URI = "http://uri.etsi.org/TrstSvc/TrustedList/TSLType/EUgeneric";
     public static final String STATUS_DETERMINATION_APPROACH_URI = "http://uri.etsi.org/TrstSvc/TrustedList/StatusDetn/EUappropriate";
     public static final String SCHEME_TYPE_COMMUNITY_RULES_URI = "http://uri.etsi.org/TrstSvc/TrustedList/schemerules/EUcommon";
 
-    private final Logger log = LoggerFactory.getLogger(TrustListGeneratorService.class);
+    private final Logger log = LoggerFactory.getLogger(TrustlistGeneratorService.class);
 
     private final TrustList612Properties properties;
     private final DigdirProperties digdirProperties;
 
-    public TrustListGeneratorService(TrustList612Properties properties, DigdirProperties digdirProperties) {
+    public TrustlistGeneratorService(TrustList612Properties properties, DigdirProperties digdirProperties) {
         this.properties = properties;
         this.digdirProperties = digdirProperties;
     }

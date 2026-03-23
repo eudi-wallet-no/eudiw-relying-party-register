@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.security.cert.X509Certificate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -20,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @ActiveProfiles("junit")
 @DisplayName("ACA Trustlist is generated with content")
-class TrustListACAGeneratorServiceTest {
+class TrustlistACAGeneratorServiceTest {
 
     @Autowired
     TrustListACAProperties acaProperties;
@@ -29,13 +28,13 @@ class TrustListACAGeneratorServiceTest {
     DigdirProperties digdirProperties;
 
     @Autowired
-    TrustListACAGeneratorService trustListACAGeneratorService;
+    TrustlistACAGeneratorService trustListACAGeneratorService;
 
 
     @Test
     void generateTrustlistACA() {
 
-        this.trustListACAGeneratorService = new  TrustListACAGeneratorService(acaProperties, digdirProperties);
+        this.trustListACAGeneratorService = new TrustlistACAGeneratorService(acaProperties, digdirProperties);
         LoTE loTE = trustListACAGeneratorService.generateTrustlistACA();
         assertNotNull(loTE);
     }
