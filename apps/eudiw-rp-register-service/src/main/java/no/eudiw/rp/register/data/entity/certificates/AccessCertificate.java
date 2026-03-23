@@ -25,8 +25,8 @@ public class AccessCertificate extends BaseCertificateEntity {
     @JdbcTypeCode(SqlTypes.UUID)
     private RelyingPartyInstance relyingPartyInstance;
 
-    public AccessCertificate(X509Certificate certificate, RelyingPartyInstance relyingPartyInstance) {
-        super(certificate, "access");
+    public AccessCertificate(String caId, X509Certificate certificate, RelyingPartyInstance relyingPartyInstance) {
+        super(certificate, caId);
         this.relyingPartyInstance = relyingPartyInstance;
     }
 

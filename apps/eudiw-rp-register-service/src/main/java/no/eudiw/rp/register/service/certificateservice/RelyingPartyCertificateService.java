@@ -14,6 +14,7 @@ import no.eudiw.rp.register.data.repository.AccessCertificateRepository;
 import no.eudiw.rp.register.data.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.service.Converter;
 import no.eudiw.rp.register.service.EntitlementService;
+import no.eudiw.rp.register.service.certificateservice.config.RelyingPartyCertificateServiceProperties;
 import no.eudiw.rp.register.service.exception.BadRequestException;
 import no.eudiw.rp.register.service.exception.NotFoundException;
 import no.eudiw.rp.register.exception.RegisterServiceException;
@@ -36,8 +37,9 @@ import java.util.UUID;
 public class RelyingPartyCertificateService {
 
     private static final Logger log = LoggerFactory.getLogger(RelyingPartyCertificateService.class);
-    private final RelyingPartyInstanceRepository relyingPartyRepository;
 
+    private final RelyingPartyCertificateServiceProperties properties;
+    private final RelyingPartyInstanceRepository relyingPartyRepository;
     private final AccessCertificateRepository accessCertificateRepository;
     private final IssuerCertificateRepository issuerCertificateRepository;
 
@@ -145,10 +147,11 @@ public class RelyingPartyCertificateService {
                 relyingParty.getLegalEntity().getOrgno(),
                 relyingParty.getLegalEntity().getName(),
                 relyingParty.getTradeName(),
-                "access");
+                properties.accessCertificateCaId()
+                );
 
         AccessCertificate certificateEntity =
-                new AccessCertificate(certificate, relyingParty);
+                new AccessCertificate(properties.accessCertificateCaId(), certificate, relyingParty);
 
         accessCertificateRepository.saveAndFlush(certificateEntity);
 

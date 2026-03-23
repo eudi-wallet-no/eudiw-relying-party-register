@@ -75,6 +75,7 @@ digdir:
 
 eudiw-rp-register-service:
   csr-service:
+    access-certificate-ca-id: access
     ca-service-api:
       ca-service-base-uri: http://digital-lommebok-ca-service-service:8080
       api-key-header-id: X-API-KEY
