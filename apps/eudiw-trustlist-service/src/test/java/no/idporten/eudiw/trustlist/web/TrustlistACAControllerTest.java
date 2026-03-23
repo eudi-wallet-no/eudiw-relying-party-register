@@ -5,8 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.trustlist.TestDataGenerator;
 import no.idporten.eudiw.trustlist.config.TrustListACAProperties;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.LoTE;
-import no.idporten.eudiw.trustlist.service.JsonSignerService;
-import no.idporten.eudiw.trustlist.service.TrustListACAGeneratorService;
+import no.idporten.eudiw.trustlist.service.Signed602TrustlistService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("junit")
 @SpringBootTest
-public class TrustListACAControllerTest {
+public class TrustlistACAControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -35,20 +34,14 @@ public class TrustListACAControllerTest {
     private TrustListACAProperties properties;
 
     @MockitoBean
-    private TrustListACAGeneratorService trustListACAGeneratorService;
-
-    @MockitoBean
-    private JsonSignerService signerService;
-
-    @Autowired
-    private JsonSignerService jsonSignerService;
+    private Signed602TrustlistService service;
 
     @Test
     @DisplayName("When GETTING LoTE then return as JSON with ListAndSchemeInformation with content")
     void testAcaControllerReturnsLoTE() throws Exception {
 
         LoTE lote = TestDataGenerator.createLoTETrustlist();
-        when(trustListACAGeneratorService.generateTrustlistACA()).thenReturn(lote);
+        when(service.getACATrustlistAsLoTE()).thenReturn(lote);
 
         mockMvc.perform(get(properties.path()))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
@@ -57,7 +50,7 @@ public class TrustListACAControllerTest {
                 .andExpect(jsonPath("$.ListAndSchemeInformation.LoTEType").value(lote.getListAndSchemeInformation().getLoTEType().toString()))
                 .andExpect(jsonPath("$.ListAndSchemeInformation.SchemeTerritory").value(lote.getListAndSchemeInformation().getSchemeTerritory()));
 
-        verify(trustListACAGeneratorService, times(1)).generateTrustlistACA();
+        verify(service, times(1)).getACATrustlistAsLoTE();
 
     }
 
@@ -65,7 +58,7 @@ public class TrustListACAControllerTest {
     @DisplayName("When GETTING signed trustlist then return JWS with content")
     void testACAControllerReturnsSignedTrustlist() throws Exception {
 
-        when(jsonSignerService.getSignedTrustlist()).thenReturn("test");
+        when(service.getSignedACATrustlist()).thenReturn("test");
 
         mockMvc.perform(get(properties.path() + ".jws"))
                 .andExpect(content().contentType("application/jose+json"))

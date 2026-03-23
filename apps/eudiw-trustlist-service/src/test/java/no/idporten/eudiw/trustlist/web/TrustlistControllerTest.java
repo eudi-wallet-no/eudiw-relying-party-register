@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("junit")
 @SpringBootTest
-public class TrustListControllerTest {
+public class TrustlistControllerTest {
 
     @Autowired
     private MockMvc mockMvc;

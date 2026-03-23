@@ -16,14 +16,14 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 @Service
-public class SignedTrustListService {
+public class SignedTrustlistService {
 
-    private final TrustListGeneratorService trustListGeneratorService;
+    private final TrustlistGeneratorService trustListGeneratorService;
     private final XMLSignerService xmlSignerService;
-    private final Logger log = LoggerFactory.getLogger(SignedTrustListService.class);
+    private final Logger log = LoggerFactory.getLogger(SignedTrustlistService.class);
 
-    private String trustlist;
-    private String sha2;
+    private volatile String trustlist;
+    private volatile String sha2;
 
     // Only generate trustlist once at application startup
     @PostConstruct
@@ -44,7 +44,7 @@ public class SignedTrustListService {
         }
     }
 
-    public SignedTrustListService(TrustListGeneratorService trustListGeneratorService, XMLSignerService xmlSignerService) {
+    public SignedTrustlistService(TrustlistGeneratorService trustListGeneratorService, XMLSignerService xmlSignerService) {
         this.trustListGeneratorService = trustListGeneratorService;
         this.xmlSignerService = xmlSignerService;
     }

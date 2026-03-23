@@ -8,10 +8,10 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 @ConfigurationPropertiesScan
 @EnableConfigurationProperties
 @SpringBootApplication
-public class TrustListServiceApplication {
+public class TrustlistServiceApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(TrustListServiceApplication.class, args);
+		SpringApplication.run(TrustlistServiceApplication.class, args);
 	}
 
 }

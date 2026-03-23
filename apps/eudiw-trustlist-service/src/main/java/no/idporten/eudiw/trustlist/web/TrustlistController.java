@@ -1,6 +1,6 @@
 package no.idporten.eudiw.trustlist.web;
 
-import no.idporten.eudiw.trustlist.service.SignedTrustListService;
+import no.idporten.eudiw.trustlist.service.SignedTrustlistService;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -10,14 +10,14 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.ZonedDateTime;
 
 @RestController
-public class TrustListController {
+public class TrustlistController {
 
-    private final SignedTrustListService signedTrustListService;
+    private final SignedTrustlistService signedTrustListService;
 
     @Value("${trustlist-service.tsl612.scheme-information.list-issue-datetime:#{T(java.time.ZonedDateTime).now()}}")
     private ZonedDateTime lastModified;
 
-    public TrustListController(SignedTrustListService signedTrustListService) {
+    public TrustlistController(SignedTrustlistService signedTrustListService) {
         this.signedTrustListService = signedTrustListService;
     }
 
