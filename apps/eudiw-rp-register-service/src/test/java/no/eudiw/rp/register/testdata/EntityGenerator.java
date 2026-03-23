@@ -69,8 +69,7 @@ public class EntityGenerator extends TestDataGenerator {
     }
     public static AccessCertificate generateCertificate() {
         try {
-            return new AccessCertificate(
-                CertificatesGenerator.generateX509Certificate(), null);
+            return new AccessCertificate("access", CertificatesGenerator.generateX509Certificate(), null);
         }
         catch (Exception e) {
             throw new RuntimeException("Failed to generate RelyingPartyCertificate", e);
