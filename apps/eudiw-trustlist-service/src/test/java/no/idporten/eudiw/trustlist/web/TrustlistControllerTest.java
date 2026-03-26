@@ -4,7 +4,7 @@ import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.xml.utils.DomUtils;
 import eu.europa.esig.trustedlist.TrustedListUtils;
-import no.idporten.eudiw.trustlist.config.TrustList612Properties;
+import no.idporten.eudiw.trustlist.config.Trustlist612Properties;
 import no.idporten.eudiw.trustlist.service.XMLSignerService;
 import no.idporten.eudiw.trustlist.xml.XMLUtils;
 import org.junit.jupiter.api.DisplayName;
@@ -38,7 +38,7 @@ public class TrustlistControllerTest {
     private XMLSignerService xmlSignerService;
 
     @Autowired
-    private TrustList612Properties properties;
+    private Trustlist612Properties properties;
 
     private String getPathXtsl() {
         return properties.trustlistPathXtsl();

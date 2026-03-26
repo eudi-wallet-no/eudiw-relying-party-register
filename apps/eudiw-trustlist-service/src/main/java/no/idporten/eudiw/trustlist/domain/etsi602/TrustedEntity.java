@@ -6,6 +6,6 @@ import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 
 
-public record TrustedEntity(TrustedEntityInformation trustedEntityInformation,
+public record TrustedEntity(@Valid TrustedEntityInformation trustedEntityInformation,
                             @Valid @NotEmpty List<TrustedEntityService> trustedEntityServices) {
 }

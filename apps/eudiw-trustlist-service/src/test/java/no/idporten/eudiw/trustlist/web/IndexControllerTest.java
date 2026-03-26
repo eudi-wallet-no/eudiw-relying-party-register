@@ -1,7 +1,8 @@
 package no.idporten.eudiw.trustlist.web;
 
-import no.idporten.eudiw.trustlist.config.TrustList612Properties;
-import no.idporten.eudiw.trustlist.config.TrustListACAProperties;
+import no.idporten.eudiw.trustlist.config.Trustlist612Properties;
+import no.idporten.eudiw.trustlist.config.TrustlistACAProperties;
+import no.idporten.eudiw.trustlist.config.TrustlistPIDProperties;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,10 +28,13 @@ class IndexControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private TrustList612Properties list612Properties;
+    private Trustlist612Properties list612Properties;
 
     @Autowired
-    private TrustListACAProperties acaProperties;
+    private TrustlistPIDProperties  trustlistPIDProperties;
+
+    @Autowired
+    private TrustlistACAProperties acaProperties;
 
     @Test
     @DisplayName("should return the expected HTML as string with trustlist titles and links")
@@ -51,6 +55,9 @@ class IndexControllerTest {
 
         assertTrue(html.contains(acaProperties.schemeInformation().schemeName().langNo()));
         assertTrue(html.contains(acaProperties.path()));
+
+        assertTrue(html.contains(trustlistPIDProperties.schemeInformation().schemeName().langNo()));
+        assertTrue(html.contains(trustlistPIDProperties.path()));
     }
 
     @Test
@@ -70,5 +77,11 @@ class IndexControllerTest {
         assertNotNull(acaProperties.schemeInformation().schemeName());
         assertNotNull(acaProperties.schemeInformation().schemeName().langNo());
         assertNotNull(acaProperties.path());
+
+        assertNotNull(trustlistPIDProperties);
+        assertNotNull(trustlistPIDProperties.schemeInformation());
+        assertNotNull(trustlistPIDProperties.schemeInformation().schemeName());
+        assertNotNull(trustlistPIDProperties.schemeInformation().schemeName().langNo());
+        assertNotNull(trustlistPIDProperties.path());
     }
 }

@@ -2,7 +2,7 @@ package no.idporten.eudiw.trustlist.web;
 
 
 import no.idporten.eudiw.trustlist.etsi119602.pojo.LoTE;
-import no.idporten.eudiw.trustlist.service.Signed602TrustlistService;
+import no.idporten.eudiw.trustlist.service.TrustlistACAService;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -15,10 +15,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class TrustlistACAController {
 
 
-    private final Signed602TrustlistService service;
+    private final TrustlistACAService service;
 
     @Autowired
-    public TrustlistACAController(Signed602TrustlistService service) {
+    public TrustlistACAController(TrustlistACAService service) {
         this.service = service;
     }
 

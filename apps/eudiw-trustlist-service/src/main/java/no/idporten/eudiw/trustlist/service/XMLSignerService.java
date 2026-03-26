@@ -1,6 +1,6 @@
 package no.idporten.eudiw.trustlist.service;
 
-import no.idporten.eudiw.trustlist.config.TrustList612Properties;
+import no.idporten.eudiw.trustlist.config.Trustlist612Properties;
 import no.idporten.lib.keystore.KeyProvider;
 import no.idporten.lib.keystore.KeystoreManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,12 +42,12 @@ public class XMLSignerService {
     public static final String ELEMENT_SIGNATURE = "Signature";
     public static final String MECHANISM_DOM = "DOM";
 
-    private final TrustList612Properties properties;
+    private final Trustlist612Properties properties;
     private final KeystoreManager keystoreManager;
 
 
     @Autowired
-    public XMLSignerService(KeystoreManager keystoreManager, TrustList612Properties properties) {
+    public XMLSignerService(KeystoreManager keystoreManager, Trustlist612Properties properties) {
         this.keystoreManager = keystoreManager;
         this.properties = properties;
     }

@@ -6,7 +6,7 @@ import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.util.Base64;
 import no.idporten.eudiw.trustlist.TestDataGenerator;
-import no.idporten.eudiw.trustlist.config.TrustListACAProperties;
+import no.idporten.eudiw.trustlist.config.TrustlistACAProperties;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.LoTE;
 import no.idporten.lib.keystore.KeystoreConfig;
 import no.idporten.lib.keystore.KeystoreManager;
@@ -41,7 +41,7 @@ class JsonSignerServiceTest {
     private JsonSignerService jsonSignerService;
 
     @Mock
-    private TrustListACAProperties acaProperties;
+    private TrustlistACAProperties acaProperties;
 
     private LoTE loTE;
 
