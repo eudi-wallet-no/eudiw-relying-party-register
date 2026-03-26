@@ -1,7 +1,7 @@
 package no.idporten.eudiw.trustlist.service;
 
 import no.idporten.eudiw.trustlist.config.DigdirProperties;
-import no.idporten.eudiw.trustlist.config.TrustList612Properties;
+import no.idporten.eudiw.trustlist.config.Trustlist612Properties;
 import no.idporten.eudiw.trustlist.domain.Address;
 import no.idporten.eudiw.trustlist.domain.TLSchemeInformation;
 import no.idporten.eudiw.trustlist.domain.TLService;
@@ -30,10 +30,10 @@ public class TrustlistGeneratorService {
 
     private final Logger log = LoggerFactory.getLogger(TrustlistGeneratorService.class);
 
-    private final TrustList612Properties properties;
+    private final Trustlist612Properties properties;
     private final DigdirProperties digdirProperties;
 
-    public TrustlistGeneratorService(TrustList612Properties properties, DigdirProperties digdirProperties) {
+    public TrustlistGeneratorService(Trustlist612Properties properties, DigdirProperties digdirProperties) {
         this.properties = properties;
         this.digdirProperties = digdirProperties;
     }

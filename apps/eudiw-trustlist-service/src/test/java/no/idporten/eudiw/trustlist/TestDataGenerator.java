@@ -19,7 +19,7 @@ public class TestDataGenerator {
         LoTE loTE = new LoTE();
         ListAndSchemeInformation listAndSchemeInformation = new ListAndSchemeInformation();
         listAndSchemeInformation.setSchemeTerritory("NO");
-        listAndSchemeInformation.setLoTEType(URI.create("http://aca-trustlist-type"));
+        listAndSchemeInformation.setLoTEType(URI.create("http://acaorpid-trustlist-type"));
         loTE.setListAndSchemeInformation(listAndSchemeInformation);
         return loTE;
     }

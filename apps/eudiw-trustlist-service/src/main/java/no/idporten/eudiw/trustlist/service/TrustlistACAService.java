@@ -8,17 +8,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
-public class Signed602TrustlistService {
+public class TrustlistACAService {
 
     private final TrustlistACAGeneratorService generatorService;
 
     private final JsonSignerService jsonSignerService;
 
-    private final static Logger log = LoggerFactory.getLogger(Signed602TrustlistService.class);
+    private final static Logger log = LoggerFactory.getLogger(TrustlistACAService.class);
 
     private volatile String signedTrustlist;
 
-    public Signed602TrustlistService(TrustlistACAGeneratorService generatorService, JsonSignerService jsonSignerService) {
+    public TrustlistACAService(TrustlistACAGeneratorService generatorService, JsonSignerService jsonSignerService) {
         this.generatorService = generatorService;
         this.jsonSignerService = jsonSignerService;
     }

@@ -2,12 +2,14 @@ package no.idporten.eudiw.trustlist.service;
 
 
 import no.idporten.eudiw.trustlist.config.DigdirProperties;
-import no.idporten.eudiw.trustlist.config.TrustListACAProperties;
-import no.idporten.eudiw.trustlist.domain.TLSchemeInformation;
+import no.idporten.eudiw.trustlist.config.TrustlistACAProperties;
+import no.idporten.eudiw.trustlist.domain.etsi602.ListAndSchemeInformation602;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.*;
+import no.idporten.eudiw.trustlist.exception.ApplicationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.net.URI;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
@@ -21,29 +23,33 @@ import static no.idporten.eudiw.trustlist.service.LangCode.NO;
 @Service
 public class TrustlistACAGeneratorService {
 
-    private final TrustListACAProperties acaProperties;
+    private final TrustlistACAProperties acaProperties;
     private final DigdirProperties digdirProperties;
+    private final static Logger log = LoggerFactory.getLogger(TrustlistACAGeneratorService.class);
 
-    public TrustlistACAGeneratorService(TrustListACAProperties acaProperties, DigdirProperties digdirProperties) {
+    public TrustlistACAGeneratorService(TrustlistACAProperties acaProperties, DigdirProperties digdirProperties) {
         this.acaProperties = acaProperties;
         this.digdirProperties = digdirProperties;
     }
 
-
-
     public LoTE generateTrustlistACA() {
-        TLSchemeInformation schemaProps = acaProperties.schemeInformation();
+        ListAndSchemeInformation602 schemaProps = acaProperties.schemeInformation();
 
         LoTE lote = new LoTE();
 
         ListAndSchemeInformation listAndSchemeInformation = createListAndSchemeInformation(schemaProps);
         lote.setListAndSchemeInformation(listAndSchemeInformation);
-        lote.setTrustedEntitiesList(createListOfTrustedEntity(acaProperties));
+        try{
+            lote.setTrustedEntitiesList(createListOfTrustedEntity(acaProperties));
+        } catch (ApplicationException e) {
+            log.warn("Det har skjedd en feil ved setting av Trusted Entity lista til "
+                    +  lote.getListAndSchemeInformation().getSchemeName().getFirst().getValue() + e);
+        }
 
         return lote;
     }
 
-    private ListAndSchemeInformation createListAndSchemeInformation(TLSchemeInformation schemaProps) {
+    private ListAndSchemeInformation createListAndSchemeInformation(ListAndSchemeInformation602 schemaProps) {
         ListAndSchemeInformation listAndSchemeInformation = new ListAndSchemeInformation();
 
         listAndSchemeInformation.setLoTEVersionIdentifier(1);
@@ -53,9 +59,9 @@ public class TrustlistACAGeneratorService {
         listAndSchemeInformation.setSchemeName(createSchemaName(schemaProps));
         listAndSchemeInformation.setSchemeInformationURI(createInformationURIs());
 
-        listAndSchemeInformation.setLoTEType(URI.create("http://uri.etsi.org/19602/LoTEType/EUWRPACProvidersList"));
-        listAndSchemeInformation.setStatusDeterminationApproach(URI.create("http://uri.etsi.org/19602/WRPACProvidersList/StatusDetn/EU"));
-        listAndSchemeInformation.setSchemeTypeCommunityRules(List.of(createNonEmptyMultiLangURI("en", "http://uri.etsi.org/19602/WRPACProvidersList/schemerules/EU")));
+        listAndSchemeInformation.setLoTEType(schemaProps.loteType());
+        listAndSchemeInformation.setStatusDeterminationApproach(schemaProps.statusDeterminationApproach());
+        listAndSchemeInformation.setSchemeTypeCommunityRules(List.of(createNonEmptyMultiLangURI("en", schemaProps.schemeTypeCommunityRules())));
         listAndSchemeInformation.setSchemeTerritory("NO");
         listAndSchemeInformation.setPolicyOrLegalNotice(List.of("TODO: Venter på godkjenning av Endringsforordning (EU) 2024/1183 (eIDAS 2.0/endringsforordningen)"));
         ZonedDateTime issuedDateTime = schemaProps.listIssueDateTime();
@@ -65,6 +71,13 @@ public class TrustlistACAGeneratorService {
         return listAndSchemeInformation;
     }
 
+
+    private static List<MultiLangString> createSchemaName(ListAndSchemeInformation602 schemaProps) {
+        MultiLangString schemeNameNo = createMultiLangString(NO.getCode(), schemaProps.schemeName().langNo());
+        MultiLangString schemeNameEn = createMultiLangString(EN.getCode(), schemaProps.schemeName().langEn());
+
+        return List.of(schemeNameNo, schemeNameEn);
+    }
     private static List<NonEmptyMultiLangURI> createInformationURIs() {
         // TODO kva URL skal me legge inn? burde me legge inn URL til samarbeidsportalen? Ideelt sett laga ei eiga side per trustlist schema (dei ulike listene).
         return List.of(createNonEmptyMultiLangURI("no", "https://docs.digdir.no/docs/lommebok/lommebok_om.html"), createNonEmptyMultiLangURI("no", "https://docs.digdir.no/docs/lommebok/wallet_sandbox_summary.html"));
@@ -86,14 +99,7 @@ public class TrustlistACAGeneratorService {
         return schemeOperatorAddress;
     }
 
-    private static List<MultiLangString> createSchemaName(TLSchemeInformation schemaProps) {
-        MultiLangString schemeNameNo = createMultiLangString(NO.getCode(), schemaProps.schemeName().langNo());
-        MultiLangString schemeNameEn = createMultiLangString(EN.getCode(), schemaProps.schemeName().langEn());
-
-        return List.of(schemeNameNo, schemeNameEn);
-    }
-
-    public List<TrustedEntity> createListOfTrustedEntity(TrustListACAProperties acaProperties) {
+    public List<TrustedEntity> createListOfTrustedEntity(TrustlistACAProperties acaProperties) {
 
         List<no.idporten.eudiw.trustlist.domain.etsi602.TrustedEntity> te = acaProperties.trustedEntities();
         List<TrustedEntity> finishedList = new ArrayList<>();
@@ -135,7 +141,7 @@ public class TrustlistACAGeneratorService {
         return teAddress;
     }
 
-    private TrustedEntityService createRpAccessTrustedEntityService(no.idporten.eudiw.trustlist.domain.etsi602.TrustedEntity trustedEntity, TrustListACAProperties acaProperties) {
+    private TrustedEntityService createRpAccessTrustedEntityService(no.idporten.eudiw.trustlist.domain.etsi602.TrustedEntity trustedEntity, TrustlistACAProperties acaProperties) {
         no.idporten.eudiw.trustlist.etsi119602.pojo.TrustedEntityService trustedEntityService = new TrustedEntityService();
 
         MultiLangString serviceNameNo = createMultiLangString(NO.getCode(), acaProperties.trustedEntities().getFirst().trustedEntityServices().getFirst().serviceInformation().serviceName().langNo());

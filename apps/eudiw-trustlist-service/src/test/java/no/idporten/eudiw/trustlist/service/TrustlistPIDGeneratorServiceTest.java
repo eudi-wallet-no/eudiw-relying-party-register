@@ -1,7 +1,8 @@
 package no.idporten.eudiw.trustlist.service;
 
+
 import no.idporten.eudiw.trustlist.config.DigdirProperties;
-import no.idporten.eudiw.trustlist.config.TrustlistACAProperties;
+import no.idporten.eudiw.trustlist.config.TrustlistPIDProperties;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.LoTE;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.PkiOb;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.TrustedEntity;
@@ -15,39 +16,41 @@ import org.springframework.test.context.ActiveProfiles;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @SpringBootTest
 @ActiveProfiles("junit")
-@DisplayName("ACA Trustlist is generated with content")
-class TrustlistACAGeneratorServiceTest {
+@DisplayName("PID Trustlist is generated with content")
+public class TrustlistPIDGeneratorServiceTest {
 
     @Autowired
-    TrustlistACAProperties acaProperties;
+    TrustlistPIDProperties pidProperties;
 
     @Autowired
     DigdirProperties digdirProperties;
 
     @Autowired
-    TrustlistACAGeneratorService trustListACAGeneratorService;
-
+    TrustlistPIDGeneratorService trustListPIDGeneratorService;
 
     @Test
-    void generateTrustlistACA() {
+    void generateTrustlistPID() {
 
-        this.trustListACAGeneratorService = new TrustlistACAGeneratorService(acaProperties, digdirProperties);
-        LoTE loTE = trustListACAGeneratorService.generateTrustlistACA();
+        this.trustListPIDGeneratorService = new TrustlistPIDGeneratorService(pidProperties, digdirProperties);
+        LoTE loTE = trustListPIDGeneratorService.generateTrustlistPID();
         assertNotNull(loTE);
     }
 
+
     @Test
-    void contentInTrustListACAIsCorrect(){
-        LoTE lote = trustListACAGeneratorService.generateTrustlistACA();
+    void contentInTrustListPIDIsCorrect(){
+        LoTE lote = trustListPIDGeneratorService.generateTrustlistPID();
         assertNotNull(lote);
         assertEquals("NO", lote.getListAndSchemeInformation().getSchemeTerritory().toString());
-        assertEquals("http://uri.etsi.org/19602/LoTEType/EUWRPACProvidersList", lote.getListAndSchemeInformation().getLoTEType().toString());
+        assertEquals("http://uri.etsi.org/19602/LoTEType/EUPIDProvidersList", lote.getListAndSchemeInformation().getLoTEType().toString());
         assertNotNull(lote.getListAndSchemeInformation().getListIssueDateTime());
         assertNotNull(lote.getListAndSchemeInformation().getLoTESequenceNumber());
-        assertNotNull(lote.getListAndSchemeInformation().getSchemeName());
+        assertEquals("Tillitsliste for Personal Identification Data tilbydere i eidas2sandkasse i junit", lote.getListAndSchemeInformation().getSchemeName().getFirst().getValue());
         assertNotNull(lote.getListAndSchemeInformation().getLoTEVersionIdentifier());
         assertNotNull(lote.getListAndSchemeInformation().getNextUpdate());
         verifyTrustedEntityHasContent(lote.getTrustedEntitiesList());
@@ -58,10 +61,11 @@ class TrustlistACAGeneratorServiceTest {
         assertFalse(trustedEntities.isEmpty());
         TrustedEntity te = trustedEntities.getFirst();
         assertNotNull(te);
+        assertEquals("DIGITALISERINGSDIREKTORATET", te.getTrustedEntityInformation().getTEName().getFirst().getValue());
         assertNotNull(te.getTrustedEntityInformation().getTEInformationURI());
-        assertNotNull(te.getTrustedEntityInformation().getTEName());
         assertFalse(te.getTrustedEntityInformation().getTEName().isEmpty());
         assertNotNull(te.getTrustedEntityInformation().getTEAddress());
+        assertEquals(6, te.getTrustedEntityInformation().getTEAddress().getTEElectronicAddress().size()); // Phone number is also a part in pid, therefore six
         assertNotNull(te.getTrustedEntityInformation().getTEInformationURI());
 
         List<TrustedEntityService> teServices = te.getTrustedEntityServices();
@@ -79,5 +83,6 @@ class TrustlistACAGeneratorServiceTest {
         assertNotNull(service.getServiceInformation().getServiceDigitalIdentity().getX509Certificates());
         assertEquals(PkiOb.class, service.getServiceInformation().getServiceDigitalIdentity().getX509Certificates().getFirst().getClass());
     }
+
 
 }

@@ -26,7 +26,7 @@ class Signed602TrustlistServiceTest {
     private JsonSignerService jsonSignerService;
 
     @InjectMocks
-    private Signed602TrustlistService signed602TrustlistService;
+    private TrustlistACAService signed602TrustlistService;
 
     @BeforeEach
     public void setup() {

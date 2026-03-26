@@ -1,5 +1,6 @@
 package no.idporten.eudiw.trustlist.config;
 
+
 import no.idporten.eudiw.trustlist.domain.etsi602.ListAndSchemeInformation602;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,13 +10,14 @@ import org.springframework.test.context.ActiveProfiles;
 import java.math.BigInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @SpringBootTest
 @ActiveProfiles("junit")
-class TrustListACAPropertiesTest {
+class TrustlistPIDPropertiesTest {
 
     @Autowired
-    private TrustlistACAProperties properties;
+    private TrustlistPIDProperties properties;
 
     @Test
     void pathIsNotEmpty() {
@@ -25,7 +27,7 @@ class TrustListACAPropertiesTest {
     }
 
     @Test
-    void schemeInformationHasContentForTrustlist() {
+    void schemeInformationHasContentForTrustlistPID() {
         assertNotNull(properties);
         ListAndSchemeInformation602 tlSchemeInformation = properties.schemeInformation();
         assertNotNull(tlSchemeInformation);

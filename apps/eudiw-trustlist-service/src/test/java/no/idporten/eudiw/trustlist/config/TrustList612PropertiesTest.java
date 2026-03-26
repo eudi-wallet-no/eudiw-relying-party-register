@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class TrustList612PropertiesTest {
 
     @Autowired
-    private TrustList612Properties properties;
+    private Trustlist612Properties properties;
 
     @Test
     void pathIsNotEmpty() {

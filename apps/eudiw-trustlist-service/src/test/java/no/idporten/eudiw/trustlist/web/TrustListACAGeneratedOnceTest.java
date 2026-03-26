@@ -2,8 +2,8 @@ package no.idporten.eudiw.trustlist.web;
 
 
 import lombok.extern.slf4j.Slf4j;
-import no.idporten.eudiw.trustlist.config.TrustListACAProperties;
-import org.bouncycastle.util.encoders.Base64;
+import no.idporten.eudiw.trustlist.config.TrustlistACAProperties;
+import java.util.Base64;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +30,7 @@ public class TrustListACAGeneratedOnceTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private TrustListACAProperties properties;
+    private TrustlistACAProperties properties;
 
     @Test
     @DisplayName("When GETTING signed trustlist then the same list is return on multiple requests")
@@ -48,7 +48,7 @@ public class TrustListACAGeneratedOnceTest {
         assertNotNull(jws1);
         String[] split = jws1.split("\\.");
         assertEquals(3, split.length);
-        String json1 = new String(Base64.decode(split[1]));
+        String json1 = new String(Base64.getUrlDecoder().decode(split[1]));
         assertNotNull(json1);
 
         // Run 2
@@ -60,7 +60,7 @@ public class TrustListACAGeneratedOnceTest {
         assertNotNull(jws2);
         String[] split2 = jws2.split("\\.");
         assertEquals(3, split2.length);
-        String json2 = new String(Base64.decode(split2[1]));
+        String json2 = new String(Base64.getUrlDecoder().decode(split2[1]));
         assertNotNull(json2);
 
         // Same result

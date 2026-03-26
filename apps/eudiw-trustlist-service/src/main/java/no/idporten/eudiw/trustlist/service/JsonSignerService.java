@@ -4,7 +4,7 @@ import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.util.Base64;
-import no.idporten.eudiw.trustlist.config.TrustListACAProperties;
+import no.idporten.eudiw.trustlist.config.TrustlistACAProperties;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.LoTE;
 import no.idporten.eudiw.trustlist.exception.JsonSignException;
 import no.idporten.lib.keystore.KeyProvider;
@@ -24,13 +24,13 @@ import java.util.List;
 public class JsonSignerService {
 
 
-    private final TrustListACAProperties acaProperties;
+    private final TrustlistACAProperties acaProperties;
 
     private final KeystoreManager keystoreManager;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public JsonSignerService(TrustListACAProperties acaProperties, KeystoreManager keystoreManager) {
+    public JsonSignerService(TrustlistACAProperties acaProperties, KeystoreManager keystoreManager) {
         this.acaProperties = acaProperties;
         this.keystoreManager = keystoreManager;
     }
@@ -99,6 +99,4 @@ public class JsonSignerService {
             throw new JsonSignException("Failed to get certificateChain from keystore for trustlist %s".formatted(loteType), e);
         }
     }
-
-
 }

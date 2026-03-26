@@ -10,7 +10,7 @@ import org.springframework.validation.annotation.Validated;
 
 @Validated
 @ConfigurationProperties(prefix = "trustlist-service.tsl612")
-public record TrustList612Properties(@NotEmpty String trustlistPath,
+public record Trustlist612Properties(@NotEmpty String trustlistPath,
                                      @NotEmpty String trustlistPathXtsl,
                                      @NotEmpty String trustlistPathSha2,
                                      @NotEmpty String keystore,
