@@ -11,7 +11,7 @@ import java.math.BigInteger;
 import java.net.URI;
 import java.time.ZonedDateTime;
 
-public record ListAndSchemeInformation602(
+public record ListAndSchemeInformation(
         @NotNull @Valid TSName schemeName,
         @Positive @NotNull BigInteger sequenceNumber,
         @NotNull ZonedDateTime listIssueDateTime,
@@ -20,7 +20,7 @@ public record ListAndSchemeInformation602(
         @NotNull @Valid URI statusDeterminationApproach,
         @NotBlank String schemeTypeCommunityRules
         ) {
-    public ListAndSchemeInformation602 {
+    public ListAndSchemeInformation {
         if (listIssueDateTime == null || listIssueDateTime.isAfter(ZonedDateTime.now())) {
             throw new IllegalArgumentException("List issue date time must not be null and not in the future");
         }

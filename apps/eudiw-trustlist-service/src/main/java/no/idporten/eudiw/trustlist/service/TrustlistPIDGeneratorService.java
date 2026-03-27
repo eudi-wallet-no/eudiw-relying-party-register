@@ -2,7 +2,7 @@ package no.idporten.eudiw.trustlist.service;
 
 import no.idporten.eudiw.trustlist.config.DigdirProperties;
 import no.idporten.eudiw.trustlist.config.TrustlistPIDProperties;
-import no.idporten.eudiw.trustlist.domain.etsi602.ListAndSchemeInformation602;
+import no.idporten.eudiw.trustlist.domain.etsi602.ListAndSchemeInformation;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.*;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -29,19 +29,19 @@ public class TrustlistPIDGeneratorService {
     }
 
     public LoTE generateTrustlistPID() {
-        ListAndSchemeInformation602 schemaProps = trustListPIDProperties.schemeInformation();
+        ListAndSchemeInformation schemaProps = trustListPIDProperties.schemeInformation();
 
         LoTE lote = new LoTE();
 
-        ListAndSchemeInformation listAndSchemeInformation = createListAndSchemeInformation(schemaProps);
+        no.idporten.eudiw.trustlist.etsi119602.pojo.ListAndSchemeInformation listAndSchemeInformation = createListAndSchemeInformation(schemaProps);
         lote.setListAndSchemeInformation(listAndSchemeInformation);
         lote.setTrustedEntitiesList(createListOfTrustedEntity(trustListPIDProperties));
 
         return lote;
     }
 
-    private ListAndSchemeInformation createListAndSchemeInformation(ListAndSchemeInformation602 schemaProps) {
-        ListAndSchemeInformation listAndSchemeInformation = new ListAndSchemeInformation();
+    private no.idporten.eudiw.trustlist.etsi119602.pojo.ListAndSchemeInformation createListAndSchemeInformation(ListAndSchemeInformation schemaProps) {
+        no.idporten.eudiw.trustlist.etsi119602.pojo.ListAndSchemeInformation listAndSchemeInformation = new no.idporten.eudiw.trustlist.etsi119602.pojo.ListAndSchemeInformation();
 
         listAndSchemeInformation.setLoTEVersionIdentifier(1);
         listAndSchemeInformation.setLoTESequenceNumber(schemaProps.sequenceNumber().intValue());
@@ -62,7 +62,7 @@ public class TrustlistPIDGeneratorService {
         return listAndSchemeInformation;
     }
 
-    private List<NonEmptyMultiLangURI> createInformationURIs(ListAndSchemeInformation602 schemeProps) {
+    private List<NonEmptyMultiLangURI> createInformationURIs(ListAndSchemeInformation schemeProps) {
         return List.of(createNonEmptyMultiLangURI(NO.getCode(), schemeProps.uri()));
     }
 

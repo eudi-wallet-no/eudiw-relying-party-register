@@ -1,6 +1,6 @@
 package no.idporten.eudiw.trustlist.config;
 
-import no.idporten.eudiw.trustlist.domain.TLSchemeInformation;
+import no.idporten.eudiw.trustlist.domain.etsi612.TLSchemeInformation;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

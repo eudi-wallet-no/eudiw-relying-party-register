@@ -1,7 +1,7 @@
 package no.idporten.eudiw.trustlist.config;
 
 
-import no.idporten.eudiw.trustlist.domain.etsi602.ListAndSchemeInformation602;
+import no.idporten.eudiw.trustlist.domain.etsi602.ListAndSchemeInformation;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,7 +29,7 @@ class TrustlistPIDPropertiesTest {
     @Test
     void schemeInformationHasContentForTrustlistPID() {
         assertNotNull(properties);
-        ListAndSchemeInformation602 tlSchemeInformation = properties.schemeInformation();
+        ListAndSchemeInformation tlSchemeInformation = properties.schemeInformation();
         assertNotNull(tlSchemeInformation);
         assertNotNull(tlSchemeInformation.schemeName());
         assertNotNull(tlSchemeInformation.listIssueDateTime());

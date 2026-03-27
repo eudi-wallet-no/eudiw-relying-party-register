@@ -3,7 +3,7 @@ package no.idporten.eudiw.trustlist.service;
 
 import no.idporten.eudiw.trustlist.config.DigdirProperties;
 import no.idporten.eudiw.trustlist.config.TrustlistACAProperties;
-import no.idporten.eudiw.trustlist.domain.etsi602.ListAndSchemeInformation602;
+import no.idporten.eudiw.trustlist.domain.etsi602.ListAndSchemeInformation;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.*;
 import no.idporten.eudiw.trustlist.exception.ApplicationException;
 import org.slf4j.Logger;
@@ -33,11 +33,11 @@ public class TrustlistACAGeneratorService {
     }
 
     public LoTE generateTrustlistACA() {
-        ListAndSchemeInformation602 schemaProps = acaProperties.schemeInformation();
+        ListAndSchemeInformation schemaProps = acaProperties.schemeInformation();
 
         LoTE lote = new LoTE();
 
-        ListAndSchemeInformation listAndSchemeInformation = createListAndSchemeInformation(schemaProps);
+        no.idporten.eudiw.trustlist.etsi119602.pojo.ListAndSchemeInformation listAndSchemeInformation = createListAndSchemeInformation(schemaProps);
         lote.setListAndSchemeInformation(listAndSchemeInformation);
         try{
             lote.setTrustedEntitiesList(createListOfTrustedEntity(acaProperties));
@@ -49,8 +49,8 @@ public class TrustlistACAGeneratorService {
         return lote;
     }
 
-    private ListAndSchemeInformation createListAndSchemeInformation(ListAndSchemeInformation602 schemaProps) {
-        ListAndSchemeInformation listAndSchemeInformation = new ListAndSchemeInformation();
+    private no.idporten.eudiw.trustlist.etsi119602.pojo.ListAndSchemeInformation createListAndSchemeInformation(ListAndSchemeInformation schemaProps) {
+        no.idporten.eudiw.trustlist.etsi119602.pojo.ListAndSchemeInformation listAndSchemeInformation = new no.idporten.eudiw.trustlist.etsi119602.pojo.ListAndSchemeInformation();
 
         listAndSchemeInformation.setLoTEVersionIdentifier(1);
         listAndSchemeInformation.setLoTESequenceNumber(schemaProps.sequenceNumber().intValue());
@@ -72,7 +72,7 @@ public class TrustlistACAGeneratorService {
     }
 
 
-    private static List<MultiLangString> createSchemaName(ListAndSchemeInformation602 schemaProps) {
+    private static List<MultiLangString> createSchemaName(ListAndSchemeInformation schemaProps) {
         MultiLangString schemeNameNo = createMultiLangString(NO.getCode(), schemaProps.schemeName().langNo());
         MultiLangString schemeNameEn = createMultiLangString(EN.getCode(), schemaProps.schemeName().langEn());
 

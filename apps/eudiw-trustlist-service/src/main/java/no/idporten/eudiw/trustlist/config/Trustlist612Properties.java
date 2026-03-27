@@ -3,8 +3,8 @@ package no.idporten.eudiw.trustlist.config;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import no.idporten.eudiw.trustlist.domain.TLSchemeInformation;
-import no.idporten.eudiw.trustlist.domain.TLServiceProvider;
+import no.idporten.eudiw.trustlist.domain.etsi612.TLSchemeInformation;
+import no.idporten.eudiw.trustlist.domain.etsi612.TLServiceProvider;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 

@@ -1,8 +1,9 @@
-package no.idporten.eudiw.trustlist.domain;
+package no.idporten.eudiw.trustlist.domain.etsi612;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import no.idporten.eudiw.trustlist.domain.TSName;
 
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
