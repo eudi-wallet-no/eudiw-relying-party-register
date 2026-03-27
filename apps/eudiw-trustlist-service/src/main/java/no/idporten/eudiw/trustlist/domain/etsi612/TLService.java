@@ -1,8 +1,9 @@
-package no.idporten.eudiw.trustlist.domain;
+package no.idporten.eudiw.trustlist.domain.etsi612;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import no.idporten.eudiw.trustlist.domain.TSName;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.openssl.PEMParser;
 

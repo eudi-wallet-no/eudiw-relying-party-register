@@ -1,8 +1,11 @@
-package no.idporten.eudiw.trustlist.domain;
+package no.idporten.eudiw.trustlist.domain.etsi612;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import no.idporten.eudiw.trustlist.domain.Address;
+import no.idporten.eudiw.trustlist.domain.TSName;
+import no.idporten.eudiw.trustlist.domain.TSUri;
 
 import java.util.List;
 
