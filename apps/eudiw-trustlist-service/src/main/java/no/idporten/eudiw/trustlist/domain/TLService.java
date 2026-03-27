@@ -11,7 +11,7 @@ import java.io.StringReader;
 import java.time.ZonedDateTime;
 import java.util.List;
 
-public record TLService(@Valid @NotNull TSName name, @NotEmpty ZonedDateTime startingTime, @NotEmpty String serviceTypeIdentifier, @NotEmpty String cert) {
+public record TLService(@Valid @NotNull TSName name, @NotNull ZonedDateTime startingTime, @NotEmpty String serviceTypeIdentifier, @NotEmpty String cert) {
     public static final String SERVICE_TYPE_IDENTIFIER_URI_RP_ACCESS = "http://uri.etsi.org/Svc/Svctype/CA/RPaccess";
     public static final String SERVICE_TYPE_IDENTIFIER_URI_EAA = "http://uri.etsi.org/TrstSvc/Svctype/EAA";
     public static final String SERVICE_TYPE_IDENTIFIER_URI_PID = "http://uri.etsi.org/TrstSvc/Svctype/PID"; // from digdir, not from TL spec since not specified there yet.

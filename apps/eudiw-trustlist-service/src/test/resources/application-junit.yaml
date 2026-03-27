@@ -7,15 +7,38 @@ spring:
 
 trustlist-service:
   tsl612:
-    service-provider:
-      services:
-        - name:
-            lang-no: CA for relying parties access certificates in eidas2sandkasse
-            lang-en: CA for relying parties access certificates in eidas2sandkasse
-          starting-time: 2025-07-03T12:00:00.00Z
-          service-type-identifier: http://uri.etsi.org/Svc/Svctype/CA/RPaccess
-          cert: MIIB1DCCAXqgAwIBAgIUSS2LdLU31QbGqpWbkegBmJ4ymIcwCgYIKoZIzj0EAwQwajELMAkGA1UEBhMCTk8xEjAQBgNVBAcMCUxlaWthbmdlcjEPMA0GA1UECgwGRGlnZGlyMRkwFwYDVQQLDBBkaWdpdGFsLWxvbW1lYm9rMRswGQYDVQQDDBJ1bml0dGVzdC10cnVzdGxpc3QwHhcNMjUwODEyMTIxMjUyWhcNMjYwODEyMTIxMjUyWjBqMQswCQYDVQQGEwJOTzESMBAGA1UEBwwJTGVpa2FuZ2VyMQ8wDQYDVQQKDAZEaWdkaXIxGTAXBgNVBAsMEGRpZ2l0YWwtbG9tbWVib2sxGzAZBgNVBAMMEnVuaXR0ZXN0LXRydXN0bGlzdDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABADhJlaNSR35FOCqL/HU+/bjRaMgBQHOUwtwFbDfVwN54icYqc4Gugsjz3QvQIuI9H9NrgObRgv9nMTAkc5Sq2YwCgYIKoZIzj0EAwQDSAAwRQIhAIcn6Bva5N/nGIndmNYMQUYFjJWh/VWufoHBKnJx1ATTAiBhS2MnqSFU0QvEoZ7s56kVvcPuL42bsJDjYuayUnKcBw==
-
+    service-providers:
+      digdir:
+        services:
+          - name:
+              lang-no: CA for relying parties access certificates in eidas2sandkasse
+              lang-en: CA for relying parties access certificates in eidas2sandkasse
+            starting-time: 2025-07-03T12:00:00.00Z
+            service-type-identifier: http://uri.etsi.org/Svc/Svctype/CA/RPaccess
+            cert: MIIB1DCCAXqgAwIBAgIUSS2LdLU31QbGqpWbkegBmJ4ymIcwCgYIKoZIzj0EAwQwajELMAkGA1UEBhMCTk8xEjAQBgNVBAcMCUxlaWthbmdlcjEPMA0GA1UECgwGRGlnZGlyMRkwFwYDVQQLDBBkaWdpdGFsLWxvbW1lYm9rMRswGQYDVQQDDBJ1bml0dGVzdC10cnVzdGxpc3QwHhcNMjUwODEyMTIxMjUyWhcNMjYwODEyMTIxMjUyWjBqMQswCQYDVQQGEwJOTzESMBAGA1UEBwwJTGVpa2FuZ2VyMQ8wDQYDVQQKDAZEaWdkaXIxGTAXBgNVBAsMEGRpZ2l0YWwtbG9tbWVib2sxGzAZBgNVBAMMEnVuaXR0ZXN0LXRydXN0bGlzdDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABADhJlaNSR35FOCqL/HU+/bjRaMgBQHOUwtwFbDfVwN54icYqc4Gugsjz3QvQIuI9H9NrgObRgv9nMTAkc5Sq2YwCgYIKoZIzj0EAwQDSAAwRQIhAIcn6Bva5N/nGIndmNYMQUYFjJWh/VWufoHBKnJx1ATTAiBhS2MnqSFU0QvEoZ7s56kVvcPuL42bsJDjYuayUnKcBw==
+      my-junit-provider:
+        name:
+          lang-no: Enhetstest provider
+          lang-en: My Junit provider
+        trade-name:
+          lang-no: NTRNO-991825827
+          lang-en: NTRNO-991825827
+        information-uri:
+          lang-no: https://example.com/my-junit-provider
+        email: mailto:example@example.com
+        website: https://www.junitest.no
+        postal-address:
+          street-address: Askedalen 1
+          postal-code: 6850
+          locality: Leikanger
+          country: "NO"
+        services:
+          - name:
+              lang-no: Enhetstest CA i eidas2sandkasse
+              lang-en: Junit CA in eidas2sandkasse
+            starting-time: 2026-03-27T00:00:00.00Z
+            service-type-identifier: http://uri.etsi.org/Svc/Svctype/CA/RPaccess
+            cert: MIIBwTCCAWagAwIBAgIUWS0icyxgc28PEDs0FZABnS3ztK0wCgYIKoZIzj0EAwIwYDEYMBYGA1UEYQwPTlRSTk8tOTkxODI1ODI3MQswCQYDVQQGEwJOTzEkMCIGA1UECgwbRElHSVRBTElTRVJJTkdTRElSRUtUT1JBVEVUMREwDwYDVQQDDAh1bml0dGVzdDAeFw0yNjAzMjcwNjIwMzlaFw0yNzAzMjcwNjIwMzlaMGAxGDAWBgNVBGEMD05UUk5PLTk5MTgyNTgyNzELMAkGA1UEBhMCTk8xJDAiBgNVBAoMG0RJR0lUQUxJU0VSSU5HU0RJUkVLVE9SQVRFVDERMA8GA1UEAwwIdW5pdHRlc3QwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQ2qaC3kU6KluRWmnLrcj7lHLhB8qlRxdTpNm0V+DTaShy3Xt+NG0BaiGsvHVz0QeAOd2YiBG8Kcxn9mWXttfJJMAoGCCqGSM49BAMCA0kAMEYCIQCtut7glq0YhXbAckReL6DfwcyATrjSi457aev2LaLYAwIhAKvC0wouq3qwDWwtJyHyMz43Ka6fznPtxoBddyXxNSXk
 
 
 idporten-key-manager:

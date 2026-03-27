@@ -1,8 +1,6 @@
 package no.idporten.eudiw.trustlist.service;
 
-import org.etsi.uri._02231.v2_.TSPService;
-import org.etsi.uri._02231.v2_.TrustServiceProvider;
-import org.etsi.uri._02231.v2_.TrustServiceStatusList;
+import org.etsi.uri._02231.v2_.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,8 +9,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("junit")
@@ -29,23 +26,48 @@ class TrustlistGeneratorServiceTest {
         assertNotNull(trustlist);
         assertNotNull(trustlist.getTrustServiceProviderList());
         assertNotNull(trustlist.getTrustServiceProviderList().getTrustServiceProviders());
-        verify1SericeProviderHasContent(trustlist.getTrustServiceProviderList().getTrustServiceProviders());
+        verifyServiceProvidersHasContent(trustlist.getTrustServiceProviderList().getTrustServiceProviders());
     }
 
-    private static void verify1SericeProviderHasContent(List<TrustServiceProvider> trustServiceProviders) {
+    private static void verifyServiceProvidersHasContent(List<TrustServiceProvider> trustServiceProviders) {
         assertFalse(trustServiceProviders.isEmpty());
-        TrustServiceProvider serviceProvider = trustServiceProviders.getFirst();
-        assertNotNull(serviceProvider);
-        assertNotNull(serviceProvider.getTSPInformation());
-        assertNotNull(serviceProvider.getTSPInformation().getTSPName());
-        assertFalse(serviceProvider.getTSPInformation().getTSPName().getNames().isEmpty());
-        assertNotNull(serviceProvider.getTSPInformation().getTSPTradeName());
-        assertFalse(serviceProvider.getTSPInformation().getTSPTradeName().getNames().isEmpty());
-        assertNotNull(serviceProvider.getTSPInformation().getTSPInformationURI());
-        assertFalse(serviceProvider.getTSPInformation().getTSPInformationURI().getURIS().isEmpty());
+        assertEquals(2, trustServiceProviders.size(), "There should be exactly two TrustServiceProvider in the list");
+        for (TrustServiceProvider serviceProvider : trustServiceProviders) {
+            assertNotNull(serviceProvider);
+            TSPInformation tspInformation = serviceProvider.getTSPInformation();
+            assertNotNull(tspInformation);
+            assertNotNull(tspInformation.getTSPName());
+            List<MultiLangNormStringType> tspNames = tspInformation.getTSPName().getNames();
+            assertFalse(tspNames.isEmpty());
+            assertNotNull(tspInformation.getTSPTradeName());
+            assertFalse(tspInformation.getTSPTradeName().getNames().isEmpty());
+            assertNotNull(tspInformation.getTSPInformationURI());
+            assertFalse(tspInformation.getTSPInformationURI().getURIS().isEmpty());
+            verifyHasTSPAddress(tspInformation.getTSPAddress());
+            List<TSPService> tspServices = serviceProvider.getTSPServices().getTSPServices();
+            verify1ServiceHasContent(tspServices);
+        }
+    }
 
-        List<TSPService> tspServices = serviceProvider.getTSPServices().getTSPServices();
-        verify1ServiceHasContent(tspServices);
+    private static void verifyHasTSPAddress(AddressType tspAddress) {
+        assertNotNull(tspAddress);
+
+        assertNotNull(tspAddress.getElectronicAddress());
+        List<NonEmptyMultiLangURIType> contactUris = tspAddress.getElectronicAddress().getURIS();
+        assertNotNull(contactUris);
+        assertTrue(contactUris.size() >= 4, "There should be at least 4 URI in the electronic address ( Norwegian and English versions of email and web)");
+        assertTrue(contactUris.stream().filter(uri -> "no".equals(uri.getLang())).toList().size() >= 2);
+        assertTrue(contactUris.stream().filter(uri -> "en".equals(uri.getLang())).toList().size() >= 2);
+
+        assertNotNull(tspAddress.getPostalAddresses());
+        List<PostalAddress> postalAddresses = tspAddress.getPostalAddresses().getPostalAddresses();
+        assertNotNull(postalAddresses);
+        assertFalse(postalAddresses.isEmpty(), "There should be at least 1 postal address");
+        assertNotNull(postalAddresses.getFirst());
+        assertNotNull(postalAddresses.getFirst().getStreetAddress());
+        assertNotNull(postalAddresses.getFirst().getPostalCode());
+        assertNotNull(postalAddresses.getFirst().getLocality());
+        assertNotNull(postalAddresses.getFirst().getCountryName());
     }
 
     private static void verify1ServiceHasContent(List<TSPService> tspServices) {

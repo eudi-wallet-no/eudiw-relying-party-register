@@ -48,16 +48,23 @@ trustlist-service:
         lang-en: NO:Trust list for eidas2sandkasse in ${trustlist-service.environment-name}
       sequence-number: 1
       list-issue-datetime: 2026-02-27T00:00:00.00Z
-    # only support 1 trust service provider initially
-    service-provider:
-      name:
-        lang-no: Digitaliseringsdirektoratet
-        lang-en: Norwegian Digitalisation Agency
-      trade-name:
-        lang-no: NTRNO-991825827
-        lang-en: NTRNO-991825827
-      information-uri:
-        lang-no: https://docs.digdir.no/docs/lommebok/lommebok_om.html
+    service-providers:
+      digdir:
+        name:
+          lang-no: Digitaliseringsdirektoratet
+          lang-en: Norwegian Digitalisation Agency
+        trade-name:
+          lang-no: NTRNO-991825827
+          lang-en: NTRNO-991825827
+        information-uri:
+          lang-no: https://docs.digdir.no/docs/lommebok/lommebok_om.html
+        website: ${trustlist-service.digdir.web}
+        email: ${trustlist-service.digdir.email}
+        postal-address:
+          street-address: ${trustlist-service.digdir.postal-address.street-address}
+          postal-code: ${trustlist-service.digdir.postal-address.postal-code}
+          locality: ${trustlist-service.digdir.postal-address.locality}
+          country: ${trustlist-service.digdir.postal-address.country}
 
   tsl-aca:
     path: /no_eidas2sandkasse_${trustlist-service.environment-name}_aca
