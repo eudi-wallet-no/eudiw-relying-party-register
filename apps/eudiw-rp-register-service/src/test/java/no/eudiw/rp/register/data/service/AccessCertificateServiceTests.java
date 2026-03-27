@@ -233,7 +233,7 @@ public class AccessCertificateServiceTests {
             RecordedRequest recordedRequest = mockCaServer.takeRequest();
             assertAll(
                     () -> assertEquals("POST", recordedRequest.getMethod()),
-                    () -> assertEquals("/v1/certs/access", recordedRequest.getPath())
+                    () -> assertEquals("/v1/certs/junitaccess1", recordedRequest.getPath())
             );
         }
 
@@ -421,7 +421,7 @@ public class AccessCertificateServiceTests {
                     instanceRepository.findById(legalEntityRepository.findById(legalEntity.getId()).orElseThrow().getRelyingPartyInstances().getFirst().getId()).orElse(null);
             assertNotNull(relyingPartyOut);
             assertEquals("POST", recordedRequest.getMethod());
-            assertEquals("/v1/certs/access", recordedRequest.getPath());
+            assertEquals("/v1/certs/junitaccess1", recordedRequest.getPath());
             assertEquals(1, relyingPartyOut.getAccessCertificates().size());
             assertEquals(certificateActual1.getSerialNumber().toString(), relyingPartyOut.getAccessCertificates().getFirst().getSerialNo());
             assertEquals(-1, relyingPartyOut.getAccessCertificates().getFirst().getRevocationStatus());
@@ -454,7 +454,7 @@ public class AccessCertificateServiceTests {
             assertEquals(HttpStatusCode.valueOf(204), code);
             assertEquals("POST", recordedRequest1.getMethod());
             assertEquals("PUT", recordedRequest2.getMethod());
-            assertEquals("/v1/certs/access", recordedRequest2.getPath());
+            assertEquals("/v1/certs/junitaccess1", recordedRequest2.getPath());
 
 
         }
