@@ -8,6 +8,8 @@ import no.idporten.eudiw.trustlist.domain.TLServiceProvider;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
+import java.util.Map;
+
 @Validated
 @ConfigurationProperties(prefix = "trustlist-service.tsl612")
 public record Trustlist612Properties(@NotEmpty String trustlistPath,
@@ -15,6 +17,6 @@ public record Trustlist612Properties(@NotEmpty String trustlistPath,
                                      @NotEmpty String trustlistPathSha2,
                                      @NotEmpty String keystore,
                                      @Valid @NotNull TLSchemeInformation schemeInformation,
-                                     @Valid TLServiceProvider serviceProvider
+                                     @Valid Map<String, TLServiceProvider> serviceProviders
 
 ) { }

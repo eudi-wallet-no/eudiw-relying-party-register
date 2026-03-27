@@ -47,6 +47,7 @@ public class TrustlistControllerTest {
     private String getPathSha2() {
         return properties.trustlistPathSha2();
     }
+
     private String getPathDefault() {
         return properties.trustlistPath();
     }
@@ -65,7 +66,6 @@ public class TrustlistControllerTest {
     }
 
 
-
     @DisplayName("then the TSL is signed and valid")
     @Test
     void testSignedTSLisValid() throws Exception {
@@ -78,7 +78,7 @@ public class TrustlistControllerTest {
         DSSDocument dssDoc = new InMemoryDocument(xml);
         Document tlDocDom = DomUtils.buildDOM(dssDoc);
         List<String> errors = TrustedListUtils.getInstance().validateAgainstXSD(new DOMSource(tlDocDom));
-        assertTrue(errors.isEmpty(), "Signed XML contains errors");
+        assertTrue(errors.isEmpty(), "Signed XML contains errors: " + errors);
 
     }
 

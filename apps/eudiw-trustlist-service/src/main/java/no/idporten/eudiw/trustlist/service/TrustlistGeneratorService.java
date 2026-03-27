@@ -9,6 +9,7 @@ import no.idporten.eudiw.trustlist.domain.TLServiceProvider;
 import no.idporten.eudiw.trustlist.exception.ApplicationException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.etsi.uri._02231.v2_.*;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -47,9 +48,15 @@ public class TrustlistGeneratorService {
         trustServiceStatusList.setSchemeInformation(createSchemeInformation());
 
         // • identify the TSPs recognized by the scheme;
+        if(properties.serviceProviders() == null){
+            return trustServiceStatusList;
+        }
         TrustServiceProviderList trustServiceProviderList = new TrustServiceProviderList();
-        TrustServiceProvider trustServiceProvider = createTrustServiceProvider(properties.serviceProvider());
-        trustServiceProviderList.getTrustServiceProviders().add(trustServiceProvider);
+        for (TLServiceProvider sp : properties.serviceProviders().values()) {
+            TrustServiceProvider trustServiceProvider = createTrustServiceProvider(sp);
+            trustServiceProviderList.getTrustServiceProviders().add(trustServiceProvider);
+        }
+
         trustServiceStatusList.setTrustServiceProviderList(trustServiceProviderList);
 
         return trustServiceStatusList;
@@ -105,12 +112,17 @@ public class TrustlistGeneratorService {
                 createMultiLangNormStringType(EN.getCode(), serviceProviderData.tradeName().langEn())));
         tspInformation.setTSPInformationURI(createNonEmptyMultiLangURIListType(
                 createNonEmptyMultiLangURIType(NO.getCode(), serviceProviderData.informationUri().langNo())));
-        tspInformation.setTSPAddress(createDigdirAddressType());
+
+        setAddresses(serviceProviderData, tspInformation);
         tspInformation.setTSPName(createInternationalNamesType(
                 createMultiLangNormStringType(NO.getCode(), serviceProviderData.name().langNo()),
                 createMultiLangNormStringType(EN.getCode(), serviceProviderData.name().langEn())));
 
         trustServiceProvider.setTSPInformation(tspInformation);
+
+        if(serviceProviderData.services() == null){
+            return trustServiceProvider;
+        }
 
         TSPServices tspServices = new TSPServices();
         for (TLService rpAccessService : serviceProviderData.services()) {
@@ -118,6 +130,18 @@ public class TrustlistGeneratorService {
         }
         trustServiceProvider.setTSPServices(tspServices);
         return trustServiceProvider;
+    }
+
+    private void setAddresses(TLServiceProvider serviceProviderData, TSPInformation tspInformation) {
+        PostalAddresses postalAddresses = new PostalAddresses();
+        postalAddresses.getPostalAddresses().add(createPostalAddress(serviceProviderData.postalAddress()));
+
+        ElectronicAddress electronicAddress = createElectronicAddress(serviceProviderData.email(), serviceProviderData.website());
+
+        AddressType addressType = new AddressType();
+        addressType.setPostalAddresses(postalAddresses);
+        addressType.setElectronicAddress(electronicAddress);
+        tspInformation.setTSPAddress(addressType);
     }
 
     private TSPService createRpAccessTspService(TLService rpAccessService) {
@@ -158,26 +182,34 @@ public class TrustlistGeneratorService {
     }
 
     private AddressType createDigdirAddressType() {
-        Address digdirAddress = digdirProperties.postalAddress();
-
         PostalAddresses postalAddresses = new PostalAddresses();
+        postalAddresses.getPostalAddresses().add(createPostalAddress(digdirProperties.postalAddress()));
+
+        ElectronicAddress electronicAddress = createElectronicAddress(digdirProperties.email(), digdirProperties.web());
+
+        AddressType addressType = new AddressType();
+        addressType.setPostalAddresses(postalAddresses);
+        addressType.setElectronicAddress(electronicAddress);
+        return addressType;
+    }
+
+    private @NonNull ElectronicAddress createElectronicAddress(String email, String website) {
+        ElectronicAddress electronicAddress = new ElectronicAddress();
+        electronicAddress.getURIS().add(createNonEmptyMultiLangURIType(NO.getCode(), email));
+        electronicAddress.getURIS().add(createNonEmptyMultiLangURIType(EN.getCode(), email));
+        electronicAddress.getURIS().add(createNonEmptyMultiLangURIType(NO.getCode(), website));
+        electronicAddress.getURIS().add(createNonEmptyMultiLangURIType(EN.getCode(), website));
+        return electronicAddress;
+    }
+
+    private static @NonNull PostalAddress createPostalAddress(Address digdirAddress) {
         PostalAddress postalAddress = new PostalAddress();
         postalAddress.setLang(NO.getCode());
         postalAddress.setStreetAddress(digdirAddress.streetAddress());
         postalAddress.setPostalCode(digdirAddress.postalCode());
         postalAddress.setLocality(digdirAddress.locality());
         postalAddress.setCountryName(digdirAddress.country());
-
-        ElectronicAddress electronicAddress = new ElectronicAddress();
-        electronicAddress.getURIS().add(createNonEmptyMultiLangURIType(NO.getCode(), digdirProperties.email()));
-        electronicAddress.getURIS().add(createNonEmptyMultiLangURIType(EN.getCode(), digdirProperties.email()));
-        electronicAddress.getURIS().add(createNonEmptyMultiLangURIType(NO.getCode(), digdirProperties.web()));
-        electronicAddress.getURIS().add(createNonEmptyMultiLangURIType(EN.getCode(), digdirProperties.web()));
-        AddressType addressType = new AddressType();
-        postalAddresses.getPostalAddresses().add(postalAddress);
-        addressType.setPostalAddresses(postalAddresses);
-        addressType.setElectronicAddress(electronicAddress);
-        return addressType;
+        return postalAddress;
     }
 
     private NonEmptyMultiLangURIType createNonEmptyMultiLangURIType(String lang, String value) {
