@@ -9,6 +9,6 @@ import no.idporten.eudiw.trustlist.domain.TSUri;
 
 import java.util.List;
 
-public record TLServiceProvider(@Valid @NotNull TSName name, @Valid @NotNull TSName tradeName, @Valid @NotNull TSUri informationUri, @Valid List<TLService> services, @NotBlank String email, @NotBlank String website, @Valid @NotNull Address postalAddress) {
+public record TLServiceProvider(@Valid @NotNull TSName name, @Valid @NotNull TSName tradeName, @Valid @NotNull TSUri informationUris, @Valid List<TLService> services, @NotBlank String email, @NotBlank String website, @Valid @NotNull Address postalAddress) {
 
 }

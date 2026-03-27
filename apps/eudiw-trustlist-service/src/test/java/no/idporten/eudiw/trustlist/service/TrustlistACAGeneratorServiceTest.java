@@ -1,7 +1,5 @@
 package no.idporten.eudiw.trustlist.service;
 
-import no.idporten.eudiw.trustlist.config.DigdirProperties;
-import no.idporten.eudiw.trustlist.config.TrustlistACAProperties;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.LoTE;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.PkiOb;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.TrustedEntity;
@@ -22,62 +20,55 @@ import static org.junit.jupiter.api.Assertions.*;
 class TrustlistACAGeneratorServiceTest {
 
     @Autowired
-    TrustlistACAProperties acaProperties;
-
-    @Autowired
-    DigdirProperties digdirProperties;
-
-    @Autowired
     TrustlistACAGeneratorService trustListACAGeneratorService;
-
 
     @Test
     void generateTrustlistACA() {
-
-        this.trustListACAGeneratorService = new TrustlistACAGeneratorService(acaProperties, digdirProperties);
         LoTE loTE = trustListACAGeneratorService.generateTrustlistACA();
         assertNotNull(loTE);
     }
 
     @Test
-    void contentInTrustListACAIsCorrect(){
+    void contentInTrustListACAIsCorrect() {
         LoTE lote = trustListACAGeneratorService.generateTrustlistACA();
         assertNotNull(lote);
-        assertEquals("NO", lote.getListAndSchemeInformation().getSchemeTerritory().toString());
+        assertEquals("NO", lote.getListAndSchemeInformation().getSchemeTerritory());
         assertEquals("http://uri.etsi.org/19602/LoTEType/EUWRPACProvidersList", lote.getListAndSchemeInformation().getLoTEType().toString());
         assertNotNull(lote.getListAndSchemeInformation().getListIssueDateTime());
         assertNotNull(lote.getListAndSchemeInformation().getLoTESequenceNumber());
         assertNotNull(lote.getListAndSchemeInformation().getSchemeName());
         assertNotNull(lote.getListAndSchemeInformation().getLoTEVersionIdentifier());
         assertNotNull(lote.getListAndSchemeInformation().getNextUpdate());
-        verifyTrustedEntityHasContent(lote.getTrustedEntitiesList());
+        verifyTrustedEntitiesHasContent(lote.getTrustedEntitiesList());
 
     }
 
-    private static void verifyTrustedEntityHasContent(List<TrustedEntity> trustedEntities) {
+    private static void verifyTrustedEntitiesHasContent(List<TrustedEntity> trustedEntities) {
         assertFalse(trustedEntities.isEmpty());
-        TrustedEntity te = trustedEntities.getFirst();
-        assertNotNull(te);
-        assertNotNull(te.getTrustedEntityInformation().getTEInformationURI());
-        assertNotNull(te.getTrustedEntityInformation().getTEName());
-        assertFalse(te.getTrustedEntityInformation().getTEName().isEmpty());
-        assertNotNull(te.getTrustedEntityInformation().getTEAddress());
-        assertNotNull(te.getTrustedEntityInformation().getTEInformationURI());
+        for (TrustedEntity te : trustedEntities) {
+            assertNotNull(te);
+            assertNotNull(te.getTrustedEntityInformation().getTEInformationURI());
+            assertNotNull(te.getTrustedEntityInformation().getTEName());
+            assertFalse(te.getTrustedEntityInformation().getTEName().isEmpty());
+            assertNotNull(te.getTrustedEntityInformation().getTEAddress());
+            assertNotNull(te.getTrustedEntityInformation().getTEInformationURI());
 
-        List<TrustedEntityService> teServices = te.getTrustedEntityServices();
-        verify1TrustedEntityServiceHasContent(teServices);
+            verifyTrustedEntityServicesHasContent(te.getTrustedEntityServices());
+        }
     }
 
-    private static void verify1TrustedEntityServiceHasContent(List<TrustedEntityService> teServices) {
+    private static void verifyTrustedEntityServicesHasContent(List<TrustedEntityService> teServices) {
         assertNotNull(teServices);
         assertFalse(teServices.isEmpty(), "TSPServices should not be empty");
-        TrustedEntityService service = teServices.getFirst();
-        assertNotNull(service);
-        assertNotNull(service.getServiceInformation());
-        assertNotNull(service.getServiceInformation().getServiceName());
-        assertFalse(service.getServiceInformation().getServiceName().isEmpty());
-        assertNotNull(service.getServiceInformation().getServiceDigitalIdentity().getX509Certificates());
-        assertEquals(PkiOb.class, service.getServiceInformation().getServiceDigitalIdentity().getX509Certificates().getFirst().getClass());
+        assertEquals(2, teServices.size(), "There should be exactly two TrustedEntityService in the list");
+        for (TrustedEntityService service : teServices) {
+            assertNotNull(service);
+            assertNotNull(service.getServiceInformation());
+            assertNotNull(service.getServiceInformation().getServiceName());
+            assertFalse(service.getServiceInformation().getServiceName().isEmpty());
+            assertNotNull(service.getServiceInformation().getServiceDigitalIdentity().getX509Certificates());
+            assertEquals(PkiOb.class, service.getServiceInformation().getServiceDigitalIdentity().getX509Certificates().getFirst().getClass());
+        }
     }
 
 }

@@ -1,7 +1,10 @@
 package no.idporten.eudiw.trustlist.service;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import no.idporten.eudiw.trustlist.config.DigdirProperties;
 import no.idporten.eudiw.trustlist.config.TrustlistPIDProperties;
+import no.idporten.eudiw.trustlist.domain.TSUri;
 import no.idporten.eudiw.trustlist.domain.etsi602.ListAndSchemeInformation;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.*;
 import org.slf4j.LoggerFactory;
@@ -48,11 +51,11 @@ public class TrustlistPIDGeneratorService {
         listAndSchemeInformation.setSchemeOperatorName(createSchemeOperatorName());
         listAndSchemeInformation.setSchemeOperatorAddress(createSchemeOperatorAddress(digdirProperties));
         listAndSchemeInformation.setSchemeName(List.of((createMultiLangString(NO.getCode(), schemaProps.schemeName().langNo())), (createMultiLangString(EN.getCode(), schemaProps.schemeName().langEn()))));
-        listAndSchemeInformation.setSchemeInformationURI(createInformationURIs(schemaProps));
+        listAndSchemeInformation.setSchemeInformationURI(createInformationURIs(schemaProps.informationUris()));
 
         listAndSchemeInformation.setLoTEType(schemaProps.loteType());
         listAndSchemeInformation.setStatusDeterminationApproach(schemaProps.statusDeterminationApproach());
-        listAndSchemeInformation.setSchemeTypeCommunityRules(List.of(createNonEmptyMultiLangURI("en", schemaProps.schemeTypeCommunityRules())));
+        listAndSchemeInformation.setSchemeTypeCommunityRules(List.of(createNonEmptyMultiLangURI(EN.getCode(), schemaProps.schemeTypeCommunityRules())));
         listAndSchemeInformation.setSchemeTerritory("NO");
         listAndSchemeInformation.setPolicyOrLegalNotice(List.of("TODO: Venter på godkjenning av Endringsforordning (EU) 2024/1183 (eIDAS 2.0/endringsforordningen)"));
         ZonedDateTime issuedDateTime = schemaProps.listIssueDateTime();
@@ -62,8 +65,14 @@ public class TrustlistPIDGeneratorService {
         return listAndSchemeInformation;
     }
 
-    private List<NonEmptyMultiLangURI> createInformationURIs(ListAndSchemeInformation schemeProps) {
-        return List.of(createNonEmptyMultiLangURI(NO.getCode(), schemeProps.uri()));
+    /**
+     * The SchemeInformationURI component shall contain:
+     * a) A URI where users can receive information about the PID providers list;
+     * and
+     * b) A URI where users can retrieve all previous instances of the PID providers list.
+     */
+    private List<NonEmptyMultiLangURI> createInformationURIs(@NotNull @Valid TSUri tsUri) {
+        return List.of(createNonEmptyMultiLangURI(NO.getCode(), tsUri.langNo()), createNonEmptyMultiLangURI(EN.getCode(), tsUri.langEn()));
     }
 
     private List<MultiLangString> createSchemeOperatorName() {
@@ -90,7 +99,7 @@ public class TrustlistPIDGeneratorService {
      */
     public List<TrustedEntity> createListOfTrustedEntity(TrustlistPIDProperties pidProperties) {
         List<TrustedEntity> finishedList = new ArrayList<>();
-        for (no.idporten.eudiw.trustlist.domain.etsi602.TrustedEntity entity : pidProperties.trustedEntities()) {
+        for (no.idporten.eudiw.trustlist.domain.etsi602.TrustedEntity entity : pidProperties.trustedEntities().values()) {
             TrustedEntityInformation trustedEntityInformation = populateTrustedEntityInformation(entity);
             TrustedEntity trustedEntity = new TrustedEntity();
             trustedEntity.setTrustedEntityInformation(trustedEntityInformation);

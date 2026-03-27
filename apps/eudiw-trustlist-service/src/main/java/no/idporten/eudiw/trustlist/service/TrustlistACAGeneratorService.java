@@ -1,8 +1,11 @@
 package no.idporten.eudiw.trustlist.service;
 
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import no.idporten.eudiw.trustlist.config.DigdirProperties;
 import no.idporten.eudiw.trustlist.config.TrustlistACAProperties;
+import no.idporten.eudiw.trustlist.domain.TSUri;
 import no.idporten.eudiw.trustlist.domain.etsi602.ListAndSchemeInformation;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.*;
 import no.idporten.eudiw.trustlist.exception.ApplicationException;
@@ -14,6 +17,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import static no.idporten.eudiw.trustlist.service.Common602Converter.*;
 import static no.idporten.eudiw.trustlist.service.LangCode.EN;
@@ -40,7 +44,7 @@ public class TrustlistACAGeneratorService {
         no.idporten.eudiw.trustlist.etsi119602.pojo.ListAndSchemeInformation listAndSchemeInformation = createListAndSchemeInformation(schemaProps);
         lote.setListAndSchemeInformation(listAndSchemeInformation);
         try{
-            lote.setTrustedEntitiesList(createListOfTrustedEntity(acaProperties));
+            lote.setTrustedEntitiesList(createListOfTrustedEntity(acaProperties.trustedEntities()));
         } catch (ApplicationException e) {
             log.warn("Det har skjedd en feil ved setting av Trusted Entity lista til "
                     +  lote.getListAndSchemeInformation().getSchemeName().getFirst().getValue() + e);
@@ -57,11 +61,11 @@ public class TrustlistACAGeneratorService {
         listAndSchemeInformation.setSchemeOperatorName(createSchemeOperatorName());
         listAndSchemeInformation.setSchemeOperatorAddress(createSchemeOperatorAddress(digdirProperties));
         listAndSchemeInformation.setSchemeName(createSchemaName(schemaProps));
-        listAndSchemeInformation.setSchemeInformationURI(createInformationURIs());
+        listAndSchemeInformation.setSchemeInformationURI(createInformationURIs(schemaProps.informationUris()));
 
         listAndSchemeInformation.setLoTEType(schemaProps.loteType());
         listAndSchemeInformation.setStatusDeterminationApproach(schemaProps.statusDeterminationApproach());
-        listAndSchemeInformation.setSchemeTypeCommunityRules(List.of(createNonEmptyMultiLangURI("en", schemaProps.schemeTypeCommunityRules())));
+        listAndSchemeInformation.setSchemeTypeCommunityRules(List.of(createNonEmptyMultiLangURI(EN.getCode(), schemaProps.schemeTypeCommunityRules())));
         listAndSchemeInformation.setSchemeTerritory("NO");
         listAndSchemeInformation.setPolicyOrLegalNotice(List.of("TODO: Venter på godkjenning av Endringsforordning (EU) 2024/1183 (eIDAS 2.0/endringsforordningen)"));
         ZonedDateTime issuedDateTime = schemaProps.listIssueDateTime();
@@ -78,9 +82,9 @@ public class TrustlistACAGeneratorService {
 
         return List.of(schemeNameNo, schemeNameEn);
     }
-    private static List<NonEmptyMultiLangURI> createInformationURIs() {
+    private static List<NonEmptyMultiLangURI> createInformationURIs(@NotNull @Valid TSUri tsUri) {
         // TODO kva URL skal me legge inn? burde me legge inn URL til samarbeidsportalen? Ideelt sett laga ei eiga side per trustlist schema (dei ulike listene).
-        return List.of(createNonEmptyMultiLangURI("no", "https://docs.digdir.no/docs/lommebok/lommebok_om.html"), createNonEmptyMultiLangURI("no", "https://docs.digdir.no/docs/lommebok/wallet_sandbox_summary.html"));
+        return List.of(createNonEmptyMultiLangURI("no", tsUri.langNo()), createNonEmptyMultiLangURI("no", tsUri.langEn()));
     }
 
     private List<MultiLangString> createSchemeOperatorName() {
@@ -99,11 +103,10 @@ public class TrustlistACAGeneratorService {
         return schemeOperatorAddress;
     }
 
-    public List<TrustedEntity> createListOfTrustedEntity(TrustlistACAProperties acaProperties) {
+    public List<TrustedEntity> createListOfTrustedEntity(@Valid @NotNull Map<String, no.idporten.eudiw.trustlist.domain.etsi602.TrustedEntity> trustedEntityMap) {
 
-        List<no.idporten.eudiw.trustlist.domain.etsi602.TrustedEntity> te = acaProperties.trustedEntities();
         List<TrustedEntity> finishedList = new ArrayList<>();
-        for (no.idporten.eudiw.trustlist.domain.etsi602.TrustedEntity entity : te) {
+        for (no.idporten.eudiw.trustlist.domain.etsi602.TrustedEntity entity : trustedEntityMap.values()) {
             TrustedEntityInformation trustedEntityInformation = new TrustedEntityInformation();
             MultiLangString teNameNO = createMultiLangString(NO.getCode(), entity.trustedEntityInformation().teName());
             MultiLangString teNameEN = createMultiLangString(EN.getCode(), entity.trustedEntityInformation().teName());
@@ -121,8 +124,10 @@ public class TrustlistACAGeneratorService {
             TrustedEntity trustedEntity = new TrustedEntity();
             trustedEntity.setTrustedEntityInformation(trustedEntityInformation);
 
-            TrustedEntityService trustedEntityService = createRpAccessTrustedEntityService(entity, acaProperties);
-            trustedEntity.setTrustedEntityServices(List.of(trustedEntityService));
+            for(no.idporten.eudiw.trustlist.domain.etsi602.TrustedEntityService service : entity.trustedEntityServices()) {
+                TrustedEntityService trustedEntityService = createRpAccessTrustedEntityService(service);
+                trustedEntity.getTrustedEntityServices().add(trustedEntityService);
+            }
             finishedList.add(trustedEntity);
         }
         return finishedList;
@@ -141,18 +146,18 @@ public class TrustlistACAGeneratorService {
         return teAddress;
     }
 
-    private TrustedEntityService createRpAccessTrustedEntityService(no.idporten.eudiw.trustlist.domain.etsi602.TrustedEntity trustedEntity, TrustlistACAProperties acaProperties) {
+    private TrustedEntityService createRpAccessTrustedEntityService(no.idporten.eudiw.trustlist.domain.etsi602.TrustedEntityService service) {
         no.idporten.eudiw.trustlist.etsi119602.pojo.TrustedEntityService trustedEntityService = new TrustedEntityService();
 
-        MultiLangString serviceNameNo = createMultiLangString(NO.getCode(), acaProperties.trustedEntities().getFirst().trustedEntityServices().getFirst().serviceInformation().serviceName().langNo());
-        MultiLangString serviceNameEn = createMultiLangString(EN.getCode(), acaProperties.trustedEntities().getFirst().trustedEntityServices().getFirst().serviceInformation().serviceName().langEn());
+        MultiLangString serviceNameNo = createMultiLangString(NO.getCode(), service.serviceInformation().serviceName().langNo());
+        MultiLangString serviceNameEn = createMultiLangString(EN.getCode(), service.serviceInformation().serviceName().langEn());
         ServiceInformation serviceInformation = new ServiceInformation();
         serviceInformation.setServiceName(List.of(serviceNameNo, serviceNameEn));
         ServiceDigitalIdentity serviceDigitalIdentity = new ServiceDigitalIdentity();
 
         List<PkiOb> list = new ArrayList<>();
         PkiOb pkiOb = new PkiOb();
-        pkiOb.setVal(trustedEntity.trustedEntityServices().getFirst().serviceInformation().serviceDigitalIdentity().cert());
+        pkiOb.setVal(service.serviceInformation().serviceDigitalIdentity().cert());
         list.add(pkiOb);
         serviceDigitalIdentity.setX509Certificates(list);
         serviceInformation.setServiceDigitalIdentity(serviceDigitalIdentity);

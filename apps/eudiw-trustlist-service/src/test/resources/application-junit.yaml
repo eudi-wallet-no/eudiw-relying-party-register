@@ -23,8 +23,9 @@ trustlist-service:
         trade-name:
           lang-no: NTRNO-991825827
           lang-en: NTRNO-991825827
-        information-uri:
+        information-uris:
           lang-no: https://example.com/my-junit-provider
+          lang-en: https://example.com/my-junit-provider
         email: mailto:example@example.com
         website: https://www.junitest.no
         postal-address:
@@ -34,12 +35,55 @@ trustlist-service:
           country: "NO"
         services:
           - name:
-              lang-no: Enhetstest CA i eidas2sandkasse
-              lang-en: Junit CA in eidas2sandkasse
+              lang-no: Enhetstest 1 CA i eidas2sandkasse
+              lang-en: Junit 1 CA in eidas2sandkasse
+            starting-time: 2026-03-26T00:00:00.00Z
+            service-type-identifier: http://uri.etsi.org/Svc/Svctype/CA/RPaccess
+            cert: MIIBwTCCAWagAwIBAgIUWS0icyxgc28PEDs0FZABnS3ztK0wCgYIKoZIzj0EAwIwYDEYMBYGA1UEYQwPTlRSTk8tOTkxODI1ODI3MQswCQYDVQQGEwJOTzEkMCIGA1UECgwbRElHSVRBTElTRVJJTkdTRElSRUtUT1JBVEVUMREwDwYDVQQDDAh1bml0dGVzdDAeFw0yNjAzMjcwNjIwMzlaFw0yNzAzMjcwNjIwMzlaMGAxGDAWBgNVBGEMD05UUk5PLTk5MTgyNTgyNzELMAkGA1UEBhMCTk8xJDAiBgNVBAoMG0RJR0lUQUxJU0VSSU5HU0RJUkVLVE9SQVRFVDERMA8GA1UEAwwIdW5pdHRlc3QwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQ2qaC3kU6KluRWmnLrcj7lHLhB8qlRxdTpNm0V+DTaShy3Xt+NG0BaiGsvHVz0QeAOd2YiBG8Kcxn9mWXttfJJMAoGCCqGSM49BAMCA0kAMEYCIQCtut7glq0YhXbAckReL6DfwcyATrjSi457aev2LaLYAwIhAKvC0wouq3qwDWwtJyHyMz43Ka6fznPtxoBddyXxNSXk
+          - name:
+              lang-no: Enhetstest 2 CA i eidas2sandkasse
+              lang-en: Junit 2 CA in eidas2sandkasse
             starting-time: 2026-03-27T00:00:00.00Z
             service-type-identifier: http://uri.etsi.org/Svc/Svctype/CA/RPaccess
             cert: MIIBwTCCAWagAwIBAgIUWS0icyxgc28PEDs0FZABnS3ztK0wCgYIKoZIzj0EAwIwYDEYMBYGA1UEYQwPTlRSTk8tOTkxODI1ODI3MQswCQYDVQQGEwJOTzEkMCIGA1UECgwbRElHSVRBTElTRVJJTkdTRElSRUtUT1JBVEVUMREwDwYDVQQDDAh1bml0dGVzdDAeFw0yNjAzMjcwNjIwMzlaFw0yNzAzMjcwNjIwMzlaMGAxGDAWBgNVBGEMD05UUk5PLTk5MTgyNTgyNzELMAkGA1UEBhMCTk8xJDAiBgNVBAoMG0RJR0lUQUxJU0VSSU5HU0RJUkVLVE9SQVRFVDERMA8GA1UEAwwIdW5pdHRlc3QwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQ2qaC3kU6KluRWmnLrcj7lHLhB8qlRxdTpNm0V+DTaShy3Xt+NG0BaiGsvHVz0QeAOd2YiBG8Kcxn9mWXttfJJMAoGCCqGSM49BAMCA0kAMEYCIQCtut7glq0YhXbAckReL6DfwcyATrjSi457aev2LaLYAwIhAKvC0wouq3qwDWwtJyHyMz43Ka6fznPtxoBddyXxNSXk
 
+  tsl-aca:
+    trusted-entities:
+      digdir:
+        trusted-entity-services:
+          - service-information:
+              service-name:
+                lang-no: ca 1 fra Digdir
+                lang-en: ca 1 from Digdir
+              service-digital-identity:
+                cert: cert1
+          - service-information:
+              service-name:
+                lang-no: ca 2 fra Digdir
+                lang-en: ca 2 from Digdir
+              service-digital-identity:
+                cert: cert2
+
+  tsl-pid:
+    trusted-entities:
+      digdir:
+        trusted-entity-services:
+          - service-information:
+              service-type-identifier:
+                a: http://uri.etsi.org/19602/SvcType/PID/Issuance
+              service-name:
+                lang-no: Fyrste PID-utsteder fra Digdir
+                lang-en: First PID-issuer from Digdir
+              service-digital-identity:
+                cert: cert1
+          - service-information:
+              service-type-identifier:
+                a: http://uri.etsi.org/19602/SvcType/PID/Issuance
+              service-name:
+                lang-no: Nok ein PID-utsteder fra Digdir
+                lang-en: Nok PID-issuer from Digdir
+              service-digital-identity:
+                cert: cert2
 
 idporten-key-manager:
   keystores:
