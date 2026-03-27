@@ -48,7 +48,7 @@ public class TrustlistGeneratorService {
         trustServiceStatusList.setSchemeInformation(createSchemeInformation());
 
         // • identify the TSPs recognized by the scheme;
-        if(properties.serviceProviders() == null){
+        if (properties.serviceProviders() == null) {
             return trustServiceStatusList;
         }
         TrustServiceProviderList trustServiceProviderList = new TrustServiceProviderList();
@@ -78,9 +78,11 @@ public class TrustlistGeneratorService {
                 createMultiLangNormStringType(NO.getCode(), tlSchemeInformation.schemeName().langNo()),
                 createMultiLangNormStringType(EN.getCode(), tlSchemeInformation.schemeName().langEn()
                 )));
-        schemeInformation.setSchemeInformationURI(new NonEmptyMultiLangURIListType());
-        schemeInformation.getSchemeInformationURI().getURIS().add(createNonEmptyMultiLangURIType(NO.getCode(), "https://www.digdir.no/"));
-        schemeInformation.getSchemeInformationURI().getURIS().add(createNonEmptyMultiLangURIType(EN.getCode(), "https://www.digdir.no/"));
+        if (tlSchemeInformation.informationUris() != null) { //obligatorisk felt, bør ha betre feilhåndtering
+            schemeInformation.setSchemeInformationURI(new NonEmptyMultiLangURIListType());
+            schemeInformation.getSchemeInformationURI().getURIS().add(createNonEmptyMultiLangURIType(NO.getCode(), tlSchemeInformation.informationUris().langNo()));
+            schemeInformation.getSchemeInformationURI().getURIS().add(createNonEmptyMultiLangURIType(EN.getCode(), tlSchemeInformation.informationUris().langEn()));
+        }
         schemeInformation.setStatusDeterminationApproach(STATUS_DETERMINATION_APPROACH_URI);
         schemeInformation.setSchemeTerritory("NO");
         schemeInformation.setSchemeTypeCommunityRules(new NonEmptyMultiLangURIListType());
@@ -111,7 +113,8 @@ public class TrustlistGeneratorService {
                 createMultiLangNormStringType(NO.getCode(), serviceProviderData.tradeName().langNo()),
                 createMultiLangNormStringType(EN.getCode(), serviceProviderData.tradeName().langEn())));
         tspInformation.setTSPInformationURI(createNonEmptyMultiLangURIListType(
-                createNonEmptyMultiLangURIType(NO.getCode(), serviceProviderData.informationUri().langNo())));
+                createNonEmptyMultiLangURIType(NO.getCode(), serviceProviderData.informationUris().langNo()),
+                createNonEmptyMultiLangURIType(EN.getCode(), serviceProviderData.informationUris().langEn())));
 
         setAddresses(serviceProviderData, tspInformation);
         tspInformation.setTSPName(createInternationalNamesType(
@@ -120,7 +123,7 @@ public class TrustlistGeneratorService {
 
         trustServiceProvider.setTSPInformation(tspInformation);
 
-        if(serviceProviderData.services() == null){
+        if (serviceProviderData.services() == null) {
             return trustServiceProvider;
         }
 

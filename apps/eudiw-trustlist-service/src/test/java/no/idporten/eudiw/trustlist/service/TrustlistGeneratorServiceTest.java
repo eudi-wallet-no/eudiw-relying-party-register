@@ -45,7 +45,7 @@ class TrustlistGeneratorServiceTest {
             assertFalse(tspInformation.getTSPInformationURI().getURIS().isEmpty());
             verifyHasTSPAddress(tspInformation.getTSPAddress());
             List<TSPService> tspServices = serviceProvider.getTSPServices().getTSPServices();
-            verify1ServiceHasContent(tspServices);
+            verifyServicesHasContent(tspServices);
         }
     }
 
@@ -70,17 +70,18 @@ class TrustlistGeneratorServiceTest {
         assertNotNull(postalAddresses.getFirst().getCountryName());
     }
 
-    private static void verify1ServiceHasContent(List<TSPService> tspServices) {
+    private static void verifyServicesHasContent(List<TSPService> tspServices) {
         assertNotNull(tspServices);
         assertFalse(tspServices.isEmpty(), "TSPServices should not be empty");
-        TSPService service = tspServices.getFirst();
-        assertNotNull(service);
-        assertNotNull(service.getServiceInformation());
-        assertNotNull(service.getServiceInformation().getServiceName());
-        assertFalse(service.getServiceInformation().getServiceName().getNames().isEmpty());
-        assertNotNull(service.getServiceInformation().getServiceStatus());
-        assertNotNull(service.getServiceInformation().getServiceTypeIdentifier());
-        assertNotNull(service.getServiceInformation().getServiceDigitalIdentity());
-        assertFalse(service.getServiceInformation().getServiceDigitalIdentity().getDigitalIds().isEmpty());
+        for (TSPService service : tspServices) {
+            assertNotNull(service);
+            assertNotNull(service.getServiceInformation());
+            assertNotNull(service.getServiceInformation().getServiceName());
+            assertFalse(service.getServiceInformation().getServiceName().getNames().isEmpty());
+            assertNotNull(service.getServiceInformation().getServiceStatus());
+            assertNotNull(service.getServiceInformation().getServiceTypeIdentifier());
+            assertNotNull(service.getServiceInformation().getServiceDigitalIdentity());
+            assertFalse(service.getServiceInformation().getServiceDigitalIdentity().getDigitalIds().isEmpty());
+        }
     }
 }

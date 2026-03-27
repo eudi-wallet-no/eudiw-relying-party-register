@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import no.idporten.eudiw.trustlist.domain.TSName;
+import no.idporten.eudiw.trustlist.domain.TSUri;
 
 import java.math.BigInteger;
 import java.net.URI;
@@ -16,7 +17,7 @@ public record ListAndSchemeInformation(
         @Positive @NotNull BigInteger sequenceNumber,
         @NotNull ZonedDateTime listIssueDateTime,
         @NotNull @Valid URI loteType,
-        @NotBlank String uri,
+        @NotNull @Valid TSUri informationUris,
         @NotNull @Valid URI statusDeterminationApproach,
         @NotBlank String schemeTypeCommunityRules
         ) {

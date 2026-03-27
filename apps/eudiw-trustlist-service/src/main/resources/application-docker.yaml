@@ -36,12 +36,7 @@ trustlist-service:
 
   tsl-aca:
     trusted-entities:
-      - trusted-entity-information:
-          te-name: DIGITALISERINGSDIREKTORATET
-          te-trade-name: NTRNO-991825827
-          information-uri:
-            a: https://docs.digdir.no/docs/lommebok/lommebok_om.html
-            c: http://uri.etsi.org/19602/ListOfTrustedEntities/WRPACProvider/NO
+      digdir:
         trusted-entity-services:
           - service-information:
               service-name:
@@ -51,14 +46,7 @@ trustlist-service:
                 cert: MIIC7zCCApWgAwIBAgIIDDkuQsJ13BUwCgYIKoZIzj0EAwIwfzEeMBwGA1UEYRMVTlRSTk8tTk9GT1IuOTkxODI1ODI3MQswCQYDVQQGEwJOTzEkMCIGA1UEChMbRElHSVRBTElTRVJJTkdTRElSRUtUT1JBVEVUMSowKAYDVQQDEyFlaWRhczJzYW5ka2Fzc2Ugcm9vdCBDQSAyIHN5c3Rlc3QwHhcNMjYwMzExMTQ0MTA0WhcNMzEwMzAxMTQ0MTA0WjCBhDEeMBwGA1UEYRMVTlRSTk8tTk9GT1IuOTkxODI1ODI3MQswCQYDVQQGEwJOTzEkMCIGA1UEChMbRElHSVRBTElTRVJJTkdTRElSRUtUT1JBVEVUMS8wLQYDVQQDEyZlaWRhczJzYW5ka2Fzc2UgUlAgQWNjZXNzIENBIDIgc3lzdGVzdDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABAuTeoWKksraL+xSB+cGYejzJ38BmWrkZswN4SvPN6AokX5dzZrSoq+axGlbxxFgiZXBDcTdM6Wk1rGUnvUu/c+jgfQwgfEwTQYIKwYBBQUHAQEEQTA/MD0GCCsGAQUFBzAChjFodHRwczovL2NhLmVpZGFzMnNhbmRrYXNzZS5kZXYvdjEvY2VydHMvcm9vdDIuY2VyMB0GA1UdDgQWBBQbnsdFC/WycGR4LPI/c76+mBKyajAOBgNVHQ8BAf8EBAMCAQYwDAYDVR0TBAUwAwEB/zBCBgNVHR8EOzA5MDegNaAzhjFodHRwczovL2NhLmVpZGFzMnNhbmRrYXNzZS5kZXYvdjEvY2VydHMvcm9vdDIuY3JsMB8GA1UdIwQYMBaAFBR4btw66Yt7bwyRgLXOHBS5yT/yMAoGCCqGSM49BAMCA0gAMEUCIQDWcryWaodSx7PtGbTYNnDusjiIFxVhBfTGG7SC8vTHvQIgJcfVvPNy0v7qDpClAjI1m6ndGcFMFjchdpVWtJEDlO8=
   tsl-pid:
     trusted-entities:
-      - trusted-entity-information:
-          te-name: DIGITALISERINGSDIREKTORATET
-          te-trade-name: NTRNO-991825827
-          te-address:
-            phone-number: +4722451000
-          information-uri:
-            a: https://docs.digdir.no/docs/lommebok/lommebok_om.html
-            c: http://uri.etsi.org/19602/ListOfTrustedEntities/PIDProvider/NO
+      digdir:
         trusted-entity-services:
           - service-information:
               service-type-identifier:

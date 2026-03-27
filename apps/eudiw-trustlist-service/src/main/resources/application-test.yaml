@@ -35,17 +35,9 @@ trustlist-service:
 
   tsl-aca:
     trusted-entities:
-      - trusted-entity-information:
-          te-name: DIGITALISERINGSDIREKTORATET
-          te-trade-name: NTRNO-991825827
-          information-uri:
-            a: https://www.norge.no/nb/bruk-minid-logge-deg-inn/vilkar-bruk-av-minid/66
-            b: https://www.norge.no/en/use-minid-log/terms-service-minid/66
-            c: http://uri.etsi.org/19602/ListOfTrustedEntities/WRPACProvider/NO
+      digdir:
         trusted-entity-services:
           - service-information:
-              service-type-identifier:
-                a: http://uri.etsi.org/19602/SvcType/PID/Issuance
               service-name:
                 lang-no: CA for relying parties access certificates i eidas2sandkasse
                 lang-en: CA for relying parties access certificates in eidas2sandkasse
@@ -54,14 +46,7 @@ trustlist-service:
 
   tsl-pid:
     trusted-entities:
-      - trusted-entity-information:
-          te-name: DIGITALISERINGSDIREKTORATET
-          te-trade-name: NTRNO-991825827
-          te-address:
-            phone-number: +4722451000
-          information-uri:
-            a: https://docs.digdir.no/docs/lommebok/lommebok_om.html
-            c: http://uri.etsi.org/19602/ListOfTrustedEntities/PIDProvider/NO
+      digdir:
         trusted-entity-services:
           - service-information:
               service-type-identifier:

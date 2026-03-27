@@ -30,12 +30,7 @@ trustlist-service:
 
   tsl-aca:
     trusted-entities:
-      - trusted-entity-information:
-          te-name: DIGITALISERINGSDIREKTORATET
-          te-trade-name: NTRNO-991825827
-          information-uri:
-            a: https://docs.digdir.no/docs/lommebok/lommebok_om.html
-            c: http://uri.etsi.org/19602/ListOfTrustedEntities/WRPACProvider/NO
+      digdir:
         trusted-entity-services:
           - service-information:
               service-name:
@@ -46,14 +41,7 @@ trustlist-service:
 
   tsl-pid:
     trusted-entities:
-      - trusted-entity-information:
-          te-name: DIGITALISERINGSDIREKTORATET
-          te-trade-name: NTRNO-991825827
-          te-address:
-            phone-number: +4722451000
-          information-uri:
-            a: https://docs.digdir.no/docs/lommebok/lommebok_om.html
-            c: http://uri.etsi.org/19602/ListOfTrustedEntities/PIDProvider/NO
+      digdir:
         trusted-entity-services:
           - service-information:
               service-type-identifier:
