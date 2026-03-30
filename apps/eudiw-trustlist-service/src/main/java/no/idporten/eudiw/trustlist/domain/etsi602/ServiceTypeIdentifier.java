@@ -1,8 +1,10 @@
 package no.idporten.eudiw.trustlist.domain.etsi602;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+import java.net.URI;
 
 public record ServiceTypeIdentifier(
-        @NotBlank String a
+        @NotNull URI a
 ) {
 }
