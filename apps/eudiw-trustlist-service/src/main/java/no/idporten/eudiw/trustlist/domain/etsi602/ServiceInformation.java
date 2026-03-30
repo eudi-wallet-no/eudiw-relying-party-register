@@ -5,7 +5,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
 public record ServiceInformation(
-        ServiceTypeIdentifier serviceTypeIdentifier,
+        @Valid ServiceTypeIdentifier serviceTypeIdentifier,
         @Valid @NotNull ServiceName serviceName,
         @Valid @NotNull ServiceDigitalIdentity serviceDigitalIdentity
         ) {
