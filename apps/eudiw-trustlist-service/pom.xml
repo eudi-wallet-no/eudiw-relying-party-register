@@ -201,6 +201,7 @@
                     <targetPackage>no.idporten.eudiw.trustlist.etsi119602.pojo</targetPackage>
                     <includeAdditionalProperties>false</includeAdditionalProperties>
                     <annotationStyle>jackson3</annotationStyle>
+                    <inclusionLevel>NON_EMPTY</inclusionLevel> <!-- Only include non-empty fields in the generated JSON, not show empty array -->
                 </configuration>
                 <executions>
                     <execution>

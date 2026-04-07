@@ -38,7 +38,7 @@ public class TrustlistPIDControllerTest {
 
     @Test
     @DisplayName("When GETTING PID LoTE then return as JSON with ListAndSchemeInformation with content")
-    void testAcaControllerReturnsLoTE() throws Exception {
+    void testPidControllerReturnsLoTE() throws Exception {
 
         LoTE lote = TestDataGenerator.createLoTETrustlist();
         when(service.getPIDTrustlistAsLoTE()).thenReturn(lote);
@@ -52,5 +52,21 @@ public class TrustlistPIDControllerTest {
 
         verify(service, times(1)).getPIDTrustlistAsLoTE();
 
+    }
+
+    @Test
+    @DisplayName("When GETTING signed PID trustlist then return JWS payload")
+    void testPidControllerReturnsSignedTrustlist() throws Exception {
+
+        String signedTrustlist = "eyJhbGciOiJFUzI1NiJ9.eyJ0cnVzdGxpc3QiOiJwaWQifQ.signature";
+        when(service.getSignedPidTrustlist()).thenReturn(signedTrustlist);
+
+        mockMvc.perform(get(properties.path() + ".jws"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/jose+json"))
+                .andExpect(content().string(signedTrustlist))
+                .andExpect(header().exists("Last-Modified"));
+
+        verify(service, times(1)).getSignedPidTrustlist();
     }
 }

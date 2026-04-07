@@ -4,7 +4,7 @@ import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.util.Base64;
-import no.idporten.eudiw.trustlist.config.TrustlistACAProperties;
+import jakarta.validation.constraints.NotEmpty;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.LoTE;
 import no.idporten.eudiw.trustlist.exception.JsonSignException;
 import no.idporten.lib.keystore.KeyProvider;
@@ -24,26 +24,23 @@ import java.util.List;
 public class JsonSignerService {
 
 
-    private final TrustlistACAProperties acaProperties;
-
     private final KeystoreManager keystoreManager;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public JsonSignerService(TrustlistACAProperties acaProperties, KeystoreManager keystoreManager) {
-        this.acaProperties = acaProperties;
+    public JsonSignerService(KeystoreManager keystoreManager) {
         this.keystoreManager = keystoreManager;
     }
 
-    private KeyProvider getKeystore() {
-        String keystoreName = acaProperties.keystore();
+    private KeyProvider getKeystore(@NotEmpty String keystoreName) {
         return keystoreManager.getKeyProvider(keystoreName);
     }
 
-    public String signedTrustlist(LoTE loTE) {
+    public String signedTrustlist(LoTE loTE, @NotEmpty String keystoreName) {
         String loteType = getListType(loTE); // For logging/errorhandling messages
         String json = convertLoTEtoJsonString(loTE, loteType);
-        return signJson(json, loteType);
+        KeyProvider keystore = getKeystore(keystoreName);
+        return signJson(json, loteType, keystore);
     }
 
 
@@ -65,9 +62,9 @@ public class JsonSignerService {
         }
     }
 
-    private String signJson(String json, String loteType) {
+    private String signJson(String json, String loteType, KeyProvider keystore) {
 
-        List<Base64> certBase64chain = getCertificateChainFromKeystore(loteType);
+        List<Base64> certBase64chain = getCertificateChainFromKeystore(loteType, keystore);
         JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256)
                 .x509CertChain(certBase64chain)
                 .customParam("iat", Instant.now().getEpochSecond())
@@ -76,7 +73,7 @@ public class JsonSignerService {
         Payload payload = new Payload(json);
         JWSObject jwsObject = new JWSObject(header, payload);
 
-        PrivateKey privateKey = getKeystore().privateKey();
+        PrivateKey privateKey = keystore.privateKey();
 
         try {
             JWSSigner signer = new ECDSASigner(privateKey, Curve.P_256);
@@ -87,8 +84,8 @@ public class JsonSignerService {
         return jwsObject.serialize();
     }
 
-    private List<Base64> getCertificateChainFromKeystore(String loteType) {
-        List<Certificate> certificateChain = getKeystore().certificateChain();
+    private List<Base64> getCertificateChainFromKeystore(String loteType, KeyProvider keystore) {
+        List<Certificate> certificateChain = keystore.certificateChain();
         return certificateChain.stream().map(certificate -> certificateToBase64(certificate, loteType)).toList();
     }
 

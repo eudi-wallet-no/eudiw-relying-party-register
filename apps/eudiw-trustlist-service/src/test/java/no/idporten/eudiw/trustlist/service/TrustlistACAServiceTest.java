@@ -1,6 +1,7 @@
 package no.idporten.eudiw.trustlist.service;
 
 import no.idporten.eudiw.trustlist.TestDataGenerator;
+import no.idporten.eudiw.trustlist.config.TrustlistACAProperties;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.LoTE;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -17,7 +18,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("When get 602 trustlist")
-class Signed602TrustlistServiceTest {
+class TrustlistACAServiceTest {
 
     @Mock
     private TrustlistACAGeneratorService generatorService;
@@ -25,8 +26,13 @@ class Signed602TrustlistServiceTest {
     @Mock
     private JsonSignerService jsonSignerService;
 
+    @Mock
+    private TrustlistACAProperties acaProperties;
+
     @InjectMocks
     private TrustlistACAService signed602TrustlistService;
+
+    private static final String keystoreName = "signing-602";
 
     @BeforeEach
     public void setup() {
@@ -45,10 +51,11 @@ class Signed602TrustlistServiceTest {
     @DisplayName("as signed json then return String with content")
     void getSignedACATrustlist() {
         String signedJson = "signedJson";
-        when(jsonSignerService.signedTrustlist(any(LoTE.class))).thenReturn(signedJson);
-        String signedACATrustlist = signed602TrustlistService.getSignedACATrustlist();
+        when(acaProperties.keystore()).thenReturn(keystoreName);
+        when(jsonSignerService.signedTrustlist(any(LoTE.class), eq(keystoreName))).thenReturn(signedJson);
+        String signedACATrustlist = signed602TrustlistService.signedACAJson();
         assertNotNull(signedACATrustlist);
         assertEquals(signedJson, signedACATrustlist);
-        verify(jsonSignerService, only()).signedTrustlist(any(LoTE.class));
+        verify(jsonSignerService, only()).signedTrustlist(any(LoTE.class), anyString());
     }
 }
