@@ -14,8 +14,6 @@ services:
     environment:
       spring_profiles_active: docker
       _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0"
-    env_file:
-      - .env
     ports:
       - "9230:9230"
       - "9235:9235"

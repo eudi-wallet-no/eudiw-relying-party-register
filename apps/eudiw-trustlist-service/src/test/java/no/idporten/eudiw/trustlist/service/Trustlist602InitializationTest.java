@@ -1,0 +1,91 @@
+package no.idporten.eudiw.trustlist.service;
+
+import com.nimbusds.jose.JWSObject;
+import no.idporten.eudiw.trustlist.etsi119602.pojo.LoTE;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+
+import java.text.ParseException;
+
+import static no.idporten.eudiw.trustlist.TestDataGenerator.DIGDIR;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+@SpringBootTest
+@ActiveProfiles("junit")
+@DisplayName("602 Trustlists are only generated once on initialization of service")
+class Trustlist602InitializationTest {
+
+    @Autowired
+    private TrustlistPIDService service;
+
+    @MockitoSpyBean
+    private JsonSignerService signerService;
+
+    @MockitoSpyBean
+    private TrustlistPIDGeneratorService generatorService;
+
+    @Autowired
+    private TrustlistACAService acaService;
+
+    @MockitoSpyBean
+    private TrustlistACAGeneratorService acaGeneratorService;
+
+
+    @Test
+    @DisplayName("getSignedPidTrustlist() or getSignedACATrustlist() should not trigger new generation of trustlists")
+    void verify602TrustlistsAreOnlyGeneratedOnce() throws ParseException {
+
+        // 1. Pid call
+        String signedPidTrustlist1 = service.getSignedPidTrustlist();
+        verifyContent(signedPidTrustlist1);
+
+        // 2. Pid call (same content as 1. call)
+        String signedPidTrustlist2 = service.getSignedPidTrustlist();
+        verifyContent(signedPidTrustlist2);
+
+        assertEquals(signedPidTrustlist1, signedPidTrustlist2);
+
+        // 1. ACA call
+        String signedAcaTrustlist1 = acaService.getSignedACATrustlist();
+        verifyContent(signedAcaTrustlist1);
+
+        // 2. ACA call (same content as 1. call)
+        String signedAcaTrustlist2 = acaService.getSignedACATrustlist();
+        verifyContent(signedAcaTrustlist2);
+
+        assertEquals(signedAcaTrustlist1, signedAcaTrustlist2);
+
+        // only called on postConstruct of class (initialization), never when calling method service.getSignedPidTrustlist();
+        verify(generatorService, times(1)).generateTrustlistPID();
+        verify(acaGeneratorService, times(1)).generateTrustlistACA();
+
+        ArgumentCaptor<LoTE> pidLoTECaptor = ArgumentCaptor.forClass(LoTE.class);
+        verify(signerService, times(1)).signedTrustlist(pidLoTECaptor.capture(), eq("signing-602-pid"));
+        LoTE pidCapturedLoTE = pidLoTECaptor.getValue();
+        assertNotNull(pidCapturedLoTE.getListAndSchemeInformation());
+        assertEquals("http://uri.etsi.org/19602/LoTEType/EUPIDProvidersList",
+                pidCapturedLoTE.getListAndSchemeInformation().getLoTEType().toString());
+
+        ArgumentCaptor<LoTE> acaLoTECaptor = ArgumentCaptor.forClass(LoTE.class);
+        verify(signerService, times(1)).signedTrustlist(acaLoTECaptor.capture(), eq("signing-602"));
+        LoTE acaLoTECaptorValue = acaLoTECaptor.getValue();
+        assertNotNull(acaLoTECaptorValue.getListAndSchemeInformation());
+        assertEquals("http://uri.etsi.org/19602/LoTEType/EUWRPACProvidersList",
+                acaLoTECaptorValue.getListAndSchemeInformation().getLoTEType().toString());
+    }
+
+    private static void verifyContent(String signedTrustlist) throws ParseException {
+        assertNotNull(signedTrustlist);
+        JWSObject jwsObject = JWSObject.parse(signedTrustlist);
+        assertNotNull(jwsObject);
+        String body = jwsObject.getPayload().toString();
+        assertTrue(body.contains(DIGDIR)); // just check some expected content in payload
+    }
+
+}

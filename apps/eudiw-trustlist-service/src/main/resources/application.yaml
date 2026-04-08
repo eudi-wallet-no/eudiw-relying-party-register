@@ -130,7 +130,7 @@ trustlist-service:
 
 
 idporten-key-manager:
-  default-keystore: signing-612  # Optional, first keystore becomes default if not specified
+  default-keystore: signing-602  # Optional, first keystore becomes default if not specified
   keystores:
     signing-612:
       key-store-location: ${TSL_612_SIGN_KEYSTORE}
