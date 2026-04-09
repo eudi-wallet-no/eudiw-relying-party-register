@@ -3,7 +3,7 @@ package no.idporten.eudiw.trustlist.web;
 
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.trustlist.TestDataGenerator;
-import no.idporten.eudiw.trustlist.config.TrustlistACAProperties;
+import no.idporten.eudiw.trustlist.config.Trustlist602Properties;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.LoTE;
 import no.idporten.eudiw.trustlist.service.TrustlistACAService;
 import org.junit.jupiter.api.DisplayName;
@@ -31,7 +31,7 @@ public class TrustlistACAControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private TrustlistACAProperties properties;
+    private Trustlist602Properties properties;
 
     @MockitoBean
     private TrustlistACAService service;
@@ -43,7 +43,7 @@ public class TrustlistACAControllerTest {
         LoTE lote = TestDataGenerator.createLoTETrustlist();
         when(service.getACATrustlistAsLoTE()).thenReturn(lote);
 
-        mockMvc.perform(get(properties.path()))
+        mockMvc.perform(get(properties.getAcaTrustlist().path()))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").exists())
@@ -60,7 +60,7 @@ public class TrustlistACAControllerTest {
 
         when(service.getSignedACATrustlist()).thenReturn("test");
 
-        mockMvc.perform(get(properties.path() + ".jws"))
+        mockMvc.perform(get(properties.getAcaTrustlist().path() + ".jws"))
                 .andExpect(content().contentType("application/jose+json"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("test"));

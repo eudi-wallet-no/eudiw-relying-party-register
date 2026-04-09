@@ -13,6 +13,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import java.text.ParseException;
 
 import static no.idporten.eudiw.trustlist.TestDataGenerator.DIGDIR;
+import static no.idporten.eudiw.trustlist.config.Trustlist602Properties.TSL_ACA;
+import static no.idporten.eudiw.trustlist.config.Trustlist602Properties.TSL_PID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -27,15 +29,11 @@ class Trustlist602InitializationTest {
     @MockitoSpyBean
     private JsonSignerService signerService;
 
-    @MockitoSpyBean
-    private TrustlistPIDGeneratorService generatorService;
-
     @Autowired
     private TrustlistACAService acaService;
 
     @MockitoSpyBean
-    private TrustlistACAGeneratorService acaGeneratorService;
-
+    private Trustlist602GeneratorService generatorService;
 
     @Test
     @DisplayName("getSignedPidTrustlist() or getSignedACATrustlist() should not trigger new generation of trustlists")
@@ -62,8 +60,9 @@ class Trustlist602InitializationTest {
         assertEquals(signedAcaTrustlist1, signedAcaTrustlist2);
 
         // only called on postConstruct of class (initialization), never when calling method service.getSignedPidTrustlist();
-        verify(generatorService, times(1)).generateTrustlistPID();
-        verify(acaGeneratorService, times(1)).generateTrustlistACA();
+        verify(generatorService, times(1)).generateTrustlist(eq(TSL_PID));
+
+        verify(generatorService, times(1)).generateTrustlist(eq(TSL_ACA));
 
         ArgumentCaptor<LoTE> pidLoTECaptor = ArgumentCaptor.forClass(LoTE.class);
         verify(signerService, times(1)).signedTrustlist(pidLoTECaptor.capture(), eq("signing-602-pid"));

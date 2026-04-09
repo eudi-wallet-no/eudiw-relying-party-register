@@ -17,7 +17,7 @@ import java.time.ZonedDateTime;
 @RestController
 public class TrustlistACAController {
 
-    @Value("${trustlist-service.tsl-aca.scheme-information.list-issue-datetime:#{T(java.time.ZonedDateTime).now()}}")
+    @Value("${trustlist-service.tsl602.tsl-aca.scheme-information.list-issue-datetime:#{T(java.time.ZonedDateTime).now()}}")
     private ZonedDateTime lastModified;
 
     private final TrustlistACAService service;
@@ -35,7 +35,7 @@ public class TrustlistACAController {
      *
      * @return ACA Trustlist as JSON in the payload of JWS.
      */
-    @GetMapping(value = "${trustlist-service.tsl-aca.path}.jws", produces = "application/jose+json")
+    @GetMapping(value = "${trustlist-service.tsl602.tsl-aca.path}.jws", produces = "application/jose+json")
     public ResponseEntity<@NonNull String> getSignedTrustListACA() {
         String loTe = service.getSignedACATrustlist();
         return ResponseEntity.ok().lastModified(lastModified.toInstant()).body(loTe);
@@ -46,7 +46,7 @@ public class TrustlistACAController {
      *
      * @return ACA Trustlist as JSON
      */
-    @GetMapping(value = "${trustlist-service.tsl-aca.path}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "${trustlist-service.tsl602.tsl-aca.path}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<@NonNull LoTE> getTrustListACAAsJson() {
         LoTE loTE = service.getACATrustlistAsLoTE();
         return ResponseEntity.ok().lastModified(lastModified.toInstant()).body(loTE);

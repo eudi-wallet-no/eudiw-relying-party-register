@@ -2,8 +2,7 @@ package no.idporten.eudiw.trustlist.web;
 
 
 import lombok.extern.slf4j.Slf4j;
-import no.idporten.eudiw.trustlist.config.TrustlistACAProperties;
-import java.util.Base64;
+import no.idporten.eudiw.trustlist.config.Trustlist602Properties;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +11,8 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+
+import java.util.Base64;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -30,13 +31,13 @@ public class TrustListACAGeneratedOnceTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private TrustlistACAProperties properties;
+    private Trustlist602Properties properties;
 
     @Test
     @DisplayName("When GETTING signed trustlist then the same list is return on multiple requests")
     void verifyListIsOnlyGeneratedOnceOnStartup() throws Exception {
 
-        String uri = properties.path() + ".jws";
+        String uri = properties.getAcaTrustlist().path() + ".jws";
         String contentType = "application/jose+json";
 
         // Run 1

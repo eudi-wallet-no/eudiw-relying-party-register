@@ -72,60 +72,59 @@ trustlist-service:
           postal-code: ${trustlist-service.digdir.postal-address.postal-code}
           locality: ${trustlist-service.digdir.postal-address.locality}
           country: ${trustlist-service.digdir.postal-address.country}
+  tsl602:
+    tsl-aca:
+      path: /no_eidas2sandkasse_${trustlist-service.environment-name}_aca
+      keystore: signing-602
+      scheme-information:
+        scheme-name:
+          lang-no: Tillitsliste for Access Certificate Authorities i eidas2sandkasse i ${trustlist-service.environment-name}
+          lang-en: Trust list for Access Certificate Authorities in eidas2sandkasse in ${trustlist-service.environment-name}
+        sequence-number: 1
+        list-issue-datetime: 2026-02-27T00:00:00.00Z
+        lote-type: http://uri.etsi.org/19602/LoTEType/EUWRPACProvidersList
+        information-uris:
+          lang-no: ${trustlist-service.digdir.information-uris.lang-no}
+          lang-en: ${trustlist-service.digdir.information-uris.lang-en}
+        status-determination-approach: http://uri.etsi.org/19602/WRPACProvidersList/StatusDetn/EU
+        scheme-type-community-rules: http://uri.etsi.org/19602/WRPACProvidersList/schemerules/EU
 
-  tsl-aca:
-    path: /no_eidas2sandkasse_${trustlist-service.environment-name}_aca
-    keystore: signing-602
-    scheme-information:
-      scheme-name:
-        lang-no: Tillitsliste for Access Certificate Authorities i eidas2sandkasse i ${trustlist-service.environment-name}
-        lang-en: Trust list for Access Certificate Authorities in eidas2sandkasse in ${trustlist-service.environment-name}
-      sequence-number: 1
-      list-issue-datetime: 2026-02-27T00:00:00.00Z
-      lote-type: http://uri.etsi.org/19602/LoTEType/EUWRPACProvidersList
-      information-uris:
-        lang-no: ${trustlist-service.digdir.information-uris.lang-no}
-        lang-en: ${trustlist-service.digdir.information-uris.lang-en}
-      status-determination-approach: http://uri.etsi.org/19602/WRPACProvidersList/StatusDetn/EU
-      scheme-type-community-rules: http://uri.etsi.org/19602/WRPACProvidersList/schemerules/EU
-
-    trusted-entities:
-      digdir:
-        trusted-entity-information:
-          te-name: DIGITALISERINGSDIREKTORATET
-          te-trade-name: NTRNO-991825827
-          information-uri:
-            a: https://docs.digdir.no/docs/lommebok/lommebok_om.html
-            c: http://uri.etsi.org/19602/ListOfTrustedEntities/WRPACProvider/NO
+      trusted-entities:
+        digdir:
+          trusted-entity-information:
+            te-name: DIGITALISERINGSDIREKTORATET
+            te-trade-name: NTRNO-991825827
+            information-uri:
+              a: https://docs.digdir.no/docs/lommebok/lommebok_om.html
+              c: http://uri.etsi.org/19602/ListOfTrustedEntities/WRPACProvider/NO
 
 
-  tsl-pid:
-    path: /no_eidas2sandkasse_${trustlist-service.environment-name}_pid
-    keystore: signing-602
+    tsl-pid:
+      path: /no_eidas2sandkasse_${trustlist-service.environment-name}_pid
+      keystore: signing-602
+      scheme-information:
+        scheme-name:
+          lang-no: Tillitsliste for Personal Identification Data tilbydere i eidas2sandkasse i ${trustlist-service.environment-name}
+          lang-en: Trust list for Personal Identification Data providers in eidas2sandkasse in ${trustlist-service.environment-name}
+        sequence-number: 1
+        list-issue-datetime: 2026-03-25T00:00:00.00Z
+        lote-type: http://uri.etsi.org/19602/LoTEType/EUPIDProvidersList
+        information-uris:
+          lang-no: ${trustlist-service.digdir.information-uris.lang-no}
+          lang-en: ${trustlist-service.digdir.information-uris.lang-en}
+        status-determination-approach: http://uri.etsi.org/19602/PIDProvidersList/StatusDetn/EU
+        scheme-type-community-rules: http://uri.etsi.org/19602/PIDProviders/schemerules/EU
 
-    scheme-information:
-      scheme-name:
-        lang-no: Tillitsliste for Personal Identification Data tilbydere i eidas2sandkasse i ${trustlist-service.environment-name}
-        lang-en: Trust list for Personal Identification Data providers in eidas2sandkasse in ${trustlist-service.environment-name}
-      sequence-number: 1
-      list-issue-datetime: 2026-03-25T00:00:00.00Z
-      lote-type: http://uri.etsi.org/19602/LoTEType/EUPIDProvidersList
-      information-uris:
-        lang-no: ${trustlist-service.digdir.information-uris.lang-no}
-        lang-en: ${trustlist-service.digdir.information-uris.lang-en}
-      status-determination-approach: http://uri.etsi.org/19602/PIDProvidersList/StatusDetn/EU
-      scheme-type-community-rules: http://uri.etsi.org/19602/PIDProviders/schemerules/EU
-
-    trusted-entities:
-      digdir:
-        trusted-entity-information:
-          te-name: DIGITALISERINGSDIREKTORATET
-          te-trade-name: NTRNO-991825827
-          te-address:
-            phone-number: +4722451000
-          information-uri:
-            a: https://docs.digdir.no/docs/lommebok/lommebok_om.html
-            c: http://uri.etsi.org/19602/ListOfTrustedEntities/PIDProvider/NO
+      trusted-entities:
+        digdir:
+          trusted-entity-information:
+            te-name: DIGITALISERINGSDIREKTORATET
+            te-trade-name: NTRNO-991825827
+            te-address:
+              phone-number: "+4722451000"
+            information-uri:
+              a: https://docs.digdir.no/docs/lommebok/lommebok_om.html
+              c: http://uri.etsi.org/19602/ListOfTrustedEntities/PIDProvider/NO
 
 
 

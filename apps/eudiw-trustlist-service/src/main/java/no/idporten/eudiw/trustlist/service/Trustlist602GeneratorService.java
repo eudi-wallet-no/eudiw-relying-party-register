@@ -4,7 +4,8 @@ package no.idporten.eudiw.trustlist.service;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import no.idporten.eudiw.trustlist.config.DigdirProperties;
-import no.idporten.eudiw.trustlist.config.TrustlistACAProperties;
+import no.idporten.eudiw.trustlist.config.Trustlist602Properties;
+import no.idporten.eudiw.trustlist.domain.etsi602.Trustlist;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.LoTE;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.TrustedEntity;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.TrustedEntityInformation;
@@ -19,21 +20,25 @@ import static no.idporten.eudiw.trustlist.service.Common602Converter.*;
 
 
 @Service
-public class TrustlistACAGeneratorService {
+public class Trustlist602GeneratorService {
 
-    private final TrustlistACAProperties acaProperties;
+    private final Trustlist602Properties trustlistProperties;
     private final DigdirProperties digdirProperties;
 
-    public TrustlistACAGeneratorService(TrustlistACAProperties acaProperties, DigdirProperties digdirProperties) {
-        this.acaProperties = acaProperties;
+    public Trustlist602GeneratorService(Trustlist602Properties trustlistProperties, DigdirProperties digdirProperties) {
+        this.trustlistProperties = trustlistProperties;
         this.digdirProperties = digdirProperties;
     }
 
-    public LoTE generateTrustlistACA() {
+    public LoTE generateTrustlist(String trustlist) {
+        Trustlist list = trustlistProperties.tsl602().get(trustlist);// Check if the trustlist exists, if not throw exception.
+        if (list == null) {
+            throw new RuntimeException("Trustlist with name " + trustlist + " not found in properties: " + trustlistProperties.tsl602());
+        }
         LoTE lote = new LoTE();
 
-        lote.setListAndSchemeInformation(createListAndSchemeInformation(acaProperties.schemeInformation(), digdirProperties));
-        lote.setTrustedEntitiesList(createListOfTrustedEntity(acaProperties.trustedEntities(), digdirProperties));
+        lote.setListAndSchemeInformation(createListAndSchemeInformation(list.schemeInformation(), digdirProperties));
+        lote.setTrustedEntitiesList(createListOfTrustedEntity(list.trustedEntities(), digdirProperties));
 
         return lote;
     }
