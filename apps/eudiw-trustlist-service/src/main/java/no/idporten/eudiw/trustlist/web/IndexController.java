@@ -1,8 +1,8 @@
 package no.idporten.eudiw.trustlist.web;
 
+import no.idporten.eudiw.trustlist.config.Trustlist602Properties;
 import no.idporten.eudiw.trustlist.config.Trustlist612Properties;
-import no.idporten.eudiw.trustlist.config.TrustlistACAProperties;
-import no.idporten.eudiw.trustlist.config.TrustlistPIDProperties;
+import no.idporten.eudiw.trustlist.domain.etsi602.Trustlist;
 import org.jspecify.annotations.NonNull;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -13,13 +13,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class IndexController {
 
     private final Trustlist612Properties list612Properties;
-    private final TrustlistACAProperties acaProperties;
-    private final TrustlistPIDProperties pidProperties;
+    private final Trustlist602Properties trustlist602Properties;
 
-    public IndexController(final Trustlist612Properties list612Properties, final TrustlistACAProperties acaProperties, final  TrustlistPIDProperties pidProperties) {
+    public IndexController(final Trustlist612Properties list612Properties, Trustlist602Properties trustlist602Properties) {
         this.list612Properties = list612Properties;
-        this.acaProperties = acaProperties;
-        this.pidProperties = pidProperties;
+        this.trustlist602Properties = trustlist602Properties;
     }
 
 
@@ -30,9 +28,11 @@ public class IndexController {
 
     private String createPageContent() {
         String tsl612TrustlistLinks = getTrustlistLinksWithSha(list612Properties.schemeInformation().schemeName().langNo(), list612Properties.trustlistPathXtsl(), list612Properties.trustlistPath(), list612Properties.trustlistPathSha2());
-        String acaTrustlistLinks = getTrustlistLinks(acaProperties.schemeInformation().schemeName().langNo(), acaProperties.path());
-        String pidItustlistLinks = getTrustlistLinks(pidProperties.schemeInformation().schemeName().langNo(), pidProperties.path());
-
+        StringBuilder tsl602TrustlistsLinks = new StringBuilder();
+        for(Trustlist trustlist : trustlist602Properties.tsl602().values()){
+            String links = getTrustlistLinks(trustlist.schemeInformation().schemeName().langNo(), trustlist.path());
+            tsl602TrustlistsLinks.append("<li>").append(links).append("</li>");
+        }
         return """
                 <html>
                    <head>
@@ -42,11 +42,10 @@ public class IndexController {
                       <h1>Tillitslister</h1>
                       <ul>
                         <li>%s</li>
-                        <li>%s</li>
-                        <li>%s</li>
+                        %s
                       </ul>
                    </body>
-                </html>""".formatted(tsl612TrustlistLinks, acaTrustlistLinks,  pidItustlistLinks);
+                </html>""".formatted(tsl612TrustlistLinks, tsl602TrustlistsLinks.toString());
     }
 
     private String getTrustlistLinksWithSha(String title, String trustlistPathXtsl, String trustlistPath, String trustlistPathSha2) {

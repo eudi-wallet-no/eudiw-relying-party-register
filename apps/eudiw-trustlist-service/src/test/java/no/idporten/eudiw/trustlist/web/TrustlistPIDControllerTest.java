@@ -2,7 +2,7 @@ package no.idporten.eudiw.trustlist.web;
 
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.trustlist.TestDataGenerator;
-import no.idporten.eudiw.trustlist.config.TrustlistPIDProperties;
+import no.idporten.eudiw.trustlist.config.Trustlist602Properties;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.LoTE;
 import no.idporten.eudiw.trustlist.service.TrustlistPIDService;
 import org.junit.jupiter.api.DisplayName;
@@ -16,7 +16,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -31,7 +30,7 @@ public class TrustlistPIDControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private TrustlistPIDProperties properties;
+    private Trustlist602Properties properties;
 
     @MockitoBean
     private TrustlistPIDService service;
@@ -43,7 +42,7 @@ public class TrustlistPIDControllerTest {
         LoTE lote = TestDataGenerator.createLoTETrustlist();
         when(service.getPIDTrustlistAsLoTE()).thenReturn(lote);
 
-        mockMvc.perform(get(properties.path()))
+        mockMvc.perform(get(properties.getPidTrustlist().path()))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").exists())
@@ -61,7 +60,7 @@ public class TrustlistPIDControllerTest {
         String signedTrustlist = "eyJhbGciOiJFUzI1NiJ9.eyJ0cnVzdGxpc3QiOiJwaWQifQ.signature";
         when(service.getSignedPidTrustlist()).thenReturn(signedTrustlist);
 
-        mockMvc.perform(get(properties.path() + ".jws"))
+        mockMvc.perform(get(properties.getPidTrustlist().path() + ".jws"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/jose+json"))
                 .andExpect(content().string(signedTrustlist))

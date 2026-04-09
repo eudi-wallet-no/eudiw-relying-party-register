@@ -5,7 +5,8 @@ import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.Payload;
 import no.idporten.eudiw.trustlist.TestDataGenerator;
-import no.idporten.eudiw.trustlist.config.TrustlistPIDProperties;
+import no.idporten.eudiw.trustlist.config.Trustlist602Properties;
+import no.idporten.eudiw.trustlist.domain.etsi602.Trustlist;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.LoTE;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,6 +22,7 @@ import java.time.Instant;
 
 import static no.idporten.eudiw.trustlist.TestDataGenerator.DIGDIR;
 import static no.idporten.eudiw.trustlist.TestDataGenerator.createJsonFromLoTE;
+import static no.idporten.eudiw.trustlist.config.Trustlist602Properties.TSL_PID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -32,10 +34,10 @@ class TrustlistPIDServiceTest {
     private JsonSignerService signerService;
 
     @Mock
-    private TrustlistPIDGeneratorService generatorService;
+    private Trustlist602GeneratorService generatorService;
 
     @Mock
-    private TrustlistPIDProperties trustListPIDProperties;
+    private Trustlist602Properties trustlist602Properties;
 
     @InjectMocks
     private TrustlistPIDService service;
@@ -43,7 +45,7 @@ class TrustlistPIDServiceTest {
     @BeforeEach
     void setup() {
         LoTE loTETrustlist = TestDataGenerator.createLoTETrustlist();
-        when(generatorService.generateTrustlistPID()).thenReturn(loTETrustlist);
+        when(generatorService.generateTrustlist(TSL_PID)).thenReturn(loTETrustlist);
     }
 
 
@@ -55,7 +57,7 @@ class TrustlistPIDServiceTest {
         assertNotNull(loTE.getListAndSchemeInformation());
         assertNotNull(loTE.getListAndSchemeInformation().getLoTEType());
         assertNotNull(loTE.getTrustedEntitiesList());
-        verify(generatorService, atLeastOnce()).generateTrustlistPID();
+        verify(generatorService, atLeastOnce()).generateTrustlist(eq(TSL_PID));
     }
 
     @Test
@@ -69,14 +71,14 @@ class TrustlistPIDServiceTest {
         Payload payload = new Payload(createJsonFromLoTE());
         String jwtWithoutSignature = header.toBase64URL().toString() + "." + payload.toBase64URL().toString() + ".signature";
 
-        when(trustListPIDProperties.keystore()).thenReturn("signing-602");
+        when(trustlist602Properties.getPidTrustlist()).thenReturn(new Trustlist("path","signing-602", null, null));
         when(signerService.signedTrustlist(any(LoTE.class), anyString())).thenReturn(jwtWithoutSignature);
 
         String signedTrustlist1 = service.signedPidJson();
         verifySignedTrustlistResult(signedTrustlist1);
 
-        verify(trustListPIDProperties, only()).keystore();
-        verify(generatorService, only()).generateTrustlistPID();
+        verify(trustlist602Properties, only()).getPidTrustlist();
+        verify(generatorService, only()).generateTrustlist(eq(TSL_PID));
 
         ArgumentCaptor<LoTE> loTECaptor = ArgumentCaptor.forClass(LoTE.class);
         verify(signerService, only()).signedTrustlist(loTECaptor.capture(), anyString());

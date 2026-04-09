@@ -1,7 +1,7 @@
 package no.idporten.eudiw.trustlist.service;
 
 import jakarta.annotation.PostConstruct;
-import no.idporten.eudiw.trustlist.config.TrustlistACAProperties;
+import no.idporten.eudiw.trustlist.config.Trustlist602Properties;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.LoTE;
 import no.idporten.eudiw.trustlist.exception.ApplicationException;
 import org.slf4j.Logger;
@@ -11,24 +11,25 @@ import org.springframework.stereotype.Service;
 @Service
 public class TrustlistACAService {
 
-    private final TrustlistACAGeneratorService generatorService;
+    private final Trustlist602GeneratorService generatorService;
 
     private final JsonSignerService jsonSignerService;
 
-    private final TrustlistACAProperties acaProperties;
+    private final Trustlist602Properties trustlist602Properties;
 
     private final static Logger log = LoggerFactory.getLogger(TrustlistACAService.class);
 
     private volatile String signedTrustlist;
 
-    public TrustlistACAService(TrustlistACAGeneratorService generatorService, JsonSignerService jsonSignerService, TrustlistACAProperties acaProperties) {
+    public TrustlistACAService(Trustlist602GeneratorService generatorService, JsonSignerService jsonSignerService, Trustlist602Properties trustlist602Properties) {
         this.generatorService = generatorService;
         this.jsonSignerService = jsonSignerService;
-        this.acaProperties = acaProperties;
+        this.trustlist602Properties = trustlist602Properties;
     }
 
     public LoTE getACATrustlistAsLoTE() {
-        return generatorService.generateTrustlistACA();
+
+        return generatorService.generateTrustlist(Trustlist602Properties.TSL_ACA);
     }
 
     public String getSignedACATrustlist() {
@@ -36,8 +37,8 @@ public class TrustlistACAService {
     }
 
     protected String signedACAJson() {
-        LoTE loTE = generatorService.generateTrustlistACA();
-        return jsonSignerService.signedTrustlist(loTE, acaProperties.keystore());
+        LoTE loTE = generatorService.generateTrustlist(Trustlist602Properties.TSL_ACA);
+        return jsonSignerService.signedTrustlist(loTE, trustlist602Properties.getAcaTrustlist().keystore());
     }
 
 

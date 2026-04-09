@@ -1,8 +1,7 @@
 package no.idporten.eudiw.trustlist.web;
 
+import no.idporten.eudiw.trustlist.config.Trustlist602Properties;
 import no.idporten.eudiw.trustlist.config.Trustlist612Properties;
-import no.idporten.eudiw.trustlist.config.TrustlistACAProperties;
-import no.idporten.eudiw.trustlist.config.TrustlistPIDProperties;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,13 +27,11 @@ class IndexControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private Trustlist612Properties list612Properties;
+    private Trustlist612Properties trustlist612Properties;
 
     @Autowired
-    private TrustlistPIDProperties  trustlistPIDProperties;
+    private Trustlist602Properties trustlist602Properties;
 
-    @Autowired
-    private TrustlistACAProperties acaProperties;
 
     @Test
     @DisplayName("should return the expected HTML as string with trustlist titles and links")
@@ -48,40 +45,42 @@ class IndexControllerTest {
         assertNotNull(html);
 
         // Verify that the HTML contains the expected trust list titles and links
-        assertTrue(html.contains(list612Properties.schemeInformation().schemeName().langNo()));
-        assertTrue(html.contains(list612Properties.trustlistPathXtsl()));
-        assertTrue(html.contains(list612Properties.trustlistPath()));
-        assertTrue(html.contains(list612Properties.trustlistPathSha2()));
+        assertTrue(html.contains(trustlist612Properties.schemeInformation().schemeName().langNo()));
+        assertTrue(html.contains(trustlist612Properties.trustlistPathXtsl()));
+        assertTrue(html.contains(trustlist612Properties.trustlistPath()));
+        assertTrue(html.contains(trustlist612Properties.trustlistPathSha2()));
 
-        assertTrue(html.contains(acaProperties.schemeInformation().schemeName().langNo()));
-        assertTrue(html.contains(acaProperties.path()));
+        assertTrue(html.contains(trustlist602Properties.getAcaTrustlist().schemeInformation().schemeName().langNo()));
+        assertTrue(html.contains(trustlist602Properties.getAcaTrustlist().path()));
 
-        assertTrue(html.contains(trustlistPIDProperties.schemeInformation().schemeName().langNo()));
-        assertTrue(html.contains(trustlistPIDProperties.path()));
+        assertTrue(html.contains(trustlist602Properties.getPidTrustlist().schemeInformation().schemeName().langNo()));
+        assertTrue(html.contains(trustlist602Properties.getPidTrustlist().path()));
     }
 
     @Test
     @DisplayName("properties for trust lists is loaded with non-empty content for trustlist names and paths")
     void propertiesForTrustlistsShouldBeLoadedWithNonEmptyContent() {
 
-        assertNotNull(list612Properties);
-        assertNotNull(list612Properties.schemeInformation());
-        assertNotNull(list612Properties.schemeInformation().schemeName());
-        assertNotNull(list612Properties.schemeInformation().schemeName().langNo());
-        assertNotNull(list612Properties.trustlistPathXtsl());
-        assertNotNull(list612Properties.trustlistPath());
-        assertNotNull(list612Properties.trustlistPathSha2());
+        assertNotNull(trustlist612Properties);
+        assertNotNull(trustlist612Properties.schemeInformation());
+        assertNotNull(trustlist612Properties.schemeInformation().schemeName());
+        assertNotNull(trustlist612Properties.schemeInformation().schemeName().langNo());
+        assertNotNull(trustlist612Properties.trustlistPathXtsl());
+        assertNotNull(trustlist612Properties.trustlistPath());
+        assertNotNull(trustlist612Properties.trustlistPathSha2());
 
-        assertNotNull(acaProperties);
-        assertNotNull(acaProperties.schemeInformation());
-        assertNotNull(acaProperties.schemeInformation().schemeName());
-        assertNotNull(acaProperties.schemeInformation().schemeName().langNo());
-        assertNotNull(acaProperties.path());
+        assertNotNull(trustlist602Properties.tsl602());
 
-        assertNotNull(trustlistPIDProperties);
-        assertNotNull(trustlistPIDProperties.schemeInformation());
-        assertNotNull(trustlistPIDProperties.schemeInformation().schemeName());
-        assertNotNull(trustlistPIDProperties.schemeInformation().schemeName().langNo());
-        assertNotNull(trustlistPIDProperties.path());
+        assertNotNull(trustlist602Properties.getAcaTrustlist());
+        assertNotNull(trustlist602Properties.getAcaTrustlist().schemeInformation());
+        assertNotNull(trustlist602Properties.getAcaTrustlist().schemeInformation().schemeName());
+        assertNotNull(trustlist602Properties.getAcaTrustlist().schemeInformation().schemeName().langNo());
+        assertNotNull(trustlist602Properties.getAcaTrustlist().path());
+
+        assertNotNull(trustlist602Properties.getPidTrustlist());
+        assertNotNull(trustlist602Properties.getPidTrustlist().schemeInformation());
+        assertNotNull(trustlist602Properties.getPidTrustlist().schemeInformation().schemeName());
+        assertNotNull(trustlist602Properties.getPidTrustlist().schemeInformation().schemeName().langNo());
+        assertNotNull(trustlist602Properties.getPidTrustlist().path());
     }
 }
