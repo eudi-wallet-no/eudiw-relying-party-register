@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.trustlist.TestDataGenerator;
 import no.idporten.eudiw.trustlist.config.Trustlist602Properties;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.LoTE;
-import no.idporten.eudiw.trustlist.service.TrustlistPIDService;
+import no.idporten.eudiw.trustlist.service.Trustlist602Service;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +15,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static no.idporten.eudiw.trustlist.config.Trustlist602Properties.TSL_PID;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -33,14 +34,14 @@ public class TrustlistPIDControllerTest {
     private Trustlist602Properties properties;
 
     @MockitoBean
-    private TrustlistPIDService service;
+    private Trustlist602Service service;
 
     @Test
     @DisplayName("When GETTING PID LoTE then return as JSON with ListAndSchemeInformation with content")
     void testPidControllerReturnsLoTE() throws Exception {
 
         LoTE lote = TestDataGenerator.createLoTETrustlist();
-        when(service.getPIDTrustlistAsLoTE()).thenReturn(lote);
+        when(service.getTrustlistAsLoTE(TSL_PID)).thenReturn(lote);
 
         mockMvc.perform(get(properties.getPidTrustlist().path()))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
@@ -49,7 +50,7 @@ public class TrustlistPIDControllerTest {
                 .andExpect(jsonPath("$.ListAndSchemeInformation.LoTEType").value(lote.getListAndSchemeInformation().getLoTEType().toString()))
                 .andExpect(jsonPath("$.ListAndSchemeInformation.SchemeTerritory").value(lote.getListAndSchemeInformation().getSchemeTerritory()));
 
-        verify(service, times(1)).getPIDTrustlistAsLoTE();
+        verify(service, times(1)).getTrustlistAsLoTE(TSL_PID);
 
     }
 
@@ -58,7 +59,7 @@ public class TrustlistPIDControllerTest {
     void testPidControllerReturnsSignedTrustlist() throws Exception {
 
         String signedTrustlist = "eyJhbGciOiJFUzI1NiJ9.eyJ0cnVzdGxpc3QiOiJwaWQifQ.signature";
-        when(service.getSignedPidTrustlist()).thenReturn(signedTrustlist);
+        when(service.getSignedTrustlist(TSL_PID)).thenReturn(signedTrustlist);
 
         mockMvc.perform(get(properties.getPidTrustlist().path() + ".jws"))
                 .andExpect(status().isOk())
@@ -66,6 +67,6 @@ public class TrustlistPIDControllerTest {
                 .andExpect(content().string(signedTrustlist))
                 .andExpect(header().exists("Last-Modified"));
 
-        verify(service, times(1)).getSignedPidTrustlist();
+        verify(service, times(1)).getSignedTrustlist(TSL_PID);
     }
 }

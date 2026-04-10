@@ -23,14 +23,11 @@ import static org.mockito.Mockito.*;
 @DisplayName("602 Trustlists are only generated once on initialization of service")
 class Trustlist602InitializationTest {
 
-    @Autowired
-    private TrustlistPIDService service;
-
     @MockitoSpyBean
     private JsonSignerService signerService;
 
     @Autowired
-    private TrustlistACAService acaService;
+    private Trustlist602Service trustlist602Service;
 
     @MockitoSpyBean
     private Trustlist602GeneratorService generatorService;
@@ -40,21 +37,21 @@ class Trustlist602InitializationTest {
     void verify602TrustlistsAreOnlyGeneratedOnce() throws ParseException {
 
         // 1. Pid call
-        String signedPidTrustlist1 = service.getSignedPidTrustlist();
+        String signedPidTrustlist1 = trustlist602Service.getSignedTrustlist(TSL_PID);
         verifyContent(signedPidTrustlist1);
 
         // 2. Pid call (same content as 1. call)
-        String signedPidTrustlist2 = service.getSignedPidTrustlist();
+        String signedPidTrustlist2 = trustlist602Service.getSignedTrustlist(TSL_PID);
         verifyContent(signedPidTrustlist2);
 
         assertEquals(signedPidTrustlist1, signedPidTrustlist2);
 
         // 1. ACA call
-        String signedAcaTrustlist1 = acaService.getSignedACATrustlist();
+        String signedAcaTrustlist1 = trustlist602Service.getSignedTrustlist(TSL_ACA);
         verifyContent(signedAcaTrustlist1);
 
         // 2. ACA call (same content as 1. call)
-        String signedAcaTrustlist2 = acaService.getSignedACATrustlist();
+        String signedAcaTrustlist2 = trustlist602Service.getSignedTrustlist(TSL_ACA);
         verifyContent(signedAcaTrustlist2);
 
         assertEquals(signedAcaTrustlist1, signedAcaTrustlist2);

@@ -1,7 +1,7 @@
 package no.idporten.eudiw.trustlist.web;
 
 import no.idporten.eudiw.trustlist.etsi119602.pojo.LoTE;
-import no.idporten.eudiw.trustlist.service.TrustlistPIDService;
+import no.idporten.eudiw.trustlist.service.Trustlist602Service;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,17 +12,19 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.ZonedDateTime;
 
+import static no.idporten.eudiw.trustlist.config.Trustlist602Properties.TSL_PID;
+
 @RestController
 public class TrustlistPIDController {
 
-    private final TrustlistPIDService pidService;
+    private final Trustlist602Service service;
 
     @Value("${trustlist-service.tsl602.tsl-pid.scheme-information.list-issue-datetime:#{T(java.time.ZonedDateTime).now()}}")
     private ZonedDateTime lastModified;
 
     @Autowired
-    public TrustlistPIDController(TrustlistPIDService pidService) {
-        this.pidService = pidService;
+    public TrustlistPIDController(Trustlist602Service service) {
+        this.service = service;
     }
 
     /**
@@ -34,7 +36,7 @@ public class TrustlistPIDController {
      */
     @GetMapping(value = "${trustlist-service.tsl602.tsl-pid.path}.jws", produces = "application/jose+json")
     public ResponseEntity<@NonNull String> getSignedTrustlistPID() {
-        String loTe = pidService.getSignedPidTrustlist();
+        String loTe = service.getSignedTrustlist(TSL_PID);
         return ResponseEntity.ok().lastModified(lastModified.toInstant()).body(loTe);
     }
 
@@ -42,6 +44,6 @@ public class TrustlistPIDController {
     public ResponseEntity<@NonNull LoTE> trustlistShow() {
         return ResponseEntity.ok()
                 .lastModified(lastModified.toInstant())
-                .body(pidService.getPIDTrustlistAsLoTE());
+                .body(service.getTrustlistAsLoTE(TSL_PID));
     }
 }
