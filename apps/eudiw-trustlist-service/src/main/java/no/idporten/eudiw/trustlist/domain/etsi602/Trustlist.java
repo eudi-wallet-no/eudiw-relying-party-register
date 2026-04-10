@@ -9,5 +9,5 @@ import java.util.Map;
 public record Trustlist(@NotEmpty String path,
                         @NotEmpty String keystore,
                         @Valid @NotNull ListAndSchemeInformation schemeInformation,
-                        @Valid @NotNull Map<String, TrustedEntity> trustedEntities) {
+                        @Valid Map<String, TrustedEntity> trustedEntities) {
 }

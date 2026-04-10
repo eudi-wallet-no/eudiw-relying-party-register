@@ -38,8 +38,9 @@ public class Trustlist602GeneratorService {
         LoTE lote = new LoTE();
 
         lote.setListAndSchemeInformation(createListAndSchemeInformation(list.schemeInformation(), digdirProperties));
-        lote.setTrustedEntitiesList(createListOfTrustedEntity(list.trustedEntities(), digdirProperties));
-
+        if (list.trustedEntities() != null) {
+            lote.setTrustedEntitiesList(createListOfTrustedEntity(list.trustedEntities(), digdirProperties));
+        }
         return lote;
     }
 
@@ -52,9 +53,11 @@ public class Trustlist602GeneratorService {
             TrustedEntityInformation trustedEntityInformation = populateTrustedEntityInformation(digdirProperties, entity.trustedEntityInformation());
             trustedEntity.setTrustedEntityInformation(trustedEntityInformation);
 
-            for (no.idporten.eudiw.trustlist.domain.etsi602.TrustedEntityService service : entity.trustedEntityServices()) {
-                TrustedEntityService trustedEntityService = populateTrustedEntityService(service);
-                trustedEntity.getTrustedEntityServices().add(trustedEntityService);
+            if (entity.trustedEntityServices() != null) {
+                for (no.idporten.eudiw.trustlist.domain.etsi602.TrustedEntityService service : entity.trustedEntityServices()) {
+                    TrustedEntityService trustedEntityService = populateTrustedEntityService(service);
+                    trustedEntity.getTrustedEntityServices().add(trustedEntityService);
+                }
             }
             finishedList.add(trustedEntity);
         }
