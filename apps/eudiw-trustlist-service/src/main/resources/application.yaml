@@ -126,7 +126,22 @@ trustlist-service:
               a: https://docs.digdir.no/docs/lommebok/lommebok_om.html
               c: http://uri.etsi.org/19602/ListOfTrustedEntities/PIDProvider/NO
 
-
+    tsl-wallet:
+      path: /no_eidas2sandkasse_${trustlist-service.environment-name}_wallet
+      keystore: signing-602
+      scheme-information:
+        scheme-name:
+          lang-no: Tillitsliste for Wallet tilbydere i eidas2sandkasse i ${trustlist-service.environment-name}
+          lang-en: Trust list for Wallet providers in eidas2sandkasse in ${trustlist-service.environment-name}
+        sequence-number: 1
+        list-issue-datetime: 2026-04-10T00:00:00.00Z
+        lote-type: http://uri.etsi.org/19602/LoTEType/EUWalletProvidersList
+        information-uris:
+          lang-no: ${trustlist-service.digdir.information-uris.lang-no}
+          lang-en: ${trustlist-service.digdir.information-uris.lang-en}
+        status-determination-approach: http://uri.etsi.org/19602/WalletProvidersList/StatusDetn/EU
+        scheme-type-community-rules: http://uri.etsi.org/19602/WalletProvidersList/schemerules/EU
+  #    trusted-entities:
 
 idporten-key-manager:
   default-keystore: signing-602  # Optional, first keystore becomes default if not specified

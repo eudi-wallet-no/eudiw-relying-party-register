@@ -16,6 +16,7 @@ public record Trustlist602Properties(@Valid @NotNull Map<String, Trustlist> tsl6
 
     public final static String TSL_ACA = "tsl-aca";
     public final static String TSL_PID = "tsl-pid";
+    public final static String TSL_WALLET = "tsl-wallet";
 
     private Trustlist getTrustlist(String key) {
         Trustlist trustlist = tsl602.get(key);
@@ -31,5 +32,8 @@ public record Trustlist602Properties(@Valid @NotNull Map<String, Trustlist> tsl6
 
     public Trustlist getPidTrustlist(){
         return getTrustlist(TSL_PID);
+    }
+    public Trustlist getWalletTrustlist(){
+        return getTrustlist(TSL_WALLET);
     }
 }

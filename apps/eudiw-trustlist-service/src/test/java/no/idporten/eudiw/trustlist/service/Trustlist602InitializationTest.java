@@ -13,8 +13,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import java.text.ParseException;
 
 import static no.idporten.eudiw.trustlist.TestDataGenerator.DIGDIR;
-import static no.idporten.eudiw.trustlist.config.Trustlist602Properties.TSL_ACA;
-import static no.idporten.eudiw.trustlist.config.Trustlist602Properties.TSL_PID;
+import static no.idporten.eudiw.trustlist.config.Trustlist602Properties.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -33,7 +32,7 @@ class Trustlist602InitializationTest {
     private Trustlist602GeneratorService generatorService;
 
     @Test
-    @DisplayName("getSignedPidTrustlist() or getSignedACATrustlist() should not trigger new generation of trustlists")
+    @DisplayName("each trustlist should only be generated on startup of application/context")
     void verify602TrustlistsAreOnlyGeneratedOnce() throws ParseException {
 
         // 1. Pid call
@@ -61,6 +60,8 @@ class Trustlist602InitializationTest {
 
         verify(generatorService, times(1)).generateTrustlist(eq(TSL_ACA));
 
+        verify(generatorService, times(1)).generateTrustlist(eq(TSL_WALLET));
+
         ArgumentCaptor<LoTE> pidLoTECaptor = ArgumentCaptor.forClass(LoTE.class);
         verify(signerService, times(1)).signedTrustlist(pidLoTECaptor.capture(), eq("signing-602-pid"));
         LoTE pidCapturedLoTE = pidLoTECaptor.getValue();
@@ -74,6 +75,13 @@ class Trustlist602InitializationTest {
         assertNotNull(acaLoTECaptorValue.getListAndSchemeInformation());
         assertEquals("http://uri.etsi.org/19602/LoTEType/EUWRPACProvidersList",
                 acaLoTECaptorValue.getListAndSchemeInformation().getLoTEType().toString());
+
+        ArgumentCaptor<LoTE> walletLoTECaptor = ArgumentCaptor.forClass(LoTE.class);
+        verify(signerService, times(1)).signedTrustlist(walletLoTECaptor.capture(), eq("signing-602-wallet"));
+        LoTE walletLoTECaptorValue = walletLoTECaptor.getValue();
+        assertNotNull(walletLoTECaptorValue.getListAndSchemeInformation());
+        assertEquals("http://uri.etsi.org/19602/LoTEType/EUWalletProvidersList",
+                walletLoTECaptorValue.getListAndSchemeInformation().getLoTEType().toString());
     }
 
     private static void verifyContent(String signedTrustlist) throws ParseException {
