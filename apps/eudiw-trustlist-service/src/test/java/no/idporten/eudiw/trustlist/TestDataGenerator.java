@@ -22,10 +22,14 @@ public class TestDataGenerator {
     public static final String DIGDIR = "DIGITALISERINGSDIREKTORATET";
 
     public static LoTE createLoTETrustlist() {
+        return createLoTETrustlist("http://acaorpid-trustlist-type");
+    }
+
+    public static LoTE createLoTETrustlist(String typeUri) {
         LoTE loTE = new LoTE();
         ListAndSchemeInformation listAndSchemeInformation = new ListAndSchemeInformation();
         listAndSchemeInformation.setSchemeTerritory("NO");
-        listAndSchemeInformation.setLoTEType(URI.create("http://acaorpid-trustlist-type"));
+        listAndSchemeInformation.setLoTEType(URI.create(typeUri));
         listAndSchemeInformation.setSchemeName(List.of(createSchemeNameNo()));
         loTE.setListAndSchemeInformation(listAndSchemeInformation);
         return loTE;
@@ -36,10 +40,6 @@ public class TestDataGenerator {
         noSchemeName.setLang("no");
         noSchemeName.setValue(DIGDIR);
         return noSchemeName;
-    }
-
-    public static String createJsonFromLoTE() {
-        return createJsonFromLoTE(createLoTETrustlist());
     }
 
     public static String createJsonFromLoTE(LoTE loTETrustlist) {

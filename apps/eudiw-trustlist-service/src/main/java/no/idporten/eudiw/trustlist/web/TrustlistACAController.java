@@ -2,7 +2,7 @@ package no.idporten.eudiw.trustlist.web;
 
 
 import no.idporten.eudiw.trustlist.etsi119602.pojo.LoTE;
-import no.idporten.eudiw.trustlist.service.TrustlistACAService;
+import no.idporten.eudiw.trustlist.service.Trustlist602Service;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.ZonedDateTime;
 
+import static no.idporten.eudiw.trustlist.config.Trustlist602Properties.TSL_ACA;
+
 
 @RestController
 public class TrustlistACAController {
@@ -20,10 +22,10 @@ public class TrustlistACAController {
     @Value("${trustlist-service.tsl602.tsl-aca.scheme-information.list-issue-datetime:#{T(java.time.ZonedDateTime).now()}}")
     private ZonedDateTime lastModified;
 
-    private final TrustlistACAService service;
+    private final Trustlist602Service service;
 
     @Autowired
-    public TrustlistACAController(TrustlistACAService service) {
+    public TrustlistACAController(Trustlist602Service service) {
         this.service = service;
     }
 
@@ -37,7 +39,7 @@ public class TrustlistACAController {
      */
     @GetMapping(value = "${trustlist-service.tsl602.tsl-aca.path}.jws", produces = "application/jose+json")
     public ResponseEntity<@NonNull String> getSignedTrustListACA() {
-        String loTe = service.getSignedACATrustlist();
+        String loTe = service.getSignedTrustlist(TSL_ACA);
         return ResponseEntity.ok().lastModified(lastModified.toInstant()).body(loTe);
     }
 
@@ -48,7 +50,7 @@ public class TrustlistACAController {
      */
     @GetMapping(value = "${trustlist-service.tsl602.tsl-aca.path}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<@NonNull LoTE> getTrustListACAAsJson() {
-        LoTE loTE = service.getACATrustlistAsLoTE();
+        LoTE loTE = service.getTrustlistAsLoTE(TSL_ACA);
         return ResponseEntity.ok().lastModified(lastModified.toInstant()).body(loTE);
     }
 
