@@ -1,7 +1,8 @@
 package no.idporten.eudiw.rp.admin.web.security;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import no.idporten.eudiw.rp.admin.service.enhetsregisteretservice.EnhetsregisteretService;
 import no.idporten.eudiw.rp.admin.service.syntheticreportees.SyntheticReporteeProvider;
 import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenProperties;
@@ -13,7 +14,7 @@ import no.idporten.eudiw.rp.admin.web.security.exception.ErrorCodes;
 import no.idporten.eudiw.rp.admin.web.security.exception.InsufficientAuthorityException;
 import no.idporten.eudiw.rp.admin.web.security.exception.InvalidAuthorizationDetailsException;
 import no.idporten.eudiw.rp.admin.web.security.oidcusers.OidcUserWithCustomName;
-import no.idporten.eudiw.rp.admin.web.security.oidcusers.ReporteeAuthority;
+import no.idporten.eudiw.rp.admin.web.security.oidcusers.AuthorizedPartyAuthority;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
@@ -29,7 +30,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 
-@Slf4j
 @RequiredArgsConstructor
 public class CustomOidcUserService extends OidcUserService {
 
@@ -38,6 +38,7 @@ public class CustomOidcUserService extends OidcUserService {
     private final EnhetsregisteretService enhetsregisteretService;
     private final SyntheticReporteeProvider syntheticReporteeProvider;
     private final AuthorizationDetailsMapper authorizationDetailsMapper;
+    private final static Logger log = LoggerFactory.getLogger(CustomOidcUserService.class);
 
     private List<AuthorizationDetails.Response> getAuthorizationDetailsForOidcUser(
         OidcUser oidcUser) {
@@ -67,7 +68,7 @@ public class CustomOidcUserService extends OidcUserService {
                    validRequests.stream().anyMatch(authzDetails::canMatchRequest);
     }
 
-    private AuthorizationDetails.Response.Reportee getAndValidateReporteeClaim(
+    private AuthorizationDetails.Response.AuthorizedParties getAndValidateAuthorizedPartiesClaim(
         OidcUser oidcUser, boolean isEntraIdUser) {
         List<AuthorizationDetails.Response> authorizationDetails =
             getAuthorizationDetailsForOidcUser(oidcUser);
@@ -75,34 +76,34 @@ public class CustomOidcUserService extends OidcUserService {
         Predicate<AuthorizationDetails.Response> isAcceptedauthorizationDetailsType =
             getAuthorizationDetailsTypeValidator(isEntraIdUser);
 
-        AuthorizationDetails.Response firstValidAuthzDetailsWithReportees =
+        AuthorizationDetails.Response firstValidAuthzDetailsWithAuthorizedParties =
             authorizationDetails
                 .stream()
                 .filter(isAcceptedauthorizationDetailsType)
-                .filter(authorizationDetail -> !authorizationDetail.getReportees().isEmpty())
+                .filter(authorizationDetail -> !authorizationDetail.getAuthorizedParties().isEmpty())
                 .findAny()
                 .orElseThrow(
                     () -> new InvalidAuthorizationDetailsException(
-                        "Found no valid authorization_details with reportees"));
-        return firstValidAuthzDetailsWithReportees.getReportees().getFirst();
+                        "Found no valid authorization_details with authorized parties"));
+        return firstValidAuthzDetailsWithAuthorizedParties.getAuthorizedParties().getFirst();
     }
 
-    private ReporteeAuthority getReporteeAuthorityForOidcUser(OidcUser oidcUser, boolean isEntraIdUser) {
+    private AuthorizedPartyAuthority getAuthorizedPartyAuthorityForOidcUser(OidcUser oidcUser, boolean isEntraIdUser) {
         if (oidcUser.hasClaim(AuthConstants.AUTHORIZATION_DETAILS_PARAMETER)) {
-            AuthorizationDetails.Response.Reportee reportee =
-                getAndValidateReporteeClaim(oidcUser, isEntraIdUser);
-            String name = reportee.name() != null ? reportee.name() : reportee.orgno();
+            AuthorizationDetails.Response.AuthorizedParties authorizedParty =
+                getAndValidateAuthorizedPartiesClaim(oidcUser, isEntraIdUser);
+            String name = authorizedParty.name() != null ? authorizedParty.name() : authorizedParty.orgno().id();
             boolean isPublicSector = false;
             try {
                 EnhetsregisteretService.EnhetsregisteretResponse response =
-                    enhetsregisteretService.queryOrgno(reportee.orgno());
+                    enhetsregisteretService.queryOrgno(authorizedParty.orgno().id());
                 name = response.name();
                 isPublicSector = response.publicSector();
             } catch (Exception e) {
                 log.warn("Failed to get name/sector info from Enhetsregisteret "
                              + "(using name=orgno, publicSector=FALSE)", e);
             }
-            return new ReporteeAuthority(reportee.orgno(), name, isPublicSector);
+            return new AuthorizedPartyAuthority(authorizedParty.orgno().id(), name, isPublicSector);
         }
         if (isEntraIdUser) {
             throw new InvalidAuthorizationDetailsException(
@@ -131,13 +132,13 @@ public class CustomOidcUserService extends OidcUserService {
                 "Ansattporten EntraID not accepted");
         }
 
-        ReporteeAuthority reportee = getReporteeAuthorityForOidcUser(oidcUser, isEntraIdUser);
-        authorities.add(reportee);
+        AuthorizedPartyAuthority authorizedPartyAuthority = getAuthorizedPartyAuthorityForOidcUser(oidcUser, isEntraIdUser);
+        authorities.add(authorizedPartyAuthority);
 
         String username = oidcUser.getClaim(oidcUser.hasClaim("name") ? "name" : "pid");
         String name = username != null
-                          ? "%s - %s".formatted(username, reportee.name())
-                          : reportee.name();
+                          ? "%s - %s".formatted(username, authorizedPartyAuthority.name())
+                          : authorizedPartyAuthority.name();
         return new OidcUserWithCustomName(authorities,
                                           oidcUser.getIdToken(),
                                           oidcUser.getUserInfo(),

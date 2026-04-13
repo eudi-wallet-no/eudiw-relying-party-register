@@ -1,7 +1,7 @@
 package no.idporten.eudiw.rp.admin.service.syntheticreportees;
 
-import no.idporten.eudiw.rp.admin.web.security.oidcusers.ReporteeAuthority;
+import no.idporten.eudiw.rp.admin.web.security.oidcusers.AuthorizedPartyAuthority;
 
 public interface SyntheticReporteeProvider {
-    ReporteeAuthority getSyntheticReporteeAuthority(String id);
+    AuthorizedPartyAuthority getSyntheticReporteeAuthority(String id);
 }

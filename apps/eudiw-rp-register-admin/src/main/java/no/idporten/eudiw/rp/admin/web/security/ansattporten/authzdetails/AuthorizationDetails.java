@@ -15,26 +15,41 @@ public interface AuthorizationDetails {
     @NotBlank
     String getType();
 
+
     interface Response extends AuthorizationDetails {
 
         @NotNull
-        List<@Valid Reportee> getReportees();
+        List<@Valid AuthorizedParties> getAuthorizedParties();
 
         boolean canMatchRequest(AuthorizationDetails.Request request);
 
         @JsonIgnoreProperties(ignoreUnknown = true)
-        record Reportee(
-            @NotNull
-            @Orgnr
-            @JsonProperty(value = "ID", required = true)
-            String orgno,
-            @JsonProperty("Name")
-            String name
-        ) {
-            public Reportee(String orgno, String name) {
-                this.orgno = orgno.replaceFirst("^.*:", "");
+        record AuthorizedParties(
+                @JsonProperty(value = "orgno")
+                @NotNull @Valid Orgno orgno,
+                @JsonProperty(value = "name")
+                @NotBlank String name
+
+        ){
+            public AuthorizedParties(Orgno orgno, String name) {
+                this.orgno = orgno;
                 this.name = name;
             }
+        }
+
+        @JsonIgnoreProperties(ignoreUnknown = true)
+        record Orgno(
+                @NotNull
+                @Orgnr
+                @JsonProperty(value = "ID", required = true)
+                String id,
+                @JsonProperty("authority")
+                String authority
+        ){
+                public Orgno(String id, String authority) {
+                    this.id = id.replaceFirst("^.*:", "");
+                    this.authority = authority;
+                }
         }
     }
 

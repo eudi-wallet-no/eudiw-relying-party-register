@@ -3,7 +3,7 @@ package no.idporten.eudiw.rp.admin.security.service;
 import no.idporten.eudiw.rp.admin.exception.AdminServiceException;
 import no.idporten.eudiw.rp.admin.service.syntheticreportees.SyntheticReporteeProvider;
 import no.idporten.eudiw.rp.admin.testdata.TestDataGenerator;
-import no.idporten.eudiw.rp.admin.web.security.oidcusers.ReporteeAuthority;
+import no.idporten.eudiw.rp.admin.web.security.oidcusers.AuthorizedPartyAuthority;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -48,7 +48,7 @@ public class SyntheticReporteeProviderTests {
             Set<String> distinctReporteeAuthorityOrgnos =
                 distinctRandomIds.stream()
                                  .map(syntheticReporteeProvider::getSyntheticReporteeAuthority) // denne metoden er ikkje safe til å generere unike orgnr over f.eks. 1000 stk
-                                 .map(ReporteeAuthority::orgno)
+                                 .map(AuthorizedPartyAuthority::orgno)
                                  .collect(Collectors.toSet());
 
 
@@ -61,11 +61,11 @@ public class SyntheticReporteeProviderTests {
         public void testReporteesEqualWhenEqualIds() {
             String id = TestDataGenerator.generateName();
 
-            ReporteeAuthority reportee =
+            AuthorizedPartyAuthority reportee =
                 syntheticReporteeProvider.getSyntheticReporteeAuthority(id);
 
             int n = 10;
-            Set<ReporteeAuthority> reportees =
+            Set<AuthorizedPartyAuthority> reportees =
                 IntStream.range(0, n)
                     .mapToObj(_ -> syntheticReporteeProvider.getSyntheticReporteeAuthority(id))
                     .collect(Collectors.toSet());

@@ -23,54 +23,55 @@ public class AuthorizationDetailsMapperTests {
     private AuthorizationDetailsMapper mapper;
 
     @Nested
-    @DisplayName("to map ansattporten:altinn:service authorization_details ...")
+    @DisplayName("to map ansattporten:altinn:resource authorization_details ...")
     class AltinnServiceDetailsMappingTests {
 
         @Test
-        @DisplayName("then valid type, resource, and reportees are all mapped correctly")
+        @DisplayName("then valid type, resource, and authorizedParties are all mapped correctly")
         void testAltinnServiceDetailsResponseWithOneReportee() {
             String reporteeName = TestDataGenerator.generateName();
             String reporteeID = TestDataGenerator.generateValidOrgno();
             String resource = TestDataGenerator.generateName();
+            AuthorizationDetails.Response.Orgno orgno = new AuthorizationDetails.Response.Orgno(reporteeID, reporteeName);
 
-            List<Map<String, Object>> reporteesAsListOfStringToObjectMaps =
-                List.of(Map.of("Name", reporteeName, "ID", reporteeID));
+            List<Map<String, Object>> authorizedPartiesAsListOfStringToObjectMaps =
+                List.of(Map.of("orgno", orgno, "name", reporteeName));
 
             Map<String, Object> authzDetailsAsStringToObjectMap =
                 Map.of(
-                    "type", "ansattporten:altinn:service",
+                    "type", "ansattporten:altinn:resource",
                     "resource", resource,
-                    "reportees", reporteesAsListOfStringToObjectMaps);
+                    "authorized_parties", authorizedPartiesAsListOfStringToObjectMaps);
 
             AuthorizationDetails.Response response =
                 assertDoesNotThrow(
                     () -> mapper.asResponse(authzDetailsAsStringToObjectMap));
 
-            AuthorizationDetails.Response.Reportee expectedReportee =
-                new AuthorizationDetails.Response.Reportee(
-                    reporteeID, reporteeName
+            AuthorizationDetails.Response.AuthorizedParties expectedAuthorizedParty =
+                new AuthorizationDetails.Response.AuthorizedParties(
+                    orgno, reporteeName
                 );
 
-            AltinnServiceDetails.Response altinnServiceDetailsResponse =
-                assertInstanceOf(AltinnServiceDetails.Response.class, response);
-            assertEquals(resource, altinnServiceDetailsResponse.getResource());
+            AltinnResourceDetails.Response altinnResourceDetailsResponse =
+                assertInstanceOf(AltinnResourceDetails.Response.class, response);
+            assertEquals(resource, altinnResourceDetailsResponse.getResource());
 
             assertAll(
-                () -> assertEquals("ansattporten:altinn:service", response.getType()),
-                () -> assertNotNull(response.getReportees()),
-                () -> assertEquals(1, response.getReportees().size()),
-                () -> assertEquals(expectedReportee, response.getReportees().getFirst())
+                () -> assertEquals("ansattporten:altinn:resource", response.getType()),
+                () -> assertNotNull(response.getAuthorizedParties()),
+                () -> assertEquals(1, response.getAuthorizedParties().size()),
+                () -> assertEquals(expectedAuthorizedParty, response.getAuthorizedParties().getFirst())
             );
 
         }
 
         @Test
-        @DisplayName("then valid type, resource, and empty reportees are all mapped correctly")
+        @DisplayName("then valid type, resource, and empty authorizedParties are all mapped correctly")
         void testAltinnServiceDetailsResponseWithNoReportees() {
 
             Map<String, Object> authzDetailsAsStringToObjectMap =
                 Map.of(
-                    "type", "ansattporten:altinn:service",
+                    "type", "ansattporten:altinn:resource",
                     "resource", "foo");
 
             AuthorizationDetails.Response response =
@@ -78,28 +79,30 @@ public class AuthorizationDetailsMapperTests {
                     () -> mapper.asResponse(authzDetailsAsStringToObjectMap));
 
             assertAll(
-                () -> assertEquals("ansattporten:altinn:service", response.getType()),
-                () -> assertInstanceOf(AltinnServiceDetails.Response.class, response),
-                () -> assertNotNull(response.getReportees()),
-                () -> assertTrue(response.getReportees().isEmpty())
+                () -> assertEquals("ansattporten:altinn:resource", response.getType()),
+                () -> assertInstanceOf(AltinnResourceDetails.Response.class, response),
+                () -> assertNotNull(response.getAuthorizedParties())
             );
         }
 
         @Test
         @DisplayName("then unknown keys are ignored")
         void testAltinnServiceResponseWithUnknownKeys() {
-            List<Map<String, Object>> reporteesAsListOfStringToObjectMaps =
-                List.of(Map.of(
-                    "Name", "foo-name",
-                    "ID", "foo-orgno"));
+            String reporteeName = TestDataGenerator.generateName();
+            String reporteeID = TestDataGenerator.generateValidOrgno();
+            String resource = TestDataGenerator.generateName();
+            AuthorizationDetails.Response.Orgno orgno = new AuthorizationDetails.Response.Orgno(reporteeID, reporteeName);
 
-            String misspelledReporteesKey = "reportes";
+            List<Map<String, Object>> authorizedPartiesAsListOfStringToObjectMaps =
+                    List.of(Map.of("orgno", orgno, "name", reporteeName));
+
+            String misspelledAuthorizedPartiesKey = "authorizedParties";
 
             Map<String, Object> authzDetailsAsStringToObjectMap =
                 Map.of(
-                    "type", "ansattporten:altinn:service",
-                    "resource", "foo",
-                    misspelledReporteesKey, reporteesAsListOfStringToObjectMaps
+                    "type", "ansattporten:altinn:resource",
+                    "resource", resource,
+                    misspelledAuthorizedPartiesKey, authorizedPartiesAsListOfStringToObjectMaps
                 );
 
             AuthorizationDetails.Response response =
@@ -108,10 +111,10 @@ public class AuthorizationDetailsMapperTests {
                 );
 
             assertAll(
-                () -> assertEquals("ansattporten:altinn:service", response.getType()),
-                () -> assertInstanceOf(AltinnServiceDetails.Response.class, response),
-                () -> assertNotNull(response.getReportees()),
-                () -> assertTrue(response.getReportees().isEmpty())
+                () -> assertEquals("ansattporten:altinn:resource", response.getType()),
+                () -> assertInstanceOf(AltinnResourceDetails.Response.class, response),
+                () -> assertNotNull(response.getAuthorizedParties()),
+                () -> assertTrue(response.getAuthorizedParties().isEmpty())
             );
         }
     }
@@ -123,29 +126,32 @@ public class AuthorizationDetailsMapperTests {
         @Test
         @DisplayName("then valid type and org are mapped correctly")
         void testOrgnoDetailsResponseWithOrg() {
-            String reporteeID = TestDataGenerator.generateValidOrgno();
 
-            Map<String, Object> orgAsStringToObjectMap = Map.of("ID", reporteeID);
+            String reporteeName = TestDataGenerator.generateName();
+            String reporteeID = TestDataGenerator.generateValidOrgno();
+            List<Map<String, Object>> authorizedPartiesAsListOfStringToObjectMaps =
+                    List.of(Map.of("orgno", new AuthorizationDetails.Response.Orgno(reporteeID, reporteeName), "name", reporteeName));
 
             Map<String, Object> authzDetailsAsStringToObjectMap =
                 Map.of(
                     "type", "ansattporten:orgno",
-                    "org", orgAsStringToObjectMap);
+                    "authorized_parties", authorizedPartiesAsListOfStringToObjectMaps);
 
             AuthorizationDetails.Response response =
                 assertDoesNotThrow(
                     () -> mapper.asResponse(authzDetailsAsStringToObjectMap));
 
             // NOTE: name is null since ansattporten:orgno responses do not specify name.
-            AuthorizationDetails.Response.Reportee expectedReportee =
-                new AuthorizationDetails.Response.Reportee(reporteeID, null);
+            AuthorizationDetails.Response.AuthorizedParties expectedAuthorizedParty =
+                new AuthorizationDetails.Response.AuthorizedParties(new AuthorizationDetails.Response.Orgno(
+                        reporteeID, reporteeName), reporteeName);
 
             assertAll(
                 () -> assertInstanceOf(OrgnoDetails.Response.class, response),
                 () -> assertEquals("ansattporten:orgno", response.getType()),
-                () -> assertNotNull(response.getReportees()),
-                () -> assertEquals(1, response.getReportees().size()),
-                () -> assertEquals(expectedReportee, response.getReportees().getFirst())
+                () -> assertNotNull(response.getAuthorizedParties()),
+                () -> assertEquals(1, response.getAuthorizedParties().size()),
+                () -> assertEquals(expectedAuthorizedParty, response.getAuthorizedParties().getFirst())
             );
         }
 
@@ -162,8 +168,8 @@ public class AuthorizationDetailsMapperTests {
             assertAll(
                 () -> assertEquals("ansattporten:orgno", response.getType()),
                 () -> assertInstanceOf(OrgnoDetails.Response.class, response),
-                () -> assertNotNull(response.getReportees()),
-                () -> assertTrue(response.getReportees().isEmpty())
+                () -> assertNotNull(response.getAuthorizedParties()),
+                () -> assertTrue(response.getAuthorizedParties().isEmpty())
             );
         }
 
@@ -187,8 +193,8 @@ public class AuthorizationDetailsMapperTests {
 
             assertAll(
                 () -> assertInstanceOf(OrgnoDetails.Response.class, response),
-                () -> assertNotNull(response.getReportees()),
-                () -> assertTrue(response.getReportees().isEmpty())
+                () -> assertNotNull(response.getAuthorizedParties()),
+                () -> assertTrue(response.getAuthorizedParties().isEmpty())
             );
         }
     }
@@ -203,13 +209,13 @@ public class AuthorizationDetailsMapperTests {
             String reporteeID = TestDataGenerator.generateValidOrgno();
             String resource = TestDataGenerator.generateName();
 
-            List<Map<String, Object>> reporteesAsListOfStringToObjectMaps =
-                List.of(Map.of("Name", reporteeName, "ID", reporteeID));
+            List<Map<String, Object>> authorizedPartiesAsListOfStringToObjectMaps =
+                    List.of(Map.of("Orgno", new AuthorizationDetails.Response.Orgno(reporteeID, reporteeName), "ID", reporteeID));
 
             Map<String, Object> authzDetailsAsStringToObjectMap =
-                Map.of(
-                    "resource", resource,
-                    "reportees", reporteesAsListOfStringToObjectMaps);
+                    Map.of(
+                            "resource", resource,
+                            "authorized_parties", authorizedPartiesAsListOfStringToObjectMaps);
             assertThrowsExactly(InvalidAuthorizationDetailsException.class,
                                 () -> mapper.asResponse(authzDetailsAsStringToObjectMap));
         }
@@ -221,57 +227,57 @@ public class AuthorizationDetailsMapperTests {
             String reporteeID = TestDataGenerator.generateValidOrgno();
             String blankResource = "";
 
-            List<Map<String, Object>> reporteesAsListOfStringToObjectMaps =
-                List.of(Map.of("Name", reporteeName, "ID", reporteeID));
+            List<Map<String, Object>> authorizedPartiesAsListOfStringToObjectMaps =
+                    List.of(Map.of("Orgno", new AuthorizationDetails.Response.Orgno(reporteeID, reporteeName), "ID", reporteeID));
 
             Map<String, Object> authzDetailsAsStringToObjectMap =
                 Map.of(
-                    "type", "ansattporten:altinn:service",
+                    "type", "ansattporten:altinn:resource",
                     "resource", blankResource,
-                    "reportees", reporteesAsListOfStringToObjectMaps);
+                    "authorized_parties", authorizedPartiesAsListOfStringToObjectMaps);
 
             assertThrowsExactly(InvalidAuthorizationDetailsException.class,
                                 () -> mapper.asResponse(authzDetailsAsStringToObjectMap));
         }
 
         @Test
-        @DisplayName("Invalid authz details error on reportee with blank orgno")
+        @DisplayName("Invalid authz details error on authorizedParty with blank orgno")
         void testErrorOnBlankAltinnServiceDetailsReporteeOrgno() {
 
             String reporteeName = TestDataGenerator.generateName();
             String blankReporteeID = "";
             String resource = "some-resource";
 
-            List<Map<String, Object>> reporteesAsListOfStringToObjectMaps =
-                List.of(Map.of("Name", reporteeName, "ID", blankReporteeID));
+            List<Map<String, Object>> authorizedPartiesAsListOfStringToObjectMaps =
+                    List.of(Map.of("Orgno", new AuthorizationDetails.Response.Orgno(blankReporteeID, reporteeName), "ID", blankReporteeID));
 
             Map<String, Object> authzDetailsAsStringToObjectMap =
                 Map.of(
-                    "type", "ansattporten:altinn:service",
+                    "type", "ansattporten:altinn:resource",
                     "resource", resource,
-                    "reportees", reporteesAsListOfStringToObjectMaps);
+                    "authorized_parties", authorizedPartiesAsListOfStringToObjectMaps);
 
             assertThrowsExactly(InvalidAuthorizationDetailsException.class,
-                                () -> mapper.asResponse(authzDetailsAsStringToObjectMap).getReportees());
+                                () -> mapper.asResponse(authzDetailsAsStringToObjectMap).getAuthorizedParties());
         }
 
         @Test
-        @DisplayName("Invalid authz details error on reportee with blank orgno")
+        @DisplayName("Invalid authz details error on authorizedParty with blank orgno")
         void testErrorOnBlankOrgnoDetailsOrgOrgno() {
 
             String reporteeName = TestDataGenerator.generateName();
             String blankReporteeID = "";
 
-            Map<String, Object> orgAsStringToObjectMaps =
-                Map.of("Name", reporteeName, "ID", blankReporteeID);
+            List<Map<String, Object>> orgAsStringToObjectMaps =
+                    List.of(Map.of("orgno", new AuthorizationDetails.Response.Orgno(blankReporteeID, reporteeName), "name", reporteeName));
 
             Map<String, Object> authzDetailsAsStringToObjectMap =
                 Map.of(
                     "type", "ansattporten:orgno",
-                    "org", orgAsStringToObjectMaps);
+                    "authorized_parties", orgAsStringToObjectMaps);
 
             assertThrowsExactly(InvalidAuthorizationDetailsException.class,
-                                () -> mapper.asResponse(authzDetailsAsStringToObjectMap).getReportees());
+                                () -> mapper.asResponse(authzDetailsAsStringToObjectMap).getAuthorizedParties());
         }
     }
 }

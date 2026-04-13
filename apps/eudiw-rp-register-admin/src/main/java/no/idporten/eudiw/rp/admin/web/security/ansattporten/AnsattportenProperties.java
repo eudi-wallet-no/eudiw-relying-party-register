@@ -37,6 +37,8 @@ public class AnsattportenProperties {
 
     private boolean allowEntraId = false;
 
+    private boolean allowMultipleOrganizations = false;
+
     public void setRequestAuthorizationDetails(
         List<Map<String, Object>> requestAuthorizationDetails) {
         this.requestAuthorizationDetails =

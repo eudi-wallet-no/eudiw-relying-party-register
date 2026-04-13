@@ -14,9 +14,9 @@ import java.util.Objects;
 @Setter
 @EqualsAndHashCode
 @JsonIgnoreProperties(ignoreUnknown = true)
-public abstract class AltinnServiceDetails implements AuthorizationDetails {
+public abstract class AltinnResourceDetails implements AuthorizationDetails {
 
-    public static final String TYPE_VALUE = "ansattporten:altinn:service";
+    public static final String TYPE_VALUE = "ansattporten:altinn:resource";
 
     private final String type = TYPE_VALUE;
 
@@ -26,12 +26,14 @@ public abstract class AltinnServiceDetails implements AuthorizationDetails {
     @Getter
     @Setter
     @EqualsAndHashCode(callSuper = true)
-    public static class Response extends AltinnServiceDetails implements AuthorizationDetails.Response {
-        private List<Reportee> reportees = List.of();
+    public static class Response extends AltinnResourceDetails implements AuthorizationDetails.Response {
+
+        @JsonProperty("authorized_parties")
+        private List<AuthorizedParties> authorizedParties = List.of();
 
         @Override
         public boolean canMatchRequest(AuthorizationDetails.Request other) {
-            return other instanceof AltinnServiceDetails altinnServiceDetailsRequest
+            return other instanceof AltinnResourceDetails altinnServiceDetailsRequest
                        && Objects.equals(this.resource, altinnServiceDetailsRequest.resource);
         }
     }
@@ -39,7 +41,7 @@ public abstract class AltinnServiceDetails implements AuthorizationDetails {
     @Getter
     @EqualsAndHashCode(callSuper = true)
     public static class Request
-        extends AltinnServiceDetails implements AuthorizationDetails.Request {
+        extends AltinnResourceDetails implements AuthorizationDetails.Request {
         @JsonProperty(value = "representation_is_required", required = true)
         private final boolean representationIsRequired = true;
     }

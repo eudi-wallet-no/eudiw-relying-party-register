@@ -9,7 +9,7 @@ import no.idporten.eudiw.rp.admin.web.form.admin.AdminCreateRelyingPartyForm;
 import no.idporten.eudiw.rp.admin.web.resource.CreateRelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.security.UserAuthorityService;
-import no.idporten.eudiw.rp.admin.web.security.oidcusers.ReporteeAuthority;
+import no.idporten.eudiw.rp.admin.web.security.oidcusers.AuthorizedPartyAuthority;
 import no.idporten.logging.audit.Audit;
 import no.idporten.logging.audit.AuditIgnore;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -43,7 +43,7 @@ public class CreateController {
         }
 
         // if user does not have admin authority, they must have a reportee authority.
-        ReporteeAuthority reportee = userAuthorityService.getReporteeAuthority();
+        AuthorizedPartyAuthority reportee = userAuthorityService.getAuthorizedPartyAuthority();
         return new ModelAndView("create_form_view", Map.of(
             CREATE_FORM_ATTR, new BaseCreateRelyingPartyForm(),
             REPORTEE_AUTHORITY_ATTR, reportee));
@@ -54,7 +54,7 @@ public class CreateController {
     public ModelAndView selfServiceCreatePost(
         @ModelAttribute(CREATE_FORM_ATTR) @Valid BaseCreateRelyingPartyForm createForm,
         @AuditIgnore BindingResult createFormBindingResult) {
-        ReporteeAuthority reportee = userAuthorityService.getReporteeAuthority();
+        AuthorizedPartyAuthority reportee = userAuthorityService.getAuthorizedPartyAuthority();
         if (createFormBindingResult.hasErrors()) {
             return new ModelAndView("create_form_view", Map.of(
                 CREATE_FORM_ATTR, createForm,
