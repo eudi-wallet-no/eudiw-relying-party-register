@@ -4,7 +4,8 @@ package no.idporten.eudiw.trustlist.web;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.trustlist.config.Trustlist602Properties;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -14,6 +15,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.Base64;
 
+import static no.idporten.eudiw.trustlist.config.Trustlist602Properties.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -21,11 +23,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
-@DisplayName("When using ACA controller")
+@DisplayName("When using 602 controllers")
 @AutoConfigureMockMvc
 @ActiveProfiles("junit")
 @SpringBootTest
-public class TrustListACAGeneratedOnceTest {
+public class Trustlist602JwtGeneratedOnceTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -33,11 +35,12 @@ public class TrustListACAGeneratedOnceTest {
     @Autowired
     private Trustlist602Properties properties;
 
-    @Test
+    @ParameterizedTest
+    @ValueSource(strings = {TSL_ACA, TSL_PID, TSL_WALLET})
     @DisplayName("When GETTING signed trustlist then the same list is return on multiple requests")
-    void verifyListIsOnlyGeneratedOnceOnStartup() throws Exception {
+    void verifyListIsOnlyGeneratedOnceOnStartup(String trustlist) throws Exception {
 
-        String uri = properties.getAcaTrustlist().path() + ".jws";
+        String uri = properties.tsl602().get(trustlist).path() + ".jws";
         String contentType = "application/jose+json";
 
         // Run 1

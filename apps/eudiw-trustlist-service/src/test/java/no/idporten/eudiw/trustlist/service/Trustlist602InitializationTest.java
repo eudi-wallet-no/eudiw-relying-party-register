@@ -62,25 +62,19 @@ class Trustlist602InitializationTest {
 
         verify(generatorService, times(1)).generateTrustlist(eq(TSL_WALLET));
 
-        ArgumentCaptor<LoTE> pidLoTECaptor = ArgumentCaptor.forClass(LoTE.class);
-        verify(signerService, times(1)).signedTrustlist(pidLoTECaptor.capture(), eq("signing-602-pid"));
-        LoTE pidCapturedLoTE = pidLoTECaptor.getValue();
-        assertNotNull(pidCapturedLoTE.getListAndSchemeInformation());
-        assertEquals("http://uri.etsi.org/19602/LoTEType/EUPIDProvidersList",
-                pidCapturedLoTE.getListAndSchemeInformation().getLoTEType().toString());
+        verifySignerService("signing-602-pid", "http://uri.etsi.org/19602/LoTEType/EUPIDProvidersList");
 
-        ArgumentCaptor<LoTE> acaLoTECaptor = ArgumentCaptor.forClass(LoTE.class);
-        verify(signerService, times(1)).signedTrustlist(acaLoTECaptor.capture(), eq("signing-602"));
-        LoTE acaLoTECaptorValue = acaLoTECaptor.getValue();
-        assertNotNull(acaLoTECaptorValue.getListAndSchemeInformation());
-        assertEquals("http://uri.etsi.org/19602/LoTEType/EUWRPACProvidersList",
-                acaLoTECaptorValue.getListAndSchemeInformation().getLoTEType().toString());
+        verifySignerService("signing-602", "http://uri.etsi.org/19602/LoTEType/EUWRPACProvidersList");
 
+        verifySignerService("signing-602-wallet", "http://uri.etsi.org/19602/LoTEType/EUWalletProvidersList");
+    }
+
+    private void verifySignerService(String keystoreName, String trustlistTypeUri) {
         ArgumentCaptor<LoTE> walletLoTECaptor = ArgumentCaptor.forClass(LoTE.class);
-        verify(signerService, times(1)).signedTrustlist(walletLoTECaptor.capture(), eq("signing-602-wallet"));
+        verify(signerService, times(1)).signedTrustlist(walletLoTECaptor.capture(), eq(keystoreName));
         LoTE walletLoTECaptorValue = walletLoTECaptor.getValue();
         assertNotNull(walletLoTECaptorValue.getListAndSchemeInformation());
-        assertEquals("http://uri.etsi.org/19602/LoTEType/EUWalletProvidersList",
+        assertEquals(trustlistTypeUri,
                 walletLoTECaptorValue.getListAndSchemeInformation().getLoTEType().toString());
     }
 

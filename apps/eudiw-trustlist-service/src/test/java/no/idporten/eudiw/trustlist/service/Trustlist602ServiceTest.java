@@ -26,8 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static no.idporten.eudiw.trustlist.TestDataGenerator.*;
-import static no.idporten.eudiw.trustlist.config.Trustlist602Properties.TSL_ACA;
-import static no.idporten.eudiw.trustlist.config.Trustlist602Properties.TSL_PID;
+import static no.idporten.eudiw.trustlist.config.Trustlist602Properties.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -97,7 +96,7 @@ class Trustlist602ServiceTest {
 
 
     @ParameterizedTest
-    @ValueSource(strings = {TSL_ACA, TSL_PID})
+    @ValueSource(strings = {TSL_ACA, TSL_PID, TSL_WALLET})
     @DisplayName("then getTrustlistAsLoTE returns plain LoTE for requested trustlist with ListAndSchemeInformation and TrustedEntitiesList with content")
     void getTrustlistAsLoTE(String trustlist) {
         when(generatorService.generateTrustlist(eq(trustlist))).thenReturn(createLoTETrustlist());
