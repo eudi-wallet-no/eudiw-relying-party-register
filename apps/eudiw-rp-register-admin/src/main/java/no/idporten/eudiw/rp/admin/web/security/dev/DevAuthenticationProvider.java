@@ -2,7 +2,7 @@ package no.idporten.eudiw.rp.admin.web.security.dev;
 
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.rp.admin.service.syntheticreportees.SyntheticReporteeProvider;
-import no.idporten.eudiw.rp.admin.web.security.oidcusers.ReporteeAuthority;
+import no.idporten.eudiw.rp.admin.web.security.oidcusers.AuthorizedPartyAuthority;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticatedPrincipal;
@@ -30,7 +30,7 @@ public class DevAuthenticationProvider implements AuthenticationProvider {
             authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
         }
         else {
-            ReporteeAuthority reportee =
+            AuthorizedPartyAuthority reportee =
                 syntheticReporteeProvider.getSyntheticReporteeAuthority(name);
             authorities.add(reportee);
             name = "%s - %s".formatted(name, reportee.name());

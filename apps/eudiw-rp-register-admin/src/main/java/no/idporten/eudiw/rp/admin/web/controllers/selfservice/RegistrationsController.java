@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.security.UserAuthorityService;
-import no.idporten.eudiw.rp.admin.web.security.oidcusers.ReporteeAuthority;
+import no.idporten.eudiw.rp.admin.web.security.oidcusers.AuthorizedPartyAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.servlet.ModelAndView;
@@ -22,7 +22,7 @@ public class RegistrationsController {
 
     @GetMapping("/registrations")
     public ModelAndView registrationsGet() {
-        ReporteeAuthority reportee = userAuthorityService.getReporteeAuthority();
+        AuthorizedPartyAuthority reportee = userAuthorityService.getAuthorizedPartyAuthority();
         List<RelyingPartyResource> registrations =
             relyingPartiesService.getAllByOrgno(reportee.orgno()).relyingParties();
         return new ModelAndView("registrations_view", registrationsAttrId, registrations);

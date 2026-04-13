@@ -1,18 +1,18 @@
 package no.idporten.eudiw.rp.admin.service.syntheticreportees;
 
-import no.idporten.eudiw.rp.admin.web.security.oidcusers.ReporteeAuthority;
+import no.idporten.eudiw.rp.admin.web.security.oidcusers.AuthorizedPartyAuthority;
 
 public class StatelessPersistentSyntheticReporteeService implements SyntheticReporteeProvider {
 
     @Override
-    public ReporteeAuthority getSyntheticReporteeAuthority(String id) {
+    public AuthorizedPartyAuthority getSyntheticReporteeAuthority(String id) {
         long unsignedHash = ((long) id.hashCode()) + Integer.MAX_VALUE;
 
         String orgno = PseudoRandomOrgnoGenerator.generateValidOrgno(unsignedHash);
         String name = "Syntetisk organisasjon %s".formatted(orgno);
 
         boolean isPublicSector = unsignedHash % 2 == 0;
-        return new ReporteeAuthority(orgno, name, isPublicSector);
+        return new AuthorizedPartyAuthority(orgno, name, isPublicSector);
     }
 
     // generates valid synthetic orgnos in the range 200000000 .. 399999999

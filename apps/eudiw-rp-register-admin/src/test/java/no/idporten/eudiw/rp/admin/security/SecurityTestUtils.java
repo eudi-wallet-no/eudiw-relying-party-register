@@ -1,7 +1,7 @@
 package no.idporten.eudiw.rp.admin.security;
 
 import lombok.Getter;
-import no.idporten.eudiw.rp.admin.web.security.oidcusers.ReporteeAuthority;
+import no.idporten.eudiw.rp.admin.web.security.oidcusers.AuthorizedPartyAuthority;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -18,7 +18,7 @@ public class SecurityTestUtils {
 
     public static SecurityMockMvcRequestPostProcessors.OidcLoginRequestPostProcessor
     oidcLoginForOrgno(String orgno) {
-        return oidcLogin().authorities(new ReporteeAuthority(orgno, "dummy-name", true));
+        return oidcLogin().authorities(new AuthorizedPartyAuthority(orgno, "dummy-name", true));
     }
 
     @Getter

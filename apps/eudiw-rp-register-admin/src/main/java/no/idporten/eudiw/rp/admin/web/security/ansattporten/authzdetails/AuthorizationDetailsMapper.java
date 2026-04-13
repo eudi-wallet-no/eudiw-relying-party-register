@@ -47,9 +47,9 @@ public class AuthorizationDetailsMapper {
 
         String type = source.get(TYPE_KEY).toString();
         return switch (type) {
-            case AltinnServiceDetails.TYPE_VALUE ->
-                doMapToResponse ? AltinnServiceDetails.Response.class
-                                : AltinnServiceDetails.Request.class;
+            case AltinnResourceDetails.TYPE_VALUE ->
+                doMapToResponse ? AltinnResourceDetails.Response.class
+                                : AltinnResourceDetails.Request.class;
             case OrgnoDetails.TYPE_VALUE ->
                 doMapToResponse ? OrgnoDetails.Response.class
                                 : OrgnoDetails.Request.class;

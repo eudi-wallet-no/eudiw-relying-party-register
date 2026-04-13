@@ -1,1 +1,7 @@
 # <CVE> # <package/affected code>. Fixed in <version>.
+
+GHSA-2m67-wjpj-xhg9 # jackson-core. Document length constraint bypass. Fixed in 3.1.1
+CVE-2026-34483 # tomcat-embed-core.  Fixed in 9.0.116, 10.1.54, 11.0.21
+CVE-2026-34486 # tomcat-embed-core. Apache tomcat Missing encryption on sensitive data. Fixed in  11.0.21, 10.1.54, 9.0.117
+CVE-2026-34487 # tomcat-embed-core. Insertion of sensitive data into logs.  Fixed in  9.0.117, 10.1.54, 11.0.21
+CVE-2026-32282 # stdlib. Root.Chmod can follow symlinks out of the Root. Fixed in 1.25.9, 1.26.2

@@ -22,12 +22,13 @@ public abstract class OrgnoDetails implements AuthorizationDetails {
     @EqualsAndHashCode(callSuper = true)
     public static class Response extends OrgnoDetails implements AuthorizationDetails.Response {
 
-        @JsonProperty("org")
-        private Reportee reportee;
+        @JsonProperty("authorized_parties")
+        private List<AuthorizationDetails.Response.AuthorizedParties> authorizedParties;
+
 
         @JsonIgnore
-        public List<Reportee> getReportees() {
-            return reportee != null ? List.of(reportee) : List.of();
+        public List<AuthorizedParties> getAuthorizedParties() {
+            return authorizedParties != null ? authorizedParties : List.of();
         }
 
         @Override

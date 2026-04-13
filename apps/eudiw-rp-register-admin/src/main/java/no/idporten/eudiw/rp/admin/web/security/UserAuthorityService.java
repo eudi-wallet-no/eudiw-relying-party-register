@@ -5,7 +5,7 @@ import no.idporten.eudiw.rp.admin.web.resource.EditRelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyEntitlementResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.security.exception.InsufficientAuthorityException;
-import no.idporten.eudiw.rp.admin.web.security.oidcusers.ReporteeAuthority;
+import no.idporten.eudiw.rp.admin.web.security.oidcusers.AuthorizedPartyAuthority;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -35,7 +35,7 @@ public class UserAuthorityService {
 
     public boolean userHasAccessTo(String orgno) {
         return userHasAdminAuthority()
-            || Objects.equals(getReporteeAuthority().orgno(), orgno);
+            || Objects.equals(getAuthorizedPartyAuthority().orgno(), orgno);
     }
 
     public void assertUserHasAccessTo(String orgno) {
@@ -45,15 +45,15 @@ public class UserAuthorityService {
         }
     }
 
-    public ReporteeAuthority getReporteeAuthority() {
+    public AuthorizedPartyAuthority getAuthorizedPartyAuthority() {
         return getAuthentication()
                    .getAuthorities()
                    .stream()
-                   .filter(ReporteeAuthority.class::isInstance)
-                   .map(authority -> (ReporteeAuthority) authority)
+                   .filter(AuthorizedPartyAuthority.class::isInstance)
+                   .map(authority -> (AuthorizedPartyAuthority) authority)
                    .findFirst()
                    .orElseThrow(() -> new InsufficientAuthorityException(
-                       "No reportee authority found for user"));
+                       "No authorized party found for user"));
     }
 
     public boolean isLegalEditResourceForRelyingParty(
