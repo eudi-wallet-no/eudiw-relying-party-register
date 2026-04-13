@@ -18,16 +18,16 @@ import static org.mockito.Mockito.*;
 
 @DisplayName("SignedTrustListServiceTest")
 @ExtendWith(MockitoExtension.class)
-class SignedTrustlistServiceTest {
+class SignedTrustlist612ServiceTest {
 
     @Mock
-    private TrustlistGeneratorService trustListGeneratorService;
+    private Trustlist612GeneratorService trustListGeneratorService;
 
     @Mock
     private XMLSignerService xmlSignerService;
 
     @InjectMocks
-    private SignedTrustlistService signedTrustListService;
+    private SignedTrustlist612Service signedTrustListService;
 
     @Test
     @DisplayName("getTrustlist returns a non-null signed trustlist")
