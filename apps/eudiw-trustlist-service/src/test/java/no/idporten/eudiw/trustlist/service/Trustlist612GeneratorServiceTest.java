@@ -14,10 +14,10 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @ActiveProfiles("junit")
 @DisplayName("Trustlist is generated with content")
-class TrustlistGeneratorServiceTest {
+class Trustlist612GeneratorServiceTest {
 
     @Autowired
-    TrustlistGeneratorService trustListGeneratorService;
+    Trustlist612GeneratorService trustListGeneratorService;
 
     @Test
     @DisplayName("for first ServiceProvider and it has content for first Service")
