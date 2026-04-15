@@ -27,7 +27,7 @@
         <jaxb-impl.version>4.0.7</jaxb-impl.version>
         <jaxb2-maven-plugin.version>4.1.0</jaxb2-maven-plugin.version>
         <bcpkix-jdk18on.version>1.83</bcpkix-jdk18on.version>
-        <bcprov-jdk18on.version>1.83</bcprov-jdk18on.version>
+        <bcprov-jdk18on.version>1.84</bcprov-jdk18on.version>
         <dss.version>6.4</dss.version>
         <nimbus-jose-jwt.version>10.9</nimbus-jose-jwt.version>
     </properties>
