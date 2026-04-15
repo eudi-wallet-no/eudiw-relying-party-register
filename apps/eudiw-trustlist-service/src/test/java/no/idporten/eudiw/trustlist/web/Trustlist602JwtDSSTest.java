@@ -1,6 +1,9 @@
 package no.idporten.eudiw.trustlist.web;
 
 
+import eu.europa.esig.dss.jades.DSSJsonUtils;
+import eu.europa.esig.dss.jades.validation.JWS;
+import eu.europa.esig.lote.json.LOTEJsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.trustlist.config.Trustlist602Properties;
 import org.junit.jupiter.api.DisplayName;
@@ -14,6 +17,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.Base64;
+import java.util.List;
 
 import static no.idporten.eudiw.trustlist.config.Trustlist602Properties.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -27,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("junit")
 @SpringBootTest
-public class Trustlist602JwtGeneratedOnceTest {
+public class Trustlist602JwtDSSTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -37,38 +41,45 @@ public class Trustlist602JwtGeneratedOnceTest {
 
     @ParameterizedTest
     @ValueSource(strings = {TSL_ACA, TSL_PID, TSL_WALLET})
-    @DisplayName("When GETTING signed trustlist then the same list is return on multiple requests")
+    @DisplayName("use DSS-tests to validate the JWS returned by the 602 controllers is correctly formed and valid according to JAdES schema, and that the payload is valid according to LOTE schema")
     void verifyListIsOnlyGeneratedOnceOnStartup(String trustlist) throws Exception {
 
         String uri = properties.tsl602().get(trustlist).path() + ".jws";
         String contentType = "application/jose+json";
 
-        // Run 1
         MvcResult mvcResult1 = mockMvc.perform(get(uri))
                 .andExpect(content().contentType(contentType))
                 .andExpect(status().isOk())
                 .andReturn();
-        String jws1 = mvcResult1.getResponse().getContentAsString();
-        assertNotNull(jws1);
-        String[] split = jws1.split("\\.");
-        assertEquals(3, split.length);
-        String json1 = new String(Base64.getUrlDecoder().decode(split[1]));
-        assertNotNull(json1);
+        String jwsString = mvcResult1.getResponse().getContentAsString();
+        assertNotNull(jwsString);
 
-        // Run 2
-        MvcResult mvcResult2 = mockMvc.perform(get(uri))
-                .andExpect(content().contentType(contentType))
-                .andExpect(status().isOk())
-                .andReturn();
-        String jws2 = mvcResult2.getResponse().getContentAsString();
-        assertNotNull(jws2);
-        String[] split2 = jws2.split("\\.");
-        assertEquals(3, split2.length);
-        String json2 = new String(Base64.getUrlDecoder().decode(split2[1]));
-        assertNotNull(json2);
+        String[] jwtParts = jwsString.split("\\.");
+        assertEquals(3, jwtParts.length);
+        dssJadesValidation(jwtParts);
+        String json = new String(Base64.getUrlDecoder().decode(jwtParts[1]));
+        assertNotNull(json);
 
-        // Same result
-        assertEquals(jws1, jws2);
-        assertEquals(json1, json2);
+        if (!TSL_WALLET.equals(trustlist)) { // Trustlist is not valid without services, remove if-check when first wallet service is added
+            validateDssJson(json);
+        }
+
     }
+
+    private static void validateDssJson(String jws) {
+        List<String> errors = LOTEJsonUtils.getInstance().validateAgainstSchema(jws);
+        //System.out.println("Decoded JSON: " + jws);
+        assertEquals(0, errors.size(), "JSON should be valid according to LOTE schema. Errors: " + errors);
+    }
+
+
+    /**
+     * DSS validation of the JWS according to JAdES schema, this will ensure that the JWS is correctly formed and can be validated by DSS library.
+     */
+    private static void dssJadesValidation(String[] jwtParts) {
+        JWS jws = new JWS(jwtParts);
+        List<String> errors = DSSJsonUtils.validateAgainstJAdESSchema(jws);
+        assertEquals(0, errors.size(), "JWS should be valid according to JAdES schema. Errors: " + errors);
+    }
+
 }

@@ -7,7 +7,8 @@ import no.idporten.eudiw.trustlist.config.Trustlist602Properties;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.LoTE;
 import no.idporten.eudiw.trustlist.service.Trustlist602Service;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -16,17 +17,17 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static no.idporten.eudiw.trustlist.config.Trustlist602Properties.TSL_ACA;
+import static no.idporten.eudiw.trustlist.config.Trustlist602Properties.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Slf4j
-@DisplayName("When using ACA controller")
+@DisplayName("When using a 602 controller")
 @AutoConfigureMockMvc
 @ActiveProfiles("junit")
 @SpringBootTest
-public class TrustlistACAControllerTest {
+public class Trustlist602ControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -37,33 +38,36 @@ public class TrustlistACAControllerTest {
     @MockitoBean
     private Trustlist602Service service;
 
-    @Test
+    @ParameterizedTest
+    @ValueSource(strings = {TSL_ACA, TSL_PID, TSL_WALLET})
     @DisplayName("When GETTING LoTE then return as JSON with ListAndSchemeInformation with content")
-    void testAcaControllerReturnsLoTE() throws Exception {
+    void testAcaControllerReturnsLoTE(String trustlist) throws Exception {
 
         LoTE lote = TestDataGenerator.createLoTETrustlist();
-        when(service.getTrustlistAsLoTE(TSL_ACA)).thenReturn(lote);
+        when(service.getTrustlistAsLoTE(trustlist)).thenReturn(lote);
 
-        mockMvc.perform(get(properties.getAcaTrustlist().path()))
+        mockMvc.perform(get(properties.tsl602().get(trustlist).path()))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").exists())
-                .andExpect(jsonPath("$.ListAndSchemeInformation.LoTEType").value(lote.getListAndSchemeInformation().getLoTEType().toString()))
-                .andExpect(jsonPath("$.ListAndSchemeInformation.SchemeTerritory").value(lote.getListAndSchemeInformation().getSchemeTerritory()));
+                .andExpect(jsonPath("$.LoTE.ListAndSchemeInformation.LoTEType").value(lote.getListAndSchemeInformation().getLoTEType().toString()))
+                .andExpect(jsonPath("$.LoTE.ListAndSchemeInformation.SchemeTerritory").value(lote.getListAndSchemeInformation().getSchemeTerritory()));
 
-        verify(service, times(1)).getTrustlistAsLoTE(TSL_ACA);
+        verify(service, times(1)).getTrustlistAsLoTE(eq(trustlist));
 
     }
 
-    @Test
+    @ParameterizedTest
+    @ValueSource(strings = {TSL_ACA, TSL_PID, TSL_WALLET})
     @DisplayName("When GETTING signed trustlist then return JWS with content")
-    void testACAControllerReturnsSignedTrustlist() throws Exception {
+    void testACAControllerReturnsSignedTrustlist(String trustlist) throws Exception {
 
-        when(service.getSignedTrustlist(TSL_ACA)).thenReturn("test");
+        when(service.getSignedTrustlist(trustlist)).thenReturn("test");
 
-        mockMvc.perform(get(properties.getAcaTrustlist().path() + ".jws"))
+        mockMvc.perform(get(properties.tsl602().get(trustlist).path() + ".jws"))
                 .andExpect(content().contentType("application/jose+json"))
                 .andExpect(status().isOk())
-                .andExpect(content().string("test"));
+                .andExpect(content().string("test"))
+                .andExpect(header().exists("Last-Modified"));
     }
 }

@@ -1,6 +1,7 @@
 package no.idporten.eudiw.trustlist.web;
 
 
+import no.idporten.eudiw.trustlist.domain.etsi602.pojo.LoTEResponse;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.LoTE;
 import no.idporten.eudiw.trustlist.service.Trustlist602Service;
 import org.jspecify.annotations.NonNull;
@@ -49,9 +50,10 @@ public class TrustlistACAController {
      * @return ACA Trustlist as JSON
      */
     @GetMapping(value = "${trustlist-service.tsl602.tsl-aca.path}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<@NonNull LoTE> getTrustListACAAsJson() {
+    public ResponseEntity<@NonNull LoTEResponse> getTrustListACAAsJson() {
         LoTE loTE = service.getTrustlistAsLoTE(TSL_ACA);
-        return ResponseEntity.ok().lastModified(lastModified.toInstant()).body(loTE);
+        LoTEResponse loTEResponse = new LoTEResponse(loTE);
+        return ResponseEntity.ok().lastModified(lastModified.toInstant()).body(loTEResponse);
     }
 
 }

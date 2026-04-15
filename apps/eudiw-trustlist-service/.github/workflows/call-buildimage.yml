@@ -9,7 +9,7 @@ on:
       - "docker-compose*.yaml"
       - "*.md"
       - "LICENSE"
-      - "catalog-info/**"
+      - "catalog-info.yaml"
 
 jobs:
   build-publish-image:
