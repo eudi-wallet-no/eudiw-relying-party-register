@@ -1,5 +1,6 @@
 package no.idporten.eudiw.trustlist.web;
 
+import no.idporten.eudiw.trustlist.domain.etsi602.pojo.LoTEResponse;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.LoTE;
 import no.idporten.eudiw.trustlist.service.Trustlist602Service;
 import org.jspecify.annotations.NonNull;
@@ -41,9 +42,11 @@ public class TrustlistPIDController {
     }
 
     @GetMapping(value = "${trustlist-service.tsl602.tsl-pid.path}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<@NonNull LoTE> trustlistShow() {
+    public ResponseEntity<@NonNull LoTEResponse> trustlistShow() {
+        LoTE loTE = service.getTrustlistAsLoTE(TSL_PID);
+        LoTEResponse loTEResponse = new LoTEResponse(loTE);
         return ResponseEntity.ok()
                 .lastModified(lastModified.toInstant())
-                .body(service.getTrustlistAsLoTE(TSL_PID));
+                .body(loTEResponse);
     }
 }

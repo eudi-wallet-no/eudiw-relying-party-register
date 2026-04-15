@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
 
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
@@ -55,8 +56,7 @@ public class JsonSignerService {
     private String convertLoTEtoJsonString(LoTE loTE, String loteType) {
 
         try {
-            // TODO: Dytt inn mere konfig for aa fjerne tomme felter i json
-            return mapper.writeValueAsString(loTE);
+            return  mapper.writer(SerializationFeature.WRAP_ROOT_VALUE).writeValueAsString(loTE);
         } catch (JacksonException e) {
             throw new JsonSignException("Failed to serialize LoTE to JSON for trustlist %s".formatted(loteType), e);
         }

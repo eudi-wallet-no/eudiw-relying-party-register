@@ -10,7 +10,10 @@ import no.idporten.eudiw.trustlist.domain.TSUri;
 import no.idporten.eudiw.trustlist.domain.etsi602.InformationUri;
 import no.idporten.eudiw.trustlist.domain.etsi602.ListAndSchemeInformation;
 import no.idporten.eudiw.trustlist.domain.etsi602.ServiceName;
+import no.idporten.eudiw.trustlist.domain.etsi602.pojo.LoTELegalNotice;
+import no.idporten.eudiw.trustlist.domain.etsi602.pojo.LoTEPolicy;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.*;
+import org.jspecify.annotations.NonNull;
 
 import java.net.URI;
 import java.time.ZonedDateTime;
@@ -84,12 +87,21 @@ public class Common602Converter {
         listAndSchemeInformation.setStatusDeterminationApproach(schemaProps.statusDeterminationApproach());
         listAndSchemeInformation.setSchemeTypeCommunityRules(List.of(createNonEmptyMultiLangURI(EN.getCode(), schemaProps.schemeTypeCommunityRules())));
         listAndSchemeInformation.setSchemeTerritory("NO");
-        listAndSchemeInformation.setPolicyOrLegalNotice(List.of("TODO: Venter på godkjenning av Endringsforordning (EU) 2024/1183 (eIDAS 2.0/endringsforordningen)"));
+        listAndSchemeInformation.setPolicyOrLegalNotice(createPolicyOrLegalNotice());
         ZonedDateTime issuedDateTime = schemaProps.listIssueDateTime();
         listAndSchemeInformation.setListIssueDateTime(Date.from(issuedDateTime.toInstant()));
         listAndSchemeInformation.setNextUpdate(Date.from(issuedDateTime.plusMonths(6).toInstant()));
 
         return listAndSchemeInformation;
+    }
+
+    private static @NonNull List<Object> createPolicyOrLegalNotice() {
+        //String policy = "TODO: Venter på godkjenning av Endringsforordning (EU) 2024/1183 (eIDAS 2.0/endringsforordningen)";
+        //LoTELegalNotice legalNotice = new LoTELegalNotice(createMultiLangString(NO.getCode(), policy));
+        LoTEPolicy loTEPolicy = new LoTEPolicy(createNonEmptyMultiLangURI(NO.getCode(),"https://samarbeid.digdir.no/digital-lommebok/bruksvilkar-og-samarbeidsavtaler-eidas-sandkassen/3288"));
+        List<Object> loTEPolicy1 = List.of(loTEPolicy);
+        // DSS lib validerer ikkje LoTELegalNotice, berre LoTEPolicy ok (dvs url, ikkje tekst direkte i lista).
+        return loTEPolicy1;
     }
 
     private static List<MultiLangString> createSchemaName(ListAndSchemeInformation schemaProps) {
