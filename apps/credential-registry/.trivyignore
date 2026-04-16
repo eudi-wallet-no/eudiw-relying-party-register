@@ -1,3 +1,6 @@
 # <CVE> # <package/affected code>. Fixed in <version>.
 GHSA-72hv-8253-57qq # Jackson number length. Fixed in 3.1.0
 CVE-2026-29062 # Jackson nesting length. Fixed in 3.1.0
+CVE-2026-34483 # Apache tomcat. improper encoding in JsonAccessLogValve. Fixed in 9.0.116, 10.1.54, 11.0.21
+CVE-2026-34487 # Apache tomcat. Sensitive data in log files. Fixed in 9.0.117, 10.1.54, 11.0.21
+GHSA-2m67-wjpj-xhg9 # Jsckson core. Blocking, async and DataImput parsers. Fixed in 3.1.1
