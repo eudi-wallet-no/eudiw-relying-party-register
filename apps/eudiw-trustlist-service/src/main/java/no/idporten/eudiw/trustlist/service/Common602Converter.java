@@ -10,7 +10,6 @@ import no.idporten.eudiw.trustlist.domain.TSUri;
 import no.idporten.eudiw.trustlist.domain.etsi602.InformationUri;
 import no.idporten.eudiw.trustlist.domain.etsi602.ListAndSchemeInformation;
 import no.idporten.eudiw.trustlist.domain.etsi602.ServiceName;
-import no.idporten.eudiw.trustlist.domain.etsi602.pojo.LoTELegalNotice;
 import no.idporten.eudiw.trustlist.domain.etsi602.pojo.LoTEPolicy;
 import no.idporten.eudiw.trustlist.etsi119602.pojo.*;
 import org.jspecify.annotations.NonNull;
@@ -98,10 +97,9 @@ public class Common602Converter {
     private static @NonNull List<Object> createPolicyOrLegalNotice() {
         //String policy = "TODO: Venter på godkjenning av Endringsforordning (EU) 2024/1183 (eIDAS 2.0/endringsforordningen)";
         //LoTELegalNotice legalNotice = new LoTELegalNotice(createMultiLangString(NO.getCode(), policy));
-        LoTEPolicy loTEPolicy = new LoTEPolicy(createNonEmptyMultiLangURI(NO.getCode(),"https://samarbeid.digdir.no/digital-lommebok/bruksvilkar-og-samarbeidsavtaler-eidas-sandkassen/3288"));
-        List<Object> loTEPolicy1 = List.of(loTEPolicy);
+        LoTEPolicy loTEPolicy = new LoTEPolicy(createNonEmptyMultiLangURI(NO.getCode(), "https://samarbeid.digdir.no/digital-lommebok/bruksvilkar-og-samarbeidsavtaler-eidas-sandkassen/3288"));
         // DSS lib validerer ikkje LoTELegalNotice, berre LoTEPolicy ok (dvs url, ikkje tekst direkte i lista).
-        return loTEPolicy1;
+        return List.of(loTEPolicy);
     }
 
     private static List<MultiLangString> createSchemaName(ListAndSchemeInformation schemaProps) {
@@ -219,7 +217,7 @@ public class Common602Converter {
     public static TrustedEntityService populateTrustedEntityService(no.idporten.eudiw.trustlist.domain.etsi602.TrustedEntityService trustedEntityservice) {
         no.idporten.eudiw.trustlist.etsi119602.pojo.TrustedEntityService trustedEntityService = new TrustedEntityService();
         ServiceInformation serviceInformation = populateServiceInformation(trustedEntityservice.serviceInformation());
-        serviceInformation.setServiceDigitalIdentity(populateX509certificate(trustedEntityservice));
+        serviceInformation.setServiceDigitalIdentity(populateX509certificate(trustedEntityservice.serviceInformation().serviceDigitalIdentity()));
         trustedEntityService.setServiceInformation(serviceInformation);
         return trustedEntityService;
     }
@@ -247,15 +245,17 @@ public class Common602Converter {
     /**
      * Retrieves the certificate out from our property object, and into the service digital identity etsi602 object
      *
-     * @param trustedEntityService the individual service under a trusted entity. This is the part that contains our data
+     * @param digitalIdentity ServiceDigitalIdentity from properties
      * @return the serviceDigitalIdentity spec object which we have inserted information from our trustedEntityService object
      */
-    private static ServiceDigitalIdentity populateX509certificate(no.idporten.eudiw.trustlist.domain.etsi602.TrustedEntityService trustedEntityService) {
+    private static ServiceDigitalIdentity populateX509certificate(no.idporten.eudiw.trustlist.domain.etsi602.ServiceDigitalIdentity digitalIdentity) {
         ServiceDigitalIdentity serviceDigitalIdentity = new ServiceDigitalIdentity();
         List<PkiOb> list = new ArrayList<>();
-        PkiOb pkiOb = new PkiOb();
-        pkiOb.setVal(trustedEntityService.serviceInformation().serviceDigitalIdentity().cert());
-        list.add(pkiOb);
+        for (String cert : digitalIdentity.certs()) {
+            PkiOb pkiOb = new PkiOb();
+            pkiOb.setVal(cert);
+            list.add(pkiOb);
+        }
         serviceDigitalIdentity.setX509Certificates(list);
         return serviceDigitalIdentity;
     }

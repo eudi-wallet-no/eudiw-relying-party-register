@@ -1,9 +1,10 @@
 # eudiw-trustlist-service
 EUDIW Trust List Service for eidas2sandkasse in Norway.
 
-First version of trust list is static and requires manual deploys to be updated.
+First version of trust lists is static and requires manual deploys to be updated.
 
-Conforms to https://www.etsi.org/deliver/etsi_ts/119600_119699/119612/02.03.01_60/ts_119612v020301p.pdf, but will be changed later when new specifications are ready and published from EU.
+Contains a list of EAA/Pub-EAA providers in one ETSI 119 612 trustlist that conforms to https://www.etsi.org/deliver/etsi_ts/119600_119699/119612/02.03.01_60/ts_119612v020301p.pdf.
+ACA, PID and WALLET are separate ETSI 119 602 trustlists that confirms to https://www.etsi.org/deliver/etsi_ts/119600_119699/119602/01.01.01_60/ts_119602v010101p.pdf.
 
 ## Requirements
 - Java 25
