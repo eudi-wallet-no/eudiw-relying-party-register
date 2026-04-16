@@ -174,7 +174,7 @@ class Common602ConverterTest {
                             new no.idporten.eudiw.trustlist.domain.etsi602.ServiceInformation(
                                     null,
                                     new no.idporten.eudiw.trustlist.domain.etsi602.ServiceName("Tjeneste NO", "Service EN"),
-                                    new no.idporten.eudiw.trustlist.domain.etsi602.ServiceDigitalIdentity("BASE64CERT")
+                                    new no.idporten.eudiw.trustlist.domain.etsi602.ServiceDigitalIdentity(List.of("BASE64CERT"))
                             )
                     );
 
@@ -196,7 +196,7 @@ class Common602ConverterTest {
                             new no.idporten.eudiw.trustlist.domain.etsi602.ServiceInformation(
                                     new no.idporten.eudiw.trustlist.domain.etsi602.ServiceTypeIdentifier(URI.create("urn:test:type")),
                                     new no.idporten.eudiw.trustlist.domain.etsi602.ServiceName("Tjeneste NO", "Service EN"),
-                                    new no.idporten.eudiw.trustlist.domain.etsi602.ServiceDigitalIdentity("BASE64CERT")
+                                    new no.idporten.eudiw.trustlist.domain.etsi602.ServiceDigitalIdentity(List.of("BASE64CERT"))
                             )
                     );
 

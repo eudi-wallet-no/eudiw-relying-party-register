@@ -55,13 +55,15 @@ trustlist-service:
                   lang-no: ca 1 fra Digdir
                   lang-en: ca 1 from Digdir
                 service-digital-identity:
-                  cert: cert1
+                  certs:
+                    - cert1
             - service-information:
                 service-name:
                   lang-no: ca 2 fra Digdir
                   lang-en: ca 2 from Digdir
                 service-digital-identity:
-                  cert: cert2
+                  certs:
+                    - cert2
 
     tsl-pid:
       keystore: signing-602-pid
@@ -75,7 +77,8 @@ trustlist-service:
                   lang-no: Fyrste PID-utsteder fra Digdir
                   lang-en: First PID-issuer from Digdir
                 service-digital-identity:
-                  cert: cert1
+                  certs:
+                    - cert1
             - service-information:
                 service-type-identifier:
                   a: http://uri.etsi.org/19602/SvcType/PID/Issuance
@@ -83,7 +86,10 @@ trustlist-service:
                   lang-no: Nok ein PID-utsteder fra Digdir
                   lang-en: Nok PID-issuer from Digdir
                 service-digital-identity:
-                  cert: cert2
+                  certs:
+                    - cert2
+                    - cert3
+                    - cert4
 
     tsl-wallet:
       keystore: signing-602-wallet
