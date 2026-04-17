@@ -6,6 +6,8 @@ First version of trust lists is static and requires manual deploys to be updated
 Contains a list of EAA/Pub-EAA providers in one ETSI 119 612 trustlist that conforms to https://www.etsi.org/deliver/etsi_ts/119600_119699/119612/02.03.01_60/ts_119612v020301p.pdf.
 ACA, PID and WALLET are separate ETSI 119 602 trustlists that confirms to https://www.etsi.org/deliver/etsi_ts/119600_119699/119602/01.01.01_60/ts_119602v010101p.pdf.
 
+To add trusted enties/trusted-serviceproviders or services to the trusted listes, see manual update routine [here](UPDATE_ROUTINE.md).
+
 ## Requirements
 - Java 25
 - Maven
