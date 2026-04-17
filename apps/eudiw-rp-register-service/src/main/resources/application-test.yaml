@@ -16,4 +16,4 @@ spring:
 
 eudiw-rp-register-service:
   csr-service:
-    access-certificate-ca-id: access
+    access-certificate-ca-id: access2
