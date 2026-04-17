@@ -1,1 +1,4 @@
 # <CVE> # <package/affected code>. Fixed in <version>.
+CVE-2026-34483 # tomcat
+CVE-2026-34487 # tomcat
+GHSA-2m67-wjpj-xhg9 # jackson, fixed in 3.1.1
