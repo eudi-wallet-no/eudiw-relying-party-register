@@ -1,3 +1,7 @@
 # <CVE> # <package/affected code>. Fixed in <version>.
-GHSA-72hv-8253-57qq # Jackson number length. Fixed in 3.1.0
-CVE-2026-29062 # Jackson nesting length. Fixed in 3.1.0
+GHSA-2m67-wjpj-xhg9 #tools.jackson.core:jackson-core. Fixed in 3.1.1
+CVE-2026-34483 # tomcat-embed-core/JsonAccess. Fixed in 11.0.21
+CVE-2026-34486 # tomcat-embed-core/missing encryption. Fixed in 11.0.21
+CVE-2026-34487 # tomcat-embed-core/sensitiv info in log file. Fixed in 11.0.21
+CVE-2026-40477 # thymeleaf. Fixed in 3.1.4
+CVE-2026-40478 # thymeleaf. Fixed in 3.1.4
