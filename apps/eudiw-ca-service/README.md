@@ -1,4 +1,9 @@
 # eudiw-ca-service
+
+> [!NOTE]
+> This application is part of the National Sandbox for Digital Wallet.
+> See https://docs.digdir.no/docs/lommebok/lommebok_om.html for more information.
+
 EUDIW Certificate Authority Service is an API for issuing RP access certificates.
 
 The application's API can be used to:
@@ -9,6 +14,9 @@ The application's API can be used to:
 - Java 25
 - Maven
 - Docker
+
+> [!WARNING]
+> Access to Digitaliseringsdirektoratet infrastructure is required to run the application.
 
 ## Configuration
 
