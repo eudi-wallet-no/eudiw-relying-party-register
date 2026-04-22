@@ -1,12 +1,20 @@
 # eudiw-rp-register-lookup-web
+
+> [!NOTE]
+> This application is part of the National Sandbox for Digital Wallet.
+> See https://docs.digdir.no/docs/lommebok/lommebok_om.html for more information.
+
 EUDIW Relying Party Register Web Interface
 
-## Requiremens
+## Requirements
 To build and run this project you need to have the following installed:
 * Java 25
 * Maven
 
-## Runnning the application locally
+> [!WARNING]
+> Access to Digitaliseringsdirektoratet infrastructure is required to run the application.
+
+## Running the application locally
 The application has several profiles located in the (resources)[src/main/resources] folder. 
 
 
