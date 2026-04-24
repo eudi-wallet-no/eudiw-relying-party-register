@@ -93,7 +93,7 @@ trustlist-service:
         digdir:
           trusted-entity-information:
             te-name: DIGITALISERINGSDIREKTORATET
-            te-trade-name: NTRNO-991825827
+            te-trade-name: "NTRNO-NOFOR.991825827"
             information-uri:
               a: https://docs.digdir.no/docs/lommebok/lommebok_om.html
               c: http://uri.etsi.org/19602/ListOfTrustedEntities/WRPACProvider/NO
@@ -119,7 +119,7 @@ trustlist-service:
         digdir:
           trusted-entity-information:
             te-name: DIGITALISERINGSDIREKTORATET
-            te-trade-name: NTRNO-991825827
+            te-trade-name: "NTRNO-NOFOR.991825827"
             te-address:
               phone-number: "tel:+4722451000"
             information-uri:
@@ -145,7 +145,7 @@ trustlist-service:
         digdir:
           trusted-entity-information:
             te-name: DIGITALISERINGSDIREKTORATET
-            te-trade-name: NTRNO-991825827
+            te-trade-name: "NTRNO-NOFOR.991825827"
             information-uri:
               a: https://docs.digdir.no/docs/lommebok/lommebok_om.html
               c: http://uri.etsi.org/19602/ListOfTrustedEntities/WalletProvider/NO
