@@ -23,7 +23,7 @@
         <springdoc.version>3.0.3</springdoc.version>
         <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
         <mockwebserver.version>5.3.2</mockwebserver.version>
-        <lombok.version>1.18.44</lombok.version>
+        <lombok.version>1.18.46</lombok.version>
         <bcpkix.version>1.84</bcpkix.version>
         <idporten-audit-log.version>4.0.0</idporten-audit-log.version>
         <spring-security-test.version>7.0.4</spring-security-test.version>
