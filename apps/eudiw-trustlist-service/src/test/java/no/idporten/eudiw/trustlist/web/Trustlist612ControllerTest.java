@@ -1,9 +1,5 @@
 package no.idporten.eudiw.trustlist.web;
 
-import eu.europa.esig.dss.model.DSSDocument;
-import eu.europa.esig.dss.model.InMemoryDocument;
-import eu.europa.esig.dss.xml.utils.DomUtils;
-import eu.europa.esig.trustedlist.TrustedListUtils;
 import no.idporten.eudiw.trustlist.config.Trustlist612Properties;
 import no.idporten.eudiw.trustlist.service.XMLSignerService;
 import no.idporten.eudiw.trustlist.xml.XMLUtils;
@@ -17,19 +13,19 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.w3c.dom.Document;
 
-import javax.xml.transform.dom.DOMSource;
 import java.util.List;
 
+import static no.idporten.eudiw.trustlist.web.Trustlist612ProfilesDSSBaseTest.validateByDSSLib;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
-@DisplayName("When downloading trust status lists")
+@DisplayName("When downloading 612 trustlist")
 @AutoConfigureMockMvc
 @ActiveProfiles("junit")
 @SpringBootTest
-public class TrustlistControllerTest {
+public class Trustlist612ControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -74,10 +70,7 @@ public class TrustlistControllerTest {
                 .andExpect(content().contentType("application/vnd.etsi.tsl+xml;charset=UTF-8"))
                 .andReturn();
 
-        byte[] xml = mvcResult.getResponse().getContentAsByteArray();
-        DSSDocument dssDoc = new InMemoryDocument(xml);
-        Document tlDocDom = DomUtils.buildDOM(dssDoc);
-        List<String> errors = TrustedListUtils.getInstance().validateAgainstXSD(new DOMSource(tlDocDom));
+        List<String> errors = validateByDSSLib(mvcResult.getResponse());
         assertTrue(errors.isEmpty(), "Signed XML contains errors: " + errors);
 
     }
