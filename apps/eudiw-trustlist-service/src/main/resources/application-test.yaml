@@ -26,6 +26,30 @@ trustlist-service:
             starting-time: 2026-04-28T12:00:00.00Z
             service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
             cert: MIIDMDCCAtegAwIBAgIJAPI3m5oCvEhjMAoGCCqGSM49BAMCMIGEMR4wHAYDVQRhExVOVFJOTy1OT0ZPUi45OTE4MjU4MjcxCzAJBgNVBAYTAk5PMSQwIgYDVQQKExtESUdJVEFMSVNFUklOR1NESVJFS1RPUkFURVQxLzAtBgNVBAMTJmVpZGFzMnNhbmRrYXNzZSBFQUEgUHJvdmlkZXIgQ0EgMiB0ZXN0MB4XDTI2MDQyODExMTgyNVoXDTI3MDQyODExMTgyNVowgYcxCzAJBgNVBAYTAk5PMSQwIgYDVQQKDBtESUdJVEFMSVNFUklOR1NESVJFS1RPUkFURVQxMjAwBgNVBAMMKURpZ2l0YWxpc2VyaW5nc2RpcmVrdG9yYXRldCAtIEJldmlzcG9ydGVuMR4wHAYDVQRhDBVOVFJOTy1OT0ZPUi45OTE4MjU4MjcwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAT75gsqtKk/PiMvU2i2jTEMz4hGnBHOtpRCbEL0EzIaHPVE/pteSjWm/W3CphOXb1uyRKvcPrhgmk1KE7ZWs2hpo4IBKzCCAScwHwYDVR0jBBgwFoAUMRTEpsi8YuNwYTlMWGrhBR+Ej+8wHQYDVR0OBBYEFLvg9+9QiU75jFowJzq0W9TW0P9iMAwGA1UdEwEB/wQCMAAwXQYDVR0fBFYwVDBSoFCgToZMaHR0cHM6Ly9jYS50ZXN0LmVpZGFzMnNhbmRrYXNzZS5uZXQvdjEvY2VydHMvaW50ZXJtZWRpYXRlcy9lYWFfcHJvdmlkZXIyLmNybDBoBggrBgEFBQcBAQRcMFowWAYIKwYBBQUHMAKGTGh0dHBzOi8vY2EudGVzdC5laWRhczJzYW5ka2Fzc2UubmV0L3YxL2NlcnRzL2ludGVybWVkaWF0ZXMvZWFhX3Byb3ZpZGVyMi5jZXIwDgYDVR0PAQH/BAQDAgWgMAoGCCqGSM49BAMCA0cAMEQCID4fKWA4I3mHxDgtaJksvi7IRAHqOmjc92z8UyVwPlgoAiBij6YHMupxAt5yvki5fs6bWI/4sLwkfYIXgvSXUG/Fow==
+      symfoni:
+        name:
+          lang-no: Symfoni AS
+          lang-en: Symfoni AS
+        trade-name:
+          lang-no: NTRNO-915772137
+          lang-en: NTRNO-915772137
+        information-uris:
+          lang-no: https://www.symfoni.dev/docs/virksomhetslommebok/issuer/kom-i-gang
+          lang-en: https://www.symfoni.dev/docs/virksomhetslommebok/issuer/kom-i-gang
+        website: https://www.symfoni.dev
+        email: mailto:jon@symfoni.dev
+        postal-address:
+          street-address: Langerudsvingen 7C
+          postal-code: 1187
+          locality: Oslo
+          country: "NO"
+        services:
+          - name:
+              lang-no: Symfoni EAA Issuer
+              lang-en: Symfoni EAA Issuer
+            starting-time: 2026-05-07T00:00:00.00Z
+            service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
+            cert: MIIDGTCCAr+gAwIBAgIIfggbSXFsqegwCgYIKoZIzj0EAwIwgYQxHjAcBgNVBGETFU5UUk5PLU5PRk9SLjk5MTgyNTgyNzELMAkGA1UEBhMCTk8xJDAiBgNVBAoTG0RJR0lUQUxJU0VSSU5HU0RJUkVLVE9SQVRFVDEvMC0GA1UEAxMmZWlkYXMyc2FuZGthc3NlIEVBQSBQcm92aWRlciBDQSAyIHRlc3QwHhcNMjYwMzExMTAyMzEyWhcNMjcwMzExMTAyMzEyWjBUMQswCQYDVQQGEwJOTzETMBEGA1UECgwKU1lNRk9OSSBBUzEQMA4GA1UEAwwHU3ltZm9uaTEeMBwGA1UEYQwVTlRSTk8tTk9GT1IuOTE1NzcyMTM3MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEkyAbS9iwgeExsoLnGxh0k4crchy3dDBmc1RErLsimQWeCzzjDb16nI8hvrofbPfUszaz7znPpOAR7NoQ7/ixNKOCAUgwggFEMB8GA1UdIwQYMBaAFDEUxKbIvGLjcGE5TFhq4QUfhI/vMB0GA1UdDgQWBBRXmiO5C1tBYxunEyo+Pa8Bh5UlNTAMBgNVHRMBAf8EAjAAMF0GA1UdHwRWMFQwUqBQoE6GTGh0dHBzOi8vY2EudGVzdC5laWRhczJzYW5ka2Fzc2UubmV0L3YxL2NlcnRzL2ludGVybWVkaWF0ZXMvZWFhX3Byb3ZpZGVyMi5jcmwwaAYIKwYBBQUHAQEEXDBaMFgGCCsGAQUFBzAChkxodHRwczovL2NhLnRlc3QuZWlkYXMyc2FuZGthc3NlLm5ldC92MS9jZXJ0cy9pbnRlcm1lZGlhdGVzL2VhYV9wcm92aWRlcjIuY2VyMA4GA1UdDwEB/wQEAwIFoDAbBgNVHREEFDASghBhZ2VudC5wYXJhZHltLmlkMAoGCCqGSM49BAMCA0gAMEUCIB8DifSOSL8Wxich24jEm9DEVL9EKT93AheU3YSlNDv1AiEA8k4qFfivjvko4CNTqLXz2homSYtzB0EHdrxKILFa/+0=
 
   tsl602:
     tsl-aca:
