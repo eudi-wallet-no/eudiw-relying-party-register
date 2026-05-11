@@ -18,7 +18,7 @@
         <java.version>25</java.version>
         <idporten-actuator.version>3.1.0</idporten-actuator.version>
         <idporten-validators.version>1.6.1</idporten-validators.version>
-        <idporten-access-log.version>4.0.0</idporten-access-log.version>
+        <idporten-access-log.version>4.0.1</idporten-access-log.version>
         <opentelemetry-api.version>1.61.0</opentelemetry-api.version>
         <mariadb-java-client.version>3.5.8</mariadb-java-client.version>
         <springdoc.version>3.0.3</springdoc.version>
