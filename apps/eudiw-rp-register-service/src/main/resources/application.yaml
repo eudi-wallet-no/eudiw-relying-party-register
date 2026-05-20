@@ -3,7 +3,9 @@ server:
   port: 9200
 
 spring:
-  thread-executor: virtual
+  threads:
+    virtual:
+      enabled: true
   security:
     api-key: ${API_KEY}
     include-paths:
