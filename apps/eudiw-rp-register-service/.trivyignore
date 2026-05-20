@@ -1,4 +1,8 @@
 # <CVE> # <package/affected code>. Fixed in <version>.
-CVE-2026-34483 # tomcat
-CVE-2026-34487 # tomcat
-GHSA-2m67-wjpj-xhg9 # jackson, fixed in 3.1.1
+CVE-2026-41284 # Allocation of Resources Without Limits or Throttling vulnerability, fixed in version 9.0.118, 10.1.55, 11.0.22
+CVE-2026-41293 # Improper Input Validation vulnerability in Apache Tomcat, fixed in version 9.0.118, 10.1.55, 11.0.22
+CVE-2026-42498 # Exposure of HTTP Authentication Header to unexpected hosts during WebSocket usage, fixed in version 9.0.118, 10.1.55, 11.0.22
+CVE-2026-43512 # DEPRECATED: Authentication Bypass Issues vulnerability in digest authentication, fixed in version 9.0.118, 10.1.55, 11.0.22
+CVE-2026-43513 # Improper Handling of Case Sensitivity vulnerability in LockOutRealm, fixed in version 9.0.118, 10.1.55, 11.0.22
+CVE-2026-42579 # Netty. DNS Codec Input Validation Bypass (Encoder + Decoder). Fixed in 4.2.13.Final, 4.1.133.Final
+CVE-2026-43515 # Tomcat Improper Authorization vulnerability when multiple method Fixed in 11.0.21

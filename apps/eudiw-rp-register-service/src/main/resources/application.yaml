@@ -5,6 +5,7 @@ server:
 spring:
   thread-executor: virtual
   security:
+    api-key: ${API_KEY}
     include-paths:
       - /v1/**
     exclude-paths:
@@ -16,6 +17,10 @@ spring:
       - /swagger-ui.html
       - /swagger-ui/**
       - /v3/api-docs/**
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: none
@@ -100,12 +105,12 @@ spring:
     import:
       - 'optional:file:/etc/config/'
 
-external-dependency-health-checks:
-  health-endpoints:
-    eudiw-ca-service:
-      name: digital-lommebok-ca-service
-      base-uri: http://digital-lommebok-ca-service-service-actuator:8090
-      endpoint: /health
-      connect-timeout-ms: 2000
-      read-timeout-ms: 1000
-      map-down-status-to: DOWN
+#external-dependency-health-checks:
+#  health-endpoints:
+#    eudiw-ca-service:
+#      name: digital-lommebok-ca-service
+#      base-uri: http://digital-lommebok-ca-service-service-actuator:8090
+#      endpoint: /health
+#      connect-timeout-ms: 2000
+#      read-timeout-ms: 1000
+#      map-down-status-to: DOWN
