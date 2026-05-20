@@ -6,4 +6,4 @@ management:
     port: 8090
 spring:
   application:
-    environment: systest
+    environment: prod
