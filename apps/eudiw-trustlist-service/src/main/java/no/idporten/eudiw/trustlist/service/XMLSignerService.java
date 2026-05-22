@@ -58,8 +58,8 @@ public class XMLSignerService {
 
     private SignedInfo createSignedInfo(XMLSignatureFactory xmlSignatureFactory) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException {
         CanonicalizationMethod c14nMethod = xmlSignatureFactory.newCanonicalizationMethod(CanonicalizationMethod.EXCLUSIVE, (C14NMethodParameterSpec) null);
-        DigestMethod digestMethod = xmlSignatureFactory.newDigestMethod(DigestMethod.SHA512, null);
-        SignatureMethod signMethod = xmlSignatureFactory.newSignatureMethod(SignatureMethod.RSA_SHA512, null);
+        DigestMethod digestMethod = xmlSignatureFactory.newDigestMethod(DigestMethod.SHA256, null);
+        SignatureMethod signMethod = xmlSignatureFactory.newSignatureMethod(SignatureMethod.ECDSA_SHA256, null);
         List<Transform> transforms = List.of(
                 xmlSignatureFactory.newTransform(Transform.ENVELOPED, (C14NMethodParameterSpec) null),
                 xmlSignatureFactory.newTransform(CanonicalizationMethod.EXCLUSIVE, (C14NMethodParameterSpec) null)

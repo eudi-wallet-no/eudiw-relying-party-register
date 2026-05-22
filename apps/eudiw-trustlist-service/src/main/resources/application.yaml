@@ -3,7 +3,9 @@ server:
   port: 8080
 
 spring:
-  thread-executor: virtual
+  threads:
+    virtual:
+      enabled: true
   application:
     name: digital-lommebok-trustlist-service
     environment: default
@@ -157,12 +159,12 @@ idporten-key-manager:
     signing-612:
       key-store-location: ${TSL_612_SIGN_KEYSTORE}
       key-store-type: ${TSL_612_SIGN_KEYSTORE_TYPE}
-      key-store-password: ${TSL_612_SIGN_KEYSTORE_KEY_PASSWORD}
+      key-store-password: ${TSL_612_SIGN_KEYSTORE_PASSWORD}
       key-alias: ${TSL_612_SIGN_KEYSTORE_KEY_ALIAS}
       key-password: ${TSL_612_SIGN_KEYSTORE_KEY_PASSWORD}
     signing-602:
       key-store-location: ${TSL_602_SIGN_KEYSTORE}
       key-store-type: ${TSL_602_SIGN_KEYSTORE_TYPE}
-      key-store-password: ${TSL_602_SIGN_KEYSTORE_KEY_PASSWORD}
+      key-store-password: ${TSL_602_SIGN_KEYSTORE_PASSWORD}
       key-alias: ${TSL_602_SIGN_KEYSTORE_KEY_ALIAS}
       key-password: ${TSL_602_SIGN_KEYSTORE_KEY_PASSWORD}
