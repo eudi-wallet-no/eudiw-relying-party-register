@@ -1,0 +1,30 @@
+---
+spring:
+  application:
+    environment: prod
+
+trustlist-service:
+  tsl612:
+    service-providers:
+      digdir:
+#        services:
+#          - name:
+#              lang-no: Bevisporten EAA utsteder fra Digdir
+#              lang-en: Bevisporten EAA issuer from Digdir
+#            starting-time: 2026-05-19T12:00:00.00Z
+#            service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
+#            cert: TODO
+#          - name:
+#              lang-no: MinID bevisutsteder
+#              lang-en: MinID credential issuer
+#            starting-time: 2026-05-19T12:00:00.00Z
+#            service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
+#            cert: TODO
+
+  tsl602:
+    tsl-aca:
+      trusted-entities:
+
+
+    tsl-pid:
+      trusted-entities:
