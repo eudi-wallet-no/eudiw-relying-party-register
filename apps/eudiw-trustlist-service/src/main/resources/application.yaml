@@ -52,7 +52,7 @@ trustlist-service:
         lang-no: NO:Tillitsliste for norsk eidas2sandkasse i ${trustlist-service.environment-name}
         lang-en: NO:Trust list for eidas2sandkasse in ${trustlist-service.environment-name}
       sequence-number: 1
-      list-issue-datetime: 2026-05-07T00:00:00.00Z
+      list-issue-datetime: 2026-05-27T00:00:00.00Z
       information-uris:
         lang-no: ${trustlist-service.digdir.information-uris.lang-no}
         lang-en: ${trustlist-service.digdir.information-uris.lang-en}
