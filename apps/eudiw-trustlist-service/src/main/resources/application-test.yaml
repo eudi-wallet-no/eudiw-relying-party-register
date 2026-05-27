@@ -50,6 +50,30 @@ trustlist-service:
             starting-time: 2026-05-07T00:00:00.00Z
             service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
             cert: MIIDGTCCAr+gAwIBAgIIfggbSXFsqegwCgYIKoZIzj0EAwIwgYQxHjAcBgNVBGETFU5UUk5PLU5PRk9SLjk5MTgyNTgyNzELMAkGA1UEBhMCTk8xJDAiBgNVBAoTG0RJR0lUQUxJU0VSSU5HU0RJUkVLVE9SQVRFVDEvMC0GA1UEAxMmZWlkYXMyc2FuZGthc3NlIEVBQSBQcm92aWRlciBDQSAyIHRlc3QwHhcNMjYwMzExMTAyMzEyWhcNMjcwMzExMTAyMzEyWjBUMQswCQYDVQQGEwJOTzETMBEGA1UECgwKU1lNRk9OSSBBUzEQMA4GA1UEAwwHU3ltZm9uaTEeMBwGA1UEYQwVTlRSTk8tTk9GT1IuOTE1NzcyMTM3MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEkyAbS9iwgeExsoLnGxh0k4crchy3dDBmc1RErLsimQWeCzzjDb16nI8hvrofbPfUszaz7znPpOAR7NoQ7/ixNKOCAUgwggFEMB8GA1UdIwQYMBaAFDEUxKbIvGLjcGE5TFhq4QUfhI/vMB0GA1UdDgQWBBRXmiO5C1tBYxunEyo+Pa8Bh5UlNTAMBgNVHRMBAf8EAjAAMF0GA1UdHwRWMFQwUqBQoE6GTGh0dHBzOi8vY2EudGVzdC5laWRhczJzYW5ka2Fzc2UubmV0L3YxL2NlcnRzL2ludGVybWVkaWF0ZXMvZWFhX3Byb3ZpZGVyMi5jcmwwaAYIKwYBBQUHAQEEXDBaMFgGCCsGAQUFBzAChkxodHRwczovL2NhLnRlc3QuZWlkYXMyc2FuZGthc3NlLm5ldC92MS9jZXJ0cy9pbnRlcm1lZGlhdGVzL2VhYV9wcm92aWRlcjIuY2VyMA4GA1UdDwEB/wQEAwIFoDAbBgNVHREEFDASghBhZ2VudC5wYXJhZHltLmlkMAoGCCqGSM49BAMCA0gAMEUCIB8DifSOSL8Wxich24jEm9DEVL9EKT93AheU3YSlNDv1AiEA8k4qFfivjvko4CNTqLXz2homSYtzB0EHdrxKILFa/+0=
+      kantega:
+        name:
+          lang-no: Kantega AS
+          lang-en: Kantega AS
+        trade-name:
+          lang-no: NTRNO-985815534
+          lang-en: NTRNO-985815534
+        information-uris:
+          lang-no: https://kantega.id/
+          lang-en: https://kantega.id/
+        website: https://www.kantega.no
+        email: mailto:post@kantega.no
+        postal-address:
+          street-address: Kirkegata 5
+          postal-code: 0153
+          locality: Oslo
+          country: "NO"
+        services:
+          - name:
+              lang-no: Kantega Bevisutsteder
+              lang-en: Kantega Bevisutsteder
+            starting-time: 2025-12-17T00:00:00.00Z
+            service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
+            cert: MIIDQzCCAumgAwIBAgIICEtTXduCFQIwCgYIKoZIzj0EAwQwgYIxHjAcBgNVBGETFU5UUk5PLU5PRk9SLjk5MTgyNTgyNzEtMCsGA1UEAxMkZWlkYXMyc2FuZGthc3NlIEVBQSBQcm92aWRlciBDQSB0ZXN0MSQwIgYDVQQKExtESUdJVEFMSVNFUklOR1NESVJFS1RPUkFURVQxCzAJBgNVBAYTAk5PMB4XDTI1MTIxNzA4NTc0N1oXDTI2MTAwODEyNDczNlowYTELMAkGA1UEBhMCTk8xEzARBgNVBAoMCktBTlRFR0EgQVMxHTAbBgNVBAMMFEthbnRlZ2EgQmV2aXMgU3R1ZGlvMR4wHAYDVQRhDBVOVFJOTy1OT0ZPUi45ODU4MTU1MzQwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAR7vUdplXNUWLXKmW7GrO92uB9bJnQ1LAVgT/S+mlS3omGL2OtktMDksXo32Hkywev92PSdV69j52feFVFSbK0Ho4IBZzCCAWMwHwYDVR0jBBgwFoAUba4U6750EzVoTNfBDWcxMWmPsl8wHQYDVR0OBBYEFBTMpdVKszeCM7Xh40IwvL2fCJJ6MAwGA1UdEwEB/wQCMAAwXAYDVR0fBFUwUzBRoE+gTYZLaHR0cHM6Ly9jYS50ZXN0LmVpZGFzMnNhbmRrYXNzZS5uZXQvdjEvY2VydHMvaW50ZXJtZWRpYXRlcy9lYWFfcHJvdmlkZXIuY3JsMGcGCCsGAQUFBwEBBFswWTBXBggrBgEFBQcwAoZLaHR0cHM6Ly9jYS50ZXN0LmVpZGFzMnNhbmRrYXNzZS5uZXQvdjEvY2VydHMvaW50ZXJtZWRpYXRlcy9lYWFfcHJvdmlkZXIuY2VyMA4GA1UdDwEB/wQEAwIFoDA8BgNVHREENTAzgjFrYW50ZWdhLWJldmlzdXRzdGVkZXItc2FuZGthc3NlLmF6dXJld2Vic2l0ZXMubmV0MAoGCCqGSM49BAMEA0gAMEUCIAsXIFr+MKFgcnLJjGS65WazQHEFwGEKm2SZ9iDGddkwAiEArIGQlZSIbvZbFQ6jrmUFLH8kpp0UFmvXrkvhZ8p5T5s=
 
   tsl602:
     tsl-aca:
