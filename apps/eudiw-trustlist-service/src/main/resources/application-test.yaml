@@ -64,14 +64,14 @@ trustlist-service:
         email: mailto:post@kantega.no
         postal-address:
           street-address: Kirkegata 5
-          postal-code: 0153
+          postal-code: "0153"
           locality: Oslo
           country: "NO"
         services:
           - name:
               lang-no: Kantega Bevisutsteder
               lang-en: Kantega Bevisutsteder
-            starting-time: 2025-12-17T00:00:00.00Z
+            starting-time: 2026-05-27T00:00:00.00Z
             service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
             cert: MIIDQzCCAumgAwIBAgIICEtTXduCFQIwCgYIKoZIzj0EAwQwgYIxHjAcBgNVBGETFU5UUk5PLU5PRk9SLjk5MTgyNTgyNzEtMCsGA1UEAxMkZWlkYXMyc2FuZGthc3NlIEVBQSBQcm92aWRlciBDQSB0ZXN0MSQwIgYDVQQKExtESUdJVEFMSVNFUklOR1NESVJFS1RPUkFURVQxCzAJBgNVBAYTAk5PMB4XDTI1MTIxNzA4NTc0N1oXDTI2MTAwODEyNDczNlowYTELMAkGA1UEBhMCTk8xEzARBgNVBAoMCktBTlRFR0EgQVMxHTAbBgNVBAMMFEthbnRlZ2EgQmV2aXMgU3R1ZGlvMR4wHAYDVQRhDBVOVFJOTy1OT0ZPUi45ODU4MTU1MzQwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAR7vUdplXNUWLXKmW7GrO92uB9bJnQ1LAVgT/S+mlS3omGL2OtktMDksXo32Hkywev92PSdV69j52feFVFSbK0Ho4IBZzCCAWMwHwYDVR0jBBgwFoAUba4U6750EzVoTNfBDWcxMWmPsl8wHQYDVR0OBBYEFBTMpdVKszeCM7Xh40IwvL2fCJJ6MAwGA1UdEwEB/wQCMAAwXAYDVR0fBFUwUzBRoE+gTYZLaHR0cHM6Ly9jYS50ZXN0LmVpZGFzMnNhbmRrYXNzZS5uZXQvdjEvY2VydHMvaW50ZXJtZWRpYXRlcy9lYWFfcHJvdmlkZXIuY3JsMGcGCCsGAQUFBwEBBFswWTBXBggrBgEFBQcwAoZLaHR0cHM6Ly9jYS50ZXN0LmVpZGFzMnNhbmRrYXNzZS5uZXQvdjEvY2VydHMvaW50ZXJtZWRpYXRlcy9lYWFfcHJvdmlkZXIuY2VyMA4GA1UdDwEB/wQEAwIFoDA8BgNVHREENTAzgjFrYW50ZWdhLWJldmlzdXRzdGVkZXItc2FuZGthc3NlLmF6dXJld2Vic2l0ZXMubmV0MAoGCCqGSM49BAMEA0gAMEUCIAsXIFr+MKFgcnLJjGS65WazQHEFwGEKm2SZ9iDGddkwAiEArIGQlZSIbvZbFQ6jrmUFLH8kpp0UFmvXrkvhZ8p5T5s=
 
