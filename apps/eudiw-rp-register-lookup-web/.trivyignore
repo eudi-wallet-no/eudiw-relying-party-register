@@ -1,7 +1,7 @@
 # <CVE> # <package/affected code>. Fixed in <version>.
-GHSA-2m67-wjpj-xhg9 #tools.jackson.core:jackson-core. Fixed in 3.1.1
-CVE-2026-34483 # tomcat-embed-core/JsonAccess. Fixed in 11.0.21
-CVE-2026-34486 # tomcat-embed-core/missing encryption. Fixed in 11.0.21
-CVE-2026-34487 # tomcat-embed-core/sensitiv info in log file. Fixed in 11.0.21
-CVE-2026-40477 # thymeleaf. Fixed in 3.1.4
-CVE-2026-40478 # thymeleaf. Fixed in 3.1.4
+CVE-2026-41293 # tomcat-embed-core. Input Validation. Fixed in  9.0.118, 10.1.55, 11.0.22
+CVE-2026-43512 # tomcat-embed-core. Authentication. Fixed in  9.0.118, 10.1.55, 11.0.22
+CVE-2026-43515 # tomcat-embed-core. Authorization. Fixed in  9.0.118, 10.1.55, 11.0.22
+CVE-2026-41284 # tomcat-embed-core. Allocation of Resources. Fixed in  9.0.118, 10.1.55, 11.0.22
+CVE-2026-42498 # tomcat-embed-core. HTTP Authentication Header. Fixed in  9.0.118, 10.1.55, 11.0.22
+CVE-2026-43513 # tomcat-embed-core. Case Sensitivity. Fixed in  9.0.118, 10.1.55, 11.0.22
