@@ -86,3 +86,11 @@ external-dependency-health-checks:
       connect-timeout-ms: 2000
       read-timeout-ms: 1000
       map-down-status-to: DOWN
+
+---
+spring:
+  config:
+    activate:
+      on-cloud-platform: 'kubernetes'
+    import:
+      - 'optional:file:/etc/config/'
