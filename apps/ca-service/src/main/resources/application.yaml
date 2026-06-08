@@ -65,17 +65,6 @@ management:
 eudiw-ca:
   base-uri: "http://digital-lommebok-ca-service:9220"
   roots:
-    root:
-      root: root
-      lifetime-days: 1825
-      crl-distribution-point: ${eudiw-ca.base-uri}/v1/certs/root.crl
-      certificate-uri: ${eudiw-ca.base-uri}/v1/certs/root.cer
-      keystore:
-        type: pkcs12
-        location: ${ROOT_KEYSTORE_LOCATION}
-        password: ${ROOT_KEYSTORE_PASSWORD}
-        key-alias: ${ROOT_KEYSTORE_KEY_ALIAS}
-        key-password: ${ROOT_KEYSTORE_KEY_PASSWORD}
     root2:
       root: root2
       lifetime-days: 1825
@@ -88,20 +77,6 @@ eudiw-ca:
         key-alias: ${ROOT_2_KEYSTORE_KEY_ALIAS}
         key-password: ${ROOT_2_KEYSTORE_KEY_PASSWORD}
   intermediates:
-    access:
-      root: root
-      lifetime-days: 100
-      crl-distribution-point: ${eudiw-ca.base-uri}/v1/certs/intermediates/access.crl
-      certificate-uri: ${eudiw-ca.base-uri}/v1/certs/intermediates/access.cer
-      certificate-profile:
-        extended-key-usage:
-          - "1.0.18013.5.1.6"
-      keystore:
-        type: pkcs12
-        location: ${INTERMEDIATE_ACCESS_KEYSTORE_LOCATION}
-        password: ${INTERMEDIATE_ACCESS_KEYSTORE_PASSWORD}
-        key-alias: ${INTERMEDIATE_ACCESS_KEYSTORE_KEY_ALIAS}
-        key-password: ${INTERMEDIATE_ACCESS_KEYSTORE_KEY_PASSWORD}
     access2:
       root: root2
       lifetime-days: 100
@@ -116,31 +91,6 @@ eudiw-ca:
         password: ${INTERMEDIATE_ACCESS_2_KEYSTORE_PASSWORD}
         key-alias: ${INTERMEDIATE_ACCESS_2_KEYSTORE_KEY_ALIAS}
         key-password: ${INTERMEDIATE_ACCESS_2_KEYSTORE_KEY_PASSWORD}
-    issuer:
-      root: root
-      lifetime-days: 365
-      crl-distribution-point: ${eudiw-ca.base-uri}/v1/certs/intermediates/issuer.crl
-      certificate-uri: ${eudiw-ca.base-uri}/v1/certs/intermediates/issuer.cer
-      keystore:
-        type: pkcs12
-        location: ${INTERMEDIATE_ISSUER_KEYSTORE_LOCATION}
-        password: ${INTERMEDIATE_ISSUER_KEYSTORE_PASSWORD}
-        key-alias: ${INTERMEDIATE_ISSUER_KEYSTORE_KEY_ALIAS}
-        key-password: ${INTERMEDIATE_ISSUER_KEYSTORE_KEY_PASSWORD}
-    pid_provider:
-      root: root
-      lifetime-days: 365
-      crl-distribution-point: ${eudiw-ca.base-uri}/v1/certs/intermediates/pid_provider.crl
-      certificate-uri: ${eudiw-ca.base-uri}/v1/certs/intermediates/pid_provider.cer
-#      certificate-profile:
-#        qc-statements:
-#          qc-type: id-etsi-qct-pid
-      keystore:
-        type: pkcs12
-        location: ${INTERMEDIATE_PID_PROVIDER_KEYSTORE_LOCATION}
-        password: ${INTERMEDIATE_PID_PROVIDER_KEYSTORE_PASSWORD}
-        key-alias: ${INTERMEDIATE_PID_PROVIDER_KEYSTORE_KEY_ALIAS}
-        key-password: ${INTERMEDIATE_PID_PROVIDER_KEYSTORE_KEY_PASSWORD}
     pid_provider2:
       root: root2
       lifetime-days: 365
@@ -152,17 +102,6 @@ eudiw-ca:
         password: ${INTERMEDIATE_PID_PROVIDER_2_KEYSTORE_PASSWORD}
         key-alias: ${INTERMEDIATE_PID_PROVIDER_2_KEYSTORE_KEY_ALIAS}
         key-password: ${INTERMEDIATE_PID_PROVIDER_2_KEYSTORE_KEY_PASSWORD}
-    eaa_provider:
-      root: root
-      lifetime-days: 365
-      crl-distribution-point: ${eudiw-ca.base-uri}/v1/certs/intermediates/eaa_provider.crl
-      certificate-uri: ${eudiw-ca.base-uri}/v1/certs/intermediates/eaa_provider.cer
-      keystore:
-        type: pkcs12
-        location: ${INTERMEDIATE_EAA_PROVIDER_KEYSTORE_LOCATION}
-        password: ${INTERMEDIATE_EAA_PROVIDER_KEYSTORE_PASSWORD}
-        key-alias: ${INTERMEDIATE_EAA_PROVIDER_KEYSTORE_KEY_ALIAS}
-        key-password: ${INTERMEDIATE_EAA_PROVIDER_KEYSTORE_KEY_PASSWORD}
     eaa_provider2:
       root: root2
       lifetime-days: 365
@@ -174,14 +113,3 @@ eudiw-ca:
         password: ${INTERMEDIATE_EAA_PROVIDER_2_KEYSTORE_PASSWORD}
         key-alias: ${INTERMEDIATE_EAA_PROVIDER_2_KEYSTORE_KEY_ALIAS}
         key-password: ${INTERMEDIATE_EAA_PROVIDER_2_KEYSTORE_KEY_PASSWORD}
-    pub_eaa_provider:
-      root: root
-      lifetime-days: 365
-      crl-distribution-point: ${eudiw-ca.base-uri}/v1/certs/intermediates/pub_eaa_provider.crl
-      certificate-uri: ${eudiw-ca.base-uri}/v1/certs/intermediates/pub_eaa_provider.cer
-      keystore:
-        type: pkcs12
-        location: ${INTERMEDIATE_PUB_EAA_PROVIDER_KEYSTORE_LOCATION}
-        password: ${INTERMEDIATE_PUB_EAA_PROVIDER_KEYSTORE_PASSWORD}
-        key-alias: ${INTERMEDIATE_PUB_EAA_PROVIDER_KEYSTORE_KEY_ALIAS}
-        key-password: ${INTERMEDIATE_PUB_EAA_PROVIDER_KEYSTORE_KEY_PASSWORD}

@@ -62,7 +62,7 @@ public class CertificateAuthorityServicePersistenceTest {
                 KoZIzj0EAwMDRwAwRAIgVIhOFcOMK0KR9MvK3a76Hgma6susPfXDJ+HfZZe50N8C
                 IF5nyI5eYXYbBBQvdAZFJStX4YgEc+7j/QV3BlIGz2HE
                 -----END NEW CERTIFICATE REQUEST-----""";
-        CertificateAuthority intermediate = certificateAuthorities.findIntermediate("access");
+        CertificateAuthority intermediate = certificateAuthorities.findIntermediate("access2");
         X509Certificate issuedCertificate1 = certificateAuthorityService.signLeafCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), new SubjectAttributes("991825827", "foo", "tfoo"));
         X509Certificate issuedCertificate2 = certificateAuthorityService.signLeafCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), new SubjectAttributes("991825827", "bar", "tbar"));
         X509Certificate issuedCertificate3 = certificateAuthorityService.signLeafCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), new SubjectAttributes("991825827", "baz", "tbaz"));

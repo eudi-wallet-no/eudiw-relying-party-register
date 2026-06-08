@@ -1,0 +1,7 @@
+---
+spring:
+  application:
+    environment: prod
+
+eudiw-ca:
+  base-uri: "https://ca.eidas2sandkasse.net"
