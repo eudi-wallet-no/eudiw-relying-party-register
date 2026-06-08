@@ -24,7 +24,7 @@ spring:
       - /version
       - /prometheus
   datasource:
-    url: url-in-env-profile
+    url: ${MARIADB_URL}
     username: ${MARIADB_USER}
     password: ${MARIADB_PASSWORD}
     driver-class-name: org.mariadb.jdbc.Driver

@@ -2,8 +2,6 @@
 spring:
   application:
     environment: test
-  datasource:
-    url: "jdbc:mariadb://mysql-lb1.kt.digdir.cosng.net:3306/id_eudiw_ca_test"
 
 eudiw-ca:
   base-uri: "https://ca.test.eidas2sandkasse.net"
