@@ -75,7 +75,7 @@ public class CertificateAuthorityServiceTest {
                     KoZIzj0EAwMDRwAwRAIgVIhOFcOMK0KR9MvK3a76Hgma6susPfXDJ+HfZZe50N8C
                     IF5nyI5eYXYbBBQvdAZFJStX4YgEc+7j/QV3BlIGz2HE
                     -----END NEW CERTIFICATE REQUEST-----""";
-            CertificateAuthority intermediate = certificateAuthorities.findIntermediate("access");
+            CertificateAuthority intermediate = certificateAuthorities.findIntermediate("access2");
             X509Certificate issuedCertificate = certificateAuthorityService.signLeafCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), new SubjectAttributes("991825827", "foo", " tfoo "));
             assertAll(
                     () -> assertNotNull(issuedCertificate),
@@ -101,7 +101,7 @@ public class CertificateAuthorityServiceTest {
             verify(certificateRepository).save(certificateCaptor.capture());
             Certificate savedCertificate = certificateCaptor.getValue();
             assertAll(
-                    () -> assertEquals("access", savedCertificate.getIssuerCa()),
+                    () -> assertEquals("access2", savedCertificate.getIssuerCa()),
                     () -> assertEquals(issuedCertificate.getSerialNumber(), SerialNumberUtils.convertFromString(savedCertificate.getSerialNo())),
                     () -> assertEquals(issuedCertificate.getNotBefore().getTime(), savedCertificate.getValidFromMs()),
                     () -> assertEquals(issuedCertificate.getNotAfter().getTime(), savedCertificate.getValidUntilMs()),
@@ -137,7 +137,7 @@ public class CertificateAuthorityServiceTest {
                 X509v3 Issuer Alternative Name:             <-- Unknown https://www.alvestrand.no/objectid/2.5.29.18.html
                     DNS:bar.foo
              */
-            CertificateAuthority intermediate = certificateAuthorities.findIntermediate("access");
+            CertificateAuthority intermediate = certificateAuthorities.findIntermediate("access2");
             X509Certificate issuedCertificate = certificateAuthorityService.signLeafCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), new SubjectAttributes("991825827", "foo", "tfoo"));
             assertAll(
                     () -> assertTrue(issuedCertificate.getSubjectAlternativeNames().iterator().next().contains("eudiw-verifier-demo.idporten.dev")),
@@ -168,7 +168,7 @@ public class CertificateAuthorityServiceTest {
                 X509v3 Subject Key Identifier:
                     61:4F:D6:CA:F0:27:B1:D9:AB:04:11:9B:FE:68:86:CB:53:CB:1B:66
              */
-            CertificateAuthority intermediate = certificateAuthorities.findIntermediate("access");
+            CertificateAuthority intermediate = certificateAuthorities.findIntermediate("access2");
             X509Certificate issuedCertificate = certificateAuthorityService.signLeafCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), new SubjectAttributes("991825827", "foo", "tfoo"));
             assertAll(
                     () -> assertNull(issuedCertificate.getSubjectAlternativeNames()),
@@ -196,7 +196,7 @@ public class CertificateAuthorityServiceTest {
                     KoZIzj0EAwMDRwAwRAIgVIhOFcOMK0KR9MvK3a76Hgma6susPfXDJ+HfZZe50N8C
                     IF5nyI5eYXYbBBQvdAZFJStX4YgEc+7j/QV3BlIGz2HE
                     -----END NEW CERTIFICATE REQUEST-----""";
-            CertificateAuthority intermediate = certificateAuthorities.findIntermediate("eaa_provider");
+            CertificateAuthority intermediate = certificateAuthorities.findIntermediate("eaa_provider2");
             X509Certificate issuedCertificate = certificateAuthorityService.signLeafCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), new SubjectAttributes("991825827", "foo", "tfoo"));
             assertAll(
                     () -> assertNotNull(issuedCertificate),
@@ -220,7 +220,7 @@ public class CertificateAuthorityServiceTest {
             verify(certificateRepository).save(certificateCaptor.capture());
             Certificate savedCertificate = certificateCaptor.getValue();
             assertAll(
-                    () -> assertEquals("eaa_provider", savedCertificate.getIssuerCa()),
+                    () -> assertEquals("eaa_provider2", savedCertificate.getIssuerCa()),
                     () -> assertEquals(issuedCertificate.getSerialNumber(), SerialNumberUtils.convertFromString(savedCertificate.getSerialNo())),
                     () -> assertEquals(issuedCertificate.getNotBefore().getTime(), savedCertificate.getValidFromMs()),
                     () -> assertEquals(issuedCertificate.getNotAfter().getTime(), savedCertificate.getValidUntilMs()),
@@ -243,7 +243,7 @@ public class CertificateAuthorityServiceTest {
                     KoZIzj0EAwMDRwAwRAIgVIhOFcOMK0KR9MvK3a76Hgma6susPfXDJ+HfZZe50N8C
                     IF5nyI5eYXYbBBQvdAZFJStX4YgEc+7j/QV3BlIGz2HE
                     -----END NEW CERTIFICATE REQUEST-----""";
-            CertificateAuthority intermediate = certificateAuthorities.findIntermediate("pid_provider");
+            CertificateAuthority intermediate = certificateAuthorities.findIntermediate("pid_provider2");
             X509Certificate issuedCertificate = certificateAuthorityService.signLeafCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), new SubjectAttributes("991825827", "foo", "tfoo"));
 
             assertAll(
@@ -270,7 +270,7 @@ public class CertificateAuthorityServiceTest {
             verify(certificateRepository).save(certificateCaptor.capture());
             Certificate savedCertificate = certificateCaptor.getValue();
             assertAll(
-                    () -> assertEquals("pid_provider", savedCertificate.getIssuerCa()),
+                    () -> assertEquals("pid_provider2", savedCertificate.getIssuerCa()),
                     () -> assertEquals(issuedCertificate.getSerialNumber(), SerialNumberUtils.convertFromString(savedCertificate.getSerialNo())),
                     () -> assertEquals(issuedCertificate.getNotBefore().getTime(), savedCertificate.getValidFromMs()),
                     () -> assertEquals(issuedCertificate.getNotAfter().getTime(), savedCertificate.getValidUntilMs()),
@@ -291,7 +291,7 @@ public class CertificateAuthorityServiceTest {
         @DisplayName("then a self signed root contains the expected extensions")
         @Test
         void testSelfSignedRootCA() throws Exception {
-            CertificateAuthority certificateAuthority = certificateAuthorities.findRoot("root");
+            CertificateAuthority certificateAuthority = certificateAuthorities.findRoot("root2");
             PKCS10CertificationRequest csr = certificateAuthorityService.createCSR(certificateAuthority);
             X509Certificate certificate = certificateAuthorityService.signRootCertificate(certificateAuthority, csr);
             assertAll(
@@ -314,7 +314,7 @@ public class CertificateAuthorityServiceTest {
         @DisplayName("then an intermediate CA is signed by the root CA and can be used for certificate and CRL signing")
         @Test
         void testSignIntermediateCA() throws Exception {
-            CertificateAuthority intermediate = certificateAuthorities.findIntermediate("access");
+            CertificateAuthority intermediate = certificateAuthorities.findIntermediate("access2");
             CertificateAuthority root = certificateAuthorities.findRoot(intermediate.getRoot());
             PKCS10CertificationRequest csr = certificateAuthorityService.createCSR(intermediate);
             X509Certificate certificate = certificateAuthorityService.signIntermediateCertificate(root, csr);

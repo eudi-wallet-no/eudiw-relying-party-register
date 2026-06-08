@@ -18,7 +18,7 @@ public class CertificateAuthoritiesTest {
     private CertificateAuthorities certificateAuthorities;
 
     @DisplayName("then root CAs should be loaded and valid")
-    @ValueSource(strings = {"root", "root2"})
+    @ValueSource(strings = {"root2", "root3"})
     @ParameterizedTest
     void testFindRoot(String caId) throws Exception {
         CertificateAuthority root = certificateAuthorities.findRoot(caId);
@@ -27,7 +27,7 @@ public class CertificateAuthoritiesTest {
     }
 
     @DisplayName("then intermediate CAs should be loaded and connected to a valid root CA")
-    @ValueSource(strings = {"eaa_provider", "junit2"})
+    @ValueSource(strings = {"eaa_provider2", "junit2"})
     @ParameterizedTest
     void testFindRootFromIntermediate(String caId) throws Exception {
         CertificateAuthority intermediate = certificateAuthorities.findIntermediate(caId);
