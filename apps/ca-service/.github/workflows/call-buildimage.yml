@@ -22,6 +22,7 @@ jobs:
     with:
       image-name: digital-lommebok-ca-service
       java-version: 25
+      image-pack-tag: 0.0.142
     secrets: inherit
 
   call-update-image:
