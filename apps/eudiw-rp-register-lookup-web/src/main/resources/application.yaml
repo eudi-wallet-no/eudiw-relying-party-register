@@ -7,7 +7,9 @@ server:
       tracking-modes: cookie
 
 spring:
-  thread-executor: virtual
+  threads:
+    virtual:
+      enabled: true
   application:
     name: digital-lommebok-rp-register-lookup-web
     environment: default
@@ -65,3 +67,11 @@ external-dependency-health-checks:
       connect-timeout-ms: 2000
       read-timeout-ms: 1000
       map-down-status-to: DOWN
+
+---
+spring:
+  config:
+    activate:
+      on-cloud-platform: 'kubernetes'
+    import:
+      - 'optional:file:/etc/config/'
