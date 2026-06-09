@@ -17,7 +17,7 @@
         <java.version>25</java.version>
         <idporten-actuator-starter.version>3.1.1</idporten-actuator-starter.version>
         <idporten-access-log.version>4.0.1</idporten-access-log.version>
-        <opentelemetry-instrumentation-api.version>1.62.0</opentelemetry-instrumentation-api.version>
+        <opentelemetry-instrumentation-api.version>1.63.0</opentelemetry-instrumentation-api.version>
         <springdoc.version>3.0.1</springdoc.version>
         <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
         <mockwebserver.version>5.4.0</mockwebserver.version>
