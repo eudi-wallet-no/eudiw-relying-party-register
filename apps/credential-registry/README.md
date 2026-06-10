@@ -24,6 +24,7 @@ Profiles in the [resources](/src/main/resources) folder:
 | docker  | Docker locally, run by docker-compose file |
 | systest | Systest environment                        |
 | test    | Test environment                           |
+| prod    | Prod environment                           |
 
 
 ## Running the application locally

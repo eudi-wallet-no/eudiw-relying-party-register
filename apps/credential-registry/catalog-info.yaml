@@ -2,14 +2,15 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: digital-lommebok-credential-registry
-  description: EUDIWs credential-registry
+  description: EUDIWs credential-registry (Beviskatalog)
   annotations:
     github.com/project-slug: eudi-wallet-no/eudiw-credential-registry
 spec:
   type: application
-  lifecycle: test
+  lifecycle: prod
   owner: team-digital-lommebok
   system: digital-lommebok-credential-registry
   dependsOn:
     - component:digital-lommebok-issuer-server
+    - component:digital-lommebok-rp-register-service
     - resource:digital-lommebok-redis

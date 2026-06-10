@@ -37,3 +37,11 @@ credential-registry:
   api-key-header-id: X-API-KEY
   api-key-value: ${REGISTER_SERVICE_API_KEY}
 
+
+---
+spring:
+  config:
+    activate:
+      on-cloud-platform: 'kubernetes'
+    import:
+      - 'optional:file:/etc/config/'

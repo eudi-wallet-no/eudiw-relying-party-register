@@ -1,4 +1,4 @@
-name: digital-lommebok-issuer
+name: digital-lommebok-rp
 networks:
   digital-lommebok:
     name: digital-lommebok
