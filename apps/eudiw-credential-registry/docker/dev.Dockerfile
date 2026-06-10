@@ -20,6 +20,10 @@ RUN curl -L -O https://github.com/open-telemetry/opentelemetry-java-instrumentat
 
 FROM  eclipse-temurin:25-jre-noble
 
+# To enable health check of docker container since it needs wget to poll the health endpoint.
+RUN apt-get update && apt-get install -y --no-install-recommends wget \
+ && rm -rf /var/lib/apt/lists/*
+
 ARG APPLICATION=eudiw-credential-registry
 RUN mkdir /var/log/${APPLICATION}
 RUN mkdir /usr/local/webapps
