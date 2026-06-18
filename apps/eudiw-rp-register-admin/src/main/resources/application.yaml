@@ -3,7 +3,9 @@ server:
   port: 8080
 
 spring:
-  thread-executor: virtual
+  threads:
+    virtual:
+      enabled: true
   application:
     environment: default
 
