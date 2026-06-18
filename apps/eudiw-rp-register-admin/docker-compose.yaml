@@ -119,7 +119,7 @@ services:
 
   rp-register-lookup-web:
     image: "crutvikling.azurecr.io/eudiw-rp-register-lookup-web"
-#    image: "digital-lommebok-rp-register-rp-register-lookup-web"
+#    image: "digital-lommebok-rp-rp-register-lookup-web"
     pull_policy: always
     environment:
       spring_profiles_active: docker
