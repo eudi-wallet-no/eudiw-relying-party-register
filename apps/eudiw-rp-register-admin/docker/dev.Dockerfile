@@ -1,4 +1,4 @@
-FROM maven:3-eclipse-temurin-25 as builder
+FROM maven:3-eclipse-temurin-25 AS builder
 
 ARG GIT_PACKAGE_TOKEN
 ARG GIT_PACKAGE_USERNAME
@@ -17,7 +17,7 @@ RUN --mount=type=cache,target=/root/.m2/repository \
   mvn -B package dependency:go-offline -Dmaven.test.skip=true -Dmaven.gitcommitid.skip=true
 
 
-FROM  eclipse-temurin:25-jre-noble
+FROM eclipse-temurin:25-jre-noble
 
 # To enable health check of docker container since it needs wget to poll the health endpoint.
 RUN apt-get update && apt-get install -y --no-install-recommends wget \
