@@ -56,11 +56,19 @@ The local hosts file should include:
 127.0.0.1 rp-register-selfservice
 ```
 
-The application can be started with Maven:
+### Maven
+
+Start required dependencies with Docker Compose.
 ```
-mvn spring-boot:run -Dspring-boot.run.profiles=<profile group>
+docker-compose up --scale rp-register-admin=0 -d
 ```
 
+The application can be started with Maven:
+```
+mvn spring-boot:run -Dspring-boot.run.profiles=dev,admin-dev
+```
+
+### Docker
 The applications can be started with Docker compose:
 ```
 docker compose up --build
