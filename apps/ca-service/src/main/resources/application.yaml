@@ -57,6 +57,13 @@ management:
     health:
       probes:
         enabled: true
+      status:
+        order: DOWN, OUT_OF_SERVICE, UNKNOWN, DEGRADED, EXTERNAL_DEPENDENCY_DOWN, UP
+      group:
+        readiness:
+          include: db, readinessState
+        liveness:
+          include: livenessState
   metrics:
     tags:
       application: ${spring.application.name}
