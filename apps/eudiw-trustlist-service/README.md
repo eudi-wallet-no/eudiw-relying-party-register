@@ -35,21 +35,32 @@ Profiles in the [resources](/src/main/resources) folder:
 
 ## Running the application locally
 
-The `dev` and `docker` profiles runs the application with the same configuration (certs, url).
+The `dev` and `docker` profiles runs the application with similar configuration.
 
 The local hosts file should include:
 ```
 127.0.0.1 trustlist-service
 ```
 
+## Maven
+
+Start required dependencies with Docker Compose.
+```
+docker-compose up --scale trustlist-service=0 -d
+```
+
 The application can be started with Maven:
 ```
-mvn spring-boot:run -Dspring-boot.run.profiles=<profile>
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
+
+The application will run on http://trustlist-service:9230 with the `dev` profile.
+
+## Docker
 
 The application can be started with Docker compose:
 ```
 docker-compose up --build
 ```
 
-The application will run on http://trustlist-service:9230.
+The application will run on http://trustlist-service:9230 with the `docker` profile.
