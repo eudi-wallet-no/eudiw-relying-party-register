@@ -45,14 +45,16 @@ The local hosts file should include:
 127.0.0.1 ca-service
 ```
 
+### Maven
 The application can be started with Maven:
 ```
-mvn spring-boot:run -Dspring-boot.run.profiles=<profile>
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
+### Docker
 The application can be started with Docker compose:
 ```
 docker-compose up --build
 ```
 
-The application will run on http://ca-service/:9220 .
+The application will run on http://ca-service/:9220 with the `docker`profile.
