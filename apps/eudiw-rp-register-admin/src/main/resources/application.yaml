@@ -27,7 +27,7 @@ management:
   health:
     group:
       readiness:
-        include: db
+        include: readinessState,registerServiceHealthCheck
       liveness:
         include: livenessState
   metrics:
@@ -82,12 +82,12 @@ eudiw-admin-web:
 external-dependency-health-checks:
   health-endpoints:
     eudiw-rp-register-service:
-      name: digital-lommebok-rp-register-service
+      name: eudiw-rp-register-service
       base-uri: http://digital-lommebok-rp-register-service-service-actuator:8090
-      endpoint: /health
+      endpoint: /health/readiness
       connect-timeout-ms: 2000
       read-timeout-ms: 1000
-      map-down-status-to: DOWN
+      map-down-status-to: EXTERNAL_DEPENDENCY_DOWN
 
 ---
 spring:
