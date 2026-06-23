@@ -5,21 +5,17 @@ spring:
 
 trustlist-service:
   tsl612:
+    scheme-information:
+      list-issue-datetime: 2026-06-23T00:00:00.00Z
     service-providers:
       digdir:
-#        services:
-#          - name:
-#              lang-no: Bevisporten EAA utsteder fra Digdir
-#              lang-en: Bevisporten EAA issuer from Digdir
-#            starting-time: 2026-05-19T12:00:00.00Z
-#            service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
-#            cert: TODO
-#          - name:
-#              lang-no: MinID bevisutsteder
-#              lang-en: MinID credential issuer
-#            starting-time: 2026-05-19T12:00:00.00Z
-#            service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
-#            cert: TODO
+        services:
+          - name:
+              lang-no: MinID bevisutsteder
+              lang-en: MinID credential issuer
+            starting-time: 2026-06-23T00:00:00.00Z
+            service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
+            cert: MIIDCjCCArCgAwIBAgIJAJZe4jjdIO2dMAoGCCqGSM49BAMCMH8xHjAcBgNVBGETFU5UUk5PLU5PRk9SLjk5MTgyNTgyNzELMAkGA1UEBhMCTk8xJDAiBgNVBAoTG0RJR0lUQUxJU0VSSU5HU0RJUkVLVE9SQVRFVDEqMCgGA1UEAxMhZWlkYXMyc2FuZGthc3NlIEVBQSBQcm92aWRlciBDQSAyMB4XDTI2MDYxNTEwNTMyMloXDTI3MDYxNTEwNTMyMlowcTELMAkGA1UEBhMCTk8xJDAiBgNVBAoMG0RJR0lUQUxJU0VSSU5HU0RJUkVLVE9SQVRFVDEcMBoGA1UEAwwTTWluSUQgYmV2aXN1dHN0ZWRlcjEeMBwGA1UEYQwVTlRSTk8tTk9GT1IuOTkxODI1ODI3MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE0D/bj3vXvgLEix5b0bEjPHL7kUIGJrHy8h2T02Wn6wypGQOzvsqBAs5F24hES0VZbOI0sMvr++RzfWvrCuxvWqOCASEwggEdMB8GA1UdIwQYMBaAFFhHYvCub5Hy6eKLSxguN6IyD3qyMB0GA1UdDgQWBBRqKplaqhQZBd0B3NsHeFle51rE3zAMBgNVHRMBAf8EAjAAMFgGA1UdHwRRME8wTaBLoEmGR2h0dHBzOi8vY2EuZWlkYXMyc2FuZGthc3NlLm5ldC92MS9jZXJ0cy9pbnRlcm1lZGlhdGVzL2VhYV9wcm92aWRlcjIuY3JsMGMGCCsGAQUFBwEBBFcwVTBTBggrBgEFBQcwAoZHaHR0cHM6Ly9jYS5laWRhczJzYW5ka2Fzc2UubmV0L3YxL2NlcnRzL2ludGVybWVkaWF0ZXMvZWFhX3Byb3ZpZGVyMi5jZXIwDgYDVR0PAQH/BAQDAgWgMAoGCCqGSM49BAMCA0gAMEUCIEshok8/CkAIrsRjZXTcHTEtyBeEnQTgQg+FEEizn46OAiEA8/5wgDk+yTj+ZlpbFEw9Zq2vQRQQPdCPlYmJ0bEhDwU=
 
   tsl602:
     tsl-aca:
