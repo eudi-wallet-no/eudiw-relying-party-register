@@ -3,16 +3,3 @@ spring:
   application:
     environment: prod
 
-eudiw-admin-web:
-  security:
-    ansattporten:
-      request-authorization-details:
-        - type: ansattporten:altinn:resource
-          resource: urn:altinn:resource:digdir-selvbetjening-klienter
-        - type: ansattporten:altinn:resource
-          resource: urn:altinn:resource:digdir-selvbetjening-api-maskinporten
-        - type: ansattporten:altinn:resource
-          resource: urn:altinn:resource:digdir-selvbetjening-leverandorer
-      allow-entra-id: true
-      entra-id-request-authorization-details:
-        - type: ansattporten:orgno

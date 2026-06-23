@@ -5,3 +5,8 @@ server:
 management:
   server:
     port: 9255
+
+# Must duplicate content from application-selfservice.yaml since can not add this profile since not possible to disable spring security.
+spring:
+  application:
+    name: digital-lommebok-rp-register-selfservice

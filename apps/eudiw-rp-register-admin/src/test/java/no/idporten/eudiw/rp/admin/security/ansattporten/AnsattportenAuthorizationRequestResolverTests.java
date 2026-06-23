@@ -118,10 +118,10 @@ public class AnsattportenAuthorizationRequestResolverTests {
         String acrValuesParameter = (String) spiedOauthRequest.getAdditionalParameters().get(AuthConstants.ACR_VALUES_PARAMETER);
 
         assertAll(
-            () -> assertTrue(acrValuesAttribute == null || !acrValuesAttribute.contains(AuthConstants.ACR_ENTRAID_VALUE)),
-            () -> assertTrue(acrValuesParameter == null || !acrValuesParameter.contains(AuthConstants.ACR_ENTRAID_VALUE)),
-            () -> assertEquals(ansattportenProperties.getRequestAuthorizationDetails(), spiedRequestAuthzDetailsAttribute),
-            () -> assertEquals(ansattportenProperties.getRequestAuthorizationDetails(), spiedRequestAuthzDetailsParameter)
+            () -> assertTrue(acrValuesAttribute.contains(AuthConstants.ACR_ENTRAID_VALUE)),
+            () -> assertTrue(acrValuesParameter.contains(AuthConstants.ACR_ENTRAID_VALUE)),
+            () -> assertEquals(ansattportenProperties.getEntraIdRequestAuthorizationDetails(), spiedRequestAuthzDetailsAttribute),
+            () -> assertEquals(ansattportenProperties.getEntraIdRequestAuthorizationDetails(), spiedRequestAuthzDetailsParameter)
         );
     }
 
