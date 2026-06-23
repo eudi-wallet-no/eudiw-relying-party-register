@@ -20,7 +20,7 @@ public class TrustlistWalletController {
 
     private final Trustlist602Service service;
 
-    @Value("${trustlist-service.tsl602.tsl-wallet.scheme-information.list-issue-datetime:#{T(java.time.ZonedDateTime).now()}}")
+    @Value("${trustlist-service.tsl602.tsl-wallet.scheme-information.list-issue-date-time:#{T(java.time.ZonedDateTime).now()}}")
     private ZonedDateTime lastModified;
 
     @Autowired
