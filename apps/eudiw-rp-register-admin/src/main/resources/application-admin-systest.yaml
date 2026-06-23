@@ -1,18 +1,1 @@
-spring:
-  security:
-    oauth2:
-      client:
-        registration:
-          entra:
-            provider: entra
-            client-name: Microsoft Entra ID
-            client-id: ${APP_ID}
-            client-secret: ${SECRET_VALUE}
-            authorization-grant-type: authorization_code
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-            scope:
-              - openid
-              - profile
-        provider:
-          entra:
-            issuer-uri: https://login.microsoftonline.com/${TENANT_ID}/v2.0
+---

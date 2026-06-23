@@ -75,9 +75,11 @@ eudiw-admin-web:
         - type: ansattporten:altinn:resource
           resource: urn:altinn:resource:digdir-selvbetjening-leverandorer
         - type: ansattporten:altinn:resource
-          resource: urn:altinn:resource:digdir-selvbetjening-samarbeid-testmiljo
+          resource: urn:altinn:resource:digdir-selvbetjening-digital-lommebok
       allow-synthetic-reportee: false
-      allow-entra-id: false
+      allow-entra-id: true
+      entra-id-request-authorization-details:
+        - type: ansattporten:orgno
 
 external-dependency-health-checks:
   health-endpoints:

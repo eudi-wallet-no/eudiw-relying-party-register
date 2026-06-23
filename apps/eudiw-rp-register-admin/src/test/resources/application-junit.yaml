@@ -12,3 +12,5 @@ eudiw-admin-web:
       register-service-base-uri: http://localhost:${TEST_MOCK_WEB_SERVER_PORT}/
   enhetsregisteret-service:
     enhetsregisteret-api-base-uri: http://localhost:${TEST_MOCK_WEB_SERVER_PORT}/
+
+
