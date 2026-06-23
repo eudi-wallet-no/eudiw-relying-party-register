@@ -20,7 +20,7 @@ import static no.idporten.eudiw.trustlist.config.Trustlist602Properties.TSL_ACA;
 @RestController
 public class TrustlistACAController {
 
-    @Value("${trustlist-service.tsl602.tsl-aca.scheme-information.list-issue-datetime:#{T(java.time.ZonedDateTime).now()}}")
+    @Value("${trustlist-service.tsl602.tsl-aca.scheme-information.list-issue-date-time:#{T(java.time.ZonedDateTime).now()}}")
     private ZonedDateTime lastModified;
 
     private final Trustlist602Service service;
