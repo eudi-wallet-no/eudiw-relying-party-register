@@ -101,6 +101,31 @@ trustlist-service:
             service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
             cert: MIID6zCCA5CgAwIBAgIJAKFXDgX1KXrjMAoGCCqGSM49BAMCMIGEMR4wHAYDVQRhExVOVFJOTy1OT0ZPUi45OTE4MjU4MjcxCzAJBgNVBAYTAk5PMSQwIgYDVQQKExtESUdJVEFMSVNFUklOR1NESVJFS1RPUkFURVQxLzAtBgNVBAMTJmVpZGFzMnNhbmRrYXNzZSBFQUEgUHJvdmlkZXIgQ0EgMiB0ZXN0MB4XDTI2MDYwMjA3MTEyMFoXDTI3MDYwMjA3MTEyMFowdjELMAkGA1UEBhMCTk8xJzAlBgNVBAoMHktTLURJR0lUQUxFIEZFTExFU1RKRU5FU1RFUiBBUzEeMBwGA1UEAwwVS1MgRGlnaXRhbCAtIHV0c3RlZGVyMR4wHAYDVQRhDBVOVFJOTy1OT0ZPUi45MzE3OTYwMDMwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDXujTG2Oa4/+SJY0pT4ZaXr9nMuU7t1rk/QNN7MqqCz2Nxmo4QwsUN5w82TXfTYaYjxbAfRHIdcQOPf/GUNXx8s3lecxzSfrc0tlFTtWZmV9pKuYIHTjIV9LKHnNeYD8/duJRYb/uVkdnr6282xXF7K0ZFXTfKQ53czB5MhwFa62+rkJrkY0wu/1JveNbi/5ovTX1LwepyU+oq+PiPS5ZpyVG4QIjpccb4Px4ClotqF1qlDPQw6MrDxXdPzCWCdAlczQ2KhINRbyyXlnZxl+gmWDqNgpyoSumQ/bOv8f09E1F4UbRQfd9xVL4BYUCdyBedNSGDamRkXNVnM/w9tjNfAgMBAAGjggErMIIBJzAfBgNVHSMEGDAWgBQxFMSmyLxi43BhOUxYauEFH4SP7zAdBgNVHQ4EFgQULMcjJcGhVK6dhpBQqYd0SIT9yuUwDAYDVR0TAQH/BAIwADBdBgNVHR8EVjBUMFKgUKBOhkxodHRwczovL2NhLnRlc3QuZWlkYXMyc2FuZGthc3NlLm5ldC92MS9jZXJ0cy9pbnRlcm1lZGlhdGVzL2VhYV9wcm92aWRlcjIuY3JsMGgGCCsGAQUFBwEBBFwwWjBYBggrBgEFBQcwAoZMaHR0cHM6Ly9jYS50ZXN0LmVpZGFzMnNhbmRrYXNzZS5uZXQvdjEvY2VydHMvaW50ZXJtZWRpYXRlcy9lYWFfcHJvdmlkZXIyLmNlcjAOBgNVHQ8BAf8EBAMCBaAwCgYIKoZIzj0EAwIDSQAwRgIhAKdh5rLk4FwywdCgGig3hOcTJJPrtoKl70sujQtihOQ2AiEA8XytdTz1sWDXS/8gU6Wwc+7EQtFKmHLinkgsDmr+7H0=
 
+      posten-bring:
+        name:
+          lang-no: Posten Bring AS
+          lang-en: Posten Bring AS
+        trade-name:
+          lang-no: NTRNO-984661185
+          lang-en: NTRNO-984661185
+        information-uris:
+          lang-no: https://www.digipost.no/bedrift/lommebok-og-digitale-bevis
+          lang-en: https://www.digipost.no/bedrift/lommebok-og-digitale-bevis
+        website: https://www.posten.no/
+        email: mailto:kontakt@digipost.no
+        postal-address:
+          street-address: "Biskop Gunnerus' gate 14A"
+          postal-code: "0185"
+          locality: Oslo
+          country: "NO"
+        services:
+          - name:
+              lang-no: Digipost Utstedertjeneste
+              lang-en: Digipost Issuer Service
+            starting-time: 2026-06-25T00:00:00.00Z
+            service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
+            cert: MIIDOzCCAuCgAwIBAgIIeMmjqCMvJC4wCgYIKoZIzj0EAwIwgYQxHjAcBgNVBGETFU5UUk5PLU5PRk9SLjk5MTgyNTgyNzELMAkGA1UEBhMCTk8xJDAiBgNVBAoTG0RJR0lUQUxJU0VSSU5HU0RJUkVLVE9SQVRFVDEvMC0GA1UEAxMmZWlkYXMyc2FuZGthc3NlIEVBQSBQcm92aWRlciBDQSAyIHRlc3QwHhcNMjYwNjE3MTIwMzQzWhcNMjcwNjE3MTIwMzQzWjBhMQswCQYDVQQGEwJOTzEYMBYGA1UECgwPUE9TVEVOIEJSSU5HIEFTMRgwFgYDVQQDDA9Qb3N0ZW4gQnJpbmcgQVMxHjAcBgNVBGEMFU5UUk5PLU5PRk9SLjk4NDY2MTE4NTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABA5/ejwgu2yCiz6uHNnwUMOHsEGrYlFC3wyCxHsWnmWDvJ4PleR/3DxYj3nNo/g25+blXUQcgZ3/wCmCsXb3J9WjggFcMIIBWDAfBgNVHSMEGDAWgBQxFMSmyLxi43BhOUxYauEFH4SP7zAdBgNVHQ4EFgQUGjHpg34s28K1L1+Jctsmue79+lYwDAYDVR0TAQH/BAIwADBdBgNVHR8EVjBUMFKgUKBOhkxodHRwczovL2NhLnRlc3QuZWlkYXMyc2FuZGthc3NlLm5ldC92MS9jZXJ0cy9pbnRlcm1lZGlhdGVzL2VhYV9wcm92aWRlcjIuY3JsMGgGCCsGAQUFBwEBBFwwWjBYBggrBgEFBQcwAoZMaHR0cHM6Ly9jYS50ZXN0LmVpZGFzMnNhbmRrYXNzZS5uZXQvdjEvY2VydHMvaW50ZXJtZWRpYXRlcy9lYWFfcHJvdmlkZXIyLmNlcjAOBgNVHQ8BAf8EBAMCBaAwLwYDVR0RBCgwJoIkZGlnaXBvc3Qtc2FuZGthc3NlLmlzc3Vlci5rYW50ZWdhLmlkMAoGCCqGSM49BAMCA0kAMEYCIQCJPkWb6nx9E5kcbvPqLYv77J5AflUgXEVZdLhAjDq7ZwIhAIs00dSEpqSAWEA1IYTqTW4M9eQuA5uTfFQvFmneU6/B
+
   tsl602:
     tsl-aca:
       trusted-entities:
