@@ -4,9 +4,17 @@
 # https://help.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 
 version: 2
+registries:
+  maven-github:
+    type: maven-repository
+    url: https://maven.pkg.github.com/felleslosninger
+    username: ${{secrets.GH_PACKAGES_READ_USER}}
+    password: ${{secrets.GH_PACKAGES_READ_PAT}}
 updates:
   - package-ecosystem: "maven" # See documentation for possible values
     directory: "/" # Location of package manifests
+    registries:
+      - maven-github
     schedule:
       interval: "daily"
     open-pull-requests-limit: 10
