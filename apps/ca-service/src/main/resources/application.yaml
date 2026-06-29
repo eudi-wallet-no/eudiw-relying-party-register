@@ -86,7 +86,7 @@ eudiw-ca:
   intermediates:
     access2:
       root: root2
-      lifetime-days: 100
+      lifetime-days: 365
       crl-distribution-point: ${eudiw-ca.base-uri}/v1/certs/intermediates/access2.crl
       certificate-uri: ${eudiw-ca.base-uri}/v1/certs/intermediates/access2.cer
       certificate-profile:

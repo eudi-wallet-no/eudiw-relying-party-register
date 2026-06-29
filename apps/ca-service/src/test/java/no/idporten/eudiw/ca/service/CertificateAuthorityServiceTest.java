@@ -92,7 +92,7 @@ public class CertificateAuthorityServiceTest {
                     () -> assertTrue(issuedCertificate.getSubjectX500Principal().getName(X500Principal.RFC1779).contains("O=foo")),
                     () -> assertTrue(issuedCertificate.getSubjectX500Principal().getName(X500Principal.RFC1779).contains("CN=tfoo")),
                     () -> assertTrue(issuedCertificate.getSubjectX500Principal().getName(X500Principal.RFC1779).contains("NTRNO-NOFOR.99182582")),
-                    () -> assertEquals(100,
+                    () -> assertEquals(365,
                             ChronoUnit.DAYS.between(
                                     LocalDate.ofInstant(issuedCertificate.getNotBefore().toInstant(), ZoneId.systemDefault()),
                                     LocalDate.ofInstant(issuedCertificate.getNotAfter().toInstant(), ZoneId.systemDefault())))
