@@ -8,6 +8,7 @@ import no.idporten.eudiw.credential.registry.response.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,6 +23,7 @@ public class MockData {
 
     }
 
+    @SuppressWarnings("HttpUrlsUsage")
     public static List<CredentialIssuer> mockCredentialIssuersListOne() {
         ArrayList<CredentialIssuer> credentialIssuers = new ArrayList<>();
         Map<String, CredentialConfiguration> credConfig = new HashMap<>();
@@ -42,9 +44,10 @@ public class MockData {
         URL credential_endpoint2;
         URL credential_endpoint3;
         try {
-            credential_endpoint1 = new URL("http://eksempel.com");
-            credential_endpoint2 = new URL("http://eksempel2.com");
-            credential_endpoint3 = new URL("http://eksempel3.com");
+
+            credential_endpoint1 = URI.create("http://eksempel.com").toURL();
+            credential_endpoint2 = URI.create("http://eksempel2.com").toURL();
+            credential_endpoint3 = URI.create("http://eksempel3.com").toURL();
 
             CredentialIssuer issuer1 = new CredentialIssuer("mock_utsteder", credential_endpoint1, credConfig);
             CredentialIssuer issuer2 = new CredentialIssuer("mock_utsteder2", credential_endpoint2, credConfig2);
@@ -60,6 +63,7 @@ public class MockData {
         return credentialIssuers;
     }
 
+    @SuppressWarnings("HttpUrlsUsage")
     public static List<CredentialIssuer> mockCredentialIssuersListTwo() {
         ArrayList<CredentialIssuer> credentialIssuers = new ArrayList<>();
         Map<String, CredentialConfiguration> credConfig = new HashMap<>();
@@ -80,9 +84,9 @@ public class MockData {
         URL credential_endpoint2;
         URL credential_endpoint3;
         try {
-            credential_endpoint1 = new URL("http://eksempel2.com");
-            credential_endpoint2 = new URL("http://eksempel22.com");
-            credential_endpoint3 = new URL("http://eksempel23.com");
+            credential_endpoint1 = URI.create("http://eksempel2.com").toURL();
+            credential_endpoint2 = URI.create("http://eksempel22.com").toURL();
+            credential_endpoint3 = URI.create("http://eksempel23.com").toURL();
 
             CredentialIssuer issuer1 = new CredentialIssuer("mock_utsteder2", credential_endpoint1, credConfig);
             CredentialIssuer issuer2 = new CredentialIssuer("mock_utsteder22", credential_endpoint2, credConfig2);

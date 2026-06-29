@@ -22,7 +22,7 @@ public class CredentialRegisterServiceSchedulerTest {
     @MockitoBean
     DummyMetadataRetriever dummyMetadataRetriever;
 
-    private CredentialRegisterService credentialRegisterService;
+    private final CredentialRegisterService credentialRegisterService;
 
     @Autowired
     public CredentialRegisterServiceSchedulerTest(DummyMetadataRetriever dummyMetadataRetriever) {
@@ -34,7 +34,7 @@ public class CredentialRegisterServiceSchedulerTest {
     @DisplayName("When value already exists, and scheduler updates, the new values overwrite the old ones")
     void schedulerTest(){
         Mockito.when(dummyMetadataRetriever.getListOfIssuer()).thenReturn(MockData.mockCredentialIssuersListOne());
-        credentialRegisterService.mapInputToResponse();
+        credentialRegisterService.updateCredentialMetadataRetriever();
         Credentials credentials = credentialRegisterService.getCredentials();
 
         assertAll(
@@ -45,7 +45,7 @@ public class CredentialRegisterServiceSchedulerTest {
         );
 
         Mockito.when(dummyMetadataRetriever.getListOfIssuer()).thenReturn(MockData.mockCredentialIssuersListTwo());
-        credentialRegisterService.mapInputToResponse();
+        credentialRegisterService.updateCredentialMetadataRetriever();
         Credentials credentials2 = credentialRegisterService.getCredentials();
         assertAll(
                 () -> assertEquals("mock_utsteder2", credentials2.credentials().get(0).credentialIssuer()),

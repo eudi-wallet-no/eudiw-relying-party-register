@@ -1,29 +1,32 @@
 package no.idporten.eudiw.credential.registry.integration;
 
-import jakarta.validation.*;
-import no.idporten.eudiw.credential.registry.configuration.ConfigProperties;
-import no.idporten.eudiw.credential.registry.configuration.CredentialRegisterConfiguration;
+import io.micrometer.core.instrument.Counter;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
 import no.idporten.eudiw.credential.registry.exception.CredentialRegisterException;
 import no.idporten.eudiw.credential.registry.integration.model.CredentialIssuer;
 import no.idporten.eudiw.credential.registry.integration.model.CredentialIssuerUrls;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 
-
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+import static no.idporten.eudiw.credential.registry.exception.CredentialRegisterException.ERROR;
+
 /**
- * Responsible for sending get-request to well knwon openid credential issuer endpoints of all issuers registered
+ * Responsible for sending get-request to well-known openid credential issuer endpoints of all issuers registered
  * in application.yaml, and formating the data into an object.
  *
  */
@@ -31,31 +34,40 @@ import java.util.stream.Collectors;
 @Service
 public class CredentialIssuerMetadataRetriever {
     private static final Logger log = LoggerFactory.getLogger(CredentialIssuerMetadataRetriever.class);
-    private final ConfigProperties configProperties;
-    private final CredentialRegisterConfiguration configuration;
+
     private final Validator validator;
-    private final RestClient restClient;
+    @Qualifier("restClientRpService")
+    private final RestClient restClientRpService;
+    @Qualifier("restClientExternalApi")
+    private final RestClient restClientExternalApi;
+    @Qualifier("connectExternalApiExceptionCounter")
+    private final Counter connectExternalApiExceptionCounter;
+    @Qualifier("connectInternalApiExceptionCounter")
+    private final Counter connectInternalApiExceptionCounter;
+
     private static final String CREDENTIAL_ISSUER_CONFIG_ENDPOINT = "/.well-known/openid-credential-issuer";
 
     private List<CredentialIssuer> listOfIssuer;
 
+
     @Autowired
-    public CredentialIssuerMetadataRetriever(final ConfigProperties configProperties, final CredentialRegisterConfiguration configuration, Validator validator, RestClient restClient) {
-        this.configuration = configuration;
-        this.restClient = restClient;
+    public CredentialIssuerMetadataRetriever(Validator validator, RestClient restClientRpService, RestClient restClientExternalApi, Counter connectExternalApiExceptionCounter, Counter connectInternalApiExceptionCounter) {
         this.validator = validator;
-        this.configProperties = configProperties;
+        this.restClientRpService = restClientRpService;
+        this.restClientExternalApi = restClientExternalApi;
+        this.connectExternalApiExceptionCounter = connectExternalApiExceptionCounter;
+        this.connectInternalApiExceptionCounter = connectInternalApiExceptionCounter;
     }
 
-    protected boolean isHttps(URI uri){
-        if (uri.getScheme()==null || !uri.getScheme().equals("https")) {
+    protected boolean isHttps(URI uri) {
+        if (uri.getScheme() == null || !uri.getScheme().equals("https")) {
             log.warn("Issuer {} does not use https in its registered uri", uri);
             return false;
         }
         return true;
     }
 
-    protected boolean emptyHost(URI uri){
+    protected boolean emptyHost(URI uri) {
         if (!StringUtils.hasText(uri.getHost())) {
             log.warn("Issuer {} does not contain characters in host", uri);
             return true;
@@ -64,11 +76,10 @@ public class CredentialIssuerMetadataRetriever {
     }
 
     protected URI buildWellKnown(URI uri) {
-        if (uri.getPath().equals("/")){
+        if (uri.getPath().equals("/")) {
             return uri.resolve(CREDENTIAL_ISSUER_CONFIG_ENDPOINT);
         }
-        URI wellknown = uri.resolve(CREDENTIAL_ISSUER_CONFIG_ENDPOINT + uri.getPath());
-        return wellknown;
+        return uri.resolve(CREDENTIAL_ISSUER_CONFIG_ENDPOINT + uri.getPath());
     }
 
     protected CredentialIssuer validateCredentialIssuer(CredentialIssuer credentialIssuer, URI uri) {
@@ -76,7 +87,7 @@ public class CredentialIssuerMetadataRetriever {
         if (!violations.isEmpty()) {
             String prettyViolations = violations.stream().map(ConstraintViolation::getMessage).collect(Collectors.joining(", "));
             String errorDescription = String.format("Issuer with uri %s has these violations %s and is therefore not included", uri, prettyViolations);
-            log.warn("Constraint violations error " + errorDescription);
+            log.warn("Constraint violations error {}", errorDescription);
             return null;
         }
         return credentialIssuer;
@@ -86,13 +97,16 @@ public class CredentialIssuerMetadataRetriever {
         CredentialIssuer credentialIssuer;
         URI wellknown = buildWellKnown(uri);
         try {
-            credentialIssuer = restClient.get()
+            credentialIssuer = restClientExternalApi.get()
                     .uri(wellknown)
-                    .accept(MediaType.APPLICATION_JSON)
                     .retrieve()
                     .body(CredentialIssuer.class);
+        } catch (ResourceAccessException e) {
+            log.warn("Connection error to issuers well-known url: {}", wellknown, e);
+            connectExternalApiExceptionCounter.increment();
+            return null;
         } catch (Exception e) {
-            log.warn("error fetching content from well known- url of issuer" + uri, e);
+            log.warn("Failed fetching content from issuers well-known url: {}", wellknown, e);
             return null;
         }
         return validateCredentialIssuer(credentialIssuer, uri);
@@ -101,19 +115,20 @@ public class CredentialIssuerMetadataRetriever {
     protected CredentialIssuerUrls retrieveCredentialIssuerUrlsFromRPService() {
         CredentialIssuerUrls uris;
         try {
-            uris = restClient.get()
+            uris = restClientRpService.get()
                     .retrieve()
                     .body(CredentialIssuerUrls.class);
-        }catch (HttpClientErrorException e) {
-            throw new CredentialRegisterException(e.toString(), e.getMessage(), HttpStatus.BAD_REQUEST);
-        }catch (HttpServerErrorException e) {
-            throw new CredentialRegisterException(e.toString(), e.getMessage(), HttpStatus.SERVICE_UNAVAILABLE);
+        } catch (ResourceAccessException e) {
+            connectInternalApiExceptionCounter.increment();
+            throw new CredentialRegisterException(ERROR, "Failed to connect to rp-service", HttpStatus.SERVICE_UNAVAILABLE, e);
+        } catch (Exception e) {
+            throw new CredentialRegisterException(ERROR, "Failed to fetch issuer-server uris from rp-service", HttpStatus.SERVICE_UNAVAILABLE, e);
         }
         return uris;
     }
 
 
-    public void updateListOfIssuer(){
+    public void updateListOfIssuer() {
         CredentialIssuerUrls uris = retrieveCredentialIssuerUrlsFromRPService();
         if (Objects.isNull(uris)) {
             listOfIssuer = new ArrayList<>();
@@ -121,13 +136,16 @@ public class CredentialIssuerMetadataRetriever {
         }
         List<URI> listOfURI = new ArrayList<>();
         for (URI issuer : uris.credentialIssuerUrls()) {
-            if(issuer != null && isHttps(issuer) && !emptyHost(issuer)) {
+            if (issuer != null && isHttps(issuer) && !emptyHost(issuer)) {
                 listOfURI.add(URI.create(issuer.toString()));
             }
         }
+        if(log.isDebugEnabled()) {
+            log.debug("Found urls in list of issuers: {}", listOfURI);
+        }
         this.listOfIssuer = listOfURI.stream().map(this::fetchCredentialIssuerFromMetadataRequest).filter(Objects::nonNull).toList();
         if (listOfIssuer.isEmpty()) {
-            log.info("No issuers found in list of issuers");
+            log.info("No issuers found in list of issuers: {}", listOfIssuer);
         }
     }
 
@@ -135,5 +153,6 @@ public class CredentialIssuerMetadataRetriever {
     public List<CredentialIssuer> getListOfIssuer() {
         return listOfIssuer;
     }
+
 }
 

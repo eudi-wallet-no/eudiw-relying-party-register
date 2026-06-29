@@ -23,7 +23,10 @@ public class CredentialRegisterService {
 
     private static final Logger log = LoggerFactory.getLogger(CredentialRegisterService.class);
     private final CredentialIssuerMetadataRetriever credentialIssuerMetadataRetriever;
-    private Credentials credentials;
+
+    // TODO: Credentials should be stored in a cache (external Redis)
+    private volatile Credentials credentials;
+
     @Autowired
     public CredentialRegisterService(CredentialIssuerMetadataRetriever credentialIssuerMetadataRetriever) {
         this.credentialIssuerMetadataRetriever = credentialIssuerMetadataRetriever;
@@ -38,22 +41,24 @@ public class CredentialRegisterService {
     public void updateCredentialMetadataRetriever() {
         try {
             this.credentialIssuerMetadataRetriever.updateListOfIssuer();
+        } catch (CredentialRegisterException ex) {
+            throw ex;
         } catch (Exception ex) {
             throw new CredentialRegisterException("Error updating credentials", "failed_update_credential_registry", HttpStatus.INTERNAL_SERVER_ERROR, ex);
         }
         if (this.credentialIssuerMetadataRetriever.getListOfIssuer() != null) {
-            log.info("Updating credential metadata retriever");
-            mapInputToResponse();
+            log.info("Updating cache with {} credential-issuers", this.credentialIssuerMetadataRetriever.getListOfIssuer().size());
+            credentials = mapInputToResponse(this.credentialIssuerMetadataRetriever.getListOfIssuer());
         }
     }
 
-    protected void mapInputToResponse() {
+    protected Credentials mapInputToResponse(List<CredentialIssuer> listOfIssuer) {
         List<CredentialsIssuer> outputCredentials =
-                this.credentialIssuerMetadataRetriever.getListOfIssuer().stream().flatMap((issuer) ->
+                listOfIssuer.stream().flatMap((issuer) ->
                         issuer.getCredentialConfiguration().entrySet().stream().map((key) ->
                                 inputDataToResponseIssuer(issuer, key.getKey(), key.getValue()))
                 ).toList();
-        credentials = new Credentials(outputCredentials);
+        return new Credentials(outputCredentials);
     }
 
     private CredentialsIssuer inputDataToResponseIssuer(CredentialIssuer issuer, String key, CredentialConfiguration credentialConfiguration) {

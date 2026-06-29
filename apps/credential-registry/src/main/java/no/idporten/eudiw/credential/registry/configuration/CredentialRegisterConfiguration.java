@@ -20,7 +20,7 @@ public class CredentialRegisterConfiguration {
     }
 
     @Bean
-    public RestClient restClient() {
+    public RestClient restClientRpService() {
         SimpleClientHttpRequestFactory clientHttpRequestFactory = new SimpleClientHttpRequestFactory();
         clientHttpRequestFactory.setConnectTimeout(configProperties.connectTimeout());
         clientHttpRequestFactory.setReadTimeout(configProperties.readTimeout());
@@ -29,6 +29,17 @@ public class CredentialRegisterConfiguration {
                 .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
                 .defaultHeader(configProperties.apiKeyHeaderId(), configProperties.apiKeyValue())
                 .baseUrl(configProperties.rpRegisterServiceUrl())
+                .build();
+    }
+
+    @Bean
+    public RestClient restClientExternalApi() {
+        SimpleClientHttpRequestFactory clientHttpRequestFactory = new SimpleClientHttpRequestFactory();
+        clientHttpRequestFactory.setConnectTimeout(configProperties.connectTimeout());
+        clientHttpRequestFactory.setReadTimeout(configProperties.readTimeout());
+        return RestClient.builder()
+                .requestFactory(clientHttpRequestFactory)
+                .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }
 }
