@@ -24,7 +24,7 @@
         <springdoc.version>3.0.3</springdoc.version>
         <lombok.version>1.18.46</lombok.version>
         <idporten-audit-log.version>4.0.2</idporten-audit-log.version>
-        <mockwebserver.version>5.3.2</mockwebserver.version>
+        <mockwebserver.version>5.4.0</mockwebserver.version>
         <bcpkix.version>1.84</bcpkix.version>
     </properties>
     <dependencies>
