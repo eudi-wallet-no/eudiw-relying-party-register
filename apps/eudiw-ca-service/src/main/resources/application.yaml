@@ -3,7 +3,9 @@ server:
   port: 8080
 
 spring:
-  thread-executor: virtual
+  threads:
+    virtual:
+      enabled: true
   application:
     name: digital-lommebok-ca-service
     environment: default
@@ -120,3 +122,11 @@ eudiw-ca:
         password: ${INTERMEDIATE_EAA_PROVIDER_2_KEYSTORE_PASSWORD}
         key-alias: ${INTERMEDIATE_EAA_PROVIDER_2_KEYSTORE_KEY_ALIAS}
         key-password: ${INTERMEDIATE_EAA_PROVIDER_2_KEYSTORE_KEY_PASSWORD}
+
+---
+spring:
+  config:
+    activate:
+      on-cloud-platform: 'kubernetes'
+    import:
+      - 'optional:file:/etc/config/'
