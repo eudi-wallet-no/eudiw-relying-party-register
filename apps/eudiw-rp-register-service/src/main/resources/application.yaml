@@ -99,13 +99,6 @@ eudiw-rp-register-service:
       - "6100" # Statsforvaltningen
       - "6500" # Kommuneforvaltningen
 
----
-spring:
-  config:
-    activate:
-      on-cloud-platform: 'kubernetes'
-    import:
-      - 'optional:file:/etc/config/'
 
 #external-dependency-health-checks:
 #  health-endpoints:
@@ -116,3 +109,11 @@ spring:
 #      connect-timeout-ms: 2000
 #      read-timeout-ms: 1000
 #      map-down-status-to: DOWN
+
+---
+spring:
+  config:
+    activate:
+      on-cloud-platform: 'kubernetes'
+    import:
+      - 'optional:file:/etc/config/'
