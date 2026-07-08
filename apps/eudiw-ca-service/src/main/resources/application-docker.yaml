@@ -10,6 +10,8 @@ management:
       show-details: always
 
 spring:
+  config:
+    import: optional:file:${EUDIW_CA_SERVICE_ENV}[.properties]
   application:
     environment: docker
   datasource:
