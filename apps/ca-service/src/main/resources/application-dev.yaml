@@ -10,7 +10,7 @@ management:
       show-details: always
 spring:
   config:
-    import: file:.env[.properties]
+    import: optional:file:${EUDIW_CA_SERVICE_ENV}[.properties]
   application:
     environment: dev
   datasource:
