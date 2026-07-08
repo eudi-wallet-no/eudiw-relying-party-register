@@ -3,6 +3,8 @@ server:
   port: 9294
 
 spring:
+  config:
+    import: optional:file:${EUDIW_CREDENTIAL_REGISTRY_ENV}[.properties]
   application:
     environment: dev
 
@@ -16,5 +18,4 @@ management:
 credential-registry:
   rp-register-service-url: http://rp-register-service:9200/v1/credential-issuers
   api-key-header-id: X-API-KEY
-  api-key-value: xxx
-
+  api-key-value: ${REGISTER_SERVICE_API_KEY}

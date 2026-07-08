@@ -27,6 +27,9 @@ Profiles in the [resources](/src/main/resources) folder:
 | prod    | Prod environment                           |
 
 
+## Secrets
+Clone https://github.com/eudi-wallet-no/eudiw-developer-secrets and follow the instructions in the README.
+
 ## Running the application locally
 
 The `dev` and `docker` profiles runs the application with similar configuration.
