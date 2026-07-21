@@ -25,7 +25,7 @@
         <lombok.version>1.18.46</lombok.version>
         <idporten-audit-log.version>4.0.2</idporten-audit-log.version>
         <mockwebserver.version>5.4.0</mockwebserver.version>
-        <bcpkix.version>1.84</bcpkix.version>
+        <bcpkix.version>1.85</bcpkix.version>
     </properties>
     <dependencies>
         <dependency>
