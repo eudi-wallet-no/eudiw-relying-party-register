@@ -20,7 +20,7 @@
         <idporten-access-log.version>4.0.4</idporten-access-log.version>
         <idporten-validators.version>1.6.1</idporten-validators.version>
         <opentelemetry-instrumentation-api.version>1.64.0</opentelemetry-instrumentation-api.version>
-        <springdoc.version>3.0.3</springdoc.version>
+        <springdoc.version>3.1.0</springdoc.version>
         <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
         <mockwebserver.version>5.4.0</mockwebserver.version>
         <lombok.version>1.18.46</lombok.version>
