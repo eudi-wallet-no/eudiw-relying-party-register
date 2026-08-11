@@ -21,7 +21,7 @@ updates:
       - maven-github
     schedule:
       interval: "weekly"
-      day: "monday"
+      day: "sunday"
     open-pull-requests-limit: 10
     commit-message:
       prefix: "Bump"
@@ -40,7 +40,7 @@ updates:
       - "/apps/*/docker"
     schedule:
       interval: "weekly"
-      day: "monday"
+      day: "sunday"
     commit-message:
       prefix: "Bump"
     groups:
@@ -56,7 +56,7 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "monday"
+      day: "sunday"
     commit-message:
       prefix: "Bump"
     groups:
