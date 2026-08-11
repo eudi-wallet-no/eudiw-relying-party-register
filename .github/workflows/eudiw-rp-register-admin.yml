@@ -17,7 +17,12 @@ jobs:
   pull-request-checks:
     if: github.event_name == 'pull_request'
     permissions:
-      contents: read
+      # ci-pr-checks-image.yml's nested call-auto-merge job declares
+      # contents: write unconditionally (even though it's disabled for us via
+      # enable-auto-merge-dependabot defaulting to false) - GitHub validates
+      # that declared permission against this job's grant for the whole
+      # workflow file, so contents: read here breaks the file on push to main.
+      contents: write
       packages: read
       pull-requests: write
     uses: felleslosninger/github-workflows/.github/workflows/ci-pr-checks-image.yml@main
