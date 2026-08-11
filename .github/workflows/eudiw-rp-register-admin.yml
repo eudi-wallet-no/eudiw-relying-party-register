@@ -1,0 +1,68 @@
+name: eudiw-rp-register-admin
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/eudiw-rp-register-admin/**'
+      - '.github/workflows/eudiw-rp-register-admin.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'apps/eudiw-rp-register-admin/**'
+      - '.github/workflows/eudiw-rp-register-admin.yml'
+  workflow_dispatch:
+
+jobs:
+  pull-request-checks:
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      packages: read
+      pull-requests: write
+    uses: felleslosninger/github-workflows/.github/workflows/ci-pr-checks-image.yml@main
+    with:
+      application-type: spring-boot
+      application-path: apps/eudiw-rp-register-admin/
+      cache-path: apps/eudiw-rp-register-admin/pom.xml
+      image-name: digital-lommebok-rp-register-admin
+      java-version: '25'
+      maven-lifecycle: 'test'
+      maven-skip-tests: false
+      pull-request-title: ${{ github.event.pull_request.title }}
+    secrets: inherit
+
+  build-image:
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+    uses: felleslosninger/github-workflows/.github/workflows/ci-spring-boot-build-publish-image.yml@main
+    with:
+      application-path: apps/eudiw-rp-register-admin/
+      cache-path: apps/eudiw-rp-register-admin/pom.xml
+      image-name: digital-lommebok-rp-register-admin
+      java-version: '25'
+    secrets: inherit
+
+  update-image:
+    if: github.event_name != 'pull_request'
+    needs: build-image
+    permissions:
+      pull-requests: read
+    strategy:
+      matrix:
+        application-name:
+          - digital-lommebok-rp-register-admin
+          - digital-lommebok-rp-register-selfservice
+    uses: felleslosninger/github-workflows/.github/workflows/ci-call-update-image.yml@main
+    with:
+      application-name: ${{ matrix.application-name }}
+      deployment-environment: systest
+      image-digest: ${{ needs.build-image.outputs.image-digest }}
+      image-name: digital-lommebok-rp-register-admin
+      image-version: ${{ needs.build-image.outputs.image-version }}
+      kubernetes-repo: digital-lommebok-cd
+      product-name: digital-lommebok
+    secrets: inherit
