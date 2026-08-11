@@ -43,8 +43,9 @@ jobs:
       contents: write
       packages: write
       id-token: write
-    uses: felleslosninger/github-workflows/.github/workflows/ci-spring-boot-build-publish-image.yml@main
+    uses: felleslosninger/github-workflows/.github/workflows/ci-build-publish-image.yml@main
     with:
+      application-type: spring-boot
       application-path: apps/eudiw-rp-register-admin/
       cache-path: apps/eudiw-rp-register-admin/pom.xml
       image-name: digital-lommebok-rp-register-admin
