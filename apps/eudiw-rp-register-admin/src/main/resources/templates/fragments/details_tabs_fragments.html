@@ -1,0 +1,250 @@
+<div th:fragment="access_certificates_content_fragment(rp, certs)" xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+    <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
+    <div style="padding-bottom: 2em;">
+        <div th:if="${ #lists.isEmpty(certs)}">
+            <em>
+                Ingen registrert.
+            </em>
+        </div>
+
+        <div th:unless="${ #lists.isEmpty(certs)}">
+            <table class="ds-table">
+                <thead>
+                    <tr>
+                        <th>Serienummer</th>
+                        <th>Subjekt</th>
+                        <th>Utstedar</th>
+                        <th>Gyldig frå</th>
+                        <th>Gyldig til</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                <!--/*@thymesVar id="cert" type="no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary"*/-->
+                    <tr th:each="cert : ${certs}">
+                        <td th:text="${cert.serialNo.toString(16).replaceAll('(?<=..)(..)', ':$1')}"></td>
+                        <td th:text="${cert.subjectDn}" style="word-break: break-word;"></td>
+                        <td th:text="${cert.issuerDn}" style="word-break: break-word;"></td>
+                        <td th:text="${@timestampFormatter.formatEpochMillis(cert.validFromMs)}"></td>
+                        <td th:text="${@timestampFormatter.formatEpochMillis(cert.validUntilMs)}"></td>
+                        <td>
+                            <div th:replace="~{fragments/details_tabs_fragments :: certificate_revocation_status_badge(${cert.status()})}"></div>
+                        </td>
+                        <td>
+                            <div style="display: flex; flex-direction: column; gap: 10px;">
+                                <a th:href="@{|/get-certificate/${rp.id}/${cert.id}|}"
+                                   style="display:flex; white-space: nowrap; margin: 0;"
+                                   download
+                                   class="ds-button">
+                                    Last ned
+                                </a>
+                                <th:block>
+                                    <form th:if="${cert.status().valid()}"
+                                          th:action="@{|/revoke-certificate/${rp.id}/access/${cert.id}|}"
+                                          method="post"
+                                          style="display:inline; margin: 0;"
+                                          onsubmit="return confirm('Er du sikker på at du vil revokere dette sertifikatet?');">
+                                        <button type="submit"
+                                                class="ds-button"
+                                                data-variant="secondary"
+                                                data-color="danger">
+                                            Revoker
+                                        </button>
+                                    </form>
+                                </th:block>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div th:if="${rp.active}">
+        <a th:href="@{|/csr/access/${rp.id}|}"
+           class="ds-button"
+           data-variant="primary">
+            Legg til nytt access-sertifikat
+        </a>
+    </div>
+</div>
+
+<div th:fragment="issuer_certificates_content_fragment(rp, certs)"  xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+    <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
+    <div style="padding-bottom: 2em;">
+        <div th:if="${ #lists.isEmpty(certs)}">
+            <em>
+                Ingen registrert.
+            </em>
+        </div>
+
+        <div th:unless="${ #lists.isEmpty(certs)}">
+            <table class="ds-table">
+                <thead>
+                <tr>
+                    <th>Rolle</th>
+                    <th>Serienummer</th>
+                    <th>Subjekt</th>
+                    <th>Utstedar</th>
+                    <th>Gyldig frå</th>
+                    <th>Gyldig til</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <!--/*@thymesVar id="cert" type="no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyCertificateSummary"*/-->
+                <tr th:each="cert : ${certs}">
+                    <td th:text="${cert.entitlement()}" style="word-break: break-word;"></td>
+                    <td th:text="${cert.serialNo.toString(16).replaceAll('(?<=..)(..)', ':$1')}"></td>
+                    <td th:text="${cert.subjectDn}" style="word-break: break-word;"></td>
+                    <td th:text="${cert.issuerDn}" style="word-break: break-word;"></td>
+                    <td th:text="${@timestampFormatter.formatEpochMillis(cert.validFromMs)}"></td>
+                    <td th:text="${@timestampFormatter.formatEpochMillis(cert.validUntilMs)}"></td>
+                    <td>
+                        <div th:replace="~{fragments/details_tabs_fragments :: certificate_revocation_status_badge(${cert.status()})}"></div>
+                    </td>
+                    <td>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <a th:href="@{|/get-certificate/${rp.id}/issuer/${cert.id}|}"
+                               style="display:flex; white-space: nowrap; margin: 0;"
+                               download
+                               class="ds-button">
+                                Last ned
+                            </a>
+                            <th:block>
+                                <form th:if="${cert.status().valid()} "
+                                      th:action="@{|/revoke-certificate/${rp.id}/issuer/${cert.id}|}"
+                                      method="post"
+                                      style="display:inline; margin: 0;"
+                                      onsubmit="return confirm('Er du sikker på at du vil revokere dette sertifikatet?');">
+                                    <button type="submit"
+                                            class="ds-button"
+                                            data-variant="secondary"
+                                            data-color="danger">
+                                        Revoker
+                                    </button>
+                                </form>
+                            </th:block>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div th:if="${rp.active}">
+        <a th:href="@{|/csr/issuer/${rp.id}|}"
+           class="ds-button"
+           data-variant="primary">
+            Legg til nytt issuer-sertifikat
+        </a>
+    </div>
+</div>
+
+<div th:fragment="certificate_revocation_status_badge(status)">
+    <span
+        th:text="${status.text()}"
+        class="status-badge"
+        th:classappend="|status-badge-${status.style()}|" >
+    </span>
+</div>
+
+<div th:fragment="general_info_content_fragment(rp)"
+     xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+
+    <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
+    <div style="padding-bottom: 2em;">
+        <table class="ds-table">
+            <tbody>
+            <th:block sec:authorize="hasRole('ADMIN')">
+                <tr>
+                    <th>Org.nr.</th>
+                    <td th:text="${rp.orgno}"></td>
+                </tr>
+                <tr>
+                    <th>Organisasjon</th>
+                    <td th:text="${rp.orgName}"></td>
+                </tr>
+            </th:block>
+            <tr>
+                <th>Tenestenamn</th>
+                <td th:text="${rp.tradeName}"></td>
+            </tr>
+            <tr>
+                <th>Sektor</th>
+                <td th:text="${rp.publicSector ? 'offentleg' : 'privat'}"></td>
+            </tr>
+            <tr>
+                <th>Oppretta</th>
+                <td th:text="${@timestampFormatter.formatEpochMillis(rp.createdMs)}"></td>
+            </tr>
+            <tr>
+                <th>Sist endra</th>
+                <td th:text="${@timestampFormatter.formatEpochMillis(rp.lastUpdatedMs)}"></td>
+            </tr>
+            <tr>
+                <th>Aktiv</th>
+                <td th:text="${rp.active ? 'ja' : 'nei'}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div style="margin-bottom: 1em;">
+        <h2 class="ds-heading">Roller og bevistypar</h2>
+
+        <details class="ds-details" data-variant="default">
+            <summary>Roller</summary>
+
+            <div th:if="${ #lists.isEmpty(rp.relyingPartyEntitlements)}">
+                <em>Ingen registrert.</em>
+            </div>
+            <div th:unless="${ #lists.isEmpty(rp.relyingPartyEntitlements)}">
+                <table class="ds-table" data-sticky-header="true">
+                    <thead>
+                        <tr>
+                            <th>Rolle</th>
+                            <th>Utstedar-URL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="e : ${rp.relyingPartyEntitlements}">
+                            <td th:text="${e.displayName}"></td>
+                            <td th:text="${e.credentialIssuerUrl}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </details>
+
+        <details class="ds-details">
+            <summary>Bevistypar (EAA)</summary>
+            <div th:if="${ #lists.isEmpty(rp.relyingPartyEaas)}">
+                <em>Ingen registrert.</em>
+            </div>
+            <div th:unless="${ #lists.isEmpty(rp.relyingPartyEaas)}">
+                <table class="ds-table" data-sticky-header="true">
+                    <thead>
+                        <tr>
+                            <th>Bevistype</th>
+                            <th>Føremål</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="eaa : ${rp.relyingPartyEaas}">
+                        <td th:text="${eaa.namespace}"></td>
+                        <td th:text="${eaa.intent}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </details>
+    </div>
+
+    <a th:href="@{|/edit/${rp.id}|}"
+       class="ds-button"
+       data-variant="primary">
+        Endre brukarstad
+    </a>
+</div>

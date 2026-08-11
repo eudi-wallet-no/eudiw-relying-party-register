@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title>Brukarstadsregister - logg inn</title>
+</head>
+<body>
+    <header th:replace="~{fragments/general :: page_header_fragment}"></header>
+    <main>
+        <div>
+            <h1 class="ds-heading" data-size="lg">
+                Brukarstadsregister
+            </h1>
+        </div>
+
+        <div th:unless="${authnErrorCodeAttr}">
+            <p th:if="${@environment.matchesProfiles('docker | systest | test')}"
+               class="ds-paragraph">
+                Du må alltid representere ei verksemd når du loggar inn i sandkassa.
+                Me tilbyr tre ulike val for slik representasjon:
+            </p>
+            <p th:if="${@environment.matchesProfiles('prod')}"
+                class="ds-paragraph">
+                Du må alltid representere ei verksemd når du loggar inn i sandkassa.
+            </p>
+        </div>
+
+        <div th:if="${authnErrorCodeAttr}"
+             th:switch="${authnErrorCodeAttr}"
+             class="ds-alert"
+             data-color="warning">
+
+            <span th:case="'insufficient_authority'">
+                Beklager, du mangler påkrevde rettar. Sjekk at du har valt rett
+                innloggingsmetode, og kontakt oss dersom du meiner noko er gale.
+            </span>
+
+            <span th:case="'invalid_authorization_details'">
+                Innlogginga feila på grunn av manglende eller ugyldig organisasjonskopling
+                i ID-tokenet ditt. Sjekk at du har valt rett innloggingsmetode og at du
+                har gyldige Altinn-tenestekoder (f.eks. tenestekode for daglege leiare,
+                eller en av Digdir sine sjølvbeteningsroller).
+            </span>
+
+            <span th:case="'entra_id_not_allowed'">
+                Beklager, Entra ID-innlogging via Ansattporten er ikkje lov i
+                dette miljø. Det kan hende at du har fått tak i et innloggingslenke
+                fra en av test-miljøene vor.
+            </span>
+
+            <span th:case="'invalid_token'">
+                Beklager, me kjenner ikkje igjen ID-tokenet ditt. Det kan skyldes feil
+                i tokenet, feil klient-ID, eller slik. Kontakt oss hvis du meiner noko er gale.
+            </span>
+
+            <span th:case="*">
+                Beklager! Innlogginga feila av uventa årsak. Feilen har blitt logga og me
+                skal kikke nærmere på saken.
+            </span>
+        </div>
+
+        <form th:if="${@environment.matchesProfiles('dev')}"
+              th:action="@{/login}"
+              method="POST">
+            <div style="margin-bottom: 1em;">
+                <label for="username_field" class="ds-label">
+                    Brukarnamn (vel "admin" for admin-rettar)
+                </label>
+                <p class="ds-paragraph">
+                    <input id="username_field"
+                           name="username"
+                           type="text"
+                           size="32"
+                           class="ds-input"
+                    >
+                </p>
+            </div>
+            <input name="password" type="hidden">
+            <button class="ds-button">Logg inn</button>
+        </form>
+
+        <nav th:if="${@environment.matchesProfiles('!dev')}"
+             class="flex-container">
+            <th:block th:if="${@environment.matchesProfiles('selfservice')}">
+                <a th:href="@{/oauth2/authorization/ansattporten}"
+                   class="ds-card">
+                    <h2 class="ds-heading">Med Altinn-rettar</h2>
+                    Du må t.d. vere dagleg leiar for ei verksemd, eller ha
+                    fått delegert ei av Digdir sine sjølvbeteningsroller i Altinn.
+                </a>
+                <a th:href="@{/oauth2/authorization/ansattporten(use_entra_id=true)}"
+                   class="ds-card">
+                    <h2 class="ds-heading">Med Entra ID</h2>
+                    Verksemder som er Digdir-kunde kan også bruke sin
+                    Microsoft-konto til tillsettpålogging.
+                </a>
+                <th:block th:if="${@environment.matchesProfiles('docker | systest | test')}">
+                    <a th:href="@{/oauth2/authorization/ansattporten(use_synthetic_reportee=true)}"
+                       class="ds-card">
+                        <h2 class="ds-heading">Syntetisk organisasjon</h2>
+                        Dersom du ikkje ynskjer eller kan representere ei reell verksemd,
+                        vil du her bli tildelt ein tilfeldig syntetisk organisasjon.
+                    </a>
+                </th:block>
+
+            </th:block>
+
+            <th:block th:if="${@environment.matchesProfiles('admin')}">
+                <div class="ds-card">
+                    <h2 class="ds-heading">
+                        Administrator-innlogging
+                    </h2>
+                    <a th:href="@{/oauth2/authorization/entra}"
+                       class="ds-button">
+                        Via Microsoft Entra-ID
+                    </a>
+                </div>
+            </th:block>
+        </nav>
+    </main>
+
+    <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
+</body>
+</html>

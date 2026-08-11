@@ -1,0 +1,100 @@
+---
+server:
+  port: 8080
+
+spring:
+  threads:
+    virtual:
+      enabled: true
+  application:
+    environment: default
+
+management:
+  server:
+    port: 8090
+  endpoints:
+    web:
+      base-path: /
+      exposure:
+        include: info,version,prometheus,health
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+      status:
+        order: DOWN, OUT_OF_SERVICE, UNKNOWN, DEGRADED, EXTERNAL_DEPENDENCY_DOWN, UP
+  health:
+    group:
+      readiness:
+        include: readinessState,registerServiceHealthCheck
+      liveness:
+        include: livenessState
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.application.environment}
+
+digdir:
+  audit:
+    application-name: ${spring.application.name}
+    application-environment: ${spring.application.environment}
+    audit-log-dir:
+    filters:
+      bearer-token: false
+
+eudiw-admin-web:
+  relying-parties-service:
+    register-service-api:
+      register-service-base-uri: http://digital-lommebok-rp-register-service-service:8080
+      api-key-header-id: X-API-KEY
+      api-key-value: ${REGISTER_SERVICE_API_KEY}
+    rest-client:
+      connect-timeout-millis: 3000
+      read-timeout-millis: 3000
+    certificate-config:
+      days-remaining-warning: 30
+  enhetsregisteret-service:
+    enhetsregisteret-api-base-uri: "https://data.brreg.no/enhetsregisteret/api/enheter"
+    rest-client:
+      connect-timeout-millis: 3000
+      read-timeout-millis: 5000
+    known-public-sector-codes:
+      - "6100" # Statsforvaltningen
+      - "6500" # Kommuneforvaltningen
+  security:
+    enabled: true
+    entra:
+      write-access: ${WRITE_ACCESS}
+    ansattporten:
+      request-authorization-details:
+        - type: ansattporten:altinn:resource
+          resource: urn:altinn:resource:digdir-selvbetjening-klienter
+        - type: ansattporten:altinn:resource
+          resource: urn:altinn:resource:digdir-selvbetjening-api-maskinporten
+        - type: ansattporten:altinn:resource
+          resource: urn:altinn:resource:digdir-selvbetjening-leverandorer
+        - type: ansattporten:altinn:resource
+          resource: urn:altinn:resource:digdir-selvbetjening-digital-lommebok
+      allow-synthetic-reportee: false
+      allow-entra-id: true
+      entra-id-request-authorization-details:
+        - type: ansattporten:orgno
+
+external-dependency-health-checks:
+  health-endpoints:
+    eudiw-rp-register-service:
+      name: eudiw-rp-register-service
+      base-uri: http://digital-lommebok-rp-register-service-service-actuator:8090
+      endpoint: /health/readiness
+      connect-timeout-ms: 2000
+      read-timeout-ms: 1000
+      map-down-status-to: EXTERNAL_DEPENDENCY_DOWN
+
+---
+spring:
+  config:
+    activate:
+      on-cloud-platform: 'kubernetes'
+    import:
+      - 'optional:file:/etc/config/'

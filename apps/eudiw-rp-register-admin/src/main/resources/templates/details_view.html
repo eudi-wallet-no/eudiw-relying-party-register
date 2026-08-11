@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/extras/spring-security" lang="nb-no"
+      th:with="rp=${detailedViewDataAttr}">
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title th:text="|Detaljar for ${rp.tradeName}|"></title>
+    <link rel="stylesheet" th:href="@{/css/simple_tabs.css}">
+</head>
+
+<!--/*@thymesVar id="detailedViewDataAttr" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
+<!--/*@thymesVar id="accessCertificateSummariesAttr" type="java.util.List<no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary>"*/-->
+<!--/*@thymesVar id="issuerCertificateSummariesAttr" type="java.util.List<no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyCertificateSummary>"*/-->
+<body th:with="showIssuerCertificatesTab=${rp.hasIssuerEntitlements()}">
+    <header th:replace="~{fragments/general :: page_header_fragment}"></header>
+
+    <main>
+
+        <p sec:authorize="hasRole('ADMIN')"
+           class="ds-paragraph">
+            <a th:href="@{/search}" class="ds-button" data-variant="secondary">
+                Tilbake til søk
+            </a>
+        </p>
+
+        <p sec:authorize="! hasRole('ADMIN')"
+           class="ds-paragraph">
+            <a th:href="@{/registrations}" class="ds-button" data-variant="secondary">
+                Tilbake til mine registreringar
+            </a>
+        </p>
+
+        <h1 class="ds-heading" data-size="lg">
+            Detaljar for brukarstad: <span th:text="${rp.tradeName}"/>
+        </h1>
+
+        <nav id="tabs_container">
+            <a href="#about" class="tab" data-size="lg">
+                Generelt
+            </a>
+            <a href="#access-certificates" class="tab" data-size="lg">
+                Access-sertifikat
+            </a>
+            <a th:if="${showIssuerCertificatesTab}"
+               href="#issuer-certificates" class="tab" data-size="lg">
+                Issuer-sertifikat
+            </a>
+        </nav>
+
+        <div id="panels_container">
+            <div id="#about"
+                 th:insert="~{fragments/details_tabs_fragments
+                                :: general_info_content_fragment(rp=${rp})}">
+            </div>
+            <div id="#access-certificates"
+                 th:insert="~{fragments/details_tabs_fragments
+                                :: access_certificates_content_fragment(
+                                    rp=${rp}, certs=${accessCertificateSummariesAttr})}">
+            </div>
+            <div th:if="${showIssuerCertificatesTab}"
+                 id="#issuer-certificates"
+                 th:insert="~{fragments/details_tabs_fragments
+                                ::
+                                issuer_certificates_content_fragment(rp=${rp}, certs=${issuerCertificateSummariesAttr})}">
+            </div>
+        </div>
+
+
+    </main>
+
+    <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
+
+<script src="/js/simple_tabs.js"></script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+package no.idporten.eudiw.rp.admin.web.resource;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.With;
+
+import java.util.List;
+
+@With
+@JsonIgnoreProperties(ignoreUnknown = true)
+public record EditRelyingPartyResource(
+    @JsonProperty(value = "name")
+    String tradeName,
+
+    @JsonProperty("relying_party_entitlements")
+    List<RelyingPartyEntitlementResource> relyingPartyEntitlements,
+
+    @JsonProperty("relying_party_eaas")
+    List<RelyingPartyEaaResource> relyingPartyEaas,
+
+    @JsonProperty(value = "active", required = true)
+    boolean active
+) { }

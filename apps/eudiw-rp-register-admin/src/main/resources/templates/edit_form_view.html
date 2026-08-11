@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/extras/spring-security" lang="nb-no"
+      th:with="rp=${detailedViewDataAttr}">
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title th:text="|Endre brukarstad: ${rp.tradeName}|"></title>
+    <style>
+        div.ds-card + div.ds-card {margin-top: 8px;}
+    </style>
+</head>
+
+<!--/*@thymesVar id="detailedViewDataAttr" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
+<body>
+    <header th:replace="~{fragments/general :: page_header_fragment}"></header>
+
+    <main>
+        <p class="ds-paragraph">
+            <a th:href="@{|/details/${rp.id}|}" class="ds-button" data-variant="secondary">
+                Tilbake til <span th:text="${rp.tradeName}"></span>
+            </a>
+        </p>
+
+        <h1 class="ds-heading" data-size="lg">
+            Endre brukarstad: <span th:text="${rp.tradeName}"></span>
+        </h1>
+
+        <div sec:authorize="hasRole('ADMIN')"
+             th:replace="~{fragments/edit_fragments :: make_admin_edit_form_fragment}">
+        </div>
+        <div sec:authorize="! hasRole('ADMIN')"
+             th:replace="~{fragments/edit_fragments :: make_edit_form_fragment}">
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
+</body>
+</html>

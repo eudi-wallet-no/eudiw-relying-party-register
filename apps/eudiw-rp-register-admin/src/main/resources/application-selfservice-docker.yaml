@@ -1,0 +1,35 @@
+server:
+  port: 9255
+
+management:
+  server:
+    port: 9255
+
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          ansattporten:
+            client-id: eudiw_sjolvbetening_lokalt
+            client-secret: 25c5de30-6b63-42fc-bfe1-60e005fe0bb2
+            client-name: Ansattporten (systest, Docker-klient)
+        provider:
+          ansattporten:
+            issuer-uri: https://ansattporten.dev
+
+eudiw-admin-web:
+  security:
+    ansattporten:
+      allow-synthetic-reportee: true
+      request-authorization-details:
+        - type: ansattporten:altinn:resource
+          resource: urn:altinn:resource:digdir-selvbetjening-klienter
+        - type: ansattporten:altinn:resource
+          resource: urn:altinn:resource:digdir-selvbetjening-api-maskinporten
+        - type: ansattporten:altinn:resource
+          resource: urn:altinn:resource:digdir-selvbetjening-leverandorer
+        - type: ansattporten:altinn:resource
+          resource: urn:altinn:resource:digdir-selvbetjening-digital-lommebok
+        - type: ansattporten:altinn:resource
+          resource: urn:altinn:resource:digdir-selvbetjening-samarbeid-testmiljo

@@ -1,0 +1,185 @@
+package no.idporten.eudiw.rp.admin.web.security;
+
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import no.idporten.eudiw.rp.admin.service.enhetsregisteretservice.EnhetsregisteretService;
+import no.idporten.eudiw.rp.admin.service.syntheticreportees.SyntheticReporteeProvider;
+import no.idporten.eudiw.rp.admin.web.security.ansattporten.AnsattportenProperties;
+import no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails.AuthorizationDetails;
+import no.idporten.eudiw.rp.admin.web.security.ansattporten.authzdetails.AuthorizationDetailsMapper;
+import no.idporten.eudiw.rp.admin.web.security.entraid.EntraIdProperties;
+import no.idporten.eudiw.rp.admin.web.security.exception.CustomAuthenticationException;
+import no.idporten.eudiw.rp.admin.web.security.exception.ErrorCodes;
+import no.idporten.eudiw.rp.admin.web.security.exception.InsufficientAuthorityException;
+import no.idporten.eudiw.rp.admin.web.security.exception.InvalidAuthorizationDetailsException;
+import no.idporten.eudiw.rp.admin.web.security.oidcusers.OidcUserWithCustomName;
+import no.idporten.eudiw.rp.admin.web.security.oidcusers.AuthorizedPartyAuthority;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Predicate;
+
+@RequiredArgsConstructor
+public class CustomOidcUserService extends OidcUserService {
+
+    private final EntraIdProperties entraIdProperties;
+    private final AnsattportenProperties ansattportenProperties;
+    private final EnhetsregisteretService enhetsregisteretService;
+    private final SyntheticReporteeProvider syntheticReporteeProvider;
+    private final AuthorizationDetailsMapper authorizationDetailsMapper;
+    private final static Logger log = LoggerFactory.getLogger(CustomOidcUserService.class);
+
+    private List<AuthorizationDetails.Response> getAuthorizationDetailsForOidcUser(
+        OidcUser oidcUser) {
+        if (!oidcUser.hasClaim(AuthConstants.AUTHORIZATION_DETAILS_PARAMETER)) {
+            throw new InvalidAuthorizationDetailsException(
+                "authorization_details claim expected but missing");
+        }
+        try {
+            List<Map<String, Object>> authzDetailsClaim =
+                oidcUser.getClaim(AuthConstants.AUTHORIZATION_DETAILS_PARAMETER);
+            return authzDetailsClaim
+                .stream()
+                .map(authorizationDetailsMapper::asResponse)
+                .toList();
+        } catch (Exception e) {
+            throw new InvalidAuthorizationDetailsException("Ill-formed authz details claims", e);
+        }
+    }
+
+    private Predicate<AuthorizationDetails.Response> getAuthorizationDetailsTypeValidator(
+        boolean isEntraIdUser) {
+        List<AuthorizationDetails.Request> validRequests =
+            isEntraIdUser
+                ? ansattportenProperties.getEntraIdRequestAuthorizationDetails()
+                : ansattportenProperties.getRequestAuthorizationDetails();
+        return authzDetails ->
+                   validRequests.stream().anyMatch(authzDetails::canMatchRequest);
+    }
+
+    private AuthorizationDetails.Response.AuthorizedParties getAndValidateAuthorizedPartiesClaim(
+        OidcUser oidcUser, boolean isEntraIdUser) {
+        List<AuthorizationDetails.Response> authorizationDetails =
+            getAuthorizationDetailsForOidcUser(oidcUser);
+
+        Predicate<AuthorizationDetails.Response> isAcceptedauthorizationDetailsType =
+            getAuthorizationDetailsTypeValidator(isEntraIdUser);
+
+        AuthorizationDetails.Response firstValidAuthzDetailsWithAuthorizedParties =
+            authorizationDetails
+                .stream()
+                .filter(isAcceptedauthorizationDetailsType)
+                .filter(authorizationDetail -> !authorizationDetail.getAuthorizedParties().isEmpty())
+                .findAny()
+                .orElseThrow(
+                    () -> new InvalidAuthorizationDetailsException(
+                        "Found no valid authorization_details with authorized parties"));
+        return firstValidAuthzDetailsWithAuthorizedParties.getAuthorizedParties().getFirst();
+    }
+
+    private AuthorizedPartyAuthority getAuthorizedPartyAuthorityForOidcUser(OidcUser oidcUser, boolean isEntraIdUser) {
+        if (oidcUser.hasClaim(AuthConstants.AUTHORIZATION_DETAILS_PARAMETER)) {
+            AuthorizationDetails.Response.AuthorizedParties authorizedParty =
+                getAndValidateAuthorizedPartiesClaim(oidcUser, isEntraIdUser);
+            String name = authorizedParty.name() != null ? authorizedParty.name() : authorizedParty.orgno().id();
+            boolean isPublicSector = false;
+            try {
+                EnhetsregisteretService.EnhetsregisteretResponse response =
+                    enhetsregisteretService.queryOrgno(authorizedParty.orgno().id());
+                name = response.name();
+                isPublicSector = response.publicSector();
+            } catch (Exception e) {
+                log.warn("Failed to get name/sector info from Enhetsregisteret "
+                             + "(using name=orgno, publicSector=FALSE)", e);
+            }
+            return new AuthorizedPartyAuthority(authorizedParty.orgno().id(), name, isPublicSector);
+        }
+        if (isEntraIdUser) {
+            throw new InvalidAuthorizationDetailsException(
+                "Ansattporten EntraID user without authorization_details");
+        }
+        if (!ansattportenProperties.isAllowSyntheticReportee()) {
+            throw new InvalidAuthorizationDetailsException(
+                "authorization_details claim missing, and synthetic reportees NOT allowed");
+        }
+        String userId = oidcUser.getClaim("pid");
+        return syntheticReporteeProvider.getSyntheticReporteeAuthority(userId);
+    }
+
+    private OidcUser mapAnsattportenUser(OidcUser oidcUser) throws OAuth2AuthenticationException {
+
+        Set<GrantedAuthority> authorities = new HashSet<>(oidcUser.getAuthorities());
+
+        boolean isEntraIdUser =
+            oidcUser.hasClaim(AuthConstants.ACR_PARAMETER)
+                && oidcUser.getClaimAsString(AuthConstants.ACR_PARAMETER)
+                           .contains(AuthConstants.ACR_ENTRAID_VALUE);
+        if (isEntraIdUser && !ansattportenProperties.isAllowEntraId()) {
+            throw new CustomAuthenticationException(
+                OAuth2ErrorCodes.ACCESS_DENIED,
+                ErrorCodes.ENTRA_ID_NOT_ALLOWED,
+                "Ansattporten EntraID not accepted");
+        }
+
+        AuthorizedPartyAuthority authorizedPartyAuthority = getAuthorizedPartyAuthorityForOidcUser(oidcUser, isEntraIdUser);
+        authorities.add(authorizedPartyAuthority);
+
+        String username = oidcUser.getClaim(oidcUser.hasClaim("name") ? "name" : "pid");
+        String name = username != null
+                          ? "%s - %s".formatted(username, authorizedPartyAuthority.name())
+                          : authorizedPartyAuthority.name();
+        return new OidcUserWithCustomName(authorities,
+                                          oidcUser.getIdToken(),
+                                          oidcUser.getUserInfo(),
+                                          name);
+    }
+
+    private OidcUser mapEntraIdUser(OidcUser oidcUser) throws OAuth2AuthenticationException {
+
+        boolean hasWriteAccess =
+            oidcUser.hasClaim("groups")
+                && oidcUser.getClaimAsStringList("groups")
+                           .contains(entraIdProperties.writeAccess());
+        if (!hasWriteAccess) {
+            throw new InsufficientAuthorityException(
+                "Insufficient (or missing) access groups claims");
+        }
+
+        Set<GrantedAuthority> mapped = new HashSet<>(oidcUser.getAuthorities());
+        mapped.add(new SimpleGrantedAuthority(toAuthority(entraIdProperties.writeAccess())));
+        mapped.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+
+        return new DefaultOidcUser(mapped, oidcUser.getIdToken(), oidcUser.getUserInfo(), "preferred_username");
+    }
+
+    public static String toAuthority(String groupId) {
+        return "GROUP_" + groupId;
+    }
+
+    @Override
+    public OidcUser loadUser(OidcUserRequest userRequest)
+        throws OAuth2AuthenticationException {
+        OidcUser oidcUser = super.loadUser(userRequest);
+
+        return
+            switch (userRequest.getClientRegistration().getRegistrationId()) {
+                case "ansattporten" -> mapAnsattportenUser(oidcUser);
+                case "entra" -> mapEntraIdUser(oidcUser);
+                default -> throw new CustomAuthenticationException(
+                    OAuth2ErrorCodes.INVALID_CLIENT,
+                    ErrorCodes.INVALID_TOKEN,
+                    "OidcUserRequest from unrecognized registration ID");
+            };
+    }
+}

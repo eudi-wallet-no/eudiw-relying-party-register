@@ -1,0 +1,13 @@
+---
+server:
+  port: 9250
+
+management:
+  server:
+    port: 9250
+
+
+# Must duplicate content from application-admin.yaml since can not add this profile since not possible to disable spring security.
+spring:
+  application:
+    name: digital-lommebok-rp-register-admin

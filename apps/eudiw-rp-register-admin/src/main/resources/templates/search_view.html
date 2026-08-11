@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title>Søk etter brukarstader</title>
+    <style>
+        .clickableHeaders a {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            text-decoration: none;
+        }
+        .clickableHeaders a:visited {
+            color: inherit;
+        }
+        .clickableHeaders th.focused {
+            background-color: #ddeeff;
+        }
+    </style>
+</head>
+
+<body>
+    <header th:replace="~{fragments/general :: page_header_fragment}"></header>
+
+    <main>
+        <div style="display: flex;">
+            <h1 class="ds-heading" data-size="lg" style="margin-right: auto;">
+                Søk etter brukarstader
+            </h1>
+
+            <a th:href="@{/create}"
+               class="ds-button"
+               data-variant="secondary">
+                Registrer ny brukarstad
+            </a>
+        </div>
+
+        <form th:replace="~{fragments/search_fragments :: search_form_fragment}">
+        </form>
+
+        <div th:replace="~{fragments/search_fragments :: results_table_fragment}">
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
+</body>
+</html>

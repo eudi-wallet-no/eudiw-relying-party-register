@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title>Lag nytt issuer-sertifikat</title>
+</head>
+
+<body th:with="rp=${detailedViewDataAttr}">
+<!--/*@thymesVar id="detailedViewDataAttr" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
+    <header th:replace="~{fragments/general :: page_header_fragment}"></header>
+
+    <main>
+        <p class="ds-paragraph">
+            <a th:href="@{|/details/${rp.id}#certificates|}"
+               class="ds-button"
+               data-variant="secondary">
+                Tilbake til <span th:text="${rp.tradeName}"/>
+            </a>
+        </p>
+
+        <h1 class="ds-heading" data-size="lg">
+            Lag nytt issuer-sertifikat for <span th:text="${rp.tradeName}"></span>
+        </h1>
+
+        <!--/*@thymesVar id="id" type="java.util.UUID"*/-->
+        <form th:replace="~{fragments/csr_fragments :: issuer_csr_form_fragment(id=${rp.id})}">
+        </form>
+
+        <div th:if="${errorResponseMsgAttr == 'exception.error_response'}">
+            <p class="ds-paragraph ds-validation-message">
+                Førespurnaden din ble avvist. Årsaka er anten intern feil eller
+                feil i CSR’en din. Sjekk CSR’en og prøv igjen, eller kontakt support.
+            </p>
+        </div>
+
+    </main>
+
+    <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
+</body>
+</html>

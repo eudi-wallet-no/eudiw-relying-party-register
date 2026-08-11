@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title>Brukarstad finst ikkje</title>
+</head>
+
+<body>
+    <header th:replace="~{fragments/general :: page_header_fragment}"></header>
+
+    <main>
+        <h1 class="ds-heading" data-size="lg">
+            Brukarstad finst ikkje
+        </h1>
+
+        <p class="ds-paragraph">
+            Brukarstad ikkje funne for ID/organisasjonsnummer:
+            <span th:text="${requestedIdOrOrgnoAttr}"></span>.
+        </p>
+
+        <p class="ds-paragraph">
+            Sjekk om rett verdi og prøv på ny eller rapporter bug i Jira om du
+            trur noko er gale.
+        </p>
+
+        <p class="ds-paragraph">
+            <a th:href="@{/}" class="ds-button">
+                Heim
+            </a>
+        </p>
+    </main>
+
+    <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
+</body>
+</html>

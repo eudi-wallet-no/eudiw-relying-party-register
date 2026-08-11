@@ -1,0 +1,18 @@
+---
+spring:
+  application:
+    environment: dev
+
+external-dependency-health-checks:
+  health-endpoints:
+    eudiw-rp-register-service:
+      name: digital-lommebok-rp-register-service
+      base-uri: http://rp-register-service:9201
+
+eudiw-admin-web:
+  relying-parties-service:
+    register-service-api:
+      register-service-base-uri: http://rp-register-service:9200
+      api-key-value: xxx
+  security:
+    enabled: false

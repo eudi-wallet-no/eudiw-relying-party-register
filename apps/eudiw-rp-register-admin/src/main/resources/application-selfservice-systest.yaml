@@ -1,0 +1,27 @@
+---
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          ansattporten:
+            client-name: Ansattporten (systest)
+        provider:
+          ansattporten:
+            issuer-uri: https://ansattporten.dev
+
+eudiw-admin-web:
+  security:
+    ansattporten:
+      allow-synthetic-reportee: true
+      request-authorization-details:
+        - type: ansattporten:altinn:resource
+          resource: urn:altinn:resource:digdir-selvbetjening-klienter
+        - type: ansattporten:altinn:resource
+          resource: urn:altinn:resource:digdir-selvbetjening-api-maskinporten
+        - type: ansattporten:altinn:resource
+          resource: urn:altinn:resource:digdir-selvbetjening-leverandorer
+        - type: ansattporten:altinn:resource
+          resource: urn:altinn:resource:digdir-selvbetjening-digital-lommebok
+        - type: ansattporten:altinn:resource
+          resource: urn:altinn:resource:digdir-selvbetjening-samarbeid-testmiljo

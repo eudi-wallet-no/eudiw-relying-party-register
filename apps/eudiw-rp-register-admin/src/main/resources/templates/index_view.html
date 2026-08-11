@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/extras/spring-security" lang="nb-no">
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title>Sandkassa for digital lommebok</title>
+</head>
+
+<body>
+    <header th:replace="~{fragments/general :: page_header_fragment}"></header>
+
+    <main>
+        <div>
+            <h1 class="ds-heading" data-size="lg">
+                Adminteneste: Nasjonal sandkasse for digital lommebok
+            </h1>
+        </div>
+
+        <nav class="flex-container">
+            <a sec:authorize="hasRole('ADMIN')"
+               th:href="@{/search}"
+               class="ds-card">
+                <h2 class="ds-heading">
+                    Søking
+                </h2>
+                <p class="ds-paragraph">
+                    Søk etter brukarstader
+                </p>
+            </a>
+
+            <a th:href="@{/create}" class="ds-card">
+                <h2 class="ds-heading">
+                    Registrering
+                </h2>
+                <p class="ds-paragraph">
+                    Her kan du registrere nye brukarstader
+                </p>
+            </a>
+        </nav>
+    </main>
+
+    <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
+</body>
+</html>

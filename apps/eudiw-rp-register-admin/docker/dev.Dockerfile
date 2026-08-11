@@ -1,0 +1,36 @@
+FROM maven:3-eclipse-temurin-25 AS builder
+
+ARG GIT_PACKAGE_TOKEN
+ARG GIT_PACKAGE_USERNAME
+
+ENV GIT_PACKAGE_TOKEN=${GIT_PACKAGE_TOKEN}
+ENV GIT_PACKAGE_USERNAME=${GIT_PACKAGE_USERNAME}
+
+COPY apps/eudiw-rp-register-admin/docker/settings.xml /root/.m2/settings.xml
+
+WORKDIR /home/app
+COPY apps/eudiw-rp-register-admin/pom.xml ./
+COPY apps/eudiw-rp-register-admin/src ./src
+
+
+RUN --mount=type=cache,target=/root/.m2/repository \
+  mvn -B package dependency:go-offline -Dmaven.test.skip=true -Dmaven.gitcommitid.skip=true
+
+
+FROM eclipse-temurin:25-jre-noble
+
+# To enable health check of docker container since it needs wget to poll the health endpoint.
+RUN apt-get update && apt-get install -y --no-install-recommends wget \
+ && rm -rf /var/lib/apt/lists/*
+
+ARG APPLICATION=rp-register-admin
+RUN mkdir /var/log/${APPLICATION}
+RUN mkdir /usr/local/webapps
+WORKDIR /usr/local/webapps
+
+COPY --from=builder /home/app/target/${APPLICATION}-DEV-SNAPSHOT.jar application.jar
+
+ENV TZ=Europe/Oslo
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+EXPOSE 8080

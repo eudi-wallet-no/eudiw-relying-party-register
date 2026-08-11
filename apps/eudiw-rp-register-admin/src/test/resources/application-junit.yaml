@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: digital-lommebok-rp-register-admin-selfservice-junit-tests
+  thymeleaf:
+    enabled: false
+
+TEST_MOCK_WEB_SERVER_PORT: 9252
+
+eudiw-admin-web:
+  relying-parties-service:
+    register-service-api:
+      register-service-base-uri: http://localhost:${TEST_MOCK_WEB_SERVER_PORT}/
+  enhetsregisteret-service:
+    enhetsregisteret-api-base-uri: http://localhost:${TEST_MOCK_WEB_SERVER_PORT}/
+
+

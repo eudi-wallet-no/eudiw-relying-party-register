@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/extras/spring-security" lang="no-nn">
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title>Legg til ny brukarstad</title>
+    <style>
+        div.ds-card + div.ds-card {margin-top: 8px;}
+    </style>
+</head>
+
+<body>
+<header th:replace="~{fragments/general :: page_header_fragment}"></header>
+
+<main>
+
+    <p sec:authorize="hasRole('ADMIN')"
+        class="ds-paragraph">
+        <a th:href="@{/search}" class="ds-button" data-variant="secondary">
+            Tilbake til søk
+        </a>
+    </p>
+
+    <p sec:authorize="! hasRole('ADMIN')"
+       class="ds-paragraph">
+        <a th:href="@{/registrations}" class="ds-button" data-variant="secondary">
+            Tilbake til mine registreringar
+        </a>
+    </p>
+
+    <h1 class="ds-heading" data-size="lg">
+        Legg til ny brukarstad
+    </h1>
+
+    <p class="ds-alert" data-color="info">
+        Ved å registrera og ta i bruk ei brukarstadsregistrering godtar du
+        <span class="ds-link">Digdir sine bruksvilkår for sandkassa</span>.
+    </p>
+
+    <div sec:authorize="hasRole('ADMIN')"
+         th:replace="~{fragments/create_fragments :: make_admin_create_form_fragment}">
+    </div>
+    <div sec:authorize="! hasRole('ADMIN')"
+         th:replace="~{fragments/create_fragments :: make_create_form_fragment}">
+    </div>
+</main>
+
+<footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
+</body>
+</html>
+
