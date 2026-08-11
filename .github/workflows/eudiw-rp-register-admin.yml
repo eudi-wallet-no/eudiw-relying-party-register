@@ -66,3 +66,12 @@ jobs:
       kubernetes-repo: digital-lommebok-cd
       product-name: digital-lommebok
     secrets: inherit
+
+  publish-dev-docker:
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: read
+    uses: felleslosninger/github-workflows/.github/workflows/misc-publish-dev-docker.yml@main
+    with:
+      docker-file: apps/eudiw-rp-register-admin/docker/dev.Dockerfile
+    secrets: inherit
