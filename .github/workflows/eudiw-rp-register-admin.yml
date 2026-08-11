@@ -50,6 +50,10 @@ jobs:
       cache-path: apps/eudiw-rp-register-admin/pom.xml
       image-name: digital-lommebok-rp-register-admin
       java-version: '25'
+      # mvn versions:set kjøres fra repo-roten uten -f/application-path i den
+      # gjenbrukbare workflowen, så den finner ikke pom.xml i monorepoet.
+      # Skrur av inntil dette er rettet oppstrøms i felleslosninger/github-workflows.
+      update-versions: 'false'
     secrets: inherit
 
   update-image:
