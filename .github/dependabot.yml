@@ -1,0 +1,65 @@
+version: 2
+
+registries:
+  maven-github:
+    type: maven-repository
+    url: https://maven.pkg.github.com/felleslosninger
+    username: ${{secrets.GH_PACKAGES_READ_USER}}
+    password: ${{secrets.GH_PACKAGES_READ_PAT}}
+
+updates:
+  # ==============
+  # MAVEN (Spring Boot-apper)
+  # ==============
+  # "directories: /apps/*" plukker opp alle apper med en pom.xml direkte under apps/.
+  # "group-by: dependency-name" slår sammen oppdateringer for samme avhengighet på
+  # tvers av apper, og "patterns: *" samler alt i én PR per kjøring.
+  - package-ecosystem: "maven"
+    directories:
+      - "/apps/*"
+    registries:
+      - maven-github
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "Bump"
+      include: scope
+    groups:
+      alle-maven-oppdateringer:
+        patterns:
+          - "*"
+        group-by: dependency-name
+
+  # ==============
+  # DOCKER
+  # ==============
+  - package-ecosystem: "docker"
+    directories:
+      - "/apps/*/docker"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    commit-message:
+      prefix: "Bump"
+    groups:
+      alle-docker-oppdateringer:
+        patterns:
+          - "*"
+        group-by: dependency-name
+
+  # ==============
+  # GITHUB ACTIONS
+  # ==============
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    commit-message:
+      prefix: "Bump"
+    groups:
+      alle-actions-oppdateringer:
+        patterns:
+          - "*"
