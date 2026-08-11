@@ -67,8 +67,8 @@ services:
       retries: 20
   rp-register-admin:
     build:
-      context: .
-      dockerfile: docker/dev.Dockerfile
+      context: ../..
+      dockerfile: apps/eudiw-rp-register-admin/docker/dev.Dockerfile
       args:
         GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
         GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
@@ -93,8 +93,8 @@ services:
       retries: 20
   rp-register-selfservice:
     build:
-      context: .
-      dockerfile: docker/dev.Dockerfile
+      context: ../..
+      dockerfile: apps/eudiw-rp-register-admin/docker/dev.Dockerfile
       args:
         GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
         GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
