@@ -1,0 +1,41 @@
+# See https://github.com/felleslosninger/github-workflows for reusable workflows used.
+
+name: Build/publish Docker image & update image version in config
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "src/test/**"
+      - "docker/**"
+      - "docker-compose*.yaml"
+      - "*.md"
+      - "LICENSE"
+      - "catalog-info.yaml"
+
+jobs:
+  build-publish-image:
+    uses: felleslosninger/github-workflows/.github/workflows/ci-build-publish-image.yml@main
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+    with:
+      image-name: digital-lommebok-credential-registry
+      java-version: 25
+    secrets: inherit
+
+  call-update-image:
+    uses: felleslosninger/github-workflows/.github/workflows/ci-call-update-image.yml@main
+    permissions:
+      pull-requests: read
+    needs: build-publish-image
+    with:
+      application-name: digital-lommebok-credential-registry
+      deployment-environment: systest
+      image-digest: ${{ needs.build-publish-image.outputs.image-digest }}
+      image-name: digital-lommebok-credential-registry
+      image-version: ${{ needs.build-publish-image.outputs.image-version }}
+      kubernetes-repo: digital-lommebok-cd
+      product-name: digital-lommebok
+    secrets: inherit
