@@ -1,0 +1,82 @@
+name: eudiw-ca-service
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/ca-service/**'
+      - '.github/workflows/eudiw-ca-service.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'apps/ca-service/**'
+      - '.github/workflows/eudiw-ca-service.yml'
+  workflow_dispatch:
+
+jobs:
+  pull-request-checks:
+    if: github.event_name == 'pull_request'
+    permissions:
+      # ci-pr-checks-image.yml's nested call-auto-merge job declares
+      # contents: write unconditionally (even though it's disabled for us via
+      # enable-auto-merge-dependabot defaulting to false) - GitHub validates
+      # that declared permission against this job's grant for the whole
+      # workflow file, so contents: read here breaks the file on push to main.
+      contents: write
+      packages: read
+      pull-requests: write
+    uses: felleslosninger/github-workflows/.github/workflows/ci-pr-checks-image.yml@main
+    with:
+      application-type: spring-boot
+      application-path: apps/ca-service/
+      cache-path: apps/ca-service/pom.xml
+      # Slått av her fordi tittelvalidering kjøres sentralt og path-uavhengig
+      # i .github/workflows/validate-pr-title.yml. Uten denne ville hver
+      # app-workflow (individuell, per app) kjørt sin egen duplikate
+      # validate-pr-title-jobb via ci-pr-checks-image.yml sin default (true).
+      enable-pr-title-verify: false
+      image-name: digital-lommebok-ca-service
+      java-version: '25'
+      maven-lifecycle: 'test'
+      maven-skip-tests: false
+    secrets: inherit
+
+  build-image:
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+    uses: felleslosninger/github-workflows/.github/workflows/ci-build-publish-image.yml@main
+    with:
+      application-type: spring-boot
+      application-path: apps/ca-service/
+      cache-path: apps/ca-service/pom.xml
+      image-name: digital-lommebok-ca-service
+      java-version: '25'
+    secrets: inherit
+
+  update-image:
+    if: github.event_name != 'pull_request'
+    needs: build-image
+    permissions:
+      pull-requests: read
+    uses: felleslosninger/github-workflows/.github/workflows/ci-call-update-image.yml@main
+    with:
+      application-name: digital-lommebok-ca-service
+      deployment-environment: systest
+      image-digest: ${{ needs.build-image.outputs.image-digest }}
+      image-name: digital-lommebok-ca-service
+      image-version: ${{ needs.build-image.outputs.image-version }}
+      kubernetes-repo: digital-lommebok-cd
+      product-name: digital-lommebok
+    secrets: inherit
+
+  publish-dev-docker:
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: read
+    uses: felleslosninger/github-workflows/.github/workflows/misc-publish-dev-docker.yml@main
+    with:
+      docker-file: apps/ca-service/docker/dev.Dockerfile
+    secrets: inherit
