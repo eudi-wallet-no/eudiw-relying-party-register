@@ -1,0 +1,55 @@
+---
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: digital-lommebok-credential-register
+    environment: default
+
+
+# Spring Boot Actuator
+management:
+  server:
+    port: 8090
+  endpoints:
+    web:
+      exposure:
+        include: info,version,prometheus,health
+      base-path: /
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      status:
+        order: DOWN, OUT_OF_SERVICE, UNKNOWN, DEGRADED, EXTERNAL_DEPENDENCY_DOWN, UP
+  health:
+    group:
+      readiness:
+        include: livenessState
+      liveness:
+        include: livenessState
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.application.environment}
+
+credential-registry:
+  read-timeout: 3s
+  connect-timeout: 3s
+  scheduled-reading: >
+    0 */5 * * * *
+  rp-register-service-url: http://digital-lommebok-rp-register-service-service:8080/v1/credential-issuers
+  api-key-header-id: X-API-KEY
+  api-key-value: ${REGISTER_SERVICE_API_KEY}
+
+
+---
+spring:
+  config:
+    activate:
+      on-cloud-platform: 'kubernetes'
+    import:
+      - 'optional:file:/etc/config/'
