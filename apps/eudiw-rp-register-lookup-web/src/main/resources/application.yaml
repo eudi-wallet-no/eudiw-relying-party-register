@@ -1,0 +1,77 @@
+---
+server:
+  port: 8080
+
+  servlet:
+    session:
+      tracking-modes: cookie
+
+spring:
+  threads:
+    virtual:
+      enabled: true
+  application:
+    name: digital-lommebok-rp-register-lookup-web
+    environment: default
+
+
+# Spring Boot Actuator
+management:
+  server:
+    port: 8090
+  endpoints:
+    web:
+      base-path: /
+      exposure:
+        include: info,version,prometheus,health
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+      status:
+        order: DOWN, OUT_OF_SERVICE, UNKNOWN, DEGRADED, EXTERNAL_DEPENDENCY_DOWN, UP
+  health:
+    group:
+      readiness:
+        include: db
+      liveness:
+        include: livenessState
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.application.environment}
+
+eudiw-rp-register-lookup-web:
+  relying-parties-service:
+    register-service-api:
+      register-service-base-uri: http://digital-lommebok-rp-register-service-service:8080
+      api-key-header-id: X-API-KEY
+      api-key-value: ${REGISTER_SERVICE_API_KEY}
+    rest-client:
+      connect-timeout-millis: 5000
+      read-timeout-millis: 5000
+  credentials-service:
+    credentials-registry-api:
+      credentials-registry-base-uri: http://digital-lommebok-credential-registry-service:8080
+    rest-client:
+      connect-timeout-millis: 5000
+      read-timeout-millis: 5000
+
+external-dependency-health-checks:
+  health-endpoints:
+    eudiw-rp-service:
+      name: digital-lommebok-rp-service
+      base-uri: http://digital-lommebok-rp-register-service-service-actuator:8090
+      endpoint: /health
+      connect-timeout-ms: 2000
+      read-timeout-ms: 1000
+      map-down-status-to: DOWN
+
+---
+spring:
+  config:
+    activate:
+      on-cloud-platform: 'kubernetes'
+    import:
+      - 'optional:file:/etc/config/'

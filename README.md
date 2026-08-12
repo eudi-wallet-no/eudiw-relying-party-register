@@ -12,6 +12,7 @@ Monorepo for EUDI Wallet Relying Party Register-applikasjoner.
 | --- | --- | --- |
 | [eudiw-rp-register-admin](apps/eudiw-rp-register-admin) | Relying Party Register Admin + selvbetjening | [README](apps/eudiw-rp-register-admin/README.md) |
 | [eudiw-rp-register-service](apps/eudiw-rp-register-service) | Relying Party Register Service | [README](apps/eudiw-rp-register-service/README.md) |
+| [eudiw-rp-register-lookup-web](apps/eudiw-rp-register-lookup-web) | Relying Party Register oppslag (innsyn) | [README](apps/eudiw-rp-register-lookup-web/README.md) |
 
 ## Struktur
 

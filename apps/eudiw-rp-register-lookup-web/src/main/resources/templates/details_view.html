@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nb-no"
+      th:with="rp=${detailedViewDataAttr}">
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title th:text="|Detaljar for ${rp.tradeName}|"></title>
+</head>
+<!--/*@thymesVar id="detailedViewDataAttr" type="no.idporten.eudiw.rp.register.lookup.web.resource.RelyingPartyResource"*/-->
+<body>
+    <header th:replace="~{fragments/general :: page_header_fragment}"></header>
+
+    <main>
+
+        <p class="ds-paragraph">
+            <a th:href="@{/relying-parties}" class="ds-button" data-variant="secondary">
+                Tilbake til søk
+            </a>
+        </p>
+
+        <h1 class="ds-heading" data-size="lg">
+            Detaljar for brukarstad: <span th:text="${rp.tradeName}"/>
+        </h1>
+
+        <div
+             th:replace="~{fragments/details_fragments
+                            :: general_info_content_fragment(rp=${rp})}">
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
+</body>
+</html>
