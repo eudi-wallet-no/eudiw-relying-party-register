@@ -12,8 +12,12 @@ updates:
   # MAVEN (Spring Boot-apper)
   # ==============
   # "directories: /apps/*" plukker opp alle apper med en pom.xml direkte under apps/.
-  # "group-by: dependency-name" slår sammen oppdateringer for samme avhengighet på
-  # tvers av apper, og "patterns: *" samler alt i én PR per kjøring.
+  # Gruppering etter semver-nivå + "group-by: dependency-name":
+  #   - patch/minor: samles bredt i én PR per nivå, på tvers av alle apper som bruker
+  #     avhengigheten (lav risiko, trenger ikke individuell review per app).
+  #   - major: matcher ingen gruppe under, så Dependabot faller tilbake til standard
+  #     oppførsel — én individuell PR per avhengighet per app. Gir mest isolasjon og
+  #     grundigst review nettopp der risikoen for brudd er størst.
   - package-ecosystem: "maven"
     directories:
       - "/apps/*"
@@ -23,30 +27,47 @@ updates:
       interval: "weekly"
       day: "sunday"
     open-pull-requests-limit: 10
-    commit-message:
-      prefix: "Bump"
-      include: scope
     groups:
-      alle-maven-oppdateringer:
+      patch-oppdateringer:
+        applies-to: version-updates
         patterns:
           - "*"
+        update-types:
+          - "patch"
+        group-by: dependency-name
+      minor-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
         group-by: dependency-name
 
   # ==============
   # DOCKER
   # ==============
+  # Samme prinsipp som Maven: patch/minor grupperes bredt på tvers av apper, mens
+  # major-bumps forblir individuelle PR-er per app for tettere review.
   - package-ecosystem: "docker"
     directories:
       - "/apps/*/docker"
     schedule:
       interval: "weekly"
       day: "sunday"
-    commit-message:
-      prefix: "Bump"
     groups:
-      alle-docker-oppdateringer:
+      patch-oppdateringer:
+        applies-to: version-updates
         patterns:
           - "*"
+        update-types:
+          - "patch"
+        group-by: dependency-name
+      minor-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
         group-by: dependency-name
 
   # ==============
@@ -57,8 +78,6 @@ updates:
     schedule:
       interval: "weekly"
       day: "sunday"
-    commit-message:
-      prefix: "Bump"
     groups:
       alle-actions-oppdateringer:
         patterns:
