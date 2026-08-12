@@ -6,10 +6,10 @@ ARG GIT_PACKAGE_USERNAME
 ENV GIT_PACKAGE_TOKEN=${GIT_PACKAGE_TOKEN}
 ENV GIT_PACKAGE_USERNAME=${GIT_PACKAGE_USERNAME}
 
-COPY pom.xml /home/app/
-COPY docker/settings.xml /root/.m2/settings.xml
+COPY apps/eudiw-rp-register-service/pom.xml /home/app/
+COPY apps/eudiw-rp-register-service/docker/settings.xml /root/.m2/settings.xml
 
-COPY src /home/app/src
+COPY apps/eudiw-rp-register-service/src /home/app/src
 RUN --mount=type=cache,target=/root/.m2/repository mvn -f /home/app/pom.xml clean package -Dmaven.test.skip=true -Dmaven.gitcommitid.skip=true
 
 FROM eclipse-temurin:25-jre-noble

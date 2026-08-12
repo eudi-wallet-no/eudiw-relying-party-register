@@ -1,16 +1,16 @@
-name: eudiw-rp-register-admin
+name: eudiw-rp-register-service
 
 on:
   pull_request:
     branches: [main]
     paths:
-      - 'apps/eudiw-rp-register-admin/**'
-      - '.github/workflows/eudiw-rp-register-admin.yml'
+      - 'apps/eudiw-rp-register-service/**'
+      - '.github/workflows/eudiw-rp-register-service.yml'
   push:
     branches: [main]
     paths:
-      - 'apps/eudiw-rp-register-admin/**'
-      - '.github/workflows/eudiw-rp-register-admin.yml'
+      - 'apps/eudiw-rp-register-service/**'
+      - '.github/workflows/eudiw-rp-register-service.yml'
   workflow_dispatch:
 
 jobs:
@@ -28,14 +28,14 @@ jobs:
     uses: felleslosninger/github-workflows/.github/workflows/ci-pr-checks-image.yml@main
     with:
       application-type: spring-boot
-      application-path: apps/eudiw-rp-register-admin/
-      cache-path: apps/eudiw-rp-register-admin/pom.xml
+      application-path: apps/eudiw-rp-register-service/
+      cache-path: apps/eudiw-rp-register-service/pom.xml
       # Slått av her fordi tittelvalidering kjøres sentralt og path-uavhengig
       # i .github/workflows/validate-pr-title.yml. Uten denne ville hver
       # app-workflow (individuell, per app) kjørt sin egen duplikate
       # validate-pr-title-jobb via ci-pr-checks-image.yml sin default (true).
       enable-pr-title-verify: false
-      image-name: digital-lommebok-rp-register-admin
+      image-name: digital-lommebok-rp-register-service
       java-version: '25'
       maven-lifecycle: 'test'
       maven-skip-tests: false
@@ -50,9 +50,9 @@ jobs:
     uses: felleslosninger/github-workflows/.github/workflows/ci-build-publish-image.yml@main
     with:
       application-type: spring-boot
-      application-path: apps/eudiw-rp-register-admin/
-      cache-path: apps/eudiw-rp-register-admin/pom.xml
-      image-name: digital-lommebok-rp-register-admin
+      application-path: apps/eudiw-rp-register-service/
+      cache-path: apps/eudiw-rp-register-service/pom.xml
+      image-name: digital-lommebok-rp-register-service
       java-version: '25'
       update-versions: 'false'
     secrets: inherit
@@ -62,17 +62,12 @@ jobs:
     needs: build-image
     permissions:
       pull-requests: read
-    strategy:
-      matrix:
-        application-name:
-          - digital-lommebok-rp-register-admin
-          - digital-lommebok-rp-register-selfservice
     uses: felleslosninger/github-workflows/.github/workflows/ci-call-update-image.yml@main
     with:
-      application-name: ${{ matrix.application-name }}
+      application-name: digital-lommebok-rp-register-service
       deployment-environment: systest
       image-digest: ${{ needs.build-image.outputs.image-digest }}
-      image-name: digital-lommebok-rp-register-admin
+      image-name: digital-lommebok-rp-register-service
       image-version: ${{ needs.build-image.outputs.image-version }}
       kubernetes-repo: digital-lommebok-cd
       product-name: digital-lommebok
@@ -84,5 +79,5 @@ jobs:
       contents: read
     uses: felleslosninger/github-workflows/.github/workflows/misc-publish-dev-docker.yml@main
     with:
-      docker-file: apps/eudiw-rp-register-admin/docker/dev.Dockerfile
+      docker-file: apps/eudiw-rp-register-service/docker/dev.Dockerfile
     secrets: inherit
