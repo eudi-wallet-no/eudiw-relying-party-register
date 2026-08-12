@@ -1,0 +1,7 @@
+---
+spring:
+  application:
+    environment: systest
+
+eudiw-ca:
+  base-uri: "https://ca.eidas2sandkasse.dev"

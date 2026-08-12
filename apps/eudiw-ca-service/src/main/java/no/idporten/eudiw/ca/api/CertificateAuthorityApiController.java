@@ -1,0 +1,258 @@
+package no.idporten.eudiw.ca.api;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import no.idporten.eudiw.ca.config.CertificateAuthorities;
+import no.idporten.eudiw.ca.service.CertificateAuthorityService;
+import no.idporten.eudiw.ca.service.SubjectAttributes;
+import no.idporten.eudiw.ca.util.CertificateEncodingUtils;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import java.security.cert.X509Certificate;
+
+import static no.idporten.eudiw.ca.api.CertificateAuthorityApiController.API_TAG;
+import static no.idporten.eudiw.ca.api.CertificateAuthorityApiController.errorResponseExample;
+
+@Tag(name = API_TAG, description = "eIDAS 2.0 NO Sandbox Certificate Authority API")
+@ApiResponses(value = {
+        @ApiResponse(
+                responseCode = "400",
+                description = "Invalid request",
+                content = @Content(
+                        examples = {@ExampleObject(description = "Error response", value = errorResponseExample)},
+                        mediaType = MediaType.APPLICATION_JSON_VALUE)),
+        @ApiResponse(
+                responseCode = "500",
+                description = "Server error",
+                content = @Content(
+                        examples = {@ExampleObject(description = "Error response", value = errorResponseExample)},
+                        mediaType = MediaType.APPLICATION_JSON_VALUE))
+})
+@Validated
+@RequiredArgsConstructor
+@RestController
+public class CertificateAuthorityApiController {
+
+    private final CertificateAuthorityService certificateAuthorityService;
+    private final CertificateAuthorities certificateAuthorities;
+
+    public final static String APPLICATION_X_PEM_FILE_VALUE = "application/x-pem-file";
+    public final static String APPLICATION_X_PKIX_CERT_VALUE = "application/pkix-cert";
+    public final static String APPLICATION_X_PKIX_CRL_VALUE = "application/pkix-crl";
+    public final static String errorResponseExample = "{\"error\": \"error_code\", \"error_description\": \"Description of the error\"}";
+    public final static String certificateSigningRequestExample = """
+            -----BEGIN NEW CERTIFICATE REQUEST-----
+            MII...
+            -----END NEW CERTIFICATE REQUEST-----
+            """;
+    public final static String API_TAG = "ca-api-v1";
+
+    @Operation(
+            summary = "Download root CA certificate (binary)",
+            description = "Download root CA certificate (binary)",
+            tags = {API_TAG})
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "DER-encoded certificate", content = @Content(mediaType = APPLICATION_X_PKIX_CERT_VALUE))
+    })
+    @GetMapping(path = {"/v1/certs/{root}.crt", "/v1/certs/{root}.cer"}, produces = APPLICATION_X_PKIX_CERT_VALUE)
+    public ResponseEntity<byte[]> getRootCertificate(
+            @Parameter(
+                    description = "Root CA name",
+                    examples = {
+                            @ExampleObject(name = "root2", value = "root2", description = "Root CA 2"),
+                            @ExampleObject(name = "root", value = "root", description = "Root CA")},
+                    required = true)
+            @PathVariable("root") String root) throws Exception {
+        return ResponseEntity.ok(certificateAuthorities.findRoot(root).getCertificate().getEncoded());
+    }
+
+    @Operation(
+            summary = "Download root CA certificate (PEM)",
+            description = "Download root CA certificate (PEM)",
+            tags = {API_TAG})
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "PEM-encoded certificate", content = @Content(mediaType = APPLICATION_X_PEM_FILE_VALUE))
+    })
+    @GetMapping(path = "/v1/certs/{root}.pem", produces = APPLICATION_X_PEM_FILE_VALUE)
+    public ResponseEntity<String> getRootCertificatePem(
+            @Parameter(
+                    description = "Root CA name",
+                    examples = {
+                            @ExampleObject(name = "root2", value = "root2", description = "Root CA 2"),
+                            @ExampleObject(name = "root", value = "root", description = "Root CA")},
+                    required = true)
+            @PathVariable("root") String root) throws Exception {
+        return ResponseEntity.ok(CertificateEncodingUtils.encodeToPem(certificateAuthorities.findRoot(root).getCertificate()));
+    }
+
+    @Operation(
+            summary = "Download root CA CRL",
+            description = "Download root CA certificate revocation list",
+            tags = {API_TAG})
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "DER-encoded CRL", content = @Content(mediaType = APPLICATION_X_PKIX_CRL_VALUE))
+    })
+    @GetMapping(path = "/v1/certs/{root}.crl", produces = APPLICATION_X_PKIX_CRL_VALUE)
+    public ResponseEntity<byte[]> getRootCrl(
+            @Parameter(
+                    description = "Root CA name",
+                    examples = {
+                            @ExampleObject(name = "root2", value = "root2", description = "Root CA 2"),
+                            @ExampleObject(name = "root", value = "root", description = "Root CA")},
+                    required = true)
+            @PathVariable("root") String root) throws Exception {
+        return ResponseEntity.ok(certificateAuthorityService.createCRL(certificateAuthorities.findRoot(root)).getEncoded());
+    }
+
+    @Operation(
+            summary = "Download intermediate CA certificate (binary)",
+            description = "Download intermediate CA certificate (binary)",
+            tags = {API_TAG})
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "DER-encoded certificate", content = @Content(mediaType = APPLICATION_X_PKIX_CERT_VALUE))
+    })
+    @GetMapping(path = {"/v1/certs/intermediates/{intermediate}.crt", "/v1/certs/intermediates/{intermediate}.cer"}, produces = APPLICATION_X_PKIX_CERT_VALUE)
+    public ResponseEntity<byte[]> getIntermediateCertificate(
+            @Parameter(
+                    description = "Intermediate CA name",
+                    examples = {
+                            @ExampleObject(name = "access2", value = "access2", description = "RP access CA 2"),
+                            @ExampleObject(name = "pid_provider2", value = "pid_provider2", description = "PID_Provider CA 2"),
+                            @ExampleObject(name = "eaa_provider2", value = "eaa_provider2", description = "QEAA_Provider/Non_Q_EAA_Provider CA 2"),
+                            @ExampleObject(name = "access", value = "access", description = "RP access CA"),
+                            @ExampleObject(name = "pid_provider", value = "pid_provider", description = "PID_Provider CA"),
+                            @ExampleObject(name = "eaa_provider", value = "eaa_provider", description = "QEAA_Provider/Non_Q_EAA_Provider CA")},
+                    required = true)
+            @PathVariable("intermediate") String intermediate) throws Exception {
+        return ResponseEntity.ok(certificateAuthorities.findIntermediate(intermediate).getCertificate().getEncoded());
+    }
+
+    @Operation(
+            summary = "Download intermediate CA certificate (PEM)",
+            description = "Download intermediate CA certificate (PEM)",
+            tags = {API_TAG})
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "PEM-encoded certificate", content = @Content(mediaType = APPLICATION_X_PEM_FILE_VALUE))
+    })
+    @GetMapping(path = "/v1/certs/intermediates/{intermediate}.pem", produces = APPLICATION_X_PEM_FILE_VALUE)
+    public ResponseEntity<String> getIntermediateCertificatePem(
+            @Parameter(
+                    description = "Intermediate CA name",
+                    examples = {
+                            @ExampleObject(name = "access2", value = "access2", description = "RP access CA 2"),
+                            @ExampleObject(name = "pid_provider2", value = "pid_provider2", description = "PID_Provider CA 2"),
+                            @ExampleObject(name = "eaa_provider2", value = "eaa_provider2", description = "QEAA_Provider/Non_Q_EAA_Provider CA 2"),
+                            @ExampleObject(name = "access", value = "access", description = "RP access CA"),
+                            @ExampleObject(name = "pid_provider", value = "pid_provider", description = "PID_Provider CA"),
+                            @ExampleObject(name = "eaa_provider", value = "eaa_provider", description = "QEAA_Provider/Non_Q_EAA_Provider CA")},
+                    required = true)
+            @PathVariable("intermediate") String intermediate) throws Exception {
+        return ResponseEntity.ok(CertificateEncodingUtils.encodeToPem(certificateAuthorities.findIntermediate(intermediate).getCertificate()));
+    }
+
+    @Operation(
+            summary = "Download intermediate CA CRL",
+            description = "Download intermediate CA certificate revocation list",
+            tags = {API_TAG})
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "DER-encoded CRL", content = @Content(mediaType = APPLICATION_X_PKIX_CRL_VALUE))
+    })
+    @GetMapping(path = "/v1/certs/intermediates/{intermediate}.crl", produces = APPLICATION_X_PKIX_CRL_VALUE)
+    public ResponseEntity<byte[]> getIntermediateCrl(
+            @Parameter(
+                    description = "Intermediate CA name",
+                    examples = {
+                            @ExampleObject(name = "access2", value = "access2", description = "RP access CA 2"),
+                            @ExampleObject(name = "pid_provider2", value = "pid_provider2", description = "PID_Provider CA 2"),
+                            @ExampleObject(name = "eaa_provider2", value = "eaa_provider2", description = "QEAA_Provider/Non_Q_EAA_Provider CA 2"),
+                            @ExampleObject(name = "access", value = "access", description = "RP access CA"),
+                            @ExampleObject(name = "pid_provider", value = "pid_provider", description = "PID_Provider CA"),
+                            @ExampleObject(name = "eaa_provider", value = "eaa_provider", description = "QEAA_Provider/Non_Q_EAA_Provider CA")},
+                    required = true)
+            @PathVariable("intermediate") String intermediate) throws Exception {
+        return ResponseEntity.ok(certificateAuthorityService.createCRL(certificateAuthorities.findIntermediate(intermediate)).getEncoded());
+    }
+
+    @Operation(
+            summary = "Issue certificate",
+            description = "Sign certificate with intermediate CA",
+            tags = {API_TAG})
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "PEM-encoded certificate", content = @Content(mediaType = APPLICATION_X_PEM_FILE_VALUE))
+    })
+    @PostMapping(path = "/v1/certs/{intermediate}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = APPLICATION_X_PEM_FILE_VALUE)
+    public ResponseEntity<String> signLeafCertificate(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Certificate issue request",
+                    content = {
+                            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = CertificateRequest.class))},
+                    required = true)
+            @Valid @RequestBody CertificateRequest certificateRequest,
+            @Parameter(
+                    description = "Intermediate CA name",
+                    examples = {
+                            @ExampleObject(name = "access2", value = "access2", description = "RP access CA 2"),
+                            @ExampleObject(name = "pid_provider2", value = "pid_provider2", description = "PID_Provider CA 2"),
+                            @ExampleObject(name = "eaa_provider2", value = "eaa_provider2", description = "QEAA_Provider/Non_Q_EAA_Provider CA 2"),
+                            @ExampleObject(name = "access", value = "access", description = "RP access CA"),
+                            @ExampleObject(name = "pid_provider", value = "pid_provider", description = "PID_Provider CA"),
+                            @ExampleObject(name = "eaa_provider", value = "eaa_provider", description = "QEAA_Provider/Non_Q_EAA_Provider CA")},
+                    required = true)
+            @PathVariable("intermediate") String intermediate) throws Exception {
+        PKCS10CertificationRequest pkcs10CertificationRequest = certificateAuthorityService.decodeCsr(certificateRequest.getCsr());
+        X509Certificate signedCertificate =
+                certificateAuthorityService.signLeafCertificate(
+                        certificateAuthorities.findIntermediate(intermediate),
+                        pkcs10CertificationRequest,
+                        new SubjectAttributes(certificateRequest.getOrgno(), certificateRequest.getLegalName(), certificateRequest.getTradeName()));
+        return ResponseEntity.ok(CertificateEncodingUtils.encodeToPem(signedCertificate));
+    }
+
+    @Operation(
+            summary = "Revoke certificate",
+            description = "Revoke certificate from intermediate CA",
+            tags = {API_TAG})
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Certificate revoked")
+    })
+    @PutMapping(path = "/v1/certs/{intermediate}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> revokeLeafCertificate(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Certificate revoke request",
+                    content = {
+                            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = RevokeCertificateRequest.class))},
+                    required = true)
+            @Valid @RequestBody RevokeCertificateRequest revokeCertificateRequest,
+            @Parameter(
+                    description = "Intermediate CA name",
+                    examples = {
+                            @ExampleObject(name = "access2", value = "access2", description = "RP access CA 2"),
+                            @ExampleObject(name = "pid_provider2", value = "pid_provider2", description = "PID_Provider CA 2"),
+                            @ExampleObject(name = "eaa_provider2", value = "eaa_provider2", description = "QEAA_Provider/Non_Q_EAA_Provider CA 2"),
+                            @ExampleObject(name = "access", value = "access", description = "RP access CA"),
+                            @ExampleObject(name = "pid_provider", value = "pid_provider", description = "PID_Provider CA"),
+                            @ExampleObject(name = "eaa_provider", value = "eaa_provider", description = "QEAA_Provider/Non_Q_EAA_Provider CA")},
+                    required = true)
+            @PathVariable("intermediate") String intermediate) {
+        certificateAuthorityService.revokeCertificate(
+                certificateAuthorities.findIntermediate(intermediate),
+                revokeCertificateRequest.getSerialNumber(),
+                revokeCertificateRequest.getReason());
+        return ResponseEntity.noContent().build();
+    }
+
+}

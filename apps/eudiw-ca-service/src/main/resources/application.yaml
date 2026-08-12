@@ -1,0 +1,132 @@
+---
+server:
+  port: 8080
+
+spring:
+  threads:
+    virtual:
+      enabled: true
+  application:
+    name: digital-lommebok-ca-service
+    environment: default
+  security:
+    api-key: ${API_KEY}
+    include-paths:
+      - /v1/certs/access
+    exclude-paths:
+      - /
+      - /swagger-ui.html
+      - /swagger-ui/**
+      - /v3/api-docs/**
+      - /v1/certs/root**
+      - /v1/certs/intermediates/**
+      - /info
+      - /health**
+      - /health/**
+      - /version
+      - /prometheus
+  datasource:
+    url: ${MARIADB_URL}
+    username: ${MARIADB_USER}
+    password: ${MARIADB_PASSWORD}
+    driver-class-name: org.mariadb.jdbc.Driver
+    hikari:
+      connection-timeout: 3000
+      minimum-idle: 1
+      maximum-pool-size: 1
+      idle-timeout: 1000
+      max-lifetime: 500
+  flyway:
+    table: flyway_schema_history
+  jpa:
+    hibernate:
+      ddl-auto: none
+    generate-ddl: false
+    show-sql: false
+    database-platform: org.hibernate.dialect.MariaDBDialect
+    open-in-view: false
+
+# Spring Boot Actuator
+management:
+  server:
+    port: 8090
+  endpoints:
+    web:
+      exposure:
+        include: info,version,prometheus,health
+      base-path: /
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      status:
+        order: DOWN, OUT_OF_SERVICE, UNKNOWN, DEGRADED, EXTERNAL_DEPENDENCY_DOWN, UP
+      group:
+        readiness:
+          include: db, readinessState
+        liveness:
+          include: livenessState
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.application.environment}
+
+eudiw-ca:
+  base-uri: "http://digital-lommebok-ca-service:9220"
+  roots:
+    root2:
+      root: root2
+      lifetime-days: 1825
+      crl-distribution-point: ${eudiw-ca.base-uri}/v1/certs/root2.crl
+      certificate-uri: ${eudiw-ca.base-uri}/v1/certs/root2.cer
+      keystore:
+        type: pkcs12
+        location: ${ROOT_2_KEYSTORE_LOCATION}
+        password: ${ROOT_2_KEYSTORE_PASSWORD}
+        key-alias: ${ROOT_2_KEYSTORE_KEY_ALIAS}
+        key-password: ${ROOT_2_KEYSTORE_KEY_PASSWORD}
+  intermediates:
+    access2:
+      root: root2
+      lifetime-days: 365
+      crl-distribution-point: ${eudiw-ca.base-uri}/v1/certs/intermediates/access2.crl
+      certificate-uri: ${eudiw-ca.base-uri}/v1/certs/intermediates/access2.cer
+      certificate-profile:
+        extended-key-usage:
+          - "1.0.18013.5.1.6"
+      keystore:
+        type: pkcs12
+        location: ${INTERMEDIATE_ACCESS_2_KEYSTORE_LOCATION}
+        password: ${INTERMEDIATE_ACCESS_2_KEYSTORE_PASSWORD}
+        key-alias: ${INTERMEDIATE_ACCESS_2_KEYSTORE_KEY_ALIAS}
+        key-password: ${INTERMEDIATE_ACCESS_2_KEYSTORE_KEY_PASSWORD}
+    pid_provider2:
+      root: root2
+      lifetime-days: 365
+      crl-distribution-point: ${eudiw-ca.base-uri}/v1/certs/intermediates/pid_provider2.crl
+      certificate-uri: ${eudiw-ca.base-uri}/v1/certs/intermediates/pid_provider2.cer
+      keystore:
+        type: pkcs12
+        location: ${INTERMEDIATE_PID_PROVIDER_2_KEYSTORE_LOCATION}
+        password: ${INTERMEDIATE_PID_PROVIDER_2_KEYSTORE_PASSWORD}
+        key-alias: ${INTERMEDIATE_PID_PROVIDER_2_KEYSTORE_KEY_ALIAS}
+        key-password: ${INTERMEDIATE_PID_PROVIDER_2_KEYSTORE_KEY_PASSWORD}
+    eaa_provider2:
+      root: root2
+      lifetime-days: 365
+      crl-distribution-point: ${eudiw-ca.base-uri}/v1/certs/intermediates/eaa_provider2.crl
+      certificate-uri: ${eudiw-ca.base-uri}/v1/certs/intermediates/eaa_provider2.cer
+      keystore:
+        type: pkcs12
+        location: ${INTERMEDIATE_EAA_PROVIDER_2_KEYSTORE_LOCATION}
+        password: ${INTERMEDIATE_EAA_PROVIDER_2_KEYSTORE_PASSWORD}
+        key-alias: ${INTERMEDIATE_EAA_PROVIDER_2_KEYSTORE_KEY_ALIAS}
+        key-password: ${INTERMEDIATE_EAA_PROVIDER_2_KEYSTORE_KEY_PASSWORD}
+
+---
+spring:
+  config:
+    activate:
+      on-cloud-platform: 'kubernetes'
+    import:
+      - 'optional:file:/etc/config/'
