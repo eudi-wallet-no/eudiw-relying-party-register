@@ -1,0 +1,13 @@
+package no.eudiw.rp.register.service.exception;
+
+import no.eudiw.rp.register.exception.RegisterServiceException;
+
+public class NotFoundException extends RegisterServiceException {
+    public NotFoundException(String msg) {
+        super(msg);
+    }
+
+    public NotFoundException(String msg, String logMessage) {
+        super(msg, logMessage);
+    }
+}

@@ -1,0 +1,119 @@
+---
+server:
+  port: 9200
+
+spring:
+  threads:
+    virtual:
+      enabled: true
+  security:
+    api-key: ${API_KEY}
+    include-paths:
+      - /v1/**
+    exclude-paths:
+      - /
+      - /health/**
+      - /version
+      - /info
+      - /prometheus
+      - /swagger-ui.html
+      - /swagger-ui/**
+      - /v3/api-docs/**
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: none
+    generate-ddl: false
+    show-sql: false
+    database-platform: org.hibernate.dialect.MariaDBDialect
+    open-in-view: false
+  flyway:
+    table: flyway_schema_history
+    locations: classpath:/db/migration,classpath:/mariadb/db/migration
+  application:
+    name: digital-lommebok-rp-register-service
+    environment: default
+
+  jackson:
+    deserialization:
+      # reject API resources with unknown/extra fields in them
+      fail-on-unknown-properties: true
+
+# Spring Boot Actuator
+management:
+  server:
+    port: 9201
+  endpoints:
+    web:
+      base-path: /
+      exposure:
+        include: info,version,prometheus,health
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+      status:
+        order: DOWN, OUT_OF_SERVICE, UNKNOWN, DEGRADED, EXTERNAL_DEPENDENCY_DOWN, UP
+  health:
+    group:
+      readiness:
+        include: db
+      liveness:
+        include: livenessState
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.application.environment}
+
+digdir:
+  audit:
+    application-name: ${spring.application.name}
+    application-environment: ${spring.application.environment}
+    audit-log-dir:
+    filters:
+      bearer-token: false
+  event:
+    logging:
+      environment-name: ${spring.application.environment}
+
+eudiw-rp-register-service:
+  csr-service:
+    access-certificate-ca-id: access2
+    ca-service-api:
+      ca-service-base-uri: http://digital-lommebok-ca-service-service:8080
+      api-key-header-id: X-API-KEY
+      api-key-value: ${CA_SERVICE_API_KEY}
+    rest-client:
+      connect-timeout-millis: 5000
+      read-timeout-millis: 5000
+  enhetsregisteret-service:
+    enhetsregisteret-api-base-uri: "https://data.brreg.no/enhetsregisteret/api/enheter"
+    rest-client:
+      connect-timeout-millis: 2000
+      read-timeout-millis: 2000
+    known-public-sector-codes:
+      - "6100" # Statsforvaltningen
+      - "6500" # Kommuneforvaltningen
+
+
+#external-dependency-health-checks:
+#  health-endpoints:
+#    eudiw-ca-service:
+#      name: digital-lommebok-ca-service
+#      base-uri: http://digital-lommebok-ca-service-service-actuator:8090
+#      endpoint: /health
+#      connect-timeout-ms: 2000
+#      read-timeout-ms: 1000
+#      map-down-status-to: DOWN
+
+---
+spring:
+  config:
+    activate:
+      on-cloud-platform: 'kubernetes'
+    import:
+      - 'optional:file:/etc/config/'

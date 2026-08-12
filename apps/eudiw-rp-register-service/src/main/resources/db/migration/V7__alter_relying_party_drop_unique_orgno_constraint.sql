@@ -1,0 +1,1 @@
+ALTER TABLE `relying_party` DROP CONSTRAINT IF EXISTS `orgno`;
