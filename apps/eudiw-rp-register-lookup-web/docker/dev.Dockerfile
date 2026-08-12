@@ -6,12 +6,10 @@ ARG GIT_PACKAGE_USERNAME
 ENV GIT_PACKAGE_TOKEN=${GIT_PACKAGE_TOKEN}
 ENV GIT_PACKAGE_USERNAME=${GIT_PACKAGE_USERNAME}
 
-COPY docker/settings.xml /root/.m2/settings.xml
+COPY apps/eudiw-rp-register-lookup-web/pom.xml /home/app/
+COPY apps/eudiw-rp-register-lookup-web/docker/settings.xml /root/.m2/settings.xml
 
-WORKDIR /home/app
-COPY pom.xml ./
-COPY src ./src
-
+COPY apps/eudiw-rp-register-lookup-web/src /home/app/src
 RUN --mount=type=cache,target=/root/.m2/repository MAVEN_OPTS="-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0" mvn -f /home/app/pom.xml clean package -Dmaven.test.skip=true -Dmaven.gitcommitid.skip=true
 
 FROM  eclipse-temurin:25-jre-noble
