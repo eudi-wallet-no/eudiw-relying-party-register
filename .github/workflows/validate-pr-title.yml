@@ -1,0 +1,14 @@
+name: Validate PR title
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  validate-pr-title:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR title
+        uses: felleslosninger/github-workflows/.github/actions/validate-pr-title@main
+        with:
+          pull-request-title: ${{ github.event.pull_request.title }}

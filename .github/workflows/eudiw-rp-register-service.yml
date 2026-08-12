@@ -30,11 +30,11 @@ jobs:
       application-type: spring-boot
       application-path: apps/eudiw-rp-register-service/
       cache-path: apps/eudiw-rp-register-service/pom.xml
+      enable-pr-title-verify: false
       image-name: digital-lommebok-rp-register-service
       java-version: '25'
       maven-lifecycle: 'test'
       maven-skip-tests: false
-      pull-request-title: ${{ github.event.pull_request.title }}
     secrets: inherit
 
   build-image:
