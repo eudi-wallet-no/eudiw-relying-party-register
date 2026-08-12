@@ -6,11 +6,11 @@ ARG GIT_PACKAGE_USERNAME
 ENV GIT_PACKAGE_TOKEN=${GIT_PACKAGE_TOKEN}
 ENV GIT_PACKAGE_USERNAME=${GIT_PACKAGE_USERNAME}
 
-COPY docker/settings.xml /root/.m2/settings.xml
+COPY apps/eudiw-ca-service/docker/settings.xml /root/.m2/settings.xml
 
 WORKDIR /home/app
-COPY pom.xml ./
-COPY src ./src
+COPY apps/eudiw-ca-service/pom.xml ./
+COPY apps/eudiw-ca-service/src ./src
 
 
 RUN --mount=type=cache,target=/root/.m2/repository \
