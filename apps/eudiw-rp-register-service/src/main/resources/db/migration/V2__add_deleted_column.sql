@@ -1,0 +1,2 @@
+ALTER TABLE `relying_party`
+    ADD deleted BOOLEAN NOT NULL DEFAULT (FALSE);

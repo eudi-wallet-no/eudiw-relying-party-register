@@ -1,0 +1,42 @@
+# This workflow will build a Spring Boot/Java project with Maven
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
+
+name: Build/publish Docker image
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "src/test/**"
+      - "docker/**"
+      - "docker-compose.yaml"
+      - "*.md"
+      - "LICENSE"
+      - "catalog-info.yaml"
+
+jobs:
+  build-publish-image:
+    uses: felleslosninger/github-workflows/.github/workflows/ci-build-publish-image.yml@main
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+    with:
+      image-name: digital-lommebok-rp-register-service
+      java-version: 25
+    secrets: inherit
+
+  call-update-image:
+    uses: felleslosninger/github-workflows/.github/workflows/ci-call-update-image.yml@main
+    permissions:
+      pull-requests: read
+    needs: build-publish-image
+    with:
+      application-name: digital-lommebok-rp-register-service
+      deployment-environment: systest
+      image-digest: ${{ needs.build-publish-image.outputs.image-digest }}
+      image-name: digital-lommebok-rp-register-service
+      image-version: ${{ needs.build-publish-image.outputs.image-version }}
+      kubernetes-repo: digital-lommebok-cd
+      product-name: digital-lommebok
+    secrets: inherit

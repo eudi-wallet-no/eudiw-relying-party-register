@@ -1,0 +1,6 @@
+# <CVE> # <package/affected code>. Fixed in <version>.
+CVE-2026-42579 # Netty. DNS Codec Input Validation Bypass (Encoder + Decoder). Fixed in 4.2.13.Final, 4.1.133.Final
+CVE-2026-54512 # com.fasterxml.jackson.core:jackson-databind. Fixed in 2.18.8, 3.1.4, 2.21.4
+CVE-2026-54513 # com.fasterxml.jackson.core:jackson-databind. Security bypass. Fixed in 2.18.8, 2.21.4, 3.1.4
+CVE-2026-54512 # tools.jackson.core:jackson-databind. Fixed in 3.1.4
+CVE-2026-54513 # tools.jackson.core:jackson-databind. Security bypass. Fixed in 3.1.4
