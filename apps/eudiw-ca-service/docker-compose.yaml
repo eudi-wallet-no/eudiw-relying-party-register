@@ -28,7 +28,7 @@ services:
         condition: service_healthy
     build:
       context: ../..
-      dockerfile: apps/ca-service/docker/dev.Dockerfile
+      dockerfile: apps/eudiw-ca-service/docker/dev.Dockerfile
       args:
         GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
         GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}

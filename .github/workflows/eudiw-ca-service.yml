@@ -4,12 +4,12 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'apps/ca-service/**'
+      - 'apps/eudiw-ca-service/**'
       - '.github/workflows/eudiw-ca-service.yml'
   push:
     branches: [main]
     paths:
-      - 'apps/ca-service/**'
+      - 'apps/eudiw-ca-service/**'
       - '.github/workflows/eudiw-ca-service.yml'
   workflow_dispatch:
 
@@ -28,8 +28,8 @@ jobs:
     uses: felleslosninger/github-workflows/.github/workflows/ci-pr-checks-image.yml@main
     with:
       application-type: spring-boot
-      application-path: apps/ca-service/
-      cache-path: apps/ca-service/pom.xml
+      application-path: apps/eudiw-ca-service/
+      cache-path: apps/eudiw-ca-service/pom.xml
       # Slått av her fordi tittelvalidering kjøres sentralt og path-uavhengig
       # i .github/workflows/validate-pr-title.yml. Uten denne ville hver
       # app-workflow (individuell, per app) kjørt sin egen duplikate
@@ -50,9 +50,8 @@ jobs:
     uses: felleslosninger/github-workflows/.github/workflows/ci-build-publish-image.yml@main
     with:
       application-type: spring-boot
-      application-path: apps/ca-service/
-      cache-path: apps/ca-service/pom.xml
-      image-name: digital-lommebok-ca-service
+      application-path: apps/eudiw-ca-service/
+      cache-path: apps/eudiw-ca-service/pom.xml
       java-version: '25'
     secrets: inherit
 
@@ -78,5 +77,5 @@ jobs:
       contents: read
     uses: felleslosninger/github-workflows/.github/workflows/misc-publish-dev-docker.yml@main
     with:
-      docker-file: apps/ca-service/docker/dev.Dockerfile
+      docker-file: apps/eudiw-ca-service/docker/dev.Dockerfile
     secrets: inherit
