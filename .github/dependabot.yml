@@ -12,8 +12,11 @@ updates:
   # MAVEN (Spring Boot-apper)
   # ==============
   # "directories: /apps/*" plukker opp alle apper med en pom.xml direkte under apps/.
-  # "group-by: dependency-name" slår sammen oppdateringer for samme avhengighet på
-  # tvers av apper, og "patterns: *" samler alt i én PR per kjøring.
+  # "group-by: dependency-name" gir én PR per avhengighet som trenger oppdatering, og
+  # samler den på tvers av alle apper der den brukes (f.eks. én "Bump spring-boot"-PR
+  # selv om både admin og service må oppdateres). Ulike avhengigheter (f.eks. Spring
+  # Boot og Jackson) havner fortsatt i separate PR-er — vi unngår dermed både
+  # "én PR per app per avhengighet" og "én kjempe-PR med 10 urelaterte bumps".
   - package-ecosystem: "maven"
     directories:
       - "/apps/*"
@@ -25,13 +28,13 @@ updates:
     open-pull-requests-limit: 10
     groups:
       alle-maven-oppdateringer:
-        patterns:
-          - "*"
         group-by: dependency-name
 
   # ==============
   # DOCKER
   # ==============
+  # Samme prinsipp som Maven: "group-by: dependency-name" gir én PR per image/tag som
+  # trenger oppdatering, samlet på tvers av apper — ikke separate PR-er per app-mappe.
   - package-ecosystem: "docker"
     directories:
       - "/apps/*/docker"
@@ -40,8 +43,6 @@ updates:
       day: "sunday"
     groups:
       alle-docker-oppdateringer:
-        patterns:
-          - "*"
         group-by: dependency-name
 
   # ==============
