@@ -12,11 +12,12 @@ updates:
   # MAVEN (Spring Boot-apper)
   # ==============
   # "directories: /apps/*" plukker opp alle apper med en pom.xml direkte under apps/.
-  # "group-by: dependency-name" gir én PR per avhengighet som trenger oppdatering, og
-  # samler den på tvers av alle apper der den brukes (f.eks. én "Bump spring-boot"-PR
-  # selv om både admin og service må oppdateres). Ulike avhengigheter (f.eks. Spring
-  # Boot og Jackson) havner fortsatt i separate PR-er — vi unngår dermed både
-  # "én PR per app per avhengighet" og "én kjempe-PR med 10 urelaterte bumps".
+  # Gruppering etter semver-nivå + "group-by: dependency-name":
+  #   - patch/minor: samles bredt i én PR per nivå, på tvers av alle apper som bruker
+  #     avhengigheten (lav risiko, trenger ikke individuell review per app).
+  #   - major: matcher ingen gruppe under, så Dependabot faller tilbake til standard
+  #     oppførsel — én individuell PR per avhengighet per app. Gir mest isolasjon og
+  #     grundigst review nettopp der risikoen for brudd er størst.
   - package-ecosystem: "maven"
     directories:
       - "/apps/*"
@@ -27,14 +28,26 @@ updates:
       day: "sunday"
     open-pull-requests-limit: 10
     groups:
-      alle-maven-oppdateringer:
+      patch-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+        group-by: dependency-name
+      minor-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
         group-by: dependency-name
 
   # ==============
   # DOCKER
   # ==============
-  # Samme prinsipp som Maven: "group-by: dependency-name" gir én PR per image/tag som
-  # trenger oppdatering, samlet på tvers av apper — ikke separate PR-er per app-mappe.
+  # Samme prinsipp som Maven: patch/minor grupperes bredt på tvers av apper, mens
+  # major-bumps forblir individuelle PR-er per app for tettere review.
   - package-ecosystem: "docker"
     directories:
       - "/apps/*/docker"
@@ -42,7 +55,19 @@ updates:
       interval: "weekly"
       day: "sunday"
     groups:
-      alle-docker-oppdateringer:
+      patch-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+        group-by: dependency-name
+      minor-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
         group-by: dependency-name
 
   # ==============
