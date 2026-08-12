@@ -6,11 +6,11 @@ ARG GIT_PACKAGE_USERNAME
 ENV GIT_PACKAGE_TOKEN=${GIT_PACKAGE_TOKEN}
 ENV GIT_PACKAGE_USERNAME=${GIT_PACKAGE_USERNAME}
 
-COPY apps/credential-registry/docker/settings.xml /root/.m2/settings.xml
+COPY apps/eudiw-credential-registry/docker/settings.xml /root/.m2/settings.xml
 
 WORKDIR /home/app
-COPY apps/credential-registry/pom.xml ./
-COPY apps/credential-registry/src ./src
+COPY apps/eudiw-credential-registry/pom.xml ./
+COPY apps/eudiw-credential-registry/src ./src
 
 RUN --mount=type=cache,target=/root/.m2/repository \
   MAVEN_OPTS="-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0" mvn -B package dependency:go-offline -Dmaven.test.skip=true -Dmaven.gitcommitid.skip=true

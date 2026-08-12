@@ -8,7 +8,7 @@ services:
   credential-registry:
     build:
       context: ../..
-      dockerfile: apps/credential-registry/docker/dev.Dockerfile
+      dockerfile: apps/eudiw-credential-registry/docker/dev.Dockerfile
       args:
         GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
         GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
