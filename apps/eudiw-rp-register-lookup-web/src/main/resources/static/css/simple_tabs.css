@@ -1,0 +1,17 @@
+a.tab {
+    color: var(--ds-color-neutral-text-default);
+    background-color: var(--ds-color-background-default);
+    text-decoration: none;
+
+    padding: 10px;
+    float: left;
+    border-bottom: 1px solid var(--ds-color-neutral-border-subtle);
+
+    &:hover {
+        background-color: var(--ds-color-background-tinted)
+    }
+    &[aria-selected="true"] {
+        border-bottom: 2px solid var(--ds-color-neutral-border-strong);
+        background-color: #ddeeff;
+    }
+}

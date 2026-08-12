@@ -1,0 +1,39 @@
+name: Build/publish Docker image & update image version in config
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "src/test/**"
+      - "docker/**"
+      - "docker-compose*.yaml"
+      - "*.md"
+      - "LICENSE"
+      - "catalog-info/**"
+
+jobs:
+  call-workflow-image-build-publish:
+    uses: felleslosninger/github-workflows/.github/workflows/ci-build-publish-image.yml@main
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+    with:
+      image-name: digital-lommebok-rp-register-lookup-web
+      java-version: 25
+    secrets: inherit
+
+  update-image-version:
+    uses: felleslosninger/github-workflows/.github/workflows/ci-call-update-image.yml@main
+    permissions:
+      pull-requests: read
+    needs: call-workflow-image-build-publish
+    with:
+      application-name: digital-lommebok-rp-register-lookup-web
+      deployment-environment: systest
+      image-digest: ${{ needs.call-workflow-image-build-publish.outputs.image-digest }}
+      image-name: digital-lommebok-rp-register-lookup-web
+      image-version: ${{ needs.call-workflow-image-build-publish.outputs.image-version }}
+      kubernetes-repo: digital-lommebok-cd
+      product-name: digital-lommebok
+    secrets: inherit
