@@ -54,7 +54,6 @@ jobs:
       cache-path: apps/eudiw-rp-register-service/pom.xml
       image-name: digital-lommebok-rp-register-service
       java-version: '25'
-      update-versions: 'false'
     secrets: inherit
 
   update-image:
