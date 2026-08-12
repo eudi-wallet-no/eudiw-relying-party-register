@@ -1,0 +1,37 @@
+---
+spring:
+  application:
+    environment: prod
+
+trustlist-service:
+  tsl612:
+    scheme-information:
+      list-issue-datetime: 2026-06-23T00:00:00.00Z
+    service-providers:
+      digdir:
+        services:
+          - name:
+              lang-no: MinID bevisutsteder
+              lang-en: MinID credential issuer
+            starting-time: 2026-06-23T00:00:00.00Z
+            service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
+            cert: MIIDCjCCArCgAwIBAgIJAJZe4jjdIO2dMAoGCCqGSM49BAMCMH8xHjAcBgNVBGETFU5UUk5PLU5PRk9SLjk5MTgyNTgyNzELMAkGA1UEBhMCTk8xJDAiBgNVBAoTG0RJR0lUQUxJU0VSSU5HU0RJUkVLVE9SQVRFVDEqMCgGA1UEAxMhZWlkYXMyc2FuZGthc3NlIEVBQSBQcm92aWRlciBDQSAyMB4XDTI2MDYxNTEwNTMyMloXDTI3MDYxNTEwNTMyMlowcTELMAkGA1UEBhMCTk8xJDAiBgNVBAoMG0RJR0lUQUxJU0VSSU5HU0RJUkVLVE9SQVRFVDEcMBoGA1UEAwwTTWluSUQgYmV2aXN1dHN0ZWRlcjEeMBwGA1UEYQwVTlRSTk8tTk9GT1IuOTkxODI1ODI3MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE0D/bj3vXvgLEix5b0bEjPHL7kUIGJrHy8h2T02Wn6wypGQOzvsqBAs5F24hES0VZbOI0sMvr++RzfWvrCuxvWqOCASEwggEdMB8GA1UdIwQYMBaAFFhHYvCub5Hy6eKLSxguN6IyD3qyMB0GA1UdDgQWBBRqKplaqhQZBd0B3NsHeFle51rE3zAMBgNVHRMBAf8EAjAAMFgGA1UdHwRRME8wTaBLoEmGR2h0dHBzOi8vY2EuZWlkYXMyc2FuZGthc3NlLm5ldC92MS9jZXJ0cy9pbnRlcm1lZGlhdGVzL2VhYV9wcm92aWRlcjIuY3JsMGMGCCsGAQUFBwEBBFcwVTBTBggrBgEFBQcwAoZHaHR0cHM6Ly9jYS5laWRhczJzYW5ka2Fzc2UubmV0L3YxL2NlcnRzL2ludGVybWVkaWF0ZXMvZWFhX3Byb3ZpZGVyMi5jZXIwDgYDVR0PAQH/BAQDAgWgMAoGCCqGSM49BAMCA0gAMEUCIEshok8/CkAIrsRjZXTcHTEtyBeEnQTgQg+FEEizn46OAiEA8/5wgDk+yTj+ZlpbFEw9Zq2vQRQQPdCPlYmJ0bEhDwU=
+
+  tsl602:
+    tsl-aca:
+      scheme-information:
+        list-issue-date-time: 2026-06-23T00:00:00.00Z
+      trusted-entities:
+        digdir:
+          trusted-entity-services:
+            - service-information:
+                service-name:
+                  lang-no: CA for relying parties access certificates i eidas2sandkasse
+                  lang-en: CA for relying parties access certificates in eidas2sandkasse
+                service-digital-identity:
+                  certs:
+                    - MIIC3TCCAoSgAwIBAgIIDDL6xwuVdCwwCgYIKoZIzj0EAwIwdzEeMBwGA1UEYRMVTlRSTk8tTk9GT1IuOTkxODI1ODI3MQswCQYDVQQGEwJOTzEkMCIGA1UEChMbRElHSVRBTElTRVJJTkdTRElSRUtUT1JBVEVUMSIwIAYDVQQDExllaWRhczJzYW5ka2Fzc2Ugcm9vdCBDQSAyMB4XDTI2MDYwODE4MjIyOVoXDTMxMDUyOTE4MjIyOVowfDEeMBwGA1UEYRMVTlRSTk8tTk9GT1IuOTkxODI1ODI3MQswCQYDVQQGEwJOTzEkMCIGA1UEChMbRElHSVRBTElTRVJJTkdTRElSRUtUT1JBVEVUMScwJQYDVQQDEx5laWRhczJzYW5ka2Fzc2UgUlAgQWNjZXNzIENBIDIwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAARcUsAxrIMXaFOxBkP6UKiu6qXgQDTdJJDdCgkl5lt5vqi4UyeQ+bh4XHQ2atH7Mht7paI2XAvire5k4l6JcN7Yo4H0MIHxME0GCCsGAQUFBwEBBEEwPzA9BggrBgEFBQcwAoYxaHR0cHM6Ly9jYS5laWRhczJzYW5ka2Fzc2UubmV0L3YxL2NlcnRzL3Jvb3QyLmNlcjAdBgNVHQ4EFgQU9ZVUvWTkypV92y9NVTDBmT/ONk4wDgYDVR0PAQH/BAQDAgEGMAwGA1UdEwQFMAMBAf8wQgYDVR0fBDswOTA3oDWgM4YxaHR0cHM6Ly9jYS5laWRhczJzYW5ka2Fzc2UubmV0L3YxL2NlcnRzL3Jvb3QyLmNybDAfBgNVHSMEGDAWgBSji5enLH7QnWvX6hoVLLDZPRzlnzAKBggqhkjOPQQDAgNHADBEAiAzCXU8msLXcWXbToJy7UMdCa5lD/lui4WkwHtPcpbWjQIgAgLC74/YY1ZxiBNQIm9Y3o6rn2kx2pRYUDOGv11RPG4=
+
+
+    tsl-pid:
+      trusted-entities:

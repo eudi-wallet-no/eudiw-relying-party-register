@@ -1,0 +1,178 @@
+---
+server:
+  port: 8080
+
+spring:
+  threads:
+    virtual:
+      enabled: true
+  application:
+    name: digital-lommebok-trustlist-service
+    environment: default
+
+management:
+  server:
+    port: 8090
+  endpoints:
+    web:
+      exposure:
+        include: info,version,prometheus,health
+      base-path: /
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      status:
+        order: DOWN, OUT_OF_SERVICE, UNKNOWN, DEGRADED, EXTERNAL_DEPENDENCY_DOWN, UP
+  health:
+    group:
+      readiness:
+        include: readinessState
+      liveness:
+        include: livenessState
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.application.environment}
+
+trustlist-service:
+  environment-name: ${spring.application.environment}
+  digdir:
+    name-no: DIGITALISERINGSDIREKTORATET
+    name-en: DIGITALISERINGSDIREKTORATET
+    information-uris:
+      lang-no: https://docs.digdir.no/docs/lommebok/lommebok_om.html
+      lang-en: https://docs.digdir.no/docs/lommebok/wallet_sandbox_summary.html
+    email: mailto:servicedesk@digdir.no
+    web: https://www.digdir.no/
+    postal-address:
+      street-address: Lørenfaret 1C
+      postal-code: 0580
+      locality: Oslo
+      country: "NO"
+  tsl612:
+    trustlist-path: /no_eidas2sandkasse_${trustlist-service.environment-name}_tsl
+    trustlist-path-xtsl: ${trustlist-service.tsl612.trustlist-path}.xtsl
+    trustlist-path-sha2: ${trustlist-service.tsl612.trustlist-path}.sha2
+    keystore: signing-612
+    scheme-information:
+      scheme-name:
+        lang-no: NO:Tillitsliste for norsk eidas2sandkasse i ${trustlist-service.environment-name}
+        lang-en: NO:Trust list for eidas2sandkasse in ${trustlist-service.environment-name}
+      sequence-number: 1
+      list-issue-datetime: 2026-06-08T00:00:00.00Z
+      information-uris:
+        lang-no: ${trustlist-service.digdir.information-uris.lang-no}
+        lang-en: ${trustlist-service.digdir.information-uris.lang-en}
+    service-providers:
+      digdir:
+        name:
+          lang-no: Digitaliseringsdirektoratet
+          lang-en: Norwegian Digitalisation Agency
+        trade-name:
+          lang-no: NTRNO-991825827
+          lang-en: NTRNO-991825827
+        information-uris:
+          lang-no: ${trustlist-service.digdir.information-uris.lang-no}
+          lang-en: ${trustlist-service.digdir.information-uris.lang-en}
+        website: ${trustlist-service.digdir.web}
+        email: ${trustlist-service.digdir.email}
+        postal-address:
+          street-address: ${trustlist-service.digdir.postal-address.street-address}
+          postal-code: ${trustlist-service.digdir.postal-address.postal-code}
+          locality: ${trustlist-service.digdir.postal-address.locality}
+          country: ${trustlist-service.digdir.postal-address.country}
+
+  tsl602:
+    tsl-aca:
+      path: /no_eidas2sandkasse_${trustlist-service.environment-name}_aca
+      keystore: signing-602
+      scheme-information:
+        scheme-name:
+          lang-no: Tillitsliste for Access Certificate Authorities i eidas2sandkasse i ${trustlist-service.environment-name}
+          lang-en: Trust list for Access Certificate Authorities in eidas2sandkasse in ${trustlist-service.environment-name}
+        sequence-number: 1
+        list-issue-date-time: 2026-04-15T00:00:00.00Z
+        lote-type: http://uri.etsi.org/19602/LoTEType/EUWRPACProvidersList
+        information-uris:
+          lang-no: ${trustlist-service.digdir.information-uris.lang-no}
+          lang-en: ${trustlist-service.digdir.information-uris.lang-en}
+        status-determination-approach: http://uri.etsi.org/19602/WRPACProvidersList/StatusDetn/EU
+        scheme-type-community-rules: http://uri.etsi.org/19602/WRPACProvidersList/schemerules/EU
+
+      trusted-entities:
+        digdir:
+          trusted-entity-information:
+            te-name: DIGITALISERINGSDIREKTORATET
+            te-trade-name: "NTRNO-NOFOR.991825827"
+            information-uri:
+              a: https://docs.digdir.no/docs/lommebok/lommebok_om.html
+              c: http://uri.etsi.org/19602/ListOfTrustedEntities/WRPACProvider/NO
+
+
+    tsl-pid:
+      path: /no_eidas2sandkasse_${trustlist-service.environment-name}_pid
+      keystore: signing-602
+      scheme-information:
+        scheme-name:
+          lang-no: Tillitsliste for Personal Identification Data tilbydere i eidas2sandkasse i ${trustlist-service.environment-name}
+          lang-en: Trust list for Personal Identification Data providers in eidas2sandkasse in ${trustlist-service.environment-name}
+        sequence-number: 1
+        list-issue-date-time: 2026-04-28T00:00:00.00Z
+        lote-type: http://uri.etsi.org/19602/LoTEType/EUPIDProvidersList
+        information-uris:
+          lang-no: ${trustlist-service.digdir.information-uris.lang-no}
+          lang-en: ${trustlist-service.digdir.information-uris.lang-en}
+        status-determination-approach: http://uri.etsi.org/19602/PIDProvidersList/StatusDetn/EU
+        scheme-type-community-rules: http://uri.etsi.org/19602/PIDProviders/schemerules/EU
+
+      trusted-entities:
+        digdir:
+          trusted-entity-information:
+            te-name: DIGITALISERINGSDIREKTORATET
+            te-trade-name: "NTRNO-NOFOR.991825827"
+            te-address:
+              phone-number: "tel:+4722451000"
+            information-uri:
+              a: https://docs.digdir.no/docs/lommebok/lommebok_om.html
+              c: http://uri.etsi.org/19602/ListOfTrustedEntities/PIDProvider/NO
+
+    tsl-wallet:
+      path: /no_eidas2sandkasse_${trustlist-service.environment-name}_wallet
+      keystore: signing-602
+      scheme-information:
+        scheme-name:
+          lang-no: Tillitsliste for Wallet tilbydere i eidas2sandkasse i ${trustlist-service.environment-name}
+          lang-en: Trust list for Wallet providers in eidas2sandkasse in ${trustlist-service.environment-name}
+        sequence-number: 1
+        list-issue-date-time: 2026-04-15T00:00:00.00Z
+        lote-type: http://uri.etsi.org/19602/LoTEType/EUWalletProvidersList
+        information-uris:
+          lang-no: ${trustlist-service.digdir.information-uris.lang-no}
+          lang-en: ${trustlist-service.digdir.information-uris.lang-en}
+        status-determination-approach: http://uri.etsi.org/19602/WalletProvidersList/StatusDetn/EU
+        scheme-type-community-rules: http://uri.etsi.org/19602/WalletProvidersList/schemerules/EU
+      trusted-entities:
+        digdir:
+          trusted-entity-information:
+            te-name: DIGITALISERINGSDIREKTORATET
+            te-trade-name: "NTRNO-NOFOR.991825827"
+            information-uri:
+              a: https://docs.digdir.no/docs/lommebok/lommebok_om.html
+              c: http://uri.etsi.org/19602/ListOfTrustedEntities/WalletProvider/NO
+
+idporten-key-manager:
+  default-keystore: signing-602  # Optional, first keystore becomes default if not specified
+  keystores:
+    signing-612:
+      key-store-location: ${TSL_612_SIGN_KEYSTORE}
+      key-store-type: ${TSL_612_SIGN_KEYSTORE_TYPE}
+      key-store-password: ${TSL_612_SIGN_KEYSTORE_PASSWORD}
+      key-alias: ${TSL_612_SIGN_KEYSTORE_KEY_ALIAS}
+      key-password: ${TSL_612_SIGN_KEYSTORE_KEY_PASSWORD}
+    signing-602:
+      key-store-location: ${TSL_602_SIGN_KEYSTORE}
+      key-store-type: ${TSL_602_SIGN_KEYSTORE_TYPE}
+      key-store-password: ${TSL_602_SIGN_KEYSTORE_PASSWORD}
+      key-alias: ${TSL_602_SIGN_KEYSTORE_KEY_ALIAS}
+      key-password: ${TSL_602_SIGN_KEYSTORE_KEY_PASSWORD}

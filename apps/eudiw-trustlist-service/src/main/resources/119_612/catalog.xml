@@ -1,0 +1,12 @@
+<!DOCTYPE catalog PUBLIC "-//OASIS//DTD Entity Resolution XML Catalog V1.0//EN"
+        "http://www.oasis-open.org/committees/entity/release/1.0/catalog.dtd">
+
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="public">
+
+    <system systemId="http://uri.etsi.org/19612/v1.2.1/tsl.xsd" uri="19612_xsd.xsd"/>
+
+    <system systemId="http://uri.etsi.org/01903/v1.3.2/XAdES.xsd" uri="xades.xsd"/>
+
+    <system systemId="http://www.w3.org/TR/2002/REC-xmldsig-core-20020212/xmldsig-core-schema.xsd" uri="xmldsig-core-schema.xsd"/>
+
+</catalog>
