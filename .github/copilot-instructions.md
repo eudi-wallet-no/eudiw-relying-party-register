@@ -23,3 +23,5 @@ Mal:
 
 ## Merknader
 Valgfritt: risiko, følgeendringer, ting reviewer bør vite. Slett seksjonen hvis ikke relevant.
+
+PR description skal alltid reflektere gjeldende endringer — oppdater den når det legges til flere commits/endringer etter at PR-en først ble opprettet, ikke bare la den stå igjen fra første commit.

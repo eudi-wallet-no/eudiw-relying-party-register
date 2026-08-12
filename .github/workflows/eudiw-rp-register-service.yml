@@ -30,6 +30,10 @@ jobs:
       application-type: spring-boot
       application-path: apps/eudiw-rp-register-service/
       cache-path: apps/eudiw-rp-register-service/pom.xml
+      # Slått av her fordi tittelvalidering kjøres sentralt og path-uavhengig
+      # i .github/workflows/validate-pr-title.yml. Uten denne ville hver
+      # app-workflow (individuell, per app) kjørt sin egen duplikate
+      # validate-pr-title-jobb via ci-pr-checks-image.yml sin default (true).
       enable-pr-title-verify: false
       image-name: digital-lommebok-rp-register-service
       java-version: '25'
