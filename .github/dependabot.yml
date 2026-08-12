@@ -23,9 +23,6 @@ updates:
       interval: "weekly"
       day: "sunday"
     open-pull-requests-limit: 10
-    commit-message:
-      prefix: "Bump"
-      include: scope
     groups:
       alle-maven-oppdateringer:
         patterns:
@@ -41,8 +38,6 @@ updates:
     schedule:
       interval: "weekly"
       day: "sunday"
-    commit-message:
-      prefix: "Bump"
     groups:
       alle-docker-oppdateringer:
         patterns:
@@ -57,8 +52,6 @@ updates:
     schedule:
       interval: "weekly"
       day: "sunday"
-    commit-message:
-      prefix: "Bump"
     groups:
       alle-actions-oppdateringer:
         patterns:
