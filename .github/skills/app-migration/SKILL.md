@@ -137,3 +137,22 @@ apper til én PR per økosystem:
   faktisk skal være `<footer ...>` — se hva søsterfiler/delte fragmenter (`fragments/general.html`)
   bruker som konvensjon, og rett *alle* forekomster av samme feil i søsterfiler samtidig, ikke
   bare filen kommentaren pekte på.
+
+## 8. Andre-migreringen bekreftet mønsteret (rp-register-service)
+
+- Hele oppskriften (filter-repo → merge → resign → workflow-konsolidering) reproduserte seg
+  problemfritt for app nummer to — ingen tomme commits, ingen søl, `git push` ble akseptert uten
+  avvisning på signaturer første forsøk.
+- **Ikke alle apper har en egen "root docker-compose.yaml"** — i dette repoet ligger full-stack
+  dev-compose-filen faktisk i `apps/<første-app>/docker-compose.yaml` (den første migrerte appen
+  ble vertskap for den delte compose-filen). Sjekk faktisk plassering med `glob` før du antar en
+  rot-fil finnes; ikke bare gjenta forrige antakelse blindt.
+- **Minimalt fokus-prinsipp**: når brukeren ber om å begrense endringer til kun det migreringen
+  krever, hold deg til: historikk, resignering, obligatoriske Dockerfile-stifikser (påkrevd av
+  delt build-context), workflow-konsolidering (selve migreringsmønsteret), og trivielle
+  ensrettinger som README-oppdatering. Utsett/dropp "nice to have"-opprydding (f.eks. sletting av
+  en frittstående docker-compose.yaml i appmappen) med mindre brukeren eksplisitt ber om det —
+  spør heller enn å anta.
+- Lokalt `mvn test` (uten `-o`/offline) fungerer fint som verifiseringssteg når prosjektet bruker
+  GitHub Packages-registry via `docker/settings.xml`, forutsatt at avhengighetene allerede er
+  hentet til lokal `~/.m2`-cache fra tidligere kjøringer — offline-modus feiler hvis noe mangler.
