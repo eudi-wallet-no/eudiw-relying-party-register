@@ -1,0 +1,51 @@
+---
+server:
+  port: 9230
+
+management:
+  server:
+    port: 9230
+
+spring:
+  config:
+    import: optional:file:${EUDIW_TRUSTLIST_SERVICE_ENV}[.properties]
+  application:
+    environment: docker
+
+trustlist-service:
+  tsl612:
+    service-providers:
+      digdir:
+        services:
+          - name:
+              lang-no: Bevisporten EAA utsteder fra Digdir
+              lang-en: Bevisporten EAA issuer from Digdir
+            starting-time: 2025-10-15T12:00:00.00Z
+            service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
+            cert: MIIDBTCCAqygAwIBAgIJALyA/nuVMsUpMAoGCCqGSM49BAMEMIGCMR4wHAYDVQRhExVOVFJOTy1OT0ZPUi45OTE4MjU4MjcxLTArBgNVBAMTJGVpZGFzMnNhbmRrYXNzZSBFQUEgUHJvdmlkZXIgQ0EgdGVzdDEkMCIGA1UEChMbRElHSVRBTElTRVJJTkdTRElSRUtUT1JBVEVUMQswCQYDVQQGEwJOTzAeFw0yNTEwMTAwODE2MzZaFw0yNjEwMDgxMjQ3MzZaMGExCzAJBgNVBAYTAk5PMTIwMAYDVQQDDClEaWdpdGFsaXNlcmluZ3NkaXJla3RvcmF0ZXQgLSBCZXZpc3BvcnRlbjEeMBwGA1UEYQwVTlRSTk8tTk9GT1IuOTkxODI1ODI3MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEggybfUUfbzJltJnTd3NjkH/OApRXdjznhsiDEShxa14362U8s1d/z8fsFMNxiO+z/ZSkHsUurkh2EiNQMcG0T6OCASkwggElMB8GA1UdIwQYMBaAFG2uFOu+dBM1aEzXwQ1nMTFpj7JfMB0GA1UdDgQWBBRTpQH9HAw203fM8Z6Nnc6Aj5RsVzAMBgNVHRMBAf8EAjAAMFwGA1UdHwRVMFMwUaBPoE2GS2h0dHBzOi8vY2EudGVzdC5laWRhczJzYW5ka2Fzc2UubmV0L3YxL2NlcnRzL2ludGVybWVkaWF0ZXMvZWFhX3Byb3ZpZGVyLmNybDBnBggrBgEFBQcBAQRbMFkwVwYIKwYBBQUHMAKGS2h0dHBzOi8vY2EudGVzdC5laWRhczJzYW5ka2Fzc2UubmV0L3YxL2NlcnRzL2ludGVybWVkaWF0ZXMvZWFhX3Byb3ZpZGVyLmNlcjAOBgNVHQ8BAf8EBAMCBaAwCgYIKoZIzj0EAwQDRwAwRAIgco5xnaAZPzLFF0aC7FbF3bEmbHsXId42CRiZIJdqyK0CIG9cjXM31kTF3kmHgN8NligxMbxEmT2HjkAYkKRKUUZR
+
+  tsl602:
+    tsl-aca:
+      trusted-entities:
+        digdir:
+          trusted-entity-services:
+            - service-information:
+                service-name:
+                  lang-no: CA for relying parties access certificates i eidas2sandkasse
+                  lang-en: CA for relying parties access certificates in eidas2sandkasse
+                service-digital-identity:
+                  certs:
+                    - MIIC7zCCApWgAwIBAgIIDDkuQsJ13BUwCgYIKoZIzj0EAwIwfzEeMBwGA1UEYRMVTlRSTk8tTk9GT1IuOTkxODI1ODI3MQswCQYDVQQGEwJOTzEkMCIGA1UEChMbRElHSVRBTElTRVJJTkdTRElSRUtUT1JBVEVUMSowKAYDVQQDEyFlaWRhczJzYW5ka2Fzc2Ugcm9vdCBDQSAyIHN5c3Rlc3QwHhcNMjYwMzExMTQ0MTA0WhcNMzEwMzAxMTQ0MTA0WjCBhDEeMBwGA1UEYRMVTlRSTk8tTk9GT1IuOTkxODI1ODI3MQswCQYDVQQGEwJOTzEkMCIGA1UEChMbRElHSVRBTElTRVJJTkdTRElSRUtUT1JBVEVUMS8wLQYDVQQDEyZlaWRhczJzYW5ka2Fzc2UgUlAgQWNjZXNzIENBIDIgc3lzdGVzdDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABAuTeoWKksraL+xSB+cGYejzJ38BmWrkZswN4SvPN6AokX5dzZrSoq+axGlbxxFgiZXBDcTdM6Wk1rGUnvUu/c+jgfQwgfEwTQYIKwYBBQUHAQEEQTA/MD0GCCsGAQUFBzAChjFodHRwczovL2NhLmVpZGFzMnNhbmRrYXNzZS5kZXYvdjEvY2VydHMvcm9vdDIuY2VyMB0GA1UdDgQWBBQbnsdFC/WycGR4LPI/c76+mBKyajAOBgNVHQ8BAf8EBAMCAQYwDAYDVR0TBAUwAwEB/zBCBgNVHR8EOzA5MDegNaAzhjFodHRwczovL2NhLmVpZGFzMnNhbmRrYXNzZS5kZXYvdjEvY2VydHMvcm9vdDIuY3JsMB8GA1UdIwQYMBaAFBR4btw66Yt7bwyRgLXOHBS5yT/yMAoGCCqGSM49BAMCA0gAMEUCIQDWcryWaodSx7PtGbTYNnDusjiIFxVhBfTGG7SC8vTHvQIgJcfVvPNy0v7qDpClAjI1m6ndGcFMFjchdpVWtJEDlO8=
+    tsl-pid:
+      trusted-entities:
+        digdir:
+          trusted-entity-services:
+            - service-information:
+                service-type-identifier:
+                  a: http://uri.etsi.org/19602/SvcType/PID/Issuance
+                service-name:
+                  lang-no: PID-utsteder fra Digdir
+                  lang-en: PID-issuer from Digdir
+                service-digital-identity:
+                  certs:
+                    - MIIDMzCCAtmgAwIBAgIIGkwIqxyvEDswCgYIKoZIzj0EAwQwZzEYMBYGA1UEYRMPTlRSTk8tOTkxODI1ODI3MQswCQYDVQQGEwJubzEPMA0GA1UECxMGRGlnZGlyMS0wKwYDVQQDEyRlaWRhczJzYW5ka2Fzc2UgUElEIFByb3ZpZGVyIENBIHRlc3QwHhcNMjUxMDE1MTExMzA3WhcNMjYxMDE1MTExMzA3WjBiMQswCQYDVQQGEwJOTzEzMDEGA1UEAwwqRGlnaXRhbGlzZXJpbmdzZGlyZWt0b3JhdGV0IC0gUElELXV0c3RlZGVyMR4wHAYDVQRhDBVOVFJOTy1OT0ZPUi45OTE4MjU4MjcwdjAQBgcqhkjOPQIBBgUrgQQAIgNiAATLIEmdVcdTVfQ/6YpsPvS4taSRiebXwcjHWGEWpZLfrKb3yvowmUMe2SaDZD8HCOXjvSXfbIQsgFKeMU88IkNaDOfyMHbXYf3cJZCFJYo799hQL6j2tMogjUMkyoP+dnCjggFVMIIBUTAfBgNVHSMEGDAWgBRX7XviJqjDMVi/g0bAr0FvQshSDDAdBgNVHQ4EFgQUUCIS5a/pLXMjHV+a4AV8NkiRHZMwDAYDVR0TAQH/BAIwADBcBgNVHR8EVTBTMFGgT6BNhktodHRwczovL2NhLnRlc3QuZWlkYXMyc2FuZGthc3NlLm5ldC92MS9jZXJ0cy9pbnRlcm1lZGlhdGVzL3BpZF9wcm92aWRlci5jcmwwZwYIKwYBBQUHAQEEWzBZMFcGCCsGAQUFBzAChktodHRwczovL2NhLnRlc3QuZWlkYXMyc2FuZGthc3NlLm5ldC92MS9jZXJ0cy9pbnRlcm1lZGlhdGVzL3BpZF9wcm92aWRlci5jZXIwDgYDVR0PAQH/BAQDAgWgMCoGCCsGAQUFBwEDAQH/BBswGQYGBACORgEGDA9pZC1ldHNpLXFjdC1waWQwCgYIKoZIzj0EAwQDSAAwRQIgPNu17SJ+E628cVBT1J1CCZQEI85MIG1hqm1ynwyQN84CIQC67g+mvEDLF9C5gcwN8Q38IEJu3bw0EhCvBbUqPORQPA==

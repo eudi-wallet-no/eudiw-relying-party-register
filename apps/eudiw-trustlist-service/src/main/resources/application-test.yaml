@@ -1,0 +1,158 @@
+---
+spring:
+  application:
+    environment: test
+
+trustlist-service:
+  tsl612:
+    service-providers:
+      digdir:
+        services:
+          - name:
+              lang-no: Bevisporten EAA utsteder fra Digdir
+              lang-en: Bevisporten EAA issuer from Digdir
+            starting-time: 2025-10-15T12:00:00.00Z
+            service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
+            cert: MIIDBTCCAqygAwIBAgIJALyA/nuVMsUpMAoGCCqGSM49BAMEMIGCMR4wHAYDVQRhExVOVFJOTy1OT0ZPUi45OTE4MjU4MjcxLTArBgNVBAMTJGVpZGFzMnNhbmRrYXNzZSBFQUEgUHJvdmlkZXIgQ0EgdGVzdDEkMCIGA1UEChMbRElHSVRBTElTRVJJTkdTRElSRUtUT1JBVEVUMQswCQYDVQQGEwJOTzAeFw0yNTEwMTAwODE2MzZaFw0yNjEwMDgxMjQ3MzZaMGExCzAJBgNVBAYTAk5PMTIwMAYDVQQDDClEaWdpdGFsaXNlcmluZ3NkaXJla3RvcmF0ZXQgLSBCZXZpc3BvcnRlbjEeMBwGA1UEYQwVTlRSTk8tTk9GT1IuOTkxODI1ODI3MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEggybfUUfbzJltJnTd3NjkH/OApRXdjznhsiDEShxa14362U8s1d/z8fsFMNxiO+z/ZSkHsUurkh2EiNQMcG0T6OCASkwggElMB8GA1UdIwQYMBaAFG2uFOu+dBM1aEzXwQ1nMTFpj7JfMB0GA1UdDgQWBBRTpQH9HAw203fM8Z6Nnc6Aj5RsVzAMBgNVHRMBAf8EAjAAMFwGA1UdHwRVMFMwUaBPoE2GS2h0dHBzOi8vY2EudGVzdC5laWRhczJzYW5ka2Fzc2UubmV0L3YxL2NlcnRzL2ludGVybWVkaWF0ZXMvZWFhX3Byb3ZpZGVyLmNybDBnBggrBgEFBQcBAQRbMFkwVwYIKwYBBQUHMAKGS2h0dHBzOi8vY2EudGVzdC5laWRhczJzYW5ka2Fzc2UubmV0L3YxL2NlcnRzL2ludGVybWVkaWF0ZXMvZWFhX3Byb3ZpZGVyLmNlcjAOBgNVHQ8BAf8EBAMCBaAwCgYIKoZIzj0EAwQDRwAwRAIgco5xnaAZPzLFF0aC7FbF3bEmbHsXId42CRiZIJdqyK0CIG9cjXM31kTF3kmHgN8NligxMbxEmT2HjkAYkKRKUUZR
+          - name:
+              lang-no: MinID bevisutsteder
+              lang-en: MinID credential issuer
+            starting-time: 2026-04-28T12:00:00.00Z
+            service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
+            cert: MIIDGjCCAr+gAwIBAgIIYG7TpHIepsMwCgYIKoZIzj0EAwIwgYQxHjAcBgNVBGETFU5UUk5PLU5PRk9SLjk5MTgyNTgyNzELMAkGA1UEBhMCTk8xJDAiBgNVBAoTG0RJR0lUQUxJU0VSSU5HU0RJUkVLVE9SQVRFVDEvMC0GA1UEAxMmZWlkYXMyc2FuZGthc3NlIEVBQSBQcm92aWRlciBDQSAyIHRlc3QwHhcNMjYwNDI4MTAzMjAzWhcNMjcwNDI4MTAzMjAzWjBxMQswCQYDVQQGEwJOTzEkMCIGA1UECgwbRElHSVRBTElTRVJJTkdTRElSRUtUT1JBVEVUMRwwGgYDVQQDDBNNaW5JRCBiZXZpc3V0c3RlZGVyMR4wHAYDVQRhDBVOVFJOTy1OT0ZPUi45OTE4MjU4MjcwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQl7Unl+4ioIViU0sS7GmRvxsnDTtAY9QsJX+Z7zjvaEecQuz8ABnXjOCkLVTUcL5iaoT6vbwl/pB+pZzKgT0bLo4IBKzCCAScwHwYDVR0jBBgwFoAUMRTEpsi8YuNwYTlMWGrhBR+Ej+8wHQYDVR0OBBYEFLMPWORt1uQ1tyJnhIWVfGuH1tB4MAwGA1UdEwEB/wQCMAAwXQYDVR0fBFYwVDBSoFCgToZMaHR0cHM6Ly9jYS50ZXN0LmVpZGFzMnNhbmRrYXNzZS5uZXQvdjEvY2VydHMvaW50ZXJtZWRpYXRlcy9lYWFfcHJvdmlkZXIyLmNybDBoBggrBgEFBQcBAQRcMFowWAYIKwYBBQUHMAKGTGh0dHBzOi8vY2EudGVzdC5laWRhczJzYW5ka2Fzc2UubmV0L3YxL2NlcnRzL2ludGVybWVkaWF0ZXMvZWFhX3Byb3ZpZGVyMi5jZXIwDgYDVR0PAQH/BAQDAgWgMAoGCCqGSM49BAMCA0kAMEYCIQCMcpxkoNOiZsiWVwVMxC+5R/PSmaXRYtkWEZY4X808jQIhAPOXmh3jGLPAjlXESOkHQRGqvAIxaHLCK0TXqt5VG6VS
+          - name:
+              lang-no: Bevisporten
+              lang-en: Bevisporten
+            starting-time: 2026-04-28T12:00:00.00Z
+            service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
+            cert: MIIDMDCCAtegAwIBAgIJAPI3m5oCvEhjMAoGCCqGSM49BAMCMIGEMR4wHAYDVQRhExVOVFJOTy1OT0ZPUi45OTE4MjU4MjcxCzAJBgNVBAYTAk5PMSQwIgYDVQQKExtESUdJVEFMSVNFUklOR1NESVJFS1RPUkFURVQxLzAtBgNVBAMTJmVpZGFzMnNhbmRrYXNzZSBFQUEgUHJvdmlkZXIgQ0EgMiB0ZXN0MB4XDTI2MDQyODExMTgyNVoXDTI3MDQyODExMTgyNVowgYcxCzAJBgNVBAYTAk5PMSQwIgYDVQQKDBtESUdJVEFMSVNFUklOR1NESVJFS1RPUkFURVQxMjAwBgNVBAMMKURpZ2l0YWxpc2VyaW5nc2RpcmVrdG9yYXRldCAtIEJldmlzcG9ydGVuMR4wHAYDVQRhDBVOVFJOTy1OT0ZPUi45OTE4MjU4MjcwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAT75gsqtKk/PiMvU2i2jTEMz4hGnBHOtpRCbEL0EzIaHPVE/pteSjWm/W3CphOXb1uyRKvcPrhgmk1KE7ZWs2hpo4IBKzCCAScwHwYDVR0jBBgwFoAUMRTEpsi8YuNwYTlMWGrhBR+Ej+8wHQYDVR0OBBYEFLvg9+9QiU75jFowJzq0W9TW0P9iMAwGA1UdEwEB/wQCMAAwXQYDVR0fBFYwVDBSoFCgToZMaHR0cHM6Ly9jYS50ZXN0LmVpZGFzMnNhbmRrYXNzZS5uZXQvdjEvY2VydHMvaW50ZXJtZWRpYXRlcy9lYWFfcHJvdmlkZXIyLmNybDBoBggrBgEFBQcBAQRcMFowWAYIKwYBBQUHMAKGTGh0dHBzOi8vY2EudGVzdC5laWRhczJzYW5ka2Fzc2UubmV0L3YxL2NlcnRzL2ludGVybWVkaWF0ZXMvZWFhX3Byb3ZpZGVyMi5jZXIwDgYDVR0PAQH/BAQDAgWgMAoGCCqGSM49BAMCA0cAMEQCID4fKWA4I3mHxDgtaJksvi7IRAHqOmjc92z8UyVwPlgoAiBij6YHMupxAt5yvki5fs6bWI/4sLwkfYIXgvSXUG/Fow==
+      symfoni:
+        name:
+          lang-no: Symfoni AS
+          lang-en: Symfoni AS
+        trade-name:
+          lang-no: NTRNO-915772137
+          lang-en: NTRNO-915772137
+        information-uris:
+          lang-no: https://www.symfoni.dev/docs/virksomhetslommebok/issuer/kom-i-gang
+          lang-en: https://www.symfoni.dev/docs/virksomhetslommebok/issuer/kom-i-gang
+        website: https://www.symfoni.dev
+        email: mailto:jon@symfoni.dev
+        postal-address:
+          street-address: Langerudsvingen 7C
+          postal-code: 1187
+          locality: Oslo
+          country: "NO"
+        services:
+          - name:
+              lang-no: Symfoni EAA Issuer
+              lang-en: Symfoni EAA Issuer
+            starting-time: 2026-05-07T00:00:00.00Z
+            service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
+            cert: MIIDGTCCAr+gAwIBAgIIfggbSXFsqegwCgYIKoZIzj0EAwIwgYQxHjAcBgNVBGETFU5UUk5PLU5PRk9SLjk5MTgyNTgyNzELMAkGA1UEBhMCTk8xJDAiBgNVBAoTG0RJR0lUQUxJU0VSSU5HU0RJUkVLVE9SQVRFVDEvMC0GA1UEAxMmZWlkYXMyc2FuZGthc3NlIEVBQSBQcm92aWRlciBDQSAyIHRlc3QwHhcNMjYwMzExMTAyMzEyWhcNMjcwMzExMTAyMzEyWjBUMQswCQYDVQQGEwJOTzETMBEGA1UECgwKU1lNRk9OSSBBUzEQMA4GA1UEAwwHU3ltZm9uaTEeMBwGA1UEYQwVTlRSTk8tTk9GT1IuOTE1NzcyMTM3MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEkyAbS9iwgeExsoLnGxh0k4crchy3dDBmc1RErLsimQWeCzzjDb16nI8hvrofbPfUszaz7znPpOAR7NoQ7/ixNKOCAUgwggFEMB8GA1UdIwQYMBaAFDEUxKbIvGLjcGE5TFhq4QUfhI/vMB0GA1UdDgQWBBRXmiO5C1tBYxunEyo+Pa8Bh5UlNTAMBgNVHRMBAf8EAjAAMF0GA1UdHwRWMFQwUqBQoE6GTGh0dHBzOi8vY2EudGVzdC5laWRhczJzYW5ka2Fzc2UubmV0L3YxL2NlcnRzL2ludGVybWVkaWF0ZXMvZWFhX3Byb3ZpZGVyMi5jcmwwaAYIKwYBBQUHAQEEXDBaMFgGCCsGAQUFBzAChkxodHRwczovL2NhLnRlc3QuZWlkYXMyc2FuZGthc3NlLm5ldC92MS9jZXJ0cy9pbnRlcm1lZGlhdGVzL2VhYV9wcm92aWRlcjIuY2VyMA4GA1UdDwEB/wQEAwIFoDAbBgNVHREEFDASghBhZ2VudC5wYXJhZHltLmlkMAoGCCqGSM49BAMCA0gAMEUCIB8DifSOSL8Wxich24jEm9DEVL9EKT93AheU3YSlNDv1AiEA8k4qFfivjvko4CNTqLXz2homSYtzB0EHdrxKILFa/+0=
+      kantega:
+        name:
+          lang-no: Kantega AS
+          lang-en: Kantega AS
+        trade-name:
+          lang-no: NTRNO-985815534
+          lang-en: NTRNO-985815534
+        information-uris:
+          lang-no: https://kantega.id/
+          lang-en: https://kantega.id/
+        website: https://www.kantega.no
+        email: mailto:post@kantega.no
+        postal-address:
+          street-address: Kirkegata 5
+          postal-code: "0153"
+          locality: Oslo
+          country: "NO"
+        services:
+          - name:
+              lang-no: Kantega Bevisutsteder
+              lang-en: Kantega Bevisutsteder
+            starting-time: 2026-05-27T00:00:00.00Z
+            service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
+            cert: MIIDMTCCAtigAwIBAgIJAJ9ZOQxvkCqeMAoGCCqGSM49BAMCMIGEMR4wHAYDVQRhExVOVFJOTy1OT0ZPUi45OTE4MjU4MjcxCzAJBgNVBAYTAk5PMSQwIgYDVQQKExtESUdJVEFMSVNFUklOR1NESVJFS1RPUkFURVQxLzAtBgNVBAMTJmVpZGFzMnNhbmRrYXNzZSBFQUEgUHJvdmlkZXIgQ0EgMiB0ZXN0MB4XDTI2MDYwMTExNTUyN1oXDTI3MDYwMTExNTUyN1owYTELMAkGA1UEBhMCTk8xEzARBgNVBAoMCktBTlRFR0EgQVMxHTAbBgNVBAMMFEthbnRlZ2EgQmV2aXMgU3R1ZGlvMR4wHAYDVQRhDBVOVFJOTy1OT0ZPUi45ODU4MTU1MzQwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAR7vUdplXNUWLXKmW7GrO92uB9bJnQ1LAVgT/S+mlS3omGL2OtktMDksXo32Hkywev92PSdV69j52feFVFSbK0Ho4IBUzCCAU8wHwYDVR0jBBgwFoAUMRTEpsi8YuNwYTlMWGrhBR+Ej+8wHQYDVR0OBBYEFBTMpdVKszeCM7Xh40IwvL2fCJJ6MAwGA1UdEwEB/wQCMAAwXQYDVR0fBFYwVDBSoFCgToZMaHR0cHM6Ly9jYS50ZXN0LmVpZGFzMnNhbmRrYXNzZS5uZXQvdjEvY2VydHMvaW50ZXJtZWRpYXRlcy9lYWFfcHJvdmlkZXIyLmNybDBoBggrBgEFBQcBAQRcMFowWAYIKwYBBQUHMAKGTGh0dHBzOi8vY2EudGVzdC5laWRhczJzYW5ka2Fzc2UubmV0L3YxL2NlcnRzL2ludGVybWVkaWF0ZXMvZWFhX3Byb3ZpZGVyMi5jZXIwDgYDVR0PAQH/BAQDAgWgMCYGA1UdEQQfMB2CG3NhbmRrYXNzZS5pc3N1ZXIua2FudGVnYS5pZDAKBggqhkjOPQQDAgNHADBEAiA4r01zpoxhwO2/ngvt5eDMzsTbXHdOG37PbFdJhP1WCQIgcKm77CkwgTDPn1bdklWOMJsWn1ToRZKl2l+SZX72qRw=
+
+      ks-digital:
+        name:
+          lang-no: KS Digital
+          lang-en: KS Digital
+        trade-name:
+          lang-no: NTRNO-931796003
+          lang-en: NTRNO-931796003
+        information-uris:
+          lang-no: https://ksdigital.no/tjenester-2/
+          lang-en: https://ksdigital.no/tjenester-2/
+        website: https://ksdigital.no/
+        email: fiks@ksdigital.no
+        postal-address:
+          street-address: Nøstegaten 58
+          postal-code: "5011"
+          locality: Bergen
+
+          country: "NO"
+        services:
+          - name:
+              lang-no: KS Digital utsteder
+              lang-en: KS Digital utsteder
+            starting-time: 2026-06-08T00:00:00.00Z
+            service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
+            cert: MIID6zCCA5CgAwIBAgIJAKFXDgX1KXrjMAoGCCqGSM49BAMCMIGEMR4wHAYDVQRhExVOVFJOTy1OT0ZPUi45OTE4MjU4MjcxCzAJBgNVBAYTAk5PMSQwIgYDVQQKExtESUdJVEFMSVNFUklOR1NESVJFS1RPUkFURVQxLzAtBgNVBAMTJmVpZGFzMnNhbmRrYXNzZSBFQUEgUHJvdmlkZXIgQ0EgMiB0ZXN0MB4XDTI2MDYwMjA3MTEyMFoXDTI3MDYwMjA3MTEyMFowdjELMAkGA1UEBhMCTk8xJzAlBgNVBAoMHktTLURJR0lUQUxFIEZFTExFU1RKRU5FU1RFUiBBUzEeMBwGA1UEAwwVS1MgRGlnaXRhbCAtIHV0c3RlZGVyMR4wHAYDVQRhDBVOVFJOTy1OT0ZPUi45MzE3OTYwMDMwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDXujTG2Oa4/+SJY0pT4ZaXr9nMuU7t1rk/QNN7MqqCz2Nxmo4QwsUN5w82TXfTYaYjxbAfRHIdcQOPf/GUNXx8s3lecxzSfrc0tlFTtWZmV9pKuYIHTjIV9LKHnNeYD8/duJRYb/uVkdnr6282xXF7K0ZFXTfKQ53czB5MhwFa62+rkJrkY0wu/1JveNbi/5ovTX1LwepyU+oq+PiPS5ZpyVG4QIjpccb4Px4ClotqF1qlDPQw6MrDxXdPzCWCdAlczQ2KhINRbyyXlnZxl+gmWDqNgpyoSumQ/bOv8f09E1F4UbRQfd9xVL4BYUCdyBedNSGDamRkXNVnM/w9tjNfAgMBAAGjggErMIIBJzAfBgNVHSMEGDAWgBQxFMSmyLxi43BhOUxYauEFH4SP7zAdBgNVHQ4EFgQULMcjJcGhVK6dhpBQqYd0SIT9yuUwDAYDVR0TAQH/BAIwADBdBgNVHR8EVjBUMFKgUKBOhkxodHRwczovL2NhLnRlc3QuZWlkYXMyc2FuZGthc3NlLm5ldC92MS9jZXJ0cy9pbnRlcm1lZGlhdGVzL2VhYV9wcm92aWRlcjIuY3JsMGgGCCsGAQUFBwEBBFwwWjBYBggrBgEFBQcwAoZMaHR0cHM6Ly9jYS50ZXN0LmVpZGFzMnNhbmRrYXNzZS5uZXQvdjEvY2VydHMvaW50ZXJtZWRpYXRlcy9lYWFfcHJvdmlkZXIyLmNlcjAOBgNVHQ8BAf8EBAMCBaAwCgYIKoZIzj0EAwIDSQAwRgIhAKdh5rLk4FwywdCgGig3hOcTJJPrtoKl70sujQtihOQ2AiEA8XytdTz1sWDXS/8gU6Wwc+7EQtFKmHLinkgsDmr+7H0=
+
+      posten-bring:
+        name:
+          lang-no: Posten Bring AS
+          lang-en: Posten Bring AS
+        trade-name:
+          lang-no: NTRNO-984661185
+          lang-en: NTRNO-984661185
+        information-uris:
+          lang-no: https://www.digipost.no/bedrift/lommebok-og-digitale-bevis
+          lang-en: https://www.digipost.no/bedrift/lommebok-og-digitale-bevis
+        website: https://www.posten.no/
+        email: mailto:kontakt@digipost.no
+        postal-address:
+          street-address: "Biskop Gunnerus' gate 14A"
+          postal-code: "0185"
+          locality: Oslo
+          country: "NO"
+        services:
+          - name:
+              lang-no: Digipost Utstedertjeneste
+              lang-en: Digipost Issuer Service
+            starting-time: 2026-06-25T00:00:00.00Z
+            service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
+            cert: MIIDOzCCAuCgAwIBAgIIeMmjqCMvJC4wCgYIKoZIzj0EAwIwgYQxHjAcBgNVBGETFU5UUk5PLU5PRk9SLjk5MTgyNTgyNzELMAkGA1UEBhMCTk8xJDAiBgNVBAoTG0RJR0lUQUxJU0VSSU5HU0RJUkVLVE9SQVRFVDEvMC0GA1UEAxMmZWlkYXMyc2FuZGthc3NlIEVBQSBQcm92aWRlciBDQSAyIHRlc3QwHhcNMjYwNjE3MTIwMzQzWhcNMjcwNjE3MTIwMzQzWjBhMQswCQYDVQQGEwJOTzEYMBYGA1UECgwPUE9TVEVOIEJSSU5HIEFTMRgwFgYDVQQDDA9Qb3N0ZW4gQnJpbmcgQVMxHjAcBgNVBGEMFU5UUk5PLU5PRk9SLjk4NDY2MTE4NTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABA5/ejwgu2yCiz6uHNnwUMOHsEGrYlFC3wyCxHsWnmWDvJ4PleR/3DxYj3nNo/g25+blXUQcgZ3/wCmCsXb3J9WjggFcMIIBWDAfBgNVHSMEGDAWgBQxFMSmyLxi43BhOUxYauEFH4SP7zAdBgNVHQ4EFgQUGjHpg34s28K1L1+Jctsmue79+lYwDAYDVR0TAQH/BAIwADBdBgNVHR8EVjBUMFKgUKBOhkxodHRwczovL2NhLnRlc3QuZWlkYXMyc2FuZGthc3NlLm5ldC92MS9jZXJ0cy9pbnRlcm1lZGlhdGVzL2VhYV9wcm92aWRlcjIuY3JsMGgGCCsGAQUFBwEBBFwwWjBYBggrBgEFBQcwAoZMaHR0cHM6Ly9jYS50ZXN0LmVpZGFzMnNhbmRrYXNzZS5uZXQvdjEvY2VydHMvaW50ZXJtZWRpYXRlcy9lYWFfcHJvdmlkZXIyLmNlcjAOBgNVHQ8BAf8EBAMCBaAwLwYDVR0RBCgwJoIkZGlnaXBvc3Qtc2FuZGthc3NlLmlzc3Vlci5rYW50ZWdhLmlkMAoGCCqGSM49BAMCA0kAMEYCIQCJPkWb6nx9E5kcbvPqLYv77J5AflUgXEVZdLhAjDq7ZwIhAIs00dSEpqSAWEA1IYTqTW4M9eQuA5uTfFQvFmneU6/B
+
+  tsl602:
+    tsl-aca:
+      trusted-entities:
+        digdir:
+          trusted-entity-services:
+            - service-information:
+                service-name:
+                  lang-no: CA for relying parties access certificates i eidas2sandkasse
+                  lang-en: CA for relying parties access certificates in eidas2sandkasse
+                service-digital-identity:
+                  certs:
+                    - MIICuzCCAmGgAwIBAgIJAKcp7ByPxFNUMAoGCCqGSM49BAMDMGMxGDAWBgNVBGETD05UUk5PLTk5MTgyNTgyNzELMAkGA1UEBhMCbm8xDzANBgNVBAsTBkRpZ2RpcjEpMCcGA1UEAxMgZWlkYXMyc2FuZGthc3NlLm5ldCByb290IENBIHRlc3QwHhcNMjUwNTA5MDc1NjU0WhcNMzAwNDI5MDc1NjU0WjBkMRgwFgYDVQRhEw9OVFJOTy05OTE4MjU4MjcxCzAJBgNVBAYTAm5vMQ8wDQYDVQQLEwZEaWdkaXIxKjAoBgNVBAMTIWVpZGFzMnNhbmRrYXNzZSBSUCBBY2Nlc3MgQ0EgdGVzdDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABE4OQr5vpRMvcYZs46LkpdDgVQ9V+9E/Gx3Io2jqm+g/43/0b2Ns9oSRv1VpY/vYSI/O6JWylRQ+MNk6V3DfQv2jgfwwgfkwUQYIKwYBBQUHAQEERTBDMEEGCCsGAQUFBzAChjVodHRwczovL2NhLnRlc3QuZWlkYXMyc2FuZGthc3NlLm5ldC92MS9jZXJ0cy9yb290LmNlcjAdBgNVHQ4EFgQUUcgCJYAwgpE7JCLUm9xeoainXcwwDgYDVR0PAQH/BAQDAgEGMAwGA1UdEwQFMAMBAf8wRgYDVR0fBD8wPTA7oDmgN4Y1aHR0cHM6Ly9jYS50ZXN0LmVpZGFzMnNhbmRrYXNzZS5uZXQvdjEvY2VydHMvcm9vdC5jcmwwHwYDVR0jBBgwFoAUCi/G/x9Z1uJAVlFqD3onNXclrPEwCgYIKoZIzj0EAwMDSAAwRQIgfuk68h7gRHYXzBuddxFEUGl1eYtQgMCMKcw6D1kVjzgCIQC91xg+yGdocsoPmIGACivfYZAftiQXGEjHdid9RZOX1g==
+                    - MIIC9DCCApmgAwIBAgIIdNbYnEw42ScwCgYIKoZIzj0EAwIwfDEeMBwGA1UEYRMVTlRSTk8tTk9GT1IuOTkxODI1ODI3MQswCQYDVQQGEwJOTzEkMCIGA1UEChMbRElHSVRBTElTRVJJTkdTRElSRUtUT1JBVEVUMScwJQYDVQQDEx5laWRhczJzYW5ka2Fzc2Ugcm9vdCBDQSAyIHRlc3QwHhcNMjYwMzExMTA1MTE1WhcNMzEwMzAxMTA1MTE1WjCBgTEeMBwGA1UEYRMVTlRSTk8tTk9GT1IuOTkxODI1ODI3MQswCQYDVQQGEwJOTzEkMCIGA1UEChMbRElHSVRBTElTRVJJTkdTRElSRUtUT1JBVEVUMSwwKgYDVQQDEyNlaWRhczJzYW5ka2Fzc2UgUlAgQWNjZXNzIENBIDIgdGVzdDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABHdYnmCRIWeDxVLL+dPYfdvP1yrg0wSniw69UK5j51du+HHcSqWv2P7ZU0RFso5Uer/5fXODWEXum0LpeI5FIuujgf4wgfswUgYIKwYBBQUHAQEERjBEMEIGCCsGAQUFBzAChjZodHRwczovL2NhLnRlc3QuZWlkYXMyc2FuZGthc3NlLm5ldC92MS9jZXJ0cy9yb290Mi5jZXIwHQYDVR0OBBYEFA1rf8z77Nw1r3g7r0r41xOd44FWMA4GA1UdDwEB/wQEAwIBBjAMBgNVHRMEBTADAQH/MEcGA1UdHwRAMD4wPKA6oDiGNmh0dHBzOi8vY2EudGVzdC5laWRhczJzYW5ka2Fzc2UubmV0L3YxL2NlcnRzL3Jvb3QyLmNybDAfBgNVHSMEGDAWgBQvstEW+5y4/U/xJgCJPdgfszYURDAKBggqhkjOPQQDAgNJADBGAiEAlPrHLMVy5rF+x2BXsvK8ZQjnk9oQXEUfUq19Z+3VBLMCIQDq1MsBlYUB5LoJ/nD33mifxBU8TGmqsn7sEtl2VpD7PQ==
+
+
+    tsl-pid:
+      trusted-entities:
+        digdir:
+          trusted-entity-services:
+           - service-information:
+                service-type-identifier:
+                  a: http://uri.etsi.org/19602/SvcType/PID/Issuance
+                service-name:
+                  lang-no: PID-utsteder fra Digdir
+                  lang-en: PID-issuer from Digdir
+                service-digital-identity:
+                  certs:
+                    - MIIDMzCCAtmgAwIBAgIIGkwIqxyvEDswCgYIKoZIzj0EAwQwZzEYMBYGA1UEYRMPTlRSTk8tOTkxODI1ODI3MQswCQYDVQQGEwJubzEPMA0GA1UECxMGRGlnZGlyMS0wKwYDVQQDEyRlaWRhczJzYW5ka2Fzc2UgUElEIFByb3ZpZGVyIENBIHRlc3QwHhcNMjUxMDE1MTExMzA3WhcNMjYxMDE1MTExMzA3WjBiMQswCQYDVQQGEwJOTzEzMDEGA1UEAwwqRGlnaXRhbGlzZXJpbmdzZGlyZWt0b3JhdGV0IC0gUElELXV0c3RlZGVyMR4wHAYDVQRhDBVOVFJOTy1OT0ZPUi45OTE4MjU4MjcwdjAQBgcqhkjOPQIBBgUrgQQAIgNiAATLIEmdVcdTVfQ/6YpsPvS4taSRiebXwcjHWGEWpZLfrKb3yvowmUMe2SaDZD8HCOXjvSXfbIQsgFKeMU88IkNaDOfyMHbXYf3cJZCFJYo799hQL6j2tMogjUMkyoP+dnCjggFVMIIBUTAfBgNVHSMEGDAWgBRX7XviJqjDMVi/g0bAr0FvQshSDDAdBgNVHQ4EFgQUUCIS5a/pLXMjHV+a4AV8NkiRHZMwDAYDVR0TAQH/BAIwADBcBgNVHR8EVTBTMFGgT6BNhktodHRwczovL2NhLnRlc3QuZWlkYXMyc2FuZGthc3NlLm5ldC92MS9jZXJ0cy9pbnRlcm1lZGlhdGVzL3BpZF9wcm92aWRlci5jcmwwZwYIKwYBBQUHAQEEWzBZMFcGCCsGAQUFBzAChktodHRwczovL2NhLnRlc3QuZWlkYXMyc2FuZGthc3NlLm5ldC92MS9jZXJ0cy9pbnRlcm1lZGlhdGVzL3BpZF9wcm92aWRlci5jZXIwDgYDVR0PAQH/BAQDAgWgMCoGCCsGAQUFBwEDAQH/BBswGQYGBACORgEGDA9pZC1ldHNpLXFjdC1waWQwCgYIKoZIzj0EAwQDSAAwRQIgPNu17SJ+E628cVBT1J1CCZQEI85MIG1hqm1ynwyQN84CIQC67g+mvEDLF9C5gcwN8Q38IEJu3bw0EhCvBbUqPORQPA==
+                    - MIIDEjCCArigAwIBAgIJAMfkjXrnY1SVMAoGCCqGSM49BAMEMGcxGDAWBgNVBGETD05UUk5PLTk5MTgyNTgyNzELMAkGA1UEBhMCbm8xDzANBgNVBAsTBkRpZ2RpcjEtMCsGA1UEAxMkZWlkYXMyc2FuZGthc3NlIFBJRCBQcm92aWRlciBDQSB0ZXN0MB4XDTI2MDExMzEwMTgwNVoXDTI3MDExMzEwMTgwNVowgYgxCzAJBgNVBAYTAk5PMSQwIgYDVQQKDBtESUdJVEFMSVNFUklOR1NESVJFS1RPUkFURVQxMzAxBgNVBAMMKkRpZ2l0YWxpc2VyaW5nc2RpcmVrdG9yYXRldCAtIFBJRC11dHN0ZWRlcjEeMBwGA1UEYQwVTlRSTk8tTk9GT1IuOTkxODI1ODI3MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEu6YyK6bI0OowvxkrKxb1AtXo0ipBlKNcqkZR0Vl5P/8t8N4G/e9/vsy3sZbR2ZvXcZF/p5Mwj3XJPOILPXo3k6OCASkwggElMB8GA1UdIwQYMBaAFFfte+ImqMMxWL+DRsCvQW9CyFIMMB0GA1UdDgQWBBTVO1qeKoi0n/qF+abyObUKha7QyjAMBgNVHRMBAf8EAjAAMFwGA1UdHwRVMFMwUaBPoE2GS2h0dHBzOi8vY2EudGVzdC5laWRhczJzYW5ka2Fzc2UubmV0L3YxL2NlcnRzL2ludGVybWVkaWF0ZXMvcGlkX3Byb3ZpZGVyLmNybDBnBggrBgEFBQcBAQRbMFkwVwYIKwYBBQUHMAKGS2h0dHBzOi8vY2EudGVzdC5laWRhczJzYW5ka2Fzc2UubmV0L3YxL2NlcnRzL2ludGVybWVkaWF0ZXMvcGlkX3Byb3ZpZGVyLmNlcjAOBgNVHQ8BAf8EBAMCBaAwCgYIKoZIzj0EAwQDSAAwRQIhAPxy4C3Om87KssQKNBiBjUhkiU1PTssUHBwIvBTq7pCrAiB5g+umEiSPSXc6Viutkg/rGPEDZ8UiZA5Nyg0Q3RICQA==
+                    - MIIDEzCCArmgAwIBAgIJAOFIONHAhmasMAoGCCqGSM49BAMCMIGEMR4wHAYDVQRhExVOVFJOTy1OT0ZPUi45OTE4MjU4MjcxCzAJBgNVBAYTAk5PMSQwIgYDVQQKExtESUdJVEFMSVNFUklOR1NESVJFS1RPUkFURVQxLzAtBgNVBAMTJmVpZGFzMnNhbmRrYXNzZSBQSUQgUHJvdmlkZXIgQ0EgMiB0ZXN0MB4XDTI2MDQyODExMDQwMFoXDTI3MDQyODExMDQwMFowajELMAkGA1UEBhMCTk8xJDAiBgNVBAoMG0RJR0lUQUxJU0VSSU5HU0RJUkVLVE9SQVRFVDEVMBMGA1UEAwwMUElELXV0c3RlZGVyMR4wHAYDVQRhDBVOVFJOTy1OT0ZPUi45OTE4MjU4MjcwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASSXJXhrNGONnShQNlDCRnzusr0ggpEIAAgs3puS/Ti9JS2mc6k6Lwb9EnfOQ3Q3OV5GVSODrXXGFpqTtqYvkfYo4IBKzCCAScwHwYDVR0jBBgwFoAUu/AfAlnybAFXhRydYf6jADm+akQwHQYDVR0OBBYEFB1EcszzCIMdXBuuJDdYgwuzAYHnMAwGA1UdEwEB/wQCMAAwXQYDVR0fBFYwVDBSoFCgToZMaHR0cHM6Ly9jYS50ZXN0LmVpZGFzMnNhbmRrYXNzZS5uZXQvdjEvY2VydHMvaW50ZXJtZWRpYXRlcy9waWRfcHJvdmlkZXIyLmNybDBoBggrBgEFBQcBAQRcMFowWAYIKwYBBQUHMAKGTGh0dHBzOi8vY2EudGVzdC5laWRhczJzYW5ka2Fzc2UubmV0L3YxL2NlcnRzL2ludGVybWVkaWF0ZXMvcGlkX3Byb3ZpZGVyMi5jZXIwDgYDVR0PAQH/BAQDAgWgMAoGCCqGSM49BAMCA0gAMEUCIGYcwsiL/XgmYunMbyAQLiRwHyqxZDiGrb5Rv0KEsXklAiEAsjzaZlqqXpktoj72Qi9UuNlKQpH0csMujf4TxvnweYY=

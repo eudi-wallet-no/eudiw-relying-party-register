@@ -1,0 +1,122 @@
+---
+spring:
+  application:
+    environment: junit
+
+trustlist-service:
+  tsl612:
+    service-providers:
+      digdir:
+        services:
+          - name:
+              lang-no: CA for relying parties access certificates in eidas2sandkasse
+              lang-en: CA for relying parties access certificates in eidas2sandkasse
+            starting-time: 2025-07-03T12:00:00.00Z
+            service-type-identifier: http://uri.etsi.org/Svc/Svctype/CA/RPaccess
+            cert: MIIB1DCCAXqgAwIBAgIUSS2LdLU31QbGqpWbkegBmJ4ymIcwCgYIKoZIzj0EAwQwajELMAkGA1UEBhMCTk8xEjAQBgNVBAcMCUxlaWthbmdlcjEPMA0GA1UECgwGRGlnZGlyMRkwFwYDVQQLDBBkaWdpdGFsLWxvbW1lYm9rMRswGQYDVQQDDBJ1bml0dGVzdC10cnVzdGxpc3QwHhcNMjUwODEyMTIxMjUyWhcNMjYwODEyMTIxMjUyWjBqMQswCQYDVQQGEwJOTzESMBAGA1UEBwwJTGVpa2FuZ2VyMQ8wDQYDVQQKDAZEaWdkaXIxGTAXBgNVBAsMEGRpZ2l0YWwtbG9tbWVib2sxGzAZBgNVBAMMEnVuaXR0ZXN0LXRydXN0bGlzdDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABADhJlaNSR35FOCqL/HU+/bjRaMgBQHOUwtwFbDfVwN54icYqc4Gugsjz3QvQIuI9H9NrgObRgv9nMTAkc5Sq2YwCgYIKoZIzj0EAwQDSAAwRQIhAIcn6Bva5N/nGIndmNYMQUYFjJWh/VWufoHBKnJx1ATTAiBhS2MnqSFU0QvEoZ7s56kVvcPuL42bsJDjYuayUnKcBw==
+      my-junit-provider:
+        name:
+          lang-no: Enhetstest provider
+          lang-en: My Junit provider
+        trade-name:
+          lang-no: NTRNO-991825827
+          lang-en: NTRNO-991825827
+        information-uris:
+          lang-no: https://example.com/my-junit-provider
+          lang-en: https://example.com/my-junit-provider
+        email: mailto:example@example.com
+        website: https://www.junitest.no
+        postal-address:
+          street-address: Askedalen 1
+          postal-code: 6850
+          locality: Leikanger
+          country: "NO"
+        services:
+          - name:
+              lang-no: Enhetstest 1 CA i eidas2sandkasse
+              lang-en: Junit 1 CA in eidas2sandkasse
+            starting-time: 2026-03-26T00:00:00.00Z
+            service-type-identifier: http://uri.etsi.org/Svc/Svctype/CA/RPaccess
+            cert: MIIBwTCCAWagAwIBAgIUWS0icyxgc28PEDs0FZABnS3ztK0wCgYIKoZIzj0EAwIwYDEYMBYGA1UEYQwPTlRSTk8tOTkxODI1ODI3MQswCQYDVQQGEwJOTzEkMCIGA1UECgwbRElHSVRBTElTRVJJTkdTRElSRUtUT1JBVEVUMREwDwYDVQQDDAh1bml0dGVzdDAeFw0yNjAzMjcwNjIwMzlaFw0yNzAzMjcwNjIwMzlaMGAxGDAWBgNVBGEMD05UUk5PLTk5MTgyNTgyNzELMAkGA1UEBhMCTk8xJDAiBgNVBAoMG0RJR0lUQUxJU0VSSU5HU0RJUkVLVE9SQVRFVDERMA8GA1UEAwwIdW5pdHRlc3QwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQ2qaC3kU6KluRWmnLrcj7lHLhB8qlRxdTpNm0V+DTaShy3Xt+NG0BaiGsvHVz0QeAOd2YiBG8Kcxn9mWXttfJJMAoGCCqGSM49BAMCA0kAMEYCIQCtut7glq0YhXbAckReL6DfwcyATrjSi457aev2LaLYAwIhAKvC0wouq3qwDWwtJyHyMz43Ka6fznPtxoBddyXxNSXk
+          - name:
+              lang-no: Enhetstest 2 CA i eidas2sandkasse
+              lang-en: Junit 2 CA in eidas2sandkasse
+            starting-time: 2026-03-27T00:00:00.00Z
+            service-type-identifier: http://uri.etsi.org/Svc/Svctype/CA/RPaccess
+            cert: MIIBwTCCAWagAwIBAgIUWS0icyxgc28PEDs0FZABnS3ztK0wCgYIKoZIzj0EAwIwYDEYMBYGA1UEYQwPTlRSTk8tOTkxODI1ODI3MQswCQYDVQQGEwJOTzEkMCIGA1UECgwbRElHSVRBTElTRVJJTkdTRElSRUtUT1JBVEVUMREwDwYDVQQDDAh1bml0dGVzdDAeFw0yNjAzMjcwNjIwMzlaFw0yNzAzMjcwNjIwMzlaMGAxGDAWBgNVBGEMD05UUk5PLTk5MTgyNTgyNzELMAkGA1UEBhMCTk8xJDAiBgNVBAoMG0RJR0lUQUxJU0VSSU5HU0RJUkVLVE9SQVRFVDERMA8GA1UEAwwIdW5pdHRlc3QwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQ2qaC3kU6KluRWmnLrcj7lHLhB8qlRxdTpNm0V+DTaShy3Xt+NG0BaiGsvHVz0QeAOd2YiBG8Kcxn9mWXttfJJMAoGCCqGSM49BAMCA0kAMEYCIQCtut7glq0YhXbAckReL6DfwcyATrjSi457aev2LaLYAwIhAKvC0wouq3qwDWwtJyHyMz43Ka6fznPtxoBddyXxNSXk
+  tsl602:
+    tsl-aca:
+      keystore: signing-602
+      trusted-entities:
+        digdir:
+          trusted-entity-services:
+            - service-information:
+                service-name:
+                  lang-no: ca 1 fra Digdir
+                  lang-en: ca 1 from Digdir
+                service-digital-identity:
+                  certs:
+                    - cert1
+            - service-information:
+                service-name:
+                  lang-no: ca 2 fra Digdir
+                  lang-en: ca 2 from Digdir
+                service-digital-identity:
+                  certs:
+                    - cert2
+
+    tsl-pid:
+      keystore: signing-602-pid
+      trusted-entities:
+        digdir:
+          trusted-entity-services:
+            - service-information:
+                service-type-identifier:
+                  a: http://uri.etsi.org/19602/SvcType/PID/Issuance
+                service-name:
+                  lang-no: Fyrste PID-utsteder fra Digdir
+                  lang-en: First PID-issuer from Digdir
+                service-digital-identity:
+                  certs:
+                    - cert1
+            - service-information:
+                service-type-identifier:
+                  a: http://uri.etsi.org/19602/SvcType/PID/Issuance
+                service-name:
+                  lang-no: Nok ein PID-utsteder fra Digdir
+                  lang-en: Nok PID-issuer from Digdir
+                service-digital-identity:
+                  certs:
+                    - cert2
+                    - cert3
+                    - cert4
+
+    tsl-wallet:
+      keystore: signing-602-wallet
+
+idporten-key-manager:
+  keystores:
+    signing-612:
+      key-store-location: base64:MIIFJQIBAzCCBM8GCSqGSIb3DQEHAaCCBMAEggS8MIIEuDCCAZ8GCSqGSIb3DQEHAaCCAZAEggGMMIIBiDCCAYQGCyqGSIb3DQEMCgECoIIBDzCCAQswZgYJKoZIhvcNAQUNMFkwOAYJKoZIhvcNAQUMMCsEFN3UjVW7vQiwse7ix2fLzdv8hR+ZAgInEAIBIDAMBggqhkiG9w0CCQUAMB0GCWCGSAFlAwQBKgQQUuumm8Q+RJ2GdNu1ZvVpyQSBoGbqE3Gqr9vYqgVbNr+M5ZcPM1HYoYEJElhFdYhn14wMEBpCXkOY9xXtCzLwgmqTCbWdITQqs/IIRLmUgOR2YOmvKtEfXN0CaZ9rMzjNqAnmhmY15MsIxGJR/YI3lVSRnoyN5JI54o61ndeu0c/EqVCIBh8s/F4otHkfveCVXQ5dZDNl92KVHV63tvMHn1MWlBkEV+kxbRy/dOIGIHnaKAExYjA9BgkqhkiG9w0BCRQxMB4uAGoAdQBuAGkAdABfAHQAcgB1AHMAdABsAGkAcwB0AC0AcwBpAGcAbgBpAG4AZzAhBgkqhkiG9w0BCRUxFAQSVGltZSAxNzc5MzY2MTI3NDQxMIIDEQYJKoZIhvcNAQcGoIIDAjCCAv4CAQAwggL3BgkqhkiG9w0BBwEwZgYJKoZIhvcNAQUNMFkwOAYJKoZIhvcNAQUMMCsEFK8Y/RoygY2agYQ72L1j372rKXZWAgInEAIBIDAMBggqhkiG9w0CCQUAMB0GCWCGSAFlAwQBKgQQPVQq3CCUDDmOIFEyC4PEfoCCAoD5/oZRww8i4pbLh49R/ot9MBVJq/Zq9DGmowPWAepM4T2sEyYZLZSO8SYpZ11QPuCdAGRYGM7nBDgSbDv3qc4V4oR0+HWXUY3bPNeIFBJ68GMQkE4iZ1XKXu7XJ7UTOgYBCG53/qlQjtk1bv3MDOkpSJMbv3qtfAM1fBV89eTm2/ncJ0X6plG15tyU59MEYroWUCO9Q9yC27AWE70HuZ76XzVDfii5rkHN/iLCb3/KMv24f+zqT87jN7IV1pV/0KOd0hA5CZE0FSLU6nNrITkJWlrQ9BhQylFtwH1z1CnLLc3GlACcgfpLfQupw/7stTO+YvxF7wg+vymP7pJ07u6Wk0yz+MmVATDmb65mcwJqFC4AfULQKTTYxJJs6rX9X1Ah2Ao7PL5sWnsoXrttOeCku4fqipf7VZu+NqKhS00xseBzADKNFcKy1FAxPrCdCXPWIB7QzQTyfMp8oJZeOhqfyV/DI1snLiGQOgPX6ZOrCE0pcSaVrX+k1m4nTMBajvoD7j7SysLl/3zWXGt51TcAuFNAAAlnhy6ZGx61xlYYBSoQBCNBaMKDQqGUv4iRIxuSOmaVk+Y/Le2JfYiswVT6ICakRgPvoAKEQjRg3nMZhPqB0RDl5mB4MuDvaCuL2JOd7PfhD/JR82GgkqaAyWBmLwbeoYomqQle3bmuHw2gBsShEfKEVPhOGrk4beAvsHd+7QBxVYfMxXrKoiEq/FhS2kl7oa9IFQpPOcKStOrUIOvzfH7V5oao39hUUxB9mk8RPXoby/bN4RbY5fIysJ0op/0SNs5bb4arT4Vfc2vnYXzMb/kEuLCPwzpJ8RJ9a36L4B4DaBTKJBNv7WOturwTME0wMTANBglghkgBZQMEAgEFAAQgZCq5OhTSz6SP8tNX3tdTter9jL2JeKf93yNfIQyPMnsEFEBs/dXsv7xFXvDFrA/2O9JwCyUkAgInEA==
+      key-store-type: pkcs12
+      key-store-password: changeit
+      key-alias: junit_trustlist-signing
+      key-password: changeit
+    signing-602:
+      key-store-location: base64:MIIFbQIBAzCCBRcGCSqGSIb3DQEHAaCCBQgEggUEMIIFADCCAbcGCSqGSIb3DQEHAaCCAagEggGkMIIBoDCCAZwGCyqGSIb3DQEMCgECoIIBDzCCAQswZgYJKoZIhvcNAQUNMFkwOAYJKoZIhvcNAQUMMCsEFNhIu3wubNlpFdNQdmVUAf9xHu4dAgInEAIBIDAMBggqhkiG9w0CCQUAMB0GCWCGSAFlAwQBKgQQA300Yq3PxqTsvcwO7+zKfgSBoMAbJseluhTwurOVqq8e/mCUzTzE09fB1/ul+MzJnKk12Z11Ur14o2N8NNDjRCWoIZrxh9TvPGx77gvwTJrnbukPJcQUJOIYurwBVjnFLZiVS0lfq0y6E3WmkVetpm9aTGGFfBFkuvO9/oowb3XL7aV0rHhr2OaciOPKiGhdTlIHqKgFDaqoMLIcF2Hsn77vdbOa91UO7aKTytZPvr1VWdIxejBVBgkqhkiG9w0BCRQxSB5GAGUAaQBkAGEAcwAyAHMAYQBuAGQAawBhAHMAcwBlAC0AdAByAHUAcwB0AGwAaQBzAHQALQBkAGUAdgAtAGwAbwBjAGEAbDAhBgkqhkiG9w0BCRUxFAQSVGltZSAxNzczOTI5MjczNTkyMIIDQQYJKoZIhvcNAQcGoIIDMjCCAy4CAQAwggMnBgkqhkiG9w0BBwEwZgYJKoZIhvcNAQUNMFkwOAYJKoZIhvcNAQUMMCsEFIsrR0e6tEqxlJT7KTqR7+7EwJoAAgInEAIBIDAMBggqhkiG9w0CCQUAMB0GCWCGSAFlAwQBKgQQAvJyIFtF2GYNfxStwaB914CCArAkrrJS4umOn9iu4IttuqfSL6CIT+MzUkgF9Pu9tsvDXANuVEyF2rudEHm/6/pJmYGGTcAzuua/n3sHH/d+geyHtApCaqIh/ARBv6PthJbZUoagXWnayejq40zTzazlECz1Oz3OFZqBBV96U2NbtzUqV3c98LruOWYK3AU1jC2JObW1c2r1q+ZAOW7hKNuxRzrcA1KSjhwxcJEMITVv/tNwUkdsK6qTNVakwqpSjMwYMWIqE11h89+4C59trznY5JOFqrPEbk2ibrTguP09rjBaJChbFkZe2KJuuztAaVDMPMKhvQN9Z2pAzJOS7EoqBrKEBpdlIo+Dq4tcKZDMFbNRuK2YQvHfu9AjeQvQPtEfBtuOqlSdT+w++i+z90UkIriKt0YIM4yUQmICXv8sUN+qdfxz1Phvr5+zeAoL7G702PyAduEf/dsNNPhbJmVCIZp0iFj1hxkaEMpBa9hUqtGsRMI/anqGyq0gjt8vaVujdlBf3BcXOV+1YQsSOC8QdsFVBfyY3d26lRKIVKL+N8Xv9FfsY/q0MI7pQIC9o/JNPTa9tfmjOvoB/CFY7bWznB/EGOH/UjW5m6D7pv3UQNcFJM9aYYWi9mJUsXYeXtziAyCu2/PtJ9DXwvKC/FYZFMMcIAXtUm3nLVSmvMngwWQgKvoGpNMjP3SfvQOHkSIEJSxAaLZ3ztrfCL7J5eEzKEPf/98mX2ooNoTWcYxRk9nAA8vIHgaV0ddtk3mRraTXvPYdRLiKQQ7352pahI5X6Ieq8IMtlaCOzNbr4/+kNrdjLPEyTGmswGUyseAPnP7uqVGBb3mwYEJSoNevwon2ZXr1mRk2YR9AN/FwovDvTvgmVV/HGkGXw7LvaGcl6lpTdFcqZIZ4yqxhXNrQl4FRQlOVPsavlfWLpd30W0WFY/H7ME0wMTANBglghkgBZQMEAgEFAAQgaal5Bg8fl6lXeU+Fuyg+njHU6hGIJcQylamI4sbcNYoEFKTRxn/9+ICmj023cNr6m5nnDyJTAgInEA==
+      key-store-type: pkcs12
+      key-store-password: changeit
+      key-alias: eidas2sandkasse-trustlist-dev-local
+      key-password: changeit
+    signing-602-pid:
+      key-store-location: base64:MIIFbQIBAzCCBRcGCSqGSIb3DQEHAaCCBQgEggUEMIIFADCCAbcGCSqGSIb3DQEHAaCCAagEggGkMIIBoDCCAZwGCyqGSIb3DQEMCgECoIIBDzCCAQswZgYJKoZIhvcNAQUNMFkwOAYJKoZIhvcNAQUMMCsEFNhIu3wubNlpFdNQdmVUAf9xHu4dAgInEAIBIDAMBggqhkiG9w0CCQUAMB0GCWCGSAFlAwQBKgQQA300Yq3PxqTsvcwO7+zKfgSBoMAbJseluhTwurOVqq8e/mCUzTzE09fB1/ul+MzJnKk12Z11Ur14o2N8NNDjRCWoIZrxh9TvPGx77gvwTJrnbukPJcQUJOIYurwBVjnFLZiVS0lfq0y6E3WmkVetpm9aTGGFfBFkuvO9/oowb3XL7aV0rHhr2OaciOPKiGhdTlIHqKgFDaqoMLIcF2Hsn77vdbOa91UO7aKTytZPvr1VWdIxejBVBgkqhkiG9w0BCRQxSB5GAGUAaQBkAGEAcwAyAHMAYQBuAGQAawBhAHMAcwBlAC0AdAByAHUAcwB0AGwAaQBzAHQALQBkAGUAdgAtAGwAbwBjAGEAbDAhBgkqhkiG9w0BCRUxFAQSVGltZSAxNzczOTI5MjczNTkyMIIDQQYJKoZIhvcNAQcGoIIDMjCCAy4CAQAwggMnBgkqhkiG9w0BBwEwZgYJKoZIhvcNAQUNMFkwOAYJKoZIhvcNAQUMMCsEFIsrR0e6tEqxlJT7KTqR7+7EwJoAAgInEAIBIDAMBggqhkiG9w0CCQUAMB0GCWCGSAFlAwQBKgQQAvJyIFtF2GYNfxStwaB914CCArAkrrJS4umOn9iu4IttuqfSL6CIT+MzUkgF9Pu9tsvDXANuVEyF2rudEHm/6/pJmYGGTcAzuua/n3sHH/d+geyHtApCaqIh/ARBv6PthJbZUoagXWnayejq40zTzazlECz1Oz3OFZqBBV96U2NbtzUqV3c98LruOWYK3AU1jC2JObW1c2r1q+ZAOW7hKNuxRzrcA1KSjhwxcJEMITVv/tNwUkdsK6qTNVakwqpSjMwYMWIqE11h89+4C59trznY5JOFqrPEbk2ibrTguP09rjBaJChbFkZe2KJuuztAaVDMPMKhvQN9Z2pAzJOS7EoqBrKEBpdlIo+Dq4tcKZDMFbNRuK2YQvHfu9AjeQvQPtEfBtuOqlSdT+w++i+z90UkIriKt0YIM4yUQmICXv8sUN+qdfxz1Phvr5+zeAoL7G702PyAduEf/dsNNPhbJmVCIZp0iFj1hxkaEMpBa9hUqtGsRMI/anqGyq0gjt8vaVujdlBf3BcXOV+1YQsSOC8QdsFVBfyY3d26lRKIVKL+N8Xv9FfsY/q0MI7pQIC9o/JNPTa9tfmjOvoB/CFY7bWznB/EGOH/UjW5m6D7pv3UQNcFJM9aYYWi9mJUsXYeXtziAyCu2/PtJ9DXwvKC/FYZFMMcIAXtUm3nLVSmvMngwWQgKvoGpNMjP3SfvQOHkSIEJSxAaLZ3ztrfCL7J5eEzKEPf/98mX2ooNoTWcYxRk9nAA8vIHgaV0ddtk3mRraTXvPYdRLiKQQ7352pahI5X6Ieq8IMtlaCOzNbr4/+kNrdjLPEyTGmswGUyseAPnP7uqVGBb3mwYEJSoNevwon2ZXr1mRk2YR9AN/FwovDvTvgmVV/HGkGXw7LvaGcl6lpTdFcqZIZ4yqxhXNrQl4FRQlOVPsavlfWLpd30W0WFY/H7ME0wMTANBglghkgBZQMEAgEFAAQgaal5Bg8fl6lXeU+Fuyg+njHU6hGIJcQylamI4sbcNYoEFKTRxn/9+ICmj023cNr6m5nnDyJTAgInEA==
+      key-store-type: pkcs12
+      key-store-password: changeit
+      key-alias: eidas2sandkasse-trustlist-dev-local
+      key-password: changeit
+    signing-602-wallet:
+      key-store-location: base64:MIIFbQIBAzCCBRcGCSqGSIb3DQEHAaCCBQgEggUEMIIFADCCAbcGCSqGSIb3DQEHAaCCAagEggGkMIIBoDCCAZwGCyqGSIb3DQEMCgECoIIBDzCCAQswZgYJKoZIhvcNAQUNMFkwOAYJKoZIhvcNAQUMMCsEFNhIu3wubNlpFdNQdmVUAf9xHu4dAgInEAIBIDAMBggqhkiG9w0CCQUAMB0GCWCGSAFlAwQBKgQQA300Yq3PxqTsvcwO7+zKfgSBoMAbJseluhTwurOVqq8e/mCUzTzE09fB1/ul+MzJnKk12Z11Ur14o2N8NNDjRCWoIZrxh9TvPGx77gvwTJrnbukPJcQUJOIYurwBVjnFLZiVS0lfq0y6E3WmkVetpm9aTGGFfBFkuvO9/oowb3XL7aV0rHhr2OaciOPKiGhdTlIHqKgFDaqoMLIcF2Hsn77vdbOa91UO7aKTytZPvr1VWdIxejBVBgkqhkiG9w0BCRQxSB5GAGUAaQBkAGEAcwAyAHMAYQBuAGQAawBhAHMAcwBlAC0AdAByAHUAcwB0AGwAaQBzAHQALQBkAGUAdgAtAGwAbwBjAGEAbDAhBgkqhkiG9w0BCRUxFAQSVGltZSAxNzczOTI5MjczNTkyMIIDQQYJKoZIhvcNAQcGoIIDMjCCAy4CAQAwggMnBgkqhkiG9w0BBwEwZgYJKoZIhvcNAQUNMFkwOAYJKoZIhvcNAQUMMCsEFIsrR0e6tEqxlJT7KTqR7+7EwJoAAgInEAIBIDAMBggqhkiG9w0CCQUAMB0GCWCGSAFlAwQBKgQQAvJyIFtF2GYNfxStwaB914CCArAkrrJS4umOn9iu4IttuqfSL6CIT+MzUkgF9Pu9tsvDXANuVEyF2rudEHm/6/pJmYGGTcAzuua/n3sHH/d+geyHtApCaqIh/ARBv6PthJbZUoagXWnayejq40zTzazlECz1Oz3OFZqBBV96U2NbtzUqV3c98LruOWYK3AU1jC2JObW1c2r1q+ZAOW7hKNuxRzrcA1KSjhwxcJEMITVv/tNwUkdsK6qTNVakwqpSjMwYMWIqE11h89+4C59trznY5JOFqrPEbk2ibrTguP09rjBaJChbFkZe2KJuuztAaVDMPMKhvQN9Z2pAzJOS7EoqBrKEBpdlIo+Dq4tcKZDMFbNRuK2YQvHfu9AjeQvQPtEfBtuOqlSdT+w++i+z90UkIriKt0YIM4yUQmICXv8sUN+qdfxz1Phvr5+zeAoL7G702PyAduEf/dsNNPhbJmVCIZp0iFj1hxkaEMpBa9hUqtGsRMI/anqGyq0gjt8vaVujdlBf3BcXOV+1YQsSOC8QdsFVBfyY3d26lRKIVKL+N8Xv9FfsY/q0MI7pQIC9o/JNPTa9tfmjOvoB/CFY7bWznB/EGOH/UjW5m6D7pv3UQNcFJM9aYYWi9mJUsXYeXtziAyCu2/PtJ9DXwvKC/FYZFMMcIAXtUm3nLVSmvMngwWQgKvoGpNMjP3SfvQOHkSIEJSxAaLZ3ztrfCL7J5eEzKEPf/98mX2ooNoTWcYxRk9nAA8vIHgaV0ddtk3mRraTXvPYdRLiKQQ7352pahI5X6Ieq8IMtlaCOzNbr4/+kNrdjLPEyTGmswGUyseAPnP7uqVGBb3mwYEJSoNevwon2ZXr1mRk2YR9AN/FwovDvTvgmVV/HGkGXw7LvaGcl6lpTdFcqZIZ4yqxhXNrQl4FRQlOVPsavlfWLpd30W0WFY/H7ME0wMTANBglghkgBZQMEAgEFAAQgaal5Bg8fl6lXeU+Fuyg+njHU6hGIJcQylamI4sbcNYoEFKTRxn/9+ICmj023cNr6m5nnDyJTAgInEA==
+      key-store-type: pkcs12
+      key-store-password: changeit
+      key-alias: eidas2sandkasse-trustlist-dev-local
+      key-password: changeit
