@@ -14,7 +14,7 @@ public class TrustlistController {
 
     private final SignedTrustlist612Service signedTrustListService;
 
-    @Value("${trustlist-service.tsl612.scheme-information.list-issue-datetime:#{T(java.time.ZonedDateTime).now()}}")
+    @Value("${trustlist-service.tsl612.scheme-information.list-issue-date-time:#{T(java.time.ZonedDateTime).now()}}")
     private ZonedDateTime lastModified;
 
     public TrustlistController(SignedTrustlist612Service signedTrustListService) {
