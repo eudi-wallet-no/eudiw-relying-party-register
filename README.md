@@ -14,6 +14,7 @@ Monorepo for EUDI Wallet Relying Party Register-applikasjoner.
 | [eudiw-rp-register-service](apps/eudiw-rp-register-service) | Relying Party Register Service | [README](apps/eudiw-rp-register-service/README.md) |
 | [eudiw-rp-register-lookup-web](apps/eudiw-rp-register-lookup-web) | Relying Party Register oppslag (innsyn) | [README](apps/eudiw-rp-register-lookup-web/README.md) |
 | [eudiw-credential-registry](apps/eudiw-credential-registry) | Credential Issuer Registry | [README](apps/eudiw-credential-registry/README.md) |
+| [eudiw-trustlist-service](apps/eudiw-trustlist-service) | Trust List Service for eIDAS2-sandkassen | [README](apps/eudiw-trustlist-service/README.md) |
 
 ## Struktur
 

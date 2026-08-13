@@ -6,7 +6,7 @@ spring:
 trustlist-service:
   tsl612:
     scheme-information:
-      list-issue-datetime: 2026-06-23T00:00:00.00Z
+      list-issue-date-time: 2026-06-23T00:00:00.00Z
     service-providers:
       digdir:
         services:

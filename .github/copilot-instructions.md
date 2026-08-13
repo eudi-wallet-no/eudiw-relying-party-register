@@ -14,14 +14,10 @@ F.eks. `EUW-1234: Ny pr`. Uten dette feiler `validate-pr-title`-sjekken i GitHub
 Skriv menneskelig, kort og konkret. Unngå AI-språk ("This PR introduces..."), emojis, overdreven struktur, selvskryt og oppsummeringsvegger. Én linje holder for trivielle endringer.
 
 Mal:
-
+```
 ## Hva og hvorfor
 1-2 setninger: hva endres og hvorfor.
 
 ## Endringer
 - Viktigste punkter, ikke hver fil/detalj.
-
-## Merknader
-Valgfritt: risiko, følgeendringer, ting reviewer bør vite. Slett seksjonen hvis ikke relevant.
-
-PR description skal alltid reflektere gjeldende endringer — oppdater den når det legges til flere commits/endringer etter at PR-en først ble opprettet, ikke bare la den stå igjen fra første commit.
+```
