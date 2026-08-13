@@ -28,6 +28,7 @@
         <idporten-audit-log.version>4.0.4</idporten-audit-log.version>
         <spring-security-test.version>7.1.0</spring-security-test.version>
         <spring-security-oauth2-resource-server.version>7.1.0</spring-security-oauth2-resource-server.version>
+        <httpcore5.version>5.4.3</httpcore5.version>
     </properties>
 
     <dependencies>
@@ -126,6 +127,11 @@
         <dependency>
             <groupId>org.apache.httpcomponents.client5</groupId>
             <artifactId>httpclient5</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents.core5</groupId>
+            <artifactId>httpcore5</artifactId>
+            <version>${httpcore5.version}</version>
         </dependency>
     </dependencies>
 
