@@ -86,7 +86,7 @@ trustlist-service:
           lang-no: https://ksdigital.no/tjenester-2/
           lang-en: https://ksdigital.no/tjenester-2/
         website: https://ksdigital.no/
-        email: fiks@ksdigital.no
+        email: mailto:fiks@ksdigital.no
         postal-address:
           street-address: Nøstegaten 58
           postal-code: "5011"
@@ -137,7 +137,7 @@ trustlist-service:
           lang-no: https://www.oslo.kommune.no/
           lang-en: https://www.oslo.kommune.no/
         website: https://www.oslo.kommune.no/
-        email:
+        email: mailto:post@oslo.kommune.no
         postal-address:
           street-address: "Rådhusplassen 1"
           postal-code: "0037"
