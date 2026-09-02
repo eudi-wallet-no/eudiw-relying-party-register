@@ -137,7 +137,7 @@ trustlist-service:
           lang-no: https://www.oslo.kommune.no/
           lang-en: https://www.oslo.kommune.no/
         website: https://www.oslo.kommune.no/
-        email: mailto:post@oslo.kommune.no
+        email: mailto:nasjonale.felleskomponenter@dig.oslo.kommune.no
         postal-address:
           street-address: "Rådhusplassen 1"
           postal-code: "0037"
