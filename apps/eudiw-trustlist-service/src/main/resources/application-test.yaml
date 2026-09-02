@@ -86,7 +86,7 @@ trustlist-service:
           lang-no: https://ksdigital.no/tjenester-2/
           lang-en: https://ksdigital.no/tjenester-2/
         website: https://ksdigital.no/
-        email: fiks@ksdigital.no
+        email: mailto:fiks@ksdigital.no
         postal-address:
           street-address: Nøstegaten 58
           postal-code: "5011"
@@ -125,6 +125,31 @@ trustlist-service:
             starting-time: 2026-06-25T00:00:00.00Z
             service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
             cert: MIIDOzCCAuCgAwIBAgIIeMmjqCMvJC4wCgYIKoZIzj0EAwIwgYQxHjAcBgNVBGETFU5UUk5PLU5PRk9SLjk5MTgyNTgyNzELMAkGA1UEBhMCTk8xJDAiBgNVBAoTG0RJR0lUQUxJU0VSSU5HU0RJUkVLVE9SQVRFVDEvMC0GA1UEAxMmZWlkYXMyc2FuZGthc3NlIEVBQSBQcm92aWRlciBDQSAyIHRlc3QwHhcNMjYwNjE3MTIwMzQzWhcNMjcwNjE3MTIwMzQzWjBhMQswCQYDVQQGEwJOTzEYMBYGA1UECgwPUE9TVEVOIEJSSU5HIEFTMRgwFgYDVQQDDA9Qb3N0ZW4gQnJpbmcgQVMxHjAcBgNVBGEMFU5UUk5PLU5PRk9SLjk4NDY2MTE4NTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABA5/ejwgu2yCiz6uHNnwUMOHsEGrYlFC3wyCxHsWnmWDvJ4PleR/3DxYj3nNo/g25+blXUQcgZ3/wCmCsXb3J9WjggFcMIIBWDAfBgNVHSMEGDAWgBQxFMSmyLxi43BhOUxYauEFH4SP7zAdBgNVHQ4EFgQUGjHpg34s28K1L1+Jctsmue79+lYwDAYDVR0TAQH/BAIwADBdBgNVHR8EVjBUMFKgUKBOhkxodHRwczovL2NhLnRlc3QuZWlkYXMyc2FuZGthc3NlLm5ldC92MS9jZXJ0cy9pbnRlcm1lZGlhdGVzL2VhYV9wcm92aWRlcjIuY3JsMGgGCCsGAQUFBwEBBFwwWjBYBggrBgEFBQcwAoZMaHR0cHM6Ly9jYS50ZXN0LmVpZGFzMnNhbmRrYXNzZS5uZXQvdjEvY2VydHMvaW50ZXJtZWRpYXRlcy9lYWFfcHJvdmlkZXIyLmNlcjAOBgNVHQ8BAf8EBAMCBaAwLwYDVR0RBCgwJoIkZGlnaXBvc3Qtc2FuZGthc3NlLmlzc3Vlci5rYW50ZWdhLmlkMAoGCCqGSM49BAMCA0kAMEYCIQCJPkWb6nx9E5kcbvPqLYv77J5AflUgXEVZdLhAjDq7ZwIhAIs00dSEpqSAWEA1IYTqTW4M9eQuA5uTfFQvFmneU6/B
+
+      oslo-kommune:
+        name:
+          lang-no: Oslo Kommune
+          lang-en: Oslo Municipality
+        trade-name:
+          lang-no: NTRNO-958935420
+          lang-en: NTRNO-958935420
+        information-uris:
+          lang-no: https://www.oslo.kommune.no/
+          lang-en: https://www.oslo.kommune.no/
+        website: https://www.oslo.kommune.no/
+        email: mailto:nasjonale.felleskomponenter@dig.oslo.kommune.no
+        postal-address:
+          street-address: "Rådhusplassen 1"
+          postal-code: "0037"
+          locality: Oslo
+          country: "NO"
+        services:
+          - name:
+              lang-no: Oslo kommune - utsteder
+              lang-en: Oslo kommune - issuer
+            starting-time: 2026-09-01T00:00:00.00Z
+            service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
+            cert: MIIDDjCCArSgAwIBAgIIVNPGeNYRgakwCgYIKoZIzj0EAwIwgYQxHjAcBgNVBGETFU5UUk5PLU5PRk9SLjk5MTgyNTgyNzELMAkGA1UEBhMCTk8xJDAiBgNVBAoTG0RJR0lUQUxJU0VSSU5HU0RJUkVLVE9SQVRFVDEvMC0GA1UEAxMmZWlkYXMyc2FuZGthc3NlIEVBQSBQcm92aWRlciBDQSAyIHRlc3QwHhcNMjYwOTAxMTAxODI5WhcNMjcwOTAxMTAxODI5WjBmMQswCQYDVQQGEwJOTzEVMBMGA1UECgwMT1NMTyBLT01NVU5FMSAwHgYDVQQDDBdPc2xvIGtvbW11bmUgLSB1dHN0ZWRlcjEeMBwGA1UEYQwVTlRSTk8tTk9GT1IuOTU4OTM1NDIwMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEfn2SmAHPRsTTec36fuz3jPYWx2x4oDv1vbjYAhJem4knJzKJZG+cxragKGBTfluxoAu8sURrHy7PS2URXwuto6OCASswggEnMB8GA1UdIwQYMBaAFDEUxKbIvGLjcGE5TFhq4QUfhI/vMB0GA1UdDgQWBBQRVypWXJIIdDYCMVw4Wv0BTsr6MTAMBgNVHRMBAf8EAjAAMF0GA1UdHwRWMFQwUqBQoE6GTGh0dHBzOi8vY2EudGVzdC5laWRhczJzYW5ka2Fzc2UubmV0L3YxL2NlcnRzL2ludGVybWVkaWF0ZXMvZWFhX3Byb3ZpZGVyMi5jcmwwaAYIKwYBBQUHAQEEXDBaMFgGCCsGAQUFBzAChkxodHRwczovL2NhLnRlc3QuZWlkYXMyc2FuZGthc3NlLm5ldC92MS9jZXJ0cy9pbnRlcm1lZGlhdGVzL2VhYV9wcm92aWRlcjIuY2VyMA4GA1UdDwEB/wQEAwIFoDAKBggqhkjOPQQDAgNIADBFAiB7YyajTNK1rmDkLocLfeSbIp0WRnQiEbwG2ztI3ncj1AIhALzG49pTVYCefrmSoRpE+rrrUBucktqj7YtvNSJaVCH7
 
   tsl602:
     tsl-aca:
