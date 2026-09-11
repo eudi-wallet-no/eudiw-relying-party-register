@@ -21,6 +21,8 @@ logging:
           jdbc:
             bind: INFO
 spring:
+  config:
+    import: optional:file:${EUDIW_RP_REGISTER_SERVICE_ENV}[.properties]
   jpa:
     properties:
       hibernate:

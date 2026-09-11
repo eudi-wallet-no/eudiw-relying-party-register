@@ -9,6 +9,12 @@ management:
     health:
       show-details: always
 
+spring:
+  config:
+    import: optional:file:${EUDIW_RP_REGISTER_LOOKUP_WEB_ENV}[.properties]
+  application:
+    environment: dev
+
 eudiw-rp-register-lookup-web:
   relying-parties-service:
     register-service-api:
@@ -17,9 +23,7 @@ eudiw-rp-register-lookup-web:
     credentials-registry-api:
       credentials-registry-base-uri: http://credential-register:9294
 
-spring:
-  application:
-    environment: dev
+
 
 external-dependency-health-checks:
   enabled: false

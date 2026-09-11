@@ -30,6 +30,8 @@ services:
       args:
         GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
         GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
+    env_file:
+      - ${EUDIW_RP_REGISTER_SERVICE_ENV}
     environment:
       spring_profiles_active: docker
     ports:

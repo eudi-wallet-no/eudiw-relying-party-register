@@ -1,5 +1,7 @@
 ---
 spring:
+  config:
+    import: optional:file:${EUDIW_RP_REGISTER_ADMIN_ENV}[.properties]
   application:
     environment: dev
 
