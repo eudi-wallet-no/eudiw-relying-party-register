@@ -107,6 +107,18 @@ public class DisplayTests {
         }
 
         @Test
+        @DisplayName("then credential type is used when credential metadata is missing")
+        public void testCredentialTypeReturnedWhenCredentialMetadataIsMissing() {
+            CredentialResource credentialResource =
+                ResourceGenerator.generateCredentialResource()
+                                 .withMetadata(null);
+
+            assertEquals(credentialResource.getCredentialType(),
+                         credentialResource.getCredentialTypeDisplayName("no"));
+            assertNull(credentialResource.getCredentialTypeDescription("no"));
+        }
+
+        @Test
         @DisplayName("then a null string is returned when claims has no display")
         public void testNullReturnedWhenClaimsHasNoDisplay() {
             CredentialMetadata.Claims claimsWithNullDisplay =
