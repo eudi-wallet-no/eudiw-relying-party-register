@@ -11,8 +11,8 @@ spring:
       client:
         registration:
           ansattporten:
-            client-id: eudiw_sjolvbetening_lokalt
-            client-secret: 25c5de30-6b63-42fc-bfe1-60e005fe0bb2
+            client-id: ${ANSATTPORTEN_CLIENT_ID}
+            client-secret: ${ANSATTPORTEN_CLIENT_SECRET}
             client-name: Ansattporten (systest, Docker-klient)
         provider:
           ansattporten:
