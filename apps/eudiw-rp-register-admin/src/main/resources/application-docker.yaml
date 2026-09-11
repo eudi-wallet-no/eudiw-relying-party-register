@@ -10,5 +10,3 @@ eudiw-admin-web:
   relying-parties-service:
     register-service-api:
       register-service-base-uri: http://rp-register-service:9200
-      api-key-value: xxx
-

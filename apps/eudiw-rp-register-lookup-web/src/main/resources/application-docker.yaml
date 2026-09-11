@@ -13,7 +13,6 @@ eudiw-rp-register-lookup-web:
   relying-parties-service:
     register-service-api:
       register-service-base-uri: http://rp-register-service:9200
-      api-key-value: xxx
   credentials-service:
     credentials-registry-api:
       credentials-registry-base-uri: http://credential-registry:9294
