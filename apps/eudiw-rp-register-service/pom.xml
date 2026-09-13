@@ -17,7 +17,7 @@
     <properties>
         <java.version>25</java.version>
         <idporten-actuator.version>3.1.1</idporten-actuator.version>
-        <idporten-validators.version>1.6.1</idporten-validators.version>
+        <idporten-validators.version>1.6.2</idporten-validators.version>
         <idporten-access-log.version>4.0.4</idporten-access-log.version>
         <opentelemetry-api.version>1.64.0</opentelemetry-api.version>
         <mariadb-java-client.version>3.5.10</mariadb-java-client.version>
