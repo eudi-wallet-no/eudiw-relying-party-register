@@ -15,10 +15,10 @@
     <properties>
         <java.version>25</java.version>
         <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
-        <lombok.version>1.18.46</lombok.version>
+        <lombok.version>1.18.48</lombok.version>
         <idporten-actuator-starter.version>3.1.1</idporten-actuator-starter.version>
         <idporten-access-log.version>4.0.4</idporten-access-log.version>
-        <idporten-validators.version>1.6.1</idporten-validators.version>
+        <idporten-validators.version>1.6.2</idporten-validators.version>
         <opentelemetry-api.version>1.64.0</opentelemetry-api.version>
         <springdoc.version>3.0.3</springdoc.version>
         <bcpkix-jdk18on.version>1.84</bcpkix-jdk18on.version>
