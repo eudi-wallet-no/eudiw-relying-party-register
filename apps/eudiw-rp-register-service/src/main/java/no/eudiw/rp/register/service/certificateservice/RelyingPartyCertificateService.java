@@ -218,8 +218,11 @@ public class RelyingPartyCertificateService {
         if (!relyingPartyRepository.existsById(relyingPartyId)) {
             throw new NotFoundException("Certificate holder with id " + relyingPartyId + " does not exist");
         }
-        if (!issuerCertificateRepository.existsById(certificateId)) {
-            throw new NotFoundException("Certificate with id " + certificateId + " does not exist");
+        if (issuerCertificateRepository
+                .findByIdAndEntitlementRelyingPartyInstanceId(certificateId, relyingPartyId)
+                .isEmpty()) {
+            throw new NotFoundException("Certificate id and certificate holder does not match, or one of them " +
+                                        "does not exist");
         }
         if (issuerCertificateRepository.findById(certificateId).get().getRevocationStatus() >= 0) {
             throw new RegisterServiceException("Certificate has already been revoked");

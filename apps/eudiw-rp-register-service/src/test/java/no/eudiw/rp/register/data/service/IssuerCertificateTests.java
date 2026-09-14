@@ -326,5 +326,41 @@ public class IssuerCertificateTests {
             assertEquals("PUT", recordedRequest2.getMethod());
             assertEquals(0, relyingPartyFinished.getIssuerCertificates().getFirst().getRevocationStatus());
         }
+
+        @Test
+        @DisplayName("revoking an issuer certificate on behalf of a different relying party is rejected")
+        public void testIssuerCertificateCannotBeRevokedByAnotherRelyingParty() {
+            // Owning relying party: registers the issuer certificate that will later be targeted for revocation.
+            LegalEntity ownerLegalEntity = EntityGenerator.generateLegalEntity();
+            ownerLegalEntity.getRelyingPartyInstances().getFirst().setRelyingPartyEntitlements(
+                    List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/PID_Provider")));
+            rpRepository.saveAndFlush(ownerLegalEntity);
+
+            enqueueMockCertificateResponse();
+            certService.requestIssuerCertificate(ownerLegalEntity.getRelyingPartyInstances().getFirst().getId(),
+                    ResourceGenerator.generateIssuerCsrResource(ownerLegalEntity.getRelyingPartyInstances()
+                            .getFirst().getRelyingPartyEntitlements().getFirst().getEntitlement()));
+
+            RelyingPartyInstance ownerRelyingParty =
+                    instanceRepository.findById(ownerLegalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null);
+            assertNotNull(ownerRelyingParty);
+            assertEquals(1, ownerRelyingParty.getIssuerCertificates().size());
+
+            // Second relying party: different legal entity/instance, no relation to the owner's certificate.
+            LegalEntity otherLegalEntity = EntityGenerator.generateLegalEntity();
+            rpRepository.saveAndFlush(otherLegalEntity);
+            RelyingPartyInstance otherRelyingParty = otherLegalEntity.getRelyingPartyInstances().getFirst();
+
+            var ownerCertificateId = ownerRelyingParty.getIssuerCertificates().getFirst().getId();
+
+            assertThrows(NotFoundException.class,
+                    () -> certService.revokeIssuerCertificate(ownerCertificateId, otherRelyingParty.getId()));
+
+            RelyingPartyInstance ownerRelyingPartyAfter =
+                    instanceRepository.findById(ownerLegalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null);
+            assertNotNull(ownerRelyingPartyAfter);
+            assertEquals(-1, ownerRelyingPartyAfter.getIssuerCertificates().getFirst().getRevocationStatus(),
+                    "Certificate must remain unrevoked when the requesting relying party does not own it");
+        }
     }
 }
