@@ -1,20 +1,13 @@
 package no.eudiw.rp.register.api.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import no.eudiw.rp.register.api.RegisterServiceApiSwaggerExamples;
-import no.eudiw.rp.register.api.resource.entitlements.CreateEntitlementResource;
-import no.eudiw.rp.register.api.resource.entitlements.EditEntitlementResource;
-import no.eudiw.rp.register.api.resource.entitlements.EntitlementResource;
 import no.eudiw.rp.register.api.resource.entitlements.EntitlementsResource;
 import no.eudiw.rp.register.service.EntitlementService;
 import no.idporten.logging.audit.Audit;
@@ -47,48 +40,9 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class EntitlementController {
 
-    private static final String ENTITLEMENT_CREATED = "ENTITLEMENT-CREATED";
-    private static final String ENTITLEMENT_UPDATED = "ENTITLEMENT-UPDATED";
     private static final String ENTITLEMENTS_RETRIEVED = "ENTITLEMENTS-RETRIEVED";
 
     private final EntitlementService entitlementService;
-
-    @Operation(
-        summary = "Register entitlement",
-        description = "Register a new entitlement",
-        tags = {"entitlement-api"})
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Entitlement is created"),
-        @ApiResponse(responseCode = "400", description = "Invalid resource")
-    })
-    @Audit(auditId = ENTITLEMENT_CREATED)
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<EntitlementResource> registerEntitlement(
-        @Valid @RequestBody CreateEntitlementResource request)
-    {
-        return ResponseEntity.ok(entitlementService.register(request));
-    }
-
-    @Operation(
-        summary = "Edit entitlement",
-        description = "Edit active status for entitlement",
-        tags = {"entitlement-api"},
-        parameters = {
-            @Parameter(in = ParameterIn.PATH, name = "entitlement", required = true, description = "Unique entitlement")
-        }
-    )
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Entitlement active status is edited"),
-        @ApiResponse(responseCode = "404", description = "Entitlement is not found")
-    })
-    @Audit(auditId = ENTITLEMENT_UPDATED)
-    @PutMapping(path = "/{entitlement}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<EntitlementResource> editEntitlement(
-        @PathVariable("entitlement") @NotBlank String entitlement,
-        @Valid @RequestBody EditEntitlementResource request)
-    {
-        return ResponseEntity.ofNullable(entitlementService.editEntitlement(entitlement, request.active()));
-    }
 
     @Operation(
         summary = "Get all entitlements",

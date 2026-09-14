@@ -3,8 +3,10 @@ package no.eudiw.rp.register.data.service;
 import no.eudiw.rp.register.api.resource.certificates.IssuerCsrResource;
 import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCsrResource;
 import no.eudiw.rp.register.api.resource.entitlements.EntitlementResource;
+import no.eudiw.rp.register.data.entity.Entitlement;
 import no.eudiw.rp.register.data.entity.LegalEntity;
 import no.eudiw.rp.register.data.entity.certificates.X509CertificateConverter;
+import no.eudiw.rp.register.data.repository.EntitlementRepository;
 import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyEntitlement;
 import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyInstance;
 import no.eudiw.rp.register.data.repository.LegalEntityRepository;
@@ -31,6 +33,7 @@ import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -47,6 +50,9 @@ public class IssuerCertificateTests {
 
     @Autowired
     private LegalEntityRepository rpRepository;
+
+    @Autowired
+    private EntitlementRepository entitlementRepository;
 
     @Nested
     @DisplayName("when registering a new issuer certificate")
@@ -138,6 +144,31 @@ public class IssuerCertificateTests {
             assertNotNull(entitlement);
             assertNotNull(entitlement.getIssuerCertificates());
             assertEquals(1, entitlement.getIssuerCertificates().size());
+        }
+
+        @Test
+        @DisplayName("CA id is encoded as a path variable")
+        void testCaIdWithLeadingSlashIsNotTreatedAsAHost() throws Exception {
+            String entitlementUri = "urn:test:ssrf-" + UUID.randomUUID();
+            entitlementRepository.saveAndFlush(
+                    new Entitlement(entitlementUri, true, "SSRF test", "/attacker.example"));
+            X509Certificate certificateExpected = enqueueMockCertificateResponse();
+
+            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
+            legalEntity.getRelyingPartyInstances().getFirst().setRelyingPartyEntitlements(
+                    List.of(new RelyingPartyEntitlement(entitlementUri)));
+            rpRepository.saveAndFlush(legalEntity);
+
+            X509Certificate certificateActual = certService.requestIssuerCertificate(
+                    legalEntity.getRelyingPartyInstances().getFirst().getId(),
+                    new IssuerCsrResource(CertificatesGenerator.generatePKCS10Csr(), entitlementUri)
+            ).certificate();
+
+            RecordedRequest recordedRequest = mockCaServer.takeRequest();
+            assertAll(
+                    () -> assertEquals(certificateExpected, certificateActual),
+                    () -> assertEquals("/v1/certs/%2Fattacker.example", recordedRequest.getPath())
+            );
         }
 
         @Test
@@ -325,6 +356,74 @@ public class IssuerCertificateTests {
 
             assertEquals("PUT", recordedRequest2.getMethod());
             assertEquals(0, relyingPartyFinished.getIssuerCertificates().getFirst().getRevocationStatus());
+        }
+
+        @Test
+        @DisplayName("revocation CA id is encoded as a path variable")
+        public void testRevocationCaIdWithLeadingSlashIsNotTreatedAsAHost() throws InterruptedException {
+            String entitlementUri = "urn:test:ssrf-revoke-" + UUID.randomUUID();
+            entitlementRepository.saveAndFlush(
+                    new Entitlement(entitlementUri, true, "SSRF revocation test", "/attacker.example"));
+
+            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
+            legalEntity.getRelyingPartyInstances().getFirst().setRelyingPartyEntitlements(
+                    List.of(new RelyingPartyEntitlement(entitlementUri)));
+            rpRepository.saveAndFlush(legalEntity);
+
+            enqueueMockCertificateResponse();
+
+            certService.requestIssuerCertificate(legalEntity.getRelyingPartyInstances().getFirst().getId(),
+                            ResourceGenerator.generateIssuerCsrResource(entitlementUri));
+            mockCaServer.takeRequest();
+
+            RelyingPartyInstance relyingPartyOut =
+                    instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null);
+
+            enqueueMockRevocationCall();
+
+            certService.revokeIssuerCertificate(relyingPartyOut.getIssuerCertificates().getFirst().getId(), relyingPartyOut.getId());
+            RecordedRequest recordedRequest = mockCaServer.takeRequest();
+
+            assertAll(
+                    () -> assertEquals("PUT", recordedRequest.getMethod()),
+                    () -> assertEquals("/v1/certs/%2Fattacker.example", recordedRequest.getPath())
+            );
+        }
+
+        @Test
+        @DisplayName("revoking an issuer certificate on behalf of a different relying party is rejected")
+        public void testIssuerCertificateCannotBeRevokedByAnotherRelyingParty() {
+            // Owning relying party: registers the issuer certificate that will later be targeted for revocation.
+            LegalEntity ownerLegalEntity = EntityGenerator.generateLegalEntity();
+            ownerLegalEntity.getRelyingPartyInstances().getFirst().setRelyingPartyEntitlements(
+                    List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/PID_Provider")));
+            rpRepository.saveAndFlush(ownerLegalEntity);
+
+            enqueueMockCertificateResponse();
+            certService.requestIssuerCertificate(ownerLegalEntity.getRelyingPartyInstances().getFirst().getId(),
+                    ResourceGenerator.generateIssuerCsrResource(ownerLegalEntity.getRelyingPartyInstances()
+                            .getFirst().getRelyingPartyEntitlements().getFirst().getEntitlement()));
+
+            RelyingPartyInstance ownerRelyingParty =
+                    instanceRepository.findById(ownerLegalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null);
+            assertNotNull(ownerRelyingParty);
+            assertEquals(1, ownerRelyingParty.getIssuerCertificates().size());
+
+            // Second relying party: different legal entity/instance, no relation to the owner's certificate.
+            LegalEntity otherLegalEntity = EntityGenerator.generateLegalEntity();
+            rpRepository.saveAndFlush(otherLegalEntity);
+            RelyingPartyInstance otherRelyingParty = otherLegalEntity.getRelyingPartyInstances().getFirst();
+
+            var ownerCertificateId = ownerRelyingParty.getIssuerCertificates().getFirst().getId();
+
+            assertThrows(NotFoundException.class,
+                    () -> certService.revokeIssuerCertificate(ownerCertificateId, otherRelyingParty.getId()));
+
+            RelyingPartyInstance ownerRelyingPartyAfter =
+                    instanceRepository.findById(ownerLegalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null);
+            assertNotNull(ownerRelyingPartyAfter);
+            assertEquals(-1, ownerRelyingPartyAfter.getIssuerCertificates().getFirst().getRevocationStatus(),
+                    "Certificate must remain unrevoked when the requesting relying party does not own it");
         }
     }
 }

@@ -47,9 +47,15 @@ public class CredentialResource {
         return Display.getDisplayNameForLocale(locale, this.issuerDisplays, this.issuer);
     }
     public String getCredentialTypeDisplayName(String locale) {
+        if (this.metadata == null) {
+            return this.credentialType;
+        }
         return Display.getDisplayNameForLocale(locale, this.getMetadata().getCredentialTypeDisplays(), this.credentialType);
     }
     public String getCredentialTypeDescription(String locale) {
+        if (this.metadata == null) {
+            return null;
+        }
         return Display.getDescriptionForLocale(locale, this.getMetadata().getCredentialTypeDisplays());
     }
 }
