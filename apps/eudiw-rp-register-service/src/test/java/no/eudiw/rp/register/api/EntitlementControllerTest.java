@@ -1,11 +1,6 @@
 package no.eudiw.rp.register.api;
 
-import tools.jackson.databind.ObjectMapper;
-import no.eudiw.rp.register.api.resource.entitlements.CreateEntitlementResource;
-import no.eudiw.rp.register.api.resource.entitlements.EditEntitlementResource;
-import no.eudiw.rp.register.service.EntitlementService;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,100 +8,46 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import tools.jackson.databind.ObjectWriter;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@DisplayName("When using the Entitlement API")
 @ActiveProfiles("junit")
+@DisplayName("When using the Entitlement API")
 class EntitlementControllerTest {
 
-    public static final String X_API_KEY_HEADER = "X-API-KEY";
-
-    @Autowired
-    private MockMvc mvc;
+    private static final String X_API_KEY_HEADER = "X-API-KEY";
+    private static final String VALID_API_KEY = "junit-api-key";
 
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private EntitlementService entitlementService;
+    @Test
+    void retrievesFlywayManagedEntitlements() throws Exception {
+        mockMvc.perform(get("/v1/entitlement")
+                .accept(MediaType.APPLICATION_JSON)
+                .header(X_API_KEY_HEADER, VALID_API_KEY))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.entitlements").isArray());
+    }
 
-    @DisplayName("When using the Entitlement API with valid API key")
-    @Nested
-    class APITests {
+    @Test
+    void rejectsEntitlementAdministration() throws Exception {
+        mockMvc.perform(post("/v1/entitlement")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(X_API_KEY_HEADER, VALID_API_KEY)
+                .content("{}"))
+            .andExpect(status().isMethodNotAllowed());
 
-        public static final String VALID_API_KEY = "junit-api-key";
-
-        @Test
-        void testCreateEntitlement() throws Exception {
-            CreateEntitlementResource resource = new CreateEntitlementResource("entitlement99", "entitlement99", "access");
-
-            ObjectWriter ow = new ObjectMapper().writer();
-            String json = ow.writeValueAsString(resource);
-
-            mockMvc.perform(post("/v1/entitlement")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .header(X_API_KEY_HEADER, VALID_API_KEY)
-                    .content(json))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.entitlement").value("entitlement99"))
-                .andExpect(jsonPath("$.active").value(true));
-        }
-
-        @Test
-        void testEditEntitlement() throws Exception {
-            CreateEntitlementResource createResource = new CreateEntitlementResource("entitlement98", "entitlement98", "access");
-
-            ObjectWriter ow = new ObjectMapper().writer();
-            String createJson = ow.writeValueAsString(createResource);
-
-            mockMvc.perform(post("/v1/entitlement")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .header(X_API_KEY_HEADER, VALID_API_KEY)
-                    .content(createJson))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.entitlement").value("entitlement98"))
-                .andExpect(jsonPath("$.active").value(true));
-
-            EditEntitlementResource editResource = new EditEntitlementResource(false);
-
-            String editJson = ow.writeValueAsString(editResource);
-
-            mockMvc.perform(put("/v1/entitlement/entitlement98")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .header(X_API_KEY_HEADER, VALID_API_KEY)
-                    .content(editJson))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.entitlement").value("entitlement98"))
-                .andExpect(jsonPath("$.active").value(false));
-        }
-
-        @Test
-        void testGetAllEntitlement() throws Exception {
-            CreateEntitlementResource createResource = new CreateEntitlementResource("entitlement97", "entitlement97", "access");
-
-            ObjectWriter ow = new ObjectMapper().writer();
-            String createJson = ow.writeValueAsString(createResource);
-
-            mockMvc.perform(post("/v1/entitlement")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .header(X_API_KEY_HEADER, VALID_API_KEY)
-                    .content(createJson))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.entitlement").value("entitlement97"))
-                .andExpect(jsonPath("$.active").value(true));
-
-            mockMvc.perform(get("/v1/entitlement")
-                    .accept(MediaType.APPLICATION_JSON)
-                    .header(X_API_KEY_HEADER, VALID_API_KEY))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.entitlements").exists())
-                .andExpect(jsonPath("$.entitlements").isArray());
-        }
+        mockMvc.perform(put("/v1/entitlement/entitlement")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(X_API_KEY_HEADER, VALID_API_KEY)
+                .content("{}"))
+            .andExpect(status().isNotFound());
     }
 }

@@ -173,7 +173,7 @@ public class RelyingPartyCertificateService {
         String csrPemStr = PKCS10CertificationRequestConverter.convert(csr);
         String certificatePemStr =
                 caRestClient.post()
-                        .uri("/" + caId)
+                        .uri(uriBuilder -> uriBuilder.path("/{caId}").build(caId))
                         .body(RelyingPartyCertificateRequest
                                 .builder()
                                 .orgno(orgno)
@@ -244,7 +244,7 @@ public class RelyingPartyCertificateService {
 
     private HttpStatusCode revocationContactWithCa(String serialNumber, int reason, String caId) {
         return caRestClient.put()
-                .uri("/" + caId)
+                .uri(uriBuilder -> uriBuilder.path("/{caId}").build(caId))
                 .body(RevocationRequest
                         .builder()
                         .serialNumber(serialNumber)
