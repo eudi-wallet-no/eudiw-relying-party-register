@@ -14,15 +14,15 @@
     <description>EUDIW Certificate Authority Service</description>
     <properties>
         <java.version>25</java.version>
-        <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
+        <maven-compiler-plugin.version>3.16.0</maven-compiler-plugin.version>
         <lombok.version>1.18.46</lombok.version>
         <idporten-actuator-starter.version>3.1.1</idporten-actuator-starter.version>
         <idporten-access-log.version>4.0.4</idporten-access-log.version>
         <idporten-validators.version>1.6.1</idporten-validators.version>
-        <opentelemetry-api.version>1.64.0</opentelemetry-api.version>
-        <springdoc.version>3.0.3</springdoc.version>
-        <bcpkix-jdk18on.version>1.84</bcpkix-jdk18on.version>
-        <bcprov-jdk18on.version>1.84</bcprov-jdk18on.version>
+        <opentelemetry-api.version>1.65.0</opentelemetry-api.version>
+        <springdoc.version>3.1.1</springdoc.version>
+        <bcpkix-jdk18on.version>1.86</bcpkix-jdk18on.version>
+        <bcprov-jdk18on.version>1.86</bcprov-jdk18on.version>
         <mariadb-java-client.version>3.5.10</mariadb-java-client.version>
     </properties>
     <dependencies>
