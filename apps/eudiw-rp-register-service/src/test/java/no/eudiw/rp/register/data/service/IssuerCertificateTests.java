@@ -359,6 +359,38 @@ public class IssuerCertificateTests {
         }
 
         @Test
+        @DisplayName("revocation CA id is encoded as a path variable")
+        public void testRevocationCaIdWithLeadingSlashIsNotTreatedAsAHost() throws InterruptedException {
+            String entitlementUri = "urn:test:ssrf-revoke-" + UUID.randomUUID();
+            entitlementRepository.saveAndFlush(
+                    new Entitlement(entitlementUri, true, "SSRF revocation test", "/attacker.example"));
+
+            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
+            legalEntity.getRelyingPartyInstances().getFirst().setRelyingPartyEntitlements(
+                    List.of(new RelyingPartyEntitlement(entitlementUri)));
+            rpRepository.saveAndFlush(legalEntity);
+
+            enqueueMockCertificateResponse();
+
+            certService.requestIssuerCertificate(legalEntity.getRelyingPartyInstances().getFirst().getId(),
+                            ResourceGenerator.generateIssuerCsrResource(entitlementUri));
+            mockCaServer.takeRequest();
+
+            RelyingPartyInstance relyingPartyOut =
+                    instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null);
+
+            enqueueMockRevocationCall();
+
+            certService.revokeIssuerCertificate(relyingPartyOut.getIssuerCertificates().getFirst().getId(), relyingPartyOut.getId());
+            RecordedRequest recordedRequest = mockCaServer.takeRequest();
+
+            assertAll(
+                    () -> assertEquals("PUT", recordedRequest.getMethod()),
+                    () -> assertEquals("/v1/certs/%2Fattacker.example", recordedRequest.getPath())
+            );
+        }
+
+        @Test
         @DisplayName("revoking an issuer certificate on behalf of a different relying party is rejected")
         public void testIssuerCertificateCannotBeRevokedByAnotherRelyingParty() {
             // Owning relying party: registers the issuer certificate that will later be targeted for revocation.
