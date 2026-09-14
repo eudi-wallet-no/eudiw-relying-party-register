@@ -24,6 +24,7 @@
         <bcpkix-jdk18on.version>1.84</bcpkix-jdk18on.version>
         <bcprov-jdk18on.version>1.84</bcprov-jdk18on.version>
         <mariadb-java-client.version>3.5.10</mariadb-java-client.version>
+        <tomcat.version>11.0.25</tomcat.version>
     </properties>
     <dependencies>
         <dependency>
