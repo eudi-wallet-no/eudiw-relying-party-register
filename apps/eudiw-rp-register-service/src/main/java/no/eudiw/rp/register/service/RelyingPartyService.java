@@ -23,8 +23,6 @@ import java.util.UUID;
 @Service
 public class RelyingPartyService {
 
-    private final LegalEntityRepository legalEntityRepository;
-
     private final EntitlementRepository entitlementRepository;
     private final Converter converter;
     private final RelyingPartyInstanceRepository relyingPartyInstanceRepository;
@@ -115,11 +113,13 @@ public class RelyingPartyService {
 
     @Transactional
     public void deleteRelyingParty(UUID id) {
-        LegalEntity legalEntity = legalEntityRepository.findById(id).orElse(null);
-        if (legalEntity == null) {
+        RelyingPartyInstance relyingPartyInstance =
+            relyingPartyInstanceRepository.findById(id).orElse(null);
+        if (relyingPartyInstance == null) {
             throw new NotFoundException("Relying party not found");
         }
-        legalEntityRepository.delete(legalEntity);
+        relyingPartyInstance.getLegalEntity().getRelyingPartyInstances().remove(relyingPartyInstance);
+        relyingPartyInstanceRepository.delete(relyingPartyInstance);
     }
 
     private void entitlementCheck(List<RelyingPartyEntitlementResource> entitlements) {

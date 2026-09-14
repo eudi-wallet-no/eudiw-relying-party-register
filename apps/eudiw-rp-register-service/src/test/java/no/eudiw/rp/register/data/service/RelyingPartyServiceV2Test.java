@@ -1,9 +1,13 @@
 package no.eudiw.rp.register.data.service;
 
+import jakarta.persistence.EntityManager;
 import no.eudiw.rp.register.api.resource.relyingparty.*;
+import no.eudiw.rp.register.data.entity.LegalEntity;
 import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyInstance;
+import no.eudiw.rp.register.data.repository.LegalEntityRepository;
 import no.eudiw.rp.register.data.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.service.RelyingPartyService;
+import no.eudiw.rp.register.service.exception.NotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +32,12 @@ public class RelyingPartyServiceV2Test {
 
     @Autowired
     private RelyingPartyInstanceRepository relyingPartyInstanceRepository;
+
+    @Autowired
+    private LegalEntityRepository legalEntityRepository;
+
+    @Autowired
+    private EntityManager entityManager;
 
     @Test
     void testCreateRelyingParty() {
@@ -64,6 +74,30 @@ public class RelyingPartyServiceV2Test {
         RelyingPartyResource getResult = relyingPartyService.findRelyingParty(result.id());
 
         assertEquals(result, getResult);
+    }
+
+    @Test
+    void testDeleteRelyingParty() {
+        CreateRelyingPartyResource createRelyingPartyResource = new CreateRelyingPartyResource(
+            generateValidOrgno(),
+            generateName(),
+            List.of(),
+            List.of()
+        );
+
+        RelyingPartyResource result = relyingPartyService.createRelyingParty(createRelyingPartyResource);
+        RelyingPartyInstance instance = relyingPartyInstanceRepository.findById(result.id()).orElseThrow();
+        LegalEntity legalEntity = instance.getLegalEntity();
+
+        relyingPartyService.deleteRelyingParty(result.id());
+        entityManager.clear();
+
+        assertTrue(relyingPartyInstanceRepository.findById(result.id()).isEmpty());
+        assertTrue(legalEntityRepository.findById(legalEntity.getId()).isPresent());
+        assertThrows(
+            NotFoundException.class,
+            () -> relyingPartyService.deleteRelyingParty(result.id())
+        );
     }
 
     @Test

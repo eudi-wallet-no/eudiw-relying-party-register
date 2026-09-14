@@ -8,8 +8,8 @@ management:
     health:
       show-details: always
 spring:
-  security:
-    api-key: xxx
+  config:
+    import: optional:file:${EUDIW_RP_REGISTER_SERVICE_ENV}[.properties]
   datasource:
     url: "jdbc:h2:mem:eudiw_user;MODE=MySQL;DB_CLOSE_ON_EXIT=FALSE"
     driver-class-name: org.h2.Driver
@@ -27,7 +27,6 @@ eudiw-rp-register-service:
   csr-service:
     ca-service-api:
       ca-service-base-uri: http://ca-service:9220
-      api-key-value: eudiw
 
 external-dependency-health-checks:
   enabled: false

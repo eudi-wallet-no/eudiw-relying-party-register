@@ -1,23 +1,33 @@
-# JIRA-ID i branch og PR-tittel
+# JIRA ID in branch and PR title
 
-Alle oppgaver har en JIRA-ID. **Spør alltid brukeren om JIRA-ID** hvis den ikke er oppgitt —
-ikke anta eller finn på en. Brukes som prefiks i branch-navn og i PR-tittel:
+Every task has a JIRA ID. **Always ask the user for the JIRA ID** if it is not provided;
+do not assume or invent one. Use it in the PR title:
 
 ```
-<JIRA-ID>: <PR-tittel>
+<JIRA-ID>: <PR title>
 ```
 
-F.eks. `EUW-1234: Ny pr`. Uten dette feiler `validate-pr-title`-sjekken i GitHub Actions.
+For example, `EUW-1234: Ny pr`. Without this, the `validate-pr-title` check fails in GitHub Actions.
 
-# PR-beskrivelser
+The PR title (the part after the JIRA ID prefix) must be written in **Norwegian**.
 
-Skriv menneskelig, kort og konkret. Unngå AI-språk ("This PR introduces..."), emojis, overdreven struktur, selvskryt og oppsummeringsvegger. Én linje holder for trivielle endringer.
+## Branch names
 
-Mal:
+Any new branch, whether created through `rename_branch` or directly with git, must be named
+`<jira-id>`, for example `euw-1234`. Do not use a descriptive text suffix. If the branch already
+exists, increment it: `euw-1234-2`, `euw-1234-3`, and so on.
+
+# PR descriptions
+
+Write naturally, briefly, and concretely. Avoid AI phrasing ("This PR introduces..."), emojis,
+excessive structure, self-praise, and walls of summary text. One line is enough for trivial changes.
+The PR description must be written in **Norwegian**.
+
+Template:
 ```
 ## Hva og hvorfor
-1-2 setninger: hva endres og hvorfor.
+1-2 sentences: what changes and why.
 
 ## Endringer
-- Viktigste punkter, ikke hver fil/detalj.
+- Key points, not every file or detail.
 ```
