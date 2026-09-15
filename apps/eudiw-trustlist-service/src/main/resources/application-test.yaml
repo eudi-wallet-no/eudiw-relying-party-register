@@ -158,8 +158,8 @@ trustlist-service:
           lang-no: NTRNO-923609016
           lang-en: NTRNO-923609016
         information-uris:
-          lang-no: https://docs.digdir.no/docs/lommebok/lommebok_om.html
-          lang-en: https://docs.digdir.no/docs/lommebok/lommebok_om.html
+          lang-no: https://www.equinor.com/
+          lang-en: https://www.equinor.com/
         website: https://www.equinor.com/
         email: mailto:fg_eudi_wallet_sb@equinor.com
         postal-address:
