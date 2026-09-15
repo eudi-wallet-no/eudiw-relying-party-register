@@ -150,6 +150,30 @@ trustlist-service:
             starting-time: 2026-09-01T00:00:00.00Z
             service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
             cert: MIIDDjCCArSgAwIBAgIIVNPGeNYRgakwCgYIKoZIzj0EAwIwgYQxHjAcBgNVBGETFU5UUk5PLU5PRk9SLjk5MTgyNTgyNzELMAkGA1UEBhMCTk8xJDAiBgNVBAoTG0RJR0lUQUxJU0VSSU5HU0RJUkVLVE9SQVRFVDEvMC0GA1UEAxMmZWlkYXMyc2FuZGthc3NlIEVBQSBQcm92aWRlciBDQSAyIHRlc3QwHhcNMjYwOTAxMTAxODI5WhcNMjcwOTAxMTAxODI5WjBmMQswCQYDVQQGEwJOTzEVMBMGA1UECgwMT1NMTyBLT01NVU5FMSAwHgYDVQQDDBdPc2xvIGtvbW11bmUgLSB1dHN0ZWRlcjEeMBwGA1UEYQwVTlRSTk8tTk9GT1IuOTU4OTM1NDIwMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEfn2SmAHPRsTTec36fuz3jPYWx2x4oDv1vbjYAhJem4knJzKJZG+cxragKGBTfluxoAu8sURrHy7PS2URXwuto6OCASswggEnMB8GA1UdIwQYMBaAFDEUxKbIvGLjcGE5TFhq4QUfhI/vMB0GA1UdDgQWBBQRVypWXJIIdDYCMVw4Wv0BTsr6MTAMBgNVHRMBAf8EAjAAMF0GA1UdHwRWMFQwUqBQoE6GTGh0dHBzOi8vY2EudGVzdC5laWRhczJzYW5ka2Fzc2UubmV0L3YxL2NlcnRzL2ludGVybWVkaWF0ZXMvZWFhX3Byb3ZpZGVyMi5jcmwwaAYIKwYBBQUHAQEEXDBaMFgGCCsGAQUFBzAChkxodHRwczovL2NhLnRlc3QuZWlkYXMyc2FuZGthc3NlLm5ldC92MS9jZXJ0cy9pbnRlcm1lZGlhdGVzL2VhYV9wcm92aWRlcjIuY2VyMA4GA1UdDwEB/wQEAwIFoDAKBggqhkjOPQQDAgNIADBFAiB7YyajTNK1rmDkLocLfeSbIp0WRnQiEbwG2ztI3ncj1AIhALzG49pTVYCefrmSoRpE+rrrUBucktqj7YtvNSJaVCH7
+      equinor:
+        name:
+          lang-no: Equinor ASA
+          lang-en: Equinor ASA
+        trade-name:
+          lang-no: NTRNO-923609016
+          lang-en: NTRNO-923609016
+        information-uris:
+          lang-no: https://www.equinor.com/
+          lang-en: https://www.equinor.com/
+        website: https://www.equinor.com/
+        email: mailto:fg_eudi_wallet_sb@equinor.com
+        postal-address:
+          street-address: "Forusbeen 50"
+          postal-code: "4035"
+          locality: Stavanger
+          country: "NO"
+        services:
+          - name:
+              lang-no: Equinor ASA
+              lang-en: Equinor ASA
+            starting-time: 2026-09-15T00:00:00.00Z
+            service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
+            cert: MIIDAzCCAqigAwIBAgIJAKCyc0LiQ6xkMAoGCCqGSM49BAMCMIGEMR4wHAYDVQRhExVOVFJOTy1OT0ZPUi45OTE4MjU4MjcxCzAJBgNVBAYTAk5PMSQwIgYDVQQKExtESUdJVEFMSVNFUklOR1NESVJFS1RPUkFURVQxLzAtBgNVBAMTJmVpZGFzMnNhbmRrYXNzZSBFQUEgUHJvdmlkZXIgQ0EgMiB0ZXN0MB4XDTI2MDkxNTA3MDEzMVoXDTI3MDkxNTA3MDEzMVowWTELMAkGA1UEBhMCTk8xFDASBgNVBAoMC0VRVUlOT1IgQVNBMRQwEgYDVQQDDAtFcXVpbm9yIEFTQTEeMBwGA1UEYQwVTlRSTk8tTk9GT1IuOTIzNjA5MDE2MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEZXSr4VB6SHKmBPJTAjrIx9+rDzd7oXN4fQj2hmij91xN+PdtLjOR2Yq1oyZ9vE8HUYkm+pRZm3CmW4kwR8kFWqOCASswggEnMB8GA1UdIwQYMBaAFDEUxKbIvGLjcGE5TFhq4QUfhI/vMB0GA1UdDgQWBBR+pkU3l5/p0/B2kuIcAAzbatPOqTAMBgNVHRMBAf8EAjAAMF0GA1UdHwRWMFQwUqBQoE6GTGh0dHBzOi8vY2EudGVzdC5laWRhczJzYW5ka2Fzc2UubmV0L3YxL2NlcnRzL2ludGVybWVkaWF0ZXMvZWFhX3Byb3ZpZGVyMi5jcmwwaAYIKwYBBQUHAQEEXDBaMFgGCCsGAQUFBzAChkxodHRwczovL2NhLnRlc3QuZWlkYXMyc2FuZGthc3NlLm5ldC92MS9jZXJ0cy9pbnRlcm1lZGlhdGVzL2VhYV9wcm92aWRlcjIuY2VyMA4GA1UdDwEB/wQEAwIFoDAKBggqhkjOPQQDAgNJADBGAiEApd+nipUqoBs+LnwESDPyYdx1q1kAZ5H9a8+C2sPV1j4CIQCaCTPsKDvVQ7jBvaG6/XDzcVqjSDI1HNa8Dt2A4o2/tg==
 
   tsl602:
     tsl-aca:
