@@ -13,6 +13,9 @@ spring:
   application:
     name: digital-lommebok-rp-register-lookup-web
     environment: default
+  profiles:
+    group:
+      systest-local: systest
 
 
 # Spring Boot Actuator
