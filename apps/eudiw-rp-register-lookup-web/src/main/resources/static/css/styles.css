@@ -302,6 +302,12 @@ main > nav + h1 {
     --dsc-table-padding: var(--ds-size-3) var(--ds-size-4);
 }
 
+/* Header-rad fortsatt trang – gi lik men luftigere padding rundt skrift (forrige 2/3 var kneftet) */
+.ds-table > thead > tr > :is(th, td),
+.ds-table > * > tr > th[scope="col"] {
+    padding: var(--ds-size-4) var(--ds-size-4) !important;
+}
+
 .table-wrapper > .ds-table[data-border] {
     border: 0;
     --dsc-table-border-width: 0;
