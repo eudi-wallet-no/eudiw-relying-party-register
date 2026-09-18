@@ -6,20 +6,30 @@
     <title th:text="|Detaljar for ${rp.tradeName}|"></title>
 </head>
 <!--/*@thymesVar id="detailedViewDataAttr" type="no.idporten.eudiw.rp.register.lookup.web.resource.RelyingPartyResource"*/-->
-<body>
+<body data-color-scheme="light" data-size="md">
     <header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
-    <main>
+    <main id="hovudinnhald" tabindex="-1">
+        <nav aria-label="Brødsmulesti" class="ds-breadcrumbs">
+            <ol>
+                <li><a th:href="@{/}" class="ds-link">Heim</a></li>
+                <li><a th:href="@{/relying-parties}" class="ds-link">Brukarstader</a></li>
+                <li><a th:href="@{|/details/${rp.id}|}" class="ds-link" aria-current="page" th:text="${rp.tradeName}">Detaljar</a></li>
+            </ol>
+        </nav>
 
-        <p class="ds-paragraph">
+        <div>
             <a th:href="@{/relying-parties}" class="ds-button" data-variant="secondary">
                 Tilbake til søk
             </a>
-        </p>
+        </div>
 
-        <h1 class="ds-heading" data-size="lg">
-            Detaljar for brukarstad: <span th:text="${rp.tradeName}"/>
-        </h1>
+        <div style="display:flex; flex-direction:column; gap:var(--ds-size-2); max-width:720px;">
+            <h1 class="ds-heading" data-size="xl">
+                Detaljar for brukarstad: <span th:text="${rp.tradeName}"/>
+            </h1>
+            <p class="ds-paragraph" data-size="lg" style="color:var(--ds-color-neutral-text-subtle);">Detaljert oversikt over organisasjon, roller og bevistypar.</p>
+        </div>
 
         <div
              th:replace="~{fragments/details_fragments

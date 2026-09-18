@@ -5,29 +5,29 @@
     <title>Brukarstad finst ikkje</title>
 </head>
 
-<body>
+<body data-color-scheme="light" data-size="md">
     <header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
-    <main>
-        <h1 class="ds-heading" data-size="lg">
-            Brukarstad finst ikkje
-        </h1>
+    <main id="hovudinnhald" tabindex="-1">
+        <div class="ds-alert" data-color="warning" role="alert">
+            <h1 class="ds-heading" data-size="md">
+                Brukarstad finst ikkje
+            </h1>
+            <p class="ds-paragraph">
+                Brukarstad ikkje funne for ID/organisasjonsnummer:
+                <strong th:text="${requestedIdOrOrgnoAttr}"></strong>.
+            </p>
+            <p class="ds-paragraph">
+                Sjekk om rett verdi og prøv på ny eller rapporter bug i Jira om du
+                trur noko er gale.
+            </p>
+        </div>
 
-        <p class="ds-paragraph">
-            Brukarstad ikkje funne for ID/organisasjonsnummer:
-            <span th:text="${requestedIdOrOrgnoAttr}"></span>.
-        </p>
-
-        <p class="ds-paragraph">
-            Sjekk om rett verdi og prøv på ny eller rapporter bug i Jira om du
-            trur noko er gale.
-        </p>
-
-        <p class="ds-paragraph">
+        <div>
             <a th:href="@{/relying-parties}" class="ds-button">
                 Tilbake til søk
             </a>
-        </p>
+        </div>
     </main>
 
     <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>

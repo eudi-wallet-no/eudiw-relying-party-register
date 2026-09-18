@@ -2,58 +2,65 @@
 <form th:fragment="search_form_fragment"
       th:object="${searchFormAttr}"
       th:action="@{/relying-parties}"
-      method="POST">
-    <div style="margin-bottom: 1em;">
-    <div class="ds-search"
-         style="margin-block-end: var(--ds-size-2)">
-        <input id="search_term"
-               th:field="*{searchTerm}"
-               placeholder="Søk på org.nr. eller namn"
-               size="50"
-               type="text"
-               class="ds-input">
-        <button type="reset"
-                class="ds-button"
-                data-icon="true"
-                data-variant="tertiary"
-        ></button>
-        <button type="submit"
-                class="ds-button"
-                data-variant="primary">Søk</button>
+      method="POST"
+      style="display:flex; flex-direction:column; gap:var(--ds-size-4);">
+    <!-- Søkefelt med label og ds-search -->
+    <div class="ds-field">
+        <label for="search_term" class="ds-label ds-sr-only">Søk på org.nr. eller namn</label>
+        <div class="ds-search">
+            <input id="search_term"
+                   th:field="*{searchTerm}"
+                   th:errorclass="is-invalid"
+                   placeholder="Søk på org.nr. eller namn"
+                   type="search"
+                   class="ds-input"
+                   th:attr="aria-invalid=${#fields.hasErrors('searchTerm')} ? 'true' : 'false',
+                            aria-describedby=${#fields.hasErrors('searchTerm')} ? 'search_term-error' : null">
+            <button type="reset"
+                    class="ds-button"
+                    data-icon="true"
+                    data-variant="tertiary"
+                    aria-label="Fjern tekst"></button>
+            <button type="submit"
+                    class="ds-button"
+                    data-variant="primary">Søk</button>
+        </div>
+        <div th:if="${#fields.hasErrors('searchTerm')}"
+             id="search_term-error"
+             class="ds-validation-message"
+             data-color="danger"
+             data-field="validation">
+            <p th:each="error : ${#fields.errors('searchTerm')}"
+               th:text="${error}"
+               style="margin:0;"></p>
+        </div>
     </div>
 
-    <ul th:if="${#fields.hasErrors()}">
-        <li th:each="error : ${#fields.errors('searchTerm')}"
-            th:text="${error}"
-            class="ds-validation-message"></li>
-    </ul>
-        <label for="syntetiskOrg">Gjem syntetiske orgnummer</label>
+    <!-- Syntetiske org-nr – korrekt ds-field for sjekkboks -->
+    <div class="ds-field">
         <input id="syntetiskOrg"
                th:field="*{hideSyntheticOrgnos}"
                type="checkbox"
                class="ds-input"
                th:checked="${#value}">
+        <label for="syntetiskOrg" class="ds-label">Gjem syntetiske orgnummer</label>
     </div>
 
-
-
     <details class="ds-details"
-             style="width: fit-content;"
              th:open="${!#lists.isEmpty(searchFormAttr.getRequiredEntitlements())}">
         <summary>Filter</summary>
         <fieldset class="ds-fieldset">
-            <legend>
-                Rolle
-            </legend>
+            <legend class="ds-label">Rolle</legend>
+            <p class="ds-paragraph" data-size="sm" data-field="description">Vel rolle for å filtrere brukarstader.</p>
             <div class="ds-field" th:each="e : ${@relyingPartiesService.getValidEntitlements()}">
                 <!--/*@thymesVar id="e" type="no.idporten.eudiw.rp.register.lookup.web.resource.entitlement.EntitlementResource"*/-->
-                <label th:for="|id-${e.entitlement}|" th:text="${e.displayName}"></label>
                 <input th:id="|id-${e.entitlement}|"
                        type="checkbox"
                        class="ds-input"
                        name="requiredEntitlements"
                        th:value="${e.entitlement}"
                        th:checked="${#lists.contains(searchFormAttr.getRequiredEntitlements(), e.entitlement)}">
+                <label th:for="|id-${e.entitlement}|" th:text="${e.displayName}" class="ds-label"></label>
             </div>
         </fieldset>
     </details>
@@ -61,91 +68,107 @@
 
 <div th:fragment="results_table_fragment">
     <div th:with="resultsPage=${resultsPageAttr}">
-        <div th:if="${#lists.isEmpty(resultsPage)}">
-            Fann ingen brukarstader.
+        <div th:if="${#lists.isEmpty(resultsPage)}"
+             class="ds-alert"
+             data-color="info"
+             role="status"
+             style="margin-block-start: var(--ds-size-4);">
+            <p class="ds-paragraph">Fann ingen brukarstader som matcher søket.</p>
         </div>
 
-        <table th:unless="${#lists.isEmpty(resultsPage)}"
-               class="ds-table"
-               data-border="true"
-               th:with="currentOrdering=${@searchSession.getOrdering()},
-                        orderingOpts=${T(no.idporten.eudiw.rp.register.lookup.web.search.resultsview.RelyingPartyOrdering)}"
-        >
-            <thead class="clickableHeaders">
-            <tr>
-                <th th:class="${currentOrdering == orderingOpts.ORGNO_ASC ? 'focused' : ''}">
-                    <a th:href="@{/relying-parties(sort=|${orderingOpts.ORGNO_ASC}|)}" class="ds-link">
-                        Org.nr.
-                    </a>
-                </th>
-                <th>Organisasjon</th>
-                <th th:class="${currentOrdering == orderingOpts.NAME_ASC ? 'focused' : ''}">
-                    <a th:href="@{/relying-parties(sort=|${orderingOpts.NAME_ASC}|)}" class="ds-link">
-                        Tenestenamn
-                    </a>
-                </th>
-                <th>Roller</th>
-                <th th:class="${currentOrdering == orderingOpts.CREATED_ASC ? 'focused' : ''}">
-                    <a th:href="@{/relying-parties(sort=|${orderingOpts.CREATED_ASC}|)}" class="ds-link">
-                        Oppretta
-                    </a>
-                </th>
-                <th th:class="${currentOrdering == orderingOpts.LAST_UPDATED_ASC ? 'focused' : ''}">
-                    <a th:href="@{/relying-parties(sort=|${orderingOpts.LAST_UPDATED_ASC}|)}" class="ds-link">
-                        Sist endra
-                    </a>
-                </th>
-            </tr>
-            </thead>
-            <tbody>
-
-            <tr th:each="rp : ${resultsPage}">
-                <td th:text="${rp.orgno}"></td>
-                <td th:text="${rp.orgName}"></td>
-                <td>
-                    <a th:href="@{|/details/${rp.id}|}" class="ds-link" style="cursor:pointer;">
-                        <div th:text="${rp.tradeName}"></div>
-                    </a>
-                </td>
-                <td>
-                    <div th:each="e : ${rp.relyingPartyEntitlements()}"
-                       th:text="${e.displayName}"
-                       style="display: block;">
-                    </div>
-                </td>
-                <td th:text="${@timestampFormatter.formatEpochMillis(rp.createdMs)}"></td>
-                <td th:text="${@timestampFormatter.formatEpochMillis(rp.lastUpdatedMs)}"></td>
-            </tr>
-            </tbody>
-        </table>
+        <div th:unless="${#lists.isEmpty(resultsPage)}"
+             class="table-wrapper"
+             th:with="currentOrdering=${@searchSession.getOrdering()},
+                      orderingOpts=${T(no.idporten.eudiw.rp.register.lookup.web.search.resultsview.RelyingPartyOrdering)}">
+            <table class="ds-table"
+                   data-border="true"
+                   data-hover="true"
+                   style="width:100%;">
+                <thead class="clickableHeaders">
+                <tr>
+                    <th th:class="${currentOrdering == orderingOpts.ORGNO_ASC ? 'focused' : ''}"
+                        th:attr="aria-sort=${currentOrdering == orderingOpts.ORGNO_ASC ? 'ascending' : 'none'}">
+                        <a th:href="@{/relying-parties(sort=|${orderingOpts.ORGNO_ASC}|)}" class="ds-link">
+                            Org.nr.
+                        </a>
+                    </th>
+                    <th>Organisasjon</th>
+                    <th th:class="${currentOrdering == orderingOpts.NAME_ASC ? 'focused' : ''}"
+                        th:attr="aria-sort=${currentOrdering == orderingOpts.NAME_ASC ? 'ascending' : 'none'}">
+                        <a th:href="@{/relying-parties(sort=|${orderingOpts.NAME_ASC}|)}" class="ds-link">
+                            Tenestenamn
+                        </a>
+                    </th>
+                    <th>Roller</th>
+                    <th th:class="${currentOrdering == orderingOpts.CREATED_ASC ? 'focused' : ''}"
+                        th:attr="aria-sort=${currentOrdering == orderingOpts.CREATED_ASC ? 'ascending' : 'none'}">
+                        <a th:href="@{/relying-parties(sort=|${orderingOpts.CREATED_ASC}|)}" class="ds-link">
+                            Oppretta
+                        </a>
+                    </th>
+                    <th th:class="${currentOrdering == orderingOpts.LAST_UPDATED_ASC ? 'focused' : ''}"
+                        th:attr="aria-sort=${currentOrdering == orderingOpts.LAST_UPDATED_ASC ? 'ascending' : 'none'}">
+                        <a th:href="@{/relying-parties(sort=|${orderingOpts.LAST_UPDATED_ASC}|)}" class="ds-link">
+                            Sist endra
+                        </a>
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="rp : ${resultsPage}"
+                    th:attr="data-clickdelegatefor=${'rp-link-' + rp.id}">
+                    <td th:text="${rp.orgno}"></td>
+                    <td th:text="${rp.orgName}"></td>
+                    <td>
+                        <a th:id="${'rp-link-' + rp.id}"
+                           th:href="@{|/details/${rp.id}|}"
+                           class="ds-link">
+                            <span th:text="${rp.tradeName}"></span>
+                        </a>
+                    </td>
+                    <td>
+                        <span th:each="e : ${rp.relyingPartyEntitlements()}"
+                           th:text="${e.displayName}"
+                           style="display:block;"></span>
+                    </td>
+                    <td th:text="${@timestampFormatter.formatEpochMillis(rp.createdMs)}"></td>
+                    <td th:text="${@timestampFormatter.formatEpochMillis(rp.lastUpdatedMs)}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <nav th:with="pageWindow=${@searchSession.getPaginationWindow()},
                   currentPageNum=${@searchSession.getCurrentPageIdx() + 1},
                   numPages=${@searchSession.getNumPages()}"
          class="ds-pagination"
-    >
-        <ul th:if="${numPages > 1}">
+         aria-label="Bla i sider"
+         th:if="${numPages > 1}"
+         style="margin-block-start: var(--ds-size-6);">
+        <ul>
             <li th:unless="${#lists.contains(pageWindow, 1)}">
                 <a th:href="@{/relying-parties(page=1)}"
                    class="ds-button"
-                   data-variant="tertiary">
-                    <<
+                   data-variant="tertiary"
+                   aria-label="Første side">
+                    Første
                 </a>
             </li>
 
             <li th:each="pageNum : ${pageWindow}">
-
                 <a th:if="${pageNum == currentPageNum}"
                    th:href="@{/relying-parties(page=${pageNum})}"
                    class="ds-button"
-                   data-variant="primary">
+                   data-variant="primary"
+                   th:attr="aria-current='page', aria-label='Side ' + ${pageNum}">
                     <span th:text="${pageNum}"></span>
                 </a>
                 <a th:unless="${pageNum == currentPageNum}"
                    th:href="@{/relying-parties(page=${pageNum})}"
                    class="ds-button"
-                   data-variant="tertiary">
+                   data-variant="tertiary"
+                   th:attr="aria-label='Side ' + ${pageNum}">
                     <span th:text="${pageNum}"></span>
                 </a>
             </li>
@@ -153,8 +176,9 @@
             <li th:unless="${#lists.contains(pageWindow, numPages)}">
                 <a th:href="@{/relying-parties(page=${numPages})}"
                    class="ds-button"
-                   data-variant="tertiary">
-                    >>
+                   data-variant="tertiary"
+                   aria-label="Siste side">
+                    Siste
                 </a>
             </li>
         </ul>

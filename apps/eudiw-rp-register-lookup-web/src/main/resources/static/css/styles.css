@@ -1,166 +1,456 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
 html {
     scrollbar-gutter: stable;
 }
-body {
-    font-family: 'Inter', sans-serif;
-    font-feature-settings: 'cv05' 1; /* Enable lowercase l with tail */
-    background-color: var(--ds-color-neutral-background-tinted);
-    margin: 0;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-}
 
-header {
-    background-color: var(--ds-color-neutral-background-default);
-    display: flex;
-    justify-content: space-between;
-    padding: var(--ds-size-3) var(--ds-size-5);
-    align-items: center;
-
-    & > div {
-        display: flex;
-    }
-
-    & * + * {
-        gap: var(--ds-size-7);
-    }
-}
-
-main {
-    padding-block: var(--ds-size-10);
-    padding-inline: var(--ds-size-5);
-    display: flex;
-    flex-direction: column;
-    gap: var(--ds-size-10);
-
-    & > * {
-        max-width: 1380px;
-        margin: 0 auto;
-        gap: var(--ds-size-7);
-        width: 100%;
-    }
-
-    .flex-container {
-        display: flex;
-        flex-wrap: wrap;
-        flex-direction: row;
-        gap: var(--ds-size-7);
-
-        & > * {
-            flex: 1 1 0;
-            min-width: 300px;
-        }
-    }
-
-    .form-container {
-        display: flex;
-        flex-direction: column;
-        gap: var(--ds-size-4);
-
-        .button-group {
-            display: flex;
-            gap: var(--ds-size-4);
-            flex-wrap: wrap;
-
-            button {
-                width: fit-content;
-            }
-        }
-    }
-}
-
-footer {
-    background-color: var(--ds-color-neutral-background-tinted);
-    color: var(--ds-color-neutral-text-default);
-    width: 100%;
-    min-height: var(--footer-min-height);
-    margin-top: auto;
-
-    & > div {
-        max-width: 1380px;
-        margin: 0 auto;
-        padding-block: var(--ds-size-22);
-        padding-inline: var(--ds-size-5);
-        gap: var(--ds-size-7);
-        width: 100%;
-        display: flex;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        flex-direction: row;
-
-        & > div {
-            max-width: calc(100% / 3);
-            flex: 0 0 auto;
-            min-width: 270px;
-        }
-    }
-
-    & .footer__logo {
-        display: flex;
-        flex-direction: column;
-        gap: var(--ds-size-4);
-    }
-
-    & a {
-        --dsc-link-color--visited: var(--dsc-link-color);
-        margin-block-end: var(--ds-size-4);
-        display: block;
-        width: fit-content;
-    }
-
-    & h2 {
-        margin-block-end: var(--ds-size-5);
-    }
-
-    & ul {
-        list-style-type: none;
-        padding: 0;
-    }
+[x-cloak] {
+    display: none !important;
 }
 
 body {
-    font-family: Inter, sans-serif;
+    font-family: var(--ds-font-family), 'Inter', sans-serif;
     font-feature-settings: 'cv05' 1;
-    background-color: var(--ds-color-neutral-background-tinted);
+    background: var(--ds-color-neutral-background-tinted);
+    color: var(--ds-color-neutral-text-default);
     margin: 0;
     min-height: 100vh;
     display: flex;
-    flex-direction: column
+    flex-direction: column;
 }
 
+/* Lik container-bredde for header, content og footer – som i index.html / bevisporten */
+.page-container {
+    width: 100%;
+    max-width: 1280px;
+    margin-inline: auto;
+    padding-inline: var(--ds-size-6);
+}
+
+@media (width < 900px) {
+    .page-container {
+        padding-inline: var(--ds-size-4);
+    }
+}
+
+/* Header – sticky 75px som i index.html: gap var(--ds-size-8), li margin-left var(--ds-size-7), logo var(--ds-size-10) */
 header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    height: 75px;
     background-color: var(--ds-color-neutral-background-default);
+    border-block-end: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
     display: flex;
-    justify-content: space-between;
-    padding: var(--ds-size-3) var(--ds-size-5);
-    align-items: center
+    align-items: center;
 }
 
-& * + * {
-    gap: var(--ds-size-7)
-}
-
-.flex-container {
+.header__inner {
     display: flex;
     flex-wrap: wrap;
-    flex-direction: row;
-    gap: var(--ds-size-7);
-    min-width: 300px
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ds-size-8);
+    width: 100%;
+    height: 100%;
 }
 
-& a {
+.header__brand {
+    display: flex;
+    align-items: center;
+    align-self: center;
+    gap: var(--ds-size-3);
+    color: var(--ds-color-neutral-text-default);
+    text-decoration: none;
+    font-weight: var(--ds-font-weight-medium);
+}
+
+.header__brand svg {
+    display: block;
+    width: var(--ds-size-7);
+    height: var(--ds-size-7);
+}
+
+.header__brand span {
+    line-height: 1;
+    display: flex;
+    align-items: center;
+}
+
+.header__nav-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ds-size-2);
+    color: var(--ds-color-neutral-text-default);
+    cursor: pointer;
+}
+
+.header__nav-toggle svg {
+    display: block;
+}
+
+@media (max-width: 359px) {
+    .header__nav-toggle-label {
+        display: none;
+    }
+}
+
+.header__nav {
+    display: none;
+    flex-direction: column;
+    gap: var(--ds-size-3);
+    width: 100%;
+}
+
+.header__nav--open {
+    display: flex;
+}
+
+.header__nav-link {
+    /* Referanse: svarte lenker, enkel hover med border-bottom 3px – ikke ds-link underline */
+    --dsc-link-color: var(--ds-color-neutral-text-default);
+    --dsc-link-color--hover: var(--ds-color-neutral-text-default);
+    --dsc-link-color--visited: var(--ds-color-neutral-text-default);
+    --dsc-link-color--active: var(--ds-color-neutral-text-default);
+    --dsc-link-background--active: transparent;
+    --dsc-link-background--focus: transparent;
+    --dsc-link-color--focus: var(--ds-color-neutral-text-default);
+    color: var(--ds-color-neutral-text-default);
+    text-decoration: none !important;
+    text-decoration-line: none !important;
+    padding-bottom: var(--ds-size-2);
+    border-bottom: 3px solid transparent;
+    transition: border-color 0.1s ease-out;
+    font-weight: var(--ds-font-weight-regular);
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+}
+
+.header__nav-link:visited {
+    color: var(--ds-color-neutral-text-default);
+}
+
+.header__nav-link:hover,
+.header__nav-link:focus-visible {
+    color: var(--ds-color-neutral-text-default);
+    background: transparent;
+    border-color: var(--ds-color-neutral-border-subtle);
+    text-decoration: none;
+}
+
+.header__nav-link:focus-visible {
+    box-shadow: var(--dsc-focus-boxShadow);
+    outline: var(--dsc-focus-outline);
+    outline-offset: var(--ds-border-width-focus);
+}
+
+.header__nav-link[aria-current="page"] {
+    border-color: var(--ds-color-neutral-border-strong);
+    font-weight: var(--ds-font-weight-medium);
+}
+
+@media (max-width: 767px) {
+    header {
+        height: auto;
+        min-height: 75px;
+        padding-block: var(--ds-size-3);
+        align-items: center;
+    }
+
+    .header__inner {
+        height: auto;
+        gap: var(--ds-size-3);
+    }
+
+    .header__brand {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    .header__brand span:last-child {
+        flex: 1;
+        min-width: 0;
+        overflow-wrap: anywhere;
+        hyphens: auto;
+        line-height: 1.2;
+    }
+
+    .header__nav-toggle {
+        flex: 0 0 auto;
+        margin-left: auto;
+        align-self: center;
+    }
+
+    .header__nav {
+        flex-basis: 100%;
+        width: 100%;
+        gap: var(--ds-size-2);
+        padding-block-start: var(--ds-size-3);
+        border-block-start: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
+        margin-left: auto;
+    }
+
+    .header__nav-link {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        min-height: var(--ds-size-12);
+        padding-block: var(--ds-size-2);
+        font-size: var(--ds-body-lg-font-size);
+    }
+}
+
+@media (min-width: 768px) {
+    .header__nav-toggle {
+        display: none;
+    }
+
+    .header__nav {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        width: auto;
+        gap: var(--ds-size-7);
+    }
+}
+
+/* Hovudinnhald – same max-bredde som header/footer, spacing som i index.html section */
+main {
+    width: 100%;
+    max-width: 1280px;
+    margin-inline: auto;
+    padding-block: var(--ds-size-10);
+    padding-inline: var(--ds-size-6);
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-8);
+}
+
+main > * {
+    width: 100%;
+}
+
+@media (min-width: 768px) {
+    main {
+        padding-block: var(--ds-size-12);
+        gap: var(--ds-size-10);
+    }
+}
+
+@media (width < 900px) {
+    main {
+        padding-inline: var(--ds-size-4);
+    }
+}
+
+/* Kort-container – gap var(--ds-size-8) som composite__grid i referansen */
+.flex-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(20rem, 100%), 1fr));
+    gap: var(--ds-size-8);
+}
+
+@media (min-width: 640px) {
+    main .flex-container {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+}
+
+/* Skjema-grupper */
+.form-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-4);
+}
+
+.form-container .button-group {
+    display: flex;
+    gap: var(--ds-size-4);
+    flex-wrap: wrap;
+}
+
+.form-container .button-group > * {
+    width: fit-content;
+}
+
+main > h1 + *,
+main > nav + h1 {
+    margin-block-start: var(--ds-size-2);
+}
+
+.table-wrapper {
+    overflow-x: auto;
+    border: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
+    border-radius: var(--ds-border-radius-md);
+    background: var(--ds-color-neutral-surface-default);
+}
+
+/* Designsystemet: ds-table har transparent bakgrunn som default – på tinted body blir den grå.
+   Sett eksplisitt hvit bakgrunn per docs (surface-default) så tabell skiller seg fra sidens tinted bakgrunn.
+   Wrapper tar ytre ramme (hel rundt), tabellens ytre border fjernes for å unngå dobbel/klippet border ved scroll.
+   Øk celle-luft fra default var(--ds-size-2) var(--ds-size-3) til 3/4 for romsligere lesing – alle tabeller i appen. */
+.ds-table {
+    --dsc-table-background: var(--ds-color-neutral-surface-default);
+    --dsc-table-header-background: var(--ds-color-neutral-surface-default);
+    --dsc-table-padding: var(--ds-size-3) var(--ds-size-4);
+}
+
+.table-wrapper > .ds-table[data-border] {
+    border: 0;
+    --dsc-table-border-width: 0;
+}
+
+/* Tab-fokus i tabell: ds-link får mørk bakgrunn (focus-outer) – sikrer kvit tekst og luft så den ikke drukner i kvit tabell */
+.ds-table a.ds-link:focus-visible {
+    background: var(--ds-color-focus-outer) !important;
+    color: var(--ds-color-focus-inner) !important;
+    text-decoration: none;
+    border-radius: var(--ds-border-radius-sm);
+    outline: none;
+}
+
+/* Accordion/detaljer: DS har padding var(--ds-size-5) (~20px) – opplevdes kneftet etter fjerning av dobbel wrapper.
+   Øk til var(--ds-size-6) for luftig topp/bunn i tråd med composite-eksempelet, behold gap innad. */
+.ds-details > :not(summary, u-summary) {
+    padding: var(--ds-size-6) !important;
+}
+
+/* Footer – mørk øy data-color-scheme="dark" som i index.html:1573, gap var(--ds-size-8) */
+footer {
+    width: 100%;
+    margin-top: auto;
+}
+
+footer[data-color-scheme="dark"] {
+    background-color: var(--ds-color-neutral-background-default);
+    color: var(--ds-color-neutral-text-default);
+}
+
+.footer__inner {
+    display: grid;
+    gap: var(--ds-size-8);
+    grid-template-columns: 1fr;
+    padding-block: var(--ds-size-10);
+}
+
+.footer__inner > div {
+    min-width: 16rem;
+}
+
+@media (min-width: 768px) {
+    .footer__inner {
+        grid-template-columns: 1.2fr 1fr 1fr;
+        justify-content: space-between;
+        padding-block: var(--ds-size-10);
+    }
+
+    .footer__inner > div {
+        max-width: none;
+    }
+}
+
+.footer__link {
     --dsc-link-color--visited: var(--dsc-link-color);
     margin-block-end: var(--ds-size-4);
-    display: block;
-    width: fit-content
+    display: flex;
+    align-items: center;
+    gap: var(--ds-size-2);
+    width: fit-content;
+    border-block-end: var(--ds-border-width-default) solid transparent;
+    text-decoration: none;
 }
 
-& h2 {
-    margin-block-end: var(--ds-size-5)
+.footer__link::before {
+    content: "";
+    width: 0.4em;
+    height: 0.4em;
+    flex: 0 0 auto;
+    border-inline-end: var(--ds-border-width-default) solid currentColor;
+    border-block-end: var(--ds-border-width-default) solid currentColor;
+    rotate: -45deg;
 }
 
-& ul {
+.footer__link:hover {
+    border-block-end-color: currentColor;
+}
+
+footer h2 {
+    margin-block-end: var(--ds-size-5);
+}
+
+footer ul {
     list-style-type: none;
-    padding: 0
+    padding: 0;
+    margin: 0;
+}
+
+@media (width < 900px) {
+    main {
+        padding-block: var(--ds-size-6);
+        gap: var(--ds-size-6);
+    }
+}
+
+/* Skip-link – støtt både ds-skip-link (hyphen, v1.22 / skill) og ds-skiplink (vendored v1.0.8 / index.css) – ingen JS nødvendig, kun CSS + tabindex på main */
+.ds-skip-link,
+.ds-skiplink {
+    --dsc-skiplink-padding: var(--ds-size-4) var(--ds-size-4) var(--ds-size-5) var(--ds-size-4);
+    --dsc-skiplink-background: var(--ds-color-surface-hover);
+    --dsc-skiplink-color: var(--ds-color-text-default);
+    border: 0;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+}
+
+.ds-skip-link:focus,
+.ds-skiplink:focus {
+    height: auto;
+    margin: inherit;
+    outline: 0;
+    overflow: visible;
+    place-items: center;
+    position: static;
+    width: auto;
+    clip: auto;
+    background: var(--dsc-skiplink-background);
+    box-sizing: border-box;
+    clip-path: none;
+    color: var(--dsc-skiplink-color);
+    padding: var(--dsc-skiplink-padding);
+    text-decoration: underline;
+    text-decoration-thickness: max(1px, .0625rem);
+    text-underline-offset: max(5px, .25rem);
+    white-space: inherit;
+    z-index: 999;
+}
+
+.ds-skip-link:focus:not([hidden]),
+.ds-skiplink:focus:not([hidden]) {
+    display: grid;
+}
+
+/* Sørg for at sticky header (75px) ikke dekker hoppet mål – uten JS, ren CSS */
+main[id] {
+    scroll-margin-block-start: 84px;
+}
+
+main:focus {
+    outline: none;
+}
+
+main:focus-visible {
+    outline: 2px solid transparent;
+    box-shadow: var(--dsc-focus-boxShadow);
 }

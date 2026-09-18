@@ -7,22 +7,25 @@
     <title>Register over brukerstader</title>
 </head>
 
-<body>
+<body data-color-scheme="light" data-size="md">
     <header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
-    <main>
-        <nav id="tabs_container">
-            <a th:href="@{/relying-parties}" class="tab" data-size="lg" aria-selected="true">
+    <main id="hovudinnhald" tabindex="-1">
+        <nav id="tabs_container" aria-label="Katalognavigasjon">
+            <a th:href="@{/relying-parties}" class="tab" data-size="md" aria-selected="true">
                 Brukarstader
             </a>
-            <a th:href="@{/credentials-catalogue}" class="tab" data-size="lg">
+            <a th:href="@{/credentials-catalogue}" class="tab" data-size="md">
                 Beviskatalog
             </a>
         </nav>
 
-        <h1 class="ds-heading" data-size="lg">
-            Register over brukerstader
-        </h1>
+        <div style="display:flex; flex-direction:column; gap:var(--ds-size-2); max-width:720px;">
+            <h1 class="ds-heading" data-size="xl">
+                Register over brukerstader
+            </h1>
+            <p class="ds-paragraph" data-size="lg" style="color:var(--ds-color-neutral-text-subtle);">Søk på organisasjonsnummer eller namn, og filtrer på rolle.</p>
+        </div>
         <form th:replace="~{fragments/search_fragments :: search_form_fragment}">
         </form>
 
