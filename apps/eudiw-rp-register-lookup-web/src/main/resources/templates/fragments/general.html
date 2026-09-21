@@ -1,5 +1,7 @@
 <th:block th:fragment="default_stylesheets_fragment">
-    <link rel="stylesheet" th:href="@{/inter/inter.css}">
+    <link rel="stylesheet" href="https://altinncdn.no/fonts/inter/v4.1/inter.css"
+          integrity="sha384-OcHzc/By/OPw9uJREawUCjP2inbOGKtKb4A/I2iXxmknUfog2H8Adx71tWVZRscD"
+          crossorigin="anonymous">
     <link rel="stylesheet" th:href="@{/css/index.css}">
     <link rel="stylesheet" th:href="@{/css/digital-lommebok.css}">
     <link rel="stylesheet" th:href="@{/css/styles.css}">
@@ -8,64 +10,175 @@
 <th:block th:fragment="base_head_fragment">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
+    <meta name="robots" content="noindex, nofollow">
     <link rel="icon" th:href="@{/favicon.ico}">
     <th:block th:replace="~{:: default_stylesheets_fragment}"></th:block>
 </th:block>
 
-<header th:fragment="page_header_fragment">
-    <div>
-        <div style="padding-right: 8px;">
-            <a aria-label="Heim"
-               class="ds-focus"
-               th:href="@{/}">
-                <div th:replace="~{:: digdir_logo_fragment(26)}">
-                </div>
+ <th:block th:fragment="page_header_fragment">
+    <div><a class="ds-skip-link ds-skiplink" href="#hovudinnhald">Hopp til hovudinnhaldet</a></div>
+    <header>
+    <div class="page-container header__inner">
+        <a aria-label="Heim"
+           class="ds-focus header__brand"
+           th:href="@{/}">
+            <span th:replace="~{:: digdir_logo_fragment(26)}"></span>
+            <span>Nasjonal sandkasse for digital lommebok</span>
+        </a>
+
+        <button id="header-nav-toggle"
+                class="header__nav-toggle ds-button"
+                type="button"
+                data-variant="tertiary"
+                data-color="neutral"
+                data-size="md"
+                aria-label="Meny"
+                aria-expanded="false"
+                aria-controls="header-navigation">
+            <span th:replace="~{:: menu_icon_fragment}"></span>
+            <span id="header-nav-toggle-label"
+                  class="header__nav-toggle-label"
+                  aria-hidden="true">Meny</span>
+        </button>
+
+        <nav id="header-navigation"
+             class="header__nav"
+             aria-label="Hovudnavigasjon">
+            <a class="ds-link header__nav-link"
+               th:href="@{/}"
+               data-color="neutral">
+                Heim
             </a>
-        </div>
-        Nasjonal sandkasse for digital lommebok
+            <a class="ds-link header__nav-link"
+               th:href="@{/relying-parties}"
+               data-color="neutral">
+                Brukarstader
+            </a>
+            <a class="ds-link header__nav-link"
+               th:href="@{/credentials-catalogue}"
+               data-color="neutral">
+                Beviskatalog
+            </a>
+        </nav>
     </div>
 
-    <div>
-        <a class="ds-link"
-           th:href="@{/}"
-           data-color="neutral">
-            Heim
-        </a>
-    </div>
+    <script>
+        (() => {
+            // Header-meny toggle
+            const toggle = document.getElementById("header-nav-toggle");
+            const toggleLabel = document.getElementById("header-nav-toggle-label");
+            const navigation = document.getElementById("header-navigation");
+            if (toggle && navigation) {
+                function setNavigationOpen(open) {
+                    toggle.setAttribute("aria-expanded", String(open));
+                    const label = open ? "Lukk" : "Meny";
+                    toggle.setAttribute("aria-label", label);
+                    if (toggleLabel) toggleLabel.textContent = label;
+                    navigation.classList.toggle("header__nav--open", open);
+                }
+                toggle.addEventListener("click", () => {
+                    const expanded = toggle.getAttribute("aria-expanded") === "true";
+                    setNavigationOpen(!expanded);
+                });
+                document.addEventListener("keydown", (event) => {
+                    if (event.key === "Escape" && toggle.getAttribute("aria-expanded") === "true") {
+                        setNavigationOpen(false);
+                        toggle.focus();
+                    }
+                });
+            }
+            // Skip-link: flytt fokus til main uten å kreve designsystemet-web
+            const skipLink = document.querySelector('a.ds-skip-link, a.ds-skiplink');
+            const main = document.getElementById('hovudinnhald');
+            if (skipLink && main) {
+                skipLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    main.setAttribute('tabindex', '-1');
+                    main.focus({ preventScroll: true });
+                    const headerOffset = 84;
+                    const top = main.getBoundingClientRect().top + window.scrollY - headerOffset;
+                    window.scrollTo({ top, behavior: 'instant' in window ? 'instant' : 'auto' });
+                    history.pushState(null, '', '#hovudinnhald');
+                });
+            }
+            // Merk aktiv menypunkt med border-bottom – matcher referansen (svarte lenker, enkel hover)
+            const navLinks = document.querySelectorAll('#header-navigation .header__nav-link');
+            if (navLinks.length) {
+                const path = window.location.pathname;
+                navLinks.forEach((a) => {
+                    const href = a.getAttribute('href');
+                    if (!href) return;
+                    let isActive = false;
+                    if (href === '/') {
+                        isActive = path === '/';
+                    } else if (href === '/relying-parties') {
+                        isActive = path === '/relying-parties' || path.startsWith('/details');
+                    } else if (href === '/credentials-catalogue') {
+                        isActive = path.startsWith('/credentials-catalogue') || path.startsWith('/credential');
+                    } else {
+                        isActive = path === href || path.startsWith(href + '/');
+                    }
+                    if (isActive) a.setAttribute('aria-current', 'page');
+                    else a.removeAttribute('aria-current');
+                });
+            }
+        })();
+    </script>
 </header>
+</th:block>
 
 <footer th:fragment="page_footer_fragment"
         data-color-scheme="dark">
-    <div> <!--/* this div holds first row of footer. do not remove! */-->
+    <div class="page-container footer__inner">
         <div>
-            <div th:replace="~{:: digdir_logo_fragment(64)}"></div>
+            <h2 class="ds-heading">Digitaliseringsdirektoratet</h2>
+            <ul>
+                <li><a class="ds-link footer__link" href="https://www.digdir.no/digdir/om-digitaliseringsdirektoratet/1547">Om Digitaliseringsdirektoratet</a></li>
+                <li><a class="ds-link footer__link" href="https://www.digdir.no/digdir/jobb-i-digdir/6851">Jobb hos oss</a></li>
+                <li><a class="ds-link footer__link" href="https://www.digdir.no/node/1340">Digitaliseringsbloggen</a></li>
+                <li><a class="ds-link footer__link" href="https://www.digdir.no/digdir/presse/704">For pressa</a></li>
+                <li><a class="ds-link footer__link" href="https://www.digdir.no/digdir/personvernombod-i-digitaliseringsdirektoratet/944">Personvernombod</a></li>
+                <li><a class="ds-link footer__link" href="https://www.digdir.no/digdir/about-norwegian-digitalisation-agency/887">Om oss</a></li>
+            </ul>
         </div>
 
         <div>
-            <a class="ds-link"
-               href="https://docs.digdir.no/docs/lommebok/lommebok_om.html">
+            <h2 class="ds-heading">Teknisk informasjon</h2>
+            <a class="ds-link footer__link" href="https://docs.digdir.no/docs/lommebok/lommebok_om.html">
+                Om EUDI-wallet-sandkassa
+            </a>
+            <a class="ds-link footer__link" href="https://docs.digdir.no/docs/lommebok/lommebok_om.html">
                 Om sandkassa
             </a>
         </div>
 
         <div>
             <h2 class="ds-heading">Treng du hjelp?</h2>
-            <a class="ds-link"
-               href="mailto:servicedesk@digdir.no">
+            <a class="ds-link footer__link" href="mailto:servicedesk@digdir.no">
                 servicedesk@digdir.no
             </a>
-            <a class="ds-link"
-               href="https://docs.digdir.no/docs/general/slack.html">
-                Slack: #produkt-digital-lommebok
-            </a>
-            <a class="ds-link"
-               href="https://www.digdir.no/digdir/kontakt-oss/943">
+            <a class="ds-link footer__link" href="https://www.digdir.no/digdir/kontakt-oss/943">
                 Kontakt oss
             </a>
         </div>
     </div>
 </footer>
+
+<div th:fragment="menu_icon_fragment">
+    <svg xmlns="http://www.w3.org/2000/svg"
+         fill="none"
+         stroke="currentColor"
+         stroke-width="2"
+         stroke-linecap="round"
+         width="24"
+         height="24"
+         viewBox="0 0 24 24"
+         aria-hidden="true">
+        <path d="M3 6h18"></path>
+        <path d="M3 12h18"></path>
+        <path d="M3 18h18"></path>
+    </svg>
+</div>
 
 <div th:fragment="digdir_logo_fragment(dim)">
     <svg xmlns="http://www.w3.org/2000/svg"

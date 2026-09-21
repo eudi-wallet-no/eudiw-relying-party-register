@@ -1,12 +1,32 @@
 .clickableHeaders a {
+    display: block;
     width: 100%;
     height: 100%;
     margin: 0;
     text-decoration: none;
+    color: inherit;
+    font-weight: var(--ds-font-weight-medium);
 }
+
 .clickableHeaders a:visited {
     color: inherit;
 }
+
+.clickableHeaders a:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 0.0625em;
+    text-underline-offset: 0.2em;
+}
+
+.clickableHeaders th {
+    position: relative;
+    white-space: nowrap;
+}
+
 .clickableHeaders th.focused {
-    background-color: #ddeeff;
+    background: var(--dsc-table-header-background--sorted, var(--ds-color-surface-tinted));
+}
+
+.clickableHeaders th.focused a {
+    color: var(--ds-color-text-subtle);
 }

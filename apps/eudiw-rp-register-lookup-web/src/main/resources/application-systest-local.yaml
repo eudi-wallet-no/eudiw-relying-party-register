@@ -2,6 +2,8 @@
 spring:
   config:
     import: optional:file:${EUDIW_RP_REGISTER_LOOKUP_WEB_SYSTEST_ENV}[.properties]
+  thymeleaf:
+    cache: false
 
 eudiw-rp-register-lookup-web:
   relying-parties-service:

@@ -5,23 +5,24 @@
     <title>Ugjyldig ID</title>
 </head>
 
-<body>
+<body data-color-scheme="light" data-size="md">
     <header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
-    <main>
-        <h1 class="ds-heading" data-size="lg">
-            Ugyldig ID!
-        </h1>
+    <main id="hovudinnhald" tabindex="-1">
+        <div class="ds-alert" data-color="danger" role="alert">
+            <h1 class="ds-heading" data-size="md">
+                Ugyldig ID!
+            </h1>
+            <p class="ds-paragraph">
+                ID'en er ikkje gyldig: "<span th:text="${rejectedIdAttr}"></span>". Prøve med anna ID.
+            </p>
+        </div>
 
-        <p class="ds-paragraph">
-            ID'en er ikkje gyldig: "<span th:text="${rejectedIdAttr}"></span>". Prøve med anna ID.
-        </p>
-
-        <p class="ds-paragraph">
+        <div>
             <a th:href="@{/}" class="ds-button">
                 Heim
             </a>
-        </p>
+        </div>
     </main>
 
     <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>

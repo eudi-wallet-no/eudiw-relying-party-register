@@ -14,6 +14,8 @@ spring:
     import: optional:file:${EUDIW_RP_REGISTER_LOOKUP_WEB_ENV}[.properties]
   application:
     environment: dev
+  thymeleaf:
+    cache: false
 
 eudiw-rp-register-lookup-web:
   relying-parties-service:

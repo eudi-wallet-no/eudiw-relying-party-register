@@ -5,24 +5,31 @@
     <title>Innsynstenesta</title>
 </head>
 
-<body>
+<body data-color-scheme="light" data-size="md">
     <header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
-    <main>
-        <h1 class="ds-heading" data-size="lg">
-            Innsynsteneste: Nasjonal sandkasse for digital lommebok
-        </h1>
+    <main id="hovudinnhald" tabindex="-1">
+        <div style="display:flex; flex-direction:column; gap:var(--ds-size-2); max-width:720px;">
+            <h1 class="ds-heading" data-size="xl">
+                Innsynsteneste: Nasjonal sandkasse for digital lommebok
+            </h1>
+            <p class="ds-paragraph" data-size="lg" style="color:var(--ds-color-neutral-text-subtle);">Søk i registeret over brukarstader, eller utforsk beviskatalogen i sandkassa.</p>
+        </div>
 
-        <nav class="flex-container">
+        <nav class="flex-container" aria-label="Hovudvalg">
             <a th:href="@{/relying-parties}"
-               class="ds-card">
-                <h2 class="ds-heading">Brukarstader</h2>
-                Søk etter brukarstader i sandkassa
+               class="ds-card"
+               data-color="neutral"
+               data-variant="default">
+                <h2 class="ds-heading" data-size="sm">Brukarstader</h2>
+                <p class="ds-paragraph" data-size="sm">Søk etter brukarstader i sandkassa</p>
             </a>
             <a th:href="@{/credentials-catalogue}"
-               class="ds-card">
-                <h2 class="ds-heading">Beviskatalog</h2>
-                Få ein oversikt over gyldige bevistypar i sandkassa
+               class="ds-card"
+               data-color="neutral"
+               data-variant="default">
+                <h2 class="ds-heading" data-size="sm">Beviskatalog</h2>
+                <p class="ds-paragraph" data-size="sm">Få ein oversikt over gyldige bevistypar i sandkassa</p>
             </a>
         </nav>
 
