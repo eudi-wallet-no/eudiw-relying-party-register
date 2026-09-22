@@ -578,6 +578,7 @@ main:focus-visible {
 }
 
 .index-search__results {
+    list-style: none;
     padding-inline: 0;
 }
 
