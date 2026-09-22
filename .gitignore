@@ -60,3 +60,6 @@ logs/
 ### Environment ###
 .env
 .env.local
+
+### Impeccable ###
+.impeccable/
