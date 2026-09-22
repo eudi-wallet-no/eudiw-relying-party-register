@@ -49,7 +49,7 @@ public class CredentialsCatalogueControllerTests {
         @DisplayName("then credentials service invoked, and credentials view shown with default sorting")
         public void testGetCredentialsWithDefaultSorting() throws Exception {
             CredentialsResource credentialsResource = ResourceGenerator.generateCredentialsResource();
-            when(mockCredentialsService.getAvailableCredentials()).thenReturn(credentialsResource);
+            when(mockCredentialsService.search("")).thenReturn(credentialsResource);
 
             List<CredentialResource> credentialsWithDefaultSorting =
                 credentialsResource
@@ -66,7 +66,7 @@ public class CredentialsCatalogueControllerTests {
                                      credentialsWithDefaultSorting)
                 );
 
-            verify(mockCredentialsService, times(1)).getAvailableCredentials();
+            verify(mockCredentialsService, times(1)).search("");
         }
 
         @Nested
@@ -76,7 +76,7 @@ public class CredentialsCatalogueControllerTests {
             @DisplayName("then credentials table is sorted accordingly")
             public void testGetCredentialsSortedByCredentialType() throws Exception {
                 CredentialsResource credentialsResource = ResourceGenerator.generateCredentialsResource();
-                when(mockCredentialsService.getAvailableCredentials()).thenReturn(credentialsResource);
+                when(mockCredentialsService.search("")).thenReturn(credentialsResource);
 
                 Comparator<CredentialResource> byCredentialType =
                     Comparator.comparing(CredentialResource::getCredentialType);
@@ -96,14 +96,14 @@ public class CredentialsCatalogueControllerTests {
                                              credentialsSortedByCredentialType)
                        );
 
-                verify(mockCredentialsService, times(1)).getAvailableCredentials();
+                verify(mockCredentialsService, times(1)).search("");
             }
 
             @Test
             @DisplayName("then default sorting is used when sort key is unrecognized")
             public void testGetCredentialsWithUnknownSortKey() throws Exception {
                 CredentialsResource credentialsResource = ResourceGenerator.generateCredentialsResource();
-                when(mockCredentialsService.getAvailableCredentials()).thenReturn(credentialsResource);
+                when(mockCredentialsService.search("")).thenReturn(credentialsResource);
 
                 List<CredentialResource> credentialsWithDefaultSorting =
                     credentialsResource
@@ -121,7 +121,7 @@ public class CredentialsCatalogueControllerTests {
                                              credentialsWithDefaultSorting)
                        );
 
-                verify(mockCredentialsService, times(1)).getAvailableCredentials();
+                verify(mockCredentialsService, times(1)).search("");
             }
         }
     }

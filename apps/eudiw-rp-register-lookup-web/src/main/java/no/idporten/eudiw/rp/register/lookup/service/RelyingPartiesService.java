@@ -32,6 +32,14 @@ public class RelyingPartiesService {
                 .getBody();
     }
 
+    public long count() {
+        PagedResponse<RelyingPartyResource> page =
+            search(new SearchRelyingPartyResource()
+                .withPage(0)
+                .withPageSize(1));
+        return page.page().totalElements();
+    }
+
     public RelyingPartyResource get(UUID id) {
         try {
             return restClient.get()

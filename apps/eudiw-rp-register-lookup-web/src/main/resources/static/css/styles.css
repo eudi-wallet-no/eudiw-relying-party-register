@@ -473,3 +473,132 @@ main:focus-visible {
     outline: 2px solid transparent;
     box-shadow: var(--dsc-focus-boxShadow);
 }
+
+.index-search {
+    max-width: 720px;
+}
+
+.index-search__box {
+    align-items: center;
+    background: var(--ds-color-neutral-surface-default);
+    border: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
+    border-radius: var(--ds-border-radius-default);
+    display: flex;
+    gap: var(--ds-size-2);
+    padding: var(--ds-size-1);
+    transition: border-color 0.1s ease-out;
+}
+
+.index-search__box:focus-within {
+    border-color: var(--ds-color-neutral-border-strong);
+    box-shadow: var(--dsc-focus-boxShadow);
+}
+
+.index-search__icon {
+    color: var(--ds-color-neutral-text-subtle);
+    flex: 0 0 auto;
+    margin-inline-start: var(--ds-size-2);
+}
+
+.index-search__input {
+    border: 0;
+    box-shadow: none;
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: var(--ds-size-2) 0;
+}
+
+.index-search__input:focus-visible {
+    outline: none;
+}
+
+/* Skjul nettlesaren sin eigen tøm-knapp på type="search" – vi har eigen
+   .index-search__clear, så to kryss skal ikkje visast samtidig. */
+.index-search__input::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.index-card__top {
+    align-items: center;
+    display: flex;
+    gap: var(--ds-size-3);
+    justify-content: space-between;
+}
+
+.index-card__chevron {
+    color: var(--ds-color-neutral-text-subtle);
+    flex: 0 0 auto;
+}
+
+.index-card__link {
+    font-weight: var(--ds-font-weight-medium);
+}
+
+.index-card:is(a) :is(h1, h2, h3, h4, h5, h6) {
+    text-decoration: none;
+}
+
+/* Kortet skal ha ein myk, nøytral kant i staden for den svarte standardkanten.
+   Gjeld både ytterkanten og skiljet mellom innhald og bunnlenke. */
+.index-card {
+    --dsc-card-block-border-color: var(--ds-color-neutral-border-subtle);
+    border-color: var(--ds-color-neutral-border-subtle);
+}
+
+.index-search__heading {
+    align-items: center;
+    display: flex;
+    gap: var(--ds-size-3);
+}
+
+.index-search__clear {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    border-radius: var(--ds-border-radius-full);
+    box-shadow: none;
+    color: var(--ds-color-neutral-text-subtle);
+    cursor: pointer;
+    display: flex;
+    flex: 0 0 auto;
+    justify-content: center;
+    padding: var(--ds-size-1);
+    transition: background-color 0.1s ease-out, color 0.1s ease-out;
+}
+
+.index-search__clear:hover {
+    background: var(--ds-color-neutral-background-tinted);
+    color: var(--ds-color-neutral-text-default);
+}
+
+.index-search__clear:focus-visible {
+    outline: none;
+    box-shadow: var(--dsc-focus-boxShadow);
+}
+
+.index-search__results {
+    padding-inline: 0;
+}
+
+.index-card__body {
+    align-items: center;
+    display: flex;
+    gap: var(--ds-size-3);
+    justify-content: space-between;
+}
+
+.index-card__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-1);
+    min-width: 0;
+}
+
+.index-card__title {
+    font-weight: var(--ds-font-weight-medium);
+}
+
+.index-card__subtitle {
+    color: var(--ds-color-neutral-text-subtle);
+}

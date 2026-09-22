@@ -4,9 +4,8 @@
       th:object="${searchFormAttr}"
       th:with="activeFilters=${#lists.size(searchFormAttr.getRequiredEntitlements()) + (searchFormAttr.hideSyntheticOrgnos ? 1 : 0)}"
       th:action="@{/relying-parties}"
-      method="POST"
+      method="GET"
       style="display:flex; flex-direction:column; gap:var(--ds-size-4);">
-    <!-- Søkefelt med label, filter og søk på én linje -->
     <div class="ds-field">
         <label for="search_term" class="ds-label ds-sr-only">Søk på org.nr. eller namn</label>
         <div style="display:flex; align-items:center; gap:var(--ds-size-3);">
@@ -152,7 +151,9 @@
 <div th:fragment="results_table_fragment(credentialsByType)">
     <!--/*@thymesVar id="credentialsByType" type="java.util.Map<String, no.idporten.eudiw.rp.register.lookup.web.resource.credentials.CredentialResource>"*/-->
     <div th:with="resultsPage=${resultsPageAttr},
-                  activeFilters=${#lists.size(searchFormAttr.getRequiredEntitlements()) + (searchFormAttr.hideSyntheticOrgnos ? 1 : 0)}">
+                  activeFilters=${#lists.size(searchFormAttr.getRequiredEntitlements()) + (searchFormAttr.hideSyntheticOrgnos ? 1 : 0)},
+                  currentOrdering=${orderingAttr},
+                  orderingOpts=${T(no.idporten.eudiw.rp.register.lookup.web.search.resultsview.RelyingPartyOrdering)}">
         <div th:if="${#lists.isEmpty(resultsPage)}"
              class="ds-alert"
              data-color="info"
@@ -161,11 +162,9 @@
             <p class="ds-paragraph">Fann ingen brukarstader som matcher søket.</p>
         </div>
 
-        <div th:unless="${#lists.isEmpty(resultsPage)}"
-             th:with="currentOrdering=${@searchSession.getOrdering()},
-                      orderingOpts=${T(no.idporten.eudiw.rp.register.lookup.web.search.resultsview.RelyingPartyOrdering)}">
+        <div th:unless="${#lists.isEmpty(resultsPage)}">
             <p class="ds-paragraph" data-size="sm" style="color:var(--ds-color-neutral-text-subtle); margin-block-end: var(--ds-size-4);"
-               th:text="|${#lists.size(resultsPage)} av ${@searchSession.getTotalElements()} brukarstader|"></p>
+               th:text="|${#lists.size(resultsPage)} av ${totalElementsAttr} brukarstader|"></p>
             <div class="table-wrapper">
             <table class="ds-table"
                    data-border="true"
@@ -175,14 +174,14 @@
                 <tr>
                     <th th:class="${currentOrdering == orderingOpts.ORGNO_ASC ? 'focused' : ''}"
                         th:attr="aria-sort=${currentOrdering == orderingOpts.ORGNO_ASC ? 'ascending' : 'none'}">
-                        <a th:href="@{/relying-parties(sort=|${orderingOpts.ORGNO_ASC}|)}" class="ds-link">
+                        <a th:href="@{/relying-parties(searchTerm=${searchFormAttr.searchTerm}, hideSyntheticOrgnos=${searchFormAttr.hideSyntheticOrgnos}, requiredEntitlements=${searchFormAttr.requiredEntitlements}, sort=|${orderingOpts.ORGNO_ASC}|)}" class="ds-link">
                             Org.nr.
                         </a>
                     </th>
                     <th>Organisasjon</th>
                     <th th:class="${currentOrdering == orderingOpts.NAME_ASC ? 'focused' : ''}"
                         th:attr="aria-sort=${currentOrdering == orderingOpts.NAME_ASC ? 'ascending' : 'none'}">
-                        <a th:href="@{/relying-parties(sort=|${orderingOpts.NAME_ASC}|)}" class="ds-link">
+                        <a th:href="@{/relying-parties(searchTerm=${searchFormAttr.searchTerm}, hideSyntheticOrgnos=${searchFormAttr.hideSyntheticOrgnos}, requiredEntitlements=${searchFormAttr.requiredEntitlements}, sort=|${orderingOpts.NAME_ASC}|)}" class="ds-link">
                             Brukarstad
                         </a>
                     </th>
@@ -229,7 +228,7 @@
             </table>
             </div>
 
-            <div th:if="${activeFilters > 0 and @searchSession.getNumPages() <= 1}"
+            <div th:if="${activeFilters > 0 and numPagesAttr <= 1}"
                  class="ds-alert"
                  data-color="info"
                  role="status"
@@ -266,16 +265,16 @@
         </div>
     </div>
 
-    <nav th:if="${@searchSession.getNumPages() > 1}"
-         th:with="pageWindow=${@searchSession.getPaginationWindow()},
-                  currentPageNum=${@searchSession.getCurrentPageIdx() + 1},
-                  numPages=${@searchSession.getNumPages()}"
+    <nav th:if="${numPagesAttr > 1}"
+         th:with="pageWindow=${paginationWindowAttr},
+                  currentPageNum=${currentPageNumAttr},
+                  numPages=${numPagesAttr}"
          class="ds-pagination"
          aria-label="Bla i sider"
          style="margin-block-start: var(--ds-size-12);">
         <ul style="justify-content: center;">
-            <li th:unless="${#lists.contains(pageWindow, 1)}">
-                <a th:href="@{/relying-parties(page=1)}"
+            <li th:unless="${#arrays.contains(pageWindow, 1)}">
+                <a th:href="@{/relying-parties(searchTerm=${searchFormAttr.searchTerm}, hideSyntheticOrgnos=${searchFormAttr.hideSyntheticOrgnos}, requiredEntitlements=${searchFormAttr.requiredEntitlements}, page=1, sort=${orderingAttr})}"
                    class="ds-button"
                    data-variant="tertiary"
                    aria-label="Første side">
@@ -285,14 +284,14 @@
 
             <li th:each="pageNum : ${pageWindow}">
                 <a th:if="${pageNum == currentPageNum}"
-                   th:href="@{/relying-parties(page=${pageNum})}"
+                   th:href="@{/relying-parties(searchTerm=${searchFormAttr.searchTerm}, hideSyntheticOrgnos=${searchFormAttr.hideSyntheticOrgnos}, requiredEntitlements=${searchFormAttr.requiredEntitlements}, page=${pageNum}, sort=${orderingAttr})}"
                    class="ds-button"
                    data-variant="primary"
                    th:attr="aria-current='page', aria-label='Side ' + ${pageNum}">
                     <span th:text="${pageNum}"></span>
                 </a>
                 <a th:unless="${pageNum == currentPageNum}"
-                   th:href="@{/relying-parties(page=${pageNum})}"
+                   th:href="@{/relying-parties(searchTerm=${searchFormAttr.searchTerm}, hideSyntheticOrgnos=${searchFormAttr.hideSyntheticOrgnos}, requiredEntitlements=${searchFormAttr.requiredEntitlements}, page=${pageNum}, sort=${orderingAttr})}"
                    class="ds-button"
                    data-variant="tertiary"
                    th:attr="aria-label='Side ' + ${pageNum}">
@@ -300,8 +299,8 @@
                 </a>
             </li>
 
-            <li th:unless="${#lists.contains(pageWindow, numPages)}">
-                <a th:href="@{/relying-parties(page=${numPages})}"
+            <li th:unless="${#arrays.contains(pageWindow, numPages)}">
+                <a th:href="@{/relying-parties(searchTerm=${searchFormAttr.searchTerm}, hideSyntheticOrgnos=${searchFormAttr.hideSyntheticOrgnos}, requiredEntitlements=${searchFormAttr.requiredEntitlements}, page=${numPages}, sort=${orderingAttr})}"
                    class="ds-button"
                    data-variant="tertiary"
                    aria-label="Siste side">

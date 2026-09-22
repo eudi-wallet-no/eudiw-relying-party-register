@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title>Søkeresultat</title>
+</head>
+
+<body data-color-scheme="light" data-size="md">
+    <header th:replace="~{fragments/general :: page_header_fragment}"></header>
+
+    <main id="hovudinnhald" tabindex="-1">
+        <div style="display:flex; flex-direction:column; gap:var(--ds-size-2); max-width:720px;">
+            <div class="index-search__heading">
+                <h1 class="ds-heading" data-size="xl">Søkeresultat</h1>
+                <span th:if="${!#strings.isEmpty(searchTermAttr)}"
+                      class="ds-badge"
+                      data-variant="tinted"
+                      th:attr="data-count=${totalHitsAttr} + ' treff'"></span>
+            </div>
+            <p class="ds-paragraph" data-size="lg" style="color:var(--ds-color-neutral-text-subtle);">
+                Søk etter «<span th:text="${searchTermAttr}"></span>» i registeret over brukarstader og beviskatalogen.
+            </p>
+        </div>
+
+        <form th:action="@{/search}"
+              method="GET"
+              role="search"
+              class="index-search"
+              id="index-search-form">
+            <label for="index-search-term" class="ds-sr-only">Søk i registeret</label>
+            <div class="index-search__box">
+                <svg class="index-search__icon"
+                     xmlns="http://www.w3.org/2000/svg"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     stroke-linecap="round"
+                     width="20"
+                     height="20"
+                     viewBox="0 0 24 24"
+                     aria-hidden="true">
+                    <circle cx="11" cy="11" r="7"></circle>
+                    <path d="m20 20-3.5-3.5"></path>
+                </svg>
+                <input id="index-search-term"
+                       name="searchTerm"
+                       type="search"
+                       class="ds-input index-search__input"
+                       th:value="${searchTermAttr}"
+                       placeholder="Søk etter brukarstad, teneste, organisasjonsnummer eller bevis...">
+                <button type="button"
+                        class="index-search__clear"
+                        aria-label="Tøm søk"
+                        th:if="${!#strings.isEmpty(searchTermAttr)}">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="2"
+                         stroke-linecap="round"
+                         width="16"
+                         height="16"
+                         viewBox="0 0 24 24"
+                         aria-hidden="true">
+                        <path d="M18 6 6 18"></path>
+                        <path d="m6 6 12 12"></path>
+                    </svg>
+                </button>
+                <button type="submit" class="ds-button" data-variant="primary">Søk</button>
+            </div>
+        </form>
+
+        <section aria-labelledby="relying-parties-heading"
+                 style="display:flex; flex-direction:column; gap:var(--ds-size-3);">
+            <h2 id="relying-parties-heading" class="ds-heading" data-size="md">Brukarstader</h2>
+
+            <div th:if="${#lists.isEmpty(relyingPartiesAttr)}"
+                 class="ds-alert"
+                 data-color="info"
+                 role="status">
+                <p class="ds-paragraph">Fann ingen brukarstader som matcher søket.</p>
+            </div>
+
+            <ul th:unless="${#lists.isEmpty(relyingPartiesAttr)}"
+                class="ds-list index-search__results"
+                data-variant="unstyled"
+                style="display:flex; flex-direction:column; gap:var(--ds-size-2);">
+                <li th:each="rp : ${relyingPartiesAttr}">
+                    <a th:href="@{/details/{id}(id=${rp.id()})}"
+                       class="ds-card index-card"
+                       data-color="accent"
+                       data-variant="default">
+                        <div class="ds-card__block">
+                            <div class="index-card__body">
+                                <div class="index-card__text">
+                                    <p class="ds-paragraph index-card__title" th:text="${rp.tradeName()}"></p>
+                                    <p class="ds-paragraph index-card__subtitle" data-size="sm" th:text="${rp.orgName()}"></p>
+                                </div>
+                                <svg class="index-card__chevron"
+                                     xmlns="http://www.w3.org/2000/svg"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     stroke-width="2"
+                                     stroke-linecap="round"
+                                     stroke-linejoin="round"
+                                     width="20"
+                                     height="20"
+                                     viewBox="0 0 24 24"
+                                     aria-hidden="true">
+                                    <path d="m9 18 6-6-6-6"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </a>
+                </li>
+            </ul>
+        </section>
+
+        <section aria-labelledby="credentials-heading"
+                 style="display:flex; flex-direction:column; gap:var(--ds-size-3);">
+            <h2 id="credentials-heading" class="ds-heading" data-size="md">Beviskatalog</h2>
+
+            <div th:if="${#lists.isEmpty(credentialsAttr)}"
+                 class="ds-alert"
+                 data-color="info"
+                 role="status">
+                <p class="ds-paragraph">Fann ingen bevistypar som matcher søket.</p>
+            </div>
+
+            <ul th:unless="${#lists.isEmpty(credentialsAttr)}"
+                class="ds-list index-search__results"
+                data-variant="unstyled"
+                style="display:flex; flex-direction:column; gap:var(--ds-size-2);">
+                <li th:each="credential : ${credentialsAttr}">
+                    <a th:href="@{/credential
+                                 (issuer=${credential.getIssuer()},
+                                  config-id=${credential.getConfigurationId()})}"
+                       class="ds-card index-card"
+                       data-color="accent"
+                       data-variant="default">
+                        <div class="ds-card__block">
+                            <div class="index-card__body">
+                                <div class="index-card__text">
+                                    <p class="ds-paragraph index-card__title"
+                                      th:text="${credential.getCredentialTypeDisplayName('no')}"></p>
+                                    <p class="ds-paragraph index-card__subtitle" data-size="sm"
+                                      th:text="${credential.getIssuerDisplayName('no')}"></p>
+                                </div>
+                                <svg class="index-card__chevron"
+                                     xmlns="http://www.w3.org/2000/svg"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     stroke-width="2"
+                                     stroke-linecap="round"
+                                     stroke-linejoin="round"
+                                     width="20"
+                                     height="20"
+                                     viewBox="0 0 24 24"
+                                     aria-hidden="true">
+                                    <path d="m9 18 6-6-6-6"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </a>
+                </li>
+            </ul>
+        </section>
+    </main>
+    <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
+        <script>
+            (() => {
+                const form = document.getElementById("index-search-form");
+                if (!form) return;
+                form.addEventListener("submit", (e) => {
+                    const btn = e.submitter || form.querySelector("button[type=submit]");
+                    if (!btn) return;
+                    btn.disabled = true;
+                    btn.setAttribute("aria-busy", "true");
+                    btn.setAttribute("aria-label", "Søkjer");
+                    btn.innerHTML = '<span class="ds-spinner" data-size="sm" aria-hidden="true">'
+                        + '<svg viewBox="0 0 50 50">'
+                        + '<circle class="ds-spinner__background" cx="25" cy="25" r="20" fill="none" stroke-width="4"></circle>'
+                        + '<circle class="ds-spinner__circle" cx="25" cy="25" r="20" fill="none" stroke-width="4"></circle>'
+                        + '</svg></span>';
+                });
+                const clear = form.querySelector(".index-search__clear");
+                if (clear) {
+                    clear.addEventListener("click", () => {
+                        const input = form.querySelector('input[name="searchTerm"]');
+                        input.value = "";
+                        input.focus();
+                        form.submit();
+                    });
+                }
+            })();
+        </script>
+    </body>
+</html>

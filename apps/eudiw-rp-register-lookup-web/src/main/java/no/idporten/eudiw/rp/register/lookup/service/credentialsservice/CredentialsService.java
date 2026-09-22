@@ -10,6 +10,7 @@ import no.idporten.eudiw.rp.register.lookup.web.resource.credentials.Credentials
 import org.springframework.web.client.RestClient;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -50,6 +51,32 @@ public class CredentialsService {
                        new NotFoundException(
                            "Found no credential with issuer=%s, config ID=%s"
                                .formatted(issuer, configurationId)));
+    }
+
+    public long count() {
+        return getAvailableCredentials().credentials().size();
+    }
+
+    public CredentialsResource search(String searchTerm) {
+        String term = searchTerm.toLowerCase(Locale.ROOT);
+        List<CredentialResource> matches =
+            getAvailableCredentials()
+                .credentials()
+                .stream()
+                .filter(credential -> matches(credential, term))
+                .toList();
+        return new CredentialsResource(matches);
+    }
+
+    private boolean matches(CredentialResource credential, String term) {
+        return contains(credential.getCredentialTypeDisplayName("no"), term)
+            || contains(credential.getIssuerDisplayName("no"), term)
+            || contains(credential.getCredentialType(), term)
+            || contains(credential.getFormat(), term);
+    }
+
+    private boolean contains(String value, String term) {
+        return value != null && value.toLowerCase(Locale.ROOT).contains(term);
     }
 
     private boolean isValidCredentialResource(CredentialResource credential) {

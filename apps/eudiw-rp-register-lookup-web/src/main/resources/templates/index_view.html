@@ -13,27 +13,122 @@
             <h1 class="ds-heading" data-size="xl">
                 Innsynsteneste: Nasjonal sandkasse for digital lommebok
             </h1>
-            <p class="ds-paragraph" data-size="lg" style="color:var(--ds-color-neutral-text-subtle);">Søk i registeret over brukarstader, eller utforsk beviskatalogen i sandkassa.</p>
+            <p class="ds-paragraph" data-size="lg" style="color:var(--ds-color-neutral-text-subtle);">Søk i registeret over brukarstader (RP), eller utforsk beviskatalogen i sandkassa.</p>
         </div>
+
+        <form th:action="@{/search}"
+              method="GET"
+              role="search"
+              class="index-search"
+              id="index-search-form">
+            <label for="index-search-term" class="ds-sr-only">Søk i registeret</label>
+            <div class="index-search__box">
+                <svg class="index-search__icon"
+                     xmlns="http://www.w3.org/2000/svg"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     stroke-linecap="round"
+                     width="20"
+                     height="20"
+                     viewBox="0 0 24 24"
+                     aria-hidden="true">
+                    <circle cx="11" cy="11" r="7"></circle>
+                    <path d="m20 20-3.5-3.5"></path>
+                </svg>
+                <input id="index-search-term"
+                       name="searchTerm"
+                       type="search"
+                       class="ds-input index-search__input"
+                       placeholder="Søk etter brukarstad, teneste, organisasjonsnummer eller bevis...">
+                <button type="submit" class="ds-button" data-variant="primary">Søk</button>
+            </div>
+        </form>
 
         <nav class="flex-container" aria-label="Hovudvalg">
             <a th:href="@{/relying-parties}"
-               class="ds-card"
+               class="ds-card index-card"
                data-color="accent"
                data-variant="default">
-                <h2 class="ds-heading" data-size="sm">Brukarstader</h2>
-                <p class="ds-paragraph" data-size="sm">Søk etter brukarstader i sandkassa</p>
+                <div class="ds-card__block">
+                    <div class="index-card__top">
+                        <span th:if="${relyingPartyCountAttr != null}"
+                              class="ds-badge"
+                              data-variant="tinted"
+                              th:attr="data-count=${relyingPartyCountAttr} + ' brukarstader'"></span>
+                        <svg class="index-card__chevron"
+                             xmlns="http://www.w3.org/2000/svg"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="2"
+                             stroke-linecap="round"
+                             stroke-linejoin="round"
+                             width="20"
+                             height="20"
+                             viewBox="0 0 24 24"
+                             aria-hidden="true">
+                            <path d="m9 18 6-6-6-6"></path>
+                        </svg>
+                    </div>
+                    <h2 class="ds-heading" data-size="sm">Brukarstader</h2>
+                    <p class="ds-paragraph" data-size="sm">Søk etter brukarstader i sandkassa, sjå kva krav dei stiller og kva bevisstypar dei aksepterer.</p>
+                </div>
+                <div class="ds-card__block">
+                    <span class="index-card__link">Gå til brukarstadoversikt <span aria-hidden="true">→</span></span>
+                </div>
             </a>
             <a th:href="@{/credentials-catalogue}"
-               class="ds-card"
+               class="ds-card index-card"
                data-color="accent"
                data-variant="default">
-                <h2 class="ds-heading" data-size="sm">Beviskatalog</h2>
-                <p class="ds-paragraph" data-size="sm">Få ein oversikt over gyldige bevistypar i sandkassa</p>
+                <div class="ds-card__block">
+                    <div class="index-card__top">
+                        <span th:if="${credentialCountAttr != null}"
+                              class="ds-badge"
+                              data-variant="tinted"
+                              th:attr="data-count=${credentialCountAttr} + ' bevisstypar'"></span>
+                        <svg class="index-card__chevron"
+                             xmlns="http://www.w3.org/2000/svg"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="2"
+                             stroke-linecap="round"
+                             stroke-linejoin="round"
+                             width="20"
+                             height="20"
+                             viewBox="0 0 24 24"
+                             aria-hidden="true">
+                            <path d="m9 18 6-6-6-6"></path>
+                        </svg>
+                    </div>
+                    <h2 class="ds-heading" data-size="sm">Beviskatalog</h2>
+                    <p class="ds-paragraph" data-size="sm">Få ein oversikt over gyldige bevisstypar i sandkassa, datamodellar og tekniske skjemadefinisjonar.</p>
+                </div>
+                <div class="ds-card__block">
+                    <span class="index-card__link">Utforsk beviskatalogen <span aria-hidden="true">→</span></span>
+                </div>
             </a>
         </nav>
 
     </main>
     <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
+    <script>
+        (() => {
+            const form = document.getElementById("index-search-form");
+            if (!form) return;
+            form.addEventListener("submit", (e) => {
+                const btn = e.submitter || form.querySelector("button[type=submit]");
+                if (!btn) return;
+                btn.disabled = true;
+                btn.setAttribute("aria-busy", "true");
+                btn.setAttribute("aria-label", "Søkjer");
+                btn.innerHTML = '<span class="ds-spinner" data-size="sm" aria-hidden="true">'
+                    + '<svg viewBox="0 0 50 50">'
+                    + '<circle class="ds-spinner__background" cx="25" cy="25" r="20" fill="none" stroke-width="4"></circle>'
+                    + '<circle class="ds-spinner__circle" cx="25" cy="25" r="20" fill="none" stroke-width="4"></circle>'
+                    + '</svg></span>';
+            });
+        })();
+    </script>
 </body>
 </html>
