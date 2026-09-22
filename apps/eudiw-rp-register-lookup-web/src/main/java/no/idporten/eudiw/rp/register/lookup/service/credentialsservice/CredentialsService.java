@@ -9,6 +9,8 @@ import no.idporten.eudiw.rp.register.lookup.web.resource.credentials.CredentialR
 import no.idporten.eudiw.rp.register.lookup.web.resource.credentials.CredentialsResource;
 import org.springframework.web.client.RestClient;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -17,11 +19,27 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class CredentialsService {
+    private static final Duration CACHE_TTL = Duration.ofMinutes(5);
+
     private final RestClient restClient;
 
     private final Validator validator;
 
+    private volatile CachedCredentials cache;
+
+    private record CachedCredentials(CredentialsResource credentials, Instant fetchedAt) { }
+
     public CredentialsResource getAvailableCredentials() {
+        CachedCredentials cached = cache;
+        if (cached != null && cached.fetchedAt().plus(CACHE_TTL).isAfter(Instant.now())) {
+            return cached.credentials();
+        }
+        CredentialsResource credentials = fetchCredentials();
+        cache = new CachedCredentials(credentials, Instant.now());
+        return credentials;
+    }
+
+    private CredentialsResource fetchCredentials() {
         CredentialsResource credentialsResource =
             Objects.requireNonNull(
                 restClient.get()

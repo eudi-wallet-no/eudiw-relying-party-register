@@ -256,6 +256,23 @@ main > * {
     gap: var(--ds-size-8);
 }
 
+/* Klikkbare kort – kvit bakgrunn (accent surface-default) med svart standard border og svart hover-ring.
+   DS standard er kun background-hover; border via box-shadow gir tydeleg hover som på digdir.no.
+   Både standard- og hover-border overstyres til heilt svart (#000) uavhengig av data-color.
+   Gjeld alle klikkbare ds-card i appen. */
+.ds-card:where(a, button, [role="button"]) {
+    --dsc-card-border-color: #000000;
+}
+.ds-card:where(a, button, [role="button"]):hover {
+    border-color: #000000;
+    box-shadow: 0 0 0 1px #000000;
+}
+.ds-card:where(a, button, [role="button"]):active {
+    border-color: #000000;
+    box-shadow: 0 0 0 1px #000000;
+    background: var(--dsc-card-background--active);
+}
+
 @media (min-width: 640px) {
     main .flex-container {
         flex-direction: row;

@@ -2297,6 +2297,12 @@
         font-size: 5.5rem
     }
 
+    .ds-spinner svg {
+        display: block;
+        height: 100%;
+        width: 100%
+    }
+
     .ds-spinner__background {
         stroke: var(--dsc-spinner-background)
     }

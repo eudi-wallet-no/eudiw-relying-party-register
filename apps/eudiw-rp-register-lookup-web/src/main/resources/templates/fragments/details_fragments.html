@@ -1,5 +1,6 @@
-<div th:fragment="general_info_content_fragment(rp)">
+<div th:fragment="general_info_content_fragment(rp, credentialsByType)">
     <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.register.lookup.web.resource.RelyingPartyResource"*/-->
+    <!--/*@thymesVar id="credentialsByType" type="java.util.Map<String, no.idporten.eudiw.rp.register.lookup.web.resource.credentials.CredentialResource>"*/-->
     <div style="margin-block-end: var(--ds-size-8);">
         <div class="table-wrapper">
             <table class="ds-table" data-border="true" style="width:100%;">
@@ -37,28 +38,22 @@
         <h2 class="ds-heading" data-size="md">Roller og bevistypar</h2>
 
         <details class="ds-details" data-variant="default">
-            <summary>Roller</summary>
+            <summary th:text="|Roller (${#lists.size(rp.relyingPartyEntitlements)})|">Roller</summary>
             <div style="display:flex; flex-direction:column; gap:var(--ds-size-4);">
                 <p th:if="${ #lists.isEmpty(rp.relyingPartyEntitlements)}" class="ds-paragraph">
                     <em>Ingen registrert.</em>
                 </p>
-                <div th:unless="${ #lists.isEmpty(rp.relyingPartyEntitlements)}" class="table-wrapper">
-                    <table class="ds-table" data-border="true" style="width:100%;">
-                        <thead>
-                            <tr><th>Rolle</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="e : ${rp.relyingPartyEntitlements}">
-                                <td th:text="${e.displayName}"></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div th:unless="${ #lists.isEmpty(rp.relyingPartyEntitlements)}"
+                     style="display:flex; flex-wrap:wrap; gap:var(--ds-size-3);">
+                    <span th:each="e : ${rp.relyingPartyEntitlements}"
+                          class="ds-tag"
+                          th:text="${e.displayName}"></span>
                 </div>
             </div>
         </details>
 
         <details class="ds-details">
-            <summary>Bevistypar (EAA)</summary>
+            <summary th:text="|Bevistypar (EAA) (${#lists.size(rp.relyingPartyEaas)})|">Bevistypar (EAA)</summary>
             <div style="display:flex; flex-direction:column; gap:var(--ds-size-4);">
                 <p th:if="${ #lists.isEmpty(rp.relyingPartyEaas)}" class="ds-paragraph">
                     <em>Ingen registrert.</em>
@@ -67,13 +62,30 @@
                     <table class="ds-table" data-border="true" style="width:100%;">
                         <thead>
                             <tr>
-                                <th>Bevistype</th>
+                                <th>Bevis</th>
                                 <th>Føremål</th>
                             </tr>
                         </thead>
                         <tbody>
-                        <tr th:each="eaa : ${rp.relyingPartyEaas}">
-                            <td th:text="${eaa.namespace}"></td>
+                        <tr th:each="eaa : ${rp.relyingPartyEaas}"
+                            th:with="credential=${credentialsByType.get(eaa.namespace)}">
+                            <td>
+                                <a th:if="${credential != null}"
+                                   th:href="@{/credential
+                                                (issuer=${credential.getIssuer()},
+                                                 config-id=${credential.getConfigurationId()})}"
+                                   class="ds-link"
+                                   th:text="${credential.getCredentialTypeDisplayName('no')}"
+                                   th:title="${credential.getCredentialTypeDescription('no')}"
+                                   style="font-weight:var(--ds-font-weight-medium);">
+                                </a>
+                                <span th:unless="${credential != null}" th:text="${eaa.namespace}"></span>
+                                <span th:if="${credential != null}"
+                                      class="ds-paragraph"
+                                      data-size="sm"
+                                      style="display:block; color:var(--ds-color-neutral-text-subtle);"
+                                      th:text="${eaa.namespace}"></span>
+                            </td>
                             <td th:text="${eaa.intent}"></td>
                         </tr>
                         </tbody>

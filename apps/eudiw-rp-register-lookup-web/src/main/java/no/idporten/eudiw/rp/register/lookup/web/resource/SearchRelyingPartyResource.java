@@ -18,7 +18,7 @@ import java.util.List;
 @Getter
 @Accessors(fluent = true)
 public class SearchRelyingPartyResource {
-    public final static int DEFAULT_PAGE_SIZE = 25;
+    public final static int DEFAULT_PAGE_SIZE = 20;
     public final static String DEFAULT_ORDERING = RelyingPartyOrdering.NAME_ASC;
 
     @JsonProperty("search_term")

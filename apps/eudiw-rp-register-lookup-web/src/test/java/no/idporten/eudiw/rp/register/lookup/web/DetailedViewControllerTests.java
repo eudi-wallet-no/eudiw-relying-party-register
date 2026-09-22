@@ -1,9 +1,11 @@
 package no.idporten.eudiw.rp.register.lookup.web;
 
 import no.idporten.eudiw.rp.register.lookup.service.RelyingPartiesService;
+import no.idporten.eudiw.rp.register.lookup.service.credentialsservice.CredentialsService;
 import no.idporten.eudiw.rp.register.lookup.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.register.lookup.web.controllers.DetailedViewController;
 import no.idporten.eudiw.rp.register.lookup.web.resource.*;
+import no.idporten.eudiw.rp.register.lookup.web.resource.credentials.CredentialsResource;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -33,6 +35,10 @@ public class DetailedViewControllerTests {
     @MockitoBean
     private RelyingPartiesService mockRpService;
 
+    @SuppressWarnings("unused")
+    @MockitoBean
+    private CredentialsService mockCredentialsService;
+
     @Nested
     @DisplayName("when GET'ing the /details endpoint for a given RP ID ...")
     class DetailsEndpointGetTests {
@@ -44,6 +50,8 @@ public class DetailedViewControllerTests {
                 ResourceGenerator.generateRelyingPartyResource();
             UUID id = rpResource.id();
             when(mockRpService.get(id)).thenReturn(rpResource);
+            when(mockCredentialsService.getAvailableCredentials())
+                .thenReturn(new CredentialsResource(java.util.List.of()));
 
 
             mockMvc.perform(get("/details/" + id))

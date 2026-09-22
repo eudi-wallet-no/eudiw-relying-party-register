@@ -18,22 +18,16 @@
             </ol>
         </nav>
 
-        <div>
-            <a th:href="@{/relying-parties}" class="ds-button" data-variant="secondary">
-                Tilbake til søk
-            </a>
-        </div>
-
         <div style="display:flex; flex-direction:column; gap:var(--ds-size-2); max-width:720px;">
             <h1 class="ds-heading" data-size="xl">
                 Detaljar for brukarstad: <span th:text="${rp.tradeName}"/>
             </h1>
-            <p class="ds-paragraph" data-size="lg" style="color:var(--ds-color-neutral-text-subtle);">Detaljert oversikt over organisasjon, roller og bevistypar.</p>
+            <p class="ds-paragraph" data-size="lg" style="color:var(--ds-color-neutral-text-subtle);">Detaljert oversikt over brukarstad, roller og bevistypar.</p>
         </div>
 
         <div
              th:replace="~{fragments/details_fragments
-                            :: general_info_content_fragment(rp=${rp})}">
+                            :: general_info_content_fragment(rp=${rp}, credentialsByType=${credentialsByTypeAttr})}">
         </div>
     </main>
 

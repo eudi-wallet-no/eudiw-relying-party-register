@@ -22,14 +22,14 @@
 
         <div style="display:flex; flex-direction:column; gap:var(--ds-size-2); max-width:720px;">
             <h1 class="ds-heading" data-size="xl">
-                Register over brukerstader
+                Register over brukarstader
             </h1>
             <p class="ds-paragraph" data-size="lg" style="color:var(--ds-color-neutral-text-subtle);">Søk på organisasjonsnummer eller namn, og filtrer på rolle.</p>
         </div>
         <form th:replace="~{fragments/search_fragments :: search_form_fragment}">
         </form>
 
-        <div th:replace="~{fragments/search_fragments :: results_table_fragment}">
+        <div th:replace="~{fragments/search_fragments :: results_table_fragment(credentialsByType=${credentialsByTypeAttr})}">
         </div>
     </main>
 

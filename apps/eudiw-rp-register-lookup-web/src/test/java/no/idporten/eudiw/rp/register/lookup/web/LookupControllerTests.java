@@ -1,10 +1,12 @@
 package no.idporten.eudiw.rp.register.lookup.web;
 
 import no.idporten.eudiw.rp.register.lookup.service.RelyingPartiesService;
+import no.idporten.eudiw.rp.register.lookup.service.credentialsservice.CredentialsService;
 import no.idporten.eudiw.rp.register.lookup.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.register.lookup.web.controllers.SearchController;
 import no.idporten.eudiw.rp.register.lookup.web.form.SearchForm;
 import no.idporten.eudiw.rp.register.lookup.web.resource.*;
+import no.idporten.eudiw.rp.register.lookup.web.resource.credentials.CredentialsResource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -38,6 +40,10 @@ public class LookupControllerTests {
     @MockitoBean
     private RelyingPartiesService lookupService;
 
+    @SuppressWarnings("unused")
+    @MockitoBean
+    private CredentialsService mockCredentialsService;
+
     @Nested
     @DisplayName("when POST'ing the /relying-parties endpoint")
     class SearchEndpointPostTests {
@@ -52,6 +58,8 @@ public class LookupControllerTests {
                                                  .withTradeName(searchResource.searchTerm()));
                     return ResourceGenerator.generatePageResponse(content);
                 });
+            when(mockCredentialsService.getAvailableCredentials())
+                .thenReturn(new CredentialsResource(List.of()));
         }
 
         @Test
