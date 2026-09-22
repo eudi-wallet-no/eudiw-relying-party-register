@@ -186,7 +186,7 @@ updates:
       interval: weekly
       day: sunday
     groups:
-      alle-actions-oppdateringer:
+      github-actions:
         applies-to: version-updates
         patterns:
           - "*"
