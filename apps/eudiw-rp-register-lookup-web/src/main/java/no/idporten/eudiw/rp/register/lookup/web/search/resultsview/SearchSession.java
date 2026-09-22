@@ -31,6 +31,7 @@ public class SearchSession {
     private int numPages = 0;
     private int currentPageIdx = 0;
     private int pageSize = SearchRelyingPartyResource.DEFAULT_PAGE_SIZE;
+    private long totalElements = 0;
 
     public List<RelyingPartyResource> doFreshSearch(SearchForm searchForm) {
         return this.doSearch(searchForm, 0, this.pageSize, this.ordering);
@@ -73,6 +74,7 @@ public class SearchSession {
 
         this.numPages = Math.toIntExact(searchResult.page().totalPages());
         this.currentPageIdx = Math.toIntExact(searchResult.page().number());
+        this.totalElements = searchResult.page().totalElements();
 
         this.setLastSearchForm(searchForm);
 
