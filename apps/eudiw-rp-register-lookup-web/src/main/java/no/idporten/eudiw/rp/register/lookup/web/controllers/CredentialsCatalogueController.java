@@ -23,15 +23,17 @@ public class CredentialsCatalogueController {
 
     @GetMapping("/credentials-catalogue")
     public ModelAndView credentialsCatalogueGet(
-        @RequestParam(value = "sort", defaultValue = "name") String sortKey) {
+        @RequestParam(value = "sort", defaultValue = "name") String sortKey,
+        @RequestParam(value = "searchTerm", defaultValue = "") String searchTerm) {
         List<CredentialResource> credentials =
-            credentialsService.getAvailableCredentials()
+            credentialsService.search(searchTerm)
                               .sortBy(sortKey, "no");
 
         ModelAndView mav = new ModelAndView("credentials_view");
 
         mav.addObject(credentialsAttrId, credentials);
         mav.addObject("sortKeyAttr", sortKey);
+        mav.addObject("searchTermAttr", searchTerm);
         return mav;
     }
 

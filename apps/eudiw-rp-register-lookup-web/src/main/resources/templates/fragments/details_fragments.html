@@ -1,6 +1,7 @@
 <div th:fragment="general_info_content_fragment(rp, credentialsByType)">
     <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.register.lookup.web.resource.RelyingPartyResource"*/-->
     <!--/*@thymesVar id="credentialsByType" type="java.util.Map<String, no.idporten.eudiw.rp.register.lookup.web.resource.credentials.CredentialResource>"*/-->
+    <div style="max-width:720px;">
     <div style="margin-block-end: var(--ds-size-8);">
         <div class="table-wrapper">
             <table class="ds-table" data-border="true" style="width:100%;">
@@ -93,5 +94,6 @@
                 </div>
             </div>
         </details>
+    </div>
     </div>
 </div>

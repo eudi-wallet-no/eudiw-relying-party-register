@@ -23,7 +23,7 @@ design-tokens: v1.0.8
   --ds-color-accent-base-contrast-subtle: #dbe9f5;
   --ds-color-accent-base-contrast-default: #ffffff;
   --ds-color-neutral-background-default: #ffffff;
-  --ds-color-neutral-background-tinted: #f3f4f4;
+  --ds-color-neutral-background-tinted: #f0f3f7;
   --ds-color-neutral-surface-default: #ffffff;
   --ds-color-neutral-surface-tinted: #e7e9ea;
   --ds-color-neutral-surface-hover: #d8dadd;
@@ -176,7 +176,7 @@ design-tokens: v1.0.8
   --ds-color-accent-base-contrast-subtle: #dbe9f5;
   --ds-color-accent-base-contrast-default: #ffffff;
   --ds-color-neutral-background-default: #ffffff;
-  --ds-color-neutral-background-tinted: #f3f4f4;
+  --ds-color-neutral-background-tinted: #f0f3f7;
   --ds-color-neutral-surface-default: #ffffff;
   --ds-color-neutral-surface-tinted: #e7e9ea;
   --ds-color-neutral-surface-hover: #d8dadd;
