@@ -31,7 +31,7 @@ updates:
     schedule:
       interval: weekly
       day: sunday
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 25
     labels:
       - dependencies
       - eudiw-ca-service
@@ -57,7 +57,7 @@ updates:
     schedule:
       interval: weekly
       day: sunday
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 25
     labels:
       - dependencies
       - eudiw-credential-registry
@@ -83,7 +83,7 @@ updates:
     schedule:
       interval: weekly
       day: sunday
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 25
     labels:
       - dependencies
       - eudiw-rp-register-admin
@@ -109,7 +109,7 @@ updates:
     schedule:
       interval: weekly
       day: sunday
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 25
     labels:
       - dependencies
       - eudiw-rp-register-lookup-web
@@ -135,7 +135,7 @@ updates:
     schedule:
       interval: weekly
       day: sunday
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 25
     labels:
       - dependencies
       - eudiw-rp-register-service
@@ -161,7 +161,7 @@ updates:
     schedule:
       interval: weekly
       day: sunday
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 25
     labels:
       - dependencies
       - eudiw-trustlist-service
