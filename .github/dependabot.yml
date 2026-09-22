@@ -1,3 +1,16 @@
+# Dependabot-oppsett: én PR per app.
+#
+# Regler:
+# - Én Maven-oppføring per app med eksplisitt `directory:` (IKKE `directories`-wildcard)
+#   for å støtte @dependabot rebase/recreate.
+# - `alle-oppdateringer`-gruppen samler alle oppgraderinger per app; `security`-gruppen
+#   (applies-to: security-updates) skiller sikkerhetsoppdateringer.
+# - `exclude-patterns` for org.springframework.boot:spring-boot-starter-parent: den drar med
+#   seg hele avhengighetstreet og kolliderer med CVE-pinninger, så den skal ha egen PR.
+# - Ikke gjeninnfør group-by: dependency-name (kan ikke rebases, dependabot-core#14780).
+# - YAML-anchors støttes IKKE av Dependabot, så oppsettet gjentas per app.
+# - Docker-oppføringer er utelatt (base-images hentes dynamisk).
+
 version: 2
 
 registries:
@@ -8,55 +21,176 @@ registries:
     password: ${{secrets.GH_PACKAGES_READ_PAT}}
 
 updates:
-  - package-ecosystem: "maven"
-    directories:
-      - "/apps/*"
+  # ============================================================
+  # eudiw-ca-service
+  # ============================================================
+  - package-ecosystem: maven
+    directory: /apps/eudiw-ca-service
     registries:
       - maven-github
     schedule:
-      interval: "weekly"
-      day: "sunday"
-    open-pull-requests-limit: 10
+      interval: weekly
+      day: sunday
+    open-pull-requests-limit: 25
+    labels:
+      - dependencies
+      - eudiw-ca-service
     groups:
-      patch-oppdateringer:
+      alle-oppdateringer:
         applies-to: version-updates
         patterns:
           - "*"
-        update-types:
-          - "patch"
-      minor-oppdateringer:
-        applies-to: version-updates
+        exclude-patterns:
+          - "org.springframework.boot:spring-boot-starter-parent"
+      security:
+        applies-to: security-updates
         patterns:
           - "*"
-        update-types:
-          - "minor"
 
-  - package-ecosystem: "docker"
-    directories:
-      - "/apps/*/docker"
+  # ============================================================
+  # eudiw-credential-registry
+  # ============================================================
+  - package-ecosystem: maven
+    directory: /apps/eudiw-credential-registry
+    registries:
+      - maven-github
     schedule:
-      interval: "weekly"
-      day: "sunday"
+      interval: weekly
+      day: sunday
+    open-pull-requests-limit: 25
+    labels:
+      - dependencies
+      - eudiw-credential-registry
     groups:
-      patch-oppdateringer:
+      alle-oppdateringer:
         applies-to: version-updates
         patterns:
           - "*"
-        update-types:
-          - "patch"
-      minor-oppdateringer:
-        applies-to: version-updates
+        exclude-patterns:
+          - "org.springframework.boot:spring-boot-starter-parent"
+      security:
+        applies-to: security-updates
         patterns:
           - "*"
-        update-types:
-          - "minor"
 
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  # ============================================================
+  # eudiw-rp-register-admin
+  # ============================================================
+  - package-ecosystem: maven
+    directory: /apps/eudiw-rp-register-admin
+    registries:
+      - maven-github
     schedule:
-      interval: "weekly"
-      day: "sunday"
+      interval: weekly
+      day: sunday
+    open-pull-requests-limit: 25
+    labels:
+      - dependencies
+      - eudiw-rp-register-admin
+    groups:
+      alle-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "org.springframework.boot:spring-boot-starter-parent"
+      security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+
+  # ============================================================
+  # eudiw-rp-register-lookup-web
+  # ============================================================
+  - package-ecosystem: maven
+    directory: /apps/eudiw-rp-register-lookup-web
+    registries:
+      - maven-github
+    schedule:
+      interval: weekly
+      day: sunday
+    open-pull-requests-limit: 25
+    labels:
+      - dependencies
+      - eudiw-rp-register-lookup-web
+    groups:
+      alle-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "org.springframework.boot:spring-boot-starter-parent"
+      security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+
+  # ============================================================
+  # eudiw-rp-register-service
+  # ============================================================
+  - package-ecosystem: maven
+    directory: /apps/eudiw-rp-register-service
+    registries:
+      - maven-github
+    schedule:
+      interval: weekly
+      day: sunday
+    open-pull-requests-limit: 25
+    labels:
+      - dependencies
+      - eudiw-rp-register-service
+    groups:
+      alle-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "org.springframework.boot:spring-boot-starter-parent"
+      security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+
+  # ============================================================
+  # eudiw-trustlist-service
+  # ============================================================
+  - package-ecosystem: maven
+    directory: /apps/eudiw-trustlist-service
+    registries:
+      - maven-github
+    schedule:
+      interval: weekly
+      day: sunday
+    open-pull-requests-limit: 25
+    labels:
+      - dependencies
+      - eudiw-trustlist-service
+    groups:
+      alle-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "org.springframework.boot:spring-boot-starter-parent"
+      security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+
+  # ============================================================
+  # github-actions
+  # ============================================================
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: sunday
     groups:
       alle-actions-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+      security:
+        applies-to: security-updates
         patterns:
           - "*"
