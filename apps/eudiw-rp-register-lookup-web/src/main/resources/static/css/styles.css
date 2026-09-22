@@ -599,6 +599,13 @@ main:focus-visible {
     font-weight: var(--ds-font-weight-medium);
 }
 
+.index-card__title-row {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ds-size-2);
+}
+
 .index-card__subtitle {
     color: var(--ds-color-neutral-text-subtle);
 }

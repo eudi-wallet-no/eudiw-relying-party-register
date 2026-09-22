@@ -140,8 +140,12 @@
                         <div class="ds-card__block">
                             <div class="index-card__body">
                                 <div class="index-card__text">
-                                    <p class="ds-paragraph index-card__title"
-                                      th:text="${credential.getCredentialTypeDisplayName('no')}"></p>
+                                    <div class="index-card__title-row">
+                                        <p class="ds-paragraph index-card__title"
+                                          th:text="${credential.getCredentialTypeDisplayName('no')}"></p>
+                                        <span class="ds-badge" data-variant="tinted"
+                                              th:text="${credential.getFormat()}"></span>
+                                    </div>
                                     <p class="ds-paragraph index-card__subtitle" data-size="sm"
                                       th:text="${credential.getIssuerDisplayName('no')}"></p>
                                 </div>
