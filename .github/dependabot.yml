@@ -3,7 +3,7 @@
 # Regler:
 # - Én Maven-oppføring per app med eksplisitt `directory:` (IKKE `directories`-wildcard)
 #   for å støtte @dependabot rebase/recreate.
-# - `alle-oppdateringer`-gruppen samler alle oppgraderinger per app; `security`-gruppen
+# - `maven`-gruppen samler alle oppgraderinger per app; `security`-gruppen
 #   (applies-to: security-updates) skiller sikkerhetsoppdateringer.
 # - `exclude-patterns` for org.springframework.boot:spring-boot-starter-parent: den drar med
 #   seg hele avhengighetstreet og kolliderer med CVE-pinninger, så den skal ha egen PR.
@@ -36,7 +36,7 @@ updates:
       - dependencies
       - eudiw-ca-service
     groups:
-      alle-oppdateringer:
+      maven:
         applies-to: version-updates
         patterns:
           - "*"
@@ -62,7 +62,7 @@ updates:
       - dependencies
       - eudiw-credential-registry
     groups:
-      alle-oppdateringer:
+      maven:
         applies-to: version-updates
         patterns:
           - "*"
@@ -88,7 +88,7 @@ updates:
       - dependencies
       - eudiw-rp-register-admin
     groups:
-      alle-oppdateringer:
+      maven:
         applies-to: version-updates
         patterns:
           - "*"
@@ -114,7 +114,7 @@ updates:
       - dependencies
       - eudiw-rp-register-lookup-web
     groups:
-      alle-oppdateringer:
+      maven:
         applies-to: version-updates
         patterns:
           - "*"
@@ -140,7 +140,7 @@ updates:
       - dependencies
       - eudiw-rp-register-service
     groups:
-      alle-oppdateringer:
+      maven:
         applies-to: version-updates
         patterns:
           - "*"
@@ -166,7 +166,7 @@ updates:
       - dependencies
       - eudiw-trustlist-service
     groups:
-      alle-oppdateringer:
+      maven:
         applies-to: version-updates
         patterns:
           - "*"
@@ -186,7 +186,7 @@ updates:
       interval: weekly
       day: sunday
     groups:
-      alle-actions-oppdateringer:
+      github-actions:
         applies-to: version-updates
         patterns:
           - "*"
