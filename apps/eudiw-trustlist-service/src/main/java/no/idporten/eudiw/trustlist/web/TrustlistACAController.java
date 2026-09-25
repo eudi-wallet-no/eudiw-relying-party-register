@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.ZonedDateTime;
 
 import static no.idporten.eudiw.trustlist.config.Trustlist602Properties.TSL_ACA;
+import static no.idporten.eudiw.trustlist.web.TrustlistMediaTypes.APPLICATION_JOSE_JSON;
+import static no.idporten.eudiw.trustlist.web.TrustlistMediaTypes.APPLICATION_VND_LOTE_JSON;
 
 
 @RestController
@@ -38,7 +40,7 @@ public class TrustlistACAController {
      *
      * @return ACA Trustlist as JSON in the payload of JWS.
      */
-    @GetMapping(value = "${trustlist-service.tsl602.tsl-aca.path}.jws", produces = "application/jose+json")
+    @GetMapping(value = "${trustlist-service.tsl602.tsl-aca.path}.jws", produces = {APPLICATION_JOSE_JSON, APPLICATION_VND_LOTE_JSON})
     public ResponseEntity<@NonNull String> getSignedTrustListACA() {
         String loTe = service.getSignedTrustlist(TSL_ACA);
         return ResponseEntity.ok().lastModified(lastModified.toInstant()).body(loTe);

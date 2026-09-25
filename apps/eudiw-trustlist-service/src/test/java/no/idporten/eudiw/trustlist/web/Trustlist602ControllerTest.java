@@ -59,13 +59,27 @@ public class Trustlist602ControllerTest {
 
     @ParameterizedTest
     @ValueSource(strings = {TSL_ACA, TSL_PID, TSL_WALLET})
-    @DisplayName("When GETTING signed trustlist then return JWS with content")
+    @DisplayName("When GETTING signed trustlist then return JWS with content and default mediatype='application/jose+json'")
     void testACAControllerReturnsSignedTrustlist(String trustlist) throws Exception {
 
         when(service.getSignedTrustlist(trustlist)).thenReturn("test");
 
         mockMvc.perform(get(properties.tsl602().get(trustlist).path() + ".jws"))
-                .andExpect(content().contentType("application/jose+json"))
+                .andExpect(content().contentType(TrustlistMediaTypes.APPLICATION_JOSE_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().string("test"))
+                .andExpect(header().exists("Last-Modified"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {TSL_ACA, TSL_PID, TSL_WALLET})
+    @DisplayName("When GETTING signed trustlist for mediatype='application/vnd.lote+json' then return JWS with content and same media type")
+    void testACAControllerReturnsSignedTrustlistForCustomMediatype(String trustlist) throws Exception {
+
+        when(service.getSignedTrustlist(trustlist)).thenReturn("test");
+
+        mockMvc.perform(get(properties.tsl602().get(trustlist).path() + ".jws").accept(TrustlistMediaTypes.APPLICATION_VND_LOTE_JSON))
+                .andExpect(content().contentType(TrustlistMediaTypes.APPLICATION_VND_LOTE_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().string("test"))
                 .andExpect(header().exists("Last-Modified"));
