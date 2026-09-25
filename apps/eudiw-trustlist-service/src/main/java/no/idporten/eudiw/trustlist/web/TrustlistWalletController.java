@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.ZonedDateTime;
 
 import static no.idporten.eudiw.trustlist.config.Trustlist602Properties.TSL_WALLET;
+import static no.idporten.eudiw.trustlist.web.TrustlistMediaTypes.APPLICATION_JOSE_JSON;
+import static no.idporten.eudiw.trustlist.web.TrustlistMediaTypes.APPLICATION_VND_LOTE_JSON;
 
 @RestController
 public class TrustlistWalletController {
@@ -35,7 +37,7 @@ public class TrustlistWalletController {
      * - JWS Signature
      * @return Wallet Trustlist as JSON in the payload of JWS.
      */
-    @GetMapping(value = "${trustlist-service.tsl602.tsl-wallet.path}.jws", produces = "application/jose+json")
+    @GetMapping(value = "${trustlist-service.tsl602.tsl-wallet.path}.jws", produces = {APPLICATION_JOSE_JSON, APPLICATION_VND_LOTE_JSON})
     public ResponseEntity<@NonNull String> getSignedTrustlistWallet() {
         String loTe = service.getSignedTrustlist(TSL_WALLET);
         return ResponseEntity.ok().lastModified(lastModified.toInstant()).body(loTe);
