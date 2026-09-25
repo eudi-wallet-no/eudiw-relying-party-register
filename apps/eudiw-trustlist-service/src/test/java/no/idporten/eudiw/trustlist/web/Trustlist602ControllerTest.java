@@ -59,7 +59,7 @@ public class Trustlist602ControllerTest {
 
     @ParameterizedTest
     @ValueSource(strings = {TSL_ACA, TSL_PID, TSL_WALLET})
-    @DisplayName("When GETTING signed trustlist then return JWS with content")
+    @DisplayName("When GETTING signed trustlist then return JWS with content and default mediatype='application/jose+json'")
     void testACAControllerReturnsSignedTrustlist(String trustlist) throws Exception {
 
         when(service.getSignedTrustlist(trustlist)).thenReturn("test");
