@@ -9,8 +9,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.ZonedDateTime;
 
+import static no.idporten.eudiw.trustlist.web.TrustlistMediaTypes.APPLICATION_VND_ETSI_TSL_XML;
+
 @RestController
 public class TrustlistController {
+
 
     private final SignedTrustlist612Service signedTrustListService;
 
@@ -21,7 +24,7 @@ public class TrustlistController {
         this.signedTrustListService = signedTrustListService;
     }
 
-    @GetMapping(value = "${trustlist-service.tsl612.trustlist-path-xtsl}", produces = "application/vnd.etsi.tsl+xml")
+    @GetMapping(value = "${trustlist-service.tsl612.trustlist-path-xtsl}", produces = APPLICATION_VND_ETSI_TSL_XML)
     public ResponseEntity<@NonNull String> trustlist() {
         return ResponseEntity.ok()
                 .lastModified(lastModified.toInstant())
