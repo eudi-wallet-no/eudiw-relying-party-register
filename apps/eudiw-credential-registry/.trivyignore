@@ -1,5 +1,4 @@
 # <CVE> # <package/affected code>. Fixed in <version>.
-CVE-2026-54512 # com.fasterxml.jackson.core:jackson-databind. Fixed in 2.18.8, 3.1.4, 2.21.4
-CVE-2026-54513 # com.fasterxml.jackson.core:jackson-databind. Security bypass. Fixed in 2.18.8, 2.21.4, 3.1.4
-CVE-2026-54512 # tools.jackson.core:jackson-databind. Fixed in 3.1.4
-CVE-2026-54513 # tools.jackson.core:jackson-databind. Security bypass. Fixed in 3.1.4
+CVE-2026-65182 # tomcat-embed-core. Improper access control. Fixed in 11.0.25, 10.1.58, 9.0.121
+CVE-2026-65905 # tomcat-embed-core. Authentication bypass. Fixed in 11.0.25, 10.1.58, 9.0.121
+CVE-2026-68525 # tomcat-embed-core. Unauthorized resource access. Fixed in 11.0.25, 10.1.58, 9.0.121
