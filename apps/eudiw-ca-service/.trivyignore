@@ -1,1 +1,4 @@
 # <CVE> # <package/affected code>. Fixed in <version>.
+CVE-2026-65182 # tomcat-embed-core. Improper access control. Fixed in 11.0.25, 10.1.58, 9.0.121
+CVE-2026-65905 # tomcat-embed-core. Authentication bypass. Fixed in 11.0.25, 10.1.58, 9.0.121
+CVE-2026-68525 # tomcat-embed-core. Unauthorized resource access. Fixed in 11.0.25, 10.1.58, 9.0.121
