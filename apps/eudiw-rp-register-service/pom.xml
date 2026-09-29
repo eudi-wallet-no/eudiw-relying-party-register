@@ -27,8 +27,6 @@
         <mockwebserver.version>5.5.0</mockwebserver.version>
         <bcpkix.version>1.86</bcpkix.version>
         <tomcat.version>11.0.25</tomcat.version>
-        <jackson-2-bom.version>2.21.6</jackson-2-bom.version>
-        <jackson-bom.version>3.1.6</jackson-bom.version>
     </properties>
     <dependencies>
         <dependency>
