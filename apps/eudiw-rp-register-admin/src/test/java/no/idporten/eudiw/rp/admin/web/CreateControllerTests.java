@@ -20,6 +20,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -82,6 +86,30 @@ public class CreateControllerTests {
                     redirectedUrl("/details/" + rpResource.id()));
 
             verify(mockRpService).create(createResource);
+        }
+
+        @Test
+        @DisplayName("then form rejected when EAA namespace contains a double quote")
+        void testCreateFormRejectedOnDoubleQuoteInEaaNamespace() throws Exception {
+            RelyingPartyResource rpResource =
+                ResourceGenerator.generateRelyingPartyResource();
+
+            AdminCreateRelyingPartyForm createForm = new AdminCreateRelyingPartyForm(
+                rpResource.orgno(),
+                rpResource.tradeName(),
+                rpResource.relyingPartyEntitlements().stream().map(RelyingPartyEntitlementFormField::fromResource).toList(),
+                List.of(new RelyingPartyEaaFormField("\"onerror", "test"))
+            );
+
+            var request = post("/admin/create").with(csrf());
+            mockMvc.perform(WebTestUtils.withCreateForm(request, createForm))
+                .andExpectAll(
+                    model().attributeHasFieldErrors(
+                        CreateController.CREATE_FORM_ATTR, "eaas[0].namespace"),
+                    status().isOk(),
+                    view().name("create_form_view"));
+
+            verify(mockRpService, never()).create(any());
         }
     }
 }

@@ -74,9 +74,10 @@
     </fieldset>
     <script src="/js/dynamic_edit_form_fields.js"></script>
     <!--/* pre-fill EAA list with values from the RP to be edited */-->
-    <script th:each="eaa : ${editFormAttr.getEaas()}">
-        addEaa("[[${eaa.namespace}]]", "[[${eaa.intent}]]");
-    </script>
+    <div hidden
+         id="eaa_prefill"
+         th:each="eaa : ${editFormAttr.getEaas()}"
+         th:attr="data-namespace=${eaa.namespace},data-intent=${eaa.intent}"></div>
 </div>
 
 <th:block th:fragment="shared_general_fields_fragment">

@@ -94,7 +94,17 @@ public class LookupControllerTests {
                    .andExpect(view().name("search_view"))
                    .andExpect(model().attributeHasFieldErrors(SearchController.searchFormAttrId, "searchTerm"));
 
-            verify(lookupService, times(0)).search(any());
+            verify(lookupService, never()).search(any());
+        }
+
+        @Test
+        public void testSearchTermWithDoubleQuoteIsRejected() throws Exception {
+            mockMvc.perform(get("/relying-parties")
+                                .param("searchTerm", "\"onerror"))
+                   .andExpect(view().name("search_view"))
+                   .andExpect(model().attributeHasFieldErrors(SearchController.searchFormAttrId, "searchTerm"));
+
+            verify(lookupService, never()).search(any());
         }
     }
 }

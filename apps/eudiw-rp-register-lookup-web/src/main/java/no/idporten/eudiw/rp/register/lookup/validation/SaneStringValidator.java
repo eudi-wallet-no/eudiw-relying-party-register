@@ -6,7 +6,7 @@ import jakarta.validation.ConstraintValidatorContext;
 public class SaneStringValidator
     implements ConstraintValidator<SaneStringConstraint, String> {
 
-    public static final String ALLOWED_SYMBOLS = ".,-:'\"&/";
+    public static final String ALLOWED_SYMBOLS = ".,-:'&/";
     private static final String ALLOWED_CHARS_REGEX =
         "[a-zA-ZæøåÆØÅ0-9 " + ALLOWED_SYMBOLS + "]*";
     private int maxLength = 0;

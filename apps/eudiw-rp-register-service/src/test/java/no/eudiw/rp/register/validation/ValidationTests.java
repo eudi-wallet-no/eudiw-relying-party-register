@@ -115,11 +115,38 @@ public class ValidationTests {
     @Nested
     class SaneStringConstraintTests {
 
+        @Test
+        @DisplayName("then EAA namespace with a double quote is rejected")
+        void testEaaNamespaceRejectsDoubleQuote() {
+            RelyingPartyEaaResource eaaResource =
+                new RelyingPartyEaaResource("\"onerror", "test");
+
+            Set<ConstraintViolation<RelyingPartyEaaResource>> violations =
+                doValidateResource(eaaResource);
+
+            assertAll(
+                () -> assertEquals(1, violations.size()),
+                () -> assertEquals("namespace", violations.iterator().next().getPropertyPath().toString())
+            );
+        }
+
+        @Test
+        @DisplayName("then EAA namespace with allowed characters is accepted")
+        void testEaaNamespaceAcceptsAllowedCharacters() {
+            RelyingPartyEaaResource eaaResource =
+                new RelyingPartyEaaResource("no:minid:mpid:1", "test");
+
+            Set<ConstraintViolation<RelyingPartyEaaResource>> violations =
+                doValidateResource(eaaResource);
+
+            assertTrue(violations.isEmpty());
+        }
+
         @ParameterizedTest
         @ValueSource(strings = {
             "digæøåÅØÆdir", // norwegian letters
             "dig0123456789dir", // numbers
-            "dig.,-:'\"&/ dir", // special symbols
+            "dig.,-:'&/ dir", // special symbols
             "digaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
                 + "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
                 + "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -139,6 +166,7 @@ public class ValidationTests {
         @ValueSource(strings = {
             "digöÄdir", // non-norwegian letters
             "dig!?dir", // disallowed symbols
+            "dig\"onerror", // double quote
             "dig\tdir", // disallowed whitespace
             "digaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
                 + "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"

@@ -72,9 +72,10 @@
 
         <!--/* pre-fill EAA list with values from create form. this can be
                non-empty if e.g. page is reloaded after form validation errors. */-->
-        <script th:each="eaa : ${createFormAttr.getEaas()}">
-            addEaa("[[${eaa.namespace}]]", "[[${eaa.intent}]]");
-        </script>
+        <div hidden
+             id="eaa_prefill"
+             th:each="eaa : ${createFormAttr.getEaas()}"
+             th:attr="data-namespace=${eaa.namespace},data-intent=${eaa.intent}"></div>
     </fieldset>
 </div>
 
