@@ -43,7 +43,12 @@ public class RelyingPartyCertificateSummaryTests {
     public void setup() {
         when(serviceProperties.certificateConfig()).thenReturn(relyingPartyCertificateConfig);
         when(relyingPartyCertificateConfig.daysRemainingWarning()).thenReturn(daysRemainingWarning);
-        relyingPartyCertificateSummaryBuilder = new RelyingPartyCertificateSummaryBuilder(serviceProperties);
+        relyingPartyCertificateSummaryBuilder = new RelyingPartyCertificateSummaryBuilder(serviceProperties) {
+            @Override
+            protected long currentTimeMillis() {
+                return dateNow;
+            }
+        };
 
         dateNow = System.currentTimeMillis();
 
@@ -91,7 +96,7 @@ public class RelyingPartyCertificateSummaryTests {
         @Test
         @DisplayName("then is should display warning color and x days remaining text for revocationStatus -1")
         public void shouldBeDaysLeft() {
-            when(certificate.getNotAfter()).thenReturn(new Date(dateNow + (long) daysRemainingWarning * 24 * 60 * 60 * 1000));
+            when(certificate.getNotAfter()).thenReturn(new Date(dateNow + 29L * 24 * 60 * 60 * 1000));
             when( relyingPartyResource.revocationStatus()).thenReturn(-1);
 
             var result = relyingPartyCertificateSummaryBuilder.build(relyingPartyResource);
@@ -105,7 +110,7 @@ public class RelyingPartyCertificateSummaryTests {
         @Test
         @DisplayName("then is should display warning color and x hours remaining text for revocationStatus -1")
         public void shouldBeHoursLeft() {
-            when(certificate.getNotAfter()).thenReturn(new Date(dateNow + 24 * 60 * 60 * 1000));
+            when(certificate.getNotAfter()).thenReturn(new Date(dateNow + 23L * 60 * 60 * 1000));
             when( relyingPartyResource.revocationStatus()).thenReturn(-1);
 
             var result = relyingPartyCertificateSummaryBuilder.build(relyingPartyResource);
@@ -119,7 +124,7 @@ public class RelyingPartyCertificateSummaryTests {
         @Test
         @DisplayName("then is should display warning color and x minuts remaining text for revocationStatus -1")
         public void shouldBeMinutesLeft() {
-            when(certificate.getNotAfter()).thenReturn(new Date(dateNow + 60 * 60 * 1000));
+            when(certificate.getNotAfter()).thenReturn(new Date(dateNow + 59L * 60 * 1000));
             when( relyingPartyResource.revocationStatus()).thenReturn(-1);
 
             var result = relyingPartyCertificateSummaryBuilder.build(relyingPartyResource);

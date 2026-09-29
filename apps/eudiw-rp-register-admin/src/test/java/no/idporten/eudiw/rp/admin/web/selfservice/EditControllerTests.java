@@ -4,6 +4,7 @@ import no.idporten.eudiw.rp.admin.security.SecurityTestUtils;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.admin.testdata.TestDataGenerator;
+import no.idporten.eudiw.rp.admin.web.controllers.EditController;
 import no.idporten.eudiw.rp.admin.web.form.BaseEditRelyingPartyForm;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEaaFormField;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEntitlementFormField;
@@ -132,7 +133,33 @@ public class EditControllerTests {
             mockMvc.perform(WebTestUtils.withEditForm(request, editForm))
                    .andExpect(status().isNotFound());
 
-            verify(mockRpService, times(0)).edit(any(), any());
+            verify(mockRpService, never()).edit(any(), any());
+        }
+
+        @Test
+        @DisplayName("then form rejected when EAA namespace contains a double quote")
+        void testEditFormRejectedOnDoubleQuoteInEaaNamespace() throws Exception {
+            RelyingPartyResource rpResource = ResourceGenerator.generateRelyingPartyResource();
+            UUID id = rpResource.id();
+            when(mockRpService.get(id)).thenReturn(rpResource);
+
+            BaseEditRelyingPartyForm editForm = new BaseEditRelyingPartyForm();
+            editForm.setTradeName(rpResource.tradeName());
+            editForm.setEaas(List.of(new RelyingPartyEaaFormField("\"onerror", "test")));
+            editForm.setEntitlements(rpResource.relyingPartyEntitlements().stream()
+                .map(RelyingPartyEntitlementFormField::fromResource).toList());
+
+            var oidcLogin = SecurityTestUtils.oidcLoginForOrgno(rpResource.orgno());
+            var request = post("/edit/%s".formatted(id))
+                              .with(csrf())
+                              .with(oidcLogin);
+            mockMvc.perform(WebTestUtils.withEditForm(request, editForm))
+                   .andExpect(model().attributeHasFieldErrors(
+                       EditController.EDIT_FORM_ATTR, "eaas[0].namespace"))
+                   .andExpect(status().isOk())
+                   .andExpect(view().name("edit_form_view"));
+
+            verify(mockRpService, never()).edit(any(), any());
         }
     }
 }

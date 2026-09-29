@@ -13,7 +13,7 @@ eaa_namespace_input_field.oninput = () => hideElem(eaa_namespace_error_msg);
 eaa_intent_input_field.oninput = () => hideElem(eaa_intent_error_msg);
 
 function isSaneStringInput(str) {
-    const allowed_chars_regex = /^[a-zA-ZæøåÆØÅ0-9.,\-:'"&/ ]+$/;
+    const allowed_chars_regex = /^[a-zA-ZæøåÆØÅ0-9.,\-:'&/ ]+$/;
     return str.length <= 255 && allowed_chars_regex.test(str);
 }
 function* idxGenerator() {
@@ -34,13 +34,30 @@ function makeDeleteButtonFor(elem) {
     return deleteButton;
 }
 
-function makeTableItem(content) {
+function makeTableItem(namespace, intent, idx) {
     const row = document.createElement("tr");
-    row.innerHTML = content;
+
+    const namespaceCell = document.createElement("td");
+    namespaceCell.appendChild(document.createTextNode(namespace + " "));
+    namespaceCell.appendChild(makeHiddenInput(`eaas[${idx}].namespace`, namespace));
+
+    const intentCell = document.createElement("td");
+    intentCell.appendChild(document.createTextNode(intent + " "));
+    intentCell.appendChild(makeHiddenInput(`eaas[${idx}].intent`, intent));
+
     const deleteCell = document.createElement("td");
     deleteCell.appendChild(makeDeleteButtonFor(row));
-    row.appendChild(deleteCell);
+
+    row.append(namespaceCell, intentCell, deleteCell);
     return row;
+}
+
+function makeHiddenInput(name, value) {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = name;
+    input.value = value;
+    return input;
 }
 
 function addEaaOnclick() {
@@ -62,11 +79,7 @@ function addEaaOnclick() {
 function addEaa(namespace, intent) {
     if (namespace && intent) {
         const idx = idxGen.next().value;
-        const eaaItem = makeTableItem(
-            `<td>${namespace} <input type="hidden" name="eaas[${idx}].namespace" value="${namespace}"></td>
-             <td>${intent} <input type="hidden" name="eaas[${idx}].intent" value="${intent}"></td>`
-        );
-        eaa_container.appendChild(eaaItem);
+        eaa_container.appendChild(makeTableItem(namespace, intent, idx));
     }
 }
 
@@ -78,3 +91,7 @@ function eaaInputFieldsOnEnter(e) {
 }
 eaa_intent_input_field.addEventListener("keydown", eaaInputFieldsOnEnter);
 eaa_namespace_input_field.addEventListener("keydown", eaaInputFieldsOnEnter);
+
+document.querySelectorAll("#eaa_prefill").forEach(elem => {
+    addEaa(elem.dataset.namespace, elem.dataset.intent);
+});

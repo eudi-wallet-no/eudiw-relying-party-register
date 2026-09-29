@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title>Endringa kjem i konflikt</title>
+</head>
+
+<body>
+    <header th:replace="~{fragments/general :: page_header_fragment}"></header>
+
+    <main>
+        <h1 class="ds-heading" data-size="lg">
+            Beklager! Endringa kjem i konflikt med det som alt ligg inne.
+        </h1>
+
+        <p class="ds-paragraph">
+            Last sida på nytt og prøv på nytt.
+        </p>
+
+        <p class="ds-paragraph">
+            <a th:href="@{/}" class="ds-button">
+                Heim
+            </a>
+        </p>
+    </main>
+
+    <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
+</body>
+</html>
