@@ -39,6 +39,8 @@ public class BaseSecurityConfig {
         "/error",
         "/access-denied",
         "/health",
+        "/health/liveness",
+        "/health/readiness",
         "/info",
         "/prometheus",
         "/version",
