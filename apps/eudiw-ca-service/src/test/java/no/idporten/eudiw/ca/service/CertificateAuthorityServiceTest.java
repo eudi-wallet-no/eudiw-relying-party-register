@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.util.CollectionUtils;
 
 import javax.security.auth.x500.X500Principal;
 import java.security.Security;
@@ -61,7 +62,7 @@ public class CertificateAuthorityServiceTest {
     @Nested
     class AccessCertificateTests {
 
-        @DisplayName("then a valid certificate is created with requested extensions and extended key usage for mdoc authentication")
+        @DisplayName("then a valid certificate is created, requested extensions ignored, and extended key usage for mdoc authentication")
         @Test
         void testSignRPAccessCertificate() throws Exception {
             String csr = """
@@ -81,7 +82,7 @@ public class CertificateAuthorityServiceTest {
                     () -> assertNotNull(issuedCertificate),
                     () -> assertTrue(issuedCertificate.getBasicConstraints() < 0),
                     () -> assertArrayEquals(new boolean[]{true, false, true, false, false, false, false, false, false}, issuedCertificate.getKeyUsage()),
-                    () -> assertTrue(issuedCertificate.getSubjectAlternativeNames().iterator().next().contains("junit.rp1.idporten.dev")),
+                    () -> assertTrue(CollectionUtils.isEmpty(issuedCertificate.getSubjectAlternativeNames())),
                     () -> assertEquals(intermediate.getCertificate().getSubjectX500Principal(), issuedCertificate.getIssuerX500Principal()),
                     () -> assertNotNull(issuedCertificate.getExtendedKeyUsage()),
                     () -> assertTrue(issuedCertificate.getExtendedKeyUsage().contains("1.0.18013.5.1.6")),
@@ -140,7 +141,6 @@ public class CertificateAuthorityServiceTest {
             CertificateAuthority intermediate = certificateAuthorities.findIntermediate("access2");
             X509Certificate issuedCertificate = certificateAuthorityService.signLeafCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), new SubjectAttributes("991825827", "foo", "tfoo"));
             assertAll(
-                    () -> assertTrue(issuedCertificate.getSubjectAlternativeNames().iterator().next().contains("eudiw-verifier-demo.idporten.dev")),
                     () -> assertFalse(issuedCertificate.getCriticalExtensionOIDs().contains(Extension.issuerAlternativeName.getId())),
                     () -> assertFalse(issuedCertificate.getNonCriticalExtensionOIDs().contains(Extension.issuerAlternativeName.getId())),
                     () -> assertNull(issuedCertificate.getExtensionValue(Extension.issuerAlternativeName.getId()))
@@ -202,7 +202,6 @@ public class CertificateAuthorityServiceTest {
                     () -> assertNotNull(issuedCertificate),
                     () -> assertTrue(issuedCertificate.getBasicConstraints() < 0),
                     () -> assertArrayEquals(new boolean[]{true, false, true, false, false, false, false, false, false}, issuedCertificate.getKeyUsage()),
-                    () -> assertTrue(issuedCertificate.getSubjectAlternativeNames().iterator().next().contains("junit.rp1.idporten.dev")),
                     () -> assertEquals(intermediate.getCertificate().getSubjectX500Principal(), issuedCertificate.getIssuerX500Principal()),
                     () -> assertEquals("SHA256WITHECDSA", issuedCertificate.getSigAlgName()),
                     () -> assertEquals("1.2.840.10045.4.3.2", issuedCertificate.getSigAlgOID()),
@@ -250,7 +249,6 @@ public class CertificateAuthorityServiceTest {
                     () -> assertNotNull(issuedCertificate),
                     () -> assertTrue(issuedCertificate.getBasicConstraints() < 0),
                     () -> assertArrayEquals(new boolean[]{true, false, true, false, false, false, false, false, false}, issuedCertificate.getKeyUsage()),
-                    () -> assertTrue(issuedCertificate.getSubjectAlternativeNames().iterator().next().contains("junit.rp1.idporten.dev")),
                     () -> assertEquals(intermediate.getCertificate().getSubjectX500Principal(), issuedCertificate.getIssuerX500Principal()),
                     () -> assertEquals("SHA256WITHECDSA", issuedCertificate.getSigAlgName()),
                     () -> assertEquals("1.2.840.10045.4.3.2", issuedCertificate.getSigAlgOID()),

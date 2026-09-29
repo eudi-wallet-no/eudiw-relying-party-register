@@ -143,7 +143,7 @@ public class CertificateAuthorityService {
         extensions.add(Extension.create(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment)));
         // add extensions from CA certificate profile
         addExtensionsFromCertificateProfile(certificateAuthority.getCertificateProfile(), extensions);
-        // add extensions from CSR
+        // add extensions from CSR if supported
         addSupportedExtensionsFromCsr(csr, extensions);
         X500Name subject = createLeafSubject(csr.getSubject(), subjectAttributes);
         X509Certificate certificate = signLeafCertificate(certificateAuthority, csr, subject, extensions);
@@ -152,18 +152,13 @@ public class CertificateAuthorityService {
     }
 
     /**
-     * Adds known requested extensions from CSR.  Only SAN DNS is supported.
+     * Adds known requested extensions from CSR.  Currently, nothing is added from CSR extensions.  This hook is
+     * kept as an extension point for future use.
      *
      * @param csr
      * @param extensions
      */
     private void addSupportedExtensionsFromCsr(PKCS10CertificationRequest csr, List<Extension> extensions) {
-        if (csr.getRequestedExtensions() == null) {
-            return;
-        }
-        if (csr.getRequestedExtensions().getExtension(Extension.subjectAlternativeName) != null) {
-            extensions.add(csr.getRequestedExtensions().getExtension(Extension.subjectAlternativeName));
-        }
     }
 
     /**
