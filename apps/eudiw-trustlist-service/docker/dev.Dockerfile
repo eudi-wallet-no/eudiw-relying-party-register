@@ -33,4 +33,4 @@ COPY --from=builder /home/app/target/${APPLICATION}-DEV-SNAPSHOT.jar application
 ENV TZ=Europe/Oslo
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-EXPOSE 8080
+EXPOSE 9230
