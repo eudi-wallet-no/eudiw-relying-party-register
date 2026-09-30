@@ -61,6 +61,7 @@ class EaaPrefillRenderingTests {
         assertThat(html).contains("data-namespace=\"no:minid:mpid:1\"");
         assertThat(html).contains("data-intent=\"test\"");
         assertThat(html).doesNotContain("addEaa(");
+        assertThat(html).doesNotContain("style=", "<style", "onclick=", "onsubmit=");
     }
 
     @Test

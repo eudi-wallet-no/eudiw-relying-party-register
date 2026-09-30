@@ -8,18 +8,16 @@
 
         <div class="flex-container">
             <div>
-                <p class="ds-paragraph"
-                   style="margin-bottom: 8px;">
+                <p class="ds-paragraph space-bottom-8">
                     Bevistypar lagt inn
                 </p>
-                <table class="ds-table"
-                       data-border="true"
-                       style="table-layout: fixed; word-wrap: break-word;">
+                <table class="ds-table fixed-break-table"
+                       data-border="true">
                     <thead>
                     <tr>
                         <th>Bevistype</th>
                         <th>Føremål</th>
-                        <th style="width: 4em;"></th>
+                        <th class="narrow-cell"></th>
                     </tr>
                     </thead>
                     <tbody id="eaa_container"></tbody>
@@ -31,7 +29,7 @@
                     <legend class="ds-legend">
                         Legg til ny bevistype
                     </legend>
-                    <div style="margin-bottom: 8px;">
+                    <div class="space-bottom-8">
                         <label for="eaa_namespace_field"
                                class="ds-label">
                             Bevistype
@@ -43,7 +41,7 @@
                         <div id="eaa_namespace_error_msg"
                              th:insert="~{fragments/general ::
                                                     generic_invalid_input_field_error_msg('EAA-namespace')}"
-                             style="display: none;"></div>
+                             class="display-none"></div>
 
                         <label for="eaa_intent_field"
                                class="ds-label">
@@ -56,11 +54,10 @@
                         <div id="eaa_intent_error_msg"
                              th:insert="~{fragments/general ::
                                                     generic_invalid_input_field_error_msg('EAA-intent')}"
-                             style="display: none;"></div>
+                             class="display-none"></div>
                     </div>
                     <button type="button"
-                            onclick="addEaaOnclick()"
-                            class="ds-button"
+                            class="ds-button eaa-add"
                             data-variant="secondary">
                         Legg til
                     </button>
@@ -85,7 +82,7 @@
       th:action="@{/admin/create}"
       method="POST">
     <!--/*@thymesVar id="createFormAttr" type="no.idporten.eudiw.rp.admin.web.form.admin.AdminCreateRelyingPartyForm"*/-->
-    <div style="margin-bottom: 8px;">
+    <div class="space-bottom-8">
         <div class="ds-card">
             <fieldset class="ds-fieldset"
                       data-size="sm">
@@ -203,11 +200,10 @@
         </button>
 
         <a th:href="@{/}"
-           class="ds-button"
+           class="ds-button display-flex"
            type="button"
            data-variant="secondary"
-           data-color="danger"
-           style="display: flex;">
+           data-color="danger">
             Avbryt
         </a>
     </div>
@@ -219,7 +215,7 @@
       th:action="@{/create}"
       method="POST">
     <!--/*@thymesVar id="createFormAttr" type="no.idporten.eudiw.rp.admin.web.form.BaseCreateRelyingPartyForm"*/-->
-    <div style="margin-bottom: 8px;">
+    <div class="space-bottom-8">
         <div class="ds-card">
             <fieldset class="ds-fieldset"
                       data-size="sm">
@@ -276,11 +272,10 @@
         </button>
 
         <a th:href="@{/}"
-           class="ds-button"
+           class="ds-button display-flex"
            type="button"
            data-variant="secondary"
-           data-color="danger"
-           style="display: flex;">
+           data-color="danger">
             Avbryt
         </a>
     </div>

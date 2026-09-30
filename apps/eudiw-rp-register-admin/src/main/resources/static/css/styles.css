@@ -1,6 +1,31 @@
 html {
     scrollbar-gutter: stable;
 }
+div.ds-card + div.ds-card { margin-top: 8px; }
+.clickableHeaders a { width: 100%; height: 100%; margin: 0; text-decoration: none; }
+.clickableHeaders a:visited { color: inherit; }
+.clickableHeaders th.focused { background-color: #ddeeff; }
+.search-heading, .display-flex { display: flex; }
+.search-heading h1 { margin-right: auto; }
+.space-bottom-1em { margin-bottom: 1em; }
+.space-bottom-2em { margin-bottom: 2em; }
+.space-bottom-8 { margin-bottom: 8px; }
+.space-bottom-15rem { margin-bottom: 1.5rem; }
+.space-block-end-2 { margin-block-end: var(--ds-size-2); }
+.space-padding-bottom-2em { padding-bottom: 2em; }
+.header-logo { padding-right: 8px; }
+.clickable-link { cursor: pointer; }
+.display-block { display: block; }
+.display-none { display: none; }
+.fit-width { width: fit-content; }
+.fixed-break-table { table-layout: fixed; word-wrap: break-word; }
+.narrow-cell { width: 4em; }
+.flex-column { display: flex; flex-direction: column; }
+.csr-textarea { width: 40em; min-height: 5em; }
+.break-word { word-break: break-word; }
+.certificate-actions { display: flex; flex-direction: column; gap: 10px; }
+.certificate-download { display: flex; white-space: nowrap; margin: 0; }
+.certificate-revoke { display: inline; margin: 0; }
 body {
     font-family: 'Inter', sans-serif;
     font-feature-settings: 'cv05' 1; /* Enable lowercase l with tail */

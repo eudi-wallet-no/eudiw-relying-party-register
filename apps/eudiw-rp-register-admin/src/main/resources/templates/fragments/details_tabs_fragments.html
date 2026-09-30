@@ -1,6 +1,6 @@
 <div th:fragment="access_certificates_content_fragment(rp, certs)" xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
     <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
-    <div style="padding-bottom: 2em;">
+    <div class="space-padding-bottom-2em">
         <div th:if="${ #lists.isEmpty(certs)}">
             <em>
                 Ingen registrert.
@@ -24,27 +24,25 @@
                 <!--/*@thymesVar id="cert" type="no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary"*/-->
                     <tr th:each="cert : ${certs}">
                         <td th:text="${cert.serialNo.toString(16).replaceAll('(?<=..)(..)', ':$1')}"></td>
-                        <td th:text="${cert.subjectDn}" style="word-break: break-word;"></td>
-                        <td th:text="${cert.issuerDn}" style="word-break: break-word;"></td>
+                        <td th:text="${cert.subjectDn}" class="break-word"></td>
+                        <td th:text="${cert.issuerDn}" class="break-word"></td>
                         <td th:text="${@timestampFormatter.formatEpochMillis(cert.validFromMs)}"></td>
                         <td th:text="${@timestampFormatter.formatEpochMillis(cert.validUntilMs)}"></td>
                         <td>
                             <div th:replace="~{fragments/details_tabs_fragments :: certificate_revocation_status_badge(${cert.status()})}"></div>
                         </td>
                         <td>
-                            <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <div class="certificate-actions">
                                 <a th:href="@{|/get-certificate/${rp.id}/${cert.id}|}"
-                                   style="display:flex; white-space: nowrap; margin: 0;"
-                                   download
-                                   class="ds-button">
+                                   class="ds-button certificate-download"
+                                   download>
                                     Last ned
                                 </a>
                                 <th:block>
                                     <form th:if="${cert.status().valid()}"
                                           th:action="@{|/revoke-certificate/${rp.id}/access/${cert.id}|}"
                                           method="post"
-                                          style="display:inline; margin: 0;"
-                                          onsubmit="return confirm('Er du sikker på at du vil revokere dette sertifikatet?');">
+                                          class="confirm-revocation certificate-revoke">
                                         <button type="submit"
                                                 class="ds-button"
                                                 data-variant="secondary"
@@ -71,7 +69,7 @@
 
 <div th:fragment="issuer_certificates_content_fragment(rp, certs)"  xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
     <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
-    <div style="padding-bottom: 2em;">
+    <div class="space-padding-bottom-2em">
         <div th:if="${ #lists.isEmpty(certs)}">
             <em>
                 Ingen registrert.
@@ -95,29 +93,27 @@
                 <tbody>
                 <!--/*@thymesVar id="cert" type="no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyCertificateSummary"*/-->
                 <tr th:each="cert : ${certs}">
-                    <td th:text="${cert.entitlement()}" style="word-break: break-word;"></td>
+                    <td th:text="${cert.entitlement()}" class="break-word"></td>
                     <td th:text="${cert.serialNo.toString(16).replaceAll('(?<=..)(..)', ':$1')}"></td>
-                    <td th:text="${cert.subjectDn}" style="word-break: break-word;"></td>
-                    <td th:text="${cert.issuerDn}" style="word-break: break-word;"></td>
+                    <td th:text="${cert.subjectDn}" class="break-word"></td>
+                    <td th:text="${cert.issuerDn}" class="break-word"></td>
                     <td th:text="${@timestampFormatter.formatEpochMillis(cert.validFromMs)}"></td>
                     <td th:text="${@timestampFormatter.formatEpochMillis(cert.validUntilMs)}"></td>
                     <td>
                         <div th:replace="~{fragments/details_tabs_fragments :: certificate_revocation_status_badge(${cert.status()})}"></div>
                     </td>
                     <td>
-                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <div class="certificate-actions">
                             <a th:href="@{|/get-certificate/${rp.id}/issuer/${cert.id}|}"
-                               style="display:flex; white-space: nowrap; margin: 0;"
-                               download
-                               class="ds-button">
+                               class="ds-button certificate-download"
+                               download>
                                 Last ned
                             </a>
                             <th:block>
                                 <form th:if="${cert.status().valid()} "
                                       th:action="@{|/revoke-certificate/${rp.id}/issuer/${cert.id}|}"
                                       method="post"
-                                      style="display:inline; margin: 0;"
-                                      onsubmit="return confirm('Er du sikker på at du vil revokere dette sertifikatet?');">
+                                      class="confirm-revocation certificate-revoke">
                                     <button type="submit"
                                             class="ds-button"
                                             data-variant="secondary"
@@ -154,7 +150,7 @@
      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
 
     <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
-    <div style="padding-bottom: 2em;">
+    <div class="space-padding-bottom-2em">
         <table class="ds-table">
             <tbody>
             <th:block sec:authorize="hasRole('ADMIN')">
@@ -191,7 +187,7 @@
         </table>
     </div>
 
-    <div style="margin-bottom: 1em;">
+    <div class="space-bottom-1em">
         <h2 class="ds-heading">Roller og bevistypar</h2>
 
         <details class="ds-details" data-variant="default">

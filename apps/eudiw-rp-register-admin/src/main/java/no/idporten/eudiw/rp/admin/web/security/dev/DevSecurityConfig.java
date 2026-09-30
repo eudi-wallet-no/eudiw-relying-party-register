@@ -3,6 +3,8 @@ package no.idporten.eudiw.rp.admin.web.security.dev;
 import no.idporten.eudiw.rp.admin.service.syntheticreportees.StatelessPersistentSyntheticReporteeService;
 import no.idporten.eudiw.rp.admin.service.syntheticreportees.SyntheticReporteeProvider;
 import no.idporten.eudiw.rp.admin.web.security.UserAuthorityService;
+import no.idporten.eudiw.rp.admin.web.security.CspHeaders;
+import no.idporten.eudiw.rp.admin.web.security.CspProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,8 +32,10 @@ public class DevSecurityConfig {
     @Bean
     public SecurityFilterChain devSecurityFilterChain(
         HttpSecurity http,
+        CspProperties csp,
         AuthenticationProvider devAuthenticationProvider)
         throws Exception {
+        CspHeaders.configure(http, csp);
         return http
                    .authorizeHttpRequests(authz -> authz
                        .requestMatchers(AUTHZ_ALLOWLIST)
