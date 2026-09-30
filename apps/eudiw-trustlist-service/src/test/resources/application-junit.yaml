@@ -51,6 +51,8 @@ trustlist-service:
         digdir:
           trusted-entity-services:
             - service-information:
+                service-type-identifier:
+                  a: http://uri.etsi.org/19602/SvcType/WRPAC/Issuance
                 service-name:
                   lang-no: ca 1 fra Digdir
                   lang-en: ca 1 from Digdir
