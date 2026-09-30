@@ -92,7 +92,7 @@ trustlist-service:
           lang-no: Tillitsliste for Access Certificate Authorities i eidas2sandkasse i ${trustlist-service.environment-name}
           lang-en: Trust list for Access Certificate Authorities in eidas2sandkasse in ${trustlist-service.environment-name}
         sequence-number: 1
-        list-issue-date-time: 2026-04-15T00:00:00.00Z
+        list-issue-date-time: 2026-09-30T00:00:00.00Z
         lote-type: http://uri.etsi.org/19602/LoTEType/EUWRPACProvidersList
         information-uris:
           lang-no: ${trustlist-service.digdir.information-uris.lang-no}
