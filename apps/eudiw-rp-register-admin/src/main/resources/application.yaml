@@ -47,6 +47,7 @@ eudiw-admin-web:
   csp:
     mode: report-only
     policy: >-
+      report-uri https://csp-report.digdir.no/api/reports;
       default-src 'none';
       script-src 'self';
       script-src-attr 'none';
@@ -58,8 +59,7 @@ eudiw-admin-web:
       form-action 'self';
       base-uri 'none';
       object-src 'none';
-      frame-ancestors 'none';
-      report-uri https://csp-report.digdir.no/api/reports
+      frame-ancestors 'none'
   relying-parties-service:
     register-service-api:
       register-service-base-uri: http://digital-lommebok-rp-register-service-service:8080

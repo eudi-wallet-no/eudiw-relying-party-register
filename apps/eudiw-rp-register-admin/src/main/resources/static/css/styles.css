@@ -99,7 +99,6 @@ footer {
     background-color: var(--ds-color-neutral-background-tinted);
     color: var(--ds-color-neutral-text-default);
     width: 100%;
-    min-height: var(--footer-min-height);
     margin-top: auto;
 
     & > div {
