@@ -174,6 +174,30 @@ trustlist-service:
             starting-time: 2026-09-15T00:00:00.00Z
             service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
             cert: MIIDAzCCAqigAwIBAgIJAKCyc0LiQ6xkMAoGCCqGSM49BAMCMIGEMR4wHAYDVQRhExVOVFJOTy1OT0ZPUi45OTE4MjU4MjcxCzAJBgNVBAYTAk5PMSQwIgYDVQQKExtESUdJVEFMSVNFUklOR1NESVJFS1RPUkFURVQxLzAtBgNVBAMTJmVpZGFzMnNhbmRrYXNzZSBFQUEgUHJvdmlkZXIgQ0EgMiB0ZXN0MB4XDTI2MDkxNTA3MDEzMVoXDTI3MDkxNTA3MDEzMVowWTELMAkGA1UEBhMCTk8xFDASBgNVBAoMC0VRVUlOT1IgQVNBMRQwEgYDVQQDDAtFcXVpbm9yIEFTQTEeMBwGA1UEYQwVTlRSTk8tTk9GT1IuOTIzNjA5MDE2MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEZXSr4VB6SHKmBPJTAjrIx9+rDzd7oXN4fQj2hmij91xN+PdtLjOR2Yq1oyZ9vE8HUYkm+pRZm3CmW4kwR8kFWqOCASswggEnMB8GA1UdIwQYMBaAFDEUxKbIvGLjcGE5TFhq4QUfhI/vMB0GA1UdDgQWBBR+pkU3l5/p0/B2kuIcAAzbatPOqTAMBgNVHRMBAf8EAjAAMF0GA1UdHwRWMFQwUqBQoE6GTGh0dHBzOi8vY2EudGVzdC5laWRhczJzYW5ka2Fzc2UubmV0L3YxL2NlcnRzL2ludGVybWVkaWF0ZXMvZWFhX3Byb3ZpZGVyMi5jcmwwaAYIKwYBBQUHAQEEXDBaMFgGCCsGAQUFBzAChkxodHRwczovL2NhLnRlc3QuZWlkYXMyc2FuZGthc3NlLm5ldC92MS9jZXJ0cy9pbnRlcm1lZGlhdGVzL2VhYV9wcm92aWRlcjIuY2VyMA4GA1UdDwEB/wQEAwIFoDAKBggqhkjOPQQDAgNJADBGAiEApd+nipUqoBs+LnwESDPyYdx1q1kAZ5H9a8+C2sPV1j4CIQCaCTPsKDvVQ7jBvaG6/XDzcVqjSDI1HNa8Dt2A4o2/tg==
+      sikt:
+        name:
+          lang-no: Sikt - Kunnskapssektorens tjenesteleverandør
+          lang-en: Sikt - Norwegian Agency for Shared Services in Education and Research
+        trade-name:
+          lang-no: NTRNO-919477822
+          lang-en: NTRNO-919477822
+        information-uris:
+          lang-no: https://www.sikt.no
+          lang-en: https://www.sikt.no
+        website: https://www.sikt.no
+        email: mailto:kontakt@sikt.no
+        postal-address:
+          street-address: Postboks 5782 Torgarden
+          postal-code: 7437
+          locality: Trondheim
+          country: "NO"
+        services:
+          - name:
+              lang-no: Sikt bevisutsteder
+              lang-en: Sikt credential issuer
+            starting-time: 2026-10-02T00:00:00.00Z
+            service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
+            cert: MIIDLTCCAtKgAwIBAgIJALcE2Mp63VbAMAoGCCqGSM49BAMCMIGEMR4wHAYDVQRhExVOVFJOTy1OT0ZPUi45OTE4MjU4MjcxCzAJBgNVBAYTAk5PMSQwIgYDVQQKExtESUdJVEFMSVNFUklOR1NESVJFS1RPUkFURVQxLzAtBgNVBAMTJmVpZGFzMnNhbmRrYXNzZSBFQUEgUHJvdmlkZXIgQ0EgMiB0ZXN0MB4XDTI2MDkzMDEzMDM0OFoXDTI3MDkzMDEzMDM0OFowgYIxCzAJBgNVBAYTAk5PMTYwNAYDVQQKDC1TSUtUIC0gS1VOTlNLQVBTU0VLVE9SRU5TIFRKRU5FU1RFTEVWRVJBTkTDmFIxGzAZBgNVBAMMElNpa3QgYmV2aXN1dHN0ZWRlcjEeMBwGA1UEYQwVTlRSTk8tTk9GT1IuOTE5NDc3ODIyMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEmuRmKXgGk8OpmdXHksENoOcQgPgvHBj/USYcF/dMgzZpgRdB01FYUkiClwjuV3cPHtuob7DER1v/tpjXZkTvxKOCASswggEnMB8GA1UdIwQYMBaAFDEUxKbIvGLjcGE5TFhq4QUfhI/vMB0GA1UdDgQWBBRU6g8ClNOldUI6XvJpyphkrY2neDAMBgNVHRMBAf8EAjAAMF0GA1UdHwRWMFQwUqBQoE6GTGh0dHBzOi8vY2EudGVzdC5laWRhczJzYW5ka2Fzc2UubmV0L3YxL2NlcnRzL2ludGVybWVkaWF0ZXMvZWFhX3Byb3ZpZGVyMi5jcmwwaAYIKwYBBQUHAQEEXDBaMFgGCCsGAQUFBzAChkxodHRwczovL2NhLnRlc3QuZWlkYXMyc2FuZGthc3NlLm5ldC92MS9jZXJ0cy9pbnRlcm1lZGlhdGVzL2VhYV9wcm92aWRlcjIuY2VyMA4GA1UdDwEB/wQEAwIFoDAKBggqhkjOPQQDAgNJADBGAiEA7hIbzG8dgJPYQiFBi6RIpTI28ySv4MVyNLxW7cvJ8wACIQDcsfUl8/aHKkli2oBZqVWwZn/koa4ywz4LZKmLPKG+dg==
 
   tsl602:
     tsl-aca:
