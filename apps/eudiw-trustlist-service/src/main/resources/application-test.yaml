@@ -185,7 +185,7 @@ trustlist-service:
           lang-no: https://www.sikt.no
           lang-en: https://www.sikt.no
         website: https://www.sikt.no
-        email: kontakt@sikt.no
+        email: mailto:kontakt@sikt.no
         postal-address:
           street-address: Postboks 5782 Torgarden
           postal-code: 7437
