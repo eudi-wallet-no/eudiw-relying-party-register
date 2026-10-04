@@ -17,7 +17,7 @@
         <maven-compiler-plugin.version>3.16.0</maven-compiler-plugin.version>
         <lombok.version>1.18.48</lombok.version>
         <idporten-actuator-starter.version>3.1.2</idporten-actuator-starter.version>
-        <idporten-access-log.version>4.0.4</idporten-access-log.version>
+        <idporten-access-log.version>4.0.5</idporten-access-log.version>
         <idporten-validators.version>1.6.3</idporten-validators.version>
         <opentelemetry-api.version>1.66.0</opentelemetry-api.version>
         <springdoc.version>3.1.1</springdoc.version>
