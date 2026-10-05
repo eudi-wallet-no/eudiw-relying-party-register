@@ -59,6 +59,7 @@ public class BaseSecurityConfig {
     @Bean
     public SecurityFilterChain baseFilterChain(
         HttpSecurity http,
+        CspProperties csp,
         AnsattportenAuthorizationRequestResolver ansattportenAuthorizationRequestResolver,
         LogoutSuccessHandler logoutHandler)
         throws Exception {
@@ -68,6 +69,7 @@ public class BaseSecurityConfig {
             matcherBuilder.matcher(HttpMethod.GET, "/logout"),
             matcherBuilder.matcher(HttpMethod.POST, "/logout")
         );
+        CspHeaders.configure(http, csp);
         return
             http
                 .authorizeHttpRequests(authz -> authz

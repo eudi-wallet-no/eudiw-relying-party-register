@@ -4,9 +4,8 @@
       th:action="@{|/csr/access/${id}|}"
       method="POST">
 
-    <fieldset class="ds-fieldset"
-              style="margin-bottom: 8px;">
-        <div style="display: flex; flex-direction: column;">
+    <fieldset class="ds-fieldset space-bottom-8">
+        <div class="flex-column">
             <label id="csr_form_label"
                    for="csr_form"
                    class="ds-label"
@@ -16,8 +15,7 @@
             <textarea id="csr_form"
                       th:field="*{csrField}"
                       th:type="text"
-                      class="ds-input"
-                      style="width: 40em; min-height: 5em;"
+                      class="ds-input csr-textarea"
                       placeholder="PEM-innkoda PKCS10 CSR">
             </textarea>
         </div>
@@ -44,8 +42,7 @@
 
     <fieldset
             th:if="${rp.hasIssuerEntitlements()}"
-            class="ds-fieldset"
-            style="margin-bottom: 1.5rem;"
+            class="ds-fieldset space-bottom-15rem"
     >
         <legend class="ds-label"
                 data-weight="high">
@@ -66,9 +63,8 @@
         </div>
     </fieldset>
 
-    <fieldset class="ds-fieldset"
-              style="margin-bottom: 8px;">
-        <div style="display: flex; flex-direction: column;">
+    <fieldset class="ds-fieldset space-bottom-8">
+        <div class="flex-column">
             <label id="csr_form_label"
                    for="csr_form"
                    class="ds-label"
@@ -78,8 +74,7 @@
             <textarea id="csr_form"
                       th:field="*{csrField}"
                       th:type="text"
-                      class="ds-input"
-                      style="width: 40em; min-height: 5em;"
+                      class="ds-input csr-textarea"
                       placeholder="PEM-innkoda PKCS10 CSR">
             </textarea>
         </div>

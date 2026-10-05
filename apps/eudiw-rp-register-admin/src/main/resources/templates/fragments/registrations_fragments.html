@@ -20,14 +20,14 @@
 
             <tr th:each="rp : ${registrations}">
                 <td>
-                    <a th:href="@{|/details/${rp.id}|}" style="cursor:pointer;">
+                    <a th:href="@{|/details/${rp.id}|}" class="clickable-link">
                         <div th:text="${rp.tradeName}"></div>
                     </a>
                 </td>
                 <td>
                     <div th:each="e : ${rp.relyingPartyEntitlements()}"
                          th:text="${e.displayName()}"
-                         style="display: block;"></div>
+                         class="display-block"></div>
                 </td>
                 <td th:text="${@timestampFormatter.formatEpochMillis(rp.createdMs)}"></td>
                 <td th:text="${@timestampFormatter.formatEpochMillis(rp.lastUpdatedMs)}"></td>

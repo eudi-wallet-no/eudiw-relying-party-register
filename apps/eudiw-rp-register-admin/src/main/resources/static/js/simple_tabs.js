@@ -5,8 +5,7 @@ let tabs = Array.from(document.getElementById("tabs_container").children);
 
 function setTab(id) {
     id = panels.has(id) ? id : defaultPanelId;
-    panels.forEach(panel =>
-        panel.style.display = panel.id === id ? "block" : "none");
+    panels.forEach(panel => panel.classList.toggle("display-none", panel.id === id));
     tabs.values().forEach(tab => tab.ariaSelected = tab.hash === id);
 }
 
