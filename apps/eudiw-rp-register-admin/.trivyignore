@@ -7,3 +7,12 @@ CVE-2026-54513 # com.fasterxml.jackson.core:jackson-databind. Security bypass. F
 CVE-2026-54512 # tools.jackson.core:jackson-databind. Fixed in 3.1.4
 CVE-2026-54513 # tools.jackson.core:jackson-databind. Security bypass. Fixed in 3.1.4
 CVE-2026-68497 # jackson databind. Fixed in 2.18.10, 2.21.6, 2.22.2, 3.2.2, 3.1.6
+
+CVE-2026-89407 # jackson-core. DOS via REGEXP. Fixed in 2.18.11, 2.21.7, 2.22.3
+CVE-2026-89425 # jackson-core. DOS via unbound string builder. Fixed in 2.21.7, 2.22.3, 2.18.11
+CVE-2026-91776 # jackson-databind. DOS via unbound cache growth. Fixed in 2.18.11, 2.21.7, 2.22.3
+CVE-2026-91777 # jackson-databind. DOS via forward-reference completion. Fixed in 2.21.7, 2.18.11, 2.22.3
+CVE-2026-89407 # jackson-core. DOS via REGEXP backtracking. Fixed in 3.1.7, 3.2.2
+CVE-2026-89425 # jackson-core. DOS via unbounded StringBuilder growth. Fixed in 3.1.7, 3.2.3
+CVE-2026-91776 # jackson-databind. DOS. via unbounded cache growth. Fixed in 3.1.7, 3.2.3
+CVE-2026-91777 # jackson-databind. DOS via forward reference completion. Fixed in 3.1.7, 3.2.3
