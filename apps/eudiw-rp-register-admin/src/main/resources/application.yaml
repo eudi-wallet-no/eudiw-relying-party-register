@@ -54,7 +54,7 @@ digdir:
 
 eudiw-admin-web:
   csp:
-    mode: enforce
+    mode: report_only
     policy: >-
       report-uri https://csp-report.digdir.no/api/reports;
       default-src 'none';
