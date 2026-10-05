@@ -79,22 +79,3 @@ docker compose up --build
 
 The admin and selfservice applications run on `http://rp-register-admin:9250`
 and `http://rp-register-selfservice:9255`, respectively.
-
-## Content Security Policy
-
-Both applications use `eudiw-admin-web.csp` from `application.yaml`. The
-`policy` value is emitted by both security configurations. `mode: report-only`
-sets `Content-Security-Policy-Report-Only`; switching to `mode: enforce` sets
-`Content-Security-Policy` with the same policy. Unknown modes and missing
-policy fail startup. Override the mode through the environment-specific Spring
-configuration when ready; revert to `report-only` if legitimate browser
-resources are blocked.
-
-Before enforcing, verify that Digdir's report receiver accepts `report-uri`
-reports at `https://csp-report.digdir.no/api/reports`, review reports for
-potentially sensitive URLs, and check login/logout, registration/editing,
-certificate revocation, search, error pages, and static assets in both
-applications. Report-Only does not block resources or close the missing-CSP
-finding. After enabling enforcement, check the public HTTPS response headers
-and browser console; retain the existing HSTS, X-Content-Type-Options, and
-X-Frame-Options headers.
