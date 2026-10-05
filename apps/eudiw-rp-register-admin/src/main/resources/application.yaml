@@ -1,6 +1,15 @@
 ---
 server:
   port: 8080
+  servlet:
+    session:
+      tracking-modes:
+        - cookie
+      cookie:
+        name: ${spring.application.name}-session
+        same-site: lax
+        secure: true
+        http-only: true
 
 spring:
   threads:
