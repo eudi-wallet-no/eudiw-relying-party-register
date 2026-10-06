@@ -18,12 +18,12 @@
         <java.version>25</java.version>
         <idporten-actuator.version>3.1.2</idporten-actuator.version>
         <idporten-validators.version>1.6.3</idporten-validators.version>
-        <idporten-access-log.version>4.0.4</idporten-access-log.version>
+        <idporten-access-log.version>4.0.5</idporten-access-log.version>
         <opentelemetry-api.version>1.66.0</opentelemetry-api.version>
         <mariadb-java-client.version>3.5.10</mariadb-java-client.version>
         <springdoc.version>3.1.1</springdoc.version>
         <lombok.version>1.18.48</lombok.version>
-        <idporten-audit-log.version>4.0.5</idporten-audit-log.version>
+        <idporten-audit-log.version>4.0.6</idporten-audit-log.version>
         <mockwebserver.version>5.5.0</mockwebserver.version>
         <bcpkix.version>1.86</bcpkix.version>
         <tomcat.version>11.0.25</tomcat.version>
