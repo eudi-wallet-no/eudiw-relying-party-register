@@ -3,9 +3,8 @@
       th:object="${searchFormAttr}"
       th:action="@{/search}"
       method="POST">
-    <div style="margin-bottom: 1em;">
-    <div class="ds-search"
-         style="margin-block-end: var(--ds-size-2)">
+    <div class="space-bottom-1em">
+    <div class="ds-search space-block-end-2">
         <input id="search_term"
                th:field="*{searchTerm}"
                placeholder="Søk på org.nr. eller namn"
@@ -30,8 +29,7 @@
     </ul>
     </div>
 
-    <details class="ds-details"
-             style="width: fit-content;"
+    <details class="ds-details fit-width"
              th:open="${!#lists.isEmpty(searchFormAttr.getRequiredEntitlements())}">
         <summary>Filter</summary>
         <fieldset class="ds-fieldset">
@@ -97,14 +95,14 @@
                 <td th:text="${rp.orgno}"></td>
                 <td th:text="${rp.orgName}"></td>
                 <td>
-                    <a th:href="@{|/details/${rp.id}|}" style="cursor:pointer;">
+                    <a th:href="@{|/details/${rp.id}|}" class="clickable-link">
                         <div th:text="${rp.tradeName}"></div>
                     </a>
                 </td>
                 <td>
                     <div th:each="e : ${rp.relyingPartyEntitlements()}"
                          th:text="${e.displayName()}"
-                         style="display: block;"></div>
+                         class="display-block"></div>
                 </td>
                 <td th:text="${@timestampFormatter.formatEpochMillis(rp.createdMs)}"></td>
                 <td th:text="${@timestampFormatter.formatEpochMillis(rp.lastUpdatedMs)}"></td>
