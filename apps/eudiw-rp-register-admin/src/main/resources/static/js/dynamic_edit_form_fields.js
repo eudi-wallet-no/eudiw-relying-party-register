@@ -6,11 +6,11 @@ const eaa_intent_input_field = document.getElementById("eaa_intent_field");
 const eaa_namespace_error_msg = document.getElementById("eaa_namespace_error_msg");
 const eaa_intent_error_msg = document.getElementById("eaa_intent_error_msg");
 
-const showElem = elem => elem.style.display = "block";
-const hideElem = elem => elem.style.display = "none";
+const showElem = elem => elem.classList.remove("display-none");
+const hideElem = elem => elem.classList.add("display-none");
 
-eaa_namespace_input_field.oninput = () => hideElem(eaa_namespace_error_msg);
-eaa_intent_input_field.oninput = () => hideElem(eaa_intent_error_msg);
+eaa_namespace_input_field.addEventListener("input", () => hideElem(eaa_namespace_error_msg));
+eaa_intent_input_field.addEventListener("input", () => hideElem(eaa_intent_error_msg));
 
 function isSaneStringInput(str) {
     const allowed_chars_regex = /^[a-zA-ZæøåÆØÅ0-9.,\-:'&/ ]+$/;
@@ -27,7 +27,7 @@ function makeDeleteButtonFor(elem) {
     const deleteButton = document.createElement("button");
     deleteButton.type = "button";
     deleteButton.innerText = "Slett";
-    deleteButton.onclick = () => elem.remove();
+    deleteButton.addEventListener("click", () => elem.remove());
     deleteButton.className = "ds-button";
     deleteButton.dataset.variant = "secondary";
     deleteButton.dataset.color = "danger";
@@ -92,6 +92,7 @@ function eaaInputFieldsOnEnter(e) {
 eaa_intent_input_field.addEventListener("keydown", eaaInputFieldsOnEnter);
 eaa_namespace_input_field.addEventListener("keydown", eaaInputFieldsOnEnter);
 
+document.getElementById("eaa-add").addEventListener("click", addEaaOnclick);
 document.querySelectorAll("#eaa_prefill").forEach(elem => {
     addEaa(elem.dataset.namespace, elem.dataset.intent);
 });
