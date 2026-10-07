@@ -1,16 +1,14 @@
 package no.eudiw.rp.register.data.repository;
 
-import no.eudiw.rp.register.data.RelyingPartyOrdering;
-import no.eudiw.rp.register.data.entity.BaseEntity;
-import no.eudiw.rp.register.data.entity.LegalEntity;
-import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyEntitlement;
-import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyInstance;
+import no.eudiw.rp.register.domain.BaseEntity;
+import no.eudiw.rp.register.domain.LegalEntity;
+import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
+import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
+import no.eudiw.rp.register.repository.LegalEntityRepository;
+import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.testdata.EntityGenerator;
 import no.eudiw.rp.register.testdata.TestDataGenerator;
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.NullSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
@@ -289,7 +287,7 @@ public class RelyingPartyInstanceRepositoryTest {
     }
 
     @Nested
-    @DisplayName("when using RelyingPartyOrdering and JPA sorting in conjunction")
+    @DisplayName("when using JPA sorting")
     class SearchQueryWithOrderingTests {
         private static <T> boolean isSortedBy(List<T> lst, Comparator<T> comparator) {
             for (int i = 0; i < lst.size() - 1; i++) {
@@ -300,11 +298,10 @@ public class RelyingPartyInstanceRepositoryTest {
             return true;
         }
 
-        @ParameterizedTest
-        @ValueSource(strings = {RelyingPartyOrdering.TRADE_NAME_KEY, "name"})
-        @DisplayName("then using RelyingPartyOrdering with known tradeName sort keys gives sorting by trade name")
-        void testSearchWithOrderingByTradename(String sortKey) {
-            Sort orderingByTradename = RelyingPartyOrdering.fromSortKey(sortKey);
+        @Test
+        @DisplayName("then trade name sorting orders relying parties by trade name")
+        void testSearchWithOrderingByTradename() {
+            Sort orderingByTradename = Sort.by("tradeName");
             List<RelyingPartyInstance> searchResultByTradename =
                 repository.searchRelyingPartyInstances(
                     "",
@@ -318,11 +315,10 @@ public class RelyingPartyInstanceRepositoryTest {
                                   Comparator.comparing(RelyingPartyInstance::getTradeName)));
         }
 
-        @ParameterizedTest
-        @ValueSource(strings = {RelyingPartyOrdering.ORGNO_KEY, "orgno"})
-        @DisplayName("then using RelyingPartyOrdering with known orgno sort keys gives sorting by orgno")
-        void testSearchWithOrderingByOrgno(String sortKey) {
-            Sort ordering = RelyingPartyOrdering.fromSortKey(sortKey);
+        @Test
+        @DisplayName("then organization number sorting orders relying parties by organization number")
+        void testSearchWithOrderingByOrgno() {
+            Sort ordering = Sort.by("legalEntity.orgno");
             List<RelyingPartyInstance> searchResultByOrgno =
                 repository.searchRelyingPartyInstances(
                     "",
@@ -336,11 +332,10 @@ public class RelyingPartyInstanceRepositoryTest {
                                   Comparator.comparing(rp -> rp.getLegalEntity().getOrgno())));
         }
 
-        @ParameterizedTest
-        @ValueSource(strings = {RelyingPartyOrdering.CREATED_MS_KEY})
-        @DisplayName("then using RelyingPartyOrdering with the createdMs sort key gives sorting by createdMs")
-        void testSearchWithOrderingByCreatedMs(String sortKey) {
-            Sort ordering = RelyingPartyOrdering.fromSortKey(sortKey);
+        @Test
+        @DisplayName("then creation date sorting orders relying parties by createdMs")
+        void testSearchWithOrderingByCreatedMs() {
+            Sort ordering = Sort.by("createdMs");
             List<RelyingPartyInstance> searchResultByCreatedMs =
                 repository.searchRelyingPartyInstances(
                     "",
@@ -354,11 +349,10 @@ public class RelyingPartyInstanceRepositoryTest {
                                   Comparator.comparing(RelyingPartyInstance::getCreatedMs)));
         }
 
-        @ParameterizedTest
-        @ValueSource(strings = {RelyingPartyOrdering.LAST_UPDATED_MS_KEY})
-        @DisplayName("then using RelyingPartyOrdering with the lastUpdatedMs sort key gives sorting by lastUpdatedMs")
-        void testSearchWithOrderingByLastUpdatedMs(String sortKey) {
-            Sort ordering = RelyingPartyOrdering.fromSortKey(sortKey);
+        @Test
+        @DisplayName("then last updated sorting orders relying parties by lastUpdatedMs")
+        void testSearchWithOrderingByLastUpdatedMs() {
+            Sort ordering = Sort.by("lastUpdatedMs");
             List<RelyingPartyInstance> searchResultByLastUpdatedMs =
                 repository.searchRelyingPartyInstances(
                     "",
@@ -372,12 +366,10 @@ public class RelyingPartyInstanceRepositoryTest {
                                   Comparator.comparing(RelyingPartyInstance::getLastUpdatedMs)));
         }
 
-        @ParameterizedTest
-        @ValueSource(strings = {RelyingPartyOrdering.UNSORTED_KEY, "foobar", ""})
-        @NullSource
-        @DisplayName("then using RelyingPartyOrdering with \"unsorted\" and various unknown sort keys gives unsorted result")
-        void testSearchWithUnsortedOrUnknownSortKeyGivesUnsortedResult(String sortKey) {
-            Sort orderingByUnknownSortKey = RelyingPartyOrdering.fromSortKey(sortKey);
+        @Test
+        @DisplayName("then an unsorted page request returns every relying party")
+        void testSearchWithUnsortedOrderingReturnsAllRelyingParties() {
+            Sort unsorted = Sort.unsorted();
 
             // there is no sorting to verify here, so just check that all RPs are present.
             Set<UUID> searchResultByUnknownSortKey =
@@ -386,7 +378,7 @@ public class RelyingPartyInstanceRepositoryTest {
                               List.of(),
                               true,
                               false,
-                              PageRequest.of(0, Integer.MAX_VALUE, orderingByUnknownSortKey))
+                              PageRequest.of(0, Integer.MAX_VALUE, unsorted))
                           .getContent()
                           .stream()
                           .map(BaseEntity::getId)

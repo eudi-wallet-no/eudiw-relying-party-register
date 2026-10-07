@@ -1,10 +1,9 @@
 package no.eudiw.rp.register.testdata;
 
-import no.eudiw.rp.register.api.resource.certificates.IssuerCsrResource;
-import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCsrResource;
-import no.eudiw.rp.register.api.resource.certificates.RelyingPartyCertificateResource;
-import no.eudiw.rp.register.api.resource.relyingparty.*;
-import no.eudiw.rp.register.data.entity.Entitlement;
+import no.eudiw.rp.register.api.v1.resource.certificates.IssuerCsrResource;
+import no.eudiw.rp.register.api.v1.resource.certificates.RelyingPartyCsrResource;
+import no.eudiw.rp.register.api.v1.resource.certificates.RelyingPartyCertificateResource;
+import no.eudiw.rp.register.api.v1.resource.relyingparty.*;
 
 import java.time.Instant;
 import java.util.ArrayList;

@@ -1,5 +1,8 @@
 package no.eudiw.rp.register.exception;
 
+import lombok.Getter;
+
+@Getter
 public class RegisterServiceException extends RuntimeException {
 
     private String logMessage;
@@ -24,7 +27,4 @@ public class RegisterServiceException extends RuntimeException {
         this.logMessage = logMessage;
     }
 
-    public String getLogMessage() {
-        return logMessage;
-    }
 }

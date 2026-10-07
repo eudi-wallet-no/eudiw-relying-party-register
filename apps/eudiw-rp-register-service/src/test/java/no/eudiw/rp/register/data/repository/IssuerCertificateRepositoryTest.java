@@ -1,8 +1,10 @@
 package no.eudiw.rp.register.data.repository;
 
-import no.eudiw.rp.register.data.entity.certificates.IssuerCertificate;
-import no.eudiw.rp.register.data.entity.LegalEntity;
-import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyEntitlement;
+import no.eudiw.rp.register.domain.certificates.IssuerCertificate;
+import no.eudiw.rp.register.domain.LegalEntity;
+import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
+import no.eudiw.rp.register.repository.IssuerCertificateRepository;
+import no.eudiw.rp.register.repository.LegalEntityRepository;
 import no.eudiw.rp.register.testdata.CertificatesGenerator;
 import no.eudiw.rp.register.testdata.EntityGenerator;
 import org.junit.jupiter.api.DisplayName;

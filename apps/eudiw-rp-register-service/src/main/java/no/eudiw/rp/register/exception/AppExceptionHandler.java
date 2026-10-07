@@ -18,72 +18,57 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.NoSuchElementException;
 
-
-/**
- * Top level exception handling for application.
- */
 @Slf4j
 @ControllerAdvice
 @Order(100)
 public class AppExceptionHandler {
 
-    // last resort
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseResource> handleException(Exception e) {
         log.error("Failed to process request", e);
         return errorResponseEntity(
-            HttpStatus.INTERNAL_SERVER_ERROR,
-            "server_error",
-            "Unrecognized internal server error");
+            HttpStatus.INTERNAL_SERVER_ERROR, "server_error", "Unrecognized internal server error");
     }
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     public ResponseEntity<ErrorResponseResource> handleHttpMediaTypeNotSupportedException(
         HttpMediaTypeNotSupportedException e) {
-        String errorDescription = "HTTP media type not supported: " + e.getContentType();
-        return errorResponseEntity(HttpStatus.BAD_REQUEST, "invalid_request", errorDescription);
+        return errorResponseEntity(
+            HttpStatus.BAD_REQUEST, "invalid_request", "HTTP media type not supported: " + e.getContentType());
     }
 
-    // api key
     @ExceptionHandler(ApiKeyAuthenticationException.class)
     public ResponseEntity<ErrorResponseResource> handleApiException(ApiKeyAuthenticationException e) {
         log.warn("Unauthorized request: {}", e.getMessage());
-        return ResponseEntity
-                .status(e.getHttpStatus())
-                .body(new ErrorResponseResource(e.getError(), e.getErrorDescription()));
+        return ResponseEntity.status(e.getHttpStatus())
+            .body(new ErrorResponseResource(e.getError(), e.getErrorDescription()));
     }
 
-    // Spring 405
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ErrorResponseResource> handleHttpRequestMethodNotSupportedException(
-        HttpRequestMethodNotSupportedException ex) {
+        HttpRequestMethodNotSupportedException e) {
         return errorResponseEntity(HttpStatus.METHOD_NOT_ALLOWED, "invalid_request", "Unsupported HTTP method");
     }
 
-    // Spring 404
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<ErrorResponseResource> handleNoHandlerFoundException(NoHandlerFoundException e) {
         return errorResponseEntity(HttpStatus.NOT_FOUND, "invalid_request", "Requested resource not found");
     }
 
-    // Spring 404
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ErrorResponseResource> handleNoResourceFoundException(NoResourceFoundException e) {
         return errorResponseEntity(HttpStatus.NOT_FOUND, "invalid_request", "Requested resource not found");
     }
 
-    // Spring 404
     @ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<ErrorResponseResource> handleNoSuchElementException(NoSuchElementException e) {
         return errorResponseEntity(HttpStatus.NOT_FOUND, "invalid_request", "Requested resource not found");
     }
 
-    // Spring-exception som gir HTTP-feil
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ErrorResponseResource> handleResponseStatusException(ResponseStatusException e) {
         return errorResponseEntity(e.getStatusCode(), errorMessageForHttpStatus(e.getStatusCode()), e.getReason());
     }
-
 
     protected String errorMessageForHttpStatus(HttpStatusCode httpStatus) {
         if (httpStatus.is4xxClientError()) {
@@ -99,10 +84,6 @@ public class AppExceptionHandler {
 
     protected static ResponseEntity<ErrorResponseResource> errorResponseEntity(
         HttpStatusCode httpStatus, ErrorResponseResource errorResponseResource) {
-        return ResponseEntity
-                .status(httpStatus)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(errorResponseResource);
+        return ResponseEntity.status(httpStatus).contentType(MediaType.APPLICATION_JSON).body(errorResponseResource);
     }
-
 }
