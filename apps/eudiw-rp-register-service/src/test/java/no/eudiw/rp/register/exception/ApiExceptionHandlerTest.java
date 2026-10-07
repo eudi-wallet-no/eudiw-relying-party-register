@@ -3,6 +3,7 @@ package no.eudiw.rp.register.exception;
 import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.TestComponent;
 
 import java.util.Set;
 
@@ -29,6 +30,7 @@ class ApiExceptionHandlerTest {
             .andExpect(jsonPath("$.error_description").value("Resource contains invalid field value(s)"));
     }
 
+    @TestComponent
     @RestController
     static class FailingController {
         @GetMapping("/failure")
