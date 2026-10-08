@@ -5,6 +5,7 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import no.idporten.eudiw.credential.registry.exception.CredentialRegisterException;
 import no.idporten.eudiw.credential.registry.integration.model.CredentialIssuer;
+import no.idporten.eudiw.credential.registry.integration.model.CredentialConfiguration;
 import no.idporten.eudiw.credential.registry.integration.model.CredentialIssuerUrls;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,10 +16,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -46,6 +53,7 @@ public class CredentialIssuerMetadataRetriever {
     private final Counter connectInternalApiExceptionCounter;
 
     private static final String CREDENTIAL_ISSUER_CONFIG_ENDPOINT = "/.well-known/openid-credential-issuer";
+    private static final JsonMapper METADATA_MAPPER = JsonMapper.builder().build();
 
     private List<CredentialIssuer> listOfIssuer;
 
@@ -83,6 +91,7 @@ public class CredentialIssuerMetadataRetriever {
     }
 
     protected CredentialIssuer validateCredentialIssuer(CredentialIssuer credentialIssuer, URI uri) {
+        if (credentialIssuer == null) return null;
         Set<ConstraintViolation<CredentialIssuer>> violations = validator.validate(credentialIssuer);
         if (!violations.isEmpty()) {
             String prettyViolations = violations.stream().map(ConstraintViolation::getMessage).collect(Collectors.joining(", "));
@@ -93,14 +102,36 @@ public class CredentialIssuerMetadataRetriever {
         return credentialIssuer;
     }
 
+    private CredentialIssuer readCredentialIssuerMetadata(URI uri) {
+        JsonNode metadata = restClientExternalApi.get().uri(buildWellKnown(uri)).retrieve().body(JsonNode.class);
+        if (!(metadata instanceof ObjectNode root)
+                || !root.path("credential_configurations_supported").isObject()) {
+            return METADATA_MAPPER.treeToValue(metadata, CredentialIssuer.class);
+        }
+        JsonNode configurations = root.remove("credential_configurations_supported");
+        CredentialIssuer issuer = METADATA_MAPPER.treeToValue(root, CredentialIssuer.class);
+        Map<String, CredentialConfiguration> parsed = new LinkedHashMap<>();
+        configurations.properties().forEach(entry -> {
+            try {
+                var configuration = METADATA_MAPPER.treeToValue(entry.getValue(), CredentialConfiguration.class);
+                if (configuration != null && validator.validate(configuration).isEmpty()) {
+                    parsed.put(entry.getKey(), configuration);
+                } else {
+                    log.warn("Ignoring invalid credential configuration {} from issuer {}", entry.getKey(), uri);
+                }
+            } catch (JacksonException e) {
+                log.warn("Ignoring credential configuration {} from issuer {}: {}", entry.getKey(), uri, e.getOriginalMessage());
+            }
+        });
+        issuer.setCredentialConfiguration(parsed);
+        return issuer;
+    }
+
     protected CredentialIssuer fetchCredentialIssuerFromMetadataRequest(URI uri) {
         CredentialIssuer credentialIssuer;
         URI wellknown = buildWellKnown(uri);
         try {
-            credentialIssuer = restClientExternalApi.get()
-                    .uri(wellknown)
-                    .retrieve()
-                    .body(CredentialIssuer.class);
+            credentialIssuer = readCredentialIssuerMetadata(uri);
         } catch (ResourceAccessException e) {
             log.warn("Connection error to issuers well-known url: {}", wellknown, e);
             connectExternalApiExceptionCounter.increment();
