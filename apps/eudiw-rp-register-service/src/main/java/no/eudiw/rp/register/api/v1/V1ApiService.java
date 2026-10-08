@@ -34,41 +34,43 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class V1ApiService {
 
-    private final RelyingPartyService relyingPartyService;
+    private final RelyingPartyService relyingPartyInstanceService;
     private final RelyingPartyCertificateService certificateService;
     private final EntitlementService entitlementService;
     private final CredentialIssuersService credentialIssuersService;
-    private final V1DataConverter mapper;
+    private final V1ContractMapper v1ContractMapper;
 
     @Transactional
     public RelyingPartyResource createRelyingParty(CreateRelyingPartyResource request) {
-        List<RelyingPartyEntitlement> entitlements = mapper.toEntitlements(request.relyingPartyEntitlements());
-        List<RelyingPartyEaa> eaas = mapper.toEaas(request.relyingPartyEaas());
-        RelyingPartyInstance instance = relyingPartyService.createRelyingParty(
-            request.orgNr(), request.tradeName(), entitlements, eaas);
-        return mapper.toResource(instance);
+        List<RelyingPartyEntitlement> domainEntitlements =
+            v1ContractMapper.toDomainRelyingPartyEntitlements(request.relyingPartyEntitlements());
+        List<RelyingPartyEaa> domainEaas = v1ContractMapper.toDomainRelyingPartyEaas(request.relyingPartyEaas());
+        RelyingPartyInstance createdInstance = relyingPartyInstanceService.createRelyingParty(
+            request.orgNr(), request.tradeName(), domainEntitlements, domainEaas);
+        return v1ContractMapper.toV1RelyingPartyResource(createdInstance);
     }
 
     @Transactional
     public RelyingPartyResource updateRelyingParty(UUID id, EditRelyingPartyResource request) {
-        RelyingPartyInstance instance = relyingPartyService.updateRelyingParty(
+        RelyingPartyInstance updatedInstance = relyingPartyInstanceService.updateRelyingParty(
             id,
             request.tradeName(),
             request.active(),
-            mapper.toEntitlements(request.relyingPartyEntitlements()),
-            mapper.toEaas(request.relyingPartyEaas())
+            v1ContractMapper.toDomainRelyingPartyEntitlements(request.relyingPartyEntitlements()),
+            v1ContractMapper.toDomainRelyingPartyEaas(request.relyingPartyEaas())
         );
-        return mapper.toResource(instance);
+        return v1ContractMapper.toV1RelyingPartyResource(updatedInstance);
     }
 
     @Transactional
     public void deleteRelyingParty(UUID id) {
-        relyingPartyService.deleteRelyingParty(id);
+        relyingPartyInstanceService.deleteRelyingParty(id);
     }
 
     @Transactional(readOnly = true)
     public RelyingPartyResource findRelyingParty(UUID id) {
-        return mapper.toResource(relyingPartyService.findRelyingParty(id));
+        RelyingPartyInstance instance = relyingPartyInstanceService.findRelyingParty(id);
+        return v1ContractMapper.toV1RelyingPartyResource(instance);
     }
 
     @Transactional(readOnly = true)
@@ -78,13 +80,13 @@ public class V1ApiService {
             request.getPageSize(),
             sortFor(request.getSortKey())
         );
-        return new PagedModel<>(relyingPartyService.searchRelyingParties(
+        return new PagedModel<>(relyingPartyInstanceService.searchRelyingParties(
             request.getSearchTerm(),
             request.getRequiredEntitlements(),
             request.isIncludeInactive(),
             request.isHideSyntheticOrgnos(),
             pageRequest
-        ).map(mapper::toResource));
+        ).map(v1ContractMapper::toV1RelyingPartyResource));
     }
 
     private static Sort sortFor(String sortKey) {
@@ -100,7 +102,7 @@ public class V1ApiService {
     @Transactional(readOnly = true)
     public EntitlementsResource findAllEntitlements(boolean includeInactive) {
         List<Entitlement> entitlements = entitlementService.findAllEntitlements(includeInactive);
-        return mapper.toEntitlementsResource(entitlements);
+        return v1ContractMapper.toV1EntitlementsResource(entitlements);
     }
 
     @Transactional(readOnly = true)
@@ -112,7 +114,7 @@ public class V1ApiService {
     public RelyingPartyCertificatesResource getCertificatesForRelyingParty(UUID relyingPartyId) {
         List<RelyingPartyCertificateResource> certificates =
             certificateService.getCertificatesForRelyingParty(relyingPartyId).stream()
-                .map(mapper::toResource)
+                .map(v1ContractMapper::toV1CertificateResource)
                 .toList();
         return new RelyingPartyCertificatesResource(certificates);
     }
@@ -120,20 +122,20 @@ public class V1ApiService {
     @Transactional(readOnly = true)
     public RelyingPartyCertificateResource getCertificate(UUID certificateId, UUID relyingPartyId) {
         AccessCertificate certificate = certificateService.getCertificate(certificateId, relyingPartyId);
-        return mapper.toResource(certificate);
+        return v1ContractMapper.toV1CertificateResource(certificate);
     }
 
     @Transactional(readOnly = true)
     public RelyingPartyCertificateResource getIssuerCertificate(UUID certificateId, UUID relyingPartyId) {
         IssuerCertificate certificate = certificateService.getIssuerCertificate(certificateId, relyingPartyId);
-        return mapper.toResource(certificate);
+        return v1ContractMapper.toV1CertificateResource(certificate);
     }
 
     @Transactional(readOnly = true)
     public RelyingPartyCertificatesResource getAllIssuerCertificatesFromRelyingParty(UUID relyingPartyId) {
         List<RelyingPartyCertificateResource> certificates =
             certificateService.getAllIssuerCertificatesFromRelyingParty(relyingPartyId).stream()
-                .map(mapper::toResource)
+                .map(v1ContractMapper::toV1CertificateResource)
                 .toList();
         return new RelyingPartyCertificatesResource(certificates);
     }
@@ -145,7 +147,7 @@ public class V1ApiService {
     ) {
         IssuerCertificate certificate = certificateService.requestIssuerCertificate(
             relyingPartyId, request.csr(), request.entitlement());
-        return mapper.toResource(certificate);
+        return v1ContractMapper.toV1CertificateResource(certificate);
     }
 
     @Transactional
@@ -155,7 +157,7 @@ public class V1ApiService {
     ) {
         AccessCertificate certificate =
             certificateService.requestAccessCertificateForRelyingParty(relyingPartyId, request.csr());
-        return mapper.toResource(certificate);
+        return v1ContractMapper.toV1CertificateResource(certificate);
     }
 
     @Transactional

@@ -28,7 +28,7 @@ public class V1RelyingPartyEditingTest {
     private WalletRelyingPartyRepository rpRepository;
 
     @Autowired
-    private V1DataConverter converter;
+    private V1ContractMapper v1ContractMapper;
 
     @BeforeEach
     void clearRepositoryBeforeEachTest() {
@@ -224,7 +224,7 @@ public class V1RelyingPartyEditingTest {
             Set<RelyingPartyResource> expectedSearchResult =
                 walletRelyingParties.stream()
                              .flatMap(le -> EntityGenerator.instances(le).stream())
-                             .map(converter::toResource)
+                             .map(v1ContractMapper::toV1RelyingPartyResource)
                              .filter(rp -> rp.relyingPartyEntitlements()
                                              .stream()
                                              .map(RelyingPartyEntitlementResource::entitlement)

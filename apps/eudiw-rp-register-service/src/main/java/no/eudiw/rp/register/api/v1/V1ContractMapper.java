@@ -20,28 +20,30 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class V1DataConverter {
+public class V1ContractMapper {
 
     private final EntitlementRepository entitlementRepository;
 
-    public RelyingPartyResource toResource(RelyingPartyInstance relyingPartyInstance) {
+    public RelyingPartyResource toV1RelyingPartyResource(RelyingPartyInstance relyingPartyInstance) {
         return new RelyingPartyResource(
             relyingPartyInstance.getId(),
             relyingPartyInstance.getWalletRelyingPartyService().getWalletRelyingParty().getOrgno(),
             relyingPartyInstance.getWalletRelyingPartyService().getWalletRelyingParty().getLegalName(),
             relyingPartyInstance.getWalletRelyingPartyService().getServiceTradeName(),
             relyingPartyInstance.getWalletRelyingPartyService().getWalletRelyingParty().isPsb(),
-            relyingPartyInstance.getRelyingPartyEntitlements().stream().map(this::toResource).toList(),
-            relyingPartyInstance.getRelyingPartyEaas().stream().map(this::toResource).toList(),
-            relyingPartyInstance.getAccessCertificates().stream().map(this::toResource).toList(),
-            relyingPartyInstance.getIssuerCertificates().stream().map(this::toResource).toList(),
+            relyingPartyInstance.getRelyingPartyEntitlements().stream()
+                .map(this::toV1RelyingPartyEntitlementResource).toList(),
+            relyingPartyInstance.getRelyingPartyEaas().stream().map(this::toV1RelyingPartyEaaResource).toList(),
+            relyingPartyInstance.getAccessCertificates().stream().map(this::toV1CertificateResource).toList(),
+            relyingPartyInstance.getIssuerCertificates().stream().map(this::toV1CertificateResource).toList(),
             relyingPartyInstance.getCreatedMs(),
             relyingPartyInstance.getLastUpdatedMs(),
             relyingPartyInstance.isActive()
         );
     }
 
-    public RelyingPartyEntitlementResource toResource(RelyingPartyEntitlement entitlement) {
+    public RelyingPartyEntitlementResource toV1RelyingPartyEntitlementResource(
+        RelyingPartyEntitlement entitlement) {
         return new RelyingPartyEntitlementResource(
             entitlement.getEntitlement(),
             getDisplayNameForEntitlement(entitlement.getEntitlement()),
@@ -55,12 +57,12 @@ public class V1DataConverter {
             .orElse(entitlementUri);
     }
 
-    public RelyingPartyCertificateResource toResource(AccessCertificate entity) {
+    public RelyingPartyCertificateResource toV1CertificateResource(AccessCertificate entity) {
         return new RelyingPartyCertificateResource(
             entity.getCertificate(), null, entity.getId(), entity.getRevocationStatus());
     }
 
-    public RelyingPartyCertificateResource toResource(IssuerCertificate entity) {
+    public RelyingPartyCertificateResource toV1CertificateResource(IssuerCertificate entity) {
         return new RelyingPartyCertificateResource(
             entity.getCertificate(),
             entity.getEntitlement().getEntitlement(),
@@ -69,11 +71,11 @@ public class V1DataConverter {
         );
     }
 
-    public RelyingPartyEaaResource toResource(RelyingPartyEaa eaa) {
+    public RelyingPartyEaaResource toV1RelyingPartyEaaResource(RelyingPartyEaa eaa) {
         return new RelyingPartyEaaResource(eaa.getNamespace(), eaa.getIntent());
     }
 
-    public EntitlementResource toResource(Entitlement entitlement) {
+    public EntitlementResource toV1EntitlementResource(Entitlement entitlement) {
         return new EntitlementResource(
             entitlement.getId(),
             entitlement.getEntitlement(),
@@ -83,11 +85,12 @@ public class V1DataConverter {
         );
     }
 
-    public EntitlementsResource toEntitlementsResource(List<Entitlement> entitlements) {
-        return new EntitlementsResource(entitlements.stream().map(this::toResource).toList());
+    public EntitlementsResource toV1EntitlementsResource(List<Entitlement> entitlements) {
+        return new EntitlementsResource(entitlements.stream().map(this::toV1EntitlementResource).toList());
     }
 
-    public List<RelyingPartyEntitlement> toEntitlements(List<RelyingPartyEntitlementResource> resources) {
+    public List<RelyingPartyEntitlement> toDomainRelyingPartyEntitlements(
+        List<RelyingPartyEntitlementResource> resources) {
         if (resources == null) {
             return null;
         }
@@ -97,7 +100,7 @@ public class V1DataConverter {
             .toList();
     }
 
-    public List<RelyingPartyEaa> toEaas(List<RelyingPartyEaaResource> resources) {
+    public List<RelyingPartyEaa> toDomainRelyingPartyEaas(List<RelyingPartyEaaResource> resources) {
         if (resources == null) {
             return null;
         }

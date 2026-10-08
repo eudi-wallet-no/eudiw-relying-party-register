@@ -38,7 +38,7 @@ class V1ApiServiceTest {
             mock(RelyingPartyCertificateService.class),
             mock(EntitlementService.class),
             mock(CredentialIssuersService.class),
-            mock(V1DataConverter.class)
+            mock(V1ContractMapper.class)
         );
 
         service.searchRelyingParties(new SearchRelyingPartyResource("term").withSortKey(sortKey));
