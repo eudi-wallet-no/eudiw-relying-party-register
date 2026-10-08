@@ -96,24 +96,7 @@ public class CredentialIssuerMetadataRetriever {
             log.warn("Ignoring issuer {}: {}", uri, errors);
             return null;
         }
-        var validConfigurations = new LinkedHashMap<>(issuer.getCredentialConfiguration());
-        configurationErrors(issuer).forEach((id, messages) -> {
-            validConfigurations.remove(id);
-            log.warn("Ignoring credential configuration {} from issuer {}: {}", id, uri, messages);
-        });
-        issuer.setCredentialConfiguration(validConfigurations);
         return issuer;
-    }
-
-    private Map<String, List<String>> configurationErrors(CredentialIssuer issuer) {
-        Map<String, List<String>> errors = new LinkedHashMap<>();
-        issuer.getCredentialConfigurationErrors().forEach((id, error) -> errors.put(id, error.errors()));
-        issuer.getCredentialConfiguration().forEach((id, config) -> {
-            if (errors.containsKey(id)) return;
-            var messages = config == null ? List.of("Tom beviskonfigurasjon.") : validationErrors(config);
-            if (!messages.isEmpty()) errors.put(id, messages);
-        });
-        return errors;
     }
 
     // Read errors for a saved issuer using the same validation as the crawler.
@@ -134,18 +117,7 @@ public class CredentialIssuerMetadataRetriever {
         }
         var errors = validationErrors(issuer);
         if (!errors.isEmpty()) return List.of(new CredentialValidationError("Utstedarmetadata", errors));
-        return configurationErrors(issuer).entrySet().stream().map(entry -> {
-            if (issuer.getCredentialConfigurationErrors().containsKey(entry.getKey())) {
-                return issuer.getCredentialConfigurationErrors().get(entry.getKey());
-            }
-            var config = issuer.getCredentialConfiguration().get(entry.getKey());
-            String name = entry.getKey();
-            if (config != null && config.getCredentialMetadata() != null && config.getCredentialMetadata().getDisplay() != null) {
-                name = config.getCredentialMetadata().getDisplay().stream().filter(Objects::nonNull)
-                        .map(display -> display.getName()).filter(StringUtils::hasText).findFirst().orElse(name);
-            }
-            return new CredentialValidationError(name, entry.getValue());
-        }).toList();
+        return List.copyOf(issuer.getCredentialConfigurationErrors().values());
     }
 
     private CredentialIssuer readCredentialIssuerMetadata(URI uri) {
@@ -159,15 +131,21 @@ public class CredentialIssuerMetadataRetriever {
         Map<String, CredentialConfiguration> parsed = new LinkedHashMap<>();
         Map<String, CredentialValidationError> errors = new LinkedHashMap<>();
         configurations.properties().forEach(entry -> {
+            List<String> messages;
             try {
-                parsed.put(entry.getKey(), METADATA_MAPPER.treeToValue(entry.getValue(), CredentialConfiguration.class));
+                var config = METADATA_MAPPER.treeToValue(entry.getValue(), CredentialConfiguration.class);
+                messages = config == null ? List.of("Tom beviskonfigurasjon.") : validationErrors(config);
+                if (messages.isEmpty()) parsed.put(entry.getKey(), config);
             } catch (JacksonException e) {
-                parsed.put(entry.getKey(), null);
-                String name = entry.getValue().path("credential_metadata").path("display").path(0).path("name").asText(entry.getKey());
                 String field = e.getPath().isEmpty() ? "metadata" : e.getPath().stream()
                         .map(ref -> ref.getPropertyName() == null ? "[" + ref.getIndex() + "]" : "." + ref.getPropertyName())
                         .collect(Collectors.joining()).replaceFirst("^\\.", "");
-                errors.put(entry.getKey(), new CredentialValidationError(name, List.of(field + ": " + e.getOriginalMessage())));
+                messages = List.of(field + ": " + e.getOriginalMessage());
+            }
+            if (!messages.isEmpty()) {
+                String name = entry.getValue().path("credential_metadata").path("display").path(0).path("name").asText(entry.getKey());
+                errors.put(entry.getKey(), new CredentialValidationError(StringUtils.hasText(name) ? name : entry.getKey(), messages));
+                log.warn("Ignoring credential configuration {} from issuer {}: {}", entry.getKey(), uri, messages);
             }
         });
         issuer.setCredentialConfiguration(parsed);
