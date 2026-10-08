@@ -78,7 +78,7 @@ public class IssuerCertificateControllerTests {
 
         @Test
         @DisplayName("then the relying party's issuer ´certificates are retrieved and returned")
-        public void testEndpointCallsServiceWithCorrectArguments() throws Exception {
+        public void v1EndpointCallsServiceWithCorrectArguments() throws Exception {
             UUID id = UUID.randomUUID();
 
             mockMvc.perform(get("/v1/rp/%s/certs/issuer".formatted(id))
@@ -93,7 +93,7 @@ public class IssuerCertificateControllerTests {
 
         @Test
         @DisplayName("then a 400 error response resource is returned on invalid ID")
-        public void test404ErrorResponseReturnedOnInvalidRelyingPartyId() throws Exception {
+        public void v1ReturnsNotFoundForInvalidRelyingPartyId() throws Exception {
             mockMvc.perform(get("/v1/rp/invalid_id/certs/issuer")
                             .accept(MediaType.APPLICATION_JSON)
                             .header(X_API_KEY_HEADER, VALID_API_KEY))
@@ -111,7 +111,7 @@ public class IssuerCertificateControllerTests {
 
         @Test
         @DisplayName("then the endpoint returns certificate if both IDs exist")
-        public void testEndpointCallsServiceWithCorrectArguments() throws Exception {
+        public void v1EndpointCallsServiceWithCorrectArguments() throws Exception {
 
             UUID certificateId = UUID.randomUUID();
             UUID relyingPartyId = UUID.randomUUID();
@@ -127,7 +127,7 @@ public class IssuerCertificateControllerTests {
 
         @Test
         @DisplayName("then a 400 error response resource is returned on invalid ID(s)")
-        public void test400ErrorResponseReturnedOnInvalidIds() throws Exception {
+        public void v1RejectsInvalidIds() throws Exception {
             UUID validId = UUID.randomUUID();
             String invalidIdStr = "foo";
             mockMvc.perform(get("/v1/rp/%s/certs/issuer/%s".formatted(validId, invalidIdStr))
@@ -148,7 +148,7 @@ public class IssuerCertificateControllerTests {
     class RequestIssuerCertificateTests {
 
         @Test
-        void invalidCsrRetainsCertificateConversionErrorResponse() throws Exception {
+        void v1InvalidCsrRetainsCertificateConversionErrorResponse() throws Exception {
             UUID relyingPartyId = UUID.randomUUID();
 
             mockMvc.perform(post("/v1/rp/%s/certs/issuer".formatted(relyingPartyId))
@@ -167,7 +167,7 @@ public class IssuerCertificateControllerTests {
 
         @Test
         @DisplayName("then service called with correct arguments if ID and CSR valid")
-        public void testEndpointCallsServiceWithCorrectArguments() throws Exception {
+        public void v1EndpointCallsServiceWithCorrectArguments() throws Exception {
             UUID validId = UUID.randomUUID();
             IssuerCsrResource dummyCsrResource = new IssuerCsrResource(CertificatesGenerator.generatePKCS10Csr(),
                     "https://uri.etsi.org/19475/Entitlement/Non_Q_EAA_Provider");
@@ -187,7 +187,7 @@ public class IssuerCertificateControllerTests {
 
         @Test
         @DisplayName("then an invalid ID gives 400 and no interactions with service")
-        public void test400ErrorResponseReturnedOnInvalidID() throws Exception {
+        public void v1RejectsInvalidCertificateId() throws Exception {
             String invalidId = "foo";
             IssuerCsrResource dummyCsrResource = new IssuerCsrResource(CertificatesGenerator.generatePKCS10Csr(),
                     "https://uri.etsi.org/19475/Entitlement/Non_Q_EAA_Provider");
@@ -211,7 +211,7 @@ public class IssuerCertificateControllerTests {
 
         @Test
         @DisplayName("then an invalid CSR body gives 400 and no interactions with service")
-        public void test400ErrorResponseReturnedOnInvalidCSR() throws Exception {
+        public void v1RejectsInvalidCsr() throws Exception {
             UUID validId = UUID.randomUUID();
             IssuerCsrResource dummyCsrResource = new IssuerCsrResource(CertificatesGenerator.generatePKCS10Csr(),
                     "https://uri.etsi.org/19475/Entitlement/Non_Q_EAA_Provider");
@@ -241,7 +241,7 @@ public class IssuerCertificateControllerTests {
         @Test
         @DisplayName("then service is called and result is 204 with no body when given RpId has" +
                 " an issuer certificate with given certId which is not previously revoked")
-        public void test204whenRevokingIssuerCertificateSuccessfully() throws Exception {
+        public void v1RevokesIssuerCertificateSuccessfully() throws Exception {
             UUID relyingPartyId = UUID.randomUUID();
             RevocationRequest request = new RevocationRequest();
             request.setReason(0);
@@ -261,7 +261,7 @@ public class IssuerCertificateControllerTests {
         }
 
         @Test
-        void returnsNotFoundWhenIssuerCertificateDoesNotExist() throws Exception {
+        void v1ReturnsNotFoundWhenIssuerCertificateDoesNotExist() throws Exception {
             UUID relyingPartyId = UUID.randomUUID();
             UUID certificateId = UUID.randomUUID();
             doThrow(new NotFoundException("Certificate does not exist"))
@@ -274,7 +274,7 @@ public class IssuerCertificateControllerTests {
         }
 
         @Test
-        void returnsServerErrorWhenIssuerCertificateRevocationFails() throws Exception {
+        void v1ReturnsServerErrorWhenIssuerCertificateRevocationFails() throws Exception {
             UUID relyingPartyId = UUID.randomUUID();
             UUID certificateId = UUID.randomUUID();
             doThrow(new RegisterServiceException("Revocation failed"))

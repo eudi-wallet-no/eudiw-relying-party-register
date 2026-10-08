@@ -70,7 +70,7 @@ public class AccessCertificateControllerTests {
 
         @Test
         @DisplayName("then the endpoint uses the service and returns the expected resource")
-        public void testEndpointCallsServiceWithCorrectArguments() throws Exception {
+        public void v1EndpointCallsServiceWithCorrectArguments() throws Exception {
             UUID id = UUID.randomUUID();
 
             mockMvc.perform(get("/v1/rp/%s/certs/access".formatted(id))
@@ -85,7 +85,7 @@ public class AccessCertificateControllerTests {
 
         @Test
         @DisplayName("then a 400 error response resource is returned on invalid ID")
-        public void test404ErrorResponseReturnedOnInvalidRelyingPartyId() throws Exception {
+        public void v1ReturnsNotFoundForInvalidRelyingPartyId() throws Exception {
             mockMvc.perform(get("/v1/rp/invalid_id/certs/access")
                                 .accept(MediaType.APPLICATION_JSON)
                                 .header(X_API_KEY_HEADER, VALID_API_KEY))
@@ -103,7 +103,7 @@ public class AccessCertificateControllerTests {
 
         @Test
         @DisplayName("then the endpoint returns certificate if both IDs exist")
-        public void testEndpointCallsServiceWithCorrectArguments() throws Exception {
+        public void v1EndpointCallsServiceWithCorrectArguments() throws Exception {
 
             UUID certificateId = UUID.randomUUID();
             UUID relyingPartyId = UUID.randomUUID();
@@ -119,7 +119,7 @@ public class AccessCertificateControllerTests {
 
         @Test
         @DisplayName("then a 400 error response resource is returned on invalid ID(s)")
-        public void test400ErrorResponseReturnedOnInvalidIds() throws Exception {
+        public void v1RejectsInvalidIds() throws Exception {
             UUID validId = UUID.randomUUID();
             String invalidIdStr = "foo";
             mockMvc.perform(get("/v1/rp/%s/certs/access/%s".formatted(validId, invalidIdStr))
@@ -140,7 +140,7 @@ public class AccessCertificateControllerTests {
     class RequestAccessCertificateTests {
 
         @Test
-        void invalidCsrRetainsCertificateConversionErrorResponse() throws Exception {
+        void v1InvalidCsrRetainsCertificateConversionErrorResponse() throws Exception {
             UUID relyingPartyId = UUID.randomUUID();
 
             mockMvc.perform(post("/v1/rp/%s/certs/access".formatted(relyingPartyId))
@@ -157,7 +157,7 @@ public class AccessCertificateControllerTests {
 
         @Test
         @DisplayName("then service called with correct arguments if ID and CSR valid")
-        public void testEndpointCallsServiceWithCorrectArguments() throws Exception {
+        public void v1EndpointCallsServiceWithCorrectArguments() throws Exception {
             UUID validId = UUID.randomUUID();
             RelyingPartyCsrResource dummyCsrResource =
                 ResourceGenerator.generateRegisterRelyingPartyCsrResource();
@@ -176,7 +176,7 @@ public class AccessCertificateControllerTests {
 
         @Test
         @DisplayName("then an invalid ID gives 400 and no interactions with service")
-        public void test400ErrorResponseReturnedOnInvalidID() throws Exception {
+        public void v1RejectsInvalidCertificateId() throws Exception {
             String invalidId = "foo";
             RelyingPartyCsrResource dummyCsrResource =
                 ResourceGenerator.generateRegisterRelyingPartyCsrResource();
@@ -200,7 +200,7 @@ public class AccessCertificateControllerTests {
 
         @Test
         @DisplayName("then an invalid CSR body gives 400 and no interactions with service")
-        public void test400ErrorResponseReturnedOnInvalidCSR() throws Exception {
+        public void v1RejectsInvalidCsr() throws Exception {
             UUID validId = UUID.randomUUID();
             RelyingPartyCsrResource dummyCsrResource =
                 ResourceGenerator.generateRegisterRelyingPartyCsrResource();
@@ -229,7 +229,7 @@ public class AccessCertificateControllerTests {
 
         @Test
         @DisplayName("When revoking access certificate")
-        public void test204whenRevokingAccessCertificateSuccessfully() throws Exception {
+        public void v1RevokesAccessCertificateSuccessfully() throws Exception {
             UUID relyingPartyId = UUID.randomUUID();
             RevocationRequest request = new RevocationRequest();
             request.setReason(0);
@@ -249,7 +249,7 @@ public class AccessCertificateControllerTests {
         }
 
         @Test
-        void returnsNotFoundWhenAccessCertificateDoesNotExist() throws Exception {
+        void v1ReturnsNotFoundWhenAccessCertificateDoesNotExist() throws Exception {
             UUID relyingPartyId = UUID.randomUUID();
             UUID certificateId = UUID.randomUUID();
             doThrow(new NotFoundException("Certificate does not exist"))
@@ -262,7 +262,7 @@ public class AccessCertificateControllerTests {
         }
 
         @Test
-        void returnsServerErrorWhenAccessCertificateRevocationFails() throws Exception {
+        void v1ReturnsServerErrorWhenAccessCertificateRevocationFails() throws Exception {
             UUID relyingPartyId = UUID.randomUUID();
             UUID certificateId = UUID.randomUUID();
             doThrow(new RegisterServiceException("Revocation failed"))

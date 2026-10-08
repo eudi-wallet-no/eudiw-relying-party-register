@@ -33,7 +33,7 @@ class V1JsonContractTest {
 
     @Test
     @Transactional
-    void returnsRelyingPartyInTheExistingV1JsonFormat() throws Exception {
+    void v1ReturnsRelyingPartyInTheExistingJsonFormat() throws Exception {
         var request = new CreateRelyingPartyResource(
             "123456785",
             "Contract Service",
