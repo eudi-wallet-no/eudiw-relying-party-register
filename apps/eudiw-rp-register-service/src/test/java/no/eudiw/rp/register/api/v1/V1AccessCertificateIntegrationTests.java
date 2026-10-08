@@ -3,12 +3,12 @@ package no.eudiw.rp.register.api.v1;
 import no.eudiw.rp.register.api.resource.ErrorResponseResource;
 import no.eudiw.rp.register.api.v1.resource.certificates.RelyingPartyCertificateResource;
 import no.eudiw.rp.register.api.v1.resource.certificates.RelyingPartyCsrResource;
-import no.eudiw.rp.register.domain.LegalEntity;
+import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.certificates.AccessCertificate;
 import no.eudiw.rp.register.domain.certificates.X509CertificateConverter;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
 import no.eudiw.rp.register.repository.AccessCertificateRepository;
-import no.eudiw.rp.register.repository.LegalEntityRepository;
+import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.exception.CertificateConversionException;
 import no.eudiw.rp.register.exception.RegisterServiceException;
@@ -53,12 +53,12 @@ public class V1AccessCertificateIntegrationTests {
     private RelyingPartyInstanceRepository instanceRepository;
 
     @Autowired
-    private LegalEntityRepository legalEntityRepository;
+    private WalletRelyingPartyRepository walletRelyingPartyRepository;
 
     @BeforeEach
     public void clearRepositoryBeforeEachTest() {
         instanceRepository.deleteAll();
-        legalEntityRepository.deleteAll();
+        walletRelyingPartyRepository.deleteAll();
     }
 
     @Nested
@@ -68,22 +68,22 @@ public class V1AccessCertificateIntegrationTests {
         @Test
         @DisplayName("then only certificates for the requested RP are returned")
         public void testGetCertificatesForRelyingParty() {
-            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
-            legalEntity.getRelyingPartyInstances().getFirst().setAccessCertificates(List.of(EntityGenerator.generateCertificate()));
+            WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
+            EntityGenerator.instances(walletRelyingParty).getFirst().setAccessCertificates(List.of(EntityGenerator.generateCertificate()));
 
-            LegalEntity otherLegalEntity = EntityGenerator.generateLegalEntity();
-            otherLegalEntity.getRelyingPartyInstances().getFirst().setAccessCertificates(List.of(EntityGenerator.generateCertificate()));
+            WalletRelyingParty otherWalletRelyingParty = EntityGenerator.generateWalletRelyingParty();
+            EntityGenerator.instances(otherWalletRelyingParty).getFirst().setAccessCertificates(List.of(EntityGenerator.generateCertificate()));
 
-            legalEntityRepository.saveAllAndFlush(List.of(legalEntity, otherLegalEntity));
+            walletRelyingPartyRepository.saveAllAndFlush(List.of(walletRelyingParty, otherWalletRelyingParty));
 
             Set<X509Certificate> certsExpected =
-                legalEntity.getRelyingPartyInstances().getFirst().getAccessCertificates()
+                EntityGenerator.instances(walletRelyingParty).getFirst().getAccessCertificates()
                             .stream()
                             .map(AccessCertificate::getCertificate)
                             .collect(Collectors.toSet());
 
             Set<X509Certificate> certsActual =
-                certService.getCertificatesForRelyingParty(legalEntity.getRelyingPartyInstances().getFirst().getId())
+                certService.getCertificatesForRelyingParty(EntityGenerator.instances(walletRelyingParty).getFirst().getId())
                            .certificates()
                            .stream()
                            .map(RelyingPartyCertificateResource::certificate)
@@ -107,16 +107,16 @@ public class V1AccessCertificateIntegrationTests {
         @Test
         @DisplayName("then certificate is returned if its ID is registered for RP")
         public void testCertificateReturnedIfExistsAndBelongsToRelyingParty() {
-            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
-            legalEntity.getRelyingPartyInstances().getFirst().setAccessCertificates(List.of(EntityGenerator.generateCertificate()));
-            legalEntityRepository.saveAndFlush(legalEntity);
+            WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
+            EntityGenerator.instances(walletRelyingParty).getFirst().setAccessCertificates(List.of(EntityGenerator.generateCertificate()));
+            walletRelyingPartyRepository.saveAndFlush(walletRelyingParty);
 
             AccessCertificate certificate =
-                legalEntity.getRelyingPartyInstances().getFirst().getAccessCertificates().getFirst();
+                EntityGenerator.instances(walletRelyingParty).getFirst().getAccessCertificates().getFirst();
 
             // would throw on unknown ID(s)
             X509Certificate certificateActual =
-                certService.getCertificate(certificate.getId(), legalEntity.getRelyingPartyInstances().getFirst().getId())
+                certService.getCertificate(certificate.getId(), EntityGenerator.instances(walletRelyingParty).getFirst().getId())
                            .certificate();
 
             X509Certificate certificateExpected = certificate.getCertificate();
@@ -126,12 +126,12 @@ public class V1AccessCertificateIntegrationTests {
         @Test
         @DisplayName("then the service throws if RP ID is known but certificate ID is unknown")
         public void testErrorThrownIfRelyingPartyKnownButCertificateUnknown() {
-            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
-            legalEntity.getRelyingPartyInstances().getFirst().setAccessCertificates(List.of(EntityGenerator.generateCertificate()));
-            legalEntityRepository.saveAndFlush(legalEntity);
+            WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
+            EntityGenerator.instances(walletRelyingParty).getFirst().setAccessCertificates(List.of(EntityGenerator.generateCertificate()));
+            walletRelyingPartyRepository.saveAndFlush(walletRelyingParty);
 
             UUID unknownCertificateId = UUID.randomUUID();
-            UUID knownRelyingPartyId = legalEntity.getRelyingPartyInstances().getFirst().getId();
+            UUID knownRelyingPartyId = EntityGenerator.instances(walletRelyingParty).getFirst().getId();
 
             assertThrows(
                 NotFoundException.class,
@@ -142,11 +142,11 @@ public class V1AccessCertificateIntegrationTests {
         @Test
         @DisplayName("then the service throws if certificate ID is known but RP ID is unknown")
         public void testErrorThrownIfCertificateKnownButRelyingPartyUnknown() {
-            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
-            legalEntity.getRelyingPartyInstances().getFirst().setAccessCertificates(List.of(EntityGenerator.generateCertificate()));
-            legalEntityRepository.saveAndFlush(legalEntity);
+            WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
+            EntityGenerator.instances(walletRelyingParty).getFirst().setAccessCertificates(List.of(EntityGenerator.generateCertificate()));
+            walletRelyingPartyRepository.saveAndFlush(walletRelyingParty);
 
-            UUID knownCertificateId = legalEntity.getRelyingPartyInstances().getFirst().getAccessCertificates().getFirst().getId();
+            UUID knownCertificateId = EntityGenerator.instances(walletRelyingParty).getFirst().getAccessCertificates().getFirst().getId();
             UUID unknownRelyingPartyId = UUID.randomUUID();
             assertThrows(
                 NotFoundException.class,
@@ -157,16 +157,16 @@ public class V1AccessCertificateIntegrationTests {
         @Test
         @DisplayName("then service throws if certificate and RP known but certificate held by different RP")
         public void testErrorThrownIfCertificateExistsForDifferentRelyingParty() {
-            LegalEntity legalEntity1 = EntityGenerator.generateLegalEntity();
-            legalEntity1.getRelyingPartyInstances().getFirst().setAccessCertificates(List.of(EntityGenerator.generateCertificate()));
-            legalEntityRepository.saveAndFlush(legalEntity1);
+            WalletRelyingParty walletRelyingParty1 = EntityGenerator.generateWalletRelyingParty();
+            EntityGenerator.instances(walletRelyingParty1).getFirst().setAccessCertificates(List.of(EntityGenerator.generateCertificate()));
+            walletRelyingPartyRepository.saveAndFlush(walletRelyingParty1);
 
-            LegalEntity legalEntity2 = EntityGenerator.generateLegalEntity();
-            legalEntity2.getRelyingPartyInstances().getFirst().setAccessCertificates(List.of(EntityGenerator.generateCertificate()));
-            legalEntityRepository.saveAndFlush(legalEntity2);
+            WalletRelyingParty walletRelyingParty2 = EntityGenerator.generateWalletRelyingParty();
+            EntityGenerator.instances(walletRelyingParty2).getFirst().setAccessCertificates(List.of(EntityGenerator.generateCertificate()));
+            walletRelyingPartyRepository.saveAndFlush(walletRelyingParty2);
 
-            UUID knownCertificateId = legalEntity1.getRelyingPartyInstances().getFirst().getAccessCertificates().getFirst().getId();
-            UUID knownRelyingPartyId = legalEntity2.getRelyingPartyInstances().getFirst().getId();
+            UUID knownCertificateId = EntityGenerator.instances(walletRelyingParty1).getFirst().getAccessCertificates().getFirst().getId();
+            UUID knownRelyingPartyId = EntityGenerator.instances(walletRelyingParty2).getFirst().getId();
             assertThrows(
                 NotFoundException.class,
                 () -> certService.getCertificate(knownCertificateId, knownRelyingPartyId)
@@ -216,10 +216,10 @@ public class V1AccessCertificateIntegrationTests {
         public void testCorrectDeserializationOfValidCertificateResponse() throws Exception {
             X509Certificate certificateExpected = enqueueMockCertificateResponse();
 
-            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
-            legalEntity.getRelyingPartyInstances().getFirst().setAccessCertificates(List.of(EntityGenerator.generateCertificate()));
+            WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
+            EntityGenerator.instances(walletRelyingParty).getFirst().setAccessCertificates(List.of(EntityGenerator.generateCertificate()));
 
-            UUID registreeId = legalEntityRepository.save(legalEntity).getRelyingPartyInstances().getFirst().getId();
+            UUID registreeId = EntityGenerator.instances(walletRelyingPartyRepository.save(walletRelyingParty)).getFirst().getId();
 
             RelyingPartyCsrResource dummyCsrResource =
                 ResourceGenerator.generateRegisterRelyingPartyCsrResource();
@@ -241,19 +241,19 @@ public class V1AccessCertificateIntegrationTests {
         public void testCertificateFromCAProperlyStoredInRegisterServiceDatabase() {
             RelyingPartyCsrResource csrResource = ResourceGenerator.generateRegisterRelyingPartyCsrResource();
 
-            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
-            legalEntityRepository.saveAndFlush(legalEntity);
+            WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
+            walletRelyingPartyRepository.saveAndFlush(walletRelyingParty);
 
             X509Certificate certificateExpected = enqueueMockCertificateResponse();
 
             // assert that immediately returned certificate is correct.
             X509Certificate certificateActual1 =
-                certService.requestAccessCertificateForRelyingParty(legalEntity.getRelyingPartyInstances().getFirst().getId(), csrResource)
+                certService.requestAccessCertificateForRelyingParty(EntityGenerator.instances(walletRelyingParty).getFirst().getId(), csrResource)
                            .certificate();
             assertEquals(certificateExpected, certificateActual1);
 
             RelyingPartyInstance relyingPartyOut =
-                instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null);
+                instanceRepository.findById(EntityGenerator.instances(walletRelyingParty).getFirst().getId()).orElse(null);
 
             assertNotNull(relyingPartyOut);
             assertEquals(1, relyingPartyOut.getAccessCertificates().size());
@@ -292,8 +292,8 @@ public class V1AccessCertificateIntegrationTests {
                     .setBody(errorResponseJson);
             mockCaServer.enqueue(mockErrorResponse);
 
-            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
-            UUID knownRelyingPartyId = legalEntityRepository.saveAndFlush(legalEntity).getRelyingPartyInstances().getFirst().getId();
+            WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
+            UUID knownRelyingPartyId = EntityGenerator.instances(walletRelyingPartyRepository.saveAndFlush(walletRelyingParty)).getFirst().getId();
 
             RelyingPartyCsrResource dummyCsrResource =
                 ResourceGenerator.generateRegisterRelyingPartyCsrResource();
@@ -317,9 +317,9 @@ public class V1AccessCertificateIntegrationTests {
                     .setHeader(HttpHeaders.CONTENT_TYPE, "application/x-pem-file")
                     .setBody(invalidCertificatePemStr);
             mockCaServer.enqueue(mockInvalidSuccessResponse);
-            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
+            WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
 
-            UUID knownRelyingPartyId = legalEntityRepository.saveAndFlush(legalEntity).getRelyingPartyInstances().getFirst().getId();
+            UUID knownRelyingPartyId = EntityGenerator.instances(walletRelyingPartyRepository.saveAndFlush(walletRelyingParty)).getFirst().getId();
 
             RelyingPartyCsrResource dummyCsrResource =
                 ResourceGenerator.generateRegisterRelyingPartyCsrResource();
@@ -357,9 +357,9 @@ public class V1AccessCertificateIntegrationTests {
         @Test
         @DisplayName("then returned cert resource has ID immediately, and this matches persisted ID")
         public void testNewCertResourceHasIdImmediatelyAndMatchesPersistedCert() {
-            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
+            WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
 
-            legalEntityRepository.saveAndFlush(legalEntity);
+            walletRelyingPartyRepository.saveAndFlush(walletRelyingParty);
 
             RelyingPartyCsrResource csrResource = ResourceGenerator.generateRegisterRelyingPartyCsrResource();
 
@@ -367,7 +367,7 @@ public class V1AccessCertificateIntegrationTests {
 
             RelyingPartyCertificateResource immediatelyReturnedCertResource =
                 certService.requestAccessCertificateForRelyingParty(
-                    legalEntity.getRelyingPartyInstances().getFirst().getId(), csrResource);
+                    EntityGenerator.instances(walletRelyingParty).getFirst().getId(), csrResource);
 
             assertNotNull(immediatelyReturnedCertResource.id());
             assertTrue(certRepository.existsById(immediatelyReturnedCertResource.id()));
@@ -376,7 +376,7 @@ public class V1AccessCertificateIntegrationTests {
             // points to the correct certificate.
             RelyingPartyCertificateResource expectedCertResource =
                 certService.getCertificate(immediatelyReturnedCertResource.id(),
-                                           legalEntity.getRelyingPartyInstances().getFirst().getId());
+                                           EntityGenerator.instances(walletRelyingParty).getFirst().getId());
             assertEquals(expectedCertResource, immediatelyReturnedCertResource);
         }
 
@@ -402,21 +402,21 @@ public class V1AccessCertificateIntegrationTests {
         public void testAccessCertificateIsDefaultNotRevoked() throws InterruptedException {
             RelyingPartyCsrResource csrResource = ResourceGenerator.generateRegisterRelyingPartyCsrResource();
 
-            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
-            legalEntityRepository.saveAndFlush(legalEntity);
+            WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
+            walletRelyingPartyRepository.saveAndFlush(walletRelyingParty);
 
             X509Certificate certificateExpected = enqueueMockCertificateResponse();
 
             // assert that immediately returned certificate is correct.
             X509Certificate certificateActual1 =
-                    certService.requestAccessCertificateForRelyingParty(legalEntity.getRelyingPartyInstances().getFirst().getId(), csrResource)
+                    certService.requestAccessCertificateForRelyingParty(EntityGenerator.instances(walletRelyingParty).getFirst().getId(), csrResource)
                             .certificate();
             assertEquals(certificateExpected, certificateActual1);
 
             RecordedRequest recordedRequest = mockCaServer.takeRequest();
 
             RelyingPartyInstance relyingPartyOut =
-                    instanceRepository.findById(legalEntityRepository.findById(legalEntity.getId()).orElseThrow().getRelyingPartyInstances().getFirst().getId()).orElse(null);
+                    instanceRepository.findById(EntityGenerator.instances(walletRelyingPartyRepository.findById(walletRelyingParty.getId()).orElseThrow()).getFirst().getId()).orElse(null);
             assertNotNull(relyingPartyOut);
             assertEquals("POST", recordedRequest.getMethod());
             assertEquals("/v1/certs/junitaccess1", recordedRequest.getPath());
@@ -430,19 +430,19 @@ public class V1AccessCertificateIntegrationTests {
         public void testAccessCertificateIsRevokeProperly() throws InterruptedException {
             RelyingPartyCsrResource csrResource = ResourceGenerator.generateRegisterRelyingPartyCsrResource();
 
-            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
-            legalEntityRepository.saveAndFlush(legalEntity);
+            WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
+            walletRelyingPartyRepository.saveAndFlush(walletRelyingParty);
 
             X509Certificate certificateExpected = enqueueMockCertificateResponse();
 
             X509Certificate certificateActual1 =
-                    certService.requestAccessCertificateForRelyingParty(legalEntity.getRelyingPartyInstances().getFirst().getId(), csrResource)
+                    certService.requestAccessCertificateForRelyingParty(EntityGenerator.instances(walletRelyingParty).getFirst().getId(), csrResource)
                             .certificate();
             assertEquals(certificateExpected, certificateActual1);
 
 
             RelyingPartyInstance relyingPartyOut =
-                    instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null);
+                    instanceRepository.findById(EntityGenerator.instances(walletRelyingParty).getFirst().getId()).orElse(null);
 
             enqueueMockRevocationCall();
 

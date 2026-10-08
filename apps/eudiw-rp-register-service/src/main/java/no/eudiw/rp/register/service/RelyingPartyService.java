@@ -1,12 +1,14 @@
 package no.eudiw.rp.register.service;
 
 import lombok.RequiredArgsConstructor;
-import no.eudiw.rp.register.domain.LegalEntity;
+import no.eudiw.rp.register.domain.WalletRelyingParty;
+import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEaa;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
 import no.eudiw.rp.register.repository.EntitlementRepository;
 import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
+import no.eudiw.rp.register.repository.WalletRelyingPartyServiceRepository;
 import no.eudiw.rp.register.exception.BadRequestException;
 import no.eudiw.rp.register.exception.NotFoundException;
 import org.springframework.data.domain.Page;
@@ -16,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -24,7 +27,8 @@ public class RelyingPartyService {
 
     private final EntitlementRepository entitlementRepository;
     private final RelyingPartyInstanceRepository relyingPartyInstanceRepository;
-    private final LegalEntityService legalEntityService;
+    private final WalletRelyingPartyLookupService walletRelyingPartyLookupService;
+    private final WalletRelyingPartyServiceRepository walletRelyingPartyServiceRepository;
 
     @Transactional
     public RelyingPartyInstance createRelyingParty(
@@ -38,14 +42,17 @@ public class RelyingPartyService {
         }
         entitlementCheck(entitlements);
 
-        LegalEntity legalEntity = legalEntityService.getLegalEntityForOrgno(orgNr);
-        if (!legalEntity.isActive()) {
+        WalletRelyingParty walletRelyingParty = walletRelyingPartyLookupService.getWalletRelyingPartyForOrgno(orgNr);
+        if (!walletRelyingParty.isActive()) {
             throw new BadRequestException("Legal entity is not active");
         }
 
         RelyingPartyInstance relyingPartyInstance =
-            new RelyingPartyInstance(tradeName, entitlements, eaas, new ArrayList<>());
-        relyingPartyInstance.setLegalEntity(legalEntity);
+            new RelyingPartyInstance(entitlements, eaas, new ArrayList<>());
+        WalletRelyingPartyService service =
+            new WalletRelyingPartyService(tradeName, walletRelyingParty, List.of(relyingPartyInstance));
+        walletRelyingParty.getServices().add(service);
+        walletRelyingPartyServiceRepository.save(service);
 
         return relyingPartyInstanceRepository.saveAndFlush(relyingPartyInstance);
     }
@@ -94,7 +101,11 @@ public class RelyingPartyService {
         RelyingPartyInstance relyingPartyInstance = relyingPartyInstanceRepository.findById(id)
             .orElseThrow(() -> new BadRequestException("Relying party instance not found"));
 
-        relyingPartyInstance.setTradeName(tradeName);
+        WalletRelyingPartyService service = relyingPartyInstance.getWalletRelyingPartyService();
+        if (!Objects.equals(service.getServiceTradeName(), tradeName)) {
+            service.setServiceTradeName(tradeName);
+            relyingPartyInstance.markUpdated();
+        }
         relyingPartyInstance.setActive(active);
 
         relyingPartyInstance.setRelyingPartyEntitlements(entitlements);
@@ -107,8 +118,9 @@ public class RelyingPartyService {
     public void deleteRelyingParty(UUID id) {
         RelyingPartyInstance relyingPartyInstance = relyingPartyInstanceRepository.findById(id)
             .orElseThrow(() -> new NotFoundException("Relying party not found"));
-        relyingPartyInstance.getLegalEntity().getRelyingPartyInstances().remove(relyingPartyInstance);
-        relyingPartyInstanceRepository.delete(relyingPartyInstance);
+        WalletRelyingPartyService service = relyingPartyInstance.getWalletRelyingPartyService();
+        service.getWalletRelyingParty().getServices().remove(service);
+        walletRelyingPartyServiceRepository.delete(service);
     }
 
     private void entitlementCheck(List<RelyingPartyEntitlement> entitlements) {

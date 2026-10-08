@@ -1,6 +1,7 @@
 package no.eudiw.rp.register.testdata;
 
-import no.eudiw.rp.register.domain.LegalEntity;
+import no.eudiw.rp.register.domain.WalletRelyingParty;
+import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 import no.eudiw.rp.register.domain.certificates.AccessCertificate;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEaa;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
@@ -13,25 +14,26 @@ import java.util.Map;
 
 public class EntityGenerator extends TestDataGenerator {
 
-    public static List<LegalEntity> generateLegalEntities(int numLegalEntities) {
-        Map<String, LegalEntity> distinctLegalEntities = new HashMap<>();
-        while (distinctLegalEntities.size() < numLegalEntities) {
-            LegalEntity le = EntityGenerator.generateLegalEntity();
-            distinctLegalEntities.put(le.getOrgno(), le);
+    public static List<WalletRelyingParty> generateWalletRelyingParties(int numWalletRelyingParties) {
+        Map<String, WalletRelyingParty> distinctWalletRelyingParties = new HashMap<>();
+        while (distinctWalletRelyingParties.size() < numWalletRelyingParties) {
+            WalletRelyingParty le = EntityGenerator.generateWalletRelyingParty();
+            distinctWalletRelyingParties.put(le.getOrgno(), le);
         }
-        return new ArrayList<>(distinctLegalEntities.values());
+        return new ArrayList<>(distinctWalletRelyingParties.values());
     }
 
-    public static LegalEntity generateLegalEntity() {
-        return generateLegalEntity(rng.nextInt(1, 6));
+    public static WalletRelyingParty generateWalletRelyingParty() {
+        return generateWalletRelyingParty(rng.nextInt(1, 6));
     }
 
-    public static LegalEntity generateLegalEntity(int numInstances) {
-        return new LegalEntity(
+    public static WalletRelyingParty generateWalletRelyingParty(int numInstances) {
+        return new WalletRelyingParty(
             generateName(),
             generateValidOrgno(),
             true,
-            generateListBy(numInstances, EntityGenerator::generateRelyingPartyWithoutLegalEntity));
+            generateListBy(numInstances, () ->
+                generateRelyingPartyWithoutWalletRelyingParty().getWalletRelyingPartyService()));
     }
 
     public static List<RelyingPartyEntitlement> sampleRelyingPartyEntitlements() {
@@ -45,8 +47,8 @@ public class EntityGenerator extends TestDataGenerator {
                    .toList();
     }
 
-    public static RelyingPartyInstance generateRelyingPartyWithoutLegalEntity() {
-        return new RelyingPartyInstance(
+    public static RelyingPartyInstance generateRelyingPartyWithoutWalletRelyingParty() {
+        return generateRelyingPartyInstance(
             generateName(),
             sampleRelyingPartyEntitlements(),
             generateListBy(EntityGenerator::generateEaa),
@@ -57,10 +59,28 @@ public class EntityGenerator extends TestDataGenerator {
     }
 
     public static RelyingPartyInstance generateRelyingParty() {
-        RelyingPartyInstance relyingPartyInstance = generateRelyingPartyWithoutLegalEntity();
-        LegalEntity legalEntityWithZeroInstances = generateLegalEntity(0);
-        relyingPartyInstance.setLegalEntity(legalEntityWithZeroInstances);
+        RelyingPartyInstance relyingPartyInstance = generateRelyingPartyWithoutWalletRelyingParty();
+        WalletRelyingParty walletRelyingPartyWithZeroInstances = generateWalletRelyingParty(0);
+        WalletRelyingPartyService service = relyingPartyInstance.getWalletRelyingPartyService();
+        walletRelyingPartyWithZeroInstances.setServices(List.of(service));
         return relyingPartyInstance;
+    }
+
+    public static RelyingPartyInstance generateRelyingPartyInstance(
+        String tradeName,
+        List<RelyingPartyEntitlement> entitlements,
+        List<RelyingPartyEaa> eaas,
+        List<AccessCertificate> certificates
+    ) {
+        RelyingPartyInstance instance = new RelyingPartyInstance(entitlements, eaas, certificates);
+        new WalletRelyingPartyService(tradeName, null, List.of(instance));
+        return instance;
+    }
+
+    public static List<RelyingPartyInstance> instances(WalletRelyingParty walletRelyingParty) {
+        return walletRelyingParty.getServices().stream()
+            .flatMap(service -> service.getRelyingPartyInstances().stream())
+            .toList();
     }
 
     public static RelyingPartyEaa generateEaa() {

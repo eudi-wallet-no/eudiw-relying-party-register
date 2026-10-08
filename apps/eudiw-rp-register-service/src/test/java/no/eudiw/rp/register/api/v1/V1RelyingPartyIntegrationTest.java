@@ -2,10 +2,11 @@ package no.eudiw.rp.register.api.v1;
 
 import jakarta.persistence.EntityManager;
 import no.eudiw.rp.register.api.v1.resource.relyingparty.*;
-import no.eudiw.rp.register.domain.LegalEntity;
+import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
-import no.eudiw.rp.register.repository.LegalEntityRepository;
+import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
+import no.eudiw.rp.register.repository.WalletRelyingPartyServiceRepository;
 import no.eudiw.rp.register.exception.NotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,7 +33,10 @@ public class V1RelyingPartyIntegrationTest {
     private RelyingPartyInstanceRepository relyingPartyInstanceRepository;
 
     @Autowired
-    private LegalEntityRepository legalEntityRepository;
+    private WalletRelyingPartyRepository walletRelyingPartyRepository;
+
+    @Autowired
+    private WalletRelyingPartyServiceRepository walletRelyingPartyServiceRepository;
 
     @Autowired
     private EntityManager entityManager;
@@ -54,8 +58,11 @@ public class V1RelyingPartyIntegrationTest {
         RelyingPartyInstance instance = relyingPartyInstanceRepository.findById(result.id()).get();
 
         assertNotNull(instance);
-        assertNotEquals(result.id(), instance.getLegalEntity().getId());
-        assertEquals(result.publicSector(), instance.getLegalEntity().isPublicSector());
+        assertNotEquals(result.id(), instance.getWalletRelyingPartyService().getWalletRelyingParty().getId());
+        assertEquals(result.publicSector(), instance.getWalletRelyingPartyService().getWalletRelyingParty().isPsb());
+        assertNotEquals(result.id(), instance.getWalletRelyingPartyService().getId());
+        assertEquals(List.of(instance), instance.getWalletRelyingPartyService().getRelyingPartyInstances());
+        assertTrue(walletRelyingPartyServiceRepository.existsById(instance.getWalletRelyingPartyService().getId()));
     }
 
     @Test
@@ -85,13 +92,15 @@ public class V1RelyingPartyIntegrationTest {
 
         RelyingPartyResource result = relyingPartyService.createRelyingParty(createRelyingPartyResource);
         RelyingPartyInstance instance = relyingPartyInstanceRepository.findById(result.id()).orElseThrow();
-        LegalEntity legalEntity = instance.getLegalEntity();
+        WalletRelyingParty walletRelyingParty = instance.getWalletRelyingPartyService().getWalletRelyingParty();
+        var serviceId = instance.getWalletRelyingPartyService().getId();
 
         relyingPartyService.deleteRelyingParty(result.id());
         entityManager.clear();
 
         assertTrue(relyingPartyInstanceRepository.findById(result.id()).isEmpty());
-        assertTrue(legalEntityRepository.findById(legalEntity.getId()).isPresent());
+        assertFalse(walletRelyingPartyServiceRepository.existsById(serviceId));
+        assertTrue(walletRelyingPartyRepository.findById(walletRelyingParty.getId()).isPresent());
         assertThrows(
             NotFoundException.class,
             () -> relyingPartyService.deleteRelyingParty(result.id())
@@ -156,6 +165,38 @@ public class V1RelyingPartyIntegrationTest {
 
         RelyingPartyResource editResult = relyingPartyService.updateRelyingParty(createResult.id(), editResource);
         assertEquals(editResult.tradeName(), editResource.tradeName());
+    }
+
+    @Test
+    void nameOnlyUpdatePersistsInstanceTimestampAndPreservesSiblingService() {
+        String orgno = generateValidOrgno();
+        RelyingPartyResource first = relyingPartyService.createRelyingParty(
+            new CreateRelyingPartyResource(orgno, "First service", List.of(), List.of()));
+        RelyingPartyResource sibling = relyingPartyService.createRelyingParty(
+            new CreateRelyingPartyResource(orgno, "Sibling service", List.of(), List.of()));
+        var instance = relyingPartyInstanceRepository.findById(first.id()).orElseThrow();
+        var serviceId = instance.getWalletRelyingPartyService().getId();
+        var partyId = instance.getWalletRelyingPartyService().getWalletRelyingParty().getId();
+
+        RelyingPartyResource updated = relyingPartyService.updateRelyingParty(first.id(),
+            new EditRelyingPartyResource("Renamed service", List.of(), List.of(), true));
+        entityManager.clear();
+        RelyingPartyResource reloaded = relyingPartyService.findRelyingParty(first.id());
+
+        assertEquals(updated, reloaded);
+        assertEquals(first.createdMs(), reloaded.createdMs());
+        assertTrue(reloaded.lastUpdatedMs() > first.lastUpdatedMs());
+        assertEquals("Renamed service", reloaded.tradeName());
+        assertEquals(sibling, relyingPartyService.findRelyingParty(sibling.id()));
+        assertEquals(serviceId, relyingPartyInstanceRepository.findById(first.id()).orElseThrow()
+            .getWalletRelyingPartyService().getId());
+
+        relyingPartyService.deleteRelyingParty(first.id());
+        entityManager.clear();
+        assertFalse(walletRelyingPartyServiceRepository.existsById(serviceId));
+        assertTrue(walletRelyingPartyRepository.existsById(partyId));
+        assertEquals(sibling, relyingPartyService.findRelyingParty(sibling.id()));
+        relyingPartyService.deleteRelyingParty(sibling.id());
     }
 
 }

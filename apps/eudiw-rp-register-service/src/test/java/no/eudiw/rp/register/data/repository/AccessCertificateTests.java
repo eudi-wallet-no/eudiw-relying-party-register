@@ -1,9 +1,9 @@
 package no.eudiw.rp.register.data.repository;
 
-import no.eudiw.rp.register.domain.LegalEntity;
+import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.certificates.AccessCertificate;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
-import no.eudiw.rp.register.repository.LegalEntityRepository;
+import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.testdata.EntityGenerator;
 import org.junit.jupiter.api.AfterEach;
@@ -29,7 +29,7 @@ public class AccessCertificateTests {
     private RelyingPartyInstanceRepository instanceRepository;
 
     @Autowired
-    private LegalEntityRepository rpRepository;
+    private WalletRelyingPartyRepository rpRepository;
 
     @AfterEach
     void clearRepositoryAfterTests() {
@@ -46,11 +46,11 @@ public class AccessCertificateTests {
             @Test
             @DisplayName("then creation of RP with zero certificates is successful")
             public void testNoCertificates() {
-                LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
-                assertTrue(legalEntity.getRelyingPartyInstances().getFirst().getAccessCertificates().isEmpty());
-                rpRepository.saveAndFlush(legalEntity);
+                WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
+                assertTrue(EntityGenerator.instances(walletRelyingParty).getFirst().getAccessCertificates().isEmpty());
+                rpRepository.saveAndFlush(walletRelyingParty);
 
-                RelyingPartyInstance rpOut = instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null);
+                RelyingPartyInstance rpOut = instanceRepository.findById(EntityGenerator.instances(walletRelyingParty).getFirst().getId()).orElse(null);
 
                 assertNotNull(rpOut);
                 assertAll(
@@ -62,13 +62,13 @@ public class AccessCertificateTests {
             @Test
             @DisplayName("then creation of RP with one certificate is successful")
             public void testOneCertificate() {
-                LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
+                WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
                 AccessCertificate certIn = EntityGenerator.generateCertificate();
-                legalEntity.getRelyingPartyInstances().getFirst().setAccessCertificates(List.of(certIn));
-                assertEquals(1,  legalEntity.getRelyingPartyInstances().getFirst().getAccessCertificates().size());
-                rpRepository.saveAndFlush(legalEntity);
+                EntityGenerator.instances(walletRelyingParty).getFirst().setAccessCertificates(List.of(certIn));
+                assertEquals(1,  EntityGenerator.instances(walletRelyingParty).getFirst().getAccessCertificates().size());
+                rpRepository.saveAndFlush(walletRelyingParty);
 
-                RelyingPartyInstance rpOut = instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null);
+                RelyingPartyInstance rpOut = instanceRepository.findById(EntityGenerator.instances(walletRelyingParty).getFirst().getId()).orElse(null);
                 assertNotNull(rpOut);
 
                 AccessCertificate certOut =
@@ -86,18 +86,18 @@ public class AccessCertificateTests {
             @Test
             @DisplayName("then creation of RP with multiple certificates is successful")
             public void testMultipleCertificates() {
-                LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
-                RelyingPartyInstance relyingPartyInstance = new RelyingPartyInstance(
+                WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
+                RelyingPartyInstance relyingPartyInstance = EntityGenerator.generateRelyingPartyInstance(
                     "name",
                     List.of(),
                     List.of(),
                     List.of(EntityGenerator.generateCertificate(), EntityGenerator.generateCertificate(), EntityGenerator.generateCertificate())
                 );
-                legalEntity.setRelyingPartyInstances(List.of(relyingPartyInstance));
+                walletRelyingParty.setServices(List.of(relyingPartyInstance.getWalletRelyingPartyService()));
                 assertTrue(relyingPartyInstance.getAccessCertificates().size() > 1);
-                rpRepository.saveAndFlush(legalEntity);
+                rpRepository.saveAndFlush(walletRelyingParty);
 
-                RelyingPartyInstance rpOut = instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null);
+                RelyingPartyInstance rpOut = instanceRepository.findById(EntityGenerator.instances(walletRelyingParty).getFirst().getId()).orElse(null);
                 assertNotNull(rpOut);
 
                 // NOTE: use Set in order to check equality, since the
@@ -118,17 +118,17 @@ public class AccessCertificateTests {
             @Test
             @DisplayName("then auxiliary fields are correctly extracted from the certificate")
             public void testAuxiliaryFieldsProperlyStoredInEntity() {
-                LegalEntity legalEntity = new LegalEntity("name", "orgno", true, new ArrayList<>());
-                RelyingPartyInstance relyingPartyInstance = new RelyingPartyInstance(
+                WalletRelyingParty walletRelyingParty = new WalletRelyingParty("name", "orgno", true, new ArrayList<>());
+                RelyingPartyInstance relyingPartyInstance = EntityGenerator.generateRelyingPartyInstance(
                     "name",
                     List.of(),
                     List.of(),
                     List.of(EntityGenerator.generateCertificate())
                 );
-                legalEntity.setRelyingPartyInstances(List.of(relyingPartyInstance));
-                rpRepository.saveAndFlush(legalEntity);
+                walletRelyingParty.setServices(List.of(relyingPartyInstance.getWalletRelyingPartyService()));
+                rpRepository.saveAndFlush(walletRelyingParty);
 
-                RelyingPartyInstance rpOut = instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null);
+                RelyingPartyInstance rpOut = instanceRepository.findById(EntityGenerator.instances(walletRelyingParty).getFirst().getId()).orElse(null);
                 assertNotNull(rpOut);
 
                 AccessCertificate certEntity =
@@ -149,18 +149,18 @@ public class AccessCertificateTests {
     @Test
     @DisplayName("RP with multiple certificates created and revocation is successfull")
     public void testMultipleCertificatesWithRevocation() {
-        LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
-        RelyingPartyInstance relyingPartyInstance = new RelyingPartyInstance(
+        WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
+        RelyingPartyInstance relyingPartyInstance = EntityGenerator.generateRelyingPartyInstance(
                 "name",
                 List.of(),
                 List.of(),
                 List.of(EntityGenerator.generateCertificate(), EntityGenerator.generateCertificate(), EntityGenerator.generateCertificate())
         );
-        legalEntity.setRelyingPartyInstances(List.of(relyingPartyInstance));
+        walletRelyingParty.setServices(List.of(relyingPartyInstance.getWalletRelyingPartyService()));
         assertTrue(relyingPartyInstance.getAccessCertificates().size() > 1);
-        rpRepository.saveAndFlush(legalEntity);
+        rpRepository.saveAndFlush(walletRelyingParty);
 
-        RelyingPartyInstance rpOut = instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null);
+        RelyingPartyInstance rpOut = instanceRepository.findById(EntityGenerator.instances(walletRelyingParty).getFirst().getId()).orElse(null);
         assertNotNull(rpOut);
 
         // NOTE: use Set in order to check equality, since the
@@ -175,7 +175,7 @@ public class AccessCertificateTests {
 
         rpOut.getAccessCertificates().getFirst().revoke(0);
         instanceRepository.saveAndFlush(rpOut);
-        assertEquals(0, instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null).getAccessCertificates().getFirst().getRevocationStatus());
-        assertEquals(-1, instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null).getAccessCertificates().get(1).getRevocationStatus());
+        assertEquals(0, instanceRepository.findById(EntityGenerator.instances(walletRelyingParty).getFirst().getId()).orElse(null).getAccessCertificates().getFirst().getRevocationStatus());
+        assertEquals(-1, instanceRepository.findById(EntityGenerator.instances(walletRelyingParty).getFirst().getId()).orElse(null).getAccessCertificates().get(1).getRevocationStatus());
     }
 }

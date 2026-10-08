@@ -89,8 +89,8 @@ public class V1ApiService {
 
     private static Sort sortFor(String sortKey) {
         return switch (sortKey) {
-            case "name", "tradeName" -> Sort.by("tradeName");
-            case "orgno", "legalEntity.orgno" -> Sort.by("legalEntity.orgno");
+            case "name", "tradeName" -> Sort.by("walletRelyingPartyService.serviceTradeName");
+            case "orgno", "legalEntity.orgno" -> Sort.by("walletRelyingPartyService.walletRelyingParty.orgno");
             case "createdMs" -> Sort.by("createdMs");
             case "lastUpdatedMs" -> Sort.by("lastUpdatedMs");
             case null, default -> Sort.unsorted();

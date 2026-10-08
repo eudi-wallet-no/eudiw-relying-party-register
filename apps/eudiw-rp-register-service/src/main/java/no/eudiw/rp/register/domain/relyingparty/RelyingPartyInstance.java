@@ -10,7 +10,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.AccessLevel;
 import no.eudiw.rp.register.domain.BaseEntity;
-import no.eudiw.rp.register.domain.LegalEntity;
+import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 import no.eudiw.rp.register.domain.certificates.AccessCertificate;
 import no.eudiw.rp.register.domain.certificates.IssuerCertificate;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -21,9 +21,6 @@ import org.hibernate.type.SqlTypes;
 @Entity
 @Table(name = "relying_party_instance")
 public class RelyingPartyInstance extends BaseEntity {
-
-    @Column(name = "trade_name", nullable = false)
-    private String tradeName;
 
     @Setter(AccessLevel.NONE)
     @OneToMany(
@@ -49,12 +46,12 @@ public class RelyingPartyInstance extends BaseEntity {
         orphanRemoval = true)
     private List<AccessCertificate> accessCertificates = new ArrayList<>();
 
-    @ManyToOne(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "legal_entity_id",
+    @ManyToOne(cascade = CascadeType.PERSIST, optional = false)
+    @JoinColumn(name = "wallet_relying_party_service_id",
         columnDefinition = "UUID",
         nullable = false)
     @JdbcTypeCode(SqlTypes.UUID)
-    private LegalEntity legalEntity;
+    private WalletRelyingPartyService walletRelyingPartyService;
 
     @Column(name = "created_ms", nullable = false)
     @Setter(AccessLevel.NONE)
@@ -122,11 +119,9 @@ public class RelyingPartyInstance extends BaseEntity {
     }
 
     public RelyingPartyInstance(
-        String tradeName,
         List<RelyingPartyEntitlement> relyingPartyEntitlements,
         List<RelyingPartyEaa> relyingPartyEaas,
         List<AccessCertificate> accessCertificates) {
-        this.tradeName = tradeName;
         this.setRelyingPartyEntitlements(relyingPartyEntitlements);
         this.setRelyingPartyEaas(relyingPartyEaas);
         this.setAccessCertificates(accessCertificates);
@@ -135,6 +130,10 @@ public class RelyingPartyInstance extends BaseEntity {
     // for JPA instantiation.
     protected RelyingPartyInstance() { }
 
+    public void markUpdated() {
+        this.lastUpdatedMs = Math.max(Instant.now().toEpochMilli(), this.lastUpdatedMs + 1);
+    }
+
     @PrePersist
     protected void onPrePersist() {
         this.lastUpdatedMs = this.createdMs = Instant.now().toEpochMilli();
@@ -142,6 +141,6 @@ public class RelyingPartyInstance extends BaseEntity {
 
     @PreUpdate
     protected void onPreUpdate() {
-        this.lastUpdatedMs = Instant.now().toEpochMilli();
+        markUpdated();
     }
 }

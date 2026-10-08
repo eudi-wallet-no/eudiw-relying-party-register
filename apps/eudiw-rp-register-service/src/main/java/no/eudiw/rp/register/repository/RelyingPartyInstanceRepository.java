@@ -21,14 +21,14 @@ public interface RelyingPartyInstanceRepository
     SELECT DISTINCT rpi
     FROM RelyingPartyInstance rpi
     WHERE
-      (rpi.legalEntity.orgno LIKE :searchTerm%
-          OR rpi.legalEntity.name ILIKE %:searchTerm%
-          OR rpi.tradeName ILIKE %:searchTerm%
+      (rpi.walletRelyingPartyService.walletRelyingParty.orgno LIKE :searchTerm%
+          OR rpi.walletRelyingPartyService.walletRelyingParty.legalName ILIKE %:searchTerm%
+          OR rpi.walletRelyingPartyService.serviceTradeName ILIKE %:searchTerm%
       )
       AND (:includeInactive = TRUE OR rpi.active = TRUE)
       AND (:hideSyntheticOrgnos = FALSE
-              OR rpi.legalEntity.orgno LIKE '8%'
-              OR rpi.legalEntity.orgno LIKE '9%')
+              OR rpi.walletRelyingPartyService.walletRelyingParty.orgno LIKE '8%'
+              OR rpi.walletRelyingPartyService.walletRelyingParty.orgno LIKE '9%')
       AND (
         (SELECT COUNT(DISTINCT e.entitlement)
          FROM RelyingPartyEntitlement e

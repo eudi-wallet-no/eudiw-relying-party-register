@@ -27,10 +27,10 @@ public class V1DataConverter {
     public RelyingPartyResource toResource(RelyingPartyInstance relyingPartyInstance) {
         return new RelyingPartyResource(
             relyingPartyInstance.getId(),
-            relyingPartyInstance.getLegalEntity().getOrgno(),
-            relyingPartyInstance.getLegalEntity().getName(),
-            relyingPartyInstance.getTradeName(),
-            relyingPartyInstance.getLegalEntity().isPublicSector(),
+            relyingPartyInstance.getWalletRelyingPartyService().getWalletRelyingParty().getOrgno(),
+            relyingPartyInstance.getWalletRelyingPartyService().getWalletRelyingParty().getLegalName(),
+            relyingPartyInstance.getWalletRelyingPartyService().getServiceTradeName(),
+            relyingPartyInstance.getWalletRelyingPartyService().getWalletRelyingParty().isPsb(),
             relyingPartyInstance.getRelyingPartyEntitlements().stream().map(this::toResource).toList(),
             relyingPartyInstance.getRelyingPartyEaas().stream().map(this::toResource).toList(),
             relyingPartyInstance.getAccessCertificates().stream().map(this::toResource).toList(),

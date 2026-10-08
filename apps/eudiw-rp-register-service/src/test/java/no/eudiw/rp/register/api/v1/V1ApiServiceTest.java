@@ -52,10 +52,10 @@ class V1ApiServiceTest {
 
     private static Stream<Arguments> sortKeys() {
         return Stream.of(
-            arguments("name", Sort.by("tradeName")),
-            arguments("tradeName", Sort.by("tradeName")),
-            arguments("orgno", Sort.by("legalEntity.orgno")),
-            arguments("legalEntity.orgno", Sort.by("legalEntity.orgno")),
+            arguments("name", Sort.by("walletRelyingPartyService.serviceTradeName")),
+            arguments("tradeName", Sort.by("walletRelyingPartyService.serviceTradeName")),
+            arguments("orgno", Sort.by("walletRelyingPartyService.walletRelyingParty.orgno")),
+            arguments("legalEntity.orgno", Sort.by("walletRelyingPartyService.walletRelyingParty.orgno")),
             arguments("createdMs", Sort.by("createdMs")),
             arguments("lastUpdatedMs", Sort.by("lastUpdatedMs")),
             arguments("unsorted", Sort.unsorted()),

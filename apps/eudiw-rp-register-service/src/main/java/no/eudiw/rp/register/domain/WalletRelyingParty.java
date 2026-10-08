@@ -4,8 +4,6 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
-
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,17 +11,17 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-@Table(name = "legal_entity")
-public class LegalEntity extends BaseEntity {
+@Table(name = "wallet_relying_party")
+public class WalletRelyingParty extends BaseEntity {
 
     @Column(name = "orgno", nullable = false)
     private String orgno;
 
-    @Column(name = "name", nullable = false)
-    private String name;
+    @Column(name = "legal_name", nullable = false)
+    private String legalName;
 
-    @Column(name = "public_sector", nullable = false)
-    private boolean publicSector;
+    @Column(name = "is_psb", nullable = false)
+    private boolean isPsb;
 
     @Column(name = "created_ms", nullable = false)
     @Setter(AccessLevel.NONE)
@@ -38,34 +36,34 @@ public class LegalEntity extends BaseEntity {
 
     @Setter(AccessLevel.NONE)
     @OneToMany(
-        mappedBy = "legalEntity",
+        mappedBy = "walletRelyingParty",
         fetch = FetchType.EAGER,
         cascade = CascadeType.ALL,
         orphanRemoval = true)
-    private List<RelyingPartyInstance> relyingPartyInstances = new ArrayList<>();
+    private List<WalletRelyingPartyService> services = new ArrayList<>();
 
-    public void setRelyingPartyInstances(List<RelyingPartyInstance> relyingPartyInstances) {
-        this.relyingPartyInstances.clear();
-        if (relyingPartyInstances != null) {
-            relyingPartyInstances.forEach(rpi -> rpi.setLegalEntity(this));
-            this.relyingPartyInstances.addAll(relyingPartyInstances);
+    public void setServices(List<WalletRelyingPartyService> services) {
+        this.services.clear();
+        if (services != null) {
+            services.forEach(service -> service.setWalletRelyingParty(this));
+            this.services.addAll(services);
         }
     }
 
-    public LegalEntity(
-        String name,
+    public WalletRelyingParty(
+        String legalName,
         String orgno,
-        boolean publicSector,
-        List<RelyingPartyInstance> relyingPartyInstances
+        boolean isPsb,
+        List<WalletRelyingPartyService> services
     ) {
-        this.name = name;
+        this.legalName = legalName;
         this.orgno = orgno;
-        this.publicSector = publicSector;
-        this.setRelyingPartyInstances(relyingPartyInstances);
+        this.isPsb = isPsb;
+        this.setServices(services);
     }
 
     // for JPA instantiation.
-    protected LegalEntity() { }
+    protected WalletRelyingParty() { }
 
     @PrePersist
     protected void onPrePersist() {
