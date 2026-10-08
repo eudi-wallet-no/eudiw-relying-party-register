@@ -1,6 +1,7 @@
 package no.eudiw.rp.register.data.repository;
 
-import no.eudiw.rp.register.data.entity.Entitlement;
+import no.eudiw.rp.register.domain.Entitlement;
+import no.eudiw.rp.register.repository.EntitlementRepository;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

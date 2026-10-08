@@ -1,9 +1,9 @@
 package no.eudiw.rp.register.data.service.legalentityservice;
 
-import no.eudiw.rp.register.data.entity.LegalEntity;
-import no.eudiw.rp.register.data.repository.LegalEntityRepository;
+import no.eudiw.rp.register.domain.LegalEntity;
+import no.eudiw.rp.register.repository.LegalEntityRepository;
 import no.eudiw.rp.register.service.LegalEntityService;
-import no.eudiw.rp.register.service.enhetsregisteretservice.EnhetsregisteretService;
+import no.eudiw.rp.register.integrations.enhetsregisteret.EnhetsregisteretService;
 import no.eudiw.rp.register.testdata.TestDataGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

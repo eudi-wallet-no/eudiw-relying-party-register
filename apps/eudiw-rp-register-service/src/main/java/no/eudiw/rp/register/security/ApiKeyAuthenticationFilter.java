@@ -26,7 +26,7 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
     private final ApiKeySecurityProperties apiKeySecurityProperties;
     private final List<PathPatternRequestMatcher> excludeMatchers;
 
-    protected ApiKeyAuthenticationFilter(ApiKeySecurityProperties apiKeySecurityProperties, String... excludePaths) {
+    public ApiKeyAuthenticationFilter(ApiKeySecurityProperties apiKeySecurityProperties, String... excludePaths) {
         super();
         this.apiKeySecurityProperties = apiKeySecurityProperties;
         this.excludeMatchers = createMatchers(excludePaths);

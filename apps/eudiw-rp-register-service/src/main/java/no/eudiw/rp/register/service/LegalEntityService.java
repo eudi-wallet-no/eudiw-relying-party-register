@@ -1,9 +1,9 @@
 package no.eudiw.rp.register.service;
 
 import lombok.RequiredArgsConstructor;
-import no.eudiw.rp.register.data.entity.LegalEntity;
-import no.eudiw.rp.register.data.repository.LegalEntityRepository;
-import no.eudiw.rp.register.service.enhetsregisteretservice.EnhetsregisteretService;
+import no.eudiw.rp.register.domain.LegalEntity;
+import no.eudiw.rp.register.repository.LegalEntityRepository;
+import no.eudiw.rp.register.integrations.enhetsregisteret.EnhetsregisteretService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

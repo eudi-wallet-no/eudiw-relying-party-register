@@ -1,21 +1,20 @@
 package no.eudiw.rp.register.service;
 
 import lombok.RequiredArgsConstructor;
-import no.eudiw.rp.register.api.resource.relyingparty.*;
-import no.eudiw.rp.register.data.RelyingPartyOrdering;
-import no.eudiw.rp.register.data.entity.LegalEntity;
-import no.eudiw.rp.register.data.entity.relyingparty.RelyingPartyInstance;
-import no.eudiw.rp.register.data.repository.EntitlementRepository;
-import no.eudiw.rp.register.data.repository.RelyingPartyInstanceRepository;
-import no.eudiw.rp.register.data.repository.LegalEntityRepository;
-import no.eudiw.rp.register.service.exception.BadRequestException;
-import no.eudiw.rp.register.service.exception.NotFoundException;
+import no.eudiw.rp.register.domain.LegalEntity;
+import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEaa;
+import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
+import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
+import no.eudiw.rp.register.repository.EntitlementRepository;
+import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
+import no.eudiw.rp.register.exception.BadRequestException;
+import no.eudiw.rp.register.exception.NotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,108 +23,98 @@ import java.util.UUID;
 public class RelyingPartyService {
 
     private final EntitlementRepository entitlementRepository;
-    private final Converter converter;
     private final RelyingPartyInstanceRepository relyingPartyInstanceRepository;
     private final LegalEntityService legalEntityService;
 
     @Transactional
-    public RelyingPartyResource createRelyingParty(CreateRelyingPartyResource request) {
-        if (request.relyingPartyEntitlements() == null || request.relyingPartyEaas() == null) {
+    public RelyingPartyInstance createRelyingParty(
+        String orgNr,
+        String tradeName,
+        List<RelyingPartyEntitlement> entitlements,
+        List<RelyingPartyEaa> eaas
+    ) {
+        if (entitlements == null || eaas == null) {
             throw new BadRequestException("Entitlements and EAAs should be empty if none exists");
         }
-        entitlementCheck(request.relyingPartyEntitlements());
+        entitlementCheck(entitlements);
 
-        LegalEntity legalEntity = legalEntityService.getLegalEntityForOrgno(request.orgNr());
+        LegalEntity legalEntity = legalEntityService.getLegalEntityForOrgno(orgNr);
         if (!legalEntity.isActive()) {
             throw new BadRequestException("Legal entity is not active");
         }
 
-        RelyingPartyInstance relyingPartyInstance = converter.toEntity(request);
+        RelyingPartyInstance relyingPartyInstance =
+            new RelyingPartyInstance(tradeName, entitlements, eaas, new ArrayList<>());
         relyingPartyInstance.setLegalEntity(legalEntity);
 
-        relyingPartyInstanceRepository.saveAndFlush(relyingPartyInstance);
-        return converter.toResource(relyingPartyInstance);
+        return relyingPartyInstanceRepository.saveAndFlush(relyingPartyInstance);
     }
 
     @Transactional(readOnly = true)
-    public RelyingPartyResource findRelyingParty(UUID id) {
-        RelyingPartyInstance relyingPartyInstance = relyingPartyInstanceRepository.findById(id).orElse(null);
-        if (relyingPartyInstance == null) {
-            throw new NotFoundException("Relying party not found");
-        }
-
-        return converter.toResource(relyingPartyInstance);
+    public RelyingPartyInstance findRelyingParty(UUID id) {
+        return relyingPartyInstanceRepository.findById(id)
+            .orElseThrow(() -> new NotFoundException("Relying party not found"));
     }
 
     @Transactional(readOnly = true)
-    public PagedModel<RelyingPartyResource> searchRelyingParties(SearchRelyingPartyResource searchResource) {
-
-        PageRequest pageRequest =
-            PageRequest.of(
-                searchResource.getPage(),
-                searchResource.getPageSize(),
-                RelyingPartyOrdering.fromSortKey(searchResource.getSortKey()));
-
-        Page<RelyingPartyInstance> searchQueryResult =
-            relyingPartyInstanceRepository.searchRelyingPartyInstances(
-                searchResource.getSearchTerm(),
-                searchResource.getRequiredEntitlements(),
-                searchResource.isIncludeInactive(),
-                searchResource.isHideSyntheticOrgnos(),
-                pageRequest
-            );
-
-        return new PagedModel<>(searchQueryResult.map(converter::toResource));
+    public Page<RelyingPartyInstance> searchRelyingParties(
+        String searchTerm,
+        List<String> requiredEntitlements,
+        boolean includeInactive,
+        boolean hideSyntheticOrgnos,
+        PageRequest pageRequest
+    ) {
+        return relyingPartyInstanceRepository.searchRelyingPartyInstances(
+            searchTerm,
+            requiredEntitlements,
+            includeInactive,
+            hideSyntheticOrgnos,
+            pageRequest
+        );
     }
 
     @Transactional
-    public RelyingPartyResource updateRelyingParty(UUID id, EditRelyingPartyResource request) {
+    public RelyingPartyInstance updateRelyingParty(
+        UUID id,
+        String tradeName,
+        boolean active,
+        List<RelyingPartyEntitlement> entitlements,
+        List<RelyingPartyEaa> eaas
+    ) {
         if (id == null) {
             throw new BadRequestException("ID should not be null");
         }
 
-        if (request.relyingPartyEntitlements() == null || request.relyingPartyEaas() == null) {
+        if (entitlements == null || eaas == null) {
             throw new BadRequestException("Entitlements and EAAs should be emtpy if none exists");
         }
 
-        entitlementCheck(request.relyingPartyEntitlements());
+        entitlementCheck(entitlements);
 
-        RelyingPartyInstance relyingPartyInstance = relyingPartyInstanceRepository.findById(id).orElse(null);
+        RelyingPartyInstance relyingPartyInstance = relyingPartyInstanceRepository.findById(id)
+            .orElseThrow(() -> new BadRequestException("Relying party instance not found"));
 
-        if (relyingPartyInstance == null) {
-            throw new BadRequestException("Relying party instance not found");
-        }
+        relyingPartyInstance.setTradeName(tradeName);
+        relyingPartyInstance.setActive(active);
 
-        relyingPartyInstance.setTradeName(request.tradeName());
-        relyingPartyInstance.setActive(request.active());
+        relyingPartyInstance.setRelyingPartyEntitlements(entitlements);
+        relyingPartyInstance.setRelyingPartyEaas(eaas);
 
-        relyingPartyInstance.getRelyingPartyEaas().clear();
-
-        relyingPartyInstance.setRelyingPartyEntitlements(
-            request.relyingPartyEntitlements().stream().map(converter::toEntity).toList());
-        relyingPartyInstance.setRelyingPartyEaas(
-            request.relyingPartyEaas().stream().map(converter::toEntity).toList());
-
-        RelyingPartyInstance returnInstance = relyingPartyInstanceRepository.saveAndFlush(relyingPartyInstance);
-
-        return converter.toResource(returnInstance);
+        return relyingPartyInstanceRepository.saveAndFlush(relyingPartyInstance);
     }
 
     @Transactional
     public void deleteRelyingParty(UUID id) {
-        RelyingPartyInstance relyingPartyInstance =
-            relyingPartyInstanceRepository.findById(id).orElse(null);
-        if (relyingPartyInstance == null) {
-            throw new NotFoundException("Relying party not found");
-        }
+        RelyingPartyInstance relyingPartyInstance = relyingPartyInstanceRepository.findById(id)
+            .orElseThrow(() -> new NotFoundException("Relying party not found"));
         relyingPartyInstance.getLegalEntity().getRelyingPartyInstances().remove(relyingPartyInstance);
         relyingPartyInstanceRepository.delete(relyingPartyInstance);
     }
 
-    private void entitlementCheck(List<RelyingPartyEntitlementResource> entitlements) {
-        for (RelyingPartyEntitlementResource entitlement : entitlements) {
-            if (!entitlementRepository.existsByEntitlementAndActive(entitlement.entitlement(), true)) {
-                throw new BadRequestException(entitlement.entitlement() + " is not a valid active entitlement");
+    private void entitlementCheck(List<RelyingPartyEntitlement> entitlements) {
+        for (RelyingPartyEntitlement entitlement : entitlements) {
+            if (!entitlementRepository.existsByEntitlementAndActive(entitlement.getEntitlement(), true)) {
+                throw new BadRequestException(entitlement.getEntitlement() + " is not a valid active entitlement");
             }
         }
     }

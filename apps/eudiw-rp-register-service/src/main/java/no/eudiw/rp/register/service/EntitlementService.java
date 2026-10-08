@@ -1,11 +1,9 @@
 package no.eudiw.rp.register.service;
 
 import lombok.RequiredArgsConstructor;
-import no.eudiw.rp.register.api.resource.entitlements.EntitlementResource;
-import no.eudiw.rp.register.api.resource.entitlements.EntitlementsResource;
-import no.eudiw.rp.register.data.entity.Entitlement;
-import no.eudiw.rp.register.data.repository.EntitlementRepository;
-import no.eudiw.rp.register.service.exception.NotFoundException;
+import no.eudiw.rp.register.domain.Entitlement;
+import no.eudiw.rp.register.repository.EntitlementRepository;
+import no.eudiw.rp.register.exception.NotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,15 +14,12 @@ import java.util.List;
 public class EntitlementService {
 
     private final EntitlementRepository entitlementRepository;
-    private final Converter converter;
 
     @Transactional(readOnly = true)
-    public EntitlementsResource findAllEntitlements(boolean includeInactive) {
-        List<Entitlement> entitlements =
-            includeInactive
-                ? entitlementRepository.findAll()
-                : entitlementRepository.findAllByActive(true);
-        return converter.toEntitlementsResource(entitlements);
+    public List<Entitlement> findAllEntitlements(boolean includeInactive) {
+        return includeInactive
+            ? entitlementRepository.findAll()
+            : entitlementRepository.findAllByActive(true);
     }
 
     @Transactional(readOnly = true)
