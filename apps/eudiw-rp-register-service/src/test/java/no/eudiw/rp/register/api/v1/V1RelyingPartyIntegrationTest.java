@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.web.PagedModel;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 
@@ -40,6 +42,9 @@ public class V1RelyingPartyIntegrationTest {
 
     @Autowired
     private EntityManager entityManager;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
 
     @Test
     void testCreateRelyingParty() {
@@ -102,6 +107,43 @@ public class V1RelyingPartyIntegrationTest {
             NotFoundException.class,
             () -> relyingPartyService.deleteRelyingParty(result.id())
         );
+    }
+
+    @Test
+    void testDeleteOnlySelectedInstanceAndCleanUpServiceWhenEmpty() {
+        RelyingPartyResource result = relyingPartyService.createRelyingParty(
+            new CreateRelyingPartyResource(generateValidOrgno(), generateName(), List.of(), List.of())
+        );
+        RelyingPartyInstance instance = relyingPartyInstanceRepository.findById(result.id()).orElseThrow();
+        var serviceId = instance.getWalletRelyingPartyService().getId();
+        var walletRelyingPartyId = instance.getWalletRelyingPartyService().getWalletRelyingParty().getId();
+        var siblingId = new TransactionTemplate(transactionManager).execute(status -> {
+            var walletService = walletRelyingPartyServiceRepository.findById(serviceId).orElseThrow();
+            var sibling = new RelyingPartyInstance(List.of(), List.of(), List.of());
+            sibling.setWalletRelyingPartyService(walletService);
+            walletService.getRelyingPartyInstances().add(sibling);
+            return relyingPartyInstanceRepository.saveAndFlush(sibling).getId();
+        });
+        RelyingPartyResource siblingBeforeDeletion = relyingPartyService.findRelyingParty(siblingId);
+
+        relyingPartyService.deleteRelyingParty(result.id());
+        entityManager.clear();
+
+        assertFalse(relyingPartyInstanceRepository.existsById(result.id()));
+        assertEquals(siblingBeforeDeletion, relyingPartyService.findRelyingParty(siblingId));
+        var remainingService = walletRelyingPartyServiceRepository.findById(serviceId).orElseThrow();
+        assertEquals(List.of(siblingId),
+            remainingService.getRelyingPartyInstances().stream().map(RelyingPartyInstance::getId).toList());
+        assertTrue(walletRelyingPartyRepository.findById(walletRelyingPartyId).orElseThrow()
+            .getServices().stream().anyMatch(service -> serviceId.equals(service.getId())));
+
+        relyingPartyService.deleteRelyingParty(siblingId);
+        entityManager.clear();
+
+        assertFalse(relyingPartyInstanceRepository.existsById(siblingId));
+        assertFalse(walletRelyingPartyServiceRepository.existsById(serviceId));
+        assertTrue(walletRelyingPartyRepository.findById(walletRelyingPartyId).orElseThrow()
+            .getServices().isEmpty());
     }
 
     @Test

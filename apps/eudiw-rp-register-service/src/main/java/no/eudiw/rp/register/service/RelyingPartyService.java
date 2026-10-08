@@ -121,8 +121,11 @@ public class RelyingPartyService {
         RelyingPartyInstance relyingPartyInstance = relyingPartyInstanceRepository.findById(id)
             .orElseThrow(() -> new NotFoundException("Relying party not found"));
         WalletRelyingPartyService walletService = relyingPartyInstance.getWalletRelyingPartyService();
-        walletService.getWalletRelyingParty().getServices().remove(walletService);
-        walletRelyingPartyServiceRepository.delete(walletService);
+        walletService.getRelyingPartyInstances().remove(relyingPartyInstance);
+        if (walletService.getRelyingPartyInstances().isEmpty()) {
+            walletService.getWalletRelyingParty().getServices().remove(walletService);
+            walletRelyingPartyServiceRepository.delete(walletService);
+        }
     }
 
     private void entitlementCheck(List<RelyingPartyEntitlement> entitlements) {
