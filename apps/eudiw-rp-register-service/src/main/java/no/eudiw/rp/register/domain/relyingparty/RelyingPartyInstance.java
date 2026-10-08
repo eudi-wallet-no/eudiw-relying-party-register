@@ -46,7 +46,7 @@ public class RelyingPartyInstance extends BaseEntity {
         orphanRemoval = true)
     private List<AccessCertificate> accessCertificates = new ArrayList<>();
 
-    @ManyToOne(cascade = CascadeType.PERSIST, optional = false)
+    @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "wallet_relying_party_service_id",
         columnDefinition = "UUID",
         nullable = false)
@@ -131,7 +131,7 @@ public class RelyingPartyInstance extends BaseEntity {
     protected RelyingPartyInstance() { }
 
     public void markUpdated() {
-        this.lastUpdatedMs = Math.max(Instant.now().toEpochMilli(), this.lastUpdatedMs + 1);
+        this.lastUpdatedMs = Instant.now().toEpochMilli();
     }
 
     @PrePersist
@@ -141,6 +141,6 @@ public class RelyingPartyInstance extends BaseEntity {
 
     @PreUpdate
     protected void onPreUpdate() {
-        markUpdated();
+        this.lastUpdatedMs = Instant.now().toEpochMilli();
     }
 }

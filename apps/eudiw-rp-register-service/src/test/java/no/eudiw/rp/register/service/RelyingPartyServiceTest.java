@@ -1,6 +1,5 @@
 package no.eudiw.rp.register.service;
 
-import no.eudiw.rp.register.testdata.EntityGenerator;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEaa;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
@@ -10,6 +9,7 @@ import no.eudiw.rp.register.exception.NotFoundException;
 import no.eudiw.rp.register.repository.EntitlementRepository;
 import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.repository.WalletRelyingPartyServiceRepository;
+import no.eudiw.rp.register.testdata.EntityGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -128,6 +128,19 @@ class RelyingPartyServiceTest {
         assertFalse(result.isActive());
         verify(repository).saveAndFlush(instance);
         verifyNoInteractions(walletRelyingPartyLookupService);
+    }
+
+    @Test
+    void marksInstanceUpdatedWhenServiceIsRenamed() {
+        UUID id = UUID.randomUUID();
+        RelyingPartyInstance instance = EntityGenerator.generateRelyingPartyInstance("Old name", List.of(), List.of(), List.of());
+        long lastUpdatedBefore = instance.getLastUpdatedMs();
+        when(repository.findById(id)).thenReturn(Optional.of(instance));
+        when(repository.saveAndFlush(instance)).thenReturn(instance);
+
+        RelyingPartyInstance result = service.updateRelyingParty(id, "New name", true, List.of(), List.of());
+
+        assertTrue(result.getLastUpdatedMs() > lastUpdatedBefore);
     }
 
     @Test

@@ -61,8 +61,7 @@ public class EntityGenerator extends TestDataGenerator {
     public static RelyingPartyInstance generateRelyingParty() {
         RelyingPartyInstance relyingPartyInstance = generateRelyingPartyWithoutWalletRelyingParty();
         WalletRelyingParty walletRelyingPartyWithZeroInstances = generateWalletRelyingParty(0);
-        WalletRelyingPartyService service = relyingPartyInstance.getWalletRelyingPartyService();
-        walletRelyingPartyWithZeroInstances.setServices(List.of(service));
+        relyingPartyInstance.getWalletRelyingPartyService().setWalletRelyingParty(walletRelyingPartyWithZeroInstances);
         return relyingPartyInstance;
     }
 

@@ -1,6 +1,5 @@
 package no.eudiw.rp.register.service;
 
-import no.eudiw.rp.register.testdata.EntityGenerator;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.certificates.AccessCertificate;
 import no.eudiw.rp.register.domain.certificates.BaseCertificateEntity;
@@ -14,6 +13,7 @@ import no.eudiw.rp.register.repository.AccessCertificateRepository;
 import no.eudiw.rp.register.repository.IssuerCertificateRepository;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.testdata.CertificatesGenerator;
+import no.eudiw.rp.register.testdata.EntityGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;

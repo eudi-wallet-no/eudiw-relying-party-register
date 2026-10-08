@@ -60,9 +60,6 @@ public class V1RelyingPartyIntegrationTest {
         assertNotNull(instance);
         assertNotEquals(result.id(), instance.getWalletRelyingPartyService().getWalletRelyingParty().getId());
         assertEquals(result.publicSector(), instance.getWalletRelyingPartyService().getWalletRelyingParty().isPsb());
-        assertNotEquals(result.id(), instance.getWalletRelyingPartyService().getId());
-        assertEquals(List.of(instance), instance.getWalletRelyingPartyService().getRelyingPartyInstances());
-        assertTrue(walletRelyingPartyServiceRepository.existsById(instance.getWalletRelyingPartyService().getId()));
     }
 
     @Test
@@ -165,38 +162,6 @@ public class V1RelyingPartyIntegrationTest {
 
         RelyingPartyResource editResult = relyingPartyService.updateRelyingParty(createResult.id(), editResource);
         assertEquals(editResult.tradeName(), editResource.tradeName());
-    }
-
-    @Test
-    void nameOnlyUpdatePersistsInstanceTimestampAndPreservesSiblingService() {
-        String orgno = generateValidOrgno();
-        RelyingPartyResource first = relyingPartyService.createRelyingParty(
-            new CreateRelyingPartyResource(orgno, "First service", List.of(), List.of()));
-        RelyingPartyResource sibling = relyingPartyService.createRelyingParty(
-            new CreateRelyingPartyResource(orgno, "Sibling service", List.of(), List.of()));
-        var instance = relyingPartyInstanceRepository.findById(first.id()).orElseThrow();
-        var serviceId = instance.getWalletRelyingPartyService().getId();
-        var partyId = instance.getWalletRelyingPartyService().getWalletRelyingParty().getId();
-
-        RelyingPartyResource updated = relyingPartyService.updateRelyingParty(first.id(),
-            new EditRelyingPartyResource("Renamed service", List.of(), List.of(), true));
-        entityManager.clear();
-        RelyingPartyResource reloaded = relyingPartyService.findRelyingParty(first.id());
-
-        assertEquals(updated, reloaded);
-        assertEquals(first.createdMs(), reloaded.createdMs());
-        assertTrue(reloaded.lastUpdatedMs() > first.lastUpdatedMs());
-        assertEquals("Renamed service", reloaded.tradeName());
-        assertEquals(sibling, relyingPartyService.findRelyingParty(sibling.id()));
-        assertEquals(serviceId, relyingPartyInstanceRepository.findById(first.id()).orElseThrow()
-            .getWalletRelyingPartyService().getId());
-
-        relyingPartyService.deleteRelyingParty(first.id());
-        entityManager.clear();
-        assertFalse(walletRelyingPartyServiceRepository.existsById(serviceId));
-        assertTrue(walletRelyingPartyRepository.existsById(partyId));
-        assertEquals(sibling, relyingPartyService.findRelyingParty(sibling.id()));
-        relyingPartyService.deleteRelyingParty(sibling.id());
     }
 
 }

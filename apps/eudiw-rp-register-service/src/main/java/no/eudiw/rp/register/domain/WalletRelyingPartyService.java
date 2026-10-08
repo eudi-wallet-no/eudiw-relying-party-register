@@ -21,7 +21,7 @@ public class WalletRelyingPartyService extends BaseEntity {
     @Column(name = "service_trade_name", nullable = false)
     private String serviceTradeName;
 
-    @ManyToOne(cascade = CascadeType.PERSIST, optional = false)
+    @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "wallet_relying_party_id", columnDefinition = "UUID", nullable = false)
     @JdbcTypeCode(SqlTypes.UUID)
     private WalletRelyingParty walletRelyingParty;
@@ -60,6 +60,7 @@ public class WalletRelyingPartyService extends BaseEntity {
         }
     }
 
+    // for JPA instantiation.
     protected WalletRelyingPartyService() { }
 
     @PrePersist
