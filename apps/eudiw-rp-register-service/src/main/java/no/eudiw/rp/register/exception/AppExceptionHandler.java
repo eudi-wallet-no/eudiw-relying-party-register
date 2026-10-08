@@ -34,7 +34,7 @@ public class AppExceptionHandler {
     public ResponseEntity<ErrorResponseResource> handleHttpMediaTypeNotSupportedException(
         HttpMediaTypeNotSupportedException e) {
         return errorResponseEntity(
-            HttpStatus.BAD_REQUEST, "invalid_request", "HTTP media type not supported: " + e.getContentType());
+            HttpStatus.UNSUPPORTED_MEDIA_TYPE, "invalid_request", "HTTP media type not supported");
     }
 
     @ExceptionHandler(ApiKeyAuthenticationException.class)

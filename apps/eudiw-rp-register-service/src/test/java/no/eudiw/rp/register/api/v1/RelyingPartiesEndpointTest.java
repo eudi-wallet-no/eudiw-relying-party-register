@@ -13,6 +13,8 @@ import no.eudiw.rp.register.testdata.TestDataGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -30,6 +32,7 @@ import static no.eudiw.rp.register.testdata.ResourceGenerator.*;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.mockito.Mockito.*;
@@ -60,6 +63,22 @@ public class RelyingPartiesEndpointTest {
         @Nested
         @DisplayName("When using the create endpoint ...")
         class CreateTests {
+            @ParameterizedTest
+            @ValueSource(strings = {"text/plain; input=client-supplied", "application/xml"})
+            @DisplayName("with an unsupported media type returns 415 without reflecting input")
+            void testCreateRelyingPartyUnsupportedMediaType(String contentType) throws Exception {
+                mockMvc.perform(post("/v1/rp")
+                                    .contentType(contentType)
+                                    .header(X_API_KEY_HEADER, VALID_API_KEY)
+                                    .content("client-supplied body"))
+                       .andExpect(status().isUnsupportedMediaType())
+                       .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                       .andExpect(jsonPath("$.error").value("invalid_request"))
+                       .andExpect(jsonPath("$.error_description").value("HTTP media type not supported"));
+
+                verifyNoInteractions(relyingPartyService);
+            }
+
             @Test
             @DisplayName("with a valid create resource for a known ID")
             void testCreateRelyingParty() throws Exception {

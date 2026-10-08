@@ -6,6 +6,10 @@
 
 EUDIW Relying Party Register
 
+## API errors
+Requests with an unsupported media type return HTTP 415 with error `invalid_request`
+and description `HTTP media type not supported`, without echoing the supplied media type.
+
 ## Requirements
 - Java 25
 - Maven
