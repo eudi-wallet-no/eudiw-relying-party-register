@@ -41,7 +41,7 @@ import static org.mockito.Mockito.*;
 @AutoConfigureMockMvc
 @DisplayName("When using the Relying Parties API")
 @ActiveProfiles("junit")
-public class RelyingPartiesEndpointTest {
+public class V1RelyingPartiesEndpointTest {
 
     public static final String X_API_KEY_HEADER = "X-API-KEY";
 

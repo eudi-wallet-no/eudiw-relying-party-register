@@ -31,7 +31,7 @@ import static org.hamcrest.Matchers.*;
 @ActiveProfiles("junit")
 @DisplayName("When using the relying parties API with invalid resources ...")
 @AutoConfigureMockMvc
-public class ControllerValidationTests {
+public class V1ControllerValidationTests {
 
     @Autowired
     private RelyingPartyInstanceRepository relyingPartyRepository;
