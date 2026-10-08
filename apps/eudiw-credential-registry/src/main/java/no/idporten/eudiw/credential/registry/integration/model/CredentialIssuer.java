@@ -38,7 +38,7 @@ public class CredentialIssuer {
     private List<@Valid Display> display = null;
     @JsonProperty("credential_configurations_supported")
     @NotNull
-    private Map<String, @Valid CredentialConfiguration> credentialConfiguration;
+    private Map<String, CredentialConfiguration> credentialConfiguration;
 
     public CredentialIssuer(){
 
