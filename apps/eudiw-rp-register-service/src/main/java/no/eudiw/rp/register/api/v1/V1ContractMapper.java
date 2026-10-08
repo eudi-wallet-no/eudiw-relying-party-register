@@ -8,6 +8,8 @@ import no.eudiw.rp.register.api.v1.resource.relyingparty.RelyingPartyEaaResource
 import no.eudiw.rp.register.api.v1.resource.relyingparty.RelyingPartyEntitlementResource;
 import no.eudiw.rp.register.api.v1.resource.relyingparty.RelyingPartyResource;
 import no.eudiw.rp.register.domain.Entitlement;
+import no.eudiw.rp.register.domain.WalletRelyingParty;
+import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 import no.eudiw.rp.register.domain.certificates.AccessCertificate;
 import no.eudiw.rp.register.domain.certificates.IssuerCertificate;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEaa;
@@ -24,21 +26,24 @@ public class V1ContractMapper {
 
     private final EntitlementRepository entitlementRepository;
 
-    public RelyingPartyResource toV1RelyingPartyResource(RelyingPartyInstance relyingPartyInstance) {
+    public RelyingPartyResource toV1RelyingPartyResource(RelyingPartyInstance instance) {
+        WalletRelyingPartyService walletService = instance.getWalletRelyingPartyService();
+        WalletRelyingParty walletRelyingParty = walletService.getWalletRelyingParty();
+
         return new RelyingPartyResource(
-            relyingPartyInstance.getId(),
-            relyingPartyInstance.getWalletRelyingPartyService().getWalletRelyingParty().getOrgno(),
-            relyingPartyInstance.getWalletRelyingPartyService().getWalletRelyingParty().getLegalName(),
-            relyingPartyInstance.getWalletRelyingPartyService().getServiceTradeName(),
-            relyingPartyInstance.getWalletRelyingPartyService().getWalletRelyingParty().isPsb(),
-            relyingPartyInstance.getRelyingPartyEntitlements().stream()
+            instance.getId(),
+            walletRelyingParty.getOrgno(),
+            walletRelyingParty.getLegalName(),
+            walletService.getServiceTradeName(),
+            walletRelyingParty.isPsb(),
+            instance.getRelyingPartyEntitlements().stream()
                 .map(this::toV1RelyingPartyEntitlementResource).toList(),
-            relyingPartyInstance.getRelyingPartyEaas().stream().map(this::toV1RelyingPartyEaaResource).toList(),
-            relyingPartyInstance.getAccessCertificates().stream().map(this::toV1CertificateResource).toList(),
-            relyingPartyInstance.getIssuerCertificates().stream().map(this::toV1CertificateResource).toList(),
-            relyingPartyInstance.getCreatedMs(),
-            relyingPartyInstance.getLastUpdatedMs(),
-            relyingPartyInstance.isActive()
+            instance.getRelyingPartyEaas().stream().map(this::toV1RelyingPartyEaaResource).toList(),
+            instance.getAccessCertificates().stream().map(this::toV1CertificateResource).toList(),
+            instance.getIssuerCertificates().stream().map(this::toV1CertificateResource).toList(),
+            instance.getCreatedMs(),
+            instance.getLastUpdatedMs(),
+            instance.isActive()
         );
     }
 
@@ -57,17 +62,17 @@ public class V1ContractMapper {
             .orElse(entitlementUri);
     }
 
-    public RelyingPartyCertificateResource toV1CertificateResource(AccessCertificate entity) {
+    public RelyingPartyCertificateResource toV1CertificateResource(AccessCertificate certificate) {
         return new RelyingPartyCertificateResource(
-            entity.getCertificate(), null, entity.getId(), entity.getRevocationStatus());
+            certificate.getCertificate(), null, certificate.getId(), certificate.getRevocationStatus());
     }
 
-    public RelyingPartyCertificateResource toV1CertificateResource(IssuerCertificate entity) {
+    public RelyingPartyCertificateResource toV1CertificateResource(IssuerCertificate certificate) {
         return new RelyingPartyCertificateResource(
-            entity.getCertificate(),
-            entity.getEntitlement().getEntitlement(),
-            entity.getId(),
-            entity.getRevocationStatus()
+            certificate.getCertificate(),
+            certificate.getEntitlement().getEntitlement(),
+            certificate.getId(),
+            certificate.getRevocationStatus()
         );
     }
 
@@ -90,22 +95,22 @@ public class V1ContractMapper {
     }
 
     public List<RelyingPartyEntitlement> toDomainRelyingPartyEntitlements(
-        List<RelyingPartyEntitlementResource> resources) {
-        if (resources == null) {
+        List<RelyingPartyEntitlementResource> v1EntitlementResources) {
+        if (v1EntitlementResources == null) {
             return null;
         }
-        return resources.stream()
-            .map(resource -> new RelyingPartyEntitlement(
-                resource.entitlement(), resource.credentialIssuerUrl()))
+        return v1EntitlementResources.stream()
+            .map(v1Entitlement -> new RelyingPartyEntitlement(
+                v1Entitlement.entitlement(), v1Entitlement.credentialIssuerUrl()))
             .toList();
     }
 
-    public List<RelyingPartyEaa> toDomainRelyingPartyEaas(List<RelyingPartyEaaResource> resources) {
-        if (resources == null) {
+    public List<RelyingPartyEaa> toDomainRelyingPartyEaas(List<RelyingPartyEaaResource> v1EaaResources) {
+        if (v1EaaResources == null) {
             return null;
         }
-        return resources.stream()
-            .map(resource -> new RelyingPartyEaa(resource.namespace(), resource.intent()))
+        return v1EaaResources.stream()
+            .map(v1Eaa -> new RelyingPartyEaa(v1Eaa.namespace(), v1Eaa.intent()))
             .toList();
     }
 }

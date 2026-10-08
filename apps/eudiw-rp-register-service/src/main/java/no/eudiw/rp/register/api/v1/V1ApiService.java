@@ -34,7 +34,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class V1ApiService {
 
-    private final RelyingPartyService relyingPartyInstanceService;
+    private final RelyingPartyService relyingPartyService;
     private final RelyingPartyCertificateService certificateService;
     private final EntitlementService entitlementService;
     private final CredentialIssuersService credentialIssuersService;
@@ -42,34 +42,40 @@ public class V1ApiService {
 
     @Transactional
     public RelyingPartyResource createRelyingParty(CreateRelyingPartyResource request) {
-        List<RelyingPartyEntitlement> domainEntitlements =
+        String orgno = request.orgNr();
+        String serviceTradeName = request.tradeName();
+        List<RelyingPartyEntitlement> entitlements =
             v1ContractMapper.toDomainRelyingPartyEntitlements(request.relyingPartyEntitlements());
-        List<RelyingPartyEaa> domainEaas = v1ContractMapper.toDomainRelyingPartyEaas(request.relyingPartyEaas());
-        RelyingPartyInstance createdInstance = relyingPartyInstanceService.createRelyingParty(
-            request.orgNr(), request.tradeName(), domainEntitlements, domainEaas);
+        List<RelyingPartyEaa> eaas = v1ContractMapper.toDomainRelyingPartyEaas(request.relyingPartyEaas());
+        RelyingPartyInstance createdInstance = relyingPartyService.createRelyingParty(
+            orgno, serviceTradeName, entitlements, eaas);
         return v1ContractMapper.toV1RelyingPartyResource(createdInstance);
     }
 
     @Transactional
     public RelyingPartyResource updateRelyingParty(UUID id, EditRelyingPartyResource request) {
-        RelyingPartyInstance updatedInstance = relyingPartyInstanceService.updateRelyingParty(
+        String serviceTradeName = request.tradeName();
+        List<RelyingPartyEntitlement> entitlements =
+            v1ContractMapper.toDomainRelyingPartyEntitlements(request.relyingPartyEntitlements());
+        List<RelyingPartyEaa> eaas = v1ContractMapper.toDomainRelyingPartyEaas(request.relyingPartyEaas());
+        RelyingPartyInstance updatedInstance = relyingPartyService.updateRelyingParty(
             id,
-            request.tradeName(),
+            serviceTradeName,
             request.active(),
-            v1ContractMapper.toDomainRelyingPartyEntitlements(request.relyingPartyEntitlements()),
-            v1ContractMapper.toDomainRelyingPartyEaas(request.relyingPartyEaas())
+            entitlements,
+            eaas
         );
         return v1ContractMapper.toV1RelyingPartyResource(updatedInstance);
     }
 
     @Transactional
     public void deleteRelyingParty(UUID id) {
-        relyingPartyInstanceService.deleteRelyingParty(id);
+        relyingPartyService.deleteRelyingParty(id);
     }
 
     @Transactional(readOnly = true)
     public RelyingPartyResource findRelyingParty(UUID id) {
-        RelyingPartyInstance instance = relyingPartyInstanceService.findRelyingParty(id);
+        RelyingPartyInstance instance = relyingPartyService.findRelyingParty(id);
         return v1ContractMapper.toV1RelyingPartyResource(instance);
     }
 
@@ -80,7 +86,7 @@ public class V1ApiService {
             request.getPageSize(),
             sortFor(request.getSortKey())
         );
-        return new PagedModel<>(relyingPartyInstanceService.searchRelyingParties(
+        return new PagedModel<>(relyingPartyService.searchRelyingParties(
             request.getSearchTerm(),
             request.getRequiredEntitlements(),
             request.isIncludeInactive(),

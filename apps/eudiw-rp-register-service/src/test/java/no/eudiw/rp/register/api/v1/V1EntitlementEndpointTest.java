@@ -35,7 +35,7 @@ class V1EntitlementEndpointTest {
     private EntitlementRepository entitlementRepository;
 
     @Test
-    void v1RetrievesFlywayManagedEntitlements() throws Exception {
+    void retrievesFlywayManagedEntitlements() throws Exception {
         mockMvc.perform(get("/v1/entitlement")
                 .accept(MediaType.APPLICATION_JSON)
                 .header(X_API_KEY_HEADER, VALID_API_KEY))
@@ -45,7 +45,7 @@ class V1EntitlementEndpointTest {
 
     @Test
     @DisplayName("without includeInactive only returns active entitlements")
-    void v1DefaultBehaviorReturnsOnlyActiveEntitlements() throws Exception {
+    void defaultBehaviorReturnsOnlyActiveEntitlements() throws Exception {
         String inactiveEntitlement = "urn:eudiw:test:" + UUID.randomUUID();
         entitlementRepository.save(new Entitlement(inactiveEntitlement, false, inactiveEntitlement, "access"));
 
@@ -59,7 +59,7 @@ class V1EntitlementEndpointTest {
 
     @Test
     @DisplayName("with includeInactive=true returns both active and inactive entitlements")
-    void v1IncludeInactiveTrueReturnsInactiveEntitlementsToo() throws Exception {
+    void includeInactiveTrueReturnsInactiveEntitlementsToo() throws Exception {
         String inactiveEntitlement = "urn:eudiw:test:" + UUID.randomUUID();
         entitlementRepository.save(new Entitlement(inactiveEntitlement, false, inactiveEntitlement, "access"));
 
@@ -72,7 +72,7 @@ class V1EntitlementEndpointTest {
     }
 
     @Test
-    void v1RejectsEntitlementAdministration() throws Exception {
+    void rejectsEntitlementAdministration() throws Exception {
         mockMvc.perform(post("/v1/entitlement")
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(X_API_KEY_HEADER, VALID_API_KEY)

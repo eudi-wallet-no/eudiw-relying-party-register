@@ -1,6 +1,8 @@
 package no.eudiw.rp.register.data.repository;
 
+import jakarta.persistence.EntityManager;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
+import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.testdata.EntityGenerator;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,17 +12,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.util.ArrayList;
-
+import static no.eudiw.rp.register.testdata.TestDataGenerator.generateValidOrgno;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @DisplayName("When using WalletRelyingPartyRepository")
 @ActiveProfiles("junit")
-public class WalletRelyingPartyRepositoryTest {
+class WalletRelyingPartyRepositoryTest {
 
     @Autowired
     private WalletRelyingPartyRepository repository;
+
+    @Autowired
+    private EntityManager entityManager;
 
     @BeforeEach
     void setUp() {
@@ -28,32 +32,56 @@ public class WalletRelyingPartyRepositoryTest {
     }
 
     @Test
-    @DisplayName("store and get")
-    void storeAndGet() {
-        WalletRelyingParty rp = EntityGenerator.generateWalletRelyingParty();
+    @DisplayName("persists the relying party and its related services and instances")
+    void persistsRelyingPartyGraph() {
+        WalletRelyingParty relyingParty = EntityGenerator.generateWalletRelyingParty(2);
 
-        WalletRelyingParty returnFromSave = repository.saveAndFlush(rp);
+        WalletRelyingParty savedRelyingParty = repository.saveAndFlush(relyingParty);
+        entityManager.clear();
 
-        WalletRelyingParty actual = repository.findById(returnFromSave.getId()).get();
+        WalletRelyingParty actual = repository.findById(savedRelyingParty.getId()).orElseThrow();
 
-        assert actual.equals(returnFromSave);
+        assertAll(
+            () -> assertEquals(relyingParty.getLegalName(), actual.getLegalName()),
+            () -> assertEquals(relyingParty.getOrgno(), actual.getOrgno()),
+            () -> assertEquals(relyingParty.isPsb(), actual.isPsb()),
+            () -> assertEquals(2, actual.getServices().size()),
+            () -> assertTrue(actual.getCreatedMs() > 0),
+            () -> assertTrue(actual.getLastUpdatedMs() > 0)
+        );
+
+        for (int index = 0; index < actual.getServices().size(); index++) {
+            WalletRelyingPartyService expectedService = relyingParty.getServices().get(index);
+            WalletRelyingPartyService actualService = actual.getServices().get(index);
+
+            assertAll(
+                () -> assertEquals(expectedService.getServiceTradeName(), actualService.getServiceTradeName()),
+                () -> assertEquals(actual.getId(), actualService.getWalletRelyingParty().getId()),
+                () -> assertEquals(1, actualService.getRelyingPartyInstances().size()),
+                () -> assertEquals(actualService.getId(),
+                    actualService.getRelyingPartyInstances().getFirst().getWalletRelyingPartyService().getId())
+            );
+        }
     }
 
     @Test
-    @DisplayName("orgno when null")
-    void getOrgnoNull() {
-        WalletRelyingParty actual = repository.findByOrgno("9876").orElse(new WalletRelyingParty("name", "orgno", true, new ArrayList<>()));
-        assertNotNull(actual);
-        assertEquals(actual.getLegalName(), "name");
+    @DisplayName("finds a relying party by its organization number")
+    void findsByOrgno() {
+        WalletRelyingParty relyingParty = EntityGenerator.generateWalletRelyingParty(0);
+        repository.saveAndFlush(relyingParty);
+
+        WalletRelyingParty actual = repository.findByOrgno(relyingParty.getOrgno()).orElseThrow();
+
+        assertEquals(relyingParty.getId(), actual.getId());
+        assertTrue(repository.existsByOrgno(relyingParty.getOrgno()));
     }
 
     @Test
-    @DisplayName("orgno when exists")
-    void getOrgnoExists() {
-        WalletRelyingParty rp = EntityGenerator.generateWalletRelyingParty();
-        repository.saveAndFlush(rp);
-        WalletRelyingParty actual = repository.findByOrgno(rp.getOrgno()).orElse(new WalletRelyingParty("name", "orgno", true, new ArrayList<>()));
-        assertNotNull(actual);
-        assertEquals(actual.getLegalName(), rp.getLegalName());
+    @DisplayName("returns no relying party for an unknown organization number")
+    void doesNotFindUnknownOrgno() {
+        String unknownOrgno = generateValidOrgno();
+
+        assertTrue(repository.findByOrgno(unknownOrgno).isEmpty());
+        assertFalse(repository.existsByOrgno(unknownOrgno));
     }
 }

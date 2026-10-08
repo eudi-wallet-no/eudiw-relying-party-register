@@ -58,7 +58,7 @@ public class V1ControllerValidationTests {
 
         @Test
         @DisplayName("then validation is properly applied to create resource")
-        void v1RejectsInvalidOrgnoInCreateResource() throws Exception {
+        void rejectsInvalidOrgnoInCreateResource() throws Exception {
 
             CreateRelyingPartyResource resource =
                 generateCreateRelyingPartyResource()
@@ -77,7 +77,7 @@ public class V1ControllerValidationTests {
 
         @Test
         @DisplayName("then validation is properly applied to edit resource")
-        void v1RejectsUnsaneNameInEditResource() throws Exception {
+        void rejectsUnsaneNameInEditResource() throws Exception {
             RelyingPartyInstance relyingPartyIn = relyingPartyRepository.save(EntityGenerator.generateRelyingParty());
             UUID id = relyingPartyIn.getId();
 
@@ -98,7 +98,7 @@ public class V1ControllerValidationTests {
 
         @Test
         @DisplayName("then validation is properly applied to search resource")
-        void v1RejectsInvalidSearchResource() throws Exception {
+        void rejectsInvalidSearchResource() throws Exception {
             SearchRelyingPartyResource resource = new SearchRelyingPartyResource("$fornothing");
 
             mvcPerform(post("/v1/rp/search"), resource)
@@ -114,7 +114,7 @@ public class V1ControllerValidationTests {
 
         @DisplayName("then validation is properly applied to the delete ID")
         @Test
-        void v1RejectsInvalidDeleteId() throws Exception {
+        void rejectsInvalidDeleteId() throws Exception {
             String invalidId = "invalid-id";
             mvcPerform(delete("/v1/rp/" + invalidId), null)
                 .andExpect(status().isBadRequest())
@@ -128,7 +128,7 @@ public class V1ControllerValidationTests {
 
         @DisplayName("then validation is properly applied to the get ID")
         @Test
-        void v1RejectsInvalidGetId() throws Exception {
+        void rejectsInvalidGetId() throws Exception {
             String invalidId = "invalid-id";
             mvcPerform(get("/v1/rp/" + invalidId), null)
                 .andExpect(status().isBadRequest())

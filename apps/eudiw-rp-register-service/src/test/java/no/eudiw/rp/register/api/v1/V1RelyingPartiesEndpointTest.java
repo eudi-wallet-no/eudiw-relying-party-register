@@ -66,7 +66,7 @@ public class V1RelyingPartiesEndpointTest {
             @ParameterizedTest
             @ValueSource(strings = {"text/plain; input=client-supplied", "application/xml"})
             @DisplayName("with an unsupported media type returns 415 without reflecting input")
-            void v1RejectsUnsupportedCreateMediaType(String contentType) throws Exception {
+            void rejectsUnsupportedCreateMediaType(String contentType) throws Exception {
                 mockMvc.perform(post("/v1/rp")
                                     .contentType(contentType)
                                     .header(X_API_KEY_HEADER, VALID_API_KEY)
@@ -81,7 +81,7 @@ public class V1RelyingPartiesEndpointTest {
 
             @Test
             @DisplayName("with a valid create resource for a known ID")
-            void v1CreatesRelyingParty() throws Exception {
+            void createsRelyingParty() throws Exception {
                 CreateRelyingPartyResource resource = generateCreateRelyingPartyResource();
 
                 RelyingPartyResource expectedResponse = ResourceGenerator.generateRelyingPartyResource();
@@ -105,7 +105,7 @@ public class V1RelyingPartiesEndpointTest {
 
             @Test
             @DisplayName("with a valid create resource for an unknown ID")
-            void v1RejectsUnknownIdWhenCreatingRelyingParty() throws Exception {
+            void rejectsUnknownIdWhenCreatingRelyingParty() throws Exception {
                 when(relyingPartyService.createRelyingParty(any())).thenThrow(new NotFoundException(""));
 
                 CreateRelyingPartyResource resource = generateCreateRelyingPartyResource();
@@ -124,7 +124,7 @@ public class V1RelyingPartiesEndpointTest {
 
             @Test
             @DisplayName("with an existing relying party")
-            void v1RejectsDuplicateRelyingParty() throws Exception {
+            void rejectsDuplicateRelyingParty() throws Exception {
                 when(relyingPartyService.createRelyingParty(any()))
                     .thenThrow(new AlreadyExistsException("Relying party already exists"));
 
@@ -140,7 +140,7 @@ public class V1RelyingPartiesEndpointTest {
 
             @Test
             @DisplayName("when an unexpected error occurs")
-            void v1ReturnsErrorWhenCreateFailsUnexpectedly() throws Exception {
+            void returnsErrorWhenCreateFailsUnexpectedly() throws Exception {
                 when(relyingPartyService.createRelyingParty(any()))
                     .thenThrow(new IllegalStateException("unexpected"));
 
@@ -155,7 +155,7 @@ public class V1RelyingPartiesEndpointTest {
             }
             @Test
             @DisplayName("with an invalid create resource")
-            void v1RejectsInvalidOrgnoWhenCreatingRelyingParty() throws Exception {
+            void rejectsInvalidOrgnoWhenCreatingRelyingParty() throws Exception {
                 CreateRelyingPartyResource resource =
                     generateCreateRelyingPartyResource().withOrgNr(generateInvalidOrgno());
 
@@ -178,7 +178,7 @@ public class V1RelyingPartiesEndpointTest {
 
             @Test
             @DisplayName("with a valid and known ID")
-            void v1GetsRelyingPartyByKnownId() throws Exception {
+            void getsRelyingPartyByKnownId() throws Exception {
                 RelyingPartyResource expectedResponse = ResourceGenerator.generateRelyingPartyResource();
                 when(relyingPartyService.findRelyingParty(any())).thenReturn(expectedResponse);
 
@@ -197,7 +197,7 @@ public class V1RelyingPartiesEndpointTest {
 
             @Test
             @DisplayName("with a valid but unknown ID")
-            void v1ReturnsNotFoundForUnknownRelyingPartyId() throws Exception {
+            void returnsNotFoundForUnknownRelyingPartyId() throws Exception {
                 when(relyingPartyService.findRelyingParty(any())).thenThrow(new NotFoundException(""));
 
                 UUID id = UUID.randomUUID();
@@ -212,7 +212,7 @@ public class V1RelyingPartiesEndpointTest {
 
             @Test
             @DisplayName("with a deleted relying party")
-            void v1ReturnsNotFoundForDeletedRelyingParty() throws Exception {
+            void returnsNotFoundForDeletedRelyingParty() throws Exception {
                 UUID id = UUID.randomUUID();
                 when(relyingPartyService.findRelyingParty(id))
                     .thenThrow(new ResourceDeletedException("Relying party was deleted"));
@@ -227,7 +227,7 @@ public class V1RelyingPartiesEndpointTest {
 
             @Test
             @DisplayName("with an invalid ID")
-            void v1RejectsInvalidRelyingPartyId() throws Exception {
+            void rejectsInvalidRelyingPartyId() throws Exception {
 
                 String invalidId = UUID.randomUUID().toString().substring(0, 10);
                 mockMvc.perform(get("/v1/rp/" + invalidId)
@@ -244,7 +244,7 @@ public class V1RelyingPartiesEndpointTest {
         class EditTests {
             @Test
             @DisplayName("with a valid edit resource for a known ID")
-            void v1UpdatesRelyingPartyByKnownId() throws Exception {
+            void updatesRelyingPartyByKnownId() throws Exception {
 
                 RelyingPartyResource expectedResponse = ResourceGenerator.generateRelyingPartyResource();
                 when(relyingPartyService.updateRelyingParty(any(), any())).thenReturn(expectedResponse);
@@ -266,7 +266,7 @@ public class V1RelyingPartiesEndpointTest {
 
             @Test
             @DisplayName("with a valid edit resource for an unknown ID")
-            void v1ReturnsNotFoundWhenUpdatingUnknownRelyingParty() throws Exception {
+            void returnsNotFoundWhenUpdatingUnknownRelyingParty() throws Exception {
 
                 RelyingPartyResource expectedResponse = ResourceGenerator.generateRelyingPartyResource();
                 when(relyingPartyService.updateRelyingParty(any(), any())).thenThrow(new NotFoundException(""));
@@ -286,7 +286,7 @@ public class V1RelyingPartiesEndpointTest {
 
             @Test
             @DisplayName("with invalid edit resource")
-            void v1RejectsInvalidRelyingPartyUpdate() throws Exception {
+            void rejectsInvalidRelyingPartyUpdate() throws Exception {
 
                 EditRelyingPartyResource invalidEditResource =
                     ResourceGenerator.generateEditRelyingPartyResource()
@@ -334,7 +334,7 @@ public class V1RelyingPartiesEndpointTest {
         class SearchTests {
             @Test
             @DisplayName("with a valid search resource")
-            void v1SearchesRelyingParties() throws Exception {
+            void searchesRelyingParties() throws Exception {
 
                 List<RelyingPartyResource> dummySearchResult =
                     List.of(ResourceGenerator.generateRelyingPartyResource());
@@ -357,7 +357,7 @@ public class V1RelyingPartiesEndpointTest {
 
             @Test
             @DisplayName("with an inalid search resource")
-            void v1RejectsInvalidSearchResource() throws Exception {
+            void rejectsInvalidSearchResource() throws Exception {
 
                 String invalidSearchResourceJson = "{ \"search_term\": null }";
 
@@ -377,7 +377,7 @@ public class V1RelyingPartiesEndpointTest {
 
         @DisplayName("then an error is created when API key header is missing")
         @Test
-        void v1RejectsRequestWithoutApiKey() throws Exception {
+        void rejectsRequestWithoutApiKey() throws Exception {
             mockMvc.perform(get("/v1/rp")
                                 .accept(MediaType.APPLICATION_JSON))
                    .andExpect(status().isUnauthorized())
@@ -387,7 +387,7 @@ public class V1RelyingPartiesEndpointTest {
 
         @DisplayName("then an error is created when API key is invalid")
         @Test
-        void v1RejectsRequestWithInvalidApiKey() throws Exception {
+        void rejectsRequestWithInvalidApiKey() throws Exception {
             mockMvc.perform(get("/v1/rp")
                                 .accept(MediaType.APPLICATION_JSON)
                                 .header(X_API_KEY_HEADER, "junit-invalid-api-key"))
