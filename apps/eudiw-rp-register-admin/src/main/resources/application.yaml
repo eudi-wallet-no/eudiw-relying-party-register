@@ -53,6 +53,7 @@ digdir:
       bearer-token: false
 
 eudiw-admin-web:
+  credential-registry-base-uri: http://digital-lommebok-credential-registry-service:8080
   csp:
     mode: report_only
     policy: >-

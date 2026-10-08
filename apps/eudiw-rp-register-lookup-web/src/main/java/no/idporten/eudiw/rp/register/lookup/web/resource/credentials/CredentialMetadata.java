@@ -1,18 +1,20 @@
 package no.idporten.eudiw.rp.register.lookup.web.resource.credentials;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import tools.jackson.databind.json.JsonMapper;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Data
@@ -30,9 +32,10 @@ public class CredentialMetadata {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Claims {
+        private static final JsonMapper PATH_MAPPER = JsonMapper.builder().build();
         @NotEmpty
         @JsonProperty(value = "path", required = true)
-        private List<@NotBlank String> paths;
+        private List<Object> paths;
 
         @JsonProperty("display")
         private List<@NotNull @Valid Display> displays = new ArrayList<>();
@@ -41,10 +44,18 @@ public class CredentialMetadata {
             return Display.getDisplayNameForLocale(locale, this.displays, null);
         }
         public String getDcqlFormattedPaths() {
-            return "[%s]".formatted(
-                paths.stream()
-                     .map("\"%s\""::formatted)
-                     .collect(Collectors.joining(", ")));
+            return PATH_MAPPER.writeValueAsString(paths);
+        }
+
+        @JsonIgnore
+        @AssertTrue(message = "claim path must contain only strings, null, or non-negative integers")
+        public boolean isValidPaths() {
+            return paths == null || paths.stream().allMatch(element ->
+                    element == null || element instanceof String
+                            || ((element instanceof Byte || element instanceof Short
+                                 || element instanceof Integer || element instanceof Long
+                                 || element instanceof BigInteger)
+                                && new BigInteger(element.toString()).signum() >= 0));
         }
     }
 }

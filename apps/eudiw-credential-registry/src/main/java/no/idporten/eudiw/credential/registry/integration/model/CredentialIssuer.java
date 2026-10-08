@@ -1,11 +1,13 @@
 package no.idporten.eudiw.credential.registry.integration.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.validation.annotation.Validated;
+import no.idporten.eudiw.credential.registry.response.model.CredentialValidationError;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -38,7 +40,10 @@ public class CredentialIssuer {
     private List<@Valid Display> display = null;
     @JsonProperty("credential_configurations_supported")
     @NotNull
-    private Map<String, @Valid CredentialConfiguration> credentialConfiguration;
+    // Configurations are validated separately so a bad credential does not hide its siblings.
+    private Map<String, CredentialConfiguration> credentialConfiguration;
+    @JsonIgnore
+    private Map<String, CredentialValidationError> credentialConfigurationErrors = Map.of();
 
     public CredentialIssuer(){
 
@@ -112,9 +117,15 @@ public class CredentialIssuer {
     public Map<String, CredentialConfiguration> getCredentialConfiguration(){
         return this.credentialConfiguration;
     }
+
+    public Map<String, CredentialValidationError> getCredentialConfigurationErrors() {
+        return credentialConfigurationErrors;
+    }
+
+    public void setCredentialConfigurationErrors(Map<String, CredentialValidationError> errors) {
+        this.credentialConfigurationErrors = errors;
+    }
 }
-
-
 
 
 

@@ -207,7 +207,15 @@
                     <tbody>
                         <tr th:each="e : ${rp.relyingPartyEntitlements}">
                             <td th:text="${e.displayName}"></td>
-                            <td th:text="${e.credentialIssuerUrl}"></td>
+                            <td>
+                                <span th:text="${e.credentialIssuerUrl}"></span>
+                                <ul th:if="${!#lists.isEmpty(credentialErrorsAttr.get(e.credentialIssuerUrl))}" class="ds-list">
+                                    <li th:each="error : ${credentialErrorsAttr.get(e.credentialIssuerUrl)}">
+                                        <strong th:text="|${error.name}:|"></strong>
+                                        <p th:each="message : ${error.errors}" th:text="${message}" class="ds-validation-message"></p>
+                                    </li>
+                                </ul>
+                            </td>
                         </tr>
                     </tbody>
                 </table>

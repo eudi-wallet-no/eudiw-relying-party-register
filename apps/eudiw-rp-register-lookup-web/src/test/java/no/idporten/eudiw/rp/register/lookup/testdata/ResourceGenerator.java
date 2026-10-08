@@ -91,7 +91,7 @@ public class ResourceGenerator extends TestDataGenerator {
 
     private static CredentialMetadata.Claims generateClaims() {
         int n = rng.nextInt(1, 3);
-        var paths = generateListBy(n, TestDataGenerator::generateName);
+        List<Object> paths = new ArrayList<>(generateListBy(n, TestDataGenerator::generateName));
         var displays = generateDisplays();
         return new CredentialMetadata.Claims(paths, displays);
     }

@@ -1,0 +1,72 @@
+{
+  "credentials": [
+    {
+      "credential_issuer": "https://agent.paradym.id/oid4vci/a3614c5c-aad7-4c72-b1be-2837ffd644af",
+      "credential_configuration_id": "cmmz1pojj009d01s6mk4uu4h5",
+      "credential_type": "https://metadata.paradym.id/types/keMxY4Xq5A-Ebwoid",
+      "format": "dc+sd-jwt",
+      "credential_metadata": {
+        "display": [
+          {
+            "name": "EBWOID",
+            "locale": "no-NO",
+            "description": "European Business Wallet Owner Identification Data"
+          }
+        ],
+        "claims": [
+          {
+            "path": [
+              "id"
+            ],
+            "display": [
+              {
+                "name": "id",
+                "locale": "no-NO",
+                "description": ""
+              }
+            ]
+          }
+        ]
+      },
+      "display": [
+        {
+          "name": "Registerenheten i Brønnøysund",
+          "locale": "no-NO",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "credential_issuer": "https://agent.paradym.id/oid4vci/a3614c5c-aad7-4c72-b1be-2837ffd644af",
+      "credential_configuration_id": "cmtty9uoi000302s64nstreth",
+      "credential_type": "uri:eu:eudi:eucc:1",
+      "format": "dc+sd-jwt",
+      "credential_metadata": {
+        "display": [
+          {
+            "name": "EUCC",
+            "locale": "no-NO",
+            "description": "EU Company Certificate — schema 0.9.0. Sandkasse: én måneds gyldighet."
+          }
+        ],
+        "claims": [
+          {
+            "path": [
+              "legal_representative",
+              null,
+              "legal_person"
+            ],
+            "display": []
+          }
+        ]
+      },
+      "display": [
+        {
+          "name": "Registerenheten i Brønnøysund",
+          "locale": "no-NO",
+          "description": ""
+        }
+      ]
+    }
+  ]
+}
