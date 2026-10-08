@@ -105,8 +105,9 @@ public class RelyingPartyService {
         WalletRelyingPartyService walletService = relyingPartyInstance.getWalletRelyingPartyService();
         if (!Objects.equals(walletService.getServiceTradeName(), serviceTradeName)) {
             walletService.setServiceTradeName(serviceTradeName);
-            // v1 shows the instance's last_updated_ms, so a service rename must also update the instance.
-            relyingPartyInstance.markUpdated();
+            for (RelyingPartyInstance serviceInstance : walletService.getRelyingPartyInstances()) {
+                serviceInstance.markUpdated();
+            }
         }
         relyingPartyInstance.setActive(active);
 

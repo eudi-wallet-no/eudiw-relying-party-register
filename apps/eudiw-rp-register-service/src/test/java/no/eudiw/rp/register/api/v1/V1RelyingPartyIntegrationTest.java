@@ -206,4 +206,42 @@ public class V1RelyingPartyIntegrationTest {
         assertEquals(editResult.tradeName(), editResource.tradeName());
     }
 
+    @Test
+    void testRenameServiceUpdatesEveryInstanceTimestamp() {
+        RelyingPartyResource firstInstance = relyingPartyService.createRelyingParty(
+            new CreateRelyingPartyResource(generateValidOrgno(), generateName(), List.of(), List.of())
+        );
+        RelyingPartyInstance instance = relyingPartyInstanceRepository.findById(firstInstance.id()).orElseThrow();
+        var serviceId = instance.getWalletRelyingPartyService().getId();
+        var secondInstanceId = new TransactionTemplate(transactionManager).execute(status -> {
+            var walletService = walletRelyingPartyServiceRepository.findById(serviceId).orElseThrow();
+            var secondInstance = new RelyingPartyInstance(List.of(), List.of(), List.of());
+            secondInstance.setWalletRelyingPartyService(walletService);
+            walletService.getRelyingPartyInstances().add(secondInstance);
+            var savedInstance = relyingPartyInstanceRepository.saveAndFlush(secondInstance);
+            entityManager.createNativeQuery(
+                "UPDATE relying_party_instance SET last_updated_ms = 1 WHERE id = :firstId OR id = :secondId"
+            ).setParameter("firstId", firstInstance.id())
+                .setParameter("secondId", savedInstance.getId())
+                .executeUpdate();
+            return savedInstance.getId();
+        });
+        entityManager.clear();
+
+        RelyingPartyResource firstBeforeUpdate = relyingPartyService.findRelyingParty(firstInstance.id());
+        RelyingPartyResource secondBeforeUpdate = relyingPartyService.findRelyingParty(secondInstanceId);
+        var renamedService = generateName();
+        EditRelyingPartyResource editResource =
+            new EditRelyingPartyResource(renamedService, List.of(), List.of(), true);
+        relyingPartyService.updateRelyingParty(firstInstance.id(), editResource);
+
+        RelyingPartyResource firstAfterUpdate = relyingPartyService.findRelyingParty(firstInstance.id());
+        RelyingPartyResource secondAfterUpdate = relyingPartyService.findRelyingParty(secondInstanceId);
+
+        assertEquals(renamedService, firstAfterUpdate.tradeName());
+        assertTrue(firstAfterUpdate.lastUpdatedMs() > firstBeforeUpdate.lastUpdatedMs());
+        assertEquals(renamedService, secondAfterUpdate.tradeName());
+        assertTrue(secondAfterUpdate.lastUpdatedMs() > secondBeforeUpdate.lastUpdatedMs());
+    }
+
 }
