@@ -1,6 +1,7 @@
 package no.idporten.eudiw.rp.admin.web;
 
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
+import no.idporten.eudiw.rp.admin.service.credentialsservice.CredentialsService;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.admin.web.controllers.DetailedViewController;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
@@ -38,6 +39,9 @@ public class DetailedViewControllerTests {
     @SuppressWarnings("unused")
     @MockitoBean
     private RelyingPartiesService mockRpService;
+
+    @MockitoBean
+    private CredentialsService mockCredentialsService;
 
     @Nested
     @DisplayName("when GET'ing the /details endpoint for a given RP ID ...")
