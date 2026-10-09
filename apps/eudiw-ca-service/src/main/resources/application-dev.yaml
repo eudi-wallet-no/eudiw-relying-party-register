@@ -14,13 +14,7 @@ spring:
   application:
     environment: dev
   datasource:
-    type: org.springframework.jdbc.datasource.SimpleDriverDataSource
-    url: "jdbc:h2:mem:ca;MODE=MySQL;DB_CLOSE_DELAY=-1"
-    driver-class-name: org.h2.Driver
-    username: ca
-    password: ca
-  jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    url: "jdbc:mariadb://localhost:9226/ca_db"
 
 eudiw-ca:
-  base-uri: "http://ca-service:9220"
+  base-uri: "http://localhost:9220"

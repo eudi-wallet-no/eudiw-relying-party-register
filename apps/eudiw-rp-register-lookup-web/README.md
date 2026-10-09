@@ -16,30 +16,19 @@ To build and run this project you need to have the following installed:
 > Access to Digitaliseringsdirektoratet infrastructure is required to run the application.
 
 
-## Development
-
-### Secrets
-Clone https://github.com/eudi-wallet-no/eudiw-developer-secrets and follow the instructions in the README.
-
-### Profiles
+## Configuration
 
 Profiles in the [resources](src/main/resources) folder:
 
 | Profile         | Description                                                        |
 |-----------------|--------------------------------------------------------------------|
-| `dev`           | Local development against local Docker dependencies                |
-| `docker`        | Docker locally, run by docker-compose file                         |
+| `dev`           | Local development against local Docker dependencies (API on 9210, management on 9211) |
+| `docker`        | Docker locally, run by the root docker-compose file                |
 | `systest`       | Systest environment (deployed)                                     |
 | `systest-local` | Run locally against the systest environment                        |
 | `test`          | Test environment (deployed)                                        |
 
-### Running the application locally
+To run against the systest environment locally, run with profile `systest-local`.
 
-#### Docker
-Run the Docker stack: `docker compose up --build`.
-
-#### IntelliJ with dependencies in Docker
-Run with profile `dev`; start dependencies with `docker compose up -d --build --scale rp-register-lookup-web=0`.
-
-#### IntelliJ with dependencies in systest
-Run with profile `systest-local`.
+For local setup, run commands and ports, see
+[Local development](../../README.md#running-locally-in-intellij).

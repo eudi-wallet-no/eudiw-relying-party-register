@@ -21,34 +21,16 @@ To add trusted enties/trusted-serviceproviders or services to the trusted listes
 > [!WARNING]
 > Access to Digitaliseringsdirektoratet infrastructure is required to run the application.
 
-## Development
+## Configuration
 
-### Secrets
-Clone https://github.com/eudi-wallet-no/eudiw-developer-secrets and follow the instructions in the README.
-
-### Profiles
-
-Profiles in the [resources](/src/main/resources) folder:
+Profiles in the [resources](src/main/resources) folder:
 
 | Profile | Description                                |
 |---------|--------------------------------------------|
 | dev     | Local development                          |
-| docker  | Docker locally, run by docker-compose file |
+| docker  | Docker locally, run by the root docker-compose file |
 | systest | Systest environment                        |
 | test    | Test environment                           |
 
-
-### Running the application locally
-
-The local hosts file should include:
-```
-127.0.0.1 trustlist-service
-```
-
-#### Docker
-Run the Docker stack: `docker compose up --build`.
-
-#### IntelliJ
-Run with profile `dev` (no Docker dependencies).
-
-The application will run on http://trustlist-service:9230 with either profile.
+For local setup, run commands and ports, see
+[Local development](../../README.md#running-locally-in-intellij).

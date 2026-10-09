@@ -1,8 +1,16 @@
 ---
+server:
+  port: 9250
+
+management:
+  server:
+    port: 9250
+
 spring:
   config:
     import: optional:file:${EUDIW_RP_REGISTER_ADMIN_ENV}[.properties]
   application:
+    name: digital-lommebok-rp-register-admin
     environment: dev
 
 external-dependency-health-checks:

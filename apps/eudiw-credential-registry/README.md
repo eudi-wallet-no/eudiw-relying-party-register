@@ -15,35 +15,17 @@ EUDI wallet: credential-registry (bevisregister) for eidas2sandkasse.
 > Access to Digitaliseringsdirektoratet infrastructure is required to run the application.
 
 
-## Development
+## Configuration
 
-### Secrets
-Clone https://github.com/eudi-wallet-no/eudiw-developer-secrets and follow the instructions in the README.
-
-### Profiles
-
-Profiles in the [resources](/src/main/resources) folder:
+Profiles in the [resources](src/main/resources) folder:
 
 | Profile | Description                                |
 |---------|--------------------------------------------|
 | dev     | Local development                          |
-| docker  | Docker locally, run by docker-compose file |
+| docker  | Docker locally, run by the root docker-compose file |
 | systest | Systest environment                        |
 | test    | Test environment                           |
 | prod    | Prod environment                           |
 
-
-### Running the application locally
-
-The local hosts file should include:
-```
-127.0.0.1 credential-registry
-```
-
-#### Docker
-Run the Docker stack: `docker compose up --build`.
-
-#### IntelliJ with dependencies in Docker
-Run with profile `dev`; start dependencies with `docker compose up -d --build --scale credential-registry=0`.
-
-The application will run on http://credential-registry:9294.
+For local setup, run commands and ports, see
+[Local development](../../README.md#running-locally-in-intellij).

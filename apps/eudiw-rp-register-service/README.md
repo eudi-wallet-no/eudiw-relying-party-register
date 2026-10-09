@@ -14,15 +14,5 @@ EUDIW Relying Party Register
 > [!WARNING]
 > Access to Digitaliseringsdirektoratet infrastructure is required to run the application.
 
-## Development
-
-### Secrets
-Clone https://github.com/eudi-wallet-no/eudiw-developer-secrets and follow the instructions in the README.
-
-### Running the application locally
-
-#### Docker
-Run the Docker stack: `docker compose up --build`.
-
-#### IntelliJ with dependencies in Docker
-Run with profile `dev`; start dependencies with `docker compose up -d --build --scale rp-register-service=0`.
+For local setup, run commands and ports, see
+[Local development](../../README.md#running-locally-in-intellij).

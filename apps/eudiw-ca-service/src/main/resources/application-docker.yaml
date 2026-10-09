@@ -18,4 +18,4 @@ spring:
     url: "jdbc:mariadb://ca-db:3306/ca_db"
 
 eudiw-ca:
-  base-uri: "http://ca-service:9220"
+  base-uri: "http://localhost:9220"

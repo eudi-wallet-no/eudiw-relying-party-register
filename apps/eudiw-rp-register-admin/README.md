@@ -15,10 +15,7 @@ EUDIW Relying Party Register Admin + Self-service
 > Access to Digitaliseringsdirektoratet infrastructure is required to run the application.
 
 
-## Development
-
-### Secrets
-Clone https://github.com/eudi-wallet-no/eudiw-developer-secrets and follow the instructions in the README.
+## Configuration
 
 ### Applications, environments, and profiles
 
@@ -29,14 +26,14 @@ profiles.
 
 ### Spring profiles
 
-Profiles in the [resources](/src/main/resources) folder:
+Profiles in the [resources](src/main/resources) folder:
 
 Environment specific profiles :
 
 | Profile   | Description                                |
 |-----------|--------------------------------------------|
 | `dev`     | Local development                          |
-| `docker`  | Docker locally, run by docker-compose file |
+| `docker`  | Docker locally, run by the root docker-compose file |
 | `systest` | Systest environment                        |
 | `test`    | Test environment                           |
 
@@ -50,21 +47,5 @@ Application specific profiles:
 Lastly, we have a number of profiles on the form `<application>-<env>`, which
 apply specifically for a given combination of environment/application.
 
-### Running the applications locally
-
-The local hosts file should include:
-```
-127.0.0.1 rp-register-admin
-127.0.0.1 rp-register-selfservice
-```
-
-#### Docker
-Run the Docker stack: `docker compose up --build`.
-
-#### IntelliJ with dependencies in Docker
-Run with profiles `dev,admin-dev` or `dev,selfservice-dev`; start dependencies with `docker compose up -d --build --scale rp-register-admin=0 --scale rp-register-selfservice=0`.
-
-### Ports
-
-The admin and selfservice applications run on `http://rp-register-admin:9250`
-and `http://rp-register-selfservice:9255`, respectively.
+For local setup, run commands and ports, see
+[Local development](../../README.md#running-locally-in-intellij).
