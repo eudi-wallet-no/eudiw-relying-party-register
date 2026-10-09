@@ -17,8 +17,17 @@ public class BaseSecurityConfig {
 
     @Bean
     public SecurityFilterChain baseFilterChain(HttpSecurity http, CspProperties csp) {
-        CspHeaders.configure(http, csp);
+        configureCspHeader(http, csp);
         return http.build();
+    }
+
+    private static void configureCspHeader(HttpSecurity http, CspProperties csp) {
+        http.headers(headers -> headers.contentSecurityPolicy(policy -> {
+            policy.policyDirectives(csp.policy());
+            if (csp.mode() == CspProperties.Mode.REPORT_ONLY) {
+                policy.reportOnly();
+            }
+        }));
     }
 
 }
