@@ -232,6 +232,13 @@ main {
     gap: var(--ds-size-8);
 }
 
+.main__content {
+    display:flex;
+    flex-direction:column;
+    gap:var(--ds-size-2);
+    max-width:720px;
+}
+
 main > * {
     width: 100%;
 }

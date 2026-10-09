@@ -9,11 +9,11 @@
     <header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
     <main id="hovudinnhald" tabindex="-1">
-        <div style="display:flex; flex-direction:column; gap:var(--ds-size-2); max-width:720px;">
+        <div class="main__content">
             <h1 class="ds-heading" data-size="xl">
                 Innsynsteneste: Nasjonal sandkasse for digital lommebok
             </h1>
-            <p class="ds-paragraph" data-size="lg" style="color:var(--ds-color-neutral-text-subtle);">Søk i registeret over brukarstader (RP), eller utforsk beviskatalogen i sandkassa.</p>
+            <p class="ds-paragraph" data-size="lg">Søk i registeret over brukarstader (RP), eller utforsk beviskatalogen i sandkassa.</p>
         </div>
 
         <form th:action="@{/search}"
@@ -112,23 +112,6 @@
 
     </main>
     <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
-    <script>
-        (() => {
-            const form = document.getElementById("index-search-form");
-            if (!form) return;
-            form.addEventListener("submit", (e) => {
-                const btn = e.submitter || form.querySelector("button[type=submit]");
-                if (!btn) return;
-                btn.disabled = true;
-                btn.setAttribute("aria-busy", "true");
-                btn.setAttribute("aria-label", "Søkjer");
-                btn.innerHTML = '<span class="ds-spinner" data-size="sm" aria-hidden="true">'
-                    + '<svg viewBox="0 0 50 50">'
-                    + '<circle class="ds-spinner__background" cx="25" cy="25" r="20" fill="none" stroke-width="4"></circle>'
-                    + '<circle class="ds-spinner__circle" cx="25" cy="25" r="20" fill="none" stroke-width="4"></circle>'
-                    + '</svg></span>';
-            });
-        })();
-    </script>
+    <script src="/js/searchForm.js"></script>
 </body>
 </html>

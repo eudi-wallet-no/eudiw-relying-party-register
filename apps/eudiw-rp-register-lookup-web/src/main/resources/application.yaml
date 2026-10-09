@@ -66,14 +66,15 @@ eudiw-rp-register-lookup-web:
       mode: enforce
         #report-uri https://csp-report.digdir.no/api/reports;
       policy: >-
-        report-uri http://localhost:8080/csp-report;
+        report-uri http://localhost:8080/api/reports;
         default-src 'none';
         script-src 'self';
         script-src-attr 'none';
         style-src 'self';
         style-src-attr 'none';
+        style-src-elem 'self' https://altinncdn.no/fonts/inter/v4.1/inter.css;
         img-src 'self' data:;
-        font-src 'self';
+        font-src 'self' https://altinncdn.no/fonts/inter/v4.1/;
         connect-src 'self';
         form-action 'self';
         base-uri 'none';
