@@ -1,10 +1,10 @@
 ---
 server:
-  port: 9210
+  port: 8080
 
 management:
   server:
-    port: 9211
+    port: 8090
   endpoint:
     health:
       show-details: always
