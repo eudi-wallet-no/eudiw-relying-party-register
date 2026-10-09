@@ -1,6 +1,0 @@
-**
-!static/
-!static/**
-!poll-status.sh
-!start-status.sh
-!default.conf

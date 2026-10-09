@@ -29,7 +29,7 @@ Each app has its own README with details on setup, running and testing.
 ## Run everything locally with Docker Compose
 
 The root `docker-compose.yaml` is the only Compose file. It starts all seven
-applications, two MariaDB databases, Redis and a dashboard with service links and readiness status.
+applications, two MariaDB databases and Redis.
 
 ### Secrets
 Clone https://github.com/eudi-wallet-no/eudiw-developer-secrets and follow the instructions in the README. The Compose file reads the same environment files and API keys as the applications do when run from an IDE.
@@ -38,7 +38,7 @@ Clone https://github.com/eudi-wallet-no/eudiw-developer-secrets and follow the i
 
 ### Development
 
-Start the whole stack with `docker compose up --build`. The dashboard is available at http://localhost:8080.
+Start the whole stack with `docker compose up --build`.
 
 ```bash
 # Build and start all services in the background
@@ -76,4 +76,3 @@ For self-service, use `dev,selfservice-dev`.
 | ca-service | 9220 | 9221 |
 | credential-registry | 9294 | 9294 |
 | trustlist-service | 9230 | 9230 |
-| dashboard | 8080 | — |

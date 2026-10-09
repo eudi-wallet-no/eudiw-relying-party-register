@@ -13,30 +13,6 @@ networks:
 x-app-environment: &app-environment
   LOCAL_SERVICE_HOST: host.docker.internal
 
-x-dashboard-environment: &dashboard-environment
-  HEALTH_rp-register-admin: &admin-health http://rp-register-admin:9250/health/readiness
-  LINK_rp-register-admin: http://localhost:9250/
-  DESCRIPTION_rp-register-admin: Administrasjon av relying parties
-  HEALTH_rp-register-selfservice: &selfservice-health http://rp-register-selfservice:9255/health/readiness
-  LINK_rp-register-selfservice: http://localhost:9255/registrations
-  TITLE_rp-register-selfservice: eudiw-rp-register-admin
-  DESCRIPTION_rp-register-selfservice: Selvbetjening for leverandører
-  HEALTH_rp-register-lookup-web: &lookup-health http://rp-register-lookup-web:9211/health/readiness
-  LINK_rp-register-lookup-web: http://localhost:9210/
-  DESCRIPTION_rp-register-lookup-web: Innsyn i registrerte relying parties
-  HEALTH_rp-register-service: &register-health http://rp-register-service:9201/health/readiness
-  LINK_rp-register-service: http://localhost:9200/swagger-ui.html
-  DESCRIPTION_rp-register-service: API for RP-registeret
-  HEALTH_ca-service: &ca-health http://ca-service:9221/health/readiness
-  LINK_ca-service: http://localhost:9220/swagger-ui.html
-  DESCRIPTION_ca-service: Sertifikatutsteder for sandkassen
-  HEALTH_credential-registry: &credential-health http://credential-registry:9294/health/readiness
-  LINK_credential-registry: http://localhost:9294/swagger-ui.html
-  DESCRIPTION_credential-registry: Register over credential-utstedere
-  HEALTH_trustlist-service: &trustlist-health http://trustlist-service:9230/health/readiness
-  LINK_trustlist-service: http://localhost:9230/
-  DESCRIPTION_trustlist-service: Tillitslister for eIDAS2-sandkassen
-
 services:
   # Delte støttetjenester
   redis:
@@ -119,7 +95,7 @@ services:
         cd /usr/local/webapps
         java -jar application.jar
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", *register-health]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://rp-register-service:9201/health/readiness"]
       interval: 15s
       start_period: 5s
       timeout: 5s
@@ -149,7 +125,7 @@ services:
         cd /usr/local/webapps/
         java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9251 -jar application.jar
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", *admin-health]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://rp-register-admin:9250/health/readiness"]
       interval: 15s
       start_period: 5s
       timeout: 5s
@@ -178,7 +154,7 @@ services:
         cd /usr/local/webapps/
         java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9256 -jar application.jar
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", *selfservice-health]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://rp-register-selfservice:9255/health/readiness"]
       interval: 15s
       start_period: 5s
       timeout: 5s
@@ -212,7 +188,7 @@ services:
         cd /usr/local/webapps/
         java -javaagent:opentelemetry-javaagent.jar -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9225 -jar application.jar
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", *ca-health]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://ca-service:9221/health/readiness"]
       interval: 15s
       start_period: 5s
       timeout: 5s
@@ -246,7 +222,7 @@ services:
         cd /usr/local/webapps/
         java -javaagent:opentelemetry-javaagent.jar -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9295 -jar application.jar
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", *credential-health]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://credential-registry:9294/health/readiness"]
       interval: 15s
       start_period: 5s
       timeout: 5s
@@ -277,7 +253,7 @@ services:
         cd /usr/local/webapps/
         java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9215 -jar application.jar
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", *lookup-health]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://rp-register-lookup-web:9211/health/readiness"]
       interval: 15s
       start_period: 5s
       timeout: 5s
@@ -307,17 +283,8 @@ services:
         cd /usr/local/webapps/
         java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9235 -jar application.jar
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", *trustlist-health]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://trustlist-service:9230/health/readiness"]
       interval: 15s
       start_period: 5s
       timeout: 5s
       retries: 20
-
-  dashboard:
-    build:
-      context: ./docker/dashboard
-    environment: *dashboard-environment
-    ports:
-      - "127.0.0.1:8080:8080"
-    networks:
-      - digital-lommebok
