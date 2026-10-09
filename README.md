@@ -31,6 +31,18 @@ Each app has its own README with details on setup, running and testing.
 The root `docker-compose.yaml` is the only Compose file. It starts all seven
 applications, two MariaDB databases and Redis.
 
+### Docker runtime
+
+Use Docker Desktop, or Colima on macOS with `host.docker.internal` support.
+Application-to-application calls go through the host's published ports, so the
+same URLs work whether an application runs in Docker or IntelliJ. Ports remain
+bound to `127.0.0.1`.
+
+Native Docker Engine on Linux is not supported by this local setup. It does not
+provide `host.docker.internal` automatically, and adding a `host-gateway` mapping
+alone would not make the loopback-bound published ports reachable. The runtime
+must support both host name resolution and access to these host ports.
+
 ### Secrets
 Clone https://github.com/eudi-wallet-no/eudiw-developer-secrets and follow the instructions in the README. The Compose file reads the same environment files and API keys as the applications do when run from an IDE.
 
