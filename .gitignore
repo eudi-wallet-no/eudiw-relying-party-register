@@ -61,8 +61,5 @@ logs/
 .env
 .env.local
 
-### Database dumps ###
-/scripts/dump/
-
 ### Impeccable ###
 .impeccable/
