@@ -4,9 +4,9 @@ import static no.eudiw.rp.register.testdata.ResourceGenerator.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import no.eudiw.rp.register.api.v1.resource.relyingparty.*;
-import no.eudiw.rp.register.domain.LegalEntity;
+import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
-import no.eudiw.rp.register.repository.LegalEntityRepository;
+import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.testdata.EntityGenerator;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,10 +25,10 @@ public class V1RelyingPartyEditingTest {
     private V1ApiService relyingPartyService;
 
     @Autowired
-    private LegalEntityRepository rpRepository;
+    private WalletRelyingPartyRepository rpRepository;
 
     @Autowired
-    private V1DataConverter converter;
+    private V1ContractMapper v1ContractMapper;
 
     @BeforeEach
     void clearRepositoryBeforeEachTest() {
@@ -210,21 +210,21 @@ public class V1RelyingPartyEditingTest {
         @Test
         @DisplayName("then only RPs with the specified entitlements are returned")
         void testSearchWithEntitlementsFiltering() {
-            int numLegalEntities = 10;
-            List<LegalEntity> legalEntities = EntityGenerator.generateLegalEntities(numLegalEntities);
-            rpRepository.saveAllAndFlush(legalEntities);
+            int numWalletRelyingParties = 10;
+            List<WalletRelyingParty> walletRelyingParties = EntityGenerator.generateWalletRelyingParties(numWalletRelyingParties);
+            rpRepository.saveAllAndFlush(walletRelyingParties);
 
             List<String> requiredEntitlements =
-                legalEntities.getFirst().getRelyingPartyInstances().getFirst()
+                EntityGenerator.instances(walletRelyingParties.getFirst()).getFirst()
                              .getRelyingPartyEntitlements()
                              .stream()
                              .map(RelyingPartyEntitlement::getEntitlement)
                              .toList();
 
             Set<RelyingPartyResource> expectedSearchResult =
-                legalEntities.stream()
-                             .flatMap(le -> le.getRelyingPartyInstances().stream())
-                             .map(converter::toResource)
+                walletRelyingParties.stream()
+                             .flatMap(le -> EntityGenerator.instances(le).stream())
+                             .map(v1ContractMapper::toV1RelyingPartyResource)
                              .filter(rp -> rp.relyingPartyEntitlements()
                                              .stream()
                                              .map(RelyingPartyEntitlementResource::entitlement)
@@ -251,14 +251,14 @@ public class V1RelyingPartyEditingTest {
         @Test
         @DisplayName("then each entitlement has a non-null display name")
         public void testAllEntitlementsHaveNonNullDisplayNames() {
-            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
-            legalEntity.getRelyingPartyInstances().getFirst().setRelyingPartyEntitlements(
+            WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
+            EntityGenerator.instances(walletRelyingParty).getFirst().setRelyingPartyEntitlements(
                 List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/QEAA_Provider")));
 
-            assertTrue(legalEntity.getRelyingPartyInstances().getFirst().getAccessCertificates().isEmpty());
-            rpRepository.saveAndFlush(legalEntity);
+            assertTrue(EntityGenerator.instances(walletRelyingParty).getFirst().getAccessCertificates().isEmpty());
+            rpRepository.saveAndFlush(walletRelyingParty);
 
-            RelyingPartyResource rpResourceOut = relyingPartyService.findRelyingParty(legalEntity.getRelyingPartyInstances().get(0).getId());
+            RelyingPartyResource rpResourceOut = relyingPartyService.findRelyingParty(EntityGenerator.instances(walletRelyingParty).get(0).getId());
             assertTrue(rpResourceOut.relyingPartyEntitlements()
                 .stream()
                 .map(RelyingPartyEntitlementResource::displayName)

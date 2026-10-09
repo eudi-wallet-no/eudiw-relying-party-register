@@ -38,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @DisplayName("When using the relying party certificates API : issuer")
 @ActiveProfiles("junit")
-public class IssuerCertificateControllerTests {
+public class V1IssuerCertificateControllerTests {
 
     public static final String X_API_KEY_HEADER = "X-API-KEY";
     public static final String VALID_API_KEY = "junit-api-key";

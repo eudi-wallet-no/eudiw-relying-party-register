@@ -6,10 +6,6 @@
 
 EUDIW Relying Party Register
 
-## API errors
-Requests with an unsupported media type return HTTP 415 with error `invalid_request`
-and description `HTTP media type not supported`, without echoing the supplied media type.
-
 ## Requirements
 - Java 25
 - Maven
@@ -18,9 +14,5 @@ and description `HTTP media type not supported`, without echoing the supplied me
 > [!WARNING]
 > Access to Digitaliseringsdirektoratet infrastructure is required to run the application.
 
-## Local development database
-host: localhost
-port: 36306
-user: eudiw_user
-password: lesssecret
-database: register_service
+For local setup, run commands and ports, see
+[Local development](../../README.md#running-locally-in-intellij).

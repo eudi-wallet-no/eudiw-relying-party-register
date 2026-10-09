@@ -11,17 +11,17 @@ spring:
   config:
     import: optional:file:${EUDIW_RP_REGISTER_SERVICE_ENV}[.properties]
   datasource:
-    url: "jdbc:h2:mem:eudiw_user;MODE=MySQL;DB_CLOSE_ON_EXIT=FALSE"
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: password
+    url: "jdbc:mariadb://localhost:36306/rp_register_db"
+    username: eudiw_user
+    password: lesssecret
+    driver-class-name: org.mariadb.jdbc.Driver
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: org.hibernate.dialect.MariaDBDialect
   application:
-    environment: local-h2
+    environment: dev
   flyway:
     locations:
-      classpath:/db/migration,classpath:/local-h2/db/migration
+      classpath:/db/migration,classpath:/mariadb/db/migration
 
 eudiw-rp-register-service:
   csr-service:

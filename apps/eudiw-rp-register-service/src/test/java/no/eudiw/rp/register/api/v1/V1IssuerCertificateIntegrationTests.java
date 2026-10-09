@@ -3,12 +3,12 @@ package no.eudiw.rp.register.api.v1;
 import no.eudiw.rp.register.api.v1.resource.certificates.IssuerCsrResource;
 import no.eudiw.rp.register.api.v1.resource.certificates.RelyingPartyCsrResource;
 import no.eudiw.rp.register.domain.Entitlement;
-import no.eudiw.rp.register.domain.LegalEntity;
+import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.certificates.X509CertificateConverter;
 import no.eudiw.rp.register.repository.EntitlementRepository;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
-import no.eudiw.rp.register.repository.LegalEntityRepository;
+import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.exception.RegisterServiceException;
 import no.eudiw.rp.register.exception.NotFoundException;
@@ -45,7 +45,7 @@ public class V1IssuerCertificateIntegrationTests {
     private RelyingPartyInstanceRepository instanceRepository;
 
     @Autowired
-    private LegalEntityRepository rpRepository;
+    private WalletRelyingPartyRepository rpRepository;
 
     @Autowired
     private EntitlementRepository entitlementRepository;
@@ -93,14 +93,14 @@ public class V1IssuerCertificateIntegrationTests {
         @Test
         @DisplayName("cert request is denied for issuer entitlement")
         public void test_Issuer_RegisterCert() {
-            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
-            legalEntity.getRelyingPartyInstances().getFirst().setRelyingPartyEntitlements(List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/Service_Provider")));
+            WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
+            EntityGenerator.instances(walletRelyingParty).getFirst().setRelyingPartyEntitlements(List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/Service_Provider")));
 
-            rpRepository.saveAndFlush(legalEntity);
+            rpRepository.saveAndFlush(walletRelyingParty);
 
             assertThrows(RegisterServiceException.class,
                     () -> certService.requestIssuerCertificate(
-                            legalEntity.getRelyingPartyInstances().getFirst().getId(),
+                            EntityGenerator.instances(walletRelyingParty).getFirst().getId(),
                             new IssuerCsrResource(
                                     CertificatesGenerator.generatePKCS10Csr(),
                                     "https://uri.etsi.org/19475/Entitlement/Service_Provider"
@@ -113,14 +113,14 @@ public class V1IssuerCertificateIntegrationTests {
         public void test_EAA_Provider_RegisterCert() throws Exception {
             X509Certificate certificateExpected = enqueueMockCertificateResponse();
 
-            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
-            legalEntity.getRelyingPartyInstances().getFirst().setRelyingPartyEntitlements(
+            WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
+            EntityGenerator.instances(walletRelyingParty).getFirst().setRelyingPartyEntitlements(
                     List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/QEAA_Provider")));
-            rpRepository.saveAndFlush(legalEntity);
+            rpRepository.saveAndFlush(walletRelyingParty);
 
             X509Certificate certificateActual =
                     certService.requestIssuerCertificate(
-                            legalEntity.getRelyingPartyInstances().getFirst().getId(),
+                            EntityGenerator.instances(walletRelyingParty).getFirst().getId(),
                             new IssuerCsrResource(
                                     CertificatesGenerator.generatePKCS10Csr(),
                                     "https://uri.etsi.org/19475/Entitlement/QEAA_Provider"
@@ -134,8 +134,8 @@ public class V1IssuerCertificateIntegrationTests {
                     () -> assertEquals("/v1/certs/eaa_provider2", recordedRequest.getPath())
             );
 
-            assertTrue(instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).isPresent(), "legal entity with at least one RelyingPartyInstances should be present in repository");
-            RelyingPartyInstance resultRp = instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).get();
+            assertTrue(instanceRepository.findById(EntityGenerator.instances(walletRelyingParty).getFirst().getId()).isPresent(), "legal entity with at least one RelyingPartyInstances should be present in repository");
+            RelyingPartyInstance resultRp = instanceRepository.findById(EntityGenerator.instances(walletRelyingParty).getFirst().getId()).get();
             RelyingPartyEntitlement entitlement = resultRp.getRelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/QEAA_Provider").get();
             assertNotNull(entitlement);
             assertNotNull(entitlement.getIssuerCertificates());
@@ -150,13 +150,13 @@ public class V1IssuerCertificateIntegrationTests {
                     new Entitlement(entitlementUri, true, "SSRF test", "/attacker.example"));
             X509Certificate certificateExpected = enqueueMockCertificateResponse();
 
-            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
-            legalEntity.getRelyingPartyInstances().getFirst().setRelyingPartyEntitlements(
+            WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
+            EntityGenerator.instances(walletRelyingParty).getFirst().setRelyingPartyEntitlements(
                     List.of(new RelyingPartyEntitlement(entitlementUri)));
-            rpRepository.saveAndFlush(legalEntity);
+            rpRepository.saveAndFlush(walletRelyingParty);
 
             X509Certificate certificateActual = certService.requestIssuerCertificate(
-                    legalEntity.getRelyingPartyInstances().getFirst().getId(),
+                    EntityGenerator.instances(walletRelyingParty).getFirst().getId(),
                     new IssuerCsrResource(CertificatesGenerator.generatePKCS10Csr(), entitlementUri)
             ).certificate();
 
@@ -172,14 +172,14 @@ public class V1IssuerCertificateIntegrationTests {
         public void test_Non_Q_EAA_Provider_RegisterCert() throws Exception {
             X509Certificate certificateExpected = enqueueMockCertificateResponse();
 
-            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
-            legalEntity.getRelyingPartyInstances().getFirst().setRelyingPartyEntitlements(
+            WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
+            EntityGenerator.instances(walletRelyingParty).getFirst().setRelyingPartyEntitlements(
                     List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/Non_Q_EAA_Provider")));
-            rpRepository.saveAndFlush(legalEntity);
+            rpRepository.saveAndFlush(walletRelyingParty);
 
             X509Certificate certificateActual =
                     certService.requestIssuerCertificate(
-                            legalEntity.getRelyingPartyInstances().getFirst().getId(),
+                            EntityGenerator.instances(walletRelyingParty).getFirst().getId(),
                             new IssuerCsrResource(
                                     CertificatesGenerator.generatePKCS10Csr(),
                                     "https://uri.etsi.org/19475/Entitlement/Non_Q_EAA_Provider"
@@ -193,8 +193,8 @@ public class V1IssuerCertificateIntegrationTests {
                     () -> assertEquals("/v1/certs/eaa_provider2", recordedRequest.getPath())
             );
 
-            assertTrue(instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).isPresent(), "legal entity with at least one RelyingPartyInstances should be present in repository");
-            RelyingPartyInstance resultRp = instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).get();
+            assertTrue(instanceRepository.findById(EntityGenerator.instances(walletRelyingParty).getFirst().getId()).isPresent(), "legal entity with at least one RelyingPartyInstances should be present in repository");
+            RelyingPartyInstance resultRp = instanceRepository.findById(EntityGenerator.instances(walletRelyingParty).getFirst().getId()).get();
             RelyingPartyEntitlement entitlement = resultRp.getRelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/Non_Q_EAA_Provider").get();
             assertNotNull(entitlement);
             assertNotNull(entitlement.getIssuerCertificates());
@@ -206,15 +206,15 @@ public class V1IssuerCertificateIntegrationTests {
         public void test_PUB_EAA_Provider_RegisterCert() throws Exception {
             X509Certificate certificateExpected = enqueueMockCertificateResponse();
 
-            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
+            WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
 
-            legalEntity.getRelyingPartyInstances().getFirst().setRelyingPartyEntitlements(
+            EntityGenerator.instances(walletRelyingParty).getFirst().setRelyingPartyEntitlements(
                     List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/PUB_EAA_Provider")));
-            rpRepository.saveAndFlush(legalEntity);
+            rpRepository.saveAndFlush(walletRelyingParty);
 
             X509Certificate certificateActual =
                     certService.requestIssuerCertificate(
-                            legalEntity.getRelyingPartyInstances().getFirst().getId(),
+                            EntityGenerator.instances(walletRelyingParty).getFirst().getId(),
                             new IssuerCsrResource(
                                     CertificatesGenerator.generatePKCS10Csr(),
                                     "https://uri.etsi.org/19475/Entitlement/PUB_EAA_Provider"
@@ -228,8 +228,8 @@ public class V1IssuerCertificateIntegrationTests {
                     () -> assertEquals("/v1/certs/eaa_provider2", recordedRequest.getPath())
             );
 
-            assertTrue(instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).isPresent(), "legal entity with at least one RelyingPartyInstances should be present in repository");
-            RelyingPartyInstance resultRp = instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).get();
+            assertTrue(instanceRepository.findById(EntityGenerator.instances(walletRelyingParty).getFirst().getId()).isPresent(), "legal entity with at least one RelyingPartyInstances should be present in repository");
+            RelyingPartyInstance resultRp = instanceRepository.findById(EntityGenerator.instances(walletRelyingParty).getFirst().getId()).get();
             RelyingPartyEntitlement entitlement = resultRp.getRelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/PUB_EAA_Provider").get();
             assertNotNull(entitlement);
             assertNotNull(entitlement.getIssuerCertificates());
@@ -241,14 +241,14 @@ public class V1IssuerCertificateIntegrationTests {
         public void test_PID_Provider_RegisterCert() throws Exception {
             X509Certificate certificateExpected = enqueueMockCertificateResponse();
 
-            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
-            legalEntity.getRelyingPartyInstances().getFirst().setRelyingPartyEntitlements(
+            WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
+            EntityGenerator.instances(walletRelyingParty).getFirst().setRelyingPartyEntitlements(
                     List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/PID_Provider")));
-            rpRepository.saveAndFlush(legalEntity);
+            rpRepository.saveAndFlush(walletRelyingParty);
 
             X509Certificate certificateActual =
                     certService.requestIssuerCertificate(
-                            legalEntity.getRelyingPartyInstances().getFirst().getId(),
+                            EntityGenerator.instances(walletRelyingParty).getFirst().getId(),
                             new IssuerCsrResource(
                                     CertificatesGenerator.generatePKCS10Csr(),
                                     "https://uri.etsi.org/19475/Entitlement/PID_Provider"
@@ -262,8 +262,8 @@ public class V1IssuerCertificateIntegrationTests {
                     () -> assertEquals("/v1/certs/pid_provider2", recordedRequest.getPath())
             );
 
-            assertTrue(instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).isPresent(), "legal entity with at least one RelyingPartyInstances should be present in repository");
-            RelyingPartyInstance resultRp = instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).get();
+            assertTrue(instanceRepository.findById(EntityGenerator.instances(walletRelyingParty).getFirst().getId()).isPresent(), "legal entity with at least one RelyingPartyInstances should be present in repository");
+            RelyingPartyInstance resultRp = instanceRepository.findById(EntityGenerator.instances(walletRelyingParty).getFirst().getId()).get();
             RelyingPartyEntitlement entitlement = resultRp.getRelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/PID_Provider").get();
             assertNotNull(entitlement);
             assertNotNull(entitlement.getIssuerCertificates());
@@ -290,25 +290,25 @@ public class V1IssuerCertificateIntegrationTests {
         public void testIssuerCertificateIsDefaultNotRevoked() {
             RelyingPartyCsrResource csrResource = ResourceGenerator.generateRegisterRelyingPartyCsrResource();
 
-            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
+            WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
             List<RelyingPartyEntitlement> listOfEntitlements = new ArrayList<>();
             RelyingPartyEntitlement entitlement = new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/PID_Provider");
             listOfEntitlements.add(entitlement);
-            legalEntity.getRelyingPartyInstances().getFirst().setRelyingPartyEntitlements(listOfEntitlements);
-            rpRepository.saveAndFlush(legalEntity);
+            EntityGenerator.instances(walletRelyingParty).getFirst().setRelyingPartyEntitlements(listOfEntitlements);
+            rpRepository.saveAndFlush(walletRelyingParty);
 
             X509Certificate certificateExpected = enqueueMockCertificateResponse();
 
             // assert that immediately returned certificate is correct.
             X509Certificate certificateActual1 =
-                    certService.requestIssuerCertificate(legalEntity.getRelyingPartyInstances().getFirst().getId(),
-                                    ResourceGenerator.generateIssuerCsrResource(legalEntity.getRelyingPartyInstances()
+                    certService.requestIssuerCertificate(EntityGenerator.instances(walletRelyingParty).getFirst().getId(),
+                                    ResourceGenerator.generateIssuerCsrResource(EntityGenerator.instances(walletRelyingParty)
                                             .getFirst().getRelyingPartyEntitlements().getFirst().getEntitlement()))
                             .certificate();
             assertEquals(certificateExpected, certificateActual1);
 
             RelyingPartyInstance relyingPartyOut =
-                    instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null);
+                    instanceRepository.findById(EntityGenerator.instances(walletRelyingParty).getFirst().getId()).orElse(null);
 
             assertNotNull(relyingPartyOut);
             assertEquals(1, relyingPartyOut.getIssuerCertificates().size());
@@ -319,24 +319,24 @@ public class V1IssuerCertificateIntegrationTests {
         @Test
         @DisplayName("issuer certificate is revoked properly")
         public void testIssuerCertificateIsRevokeProperly() throws InterruptedException {
-            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
-            legalEntity.getRelyingPartyInstances().getFirst().setRelyingPartyEntitlements(
+            WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
+            EntityGenerator.instances(walletRelyingParty).getFirst().setRelyingPartyEntitlements(
                     List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/PID_Provider")));
-            rpRepository.saveAndFlush(legalEntity);
+            rpRepository.saveAndFlush(walletRelyingParty);
 
             X509Certificate certificateExpected = enqueueMockCertificateResponse();
 
 
             X509Certificate certificateActual1 =
-                    certService.requestIssuerCertificate(legalEntity.getRelyingPartyInstances().getFirst().getId(),
-                                    ResourceGenerator.generateIssuerCsrResource(legalEntity.getRelyingPartyInstances()
+                    certService.requestIssuerCertificate(EntityGenerator.instances(walletRelyingParty).getFirst().getId(),
+                                    ResourceGenerator.generateIssuerCsrResource(EntityGenerator.instances(walletRelyingParty)
                                             .getFirst().getRelyingPartyEntitlements().getFirst().getEntitlement()))
                             .certificate();
             assertEquals(certificateExpected, certificateActual1);
             RecordedRequest recordedRequest1 = mockCaServer.takeRequest();
 
             RelyingPartyInstance relyingPartyOut =
-                    instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null);
+                    instanceRepository.findById(EntityGenerator.instances(walletRelyingParty).getFirst().getId()).orElse(null);
 
             enqueueMockRevocationCall();
 
@@ -344,7 +344,7 @@ public class V1IssuerCertificateIntegrationTests {
             RecordedRequest recordedRequest2 = mockCaServer.takeRequest();
 
             RelyingPartyInstance relyingPartyFinished =
-                    instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null);
+                    instanceRepository.findById(EntityGenerator.instances(walletRelyingParty).getFirst().getId()).orElse(null);
 
 
             assertEquals("POST", recordedRequest1.getMethod());
@@ -361,19 +361,19 @@ public class V1IssuerCertificateIntegrationTests {
             entitlementRepository.saveAndFlush(
                     new Entitlement(entitlementUri, true, "SSRF revocation test", "/attacker.example"));
 
-            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
-            legalEntity.getRelyingPartyInstances().getFirst().setRelyingPartyEntitlements(
+            WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
+            EntityGenerator.instances(walletRelyingParty).getFirst().setRelyingPartyEntitlements(
                     List.of(new RelyingPartyEntitlement(entitlementUri)));
-            rpRepository.saveAndFlush(legalEntity);
+            rpRepository.saveAndFlush(walletRelyingParty);
 
             enqueueMockCertificateResponse();
 
-            certService.requestIssuerCertificate(legalEntity.getRelyingPartyInstances().getFirst().getId(),
+            certService.requestIssuerCertificate(EntityGenerator.instances(walletRelyingParty).getFirst().getId(),
                             ResourceGenerator.generateIssuerCsrResource(entitlementUri));
             mockCaServer.takeRequest();
 
             RelyingPartyInstance relyingPartyOut =
-                    instanceRepository.findById(legalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null);
+                    instanceRepository.findById(EntityGenerator.instances(walletRelyingParty).getFirst().getId()).orElse(null);
 
             enqueueMockRevocationCall();
 
@@ -390,25 +390,25 @@ public class V1IssuerCertificateIntegrationTests {
         @DisplayName("revoking an issuer certificate on behalf of a different relying party is rejected")
         public void testIssuerCertificateCannotBeRevokedByAnotherRelyingParty() {
             // Owning relying party: registers the issuer certificate that will later be targeted for revocation.
-            LegalEntity ownerLegalEntity = EntityGenerator.generateLegalEntity();
-            ownerLegalEntity.getRelyingPartyInstances().getFirst().setRelyingPartyEntitlements(
+            WalletRelyingParty ownerWalletRelyingParty = EntityGenerator.generateWalletRelyingParty();
+            EntityGenerator.instances(ownerWalletRelyingParty).getFirst().setRelyingPartyEntitlements(
                     List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/PID_Provider")));
-            rpRepository.saveAndFlush(ownerLegalEntity);
+            rpRepository.saveAndFlush(ownerWalletRelyingParty);
 
             enqueueMockCertificateResponse();
-            certService.requestIssuerCertificate(ownerLegalEntity.getRelyingPartyInstances().getFirst().getId(),
-                    ResourceGenerator.generateIssuerCsrResource(ownerLegalEntity.getRelyingPartyInstances()
+            certService.requestIssuerCertificate(EntityGenerator.instances(ownerWalletRelyingParty).getFirst().getId(),
+                    ResourceGenerator.generateIssuerCsrResource(EntityGenerator.instances(ownerWalletRelyingParty)
                             .getFirst().getRelyingPartyEntitlements().getFirst().getEntitlement()));
 
             RelyingPartyInstance ownerRelyingParty =
-                    instanceRepository.findById(ownerLegalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null);
+                    instanceRepository.findById(EntityGenerator.instances(ownerWalletRelyingParty).getFirst().getId()).orElse(null);
             assertNotNull(ownerRelyingParty);
             assertEquals(1, ownerRelyingParty.getIssuerCertificates().size());
 
             // Second relying party: different legal entity/instance, no relation to the owner's certificate.
-            LegalEntity otherLegalEntity = EntityGenerator.generateLegalEntity();
-            rpRepository.saveAndFlush(otherLegalEntity);
-            RelyingPartyInstance otherRelyingParty = otherLegalEntity.getRelyingPartyInstances().getFirst();
+            WalletRelyingParty otherWalletRelyingParty = EntityGenerator.generateWalletRelyingParty();
+            rpRepository.saveAndFlush(otherWalletRelyingParty);
+            RelyingPartyInstance otherRelyingParty = EntityGenerator.instances(otherWalletRelyingParty).getFirst();
 
             var ownerCertificateId = ownerRelyingParty.getIssuerCertificates().getFirst().getId();
 
@@ -416,7 +416,7 @@ public class V1IssuerCertificateIntegrationTests {
                     () -> certService.revokeIssuerCertificate(ownerCertificateId, otherRelyingParty.getId()));
 
             RelyingPartyInstance ownerRelyingPartyAfter =
-                    instanceRepository.findById(ownerLegalEntity.getRelyingPartyInstances().getFirst().getId()).orElse(null);
+                    instanceRepository.findById(EntityGenerator.instances(ownerWalletRelyingParty).getFirst().getId()).orElse(null);
             assertNotNull(ownerRelyingPartyAfter);
             assertEquals(-1, ownerRelyingPartyAfter.getIssuerCertificates().getFirst().getRevocationStatus(),
                     "Certificate must remain unrevoked when the requesting relying party does not own it");

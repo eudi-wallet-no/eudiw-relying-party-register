@@ -1,12 +1,14 @@
 package no.eudiw.rp.register.service;
 
 import lombok.RequiredArgsConstructor;
-import no.eudiw.rp.register.domain.LegalEntity;
+import no.eudiw.rp.register.domain.WalletRelyingParty;
+import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEaa;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
 import no.eudiw.rp.register.repository.EntitlementRepository;
 import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
+import no.eudiw.rp.register.repository.WalletRelyingPartyServiceRepository;
 import no.eudiw.rp.register.exception.BadRequestException;
 import no.eudiw.rp.register.exception.NotFoundException;
 import org.springframework.data.domain.Page;
@@ -16,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -24,12 +27,13 @@ public class RelyingPartyService {
 
     private final EntitlementRepository entitlementRepository;
     private final RelyingPartyInstanceRepository relyingPartyInstanceRepository;
-    private final LegalEntityService legalEntityService;
+    private final WalletRelyingPartyLookupService walletRelyingPartyLookupService;
+    private final WalletRelyingPartyServiceRepository walletRelyingPartyServiceRepository;
 
     @Transactional
     public RelyingPartyInstance createRelyingParty(
-        String orgNr,
-        String tradeName,
+        String orgno,
+        String serviceTradeName,
         List<RelyingPartyEntitlement> entitlements,
         List<RelyingPartyEaa> eaas
     ) {
@@ -38,14 +42,18 @@ public class RelyingPartyService {
         }
         entitlementCheck(entitlements);
 
-        LegalEntity legalEntity = legalEntityService.getLegalEntityForOrgno(orgNr);
-        if (!legalEntity.isActive()) {
+        WalletRelyingParty walletRelyingParty =
+            walletRelyingPartyLookupService.getWalletRelyingPartyForOrgno(orgno);
+        if (!walletRelyingParty.isActive()) {
             throw new BadRequestException("Legal entity is not active");
         }
 
         RelyingPartyInstance relyingPartyInstance =
-            new RelyingPartyInstance(tradeName, entitlements, eaas, new ArrayList<>());
-        relyingPartyInstance.setLegalEntity(legalEntity);
+            new RelyingPartyInstance(entitlements, eaas, new ArrayList<>());
+        WalletRelyingPartyService walletService =
+            new WalletRelyingPartyService(serviceTradeName, walletRelyingParty, List.of(relyingPartyInstance));
+        walletRelyingParty.getServices().add(walletService);
+        walletRelyingPartyServiceRepository.save(walletService);
 
         return relyingPartyInstanceRepository.saveAndFlush(relyingPartyInstance);
     }
@@ -76,7 +84,7 @@ public class RelyingPartyService {
     @Transactional
     public RelyingPartyInstance updateRelyingParty(
         UUID id,
-        String tradeName,
+        String serviceTradeName,
         boolean active,
         List<RelyingPartyEntitlement> entitlements,
         List<RelyingPartyEaa> eaas
@@ -94,7 +102,13 @@ public class RelyingPartyService {
         RelyingPartyInstance relyingPartyInstance = relyingPartyInstanceRepository.findById(id)
             .orElseThrow(() -> new BadRequestException("Relying party instance not found"));
 
-        relyingPartyInstance.setTradeName(tradeName);
+        WalletRelyingPartyService walletService = relyingPartyInstance.getWalletRelyingPartyService();
+        if (!Objects.equals(walletService.getServiceTradeName(), serviceTradeName)) {
+            walletService.setServiceTradeName(serviceTradeName);
+            for (RelyingPartyInstance serviceInstance : walletService.getRelyingPartyInstances()) {
+                serviceInstance.markUpdated();
+            }
+        }
         relyingPartyInstance.setActive(active);
 
         relyingPartyInstance.setRelyingPartyEntitlements(entitlements);
@@ -107,8 +121,12 @@ public class RelyingPartyService {
     public void deleteRelyingParty(UUID id) {
         RelyingPartyInstance relyingPartyInstance = relyingPartyInstanceRepository.findById(id)
             .orElseThrow(() -> new NotFoundException("Relying party not found"));
-        relyingPartyInstance.getLegalEntity().getRelyingPartyInstances().remove(relyingPartyInstance);
-        relyingPartyInstanceRepository.delete(relyingPartyInstance);
+        WalletRelyingPartyService walletService = relyingPartyInstance.getWalletRelyingPartyService();
+        walletService.getRelyingPartyInstances().remove(relyingPartyInstance);
+        if (walletService.getRelyingPartyInstances().isEmpty()) {
+            walletService.getWalletRelyingParty().getServices().remove(walletService);
+            walletRelyingPartyServiceRepository.delete(walletService);
+        }
     }
 
     private void entitlementCheck(List<RelyingPartyEntitlement> entitlements) {

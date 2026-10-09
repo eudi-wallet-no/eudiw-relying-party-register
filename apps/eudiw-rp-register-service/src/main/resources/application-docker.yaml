@@ -45,7 +45,7 @@ spring:
 eudiw-rp-register-service:
   csr-service:
     ca-service-api:
-      ca-service-base-uri: http://ca-service:9220
+      ca-service-base-uri: http://${LOCAL_SERVICE_HOST:ca-service}:9220
 
 external-dependency-health-checks:
   enabled: false

@@ -1,6 +1,6 @@
 package no.eudiw.rp.register.service;
 
-import no.eudiw.rp.register.domain.LegalEntity;
+import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.certificates.AccessCertificate;
 import no.eudiw.rp.register.domain.certificates.BaseCertificateEntity;
 import no.eudiw.rp.register.domain.certificates.IssuerCertificate;
@@ -11,8 +11,9 @@ import no.eudiw.rp.register.exception.ErrorResponseException;
 import no.eudiw.rp.register.integrations.certificateservice.CertificateServiceClient;
 import no.eudiw.rp.register.repository.AccessCertificateRepository;
 import no.eudiw.rp.register.repository.IssuerCertificateRepository;
-import no.eudiw.rp.register.repository.LegalEntityRepository;
+import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.testdata.CertificatesGenerator;
+import no.eudiw.rp.register.testdata.EntityGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -41,7 +42,7 @@ class CertificateRevocationTransactionTest {
     private RelyingPartyCertificateService service;
 
     @Autowired
-    private LegalEntityRepository legalEntities;
+    private WalletRelyingPartyRepository walletRelyingParties;
 
     @MockitoSpyBean
     private AccessCertificateRepository accessCertificates;
@@ -58,14 +59,15 @@ class CertificateRevocationTransactionTest {
 
     @BeforeEach
     void setUp() {
-        legalEntities.deleteAll();
+        walletRelyingParties.deleteAll();
         var entitlement = new RelyingPartyEntitlement("test-entitlement");
-        relyingParty = new RelyingPartyInstance("Trade name", List.of(entitlement), List.of(), List.of());
+        relyingParty = EntityGenerator.generateRelyingPartyInstance("Trade name", List.of(entitlement), List.of(), List.of());
         accessCertificate = new AccessCertificate("access-ca", CertificatesGenerator.generateX509Certificate(), relyingParty);
         issuerCertificate = new IssuerCertificate(CertificatesGenerator.generateX509Certificate(), "issuer-ca", entitlement);
         relyingParty.setAccessCertificates(List.of(accessCertificate));
         entitlement.addIssuerCertificate(issuerCertificate);
-        legalEntities.saveAndFlush(new LegalEntity("Entity", "123456789", false, List.of(relyingParty)));
+        walletRelyingParties.saveAndFlush(new WalletRelyingParty(
+            "Entity", "123456789", false, List.of(relyingParty.getWalletRelyingPartyService())));
     }
 
     @ParameterizedTest

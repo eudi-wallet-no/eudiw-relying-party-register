@@ -16,6 +16,6 @@ management:
 
 
 credential-registry:
-  rp-register-service-url: http://rp-register-service:9200/v1/credential-issuers
+  rp-register-service-url: http://${LOCAL_SERVICE_HOST:rp-register-service}:9200/v1/credential-issuers
   api-key-header-id: X-API-KEY
   api-key-value: ${REGISTER_SERVICE_API_KEY}
