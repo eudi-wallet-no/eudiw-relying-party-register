@@ -4,6 +4,25 @@ networks:
     name: digital-lommebok
 
 services:
+  rp-register-db:
+    extends:
+      file: ../eudiw-rp-register-service/docker-compose.yaml
+      service: rp-register-db
+
+  rp-register-service:
+    extends:
+      file: ../eudiw-rp-register-service/docker-compose.yaml
+      service: rp-register-service
+
+  ca-db:
+    extends:
+      file: ../eudiw-ca-service/docker-compose.yaml
+      service: ca-db
+
+  ca-service:
+    extends:
+      file: ../eudiw-ca-service/docker-compose.yaml
+      service: ca-service
 
   credential-registry:
     build:
@@ -22,6 +41,9 @@ services:
       - "9295:9295"
     networks:
       - digital-lommebok
+    depends_on:
+      rp-register-service:
+        condition: service_healthy
     entrypoint: "/bin/bash -c"
     command:
       - |

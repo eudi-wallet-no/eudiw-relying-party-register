@@ -14,7 +14,13 @@ EUDIW Relying Party Register Admin + Self-service
 > [!WARNING]
 > Access to Digitaliseringsdirektoratet infrastructure is required to run the application.
 
-## Applications, environments, and profiles
+
+## Development
+
+### Secrets
+Clone https://github.com/eudi-wallet-no/eudiw-developer-secrets and follow the instructions in the README.
+
+### Applications, environments, and profiles
 
 This project includes two applications: `rp-register-admin` and
 `rp-register-selfservice`, and targets environments: dev, docker, systest, and
@@ -44,11 +50,7 @@ Application specific profiles:
 Lastly, we have a number of profiles on the form `<application>-<env>`, which
 apply specifically for a given combination of environment/application.
 
-## Running the applications locally
-
-The `dev,<application>,<application>-dev` and
-`docker,<application>,<application>-docker` profile groups can be used to run
-the applications with similar configuration.
+### Running the applications locally
 
 The local hosts file should include:
 ```
@@ -56,26 +58,13 @@ The local hosts file should include:
 127.0.0.1 rp-register-selfservice
 ```
 
-### Maven
+#### Docker
+Run the Docker stack: `docker compose up --build`.
 
-Start required dependencies with Docker Compose.
-```
-docker-compose up --scale rp-register-admin=0 -d
-```
+#### IntelliJ with dependencies in Docker
+Run with profiles `dev,admin-dev` or `dev,selfservice-dev`; start dependencies with `docker compose up -d --build --scale rp-register-admin=0 --scale rp-register-selfservice=0`.
 
-The application can be started with Maven:
-```
-mvn spring-boot:run -Dspring-boot.run.profiles=dev,admin-dev
-```
-
-### Docker
-The applications can be started with Docker compose:
-```
-docker compose up --build
-```
-
-
-## Ports
+### Ports
 
 The admin and selfservice applications run on `http://rp-register-admin:9250`
 and `http://rp-register-selfservice:9255`, respectively.

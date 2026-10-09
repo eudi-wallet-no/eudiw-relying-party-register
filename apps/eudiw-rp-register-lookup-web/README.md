@@ -10,12 +10,20 @@ EUDIW Relying Party Register Web Interface
 To build and run this project you need to have the following installed:
 * Java 25
 * Maven
+* Docker
 
 > [!WARNING]
 > Access to Digitaliseringsdirektoratet infrastructure is required to run the application.
 
-## Running the application locally
-The application has several profiles located in the (resources)[src/main/resources] folder.
+
+## Development
+
+### Secrets
+Clone https://github.com/eudi-wallet-no/eudiw-developer-secrets and follow the instructions in the README.
+
+### Profiles
+
+Profiles in the [resources](src/main/resources) folder:
 
 | Profile         | Description                                                        |
 |-----------------|--------------------------------------------------------------------|
@@ -25,9 +33,13 @@ The application has several profiles located in the (resources)[src/main/resourc
 | `systest-local` | Run locally against the systest environment                        |
 | `test`          | Test environment (deployed)                                        |
 
-### Running from commandline or IDE
-The application can be started with Maven:
+### Running the application locally
 
-```
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
-```
+#### Docker
+Run the Docker stack: `docker compose up --build`.
+
+#### IntelliJ with dependencies in Docker
+Run with profile `dev`; start dependencies with `docker compose up -d --build --scale rp-register-lookup-web=0`.
+
+#### IntelliJ with dependencies in systest
+Run with profile `systest-local`.

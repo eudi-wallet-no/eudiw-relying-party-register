@@ -29,3 +29,6 @@ eudiw-rp-register-lookup-web:
 
 external-dependency-health-checks:
   enabled: false
+  health-endpoints:
+    eudiw-rp-service:
+      base-uri: http://rp-register-service:9201

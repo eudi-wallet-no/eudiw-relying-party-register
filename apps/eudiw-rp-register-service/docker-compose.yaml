@@ -4,6 +4,16 @@ networks:
     name: digital-lommebok
 
 services:
+  ca-db:
+    extends:
+      file: ../eudiw-ca-service/docker-compose.yaml
+      service: ca-db
+
+  ca-service:
+    extends:
+      file: ../eudiw-ca-service/docker-compose.yaml
+      service: ca-service
+
   rp-register-db:
     image: "mariadb:11.4"
     restart: on-failure

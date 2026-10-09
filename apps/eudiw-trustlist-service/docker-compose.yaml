@@ -24,7 +24,7 @@ services:
     entrypoint: "/bin/bash -c"
     command:
       - |
-        cd /usr/local/tomcat/webapps/
+        cd /usr/local/webapps/
         java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9235 -jar application.jar
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://localhost:9230/health/readiness || exit 1

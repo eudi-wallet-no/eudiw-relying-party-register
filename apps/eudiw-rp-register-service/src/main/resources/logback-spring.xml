@@ -3,7 +3,7 @@
 <configuration>
     <springProperty name="APP-NAME" source="spring.application.name" defaultValue="-"/>
     <springProperty name="APP-ENV" source="spring.application.environment" defaultValue="-"/>
-    <springProfile name="local-dev | local-h2">
+    <springProfile name="local-dev | local-h2 | dev">
 
         <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
         <include resource="org/springframework/boot/logging/logback/console-appender.xml" />
@@ -28,7 +28,7 @@
 
     <logger name="org.flywaydb" level="TRACE"/>
 
-    <springProfile name="!local-dev &amp; !local-h2">
+    <springProfile name="!local-dev &amp; !local-h2 &amp; !dev">
         <logger name="no.idporten" level="INFO" additivity="false">
             <appender-ref ref="APPLICATION"/>
         </logger>

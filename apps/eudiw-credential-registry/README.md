@@ -14,7 +14,13 @@ EUDI wallet: credential-registry (bevisregister) for eidas2sandkasse.
 > [!WARNING]
 > Access to Digitaliseringsdirektoratet infrastructure is required to run the application.
 
-## Configuration
+
+## Development
+
+### Secrets
+Clone https://github.com/eudi-wallet-no/eudiw-developer-secrets and follow the instructions in the README.
+
+### Profiles
 
 Profiles in the [resources](/src/main/resources) folder:
 
@@ -27,26 +33,17 @@ Profiles in the [resources](/src/main/resources) folder:
 | prod    | Prod environment                           |
 
 
-## Secrets
-Clone https://github.com/eudi-wallet-no/eudiw-developer-secrets and follow the instructions in the README.
-
-## Running the application locally
-
-The `dev` and `docker` profiles runs the application with similar configuration.
+### Running the application locally
 
 The local hosts file should include:
 ```
 127.0.0.1 credential-registry
 ```
 
-The application can be started with Maven:
-```
-mvn spring-boot:run -Dspring-boot.run.profiles=<profile>
-```
+#### Docker
+Run the Docker stack: `docker compose up --build`.
 
-The application can be started with Docker compose:
-```
-docker-compose up --build
-```
+#### IntelliJ with dependencies in Docker
+Run with profile `dev`; start dependencies with `docker compose up -d --build --scale credential-registry=0`.
 
 The application will run on http://credential-registry:9294.

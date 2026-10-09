@@ -18,7 +18,13 @@ The application's API can be used to:
 > [!WARNING]
 > Access to Digitaliseringsdirektoratet infrastructure is required to run the application.
 
-## Configuration
+
+## Development
+
+### Secrets
+Clone https://github.com/eudi-wallet-no/eudiw-developer-secrets and follow the instructions in the README.
+
+### Profiles
 
 Tha application needs:
 - a root CA certificate
@@ -35,29 +41,17 @@ Profiles in the [resources](/src/main/resources) folder:
 | systest | Systest environment                                  |
 | test    | Test environment                                     |
 
-
-## Secrets
-Clone https://github.com/eudi-wallet-no/eudiw-developer-secrets and follow the instructions in the README.
-
-## Running the application locally
-
-The `dev` and `docker` profiles runs the application with the same configuration (certs, url).
+### Running the application locally
 
 The local hosts file should include:
 ```
 127.0.0.1 ca-service
 ```
 
-### Maven
-The application can be started with Maven:
-```
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
-```
+#### Docker
+Run the Docker stack: `docker compose up --build`.
 
-### Docker
-The application can be started with Docker compose:
-```
-docker-compose up --build
-```
+#### IntelliJ
+Run with profile `dev` (embedded H2; no Docker dependencies).
 
-The application will run on http://ca-service/:9220 with the `docker`profile.
+The application will run on http://ca-service:9220 with either profile.

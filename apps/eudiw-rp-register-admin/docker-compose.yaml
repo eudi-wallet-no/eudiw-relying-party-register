@@ -1,6 +1,3 @@
-# NB: Login to Azure Container Registery : az login && az acr login -n crutvikling --subscription 9c0d7873-b8aa-4042-96f8-b8ce5c9888d0
-# https://portal.azure.com/#@Nasjonalfelleslosning.onmicrosoft.com/resource/subscriptions/9c0d7873-b8aa-4042-96f8-b8ce5c9888d0/resourceGroups/rg-eid-systest-cr/providers/Microsoft.ContainerRegistry/registries/crutvikling/overview
-
 name: digital-lommebok-rp
 networks:
   digital-lommebok:
@@ -90,7 +87,7 @@ services:
     entrypoint: "/bin/bash -c"
     command:
       - |
-        cd /usr/local/tomcat/webapps/
+        cd /usr/local/webapps/
         java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9251 -jar application.jar
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://localhost:9250/health/readiness || exit 1
@@ -117,7 +114,7 @@ services:
     entrypoint: "/bin/bash -c"
     command:
       - |
-        cd /usr/local/tomcat/webapps/
+        cd /usr/local/webapps/
         java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9256 -jar application.jar
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://localhost:9255/health/readiness || exit 1
@@ -146,7 +143,7 @@ services:
     entrypoint: "/bin/bash -c"
     command:
       - |
-        cd /usr/local/tomcat/webapps/
+        cd /usr/local/webapps/
         java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9215 -jar application.jar
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://localhost:9211/health/readiness || exit 1
@@ -174,33 +171,14 @@ services:
       timeout: 5s
       retries: 10
   ca-service:
-    depends_on:
-      ca-db:
-        condition: service_healthy
-    image: "crutvikling.azurecr.io/eudiw-ca-service"
-#    image: "digital-lommebok-rp-ca-service" # Uncomment this line if you want to use the local image instead
-    env_file:
-      - ${EUDIW_CA_SERVICE_ENV}
-    environment:
-      spring_profiles_active: docker
-    ports:
-      - "9220:9220"
-      - "9221:9221"
-      - "9225:9225"
-    networks:
-      - digital-lommebok
-    entrypoint: "/bin/bash -c"
-    command:
-      - |
-        set -a && . /usr/local/webapps/.env && set +a
-        cd /usr/local/tomcat/webapps/
-        java -javaagent:opentelemetry-javaagent.jar -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9225 -jar application.jar
-    healthcheck:
-      test: wget --no-verbose --tries=1 --spider http://localhost:9221/health/readiness || exit 1
-      interval: 15s
-      start_period: 5s
-      timeout: 5s
-      retries: 20
+    extends:
+      file: ../eudiw-ca-service/docker-compose.yaml
+      service: ca-service
+
+  credential-registry:
+    extends:
+      file: ../eudiw-credential-registry/docker-compose.yaml
+      service: credential-registry
 
   trustlist-service:
     build:
@@ -222,7 +200,7 @@ services:
     entrypoint: "/bin/bash -c"
     command:
       - |
-        cd /usr/local/tomcat/webapps/
+        cd /usr/local/webapps/
         java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9235 -jar application.jar
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://localhost:9230/health/readiness || exit 1

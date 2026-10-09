@@ -7,6 +7,9 @@ spring:
 
 external-dependency-health-checks:
   enabled: false
+  health-endpoints:
+    eudiw-rp-register-service:
+      base-uri: http://rp-register-service:9201
 
 eudiw-admin-web:
   relying-parties-service:

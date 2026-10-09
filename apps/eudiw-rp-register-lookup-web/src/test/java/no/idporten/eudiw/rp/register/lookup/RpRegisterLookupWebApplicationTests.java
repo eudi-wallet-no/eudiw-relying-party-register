@@ -6,7 +6,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles("local-test")
 @SpringBootTest
-class RpRegisterWebApplicationTests {
+class RpRegisterLookupWebApplicationTests {
 
 	@Test
 	void contextLoads() {

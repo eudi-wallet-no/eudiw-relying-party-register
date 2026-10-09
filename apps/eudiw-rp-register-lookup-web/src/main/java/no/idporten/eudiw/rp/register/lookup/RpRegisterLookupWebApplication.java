@@ -6,10 +6,10 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 @SpringBootApplication
 @ConfigurationPropertiesScan
-public class RpRegisterWebApplication {
+public class RpRegisterLookupWebApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(RpRegisterWebApplication.class, args);
+		SpringApplication.run(RpRegisterLookupWebApplication.class, args);
 	}
 
 }
