@@ -77,7 +77,7 @@
 
     document.querySelectorAll("tr[data-clickdelegatefor]").forEach((row) => {
         const activateLink = () => {
-            const link = document.getElementById(row.dataset.clickdelegatefor);
+            const link = row.querySelector("a[id]");
             link?.click();
         };
         row.addEventListener("click", (event) => {
