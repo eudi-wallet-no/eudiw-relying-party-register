@@ -1,49 +1,52 @@
 package no.eudiw.rp.register.domain.certificates;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
-import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.*;
 import lombok.Getter;
 import no.eudiw.rp.register.domain.BaseEntity;
 
 import java.security.cert.X509Certificate;
 
-@MappedSuperclass
 @Getter
-public abstract class BaseCertificateEntity extends BaseEntity {
+@Entity
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "type", discriminatorType = DiscriminatorType.STRING, length = 16)
+@Table(
+    name = "relying_party_certificates",
+    uniqueConstraints = @UniqueConstraint(
+        name = "uq_rp_certificate_type_serial",
+        columnNames = {"type", "serial_no"}))
+public abstract class RelyingPartyCertificate extends BaseEntity {
     public static final int NOT_REVOKED = -1;
     public static final int REVOKED = 0;
 
     @Column(name = "certificate_pem", nullable = false)
     @Convert(converter = X509CertificateConverter.class)
-    protected X509Certificate certificate;
+    private X509Certificate certificate;
 
     @Column(name = "subject_dn", nullable = false)
-    protected String subjectDn;
+    private String subjectDn;
 
     @Column(name = "serial_no", nullable = false)
-    protected String serialNo;
+    private String serialNo;
 
     @Column(name = "ca_id", nullable = false)
-    protected String caId;
+    private String caId;
 
     @Column(name = "issuer", nullable = false)
-    protected String issuer;
+    private String issuer;
 
     @Column(name = "valid_from_ms", nullable = false)
-    protected long validFromMs;
+    private long validFromMs;
 
     @Column(name = "valid_until_ms", nullable = false)
-    protected long validUntilMs;
+    private long validUntilMs;
 
     @Column(name = "revocation_status", nullable = false)
-    protected int revocationStatus;
+    private int revocationStatus;
 
-    protected BaseCertificateEntity(X509Certificate certificate, String caId) {
-        this.id = null;
+    protected RelyingPartyCertificate(String caId, X509Certificate certificate) {
         this.caId = caId;
         this.revocationStatus = NOT_REVOKED;
-
         this.certificate = certificate;
         this.issuer = certificate.getIssuerX500Principal().getName();
         this.subjectDn = certificate.getSubjectX500Principal().getName();
@@ -52,8 +55,11 @@ public abstract class BaseCertificateEntity extends BaseEntity {
         this.validUntilMs = certificate.getNotAfter().toInstant().toEpochMilli();
     }
 
-    // for JPA instantiation.
-    protected BaseCertificateEntity() { }
+    protected RelyingPartyCertificate() { }
+
+    public boolean isRevoked() {
+        return revocationStatus >= 0;
+    }
 
     public void revoke() {
         this.revoke(REVOKED);

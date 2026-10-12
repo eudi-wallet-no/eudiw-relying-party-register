@@ -2,7 +2,6 @@ package no.eudiw.rp.register.service;
 
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.certificates.AccessCertificate;
-import no.eudiw.rp.register.domain.certificates.BaseCertificateEntity;
 import no.eudiw.rp.register.domain.certificates.IssuerCertificate;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
@@ -62,8 +61,10 @@ class CertificateRevocationTransactionTest {
         walletRelyingParties.deleteAll();
         var entitlement = new RelyingPartyEntitlement("test-entitlement");
         relyingParty = EntityGenerator.generateRelyingPartyInstance("Trade name", List.of(entitlement), List.of(), List.of());
-        accessCertificate = new AccessCertificate("access-ca", CertificatesGenerator.generateX509Certificate(), relyingParty);
-        issuerCertificate = new IssuerCertificate(CertificatesGenerator.generateX509Certificate(), "issuer-ca", entitlement);
+        accessCertificate = new AccessCertificate(
+            "access-ca", CertificatesGenerator.generateX509Certificate(), relyingParty);
+        issuerCertificate = new IssuerCertificate(
+            CertificatesGenerator.generateX509Certificate(), "issuer-ca", entitlement);
         relyingParty.setAccessCertificates(List.of(accessCertificate));
         entitlement.addIssuerCertificate(issuerCertificate);
         walletRelyingParties.saveAndFlush(new WalletRelyingParty(
@@ -127,10 +128,7 @@ class CertificateRevocationTransactionTest {
         assertThrows(DataIntegrityViolationException.class, () -> revoke(issuer));
 
         assertEquals(-1, storedStatus(issuer));
-        BaseCertificateEntity certificate = accessCertificate;
-        if (issuer) {
-            certificate = issuerCertificate;
-        }
+        var certificate = issuer ? issuerCertificate : accessCertificate;
         verify(client).revokeCertificate(certificate.getSerialNo(), 0, certificate.getCaId());
     }
 

@@ -8,8 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface IssuerCertificateRepository
-    extends JpaRepository<IssuerCertificate, UUID> {
+public interface IssuerCertificateRepository extends JpaRepository<IssuerCertificate, UUID> {
 
     Optional<IssuerCertificate> findByIdAndEntitlementRelyingPartyInstanceId(
         UUID id, UUID relyingPartyInstanceId);

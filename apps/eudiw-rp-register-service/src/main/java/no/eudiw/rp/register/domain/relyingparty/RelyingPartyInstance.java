@@ -113,7 +113,7 @@ public class RelyingPartyInstance extends BaseEntity {
     public void setAccessCertificates(List<AccessCertificate> accessCertificates) {
         this.accessCertificates.clear();
         if (accessCertificates != null) {
-            accessCertificates.forEach(cert -> cert.setRelyingPartyInstance(this));
+            accessCertificates.forEach(certificate -> certificate.setRelyingPartyInstance(this));
             this.accessCertificates.addAll(accessCertificates);
         }
     }
