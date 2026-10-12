@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class IssuerCertificateRepositoryTest {
 
     @Autowired
-    private IssuerCertificateRepository issuerCertificateRepository;
+    private IssuerCertificateRepository certificateRepository;
 
     @Autowired
     private WalletRelyingPartyRepository walletRelyingPartyRepository;
@@ -40,9 +40,9 @@ public class IssuerCertificateRepositoryTest {
         RelyingPartyEntitlement entitlement = EntityGenerator.instances(savedWalletRelyingParty).getFirst().getRelyingPartyEntitlements().stream().findFirst().get();
         X509Certificate testCert = CertificatesGenerator.generateX509Certificate();
         IssuerCertificate issuerCertificate = new IssuerCertificate(testCert, "caId", entitlement);
-        issuerCertificateRepository.save(issuerCertificate);
+        certificateRepository.save(issuerCertificate);
 
-        IssuerCertificate retrievedIssuerCertificate = issuerCertificateRepository.findById(issuerCertificate
+        IssuerCertificate retrievedIssuerCertificate = certificateRepository.findById(issuerCertificate
             .getId()).get();
         assertNotNull(retrievedIssuerCertificate);
         assertEquals(issuerCertificate, retrievedIssuerCertificate);

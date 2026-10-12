@@ -38,9 +38,9 @@ public class RelyingPartyEntitlement extends BaseEntity {
     private List<IssuerCertificate> issuerCertificates =
         new ArrayList<>();
 
-    public void addIssuerCertificate(IssuerCertificate issuerCertificate) {
-        issuerCertificate.setEntitlement(this);
-        issuerCertificates.add(issuerCertificate);
+    public void addIssuerCertificate(IssuerCertificate certificate) {
+        certificate.setEntitlement(this);
+        issuerCertificates.add(certificate);
     }
 
     public void setIssuerCertificates(List<IssuerCertificate> issuerCertificates) {
