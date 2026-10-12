@@ -14,7 +14,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class BaseSecurityConfig {
 
     @Bean
-    public SecurityFilterChain baseFilterChain(HttpSecurity http, CspProperties csp) {
+    public SecurityFilterChain baseFilterChain(HttpSecurity http, CspProperties csp) throws Exception {
         http.authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll());
         configureCspHeader(http, csp);
         return http.build();
