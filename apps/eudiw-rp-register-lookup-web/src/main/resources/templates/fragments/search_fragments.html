@@ -5,11 +5,11 @@
       th:with="activeFilters=${#lists.size(searchFormAttr.getRequiredEntitlements()) + (searchFormAttr.hideSyntheticOrgnos ? 1 : 0)}"
       th:action="@{/relying-parties}"
       method="GET"
-      style="display:flex; flex-direction:column; gap:var(--ds-size-4);">
+      class="lookup-search-form">
     <div class="ds-field">
         <label for="search_term" class="ds-label ds-sr-only">Søk på org.nr. eller namn</label>
-        <div style="display:flex; align-items:center; gap:var(--ds-size-3);">
-            <div class="ds-search" style="flex:1;">
+        <div class="lookup-search-form__controls">
+            <div class="ds-search lookup-search-form__search">
                 <input id="search_term"
                        th:field="*{searchTerm}"
                        th:errorclass="is-invalid"
@@ -27,8 +27,8 @@
             <button type="button"
                     class="ds-button"
                     data-variant="secondary"
-                    command="show-modal"
-                    commandfor="filter-dialog">
+                    data-dialog-action="show-modal"
+                    data-dialog-target="filter-dialog">
                 Filter
                 <span th:if="${activeFilters > 0}"
                       class="ds-badge"
@@ -43,32 +43,18 @@
              data-field="validation">
             <p th:each="error : ${#fields.errors('searchTerm')}"
                th:text="${error}"
-               style="margin:0;"></p>
+               class="lookup-search-form__error"></p>
         </div>
     </div>
-
-    <script>
-        (() => {
-            const input = document.getElementById("search_term");
-            const clearBtn = document.querySelector(".ds-search button[type=reset]");
-            if (input && clearBtn) {
-                clearBtn.addEventListener("click", (e) => {
-                    e.preventDefault();
-                    input.value = "";
-                    input.focus();
-                });
-            }
-        })();
-    </script>
 
     <!-- Modal for filter -->
     <dialog id="filter-dialog" class="ds-dialog" closedby="any" tabindex="0" autofocus aria-labelledby="filter-dialog-title">
         <div class="ds-dialog__block">
             <h3 id="filter-dialog-title" class="ds-heading" data-size="sm">Filter</h3>
-            <p class="ds-paragraph" data-size="sm" style="margin-block-start: var(--ds-size-1);">
+            <p class="ds-paragraph filter-dialog__description" data-size="sm">
                 Avgrens søket etter rolle og syntetiske orgnummer.
             </p>
-            <div class="ds-field" style="margin-block-start: var(--ds-size-4);">
+            <div class="ds-field filter-dialog__synthetic">
                 <label class="ds-chip">
                     <input id="syntetiskOrg"
                            th:field="*{hideSyntheticOrgnos}"
@@ -83,7 +69,7 @@
             <fieldset class="ds-fieldset">
                 <legend class="ds-label">Rolle</legend>
                 <p class="ds-paragraph" data-size="sm" data-field="description">Vel rolle for å filtrere brukarstader.</p>
-                <div style="display:flex; flex-wrap:wrap; gap:var(--ds-size-3); margin-block-start: var(--ds-size-3);">
+                <div class="filter-dialog__roles">
                     <label class="ds-chip" th:each="e : ${@relyingPartiesService.getValidEntitlements()}">
                         <!--/*@thymesVar id="e" type="no.idporten.eudiw.rp.register.lookup.web.resource.entitlement.EntitlementResource"*/-->
                         <input type="checkbox"
@@ -95,57 +81,19 @@
                 </div>
             </fieldset>
         </div>
-        <div class="ds-dialog__block" style="display:flex; gap: var(--ds-size-3); align-items:center;">
+        <div class="ds-dialog__block filter-dialog__actions">
             <button th:if="${activeFilters > 0}"
                     type="button"
                     id="filter-reset"
                     class="ds-button"
                     data-variant="tertiary">Tilbakestill</button>
-            <div style="display:flex; gap: var(--ds-size-3); margin-inline-start:auto;">
-                <button type="button" class="ds-button" data-variant="tertiary" command="close" commandfor="filter-dialog">Avbryt</button>
+            <div class="filter-dialog__buttons">
+                <button type="button" class="ds-button" data-variant="tertiary"
+                        data-dialog-action="close" data-dialog-target="filter-dialog">Avbryt</button>
                 <button type="submit" class="ds-button" data-variant="primary">Søk</button>
             </div>
         </div>
     </dialog>
-    <script>
-        (() => {
-            const dialog = document.getElementById("filter-dialog");
-            if (!dialog) return;
-            const reset = document.getElementById("filter-reset");
-            if (reset) {
-                reset.addEventListener("click", () => {
-                    dialog.querySelectorAll("input[type=checkbox]").forEach((c) => { c.checked = false; });
-                    dialog.querySelectorAll("button").forEach((b) => { b.disabled = true; });
-                    reset.setAttribute("aria-busy", "true");
-                    reset.setAttribute("aria-label", "Tilbakestillar");
-                    reset.innerHTML = '<span class="ds-spinner" data-size="sm" aria-hidden="true">'
-                        + '<svg viewBox="0 0 50 50">'
-                        + '<circle class="ds-spinner__background" cx="25" cy="25" r="20" fill="none" stroke-width="4"></circle>'
-                        + '<circle class="ds-spinner__circle" cx="25" cy="25" r="20" fill="none" stroke-width="4"></circle>'
-                        + '</svg></span>';
-                    dialog.closest("form").requestSubmit();
-                });
-            }
-        })();
-    </script>
-    <script>
-        (() => {
-            const form = document.getElementById("search_form");
-            if (!form) return;
-            form.addEventListener("submit", (e) => {
-                const btn = e.submitter || form.querySelector("button[type=submit]");
-                if (!btn) return;
-                btn.disabled = true;
-                btn.setAttribute("aria-busy", "true");
-                btn.setAttribute("aria-label", "Søkjer");
-                btn.innerHTML = '<span class="ds-spinner" data-size="sm" aria-hidden="true">'
-                    + '<svg viewBox="0 0 50 50">'
-                    + '<circle class="ds-spinner__background" cx="25" cy="25" r="20" fill="none" stroke-width="4"></circle>'
-                    + '<circle class="ds-spinner__circle" cx="25" cy="25" r="20" fill="none" stroke-width="4"></circle>'
-                    + '</svg></span>';
-            });
-        })();
-    </script>
 </form>
 
 <div th:fragment="results_table_fragment(credentialsByType)">
@@ -155,21 +103,19 @@
                   currentOrdering=${orderingAttr},
                   orderingOpts=${T(no.idporten.eudiw.rp.register.lookup.web.search.resultsview.RelyingPartyOrdering)}">
         <div th:if="${#lists.isEmpty(resultsPage)}"
-             class="ds-alert"
+             class="ds-alert lookup-results__empty"
              data-color="info"
-             role="status"
-             style="margin-block-start: var(--ds-size-4);">
+             role="status">
             <p class="ds-paragraph">Fann ingen brukarstader som matcher søket.</p>
         </div>
 
         <div th:unless="${#lists.isEmpty(resultsPage)}">
-            <p class="ds-paragraph" data-size="sm" style="color:var(--ds-color-neutral-text-subtle); margin-block-end: var(--ds-size-4);"
+            <p class="ds-paragraph lookup-results__count" data-size="sm"
                th:text="|${#lists.size(resultsPage)} av ${totalElementsAttr} brukarstader|"></p>
             <div class="table-wrapper">
-            <table class="ds-table"
+            <table class="ds-table lookup-table--full-width"
                    data-border="true"
-                   data-hover="true"
-                   style="width:100%;">
+                   data-hover="true">
                 <thead class="clickableHeaders">
                 <tr>
                     <th th:class="${currentOrdering == orderingOpts.ORGNO_ASC ? 'focused' : ''}"
@@ -191,7 +137,9 @@
                 </thead>
                 <tbody>
                 <tr th:each="rp : ${resultsPage}"
-                    th:attr="data-clickdelegatefor=${'rp-link-' + rp.id}">
+                    th:attr="data-clickdelegatefor=${'rp-link-' + rp.id}, aria-label=${'Opne brukarstad ' + rp.tradeName}"
+                    class="lookup-clickable-row"
+                    tabindex="0">
                     <td th:text="${rp.orgno}"></td>
                     <td th:text="${rp.orgName}"></td>
                     <td>
@@ -202,13 +150,13 @@
                         </a>
                     </td>
                     <td>
-                        <ul style="margin:0; padding-inline-start: var(--ds-size-4); font-size: var(--ds-font-size-minus-1);">
+                        <ul class="lookup-results__list">
                             <li th:each="e : ${rp.relyingPartyEntitlements()}"
                                 th:text="${e.displayName}"></li>
                         </ul>
                     </td>
                     <td>
-                        <ul style="margin:0; padding-inline-start: var(--ds-size-4); font-size: var(--ds-font-size-minus-1);">
+                        <ul class="lookup-results__list">
                             <li th:each="eaa : ${rp.relyingPartyEaas()}"
                                 th:with="credential=${credentialsByType.get(eaa.namespace)}">
                                 <a th:if="${credential != null}"
@@ -229,39 +177,15 @@
             </div>
 
             <div th:if="${activeFilters > 0 and numPagesAttr <= 1}"
-                 class="ds-alert"
+                 class="ds-alert lookup-results__filtered"
                  data-color="info"
-                 role="status"
-                 style="margin-block-start: var(--ds-size-6); display:flex; align-items:center; gap: var(--ds-size-3); flex-wrap: nowrap;">
-                <p class="ds-paragraph" style="margin:0; flex:1 1 auto;">Søket er avgrensa av filteret.</p>
+                 role="status">
+                <p class="ds-paragraph lookup-results__filtered-text">Søket er avgrensa av filteret.</p>
                 <button id="filter-reset-all"
                         type="button"
                         class="ds-button"
-                        data-variant="secondary"
-                        style="flex:0 0 auto;">Tilbakestill</button>
+                        data-variant="secondary">Tilbakestill</button>
             </div>
-            <script>
-                (() => {
-                    const resetAll = document.getElementById("filter-reset-all");
-                    const form = document.getElementById("search_form");
-                    if (resetAll && form) {
-                        resetAll.addEventListener("click", () => {
-                            form.querySelectorAll("input[type=checkbox]").forEach((c) => { c.checked = false; });
-                            form.querySelectorAll("button").forEach((b) => { b.disabled = true; });
-                            const term = form.querySelector("input[name=searchTerm]");
-                            if (term) term.value = "";
-                            resetAll.setAttribute("aria-busy", "true");
-                            resetAll.setAttribute("aria-label", "Tilbakestillar");
-                            resetAll.innerHTML = '<span class="ds-spinner" data-size="sm" aria-hidden="true">'
-                                + '<svg viewBox="0 0 50 50">'
-                                + '<circle class="ds-spinner__background" cx="25" cy="25" r="20" fill="none" stroke-width="4"></circle>'
-                                + '<circle class="ds-spinner__circle" cx="25" cy="25" r="20" fill="none" stroke-width="4"></circle>'
-                                + '</svg></span>';
-                            form.requestSubmit();
-                        });
-                    }
-                })();
-            </script>
         </div>
     </div>
 
@@ -269,10 +193,9 @@
          th:with="pageWindow=${paginationWindowAttr},
                   currentPageNum=${currentPageNumAttr},
                   numPages=${numPagesAttr}"
-         class="ds-pagination"
-         aria-label="Bla i sider"
-         style="margin-block-start: var(--ds-size-12);">
-        <ul style="justify-content: center;">
+         class="ds-pagination lookup-pagination"
+         aria-label="Bla i sider">
+        <ul class="lookup-pagination__list">
             <li th:unless="${#arrays.contains(pageWindow, 1)}">
                 <a th:href="@{/relying-parties(searchTerm=${searchFormAttr.searchTerm}, hideSyntheticOrgnos=${searchFormAttr.hideSyntheticOrgnos}, requiredEntitlements=${searchFormAttr.requiredEntitlements}, page=1, sort=${orderingAttr})}"
                    class="ds-button"
