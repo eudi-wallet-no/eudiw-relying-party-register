@@ -66,14 +66,13 @@
             </div>
 
         </div>
-        <script src="/js/dynamic_edit_form_fields.js"></script>
-
         <!--/* pre-fill EAA list with values from create form. this can be
                non-empty if e.g. page is reloaded after form validation errors. */-->
         <div hidden
              id="eaa_prefill"
              th:each="eaa : ${createFormAttr.getEaas()}"
              th:attr="data-namespace=${eaa.namespace},data-intent=${eaa.intent}"></div>
+        <script th:src="@{/js/dynamic_edit_form_fields.js}"></script>
     </fieldset>
 </div>
 
