@@ -18,6 +18,7 @@ import static org.hamcrest.Matchers.not;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
@@ -51,6 +52,14 @@ public class IndexControllerTests {
             mockMvc.perform(get("/"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("index_view"))
+                .andExpect(header().string("Content-Security-Policy",
+                    containsString("script-src 'self'")))
+                .andExpect(header().string("Content-Security-Policy",
+                    containsString("style-src-attr 'none'")))
+                .andExpect(content().string(not(containsString("unsafe-inline"))))
+                .andExpect(header().doesNotExist("Content-Security-Policy-Report-Only"))
+                .andExpect(content().string(not(containsString("style=\""))))
+                .andExpect(content().string(not(containsString("<script>"))))
                 .andExpect(model().attribute(IndexController.relyingPartyCountAttrId, 724L))
                 .andExpect(model().attribute(IndexController.credentialCountAttrId, 18L));
         }

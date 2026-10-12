@@ -1,10 +1,10 @@
 package no.eudiw.rp.register.data.repository;
 
 import no.eudiw.rp.register.domain.BaseEntity;
-import no.eudiw.rp.register.domain.LegalEntity;
+import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
-import no.eudiw.rp.register.repository.LegalEntityRepository;
+import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.testdata.EntityGenerator;
 import no.eudiw.rp.register.testdata.TestDataGenerator;
@@ -31,23 +31,23 @@ public class RelyingPartyInstanceRepositoryTest {
     private RelyingPartyInstanceRepository repository;
 
     @Autowired
-    private LegalEntityRepository legalEntityRepository;
+    private WalletRelyingPartyRepository walletRelyingPartyRepository;
 
     private static final Random rng = new Random();
 
     // generates "realistic" data, with 1..4 instances per legal entity,
     // roughly 20% inactive RPs, and 10% synthetic legal entities.
-    private static List<LegalEntity> generateRealisticTestData(int n) {
-        var legalEntities = EntityGenerator.generateLegalEntities(n);
+    private static List<WalletRelyingParty> generateRealisticTestData(int n) {
+        var walletRelyingParties = EntityGenerator.generateWalletRelyingParties(n);
         List<RelyingPartyInstance> relyingPartyInstances =
-            legalEntities.stream().flatMap(le -> le.getRelyingPartyInstances().stream()).toList();
+            walletRelyingParties.stream().flatMap(le -> EntityGenerator.instances(le).stream()).toList();
 
         relyingPartyInstances.forEach(rpi -> {
             if (rng.nextFloat() >= 0.8) {
                 rpi.setActive(false);
             }
         });
-        legalEntities.forEach(le -> {
+        walletRelyingParties.forEach(le -> {
             if (rng.nextFloat() >= 0.9) {
                 String syntheticOrgno =
                     le.getOrgno()
@@ -56,20 +56,20 @@ public class RelyingPartyInstanceRepositoryTest {
             }
         });
 
-        return legalEntities;
+        return walletRelyingParties;
     }
 
     @BeforeAll
     static void initSearchTestData(
-        @Autowired LegalEntityRepository legalEntityRepository,
+        @Autowired WalletRelyingPartyRepository walletRelyingPartyRepository,
         @Autowired RelyingPartyInstanceRepository relyingPartyInstanceRepository) {
-        legalEntityRepository.deleteAll();
+        walletRelyingPartyRepository.deleteAll();
 
-        int numTestLegalEntities = 50;
-        List<LegalEntity> testLegalEntities = generateRealisticTestData(numTestLegalEntities);
-        legalEntityRepository.saveAllAndFlush(testLegalEntities);
+        int numTestWalletRelyingParties = 50;
+        List<WalletRelyingParty> testWalletRelyingParties = generateRealisticTestData(numTestWalletRelyingParties);
+        walletRelyingPartyRepository.saveAllAndFlush(testWalletRelyingParties);
 
-        assertTrue(relyingPartyInstanceRepository.count() >= numTestLegalEntities);
+        assertTrue(relyingPartyInstanceRepository.count() >= numTestWalletRelyingParties);
     }
 
     @Nested
@@ -80,9 +80,9 @@ public class RelyingPartyInstanceRepositoryTest {
         @DisplayName("then search by trade name uses substring matching")
         void testSearchByTradeNameUsesSubstringMatching() {
             RelyingPartyInstance relyingPartyInstance = EntityGenerator.generateRelyingParty();
-            String searchTerm = relyingPartyInstance.getTradeName();
+            String searchTerm = relyingPartyInstance.getWalletRelyingPartyService().getServiceTradeName();
 
-            relyingPartyInstance.setTradeName(TestDataGenerator.generateName() + searchTerm + TestDataGenerator.generateName());
+            relyingPartyInstance.getWalletRelyingPartyService().setServiceTradeName(TestDataGenerator.generateName() + searchTerm + TestDataGenerator.generateName());
             repository.saveAndFlush(relyingPartyInstance);
 
             List<RelyingPartyInstance> searchResult = repository.searchRelyingPartyInstances(
@@ -98,12 +98,12 @@ public class RelyingPartyInstanceRepositoryTest {
 
         @Test
         @DisplayName("then search by legal entity name uses substring matching")
-        void testSearchByLegalEntityNameUsesSubstringMatching() {
-            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
-            String searchTerm = legalEntity.getName();
+        void testSearchByWalletRelyingPartyNameUsesSubstringMatching() {
+            WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
+            String searchTerm = walletRelyingParty.getLegalName();
 
-            legalEntity.setName(TestDataGenerator.generateName() + searchTerm + TestDataGenerator.generateName());
-            legalEntityRepository.saveAndFlush(legalEntity);
+            walletRelyingParty.setLegalName(TestDataGenerator.generateName() + searchTerm + TestDataGenerator.generateName());
+            walletRelyingPartyRepository.saveAndFlush(walletRelyingParty);
 
             Set<UUID> searchResult =
                 repository
@@ -119,7 +119,7 @@ public class RelyingPartyInstanceRepositoryTest {
                     .collect(Collectors.toSet());
 
             Set<UUID> expectedResult =
-                legalEntity.getRelyingPartyInstances()
+                EntityGenerator.instances(walletRelyingParty)
                            .stream()
                            .map(BaseEntity::getId)
                            .collect(Collectors.toSet());
@@ -129,11 +129,11 @@ public class RelyingPartyInstanceRepositoryTest {
 
         @Test
         @DisplayName("then search by orgno uses PREFIX matching, and substring search gives no results")
-        void testSearchByLegalEntityOrgnoUsesPrefixMatching() {
-            LegalEntity legalEntity = EntityGenerator.generateLegalEntity();
-            legalEntityRepository.saveAndFlush(legalEntity);
+        void testSearchByWalletRelyingPartyOrgnoUsesPrefixMatching() {
+            WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
+            walletRelyingPartyRepository.saveAndFlush(walletRelyingParty);
 
-            String orgnoPrefixSearchTerm = legalEntity.getOrgno().substring(0, 8);
+            String orgnoPrefixSearchTerm = walletRelyingParty.getOrgno().substring(0, 8);
 
             Set<UUID> searchResultByOrgnoPrefix =
                 repository
@@ -149,13 +149,13 @@ public class RelyingPartyInstanceRepositoryTest {
                     .collect(Collectors.toSet());
 
             Set<UUID> expectedSearchResultByOrgnoPrefix =
-                legalEntity.getRelyingPartyInstances()
+                EntityGenerator.instances(walletRelyingParty)
                            .stream()
                            .map(BaseEntity::getId)
                            .collect(Collectors.toSet());
             assertEquals(expectedSearchResultByOrgnoPrefix, searchResultByOrgnoPrefix);
 
-            String orgnoSubstringSearchTerm = legalEntity.getOrgno().substring(1, 9);
+            String orgnoSubstringSearchTerm = walletRelyingParty.getOrgno().substring(1, 9);
 
             List<RelyingPartyInstance> searchResultByOrgnoSubstring =
                 repository
@@ -176,11 +176,11 @@ public class RelyingPartyInstanceRepositoryTest {
 
             RelyingPartyInstance rpi1 = EntityGenerator.generateRelyingParty();
             RelyingPartyInstance rpi2 = EntityGenerator.generateRelyingParty();
-            LegalEntity legalEntity = legalEntityRepository.findAll().getFirst();
+            WalletRelyingParty walletRelyingParty = walletRelyingPartyRepository.findAll().getFirst();
 
-            String searchTerm = legalEntity.getOrgno();
-            rpi1.setTradeName(searchTerm + rpi1.getTradeName());
-            rpi2.setTradeName(rpi2.getTradeName() + searchTerm);
+            String searchTerm = walletRelyingParty.getOrgno();
+            rpi1.getWalletRelyingPartyService().setServiceTradeName(searchTerm + rpi1.getWalletRelyingPartyService().getServiceTradeName());
+            rpi2.getWalletRelyingPartyService().setServiceTradeName(rpi2.getWalletRelyingPartyService().getServiceTradeName() + searchTerm);
 
             repository.saveAndFlush(rpi1);
             repository.saveAndFlush(rpi2);
@@ -198,7 +198,7 @@ public class RelyingPartyInstanceRepositoryTest {
                           .collect(Collectors.toSet());
 
             Set<UUID> expectedResult =
-                legalEntity.getRelyingPartyInstances()
+                EntityGenerator.instances(walletRelyingParty)
                            .stream()
                            .map(BaseEntity::getId)
                            .collect(Collectors.toSet());
@@ -281,7 +281,7 @@ public class RelyingPartyInstanceRepositoryTest {
             Predicate<String> isNonsyntheticOrgno = orgno -> orgno.startsWith("8") || orgno.startsWith("9");
 
             assertTrue(searchResult.stream()
-                                   .map(rp -> rp.getLegalEntity().getOrgno())
+                                   .map(rp -> rp.getWalletRelyingPartyService().getWalletRelyingParty().getOrgno())
                                    .allMatch(isNonsyntheticOrgno));
         }
     }
@@ -301,7 +301,7 @@ public class RelyingPartyInstanceRepositoryTest {
         @Test
         @DisplayName("then trade name sorting orders relying parties by trade name")
         void testSearchWithOrderingByTradename() {
-            Sort orderingByTradename = Sort.by("tradeName");
+            Sort orderingByTradename = Sort.by("walletRelyingPartyService.serviceTradeName");
             List<RelyingPartyInstance> searchResultByTradename =
                 repository.searchRelyingPartyInstances(
                     "",
@@ -312,13 +312,13 @@ public class RelyingPartyInstanceRepositoryTest {
                 ).getContent();
 
             assertTrue(isSortedBy(searchResultByTradename,
-                                  Comparator.comparing(RelyingPartyInstance::getTradeName)));
+                                  Comparator.comparing(instance -> instance.getWalletRelyingPartyService().getServiceTradeName())));
         }
 
         @Test
         @DisplayName("then organization number sorting orders relying parties by organization number")
         void testSearchWithOrderingByOrgno() {
-            Sort ordering = Sort.by("legalEntity.orgno");
+            Sort ordering = Sort.by("walletRelyingPartyService.walletRelyingParty.orgno");
             List<RelyingPartyInstance> searchResultByOrgno =
                 repository.searchRelyingPartyInstances(
                     "",
@@ -329,7 +329,7 @@ public class RelyingPartyInstanceRepositoryTest {
                 ).getContent();
 
             assertTrue(isSortedBy(searchResultByOrgno,
-                                  Comparator.comparing(rp -> rp.getLegalEntity().getOrgno())));
+                                  Comparator.comparing(rp -> rp.getWalletRelyingPartyService().getWalletRelyingParty().getOrgno())));
         }
 
         @Test

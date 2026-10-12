@@ -79,6 +79,7 @@ jobs:
     if: github.event_name == 'push'
     permissions:
       contents: read
+      id-token: write
     uses: felleslosninger/github-workflows/.github/workflows/misc-publish-dev-docker.yml@main
     with:
       docker-file: apps/eudiw-rp-register-lookup-web/docker/dev.Dockerfile
