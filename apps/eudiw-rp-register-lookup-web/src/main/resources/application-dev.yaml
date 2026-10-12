@@ -20,12 +20,15 @@ spring:
 eudiw-rp-register-lookup-web:
   relying-parties-service:
     register-service-api:
-      register-service-base-uri: http://digital-lommebok-rp-register-service-service:9200
+      register-service-base-uri: http://localhost:9200
   credentials-service:
     credentials-registry-api:
-      credentials-registry-base-uri: http://credential-register:9294
+      credentials-registry-base-uri: http://localhost:9294
 
 
 
 external-dependency-health-checks:
   enabled: false
+  health-endpoints:
+    eudiw-rp-service:
+      base-uri: http://localhost:9201
