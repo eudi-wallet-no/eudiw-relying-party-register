@@ -1,8 +1,8 @@
 package no.eudiw.rp.register.service;
 
 import lombok.RequiredArgsConstructor;
-import no.eudiw.rp.register.domain.LegalEntity;
-import no.eudiw.rp.register.repository.LegalEntityRepository;
+import no.eudiw.rp.register.domain.WalletRelyingParty;
+import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.integrations.enhetsregisteret.EnhetsregisteretService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,19 +11,19 @@ import java.util.ArrayList;
 
 @RequiredArgsConstructor
 @Service
-public class LegalEntityService {
+public class WalletRelyingPartyLookupService {
 
-    private final LegalEntityRepository legalEntityRepository;
+    private final WalletRelyingPartyRepository walletRelyingPartyRepository;
     private final EnhetsregisteretService enhetsregisteretService;
 
     @Transactional
-    public LegalEntity getLegalEntityForOrgno(String orgno) {
-        LegalEntity legalEntity = legalEntityRepository.findByOrgno(orgno).orElse(null);
-        if (legalEntity != null) {
-            return legalEntity;
+    public WalletRelyingParty getWalletRelyingPartyForOrgno(String orgno) {
+        WalletRelyingParty walletRelyingParty = walletRelyingPartyRepository.findByOrgno(orgno).orElse(null);
+        if (walletRelyingParty != null) {
+            return walletRelyingParty;
         }
 
-        LegalEntity newLegalEntity = new LegalEntity(
+        WalletRelyingParty newWalletRelyingParty = new WalletRelyingParty(
             "Syntetisk organisasjon %s".formatted(orgno),
             orgno,
             true,
@@ -34,10 +34,10 @@ public class LegalEntityService {
         if (isNonsyntheticOrgno) {
             EnhetsregisteretService.EnhetsregisteretResponse enhetsregisteretResponse =
                 enhetsregisteretService.queryOrgno(orgno);
-            newLegalEntity.setName(enhetsregisteretResponse.name());
-            newLegalEntity.setPublicSector(enhetsregisteretResponse.publicSector());
+            newWalletRelyingParty.setLegalName(enhetsregisteretResponse.name());
+            newWalletRelyingParty.setPsb(enhetsregisteretResponse.publicSector());
         }
 
-        return legalEntityRepository.save(newLegalEntity);
+        return walletRelyingPartyRepository.save(newWalletRelyingParty);
     }
 }

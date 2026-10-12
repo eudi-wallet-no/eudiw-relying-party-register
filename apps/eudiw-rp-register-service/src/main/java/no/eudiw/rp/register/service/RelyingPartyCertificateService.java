@@ -104,9 +104,9 @@ public class RelyingPartyCertificateService {
 
         X509Certificate certificate = certificateServiceClient.requestCertificate(
                 csr,
-                relyingParty.getLegalEntity().getOrgno(),
-                relyingParty.getLegalEntity().getName(),
-                relyingParty.getTradeName(),
+                relyingParty.getWalletRelyingPartyService().getWalletRelyingParty().getOrgno(),
+                relyingParty.getWalletRelyingPartyService().getWalletRelyingParty().getLegalName(),
+                relyingParty.getWalletRelyingPartyService().getServiceTradeName(),
                 caId);
 
         IssuerCertificate certificateEntity =
@@ -124,9 +124,9 @@ public class RelyingPartyCertificateService {
 
         X509Certificate certificate = certificateServiceClient.requestCertificate(
                 csr,
-                relyingParty.getLegalEntity().getOrgno(),
-                relyingParty.getLegalEntity().getName(),
-                relyingParty.getTradeName(),
+                relyingParty.getWalletRelyingPartyService().getWalletRelyingParty().getOrgno(),
+                relyingParty.getWalletRelyingPartyService().getWalletRelyingParty().getLegalName(),
+                relyingParty.getWalletRelyingPartyService().getServiceTradeName(),
                 properties.accessCertificateCaId()
                 );
 
