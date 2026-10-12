@@ -63,10 +63,9 @@ eudiw-rp-register-lookup-web:
   security:
     enabled: true
     csp:
-      mode: enforce
-        #report-uri https://csp-report.digdir.no/api/reports;
+      mode: report_only
       policy: >-
-        report-uri http://localhost:8080/api/reports;
+        #report-uri https://csp-report.digdir.no/api/reports;
         default-src 'none';
         script-src 'self';
         script-src-attr 'none';
