@@ -28,54 +28,28 @@ Each app has its own README with details on setup, running and testing.
 
 ## Run everything locally with Docker Compose
 
-The root `docker-compose.yaml` is the only Compose file. It starts all seven
-applications, two MariaDB databases and Redis.
-
-### Docker runtime
-
-Use Docker Desktop, or Colima on macOS with `host.docker.internal` support.
-Application-to-application calls go through the host's published ports, so the
-same URLs work whether an application runs in Docker or IntelliJ. Ports remain
-bound to `127.0.0.1`.
-
-Native Docker Engine on Linux is not supported by this local setup. It does not
-provide `host.docker.internal` automatically, and adding a `host-gateway` mapping
-alone would not make the loopback-bound published ports reachable. The runtime
-must support both host name resolution and access to these host ports.
-
-### Secrets
-Clone https://github.com/eudi-wallet-no/eudiw-developer-secrets and follow the instructions in the README. The Compose file reads the same environment files and API keys as the applications do when run from an IDE.
-
-
-
-### Development
-
-Start the whole stack with `docker compose up --build`.
+Requires Docker Desktop, or Colima on macOS with `host.docker.internal` support.
+Configure environment files and API keys as described in
+[eudiw-developer-secrets](https://github.com/eudi-wallet-no/eudiw-developer-secrets).
 
 ```bash
-# Build and start all services in the background
+# Build and start the stack
 docker compose up --build -d
 
-# Build everything, but scale down one service because you run it locally
+# Build and start the stack without rp-register-service
 docker compose up --build --scale rp-register-service=0
 
-# Stop all services (keep containers)
-docker compose stop
+# Stop one service (for example, while running it locally)
+docker compose stop rp-register-service
 
-# Show logs for one service, or all
+# Follow logs for a service
 docker compose logs -f rp-register-service
-docker compose logs -f
-
-# Stop and remove containers and network
-docker compose down
 ```
 
-### Running locally in IntelliJ
-
-The `dev` profiles use the same ports, so an IntelliJ application and its Docker
-container are interchangeable. Use `--scale <app>=0` in Docker, then run the
-application in IntelliJ with `dev`.
-For self-service, use `dev,selfservice-dev`.
+Services in `docker-compose.yaml`:
+`rp-register-service`, `rp-register-admin`, `rp-register-selfservice`,
+`rp-register-lookup-web`, `ca-service`, `credential-registry`,
+`trustlist-service`, `rp-register-db`, `ca-db`, `redis`.
 
 ### Application, Ports
 
