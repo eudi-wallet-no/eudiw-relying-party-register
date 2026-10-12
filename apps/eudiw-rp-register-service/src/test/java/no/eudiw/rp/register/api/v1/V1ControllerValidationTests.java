@@ -31,7 +31,7 @@ import static org.hamcrest.Matchers.*;
 @ActiveProfiles("junit")
 @DisplayName("When using the relying parties API with invalid resources ...")
 @AutoConfigureMockMvc
-public class ControllerValidationTests {
+public class V1ControllerValidationTests {
 
     @Autowired
     private RelyingPartyInstanceRepository relyingPartyRepository;
@@ -58,7 +58,7 @@ public class ControllerValidationTests {
 
         @Test
         @DisplayName("then validation is properly applied to create resource")
-        void testInvalidOrgnoInCreateResource() throws Exception {
+        void rejectsInvalidOrgnoInCreateResource() throws Exception {
 
             CreateRelyingPartyResource resource =
                 generateCreateRelyingPartyResource()
@@ -77,7 +77,7 @@ public class ControllerValidationTests {
 
         @Test
         @DisplayName("then validation is properly applied to edit resource")
-        void testUnsaneNameEditResource() throws Exception {
+        void rejectsUnsaneNameInEditResource() throws Exception {
             RelyingPartyInstance relyingPartyIn = relyingPartyRepository.save(EntityGenerator.generateRelyingParty());
             UUID id = relyingPartyIn.getId();
 
@@ -98,7 +98,7 @@ public class ControllerValidationTests {
 
         @Test
         @DisplayName("then validation is properly applied to search resource")
-        void testOptionalParametersCanBeNull() throws Exception {
+        void rejectsInvalidSearchResource() throws Exception {
             SearchRelyingPartyResource resource = new SearchRelyingPartyResource("$fornothing");
 
             mvcPerform(post("/v1/rp/search"), resource)
@@ -114,7 +114,7 @@ public class ControllerValidationTests {
 
         @DisplayName("then validation is properly applied to the delete ID")
         @Test
-        void testDeleteBadUuid() throws Exception {
+        void rejectsInvalidDeleteId() throws Exception {
             String invalidId = "invalid-id";
             mvcPerform(delete("/v1/rp/" + invalidId), null)
                 .andExpect(status().isBadRequest())
@@ -128,7 +128,7 @@ public class ControllerValidationTests {
 
         @DisplayName("then validation is properly applied to the get ID")
         @Test
-        void testGetadUuid() throws Exception {
+        void rejectsInvalidGetId() throws Exception {
             String invalidId = "invalid-id";
             mvcPerform(get("/v1/rp/" + invalidId), null)
                 .andExpect(status().isBadRequest())

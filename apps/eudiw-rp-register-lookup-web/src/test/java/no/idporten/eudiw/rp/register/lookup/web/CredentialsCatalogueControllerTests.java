@@ -163,9 +163,10 @@ public class CredentialsCatalogueControllerTests {
             String issuer = "https:%2F%2F" + TestDataGenerator.generateName() + ".net";
             String configId = TestDataGenerator.generateName();
 
-            String requestUri = "/credential/%s/%s".formatted(issuer, configId);
-            System.out.println(requestUri);
-            mockMvc.perform(get(requestUri))
+
+            mockMvc.perform(get("/credential")
+                                .param("issuer", issuer)
+                                .param("config-id", configId))
                    .andExpectAll(
                        status().isNotFound(),
                        view().name("error/404"),
