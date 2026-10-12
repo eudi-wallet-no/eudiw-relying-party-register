@@ -46,6 +46,11 @@ docker compose stop rp-register-service
 docker compose logs -f rp-register-service
 ```
 
+With `host.docker.internal`, the remaining Docker services can reach a service
+running in IntelliJ through its published port. Stop or scale down that service
+in Docker, then run it in IntelliJ on the same port; the other services can
+continue communicating with it.
+
 Services in `docker-compose.yaml`:
 `rp-register-service`, `rp-register-admin`, `rp-register-selfservice`,
 `rp-register-lookup-web`, `ca-service`, `credential-registry`,
