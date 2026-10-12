@@ -85,7 +85,7 @@
             activateLink();
         });
         row.addEventListener("keydown", (event) => {
-            if (event.key === "Enter" || event.key === " ") {
+            if (event.target === row && (event.key === "Enter" || event.key === " ")) {
                 event.preventDefault();
                 activateLink();
             }
