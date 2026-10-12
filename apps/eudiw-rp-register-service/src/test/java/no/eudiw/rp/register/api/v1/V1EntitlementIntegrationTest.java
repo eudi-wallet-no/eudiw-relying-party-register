@@ -27,7 +27,7 @@ class V1EntitlementIntegrationTest {
 
     @MockitoBean
     @SuppressWarnings("unused")
-    private V1DataConverter converter;
+    private V1ContractMapper v1ContractMapper;
 
     @Autowired
     private V1ApiService service;
@@ -44,12 +44,12 @@ class V1EntitlementIntegrationTest {
             );
             EntitlementsResource expected = new EntitlementsResource(List.of());
             when(repository.findAllByActive(true)).thenReturn(activeEntitlements);
-            when(converter.toEntitlementsResource(activeEntitlements)).thenReturn(expected);
+            when(v1ContractMapper.toV1EntitlementsResource(activeEntitlements)).thenReturn(expected);
 
             EntitlementsResource result = service.findAllEntitlements(false);
 
             verify(repository).findAllByActive(true);
-            verify(converter).toEntitlementsResource(activeEntitlements);
+            verify(v1ContractMapper).toV1EntitlementsResource(activeEntitlements);
             assertThat(result).isSameAs(expected);
         }
 
@@ -62,12 +62,12 @@ class V1EntitlementIntegrationTest {
             );
             EntitlementsResource expected = new EntitlementsResource(List.of());
             when(repository.findAll()).thenReturn(entitlements);
-            when(converter.toEntitlementsResource(entitlements)).thenReturn(expected);
+            when(v1ContractMapper.toV1EntitlementsResource(entitlements)).thenReturn(expected);
 
             EntitlementsResource result = service.findAllEntitlements(true);
 
             verify(repository).findAll();
-            verify(converter).toEntitlementsResource(entitlements);
+            verify(v1ContractMapper).toV1EntitlementsResource(entitlements);
             assertThat(result).isSameAs(expected);
         }
     }

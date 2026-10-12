@@ -20,12 +20,15 @@ spring:
 eudiw-rp-register-lookup-web:
   relying-parties-service:
     register-service-api:
-      register-service-base-uri: http://rp-register-service:9200
+      register-service-base-uri: http://${LOCAL_SERVICE_HOST:rp-register-service}:9200
   credentials-service:
     credentials-registry-api:
-      credentials-registry-base-uri: http://credential-registry:9294
+      credentials-registry-base-uri: http://${LOCAL_SERVICE_HOST:credential-registry}:9294
 
 
 
 external-dependency-health-checks:
   enabled: false
+  health-endpoints:
+    eudiw-rp-service:
+      base-uri: http://${LOCAL_SERVICE_HOST:rp-register-service}:9201

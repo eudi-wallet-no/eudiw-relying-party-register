@@ -1,0 +1,290 @@
+name: digital-lommebok-rp
+
+networks:
+  digital-lommebok:
+    name: digital-lommebok
+
+# Felles nettverksvert for app-til-app-kall. Applikasjonene kjører med profilene
+# `docker` og bruker LOCAL_SERVICE_HOST i sine application-docker.yaml, med
+# container-DNS som fallback. Når en app skaleres ned (`--scale <app>=0`) og i
+# stedet kjøres fra IntelliJ på samme publiserte port, peker LOCAL_SERVICE_HOST på
+# verten, slik at de andre containerne når den via den publiserte porten.
+# Compose kjenner ikke API-stier eller nøkler; de eies av appenes profiler.
+x-app-environment: &app-environment
+  LOCAL_SERVICE_HOST: host.docker.internal
+
+services:
+  # Delte støttetjenester
+  redis:
+    image: redis:alpine
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      interval: 5s
+      start_period: 3s
+      timeout: 2s
+      retries: 20
+    ports:
+      - "127.0.0.1:6370:6379"
+    networks:
+      - digital-lommebok
+    command: redis-server --maxmemory-policy allkeys-lru
+
+  rp-register-db:
+    image: "mariadb:11.4"
+    restart: on-failure
+    environment:
+      MARIADB_ROOT_PASSWORD: verysecret
+      MARIADB_DATABASE: rp_register_db
+      MARIADB_USER: eudiw_user
+      MARIADB_PASSWORD: lesssecret
+    ports:
+      - "127.0.0.1:36306:3306"
+    networks:
+      - digital-lommebok
+    healthcheck:
+      test: mariadb-admin -p$$MARIADB_ROOT_PASSWORD -uroot ping -h localhost
+      interval: 5s
+      start_period: 5s
+      timeout: 5s
+      retries: 10
+
+  ca-db:
+    image: "mariadb:11.4"
+    restart: on-failure
+    environment:
+      MARIADB_ROOT_PASSWORD: rootpwd
+      MARIADB_DATABASE: ca_db
+      MARIADB_USER: ca
+      MARIADB_PASSWORD: ca
+    ports:
+      - "127.0.0.1:9226:3306"
+    networks:
+      - digital-lommebok
+    healthcheck:
+      test: mariadb-admin -p$$MARIADB_ROOT_PASSWORD -uroot ping -h localhost
+      interval: 5s
+      start_period: 5s
+      timeout: 5s
+      retries: 10
+
+  # Applikasjoner
+  rp-register-service:
+    build:
+      context: .
+      dockerfile: apps/eudiw-rp-register-service/docker/dev.Dockerfile
+      args:
+        GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
+        GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
+    env_file:
+      - ${EUDIW_RP_REGISTER_SERVICE_ENV}
+    environment:
+      <<: *app-environment
+      spring_profiles_active: docker
+    ports:
+      - "127.0.0.1:9200:9200"
+      - "127.0.0.1:9201:9201"
+      - "127.0.0.1:9205:9205"
+    networks:
+      - digital-lommebok
+    depends_on:
+      rp-register-db:
+        condition: service_healthy
+    entrypoint: "/bin/bash -c"
+    command:
+      - |
+        cd /usr/local/webapps
+        java -jar application.jar
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://rp-register-service:9201/health/readiness"]
+      interval: 15s
+      start_period: 5s
+      timeout: 5s
+      retries: 20
+
+  rp-register-admin:
+    build:
+      context: .
+      dockerfile: apps/eudiw-rp-register-admin/docker/dev.Dockerfile
+      args:
+        GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
+        GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
+    env_file:
+      - ${EUDIW_RP_REGISTER_ADMIN_ENV}
+    environment:
+      <<: *app-environment
+      spring_profiles_active: docker, admin, admin-docker
+    ports:
+      - "127.0.0.1:9250:9250"
+      - "127.0.0.1:9251:9251"
+      - "127.0.0.1:9252:9252"
+    networks:
+      - digital-lommebok
+    entrypoint: "/bin/bash -c"
+    command:
+      - |
+        cd /usr/local/webapps/
+        java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9251 -jar application.jar
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://rp-register-admin:9250/health/readiness"]
+      interval: 15s
+      start_period: 5s
+      timeout: 5s
+      retries: 20
+
+  rp-register-selfservice:
+    build:
+      context: .
+      dockerfile: apps/eudiw-rp-register-admin/docker/dev.Dockerfile
+      args:
+        GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
+        GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
+    env_file:
+      - ${EUDIW_RP_REGISTER_ADMIN_ENV}
+    environment:
+      <<: *app-environment
+      spring_profiles_active: docker, selfservice, selfservice-docker
+    ports:
+      - "127.0.0.1:9255:9255"
+      - "127.0.0.1:9256:9256"
+    networks:
+      - digital-lommebok
+    entrypoint: "/bin/bash -c"
+    command:
+      - |
+        cd /usr/local/webapps/
+        java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9256 -jar application.jar
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://rp-register-selfservice:9255/health/readiness"]
+      interval: 15s
+      start_period: 5s
+      timeout: 5s
+      retries: 20
+
+  ca-service:
+    build:
+      context: .
+      dockerfile: apps/eudiw-ca-service/docker/dev.Dockerfile
+      args:
+        GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
+        GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
+    environment:
+      <<: *app-environment
+      spring_profiles_active: docker
+      _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0"
+    env_file:
+      - ${EUDIW_CA_SERVICE_ENV}
+    ports:
+      - "127.0.0.1:9220:9220"
+      - "127.0.0.1:9221:9221"
+      - "127.0.0.1:9225:9225"
+    networks:
+      - digital-lommebok
+    depends_on:
+      ca-db:
+        condition: service_healthy
+    entrypoint: "/bin/bash -c"
+    command:
+      - |
+        cd /usr/local/webapps/
+        java -javaagent:opentelemetry-javaagent.jar -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9225 -jar application.jar
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://ca-service:9221/health/readiness"]
+      interval: 15s
+      start_period: 5s
+      timeout: 5s
+      retries: 20
+
+  # credential-registry henter credential-issuer-metadata fra RP-registeret ved
+  # oppstart. Uten en app-avhengighet kan RP-registeret ennå ikke være klar (eller
+  # kjøres fra IntelliJ senere), så containeren starter på nytt til kallet lykkes.
+  credential-registry:
+    build:
+      context: .
+      dockerfile: apps/eudiw-credential-registry/docker/dev.Dockerfile
+      args:
+        GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
+        GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
+    restart: on-failure
+    environment:
+      <<: *app-environment
+      spring_profiles_active: docker
+      _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0 -Dotel.metrics.exporter=none -Dotel.traces.exporter=none -Dotel.span.exporter=none -Dotel.logs.exporter=none"
+    env_file:
+      - ${EUDIW_CREDENTIAL_REGISTRY_ENV}
+    ports:
+      - "127.0.0.1:9294:9294"
+      - "127.0.0.1:9295:9295"
+    networks:
+      - digital-lommebok
+    entrypoint: "/bin/bash -c"
+    command:
+      - |
+        cd /usr/local/webapps/
+        java -javaagent:opentelemetry-javaagent.jar -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9295 -jar application.jar
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://credential-registry:9294/health/readiness"]
+      interval: 15s
+      start_period: 5s
+      timeout: 5s
+      retries: 20
+
+  rp-register-lookup-web:
+    build:
+      context: .
+      dockerfile: apps/eudiw-rp-register-lookup-web/docker/dev.Dockerfile
+      args:
+        GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
+        GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
+    env_file:
+      - ${EUDIW_RP_REGISTER_LOOKUP_WEB_ENV}
+    environment:
+      <<: *app-environment
+      spring_profiles_active: docker
+      _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0"
+    ports:
+      - "127.0.0.1:9210:9210"
+      - "127.0.0.1:9211:9211"
+      - "127.0.0.1:9215:9215"
+    networks:
+      - digital-lommebok
+    entrypoint: "/bin/bash -c"
+    command:
+      - |
+        cd /usr/local/webapps/
+        java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9215 -jar application.jar
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://rp-register-lookup-web:9211/health/readiness"]
+      interval: 15s
+      start_period: 5s
+      timeout: 5s
+      retries: 20
+
+  trustlist-service:
+    build:
+      context: .
+      dockerfile: apps/eudiw-trustlist-service/docker/dev.Dockerfile
+      args:
+        GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
+        GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
+    environment:
+      <<: *app-environment
+      spring_profiles_active: docker
+      _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0"
+    env_file:
+      - ${EUDIW_TRUSTLIST_SERVICE_ENV}
+    ports:
+      - "127.0.0.1:9230:9230"
+      - "127.0.0.1:9235:9235"
+    networks:
+      - digital-lommebok
+    entrypoint: "/bin/bash -c"
+    command:
+      - |
+        cd /usr/local/webapps/
+        java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9235 -jar application.jar
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://trustlist-service:9230/health/readiness"]
+      interval: 15s
+      start_period: 5s
+      timeout: 5s
+      retries: 20
