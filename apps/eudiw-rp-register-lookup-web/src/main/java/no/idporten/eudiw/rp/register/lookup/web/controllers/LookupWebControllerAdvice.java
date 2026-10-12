@@ -58,7 +58,7 @@ public class LookupWebControllerAdvice {
 
     @ExceptionHandler(LookupServiceException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ModelAndView handleAdminServiceException(LookupServiceException e) {
+    public ModelAndView handleLookupServiceException(LookupServiceException e) {
         log.error("Unhandled service-level exception", e);
         return new ModelAndView("error/5xx");
     }
