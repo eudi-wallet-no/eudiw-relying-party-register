@@ -72,7 +72,7 @@
              id="eaa_prefill"
              th:each="eaa : ${createFormAttr.getEaas()}"
              th:attr="data-namespace=${eaa.namespace},data-intent=${eaa.intent}"></div>
-        <script src="/js/dynamic_edit_form_fields.js"></script>
+        <script th:src="@{/js/dynamic_edit_form_fields.js}"></script>
     </fieldset>
 </div>
 
