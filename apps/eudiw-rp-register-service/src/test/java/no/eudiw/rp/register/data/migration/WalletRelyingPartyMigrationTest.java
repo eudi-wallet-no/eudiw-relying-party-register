@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class WalletRelyingPartyMigrationTest {
@@ -122,6 +123,37 @@ class WalletRelyingPartyMigrationTest {
             new InstanceService("instance-3", "Service 3", "party-2")
         ), instanceServices);
         assertEquals(3, jdbc.queryForObject("SELECT COUNT(*) FROM wallet_relying_party_service", Integer.class));
+    }
+
+    @Test
+    void addsTs5PartyDataWithoutChangingExistingServiceTables() {
+        DataSource dataSource = new DriverManagerDataSource(
+            "jdbc:h2:mem:" + UUID.randomUUID() + ";MODE=MySQL;DB_CLOSE_DELAY=-1", "sa", "");
+        JdbcTemplate jdbc = new JdbcTemplate(dataSource);
+        migrate(dataSource, "21");
+        jdbc.update("""
+            INSERT INTO wallet_relying_party (id, legal_name, orgno, is_psb)
+            VALUES ('party-1', 'Party 1', '123456785', TRUE)
+            """);
+        jdbc.update("""
+            INSERT INTO wallet_relying_party_service
+                (id, service_trade_name, wallet_relying_party_id, created_ms, last_updated_ms)
+            VALUES ('service-1', 'Service 1', 'party-1', 1, 2)
+            """);
+
+        migrate(dataSource, "23");
+
+        assertEquals(1, jdbc.queryForObject("SELECT COUNT(*) FROM legal_person", Integer.class));
+        assertEquals("Party 1", jdbc.queryForObject(
+            "SELECT legal_name FROM legal_person_legal_names WHERE legal_person_id = 'party-1'",
+            String.class));
+        assertEquals("Service 1", jdbc.queryForObject(
+            "SELECT service_trade_name FROM wallet_relying_party_service WHERE id = 'service-1'",
+            String.class));
+        assertNull(jdbc.queryForObject(
+            "SELECT country FROM wallet_relying_party WHERE id = 'party-1'", String.class));
+        assertEquals(1, jdbc.queryForObject(
+            "SELECT COUNT(*) FROM wallet_relying_party WHERE id = 'party-1'", Integer.class));
     }
 
     private static void migrate(DataSource dataSource, String targetVersion) {
