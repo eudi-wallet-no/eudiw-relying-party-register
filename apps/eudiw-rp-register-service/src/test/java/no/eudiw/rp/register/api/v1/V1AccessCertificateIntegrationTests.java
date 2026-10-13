@@ -404,19 +404,20 @@ public class V1AccessCertificateIntegrationTests {
 
             WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
             walletRelyingPartyRepository.saveAndFlush(walletRelyingParty);
+            UUID instanceId = EntityGenerator.instances(walletRelyingParty).getFirst().getId();
 
             X509Certificate certificateExpected = enqueueMockCertificateResponse();
 
             // assert that immediately returned certificate is correct.
             X509Certificate certificateActual1 =
-                    certService.requestAccessCertificateForRelyingParty(EntityGenerator.instances(walletRelyingParty).getFirst().getId(), csrResource)
+                    certService.requestAccessCertificateForRelyingParty(instanceId, csrResource)
                             .certificate();
             assertEquals(certificateExpected, certificateActual1);
 
             RecordedRequest recordedRequest = mockCaServer.takeRequest();
 
             RelyingPartyInstance relyingPartyOut =
-                    instanceRepository.findById(EntityGenerator.instances(walletRelyingPartyRepository.findById(walletRelyingParty.getId()).orElseThrow()).getFirst().getId()).orElse(null);
+                    instanceRepository.findById(instanceId).orElse(null);
             assertNotNull(relyingPartyOut);
             assertEquals("POST", recordedRequest.getMethod());
             assertEquals("/v1/certs/junitaccess1", recordedRequest.getPath());
