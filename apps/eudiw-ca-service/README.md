@@ -37,4 +37,4 @@ Profiles in the [resources](src/main/resources) folder:
 | test    | Test environment                                      |
 
 For local setup, run commands and ports, see
-[Local development](../../README.md#running-locally-in-intellij).
+[Local development](../../README.md#run-everything-locally-with-docker-compose).

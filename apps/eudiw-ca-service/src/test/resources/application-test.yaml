@@ -4,12 +4,11 @@ spring:
     api-key: junit-api-key
   datasource:
     type: org.springframework.jdbc.datasource.SimpleDriverDataSource
-    url: jdbc:h2:mem:ca_junit;MODE=MySQL;DB_CLOSE_DELAY=-1
-    driver-class-name: org.h2.Driver
+    # Keep the database alive between connections and cached Spring contexts.
+    url: "jdbc:tc:mariadb:11.4:///ca_junit?TC_DAEMON=true"
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
     username: junit
     password: junit
-  jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
 eudiw-ca:
   roots:
     root2:

@@ -1,20 +1,23 @@
 package no.idporten.eudiw.rp.admin.service;
 
 import okhttp3.mockwebserver.MockWebServer;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.DynamicPropertyRegistrar;
 
 import java.io.IOException;
 
 @TestConfiguration
 public class MockWebServerConfiguration {
-    @Bean
-    public MockWebServer testMockWebServer(
-        @Value("${TEST_MOCK_WEB_SERVER_PORT}") int mockWebServerPort)
-        throws IOException {
+    @Bean(destroyMethod = "shutdown")
+    public MockWebServer testMockWebServer() throws IOException {
         MockWebServer mockWebServer = new MockWebServer();
-        mockWebServer.start(mockWebServerPort);
+        mockWebServer.start();
         return mockWebServer;
+    }
+
+    @Bean
+    public DynamicPropertyRegistrar mockWebServerProperties(MockWebServer testMockWebServer) {
+        return registry -> registry.add("TEST_MOCK_WEB_SERVER_PORT", testMockWebServer::getPort);
     }
 }

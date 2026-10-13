@@ -24,7 +24,18 @@ apps/       Applications (one folder per app)
 docs/       Shared documentation across applications
 ```
 
-Each app has its own README with details on setup, running and testing.
+Each app has its own README with application-specific setup and configuration.
+
+## Test setup
+
+Database tests start MariaDB automatically; Docker must be running.
+If Testcontainers cannot find Docker when using Colima, set these variables
+in the terminal running Maven (or in the IDE's test run configuration):
+
+```bash
+export DOCKER_HOST="$(docker context inspect colima --format '{{.Endpoints.docker.Host}}')"
+export TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock
+```
 
 ## Run everything locally with Docker Compose
 

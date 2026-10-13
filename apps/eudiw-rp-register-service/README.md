@@ -15,4 +15,4 @@ EUDIW Relying Party Register
 > Access to Digitaliseringsdirektoratet infrastructure is required to run the application.
 
 For local setup, run commands and ports, see
-[Local development](../../README.md#running-locally-in-intellij).
+[Local development](../../README.md#run-everything-locally-with-docker-compose).
