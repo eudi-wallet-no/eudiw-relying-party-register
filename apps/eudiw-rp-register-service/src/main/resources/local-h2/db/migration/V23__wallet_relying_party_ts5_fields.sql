@@ -1,12 +1,11 @@
 ALTER TABLE `wallet_relying_party`
-    ADD COLUMN `country` VARCHAR(2);
+    ADD COLUMN `country` VARCHAR(2) NOT NULL DEFAULT 'NO';
 ALTER TABLE `wallet_relying_party`
     ADD COLUMN `trade_name` VARCHAR(255);
 ALTER TABLE `wallet_relying_party`
-    ADD COLUMN `provider_type` VARCHAR(64);
-ALTER TABLE `wallet_relying_party`
-    ADD COLUMN `registry_uri` VARCHAR(2048);
+    ADD COLUMN `provider_type` VARCHAR(64) NOT NULL DEFAULT 'WalletRelyingParty';
 
+-- Additional identifiers only; orgno remains the national unique identifier in wallet_relying_party.orgno.
 CREATE TABLE `wallet_relying_party_identifiers` (
     `wallet_relying_party_id` VARCHAR(36) NOT NULL,
     `position` INTEGER NOT NULL,
@@ -30,7 +29,7 @@ CREATE TABLE `wallet_relying_party_policies` (
 CREATE TABLE `wallet_relying_party_x5c` (
     `wallet_relying_party_id` VARCHAR(36) NOT NULL,
     `position` INTEGER NOT NULL,
-    `certificate_chain` VARCHAR(8192) NOT NULL,
+    `certificate_chain` TEXT NOT NULL,
     PRIMARY KEY (`wallet_relying_party_id`, `position`),
     CONSTRAINT `fk_wallet_relying_party_x5c`
         FOREIGN KEY (`wallet_relying_party_id`) REFERENCES `wallet_relying_party` (`id`) ON DELETE CASCADE
@@ -109,3 +108,6 @@ CREATE TABLE `supervisory_authority_form_uris` (
     CONSTRAINT `fk_supervisory_authority_form_uris`
         FOREIGN KEY (`supervisory_authority_id`) REFERENCES `supervisory_authority` (`id`) ON DELETE CASCADE
 );
+
+INSERT INTO `supervisory_authority` (`id`, `wallet_relying_party_id`, `name`, `country`)
+SELECT `id`, `id`, 'Digitaliseringsdirektoratet', 'NO' FROM `wallet_relying_party`;

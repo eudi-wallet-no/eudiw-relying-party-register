@@ -1,14 +1,14 @@
 ALTER TABLE `wallet_relying_party`
-    ADD COLUMN `country` VARCHAR(2),
+    ADD COLUMN `country` VARCHAR(2) NOT NULL DEFAULT 'NO',
     ADD COLUMN `trade_name` VARCHAR(255),
-    ADD COLUMN `provider_type` VARCHAR(64),
-    ADD COLUMN `registry_uri` VARCHAR(2048);
+    ADD COLUMN `provider_type` VARCHAR(64) NOT NULL DEFAULT 'WalletRelyingParty';
 
 SELECT CHARACTER_SET_NAME, COLLATION_NAME
 INTO @party_id_charset, @party_id_collation
 FROM information_schema.COLUMNS
 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'wallet_relying_party' AND COLUMN_NAME = 'id';
 
+-- Additional identifiers only; orgno remains the national unique identifier in wallet_relying_party.orgno.
 SET @create_identifiers = CONCAT(
     'CREATE TABLE `wallet_relying_party_identifiers` (',
     '`wallet_relying_party_id` VARCHAR(36) CHARACTER SET ', @party_id_charset, ' COLLATE ', @party_id_collation, ' NOT NULL,',
@@ -43,7 +43,7 @@ SET @create_x5c = CONCAT(
     'CREATE TABLE `wallet_relying_party_x5c` (',
     '`wallet_relying_party_id` VARCHAR(36) CHARACTER SET ', @party_id_charset, ' COLLATE ', @party_id_collation, ' NOT NULL,',
     '`position` INTEGER NOT NULL,',
-    '`certificate_chain` VARCHAR(8192) NOT NULL,',
+    '`certificate_chain` TEXT NOT NULL,',
     'PRIMARY KEY (`wallet_relying_party_id`, `position`),',
     'CONSTRAINT `fk_wallet_relying_party_x5c` FOREIGN KEY (`wallet_relying_party_id`) ',
         'REFERENCES `wallet_relying_party` (`id`) ON DELETE CASCADE',
@@ -166,3 +166,6 @@ SET @create_authority_form_uris = CONCAT(
 PREPARE create_authority_form_uris FROM @create_authority_form_uris;
 EXECUTE create_authority_form_uris;
 DEALLOCATE PREPARE create_authority_form_uris;
+
+INSERT INTO `supervisory_authority` (`id`, `wallet_relying_party_id`, `name`, `country`)
+SELECT `id`, `id`, 'Digitaliseringsdirektoratet', 'NO' FROM `wallet_relying_party`;

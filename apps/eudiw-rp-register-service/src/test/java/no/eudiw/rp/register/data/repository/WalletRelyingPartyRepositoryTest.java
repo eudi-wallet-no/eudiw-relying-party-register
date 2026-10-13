@@ -77,8 +77,6 @@ class WalletRelyingPartyRepositoryTest {
         WalletRelyingParty relyingParty = EntityGenerator.generateWalletRelyingParty(0);
         relyingParty.setTradeName("Trading name");
         relyingParty.setCountry("NO");
-        relyingParty.setProviderType("WalletRelyingParty");
-        relyingParty.setRegistryURI("https://registry.example/wrp");
         relyingParty.setIdentifier(List.of(new Identifier("urn:test:orgno", "123456785")));
         relyingParty.setPolicy(List.of(new Policy("urn:test:privacy", "https://example.org/privacy")));
         relyingParty.setX5c(List.of("certificate-chain"));
@@ -87,7 +85,6 @@ class WalletRelyingPartyRepositoryTest {
         relyingParty.setPhone(List.of("+4712345678"));
         relyingParty.setInfoURI(List.of("https://example.org/info"));
         relyingParty.setLegalPerson(new LegalPerson(
-            List.of("Official name"),
             List.of(new Law("https://example.org/law", "Section 1"))));
         relyingParty.setSupervisoryAuthority(new SupervisoryAuthority(
             "Data Protection Authority",
@@ -104,7 +101,6 @@ class WalletRelyingPartyRepositoryTest {
             () -> assertEquals("Trading name", actual.getTradeName()),
             () -> assertEquals("NO", actual.getCountry()),
             () -> assertEquals("WalletRelyingParty", actual.getProviderType()),
-            () -> assertEquals("https://registry.example/wrp", actual.getRegistryURI()),
             () -> assertEquals(new Identifier("urn:test:orgno", "123456785").getType(),
                 actual.getIdentifier().getFirst().getType()),
             () -> assertEquals("https://example.org/privacy", actual.getPolicy().getFirst().getPolicyURI()),
@@ -113,7 +109,6 @@ class WalletRelyingPartyRepositoryTest {
             () -> assertEquals(List.of("contact@example.org"), actual.getEmail()),
             () -> assertEquals(List.of("+4712345678"), actual.getPhone()),
             () -> assertEquals(List.of("https://example.org/info"), actual.getInfoURI()),
-            () -> assertEquals(List.of("Official name"), actual.getLegalPerson().getLegalName()),
             () -> assertEquals("https://example.org/law",
                 actual.getLegalPerson().getEstablishedByLaw().getFirst().getLegislativeIdentifier()),
             () -> assertEquals("Data Protection Authority", actual.getSupervisoryAuthority().getName()),

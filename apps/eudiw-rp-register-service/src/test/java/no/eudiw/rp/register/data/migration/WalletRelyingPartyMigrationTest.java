@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class WalletRelyingPartyMigrationTest {
@@ -143,17 +142,26 @@ class WalletRelyingPartyMigrationTest {
 
         migrate(dataSource, "23");
 
-        assertEquals(1, jdbc.queryForObject("SELECT COUNT(*) FROM legal_person", Integer.class));
-        assertEquals("Party 1", jdbc.queryForObject(
-            "SELECT legal_name FROM legal_person_legal_names WHERE legal_person_id = 'party-1'",
-            String.class));
+        assertEquals("party-1", jdbc.queryForObject(
+            "SELECT wallet_relying_party_id FROM legal_person WHERE id = 'party-1'", String.class));
+        assertEquals("Digitaliseringsdirektoratet", jdbc.queryForObject(
+            "SELECT name FROM supervisory_authority WHERE wallet_relying_party_id = 'party-1'", String.class));
+        assertEquals("NO", jdbc.queryForObject(
+            "SELECT country FROM supervisory_authority WHERE wallet_relying_party_id = 'party-1'", String.class));
         assertEquals("Service 1", jdbc.queryForObject(
             "SELECT service_trade_name FROM wallet_relying_party_service WHERE id = 'service-1'",
             String.class));
-        assertNull(jdbc.queryForObject(
+        assertEquals("NO", jdbc.queryForObject(
             "SELECT country FROM wallet_relying_party WHERE id = 'party-1'", String.class));
-        assertEquals(1, jdbc.queryForObject(
-            "SELECT COUNT(*) FROM wallet_relying_party WHERE id = 'party-1'", Integer.class));
+        assertEquals("WalletRelyingParty", jdbc.queryForObject(
+            "SELECT provider_type FROM wallet_relying_party WHERE id = 'party-1'", String.class));
+        assertEquals("Party 1", jdbc.queryForObject(
+            "SELECT legal_name FROM wallet_relying_party WHERE id = 'party-1'", String.class));
+
+        jdbc.update("DELETE FROM wallet_relying_party_service WHERE id = 'service-1'");
+        jdbc.update("DELETE FROM wallet_relying_party WHERE id = 'party-1'");
+        assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM legal_person", Integer.class));
+        assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM supervisory_authority", Integer.class));
     }
 
     private static void migrate(DataSource dataSource, String targetVersion) {

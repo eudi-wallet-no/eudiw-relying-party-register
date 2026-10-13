@@ -147,9 +147,15 @@ class MariaDbWalletRelyingPartyMigrationTest {
 
             migrate(dataSource, "23");
 
-            assertEquals("Party 1", jdbc.queryForObject(
-                "SELECT legal_name FROM legal_person_legal_names WHERE legal_person_id = 'party-1'",
+            assertEquals("party-1", jdbc.queryForObject(
+                "SELECT wallet_relying_party_id FROM legal_person WHERE id = 'party-1'", String.class));
+            assertEquals("Digitaliseringsdirektoratet", jdbc.queryForObject(
+                "SELECT name FROM supervisory_authority WHERE wallet_relying_party_id = 'party-1'",
                 String.class));
+            assertEquals("NO", jdbc.queryForObject(
+                "SELECT country FROM wallet_relying_party WHERE id = 'party-1'", String.class));
+            assertEquals("WalletRelyingParty", jdbc.queryForObject(
+                "SELECT provider_type FROM wallet_relying_party WHERE id = 'party-1'", String.class));
             assertEquals(collation, jdbc.queryForObject("""
                 SELECT COLLATION_NAME FROM information_schema.COLUMNS
                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'wallet_relying_party_identifiers'

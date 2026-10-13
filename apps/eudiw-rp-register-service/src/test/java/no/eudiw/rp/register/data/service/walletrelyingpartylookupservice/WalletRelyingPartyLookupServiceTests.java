@@ -57,7 +57,14 @@ public class WalletRelyingPartyLookupServiceTests {
         verify(mockEnhetsregisteretService, times(1)).queryOrgno(orgno);
         verifyNoMoreInteractions(mockEnhetsregisteretService);
 
-        assertTrue(walletRelyingPartyRepository.existsByOrgno(orgno));
+        WalletRelyingParty created = walletRelyingPartyRepository.findByOrgno(orgno).orElseThrow();
+        assertAll(
+            () -> assertEquals("NO", created.getCountry()),
+            () -> assertEquals(WalletRelyingParty.PROVIDER_TYPE, created.getProviderType()),
+            () -> assertNotNull(created.getLegalPerson()),
+            () -> assertEquals("Digitaliseringsdirektoratet", created.getSupervisoryAuthority().getName()),
+            () -> assertEquals("NO", created.getSupervisoryAuthority().getCountry())
+        );
     }
 
     @Test

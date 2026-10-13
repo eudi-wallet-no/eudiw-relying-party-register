@@ -3,6 +3,8 @@ package no.eudiw.rp.register.domain;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +26,7 @@ public class SupervisoryAuthority extends BaseEntity {
     private String country;
 
     @ElementCollection(fetch = FetchType.EAGER)
+    @Fetch(FetchMode.SUBSELECT)
     @CollectionTable(name = "supervisory_authority_emails",
         joinColumns = @JoinColumn(name = "supervisory_authority_id"))
     @Column(name = "email", nullable = false)
@@ -31,6 +34,7 @@ public class SupervisoryAuthority extends BaseEntity {
     private List<String> email = new ArrayList<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
+    @Fetch(FetchMode.SUBSELECT)
     @CollectionTable(name = "supervisory_authority_phones",
         joinColumns = @JoinColumn(name = "supervisory_authority_id"))
     @Column(name = "phone", nullable = false)
@@ -38,6 +42,7 @@ public class SupervisoryAuthority extends BaseEntity {
     private List<String> phone = new ArrayList<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
+    @Fetch(FetchMode.SUBSELECT)
     @CollectionTable(name = "supervisory_authority_form_uris",
         joinColumns = @JoinColumn(name = "supervisory_authority_id"))
     @Column(name = "form_uri", nullable = false)
