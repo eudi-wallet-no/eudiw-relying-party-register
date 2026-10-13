@@ -46,7 +46,7 @@ class WalletRelyingPartyServiceRepositoryTest {
     @DisplayName("persists the service, its relying party and its instance")
     void persistsServiceGraph() {
         var instance = new RelyingPartyInstance(List.of(), List.of(), List.of());
-        var relyingParty = new WalletRelyingParty("Legal Name", generateValidOrgno(), true, List.of());
+        var relyingParty = new WalletRelyingParty("Party Name", generateValidOrgno(), true, List.of());
         var service = new WalletRelyingPartyService("Service Trade Name", relyingParty, List.of(instance));
         relyingParty.setServices(List.of(service));
 
@@ -59,7 +59,7 @@ class WalletRelyingPartyServiceRepositoryTest {
         assertAll(
             () -> assertEquals("Service Trade Name", actual.getServiceTradeName()),
             () -> assertEquals(relyingParty.getId(), actual.getWalletRelyingParty().getId()),
-            () -> assertEquals("Legal Name", actual.getWalletRelyingParty().getLegalName()),
+            () -> assertEquals("Party Name", actual.getWalletRelyingParty().getTradeName()),
             () -> assertEquals(1, actual.getRelyingPartyInstances().size()),
             () -> assertEquals(actual.getId(), actualInstance.getWalletRelyingPartyService().getId()),
             () -> assertTrue(actual.getCreatedMs() > 0),
@@ -72,7 +72,7 @@ class WalletRelyingPartyServiceRepositoryTest {
     @DisplayName("deleting a service deletes its instances but keeps its relying party")
     void deletingServiceDeletesItsInstancesOnly() {
         var instance = new RelyingPartyInstance(List.of(), List.of(), List.of());
-        var relyingParty = new WalletRelyingParty("Legal Name", generateValidOrgno(), true, List.of());
+        var relyingParty = new WalletRelyingParty("Party Name", generateValidOrgno(), true, List.of());
         var service = new WalletRelyingPartyService("Service Trade Name", relyingParty, List.of(instance));
         relyingParty.setServices(List.of(service));
 

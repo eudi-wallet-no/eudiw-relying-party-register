@@ -49,7 +49,8 @@ class WalletRelyingPartyRepositoryTest {
         WalletRelyingParty actual = repository.findById(savedRelyingParty.getId()).orElseThrow();
 
         assertAll(
-            () -> assertEquals(relyingParty.getLegalName(), actual.getLegalName()),
+            () -> assertEquals(relyingParty.getTradeName(), actual.getTradeName()),
+            () -> assertEquals(List.of(relyingParty.getTradeName()), actual.getLegalPerson().getLegalName()),
             () -> assertEquals(relyingParty.getOrgno(), actual.getOrgno()),
             () -> assertEquals(relyingParty.isPsb(), actual.isPsb()),
             () -> assertEquals(2, actual.getServices().size()),
@@ -87,6 +88,7 @@ class WalletRelyingPartyRepositoryTest {
         relyingParty.setPhone(List.of("+4712345678"));
         relyingParty.setInfoURI(List.of("https://example.org/info"));
         relyingParty.setLegalPerson(new LegalPerson(
+            List.of("Official name"),
             List.of(new Law("https://example.org/law", "Section 1"))));
         relyingParty.setSupervisoryAuthority(new SupervisoryAuthority(
             "Data Protection Authority",
@@ -111,6 +113,7 @@ class WalletRelyingPartyRepositoryTest {
             () -> assertEquals(List.of("contact@example.org"), actual.getEmail()),
             () -> assertEquals(List.of("+4712345678"), actual.getPhone()),
             () -> assertEquals(List.of("https://example.org/info"), actual.getInfoURI()),
+            () -> assertEquals(List.of("Official name"), actual.getLegalPerson().getLegalName()),
             () -> assertEquals("https://example.org/law",
                 actual.getLegalPerson().getEstablishedByLaw().getFirst().getLegislativeIdentifier()),
             () -> assertEquals("Data Protection Authority", actual.getSupervisoryAuthority().getName()),

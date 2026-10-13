@@ -38,7 +38,7 @@ public class WalletRelyingPartyLookupService {
         if (isNonsyntheticOrgno) {
             EnhetsregisteretService.EnhetsregisteretResponse enhetsregisteretResponse =
                 enhetsregisteretService.queryOrgno(orgno);
-            newWalletRelyingParty.setLegalName(enhetsregisteretResponse.name());
+            newWalletRelyingParty.setName(enhetsregisteretResponse.name());
             newWalletRelyingParty.setPsb(enhetsregisteretResponse.publicSector());
         }
 

@@ -15,11 +15,17 @@ import java.util.List;
 @Table(name = "legal_person")
 public class LegalPerson extends BaseEntity {
 
-    // The TS2 legalName is stored as WalletRelyingParty.legalName.
-
     @OneToOne
     @JoinColumn(name = "wallet_relying_party_id", nullable = false, unique = true)
     private WalletRelyingParty walletRelyingParty;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Fetch(FetchMode.SUBSELECT)
+    @CollectionTable(name = "legal_person_legal_names",
+        joinColumns = @JoinColumn(name = "legal_person_id"))
+    @Column(name = "legal_name", nullable = false)
+    @OrderColumn(name = "position")
+    private List<String> legalName = new ArrayList<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
     @Fetch(FetchMode.SUBSELECT)
@@ -28,7 +34,8 @@ public class LegalPerson extends BaseEntity {
     @OrderColumn(name = "position")
     private List<Law> establishedByLaw = new ArrayList<>();
 
-    public LegalPerson(List<Law> establishedByLaw) {
+    public LegalPerson(List<String> legalName, List<Law> establishedByLaw) {
+        this.legalName = legalName == null ? new ArrayList<>() : new ArrayList<>(legalName);
         this.establishedByLaw = establishedByLaw == null ? new ArrayList<>() : new ArrayList<>(establishedByLaw);
     }
 

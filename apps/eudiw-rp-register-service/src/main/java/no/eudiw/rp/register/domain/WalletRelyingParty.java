@@ -22,9 +22,6 @@ public class WalletRelyingParty extends BaseEntity {
     @Column(name = "orgno", nullable = false)
     private String orgno;
 
-    @Column(name = "legal_name", nullable = false)
-    private String legalName;
-
     @Column(name = "is_psb", nullable = false)
     private boolean isPsb;
 
@@ -148,17 +145,46 @@ public class WalletRelyingParty extends BaseEntity {
         }
     }
 
+    /**
+     * Creates a relying party whose trade name and legal name are both {@code name}.
+     */
     public WalletRelyingParty(
-        String legalName,
+        String name,
         String orgno,
         boolean isPsb,
         List<WalletRelyingPartyService> services
     ) {
-        this.legalName = legalName;
+        this.tradeName = name;
         this.orgno = orgno;
         this.isPsb = isPsb;
         this.setServices(services);
-        this.setLegalPerson(new LegalPerson(new ArrayList<>()));
+        this.setLegalPerson(new LegalPerson(List.of(name), List.of()));
+    }
+
+    /**
+     * Sets both the trade name and the (single) legal name.
+     */
+    public void setName(String name) {
+        this.tradeName = name;
+        if (legalPerson == null) {
+            setLegalPerson(new LegalPerson(List.of(name), List.of()));
+        } else {
+            legalPerson.getLegalName().clear();
+            legalPerson.getLegalName().add(name);
+        }
+    }
+
+    /**
+     * The trade name, falling back to the first legal name when no trade name is registered.
+     */
+    public String getTradeNameOrLegalName() {
+        if (tradeName != null) {
+            return tradeName;
+        }
+        if (legalPerson == null || legalPerson.getLegalName().isEmpty()) {
+            return null;
+        }
+        return legalPerson.getLegalName().getFirst();
     }
 
     // for JPA instantiation.

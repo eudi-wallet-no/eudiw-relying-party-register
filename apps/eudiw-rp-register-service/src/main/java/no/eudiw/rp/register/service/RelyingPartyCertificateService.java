@@ -109,7 +109,7 @@ public class RelyingPartyCertificateService {
         X509Certificate certificate = certificateServiceClient.requestCertificate(
                 csr,
                 relyingParty.getWalletRelyingPartyService().getWalletRelyingParty().getOrgno(),
-                relyingParty.getWalletRelyingPartyService().getWalletRelyingParty().getLegalName(),
+                relyingParty.getWalletRelyingPartyService().getWalletRelyingParty().getTradeNameOrLegalName(),
                 relyingParty.getWalletRelyingPartyService().getServiceTradeName(),
                 caId);
 
@@ -129,7 +129,7 @@ public class RelyingPartyCertificateService {
         X509Certificate certificate = certificateServiceClient.requestCertificate(
                 csr,
                 relyingParty.getWalletRelyingPartyService().getWalletRelyingParty().getOrgno(),
-                relyingParty.getWalletRelyingPartyService().getWalletRelyingParty().getLegalName(),
+                relyingParty.getWalletRelyingPartyService().getWalletRelyingParty().getTradeNameOrLegalName(),
                 relyingParty.getWalletRelyingPartyService().getServiceTradeName(),
                 properties.accessCertificateCaId()
                 );

@@ -97,12 +97,12 @@ public class RelyingPartyInstanceRepositoryTest {
         }
 
         @Test
-        @DisplayName("then search by legal entity name uses substring matching")
+        @DisplayName("then search by wallet relying party trade name uses substring matching")
         void testSearchByWalletRelyingPartyNameUsesSubstringMatching() {
             WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
-            String searchTerm = walletRelyingParty.getLegalName();
+            String searchTerm = walletRelyingParty.getTradeName();
 
-            walletRelyingParty.setLegalName(TestDataGenerator.generateName() + searchTerm + TestDataGenerator.generateName());
+            walletRelyingParty.setTradeName(TestDataGenerator.generateName() + searchTerm + TestDataGenerator.generateName());
             walletRelyingPartyRepository.saveAndFlush(walletRelyingParty);
 
             Set<UUID> searchResult =

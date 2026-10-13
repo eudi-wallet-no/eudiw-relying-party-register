@@ -1,7 +1,20 @@
 ALTER TABLE `wallet_relying_party`
     ADD COLUMN `country` VARCHAR(2) NOT NULL DEFAULT 'NO',
-    ADD COLUMN `trade_name` VARCHAR(255),
     ADD COLUMN `provider_type` VARCHAR(64) NOT NULL DEFAULT 'WalletRelyingParty';
+
+-- legal_name has always held the trade name; the legal name now lives in legal_person_legal_names (V22).
+SELECT CHARACTER_SET_NAME, COLLATION_NAME
+INTO @name_charset, @name_collation
+FROM information_schema.COLUMNS
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'wallet_relying_party' AND COLUMN_NAME = 'legal_name';
+
+SET @rename_legal_name = CONCAT(
+    'ALTER TABLE `wallet_relying_party` CHANGE COLUMN `legal_name` `trade_name` VARCHAR(255) CHARACTER SET ',
+    @name_charset, ' COLLATE ', @name_collation, ' NULL'
+);
+PREPARE rename_legal_name FROM @rename_legal_name;
+EXECUTE rename_legal_name;
+DEALLOCATE PREPARE rename_legal_name;
 
 SELECT CHARACTER_SET_NAME, COLLATION_NAME
 INTO @party_id_charset, @party_id_collation

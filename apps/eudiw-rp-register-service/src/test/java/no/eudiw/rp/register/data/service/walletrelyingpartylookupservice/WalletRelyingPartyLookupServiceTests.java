@@ -13,6 +13,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -61,7 +63,8 @@ public class WalletRelyingPartyLookupServiceTests {
         assertAll(
             () -> assertEquals("NO", created.getCountry()),
             () -> assertEquals(WalletRelyingParty.PROVIDER_TYPE, created.getProviderType()),
-            () -> assertNotNull(created.getLegalPerson()),
+            () -> assertNotNull(created.getTradeName()),
+            () -> assertEquals(List.of(created.getTradeName()), created.getLegalPerson().getLegalName()),
             () -> assertEquals("Digitaliseringsdirektoratet", created.getSupervisoryAuthority().getName()),
             () -> assertEquals("NO", created.getSupervisoryAuthority().getCountry())
         );

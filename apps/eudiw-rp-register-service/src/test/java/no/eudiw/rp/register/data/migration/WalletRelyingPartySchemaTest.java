@@ -44,9 +44,45 @@ class WalletRelyingPartySchemaTest {
     }
 
     @Test
-    void enforcesCertificateOwnershipUniquenessAndCascadingDeletion() {
+    void movesTheExistingNameToTradeNameAndSeedsTs5PartyData() {
+        flyway.clean();
+        Flyway.configure()
+            .configuration(flyway.getConfiguration())
+            .target("21")
+            .load()
+            .migrate();
         jdbc.update("""
             INSERT INTO wallet_relying_party (id, legal_name, orgno, is_psb)
+            VALUES ('party-1', 'Party 1', '123456785', TRUE)
+            """);
+
+        flyway.migrate();
+
+        assertEquals("Party 1", jdbc.queryForObject(
+            "SELECT trade_name FROM wallet_relying_party WHERE id = 'party-1'", String.class));
+        assertEquals("Party 1", jdbc.queryForObject(
+            "SELECT legal_name FROM legal_person_legal_names WHERE legal_person_id = 'party-1' AND position = 0",
+            String.class));
+        assertEquals("NO", jdbc.queryForObject(
+            "SELECT country FROM wallet_relying_party WHERE id = 'party-1'", String.class));
+        assertEquals("WalletRelyingParty", jdbc.queryForObject(
+            "SELECT provider_type FROM wallet_relying_party WHERE id = 'party-1'", String.class));
+        assertEquals("Digitaliseringsdirektoratet", jdbc.queryForObject(
+            "SELECT name FROM supervisory_authority WHERE wallet_relying_party_id = 'party-1'", String.class));
+        assertEquals("YES", jdbc.queryForObject("""
+            SELECT IS_NULLABLE FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'wallet_relying_party' AND COLUMN_NAME = 'trade_name'
+            """, String.class));
+
+        jdbc.update("DELETE FROM wallet_relying_party WHERE id = 'party-1'");
+        assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM legal_person_legal_names", Integer.class));
+        assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM supervisory_authority", Integer.class));
+    }
+
+    @Test
+    void enforcesCertificateOwnershipUniquenessAndCascadingDeletion() {
+        jdbc.update("""
+            INSERT INTO wallet_relying_party (id, trade_name, orgno, is_psb)
             VALUES ('party-1', 'Party 1', '123456785', TRUE)
             """);
         jdbc.update("""
