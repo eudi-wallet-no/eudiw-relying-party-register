@@ -4,7 +4,7 @@ spring:
   thymeleaf:
     enabled: false
 
-TEST_MOCK_WEB_SERVER_PORT: 9252
+TEST_MOCK_WEB_SERVER_PORT: 0
 
 eudiw-admin-web:
   csp:
@@ -28,5 +28,4 @@ eudiw-admin-web:
       register-service-base-uri: http://localhost:${TEST_MOCK_WEB_SERVER_PORT}/
   enhetsregisteret-service:
     enhetsregisteret-api-base-uri: http://localhost:${TEST_MOCK_WEB_SERVER_PORT}/
-
 

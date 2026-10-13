@@ -57,9 +57,11 @@ class WalletRelyingPartyRepositoryTest {
             () -> assertTrue(actual.getLastUpdatedMs() > 0)
         );
 
-        for (int index = 0; index < actual.getServices().size(); index++) {
-            WalletRelyingPartyService expectedService = relyingParty.getServices().get(index);
-            WalletRelyingPartyService actualService = actual.getServices().get(index);
+        for (WalletRelyingPartyService expectedService : relyingParty.getServices()) {
+            WalletRelyingPartyService actualService = actual.getServices().stream()
+                .filter(service -> service.getId().equals(expectedService.getId()))
+                .findFirst()
+                .orElseThrow();
 
             assertAll(
                 () -> assertEquals(expectedService.getServiceTradeName(), actualService.getServiceTradeName()),

@@ -1,6 +1,7 @@
 package no.eudiw.rp.register.api.v1;
 
 import static no.eudiw.rp.register.testdata.ResourceGenerator.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import no.eudiw.rp.register.api.v1.resource.relyingparty.*;
@@ -241,7 +242,10 @@ public class V1RelyingPartyEditingTest {
             Set<RelyingPartyResource> actualSearchResult =
                 new HashSet<>(relyingPartyService.searchRelyingParties(searchResource).getContent());
 
-            assertEquals(expectedSearchResult, actualSearchResult);
+            assertThat(actualSearchResult)
+                .usingRecursiveComparison()
+                .ignoringCollectionOrder()
+                .isEqualTo(expectedSearchResult);
         }
     }
 
