@@ -39,7 +39,7 @@ export TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock
 
 ## Run everything locally with Docker Compose
 
-Requires Docker Desktop, or Colima on macOS with `host.docker.internal` support.
+Requires Docker with Docker Compose, for example Docker Desktop or Colima on macOS.
 Configure environment files and API keys as described in
 [eudiw-developer-secrets](https://github.com/eudi-wallet-no/eudiw-developer-secrets).
 
@@ -47,20 +47,9 @@ Configure environment files and API keys as described in
 # Build and start the stack
 docker compose up --build -d
 
-# Build and start the stack without rp-register-service
-docker compose up --build --scale rp-register-service=0
-
-# Stop one service (for example, while running it locally)
-docker compose stop rp-register-service
-
-# Follow logs for a service
-docker compose logs -f rp-register-service
+# Follow logs for a Compose service
+docker compose logs -f credential-registry
 ```
-
-With `host.docker.internal`, the remaining Docker services can reach a service
-running in IntelliJ through its published port. Stop or scale down that service
-in Docker, then run it in IntelliJ on the same port; the other services can
-continue communicating with it.
 
 Services in `docker-compose.yaml`:
 `rp-register-service`, `rp-register-admin`, `rp-register-selfservice`,
@@ -69,12 +58,16 @@ Services in `docker-compose.yaml`:
 
 ### Application, Ports
 
-| Application | API | Management |
-| --- | --- | --- |
-| rp-register-service | 9200 | 9201 |
-| rp-register-lookup-web | 9210 | 9211 |
-| rp-register-admin | 9250 | 9250 |
-| rp-register-selfservice | 9255 | 9255 |
-| ca-service | 9220 | 9221 |
-| credential-registry | 9294 | 9294 |
-| trustlist-service | 9230 | 9230 |
+| Application | API | Management | Debug |
+| --- | --- | --- | --- |
+| rp-register-service | 9200 | 9201 | 9205 |
+| rp-register-lookup-web | 9210 | 9211 | 9215 |
+| rp-register-admin | 9250 | 9250 | 9251 |
+| rp-register-selfservice | 9255 | 9255 | 9256 |
+| ca-service | 9220 | 9221 | 9225 |
+| credential-registry | 9294 | 9294 | 9295 |
+| trustlist-service | 9230 | 9230 | 9235 |
+
+To debug an app running in Docker, create an IntelliJ *Remote JVM Debug*
+configuration with host `localhost` and the app's debug port. Rebuild the image
+after code changes so breakpoints match the running code.
