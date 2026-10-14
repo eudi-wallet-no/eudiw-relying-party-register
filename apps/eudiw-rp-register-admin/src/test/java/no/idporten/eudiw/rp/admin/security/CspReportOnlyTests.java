@@ -26,12 +26,12 @@ class CspReportOnlyTests {
     void reportOnlyOnPublicAndProtectedResponses() throws Exception {
         for (String path : new String[]{"/login", "/css/styles.css", "/search"}) {
             mockMvc.perform(get(path))
-                .andExpect(header().string("Content-Security-Policy-Report-Only",
+                .andExpect(header().string("Content-Security-Policy",
                     allOf(containsString("script-src 'self'"),
                         containsString("style-src-attr 'none'"),
-                        containsString("report-uri https://csp-report.digdir.no/api/reports"),
+                        containsString("report-uri https://csp-report.junit-test-digdir.no/api/reports"),
                         not(containsString("unsafe-inline")))))
-                .andExpect(header().doesNotExist("Content-Security-Policy"))
+                .andExpect(header().doesNotExist("Content-Security-Policy-Report-Only"))
                 .andExpect(header().string("X-Content-Type-Options", "nosniff"))
                 .andExpect(header().string("X-Frame-Options", "DENY"));
         }
