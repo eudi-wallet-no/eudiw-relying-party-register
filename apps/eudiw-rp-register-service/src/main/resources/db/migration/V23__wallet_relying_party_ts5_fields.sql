@@ -8,7 +8,7 @@ ALTER TABLE `wallet_relying_party`
     ADD COLUMN `info_uri` JSON NULL;
 
 UPDATE `wallet_relying_party`
-SET `policy` = COALESCE(`policy`, '{}'),
+SET `policy` = COALESCE(`policy`, '[]'),
     `postal_address` = COALESCE(`postal_address`, '[]'),
     `email` = COALESCE(`email`, '[]'),
     `phone` = COALESCE(`phone`, '[]'),

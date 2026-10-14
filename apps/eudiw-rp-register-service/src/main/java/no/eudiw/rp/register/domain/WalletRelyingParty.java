@@ -11,9 +11,7 @@ import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Getter
 @Setter
@@ -53,7 +51,7 @@ public class WalletRelyingParty extends BaseEntity {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "policy", columnDefinition = "json", nullable = false)
-    private Map<String, String> policy = new HashMap<>();
+    private List<Policy> policy = new ArrayList<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
     @Fetch(FetchMode.SUBSELECT)

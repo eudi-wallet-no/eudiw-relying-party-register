@@ -63,7 +63,7 @@ class WalletRelyingPartySchemaTest {
         assertEquals("[\"Party 1\"]", jdbc.queryForObject(
             "SELECT legal_name FROM legal_person WHERE wallet_relying_party_id = 'party-1'",
             String.class));
-        assertEquals("{}", jdbc.queryForObject(
+        assertEquals("[]", jdbc.queryForObject(
             "SELECT policy FROM wallet_relying_party WHERE id = 'party-1'", String.class));
         assertEquals("[]", jdbc.queryForObject(
             "SELECT postal_address FROM wallet_relying_party WHERE id = 'party-1'", String.class));
