@@ -87,7 +87,7 @@ class WalletRelyingPartyServiceRepositoryTest {
                 actual.getProvidesAttestations()),
             () -> assertEquals(List.of("urn:test:service-provider"), actual.getEntitlements()),
             () -> assertEquals(relyingParty.getId(), actual.getWalletRelyingParty().getId()),
-            () -> assertEquals("Party Name", actual.getWalletRelyingParty().getTradeName()),
+            () -> assertEquals("Legal Name", actual.getWalletRelyingParty().getTradeName()),
             () -> assertEquals(1, actual.getRelyingPartyInstances().size()),
             () -> assertEquals(actual.getId(), actualInstance.getWalletRelyingPartyService().getId()),
             () -> assertTrue(actual.getCreatedMs() > 0),
@@ -100,7 +100,7 @@ class WalletRelyingPartyServiceRepositoryTest {
     @DisplayName("deleting a service deletes its instances but keeps its relying party")
     void deletingServiceDeletesItsInstancesOnly() {
         var instance = new RelyingPartyInstance(List.of(), List.of(), List.of());
-        var relyingParty = new WalletRelyingParty("Party Name", generateValidOrgno(), true, List.of());
+        var relyingParty = new WalletRelyingParty("Legal Name", generateValidOrgno(), true, List.of());
         var service = new WalletRelyingPartyService("Service Trade Name", relyingParty, List.of(instance));
         relyingParty.setServices(List.of(service));
 
