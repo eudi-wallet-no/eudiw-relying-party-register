@@ -84,22 +84,22 @@ public class CredentialIssuerMetadataRetriever {
                     .retrieve()
                     .body(JsonNode.class);
         } catch (ResourceAccessException e) {
-            log.warn("Connection error to issuers well-known url: {}", wellknown, e);
+            log.warn("Connection error, ignore credential-issuer with well-known url: {}", wellknown, e);
             connectExternalApiExceptionCounter.increment();
             return null;
         } catch (Exception e) {
-            log.warn("Failed fetching content from issuers well-known url: {}", wellknown, e);
+            log.warn("Failed fetching content, ignore credential-issuer with well-known url: {}", wellknown, e);
             return null;
         }
         if (metadata == null) {
-            log.warn("No metadata returned from issuers well-known url: {}", wellknown);
+            log.warn("No metadata returned, ignore credential-issuer with well-known url: {}", wellknown);
             return null;
         }
         try {
             CredentialIssuer credentialIssuer = readCredentialIssuerMetadata(metadata, uri);
             return validateCredentialIssuer(credentialIssuer, uri);
         } catch (JacksonException e) {
-            log.warn("Failed parsing content from issuers well-known url: {}", wellknown, e);
+            log.warn("Failed parsing content, ignore credential-issuer with well-known url: {}", wellknown, e);
             return null;
         }
     }
@@ -128,10 +128,10 @@ public class CredentialIssuerMetadataRetriever {
                 if (configuration != null && validator.validate(configuration).isEmpty()) {
                     validConfigurations.put(entry.getKey(), configuration);
                 } else {
-                    log.warn("Ignoring invalid credential configuration {} from issuer {}", entry.getKey(), uri);
+                    log.warn("Ignoring invalid credential configuration {} from credential-issuer {}", entry.getKey(), uri);
                 }
             } catch (JacksonException e) {
-                log.warn("Ignoring credential configuration {} from issuer {}: {}",
+                log.warn("Ignoring credential configuration {} from credential-issuer {}: {}",
                         entry.getKey(), uri, e.getMessage());
             }
         });
@@ -151,7 +151,7 @@ public class CredentialIssuerMetadataRetriever {
         Set<ConstraintViolation<CredentialIssuer>> violations = validator.validate(credentialIssuer);
         if (!violations.isEmpty()) {
             String prettyViolations = violations.stream().map(ConstraintViolation::getMessage).collect(Collectors.joining(", "));
-            String errorDescription = String.format("Issuer with uri %s has these violations %s and is therefore not included", uri, prettyViolations);
+            String errorDescription = String.format("Credential-issuer with uri %s has these violations %s and is therefore not included", uri, prettyViolations);
             log.warn("Constraint violations error {}", errorDescription);
             return null;
         }
