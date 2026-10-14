@@ -1,6 +1,10 @@
 ALTER TABLE `wallet_relying_party`
     ADD COLUMN `country` VARCHAR(2) NOT NULL DEFAULT 'NO',
-    ADD COLUMN `provider_type` VARCHAR(64) NOT NULL DEFAULT 'WalletRelyingParty';
+    ADD COLUMN `provider_type` VARCHAR(64) NOT NULL DEFAULT 'WalletRelyingParty',
+    ADD COLUMN `policy` JSON NULL;
+
+UPDATE `wallet_relying_party` SET `policy` = '{}' WHERE `policy` IS NULL;
+ALTER TABLE `wallet_relying_party` MODIFY COLUMN `policy` JSON NOT NULL;
 
 -- legal_name has always held the trade name; the legal name now lives in legal_person_legal_name (V22).
 SELECT CHARACTER_SET_NAME, COLLATION_NAME
@@ -36,21 +40,6 @@ SET @create_identifier = CONCAT(
 PREPARE create_identifier FROM @create_identifier;
 EXECUTE create_identifier;
 DEALLOCATE PREPARE create_identifier;
-
-SET @create_policy = CONCAT(
-    'CREATE TABLE `wallet_relying_party_policy` (',
-    '`wallet_relying_party_id` VARCHAR(36) CHARACTER SET ', @party_id_charset, ' COLLATE ', @party_id_collation, ' NOT NULL,',
-    '`position` INTEGER NOT NULL,',
-    '`policy_type` VARCHAR(2048) NOT NULL,',
-    '`policy_uri` VARCHAR(2048) NOT NULL,',
-    'PRIMARY KEY (`wallet_relying_party_id`, `position`),',
-    'CONSTRAINT `fk_wallet_relying_party_policy` FOREIGN KEY (`wallet_relying_party_id`) ',
-        'REFERENCES `wallet_relying_party` (`id`) ON DELETE CASCADE',
-    ')'
-);
-PREPARE create_policy FROM @create_policy;
-EXECUTE create_policy;
-DEALLOCATE PREPARE create_policy;
 
 SET @create_x5c = CONCAT(
     'CREATE TABLE `wallet_relying_party_x5c` (',

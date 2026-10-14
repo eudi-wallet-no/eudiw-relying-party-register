@@ -38,4 +38,9 @@ class WalletRelyingPartyTest {
         party.setLegalPerson(new LegalPerson(List.of(), List.of()));
         assertNull(party.getTradeNameOrLegalName());
     }
+
+    @Test
+    void policyTypeProvidesTermsAndConditionsLabel() {
+        assertEquals("Terms and conditions", PolicyType.TERMS_AND_CONDITIONS.getLabel());
+    }
 }

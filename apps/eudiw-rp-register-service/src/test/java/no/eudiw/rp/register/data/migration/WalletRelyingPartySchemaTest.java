@@ -63,13 +63,14 @@ class WalletRelyingPartySchemaTest {
         assertEquals("Party 1", jdbc.queryForObject(
             "SELECT legal_name FROM legal_person_legal_name WHERE legal_person_id = 'party-1' AND position = 0",
             String.class));
-        assertEquals(8, jdbc.queryForObject("""
+        assertEquals("{}", jdbc.queryForObject(
+            "SELECT policy FROM wallet_relying_party WHERE id = 'party-1'", String.class));
+        assertEquals(7, jdbc.queryForObject("""
             SELECT COUNT(*) FROM information_schema.TABLES
             WHERE TABLE_SCHEMA = DATABASE()
               AND TABLE_NAME IN (
                   'legal_person_legal_name',
                   'wallet_relying_party_identifier',
-                  'wallet_relying_party_policy',
                   'wallet_relying_party_x5c',
                   'wallet_relying_party_postal_address',
                   'wallet_relying_party_email',
@@ -77,6 +78,16 @@ class WalletRelyingPartySchemaTest {
                   'wallet_relying_party_info_uri'
               )
             """, Integer.class));
+        assertEquals(0, jdbc.queryForObject("""
+            SELECT COUNT(*) FROM information_schema.TABLES
+            WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'wallet_relying_party_policy'
+            """, Integer.class));
+        assertEquals("NO", jdbc.queryForObject("""
+            SELECT IS_NULLABLE FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'wallet_relying_party'
+              AND COLUMN_NAME = 'policy'
+            """, String.class));
         assertEquals(0, jdbc.queryForObject("""
             SELECT COUNT(*) FROM information_schema.TABLES
             WHERE TABLE_SCHEMA = DATABASE()
@@ -116,8 +127,8 @@ class WalletRelyingPartySchemaTest {
     @Test
     void enforcesCertificateOwnershipUniquenessAndCascadingDeletion() {
         jdbc.update("""
-            INSERT INTO wallet_relying_party (id, trade_name, orgno, is_psb)
-            VALUES ('party-1', 'Party 1', '123456785', TRUE)
+            INSERT INTO wallet_relying_party (id, trade_name, orgno, is_psb, policy)
+            VALUES ('party-1', 'Party 1', '123456785', TRUE, '{}')
             """);
         jdbc.update("""
             INSERT INTO wallet_relying_party_service

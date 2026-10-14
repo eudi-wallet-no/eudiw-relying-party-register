@@ -4,7 +4,7 @@ import jakarta.persistence.EntityManager;
 import no.eudiw.rp.register.domain.Identifier;
 import no.eudiw.rp.register.domain.Law;
 import no.eudiw.rp.register.domain.LegalPerson;
-import no.eudiw.rp.register.domain.Policy;
+import no.eudiw.rp.register.domain.PolicyType;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
@@ -17,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
+import java.util.Map;
 
 import static no.eudiw.rp.register.testdata.TestDataGenerator.generateValidOrgno;
 import static org.junit.jupiter.api.Assertions.*;
@@ -80,7 +81,8 @@ class WalletRelyingPartyRepositoryTest {
         relyingParty.setTradeName("Trading name");
         relyingParty.setCountry("NO");
         relyingParty.setIdentifier(List.of(new Identifier("urn:test:orgno", "123456785")));
-        relyingParty.setPolicy(List.of(new Policy("urn:test:privacy", "https://example.org/privacy")));
+        relyingParty.setPolicy(Map.of(
+            PolicyType.TERMS_AND_CONDITIONS.getLabel(), "https://example.org/privacy"));
         relyingParty.setX5c(List.of("certificate-chain"));
         relyingParty.setPostalAddress(List.of("Example street 1"));
         relyingParty.setEmail(List.of("contact@example.org"));
@@ -99,7 +101,8 @@ class WalletRelyingPartyRepositoryTest {
             () -> assertEquals("WalletRelyingParty", actual.getProviderType()),
             () -> assertEquals(new Identifier("urn:test:orgno", "123456785").getType(),
                 actual.getIdentifier().getFirst().getType()),
-            () -> assertEquals("https://example.org/privacy", actual.getPolicy().getFirst().getPolicyURI()),
+            () -> assertEquals("https://example.org/privacy",
+                actual.getPolicy().get(PolicyType.TERMS_AND_CONDITIONS.getLabel())),
             () -> assertEquals(List.of("certificate-chain"), actual.getX5c()),
             () -> assertEquals(List.of("Example street 1"), actual.getPostalAddress()),
             () -> assertEquals(List.of("contact@example.org"), actual.getEmail()),

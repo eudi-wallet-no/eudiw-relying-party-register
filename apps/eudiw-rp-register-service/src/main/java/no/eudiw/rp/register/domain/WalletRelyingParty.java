@@ -6,10 +6,14 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -47,12 +51,9 @@ public class WalletRelyingParty extends BaseEntity {
     @OrderColumn(name = "position")
     private List<Identifier> identifier = new ArrayList<>();
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @Fetch(FetchMode.SUBSELECT)
-    @CollectionTable(name = "wallet_relying_party_policy",
-        joinColumns = @JoinColumn(name = "wallet_relying_party_id"))
-    @OrderColumn(name = "position")
-    private List<Policy> policy = new ArrayList<>();
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "policy", columnDefinition = "json", nullable = false)
+    private Map<String, String> policy = new HashMap<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
     @Fetch(FetchMode.SUBSELECT)
