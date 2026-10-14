@@ -101,7 +101,7 @@ public class CredentialIssuerMetadataRetriever {
 
     /**
      * Reads the credential issuer metadata from the given JSON node and returns a CredentialIssuer object.
-     * Accept metdatadata with invalid CredentialConfiguration, but filter out invalid configurations (bevisdefinisjoner). If the CredentialIssuer is invalid, return null.
+     * Accepts metadata with invalid CredentialConfiguration objects, but filters out invalid configurations (bevisdefinisjoner). If the CredentialIssuer is invalid, returns null.
      * <strong>Might not be acceptable to allow Credential-issuer-servers with invalid metadata in final production, but allow for now.</strong>
      *
      * @param metadata The JSON node containing the credential issuer metadata.
