@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -20,6 +21,30 @@ public class WalletRelyingPartyService extends BaseEntity {
 
     @Column(name = "service_trade_name", nullable = false)
     private String serviceTradeName;
+
+    @Column(name = "service_identifier", columnDefinition = "TEXT")
+    private String serviceIdentifier;
+
+    @Column(name = "support_uri", columnDefinition = "TEXT")
+    private String supportUri;
+
+    @Column(name = "email", columnDefinition = "TEXT")
+    private String email;
+
+    @Column(name = "phone", columnDefinition = "TEXT")
+    private String phone;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "srv_description", columnDefinition = "JSON")
+    private List<List<MultiLangString>> srvDescription;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "sub_entitlements", columnDefinition = "JSON", nullable = false)
+    private List<String> subEntitlements = new ArrayList<>();
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "provides_attestations", columnDefinition = "JSON", nullable = false)
+    private List<ProvidedAttestation> providesAttestations = new ArrayList<>();
 
     @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "wallet_relying_party_id", columnDefinition = "UUID", nullable = false)
@@ -58,6 +83,16 @@ public class WalletRelyingPartyService extends BaseEntity {
             relyingPartyInstances.forEach(instance -> instance.setWalletRelyingPartyService(this));
             this.relyingPartyInstances.addAll(relyingPartyInstances);
         }
+    }
+
+    // Reuse the existing per-instance relation in the service-level TS5 view.
+    @Transient
+    public List<String> getEntitlements() {
+        return relyingPartyInstances.stream()
+            .flatMap(instance -> instance.getRelyingPartyEntitlements().stream())
+            .map(RelyingPartyEntitlement::getEntitlement)
+            .distinct()
+            .toList();
     }
 
     // for JPA instantiation.

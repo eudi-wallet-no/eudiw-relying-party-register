@@ -1,8 +1,11 @@
 package no.eudiw.rp.register.data.repository;
 
 import jakarta.persistence.EntityManager;
+import no.eudiw.rp.register.domain.MultiLangString;
+import no.eudiw.rp.register.domain.ProvidedAttestation;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
+import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
 import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
@@ -45,9 +48,22 @@ class WalletRelyingPartyServiceRepositoryTest {
     @Test
     @DisplayName("persists the service, its relying party and its instance")
     void persistsServiceGraph() {
-        var instance = new RelyingPartyInstance(List.of(), List.of(), List.of());
-        var relyingParty = new WalletRelyingParty("Party Name", generateValidOrgno(), true, List.of());
+        var instance = new RelyingPartyInstance(
+            List.of(new RelyingPartyEntitlement("urn:test:service-provider")),
+            List.of(),
+            List.of());
+        var relyingParty = new WalletRelyingParty("Legal Name", generateValidOrgno(), true, List.of());
         var service = new WalletRelyingPartyService("Service Trade Name", relyingParty, List.of(instance));
+        service.setServiceIdentifier("payments");
+        service.setSupportUri("https://service.example/support");
+        service.setEmail("support@service.example");
+        service.setPhone("+4712345678");
+        service.setSrvDescription(List.of(List.of(
+            new MultiLangString("en", "Payment service"),
+            new MultiLangString("nb", "Betalingstjeneste"))));
+        service.setSubEntitlements(List.of("urn:test:payment"));
+        service.setProvidesAttestations(List.of(
+            new ProvidedAttestation("dc+sd-jwt", "https://schemas.example/payment")));
         relyingParty.setServices(List.of(service));
 
         WalletRelyingPartyService savedService = repository.saveAndFlush(service);
@@ -58,6 +74,18 @@ class WalletRelyingPartyServiceRepositoryTest {
 
         assertAll(
             () -> assertEquals("Service Trade Name", actual.getServiceTradeName()),
+            () -> assertEquals("payments", actual.getServiceIdentifier()),
+            () -> assertEquals("https://service.example/support", actual.getSupportUri()),
+            () -> assertEquals("support@service.example", actual.getEmail()),
+            () -> assertEquals("+4712345678", actual.getPhone()),
+            () -> assertEquals(List.of(List.of(
+                new MultiLangString("en", "Payment service"),
+                new MultiLangString("nb", "Betalingstjeneste"))), actual.getSrvDescription()),
+            () -> assertEquals(List.of("urn:test:payment"), actual.getSubEntitlements()),
+            () -> assertEquals(List.of(
+                new ProvidedAttestation("dc+sd-jwt", "https://schemas.example/payment")),
+                actual.getProvidesAttestations()),
+            () -> assertEquals(List.of("urn:test:service-provider"), actual.getEntitlements()),
             () -> assertEquals(relyingParty.getId(), actual.getWalletRelyingParty().getId()),
             () -> assertEquals("Party Name", actual.getWalletRelyingParty().getTradeName()),
             () -> assertEquals(1, actual.getRelyingPartyInstances().size()),

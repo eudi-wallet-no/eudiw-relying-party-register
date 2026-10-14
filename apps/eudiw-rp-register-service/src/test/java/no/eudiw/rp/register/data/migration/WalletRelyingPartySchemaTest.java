@@ -11,6 +11,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.mariadb.MariaDBContainer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Testcontainers
@@ -171,6 +172,12 @@ class WalletRelyingPartySchemaTest {
                 (id, service_trade_name, wallet_relying_party_id, created_ms, last_updated_ms)
             VALUES ('service-1', 'Service 1', 'party-1', 1, 2)
             """);
+        assertEquals("[]", jdbc.queryForObject(
+            "SELECT sub_entitlements FROM wallet_relying_party_service WHERE id = 'service-1'", String.class));
+        assertEquals("[]", jdbc.queryForObject(
+            "SELECT provides_attestations FROM wallet_relying_party_service WHERE id = 'service-1'", String.class));
+        assertNull(jdbc.queryForObject(
+            "SELECT srv_description FROM wallet_relying_party_service WHERE id = 'service-1'", String.class));
         jdbc.update("""
             INSERT INTO relying_party_instance
                 (id, wallet_relying_party_service_id, created_ms, last_updated_ms, active)
