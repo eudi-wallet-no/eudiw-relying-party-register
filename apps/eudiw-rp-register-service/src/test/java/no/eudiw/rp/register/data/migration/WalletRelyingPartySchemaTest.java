@@ -60,8 +60,8 @@ class WalletRelyingPartySchemaTest {
 
         assertEquals("Party 1", jdbc.queryForObject(
             "SELECT trade_name FROM wallet_relying_party WHERE id = 'party-1'", String.class));
-        assertEquals("Party 1", jdbc.queryForObject(
-            "SELECT legal_name FROM legal_person_legal_name WHERE legal_person_id = 'party-1' AND position = 0",
+        assertEquals("[\"Party 1\"]", jdbc.queryForObject(
+            "SELECT legal_name FROM legal_person WHERE wallet_relying_party_id = 'party-1'",
             String.class));
         assertEquals("{}", jdbc.queryForObject(
             "SELECT policy FROM wallet_relying_party WHERE id = 'party-1'", String.class));
@@ -77,10 +77,21 @@ class WalletRelyingPartySchemaTest {
             SELECT COUNT(*) FROM information_schema.TABLES
             WHERE TABLE_SCHEMA = DATABASE()
               AND TABLE_NAME IN (
-                  'legal_person_legal_name',
+                  'legal_person',
                   'wallet_relying_party_identifier',
                   'wallet_relying_party_x5c'
               )
+            """, Integer.class));
+        assertEquals(0, jdbc.queryForObject("""
+            SELECT COUNT(*) FROM information_schema.TABLES
+            WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'legal_person_legal_name'
+            """, Integer.class));
+        assertEquals(1, jdbc.queryForObject("""
+            SELECT COUNT(*) FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'legal_person'
+              AND COLUMN_NAME = 'legal_name'
+              AND IS_NULLABLE = 'NO'
             """, Integer.class));
         assertEquals(0, jdbc.queryForObject("""
             SELECT COUNT(*) FROM information_schema.TABLES
@@ -136,7 +147,7 @@ class WalletRelyingPartySchemaTest {
             """, String.class));
 
         jdbc.update("DELETE FROM wallet_relying_party WHERE id = 'party-1'");
-        assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM legal_person_legal_name", Integer.class));
+        assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM legal_person", Integer.class));
     }
 
     @Test

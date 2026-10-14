@@ -20,7 +20,7 @@ ALTER TABLE `wallet_relying_party`
     MODIFY COLUMN `phone` JSON NOT NULL,
     MODIFY COLUMN `info_uri` JSON NOT NULL;
 
--- legal_name has always held the trade name; the legal name now lives in legal_person_legal_name (V22).
+-- legal_name has always held the trade name; legal names are stored in legal_person.legal_name (V22).
 SELECT CHARACTER_SET_NAME, COLLATION_NAME
 INTO @name_charset, @name_collation
 FROM information_schema.COLUMNS

@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,12 +21,8 @@ public class LegalPerson extends BaseEntity {
     @JoinColumn(name = "wallet_relying_party_id", nullable = false, unique = true)
     private WalletRelyingParty walletRelyingParty;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @Fetch(FetchMode.SUBSELECT)
-    @CollectionTable(name = "legal_person_legal_name",
-        joinColumns = @JoinColumn(name = "legal_person_id"))
-    @Column(name = "legal_name", nullable = false)
-    @OrderColumn(name = "position")
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "legal_name", columnDefinition = "json", nullable = false)
     private List<String> legalName = new ArrayList<>();
 
     @ElementCollection(fetch = FetchType.EAGER)

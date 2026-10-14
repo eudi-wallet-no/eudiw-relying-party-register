@@ -89,7 +89,7 @@ class WalletRelyingPartyRepositoryTest {
         relyingParty.setPhone(List.of("+4712345678", "+4798765432"));
         relyingParty.setInfoURI(List.of("https://example.org/info", "https://example.org/help"));
         relyingParty.setLegalPerson(new LegalPerson(
-            List.of("Official name"),
+            List.of("Official name", "Official name in English"),
             List.of(new Law("https://example.org/law", "Section 1"))));
         WalletRelyingParty saved = repository.saveAndFlush(relyingParty);
         entityManager.clear();
@@ -109,7 +109,8 @@ class WalletRelyingPartyRepositoryTest {
             () -> assertEquals(List.of("+4712345678", "+4798765432"), actual.getPhone()),
             () -> assertEquals(List.of("https://example.org/info", "https://example.org/help"),
                 actual.getInfoURI()),
-            () -> assertEquals(List.of("Official name"), actual.getLegalPerson().getLegalName()),
+            () -> assertEquals(List.of("Official name", "Official name in English"),
+                actual.getLegalPerson().getLegalName()),
             () -> assertEquals("https://example.org/law",
                 actual.getLegalPerson().getEstablishedByLaw().getFirst().getLegislativeIdentifier())
         );
