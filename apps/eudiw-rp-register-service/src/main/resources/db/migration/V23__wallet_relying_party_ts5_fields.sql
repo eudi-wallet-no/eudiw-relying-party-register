@@ -2,6 +2,7 @@ ALTER TABLE `wallet_relying_party`
     ADD COLUMN `country` VARCHAR(2) NOT NULL DEFAULT 'NO',
     ADD COLUMN `provider_type` VARCHAR(64) NOT NULL DEFAULT 'WalletRelyingParty',
     ADD COLUMN `policy` JSON NULL,
+    ADD COLUMN `identifier` JSON NULL,
     ADD COLUMN `postal_address` JSON NULL,
     ADD COLUMN `email` JSON NULL,
     ADD COLUMN `phone` JSON NULL,
@@ -9,12 +10,14 @@ ALTER TABLE `wallet_relying_party`
 
 UPDATE `wallet_relying_party`
 SET `policy` = COALESCE(`policy`, '[]'),
+    `identifier` = COALESCE(`identifier`, '[]'),
     `postal_address` = COALESCE(`postal_address`, '[]'),
     `email` = COALESCE(`email`, '[]'),
     `phone` = COALESCE(`phone`, '[]'),
     `info_uri` = COALESCE(`info_uri`, '[]');
 ALTER TABLE `wallet_relying_party`
     MODIFY COLUMN `policy` JSON NOT NULL,
+    MODIFY COLUMN `identifier` JSON NOT NULL,
     MODIFY COLUMN `postal_address` JSON NOT NULL,
     MODIFY COLUMN `email` JSON NOT NULL,
     MODIFY COLUMN `phone` JSON NOT NULL,
@@ -40,21 +43,6 @@ FROM information_schema.COLUMNS
 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'wallet_relying_party' AND COLUMN_NAME = 'id';
 
 -- Additional identifiers only; orgno remains the national unique identifier in wallet_relying_party.orgno.
-SET @create_identifier = CONCAT(
-    'CREATE TABLE `wallet_relying_party_identifier` (',
-    '`wallet_relying_party_id` VARCHAR(36) CHARACTER SET ', @party_id_charset, ' COLLATE ', @party_id_collation, ' NOT NULL,',
-    '`position` INTEGER NOT NULL,',
-    '`identifier_type` VARCHAR(2048) NOT NULL,',
-    '`identifier_value` VARCHAR(255) NOT NULL,',
-    'PRIMARY KEY (`wallet_relying_party_id`, `position`),',
-    'CONSTRAINT `fk_wallet_relying_party_identifier` FOREIGN KEY (`wallet_relying_party_id`) ',
-        'REFERENCES `wallet_relying_party` (`id`) ON DELETE CASCADE',
-    ')'
-);
-PREPARE create_identifier FROM @create_identifier;
-EXECUTE create_identifier;
-DEALLOCATE PREPARE create_identifier;
-
 SET @create_x5c = CONCAT(
     'CREATE TABLE `wallet_relying_party_x5c` (',
     '`wallet_relying_party_id` VARCHAR(36) CHARACTER SET ', @party_id_charset, ' COLLATE ', @party_id_collation, ' NOT NULL,',

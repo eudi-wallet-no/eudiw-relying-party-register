@@ -80,7 +80,9 @@ class WalletRelyingPartyRepositoryTest {
         WalletRelyingParty relyingParty = EntityGenerator.generateWalletRelyingParty(0);
         relyingParty.setTradeName("Trading name");
         relyingParty.setCountry("NO");
-        relyingParty.setIdentifier(List.of(new Identifier("urn:test:orgno", "123456785")));
+        relyingParty.setIdentifier(List.of(
+            new Identifier("urn:test:orgno", "123456785"),
+            new Identifier("urn:example:euid", "EXAMPLE-123")));
         relyingParty.setPolicy(List.of(
             new Policy(PolicyType.TERMS_AND_CONDITIONS.getLabel(), "https://example.org/privacy"),
             new Policy(PolicyType.PRIVACY_POLICY.getLabel(), "https://example.org/privacy-policy")));
@@ -100,8 +102,11 @@ class WalletRelyingPartyRepositoryTest {
             () -> assertEquals("Trading name", actual.getTradeName()),
             () -> assertEquals("NO", actual.getCountry()),
             () -> assertEquals("WalletRelyingParty", actual.getProviderType()),
-            () -> assertEquals(new Identifier("urn:test:orgno", "123456785").getType(),
-                actual.getIdentifier().getFirst().getType()),
+            () -> assertEquals(2, actual.getIdentifier().size()),
+            () -> assertEquals("urn:test:orgno", actual.getIdentifier().getFirst().getType()),
+            () -> assertEquals("123456785", actual.getIdentifier().getFirst().getIdentifier()),
+            () -> assertEquals("urn:example:euid", actual.getIdentifier().get(1).getType()),
+            () -> assertEquals("EXAMPLE-123", actual.getIdentifier().get(1).getIdentifier()),
             () -> assertEquals(2, actual.getPolicy().size()),
             () -> assertEquals(PolicyType.TERMS_AND_CONDITIONS.getLabel(),
                 actual.getPolicy().getFirst().getType()),

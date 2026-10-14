@@ -66,6 +66,8 @@ class WalletRelyingPartySchemaTest {
         assertEquals("[]", jdbc.queryForObject(
             "SELECT policy FROM wallet_relying_party WHERE id = 'party-1'", String.class));
         assertEquals("[]", jdbc.queryForObject(
+            "SELECT identifier FROM wallet_relying_party WHERE id = 'party-1'", String.class));
+        assertEquals("[]", jdbc.queryForObject(
             "SELECT postal_address FROM wallet_relying_party WHERE id = 'party-1'", String.class));
         assertEquals("[]", jdbc.queryForObject(
             "SELECT email FROM wallet_relying_party WHERE id = 'party-1'", String.class));
@@ -73,14 +75,17 @@ class WalletRelyingPartySchemaTest {
             "SELECT phone FROM wallet_relying_party WHERE id = 'party-1'", String.class));
         assertEquals("[]", jdbc.queryForObject(
             "SELECT info_uri FROM wallet_relying_party WHERE id = 'party-1'", String.class));
-        assertEquals(3, jdbc.queryForObject("""
+        assertEquals(2, jdbc.queryForObject("""
             SELECT COUNT(*) FROM information_schema.TABLES
             WHERE TABLE_SCHEMA = DATABASE()
               AND TABLE_NAME IN (
                   'legal_person',
-                  'wallet_relying_party_identifier',
                   'wallet_relying_party_x5c'
               )
+            """, Integer.class));
+        assertEquals(0, jdbc.queryForObject("""
+            SELECT COUNT(*) FROM information_schema.TABLES
+            WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'wallet_relying_party_identifier'
             """, Integer.class));
         assertEquals(0, jdbc.queryForObject("""
             SELECT COUNT(*) FROM information_schema.TABLES
@@ -97,11 +102,11 @@ class WalletRelyingPartySchemaTest {
             SELECT COUNT(*) FROM information_schema.TABLES
             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'wallet_relying_party_policy'
             """, Integer.class));
-        assertEquals(5, jdbc.queryForObject("""
+        assertEquals(6, jdbc.queryForObject("""
             SELECT COUNT(*) FROM information_schema.COLUMNS
             WHERE TABLE_SCHEMA = DATABASE()
               AND TABLE_NAME = 'wallet_relying_party'
-              AND COLUMN_NAME IN ('policy', 'postal_address', 'email', 'phone', 'info_uri')
+              AND COLUMN_NAME IN ('policy', 'identifier', 'postal_address', 'email', 'phone', 'info_uri')
               AND IS_NULLABLE = 'NO'
             """, Integer.class));
         assertEquals(0, jdbc.queryForObject("""
@@ -154,8 +159,8 @@ class WalletRelyingPartySchemaTest {
     void enforcesCertificateOwnershipUniquenessAndCascadingDeletion() {
         jdbc.update("""
             INSERT INTO wallet_relying_party
-                (id, trade_name, orgno, is_psb, policy, postal_address, email, phone, info_uri)
-            VALUES ('party-1', 'Party 1', '123456785', TRUE, '{}', '[]', '[]', '[]', '[]')
+                (id, trade_name, orgno, is_psb, policy, identifier, postal_address, email, phone, info_uri)
+            VALUES ('party-1', 'Party 1', '123456785', TRUE, '[]', '[]', '[]', '[]', '[]', '[]')
             """);
         jdbc.update("""
             INSERT INTO wallet_relying_party_service

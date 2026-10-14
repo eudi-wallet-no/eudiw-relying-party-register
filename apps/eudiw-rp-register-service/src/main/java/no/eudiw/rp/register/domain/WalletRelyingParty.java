@@ -42,11 +42,8 @@ public class WalletRelyingParty extends BaseEntity {
     private LegalPerson legalPerson;
 
     // Additional identifiers (e.g. EUID, LEI); orgno is the national unique identifier.
-    @ElementCollection(fetch = FetchType.EAGER)
-    @Fetch(FetchMode.SUBSELECT)
-    @CollectionTable(name = "wallet_relying_party_identifier",
-        joinColumns = @JoinColumn(name = "wallet_relying_party_id"))
-    @OrderColumn(name = "position")
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "identifier", columnDefinition = "json", nullable = false)
     private List<Identifier> identifier = new ArrayList<>();
 
     @JdbcTypeCode(SqlTypes.JSON)
