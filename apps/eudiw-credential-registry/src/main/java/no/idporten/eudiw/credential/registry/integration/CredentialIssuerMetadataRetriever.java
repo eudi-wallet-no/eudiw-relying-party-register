@@ -95,8 +95,13 @@ public class CredentialIssuerMetadataRetriever {
             log.warn("No metadata returned from issuers well-known url: {}", wellknown);
             return null;
         }
-        CredentialIssuer credentialIssuer = readCredentialIssuerMetadata(metadata, uri);
-        return validateCredentialIssuer(credentialIssuer, uri);
+        try {
+            CredentialIssuer credentialIssuer = readCredentialIssuerMetadata(metadata, uri);
+            return validateCredentialIssuer(credentialIssuer, uri);
+        } catch (JacksonException e) {
+            log.warn("Failed parsing content from issuers well-known url: {}", wellknown, e);
+            return null;
+        }
     }
 
     /**
