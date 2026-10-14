@@ -4,15 +4,6 @@ networks:
   digital-lommebok:
     name: digital-lommebok
 
-# Felles nettverksvert for app-til-app-kall. Applikasjonene kjører med profilene
-# `docker` og bruker LOCAL_SERVICE_HOST i sine application-docker.yaml, med
-# container-DNS som fallback. Når en app skaleres ned (`--scale <app>=0`) og i
-# stedet kjøres fra IntelliJ på samme publiserte port, peker LOCAL_SERVICE_HOST på
-# verten, slik at de andre containerne når den via den publiserte porten.
-# Compose kjenner ikke API-stier eller nøkler; de eies av appenes profiler.
-x-app-environment: &app-environment
-  LOCAL_SERVICE_HOST: host.docker.internal
-
 services:
   # Delte støttetjenester
   redis:
@@ -78,7 +69,6 @@ services:
     env_file:
       - ${EUDIW_RP_REGISTER_SERVICE_ENV}
     environment:
-      <<: *app-environment
       spring_profiles_active: docker
     ports:
       - "127.0.0.1:9200:9200"
@@ -89,11 +79,13 @@ services:
     depends_on:
       rp-register-db:
         condition: service_healthy
+      ca-service:
+        condition: service_healthy
     entrypoint: "/bin/bash -c"
     command:
       - |
         cd /usr/local/webapps
-        java -jar application.jar
+        java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9205 -jar application.jar
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://rp-register-service:9201/health/readiness"]
       interval: 15s
@@ -111,7 +103,6 @@ services:
     env_file:
       - ${EUDIW_RP_REGISTER_ADMIN_ENV}
     environment:
-      <<: *app-environment
       spring_profiles_active: docker, admin, admin-docker
     ports:
       - "127.0.0.1:9250:9250"
@@ -119,6 +110,9 @@ services:
       - "127.0.0.1:9252:9252"
     networks:
       - digital-lommebok
+    depends_on:
+      rp-register-service:
+        condition: service_healthy
     entrypoint: "/bin/bash -c"
     command:
       - |
@@ -141,13 +135,15 @@ services:
     env_file:
       - ${EUDIW_RP_REGISTER_ADMIN_ENV}
     environment:
-      <<: *app-environment
       spring_profiles_active: docker, selfservice, selfservice-docker
     ports:
       - "127.0.0.1:9255:9255"
       - "127.0.0.1:9256:9256"
     networks:
       - digital-lommebok
+    depends_on:
+      rp-register-service:
+        condition: service_healthy
     entrypoint: "/bin/bash -c"
     command:
       - |
@@ -168,7 +164,6 @@ services:
         GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
         GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
     environment:
-      <<: *app-environment
       spring_profiles_active: docker
       _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0"
     env_file:
@@ -194,9 +189,6 @@ services:
       timeout: 5s
       retries: 20
 
-  # credential-registry henter credential-issuer-metadata fra RP-registeret ved
-  # oppstart. Uten en app-avhengighet kan RP-registeret ennå ikke være klar (eller
-  # kjøres fra IntelliJ senere), så containeren starter på nytt til kallet lykkes.
   credential-registry:
     build:
       context: .
@@ -206,7 +198,6 @@ services:
         GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
     restart: on-failure
     environment:
-      <<: *app-environment
       spring_profiles_active: docker
       _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0 -Dotel.metrics.exporter=none -Dotel.traces.exporter=none -Dotel.span.exporter=none -Dotel.logs.exporter=none"
     env_file:
@@ -216,6 +207,9 @@ services:
       - "127.0.0.1:9295:9295"
     networks:
       - digital-lommebok
+    depends_on:
+      rp-register-service:
+        condition: service_healthy
     entrypoint: "/bin/bash -c"
     command:
       - |
@@ -238,7 +232,6 @@ services:
     env_file:
       - ${EUDIW_RP_REGISTER_LOOKUP_WEB_ENV}
     environment:
-      <<: *app-environment
       spring_profiles_active: docker
       _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0"
     ports:
@@ -247,6 +240,11 @@ services:
       - "127.0.0.1:9215:9215"
     networks:
       - digital-lommebok
+    depends_on:
+      rp-register-service:
+        condition: service_healthy
+      credential-registry:
+        condition: service_healthy
     entrypoint: "/bin/bash -c"
     command:
       - |
@@ -267,7 +265,6 @@ services:
         GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
         GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
     environment:
-      <<: *app-environment
       spring_profiles_active: docker
       _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0"
     env_file:
