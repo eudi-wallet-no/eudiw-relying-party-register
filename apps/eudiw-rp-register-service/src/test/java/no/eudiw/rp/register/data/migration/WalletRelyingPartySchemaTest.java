@@ -61,8 +61,35 @@ class WalletRelyingPartySchemaTest {
         assertEquals("Party 1", jdbc.queryForObject(
             "SELECT trade_name FROM wallet_relying_party WHERE id = 'party-1'", String.class));
         assertEquals("Party 1", jdbc.queryForObject(
-            "SELECT legal_name FROM legal_person_legal_names WHERE legal_person_id = 'party-1' AND position = 0",
+            "SELECT legal_name FROM legal_person_legal_name WHERE legal_person_id = 'party-1' AND position = 0",
             String.class));
+        assertEquals(8, jdbc.queryForObject("""
+            SELECT COUNT(*) FROM information_schema.TABLES
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME IN (
+                  'legal_person_legal_name',
+                  'wallet_relying_party_identifier',
+                  'wallet_relying_party_policy',
+                  'wallet_relying_party_x5c',
+                  'wallet_relying_party_postal_address',
+                  'wallet_relying_party_email',
+                  'wallet_relying_party_phone',
+                  'wallet_relying_party_info_uri'
+              )
+            """, Integer.class));
+        assertEquals(0, jdbc.queryForObject("""
+            SELECT COUNT(*) FROM information_schema.TABLES
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME IN (
+                  'legal_person_legal_names',
+                  'wallet_relying_party_identifiers',
+                  'wallet_relying_party_policies',
+                  'wallet_relying_party_postal_addresses',
+                  'wallet_relying_party_emails',
+                  'wallet_relying_party_phones',
+                  'wallet_relying_party_info_uris'
+              )
+            """, Integer.class));
         assertEquals("NO", jdbc.queryForObject(
             "SELECT country FROM wallet_relying_party WHERE id = 'party-1'", String.class));
         assertEquals("WalletRelyingParty", jdbc.queryForObject(
@@ -83,7 +110,7 @@ class WalletRelyingPartySchemaTest {
             """, String.class));
 
         jdbc.update("DELETE FROM wallet_relying_party WHERE id = 'party-1'");
-        assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM legal_person_legal_names", Integer.class));
+        assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM legal_person_legal_name", Integer.class));
     }
 
     @Test

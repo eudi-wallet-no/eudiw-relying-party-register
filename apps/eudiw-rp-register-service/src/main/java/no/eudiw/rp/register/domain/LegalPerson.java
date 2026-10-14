@@ -21,7 +21,7 @@ public class LegalPerson extends BaseEntity {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @Fetch(FetchMode.SUBSELECT)
-    @CollectionTable(name = "legal_person_legal_names",
+    @CollectionTable(name = "legal_person_legal_name",
         joinColumns = @JoinColumn(name = "legal_person_id"))
     @Column(name = "legal_name", nullable = false)
     @OrderColumn(name = "position")

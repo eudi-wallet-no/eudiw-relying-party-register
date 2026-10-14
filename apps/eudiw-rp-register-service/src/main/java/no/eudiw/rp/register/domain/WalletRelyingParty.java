@@ -42,14 +42,14 @@ public class WalletRelyingParty extends BaseEntity {
     // Additional identifiers (e.g. EUID, LEI); orgno is the national unique identifier.
     @ElementCollection(fetch = FetchType.EAGER)
     @Fetch(FetchMode.SUBSELECT)
-    @CollectionTable(name = "wallet_relying_party_identifiers",
+    @CollectionTable(name = "wallet_relying_party_identifier",
         joinColumns = @JoinColumn(name = "wallet_relying_party_id"))
     @OrderColumn(name = "position")
     private List<Identifier> identifier = new ArrayList<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
     @Fetch(FetchMode.SUBSELECT)
-    @CollectionTable(name = "wallet_relying_party_policies",
+    @CollectionTable(name = "wallet_relying_party_policy",
         joinColumns = @JoinColumn(name = "wallet_relying_party_id"))
     @OrderColumn(name = "position")
     private List<Policy> policy = new ArrayList<>();
@@ -64,7 +64,7 @@ public class WalletRelyingParty extends BaseEntity {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @Fetch(FetchMode.SUBSELECT)
-    @CollectionTable(name = "wallet_relying_party_postal_addresses",
+    @CollectionTable(name = "wallet_relying_party_postal_address",
         joinColumns = @JoinColumn(name = "wallet_relying_party_id"))
     @Column(name = "postal_address", nullable = false)
     @OrderColumn(name = "position")
@@ -72,7 +72,7 @@ public class WalletRelyingParty extends BaseEntity {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @Fetch(FetchMode.SUBSELECT)
-    @CollectionTable(name = "wallet_relying_party_emails",
+    @CollectionTable(name = "wallet_relying_party_email",
         joinColumns = @JoinColumn(name = "wallet_relying_party_id"))
     @Column(name = "email", nullable = false)
     @OrderColumn(name = "position")
@@ -80,7 +80,7 @@ public class WalletRelyingParty extends BaseEntity {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @Fetch(FetchMode.SUBSELECT)
-    @CollectionTable(name = "wallet_relying_party_phones",
+    @CollectionTable(name = "wallet_relying_party_phone",
         joinColumns = @JoinColumn(name = "wallet_relying_party_id"))
     @Column(name = "phone", nullable = false)
     @OrderColumn(name = "position")
@@ -88,7 +88,7 @@ public class WalletRelyingParty extends BaseEntity {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @Fetch(FetchMode.SUBSELECT)
-    @CollectionTable(name = "wallet_relying_party_info_uris",
+    @CollectionTable(name = "wallet_relying_party_info_uri",
         joinColumns = @JoinColumn(name = "wallet_relying_party_id"))
     @Column(name = "info_uri", nullable = false)
     @OrderColumn(name = "position")

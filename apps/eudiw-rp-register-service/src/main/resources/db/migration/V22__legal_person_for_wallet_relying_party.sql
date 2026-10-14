@@ -17,19 +17,19 @@ PREPARE create_legal_person FROM @create_legal_person;
 EXECUTE create_legal_person;
 DEALLOCATE PREPARE create_legal_person;
 
-SET @create_legal_names = CONCAT(
-    'CREATE TABLE `legal_person_legal_names` (',
+SET @create_legal_name = CONCAT(
+    'CREATE TABLE `legal_person_legal_name` (',
     '`legal_person_id` VARCHAR(36) CHARACTER SET ', @party_id_charset, ' COLLATE ', @party_id_collation, ' NOT NULL,',
     '`position` INTEGER NOT NULL,',
     '`legal_name` VARCHAR(255) NOT NULL,',
     'PRIMARY KEY (`legal_person_id`, `position`),',
-    'CONSTRAINT `fk_legal_person_legal_names` FOREIGN KEY (`legal_person_id`) ',
+    'CONSTRAINT `fk_legal_person_legal_name` FOREIGN KEY (`legal_person_id`) ',
         'REFERENCES `legal_person` (`id`) ON DELETE CASCADE',
     ')'
 );
-PREPARE create_legal_names FROM @create_legal_names;
-EXECUTE create_legal_names;
-DEALLOCATE PREPARE create_legal_names;
+PREPARE create_legal_name FROM @create_legal_name;
+EXECUTE create_legal_name;
+DEALLOCATE PREPARE create_legal_name;
 
 SET @create_laws = CONCAT(
     'CREATE TABLE `legal_person_established_by_law` (',
@@ -50,5 +50,5 @@ INSERT INTO `legal_person` (`id`, `wallet_relying_party_id`)
 SELECT `id`, `id` FROM `wallet_relying_party`;
 
 -- Seed the legal name from the existing name; V23 renames that column to trade_name.
-INSERT INTO `legal_person_legal_names` (`legal_person_id`, `position`, `legal_name`)
+INSERT INTO `legal_person_legal_name` (`legal_person_id`, `position`, `legal_name`)
 SELECT `id`, 0, `legal_name` FROM `wallet_relying_party`;
