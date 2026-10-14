@@ -41,6 +41,6 @@ class WalletRelyingPartyTest {
 
     @Test
     void policyTypeProvidesTermsAndConditionsLabel() {
-        assertEquals("Terms and conditions", PolicyType.TERMS_AND_CONDITIONS.getLabel());
+        assertEquals("Terms and Conditions", PolicyType.TERMS_AND_CONDITIONS.getLabel());
     }
 }

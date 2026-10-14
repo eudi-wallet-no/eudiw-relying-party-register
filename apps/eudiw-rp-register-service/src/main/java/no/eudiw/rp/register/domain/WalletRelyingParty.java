@@ -63,36 +63,20 @@ public class WalletRelyingParty extends BaseEntity {
     @OrderColumn(name = "position")
     private List<String> x5c = new ArrayList<>();
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @Fetch(FetchMode.SUBSELECT)
-    @CollectionTable(name = "wallet_relying_party_postal_address",
-        joinColumns = @JoinColumn(name = "wallet_relying_party_id"))
-    @Column(name = "postal_address", nullable = false)
-    @OrderColumn(name = "position")
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "postal_address", columnDefinition = "json", nullable = false)
     private List<String> postalAddress = new ArrayList<>();
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @Fetch(FetchMode.SUBSELECT)
-    @CollectionTable(name = "wallet_relying_party_email",
-        joinColumns = @JoinColumn(name = "wallet_relying_party_id"))
-    @Column(name = "email", nullable = false)
-    @OrderColumn(name = "position")
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "email", columnDefinition = "json", nullable = false)
     private List<String> email = new ArrayList<>();
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @Fetch(FetchMode.SUBSELECT)
-    @CollectionTable(name = "wallet_relying_party_phone",
-        joinColumns = @JoinColumn(name = "wallet_relying_party_id"))
-    @Column(name = "phone", nullable = false)
-    @OrderColumn(name = "position")
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "phone", columnDefinition = "json", nullable = false)
     private List<String> phone = new ArrayList<>();
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @Fetch(FetchMode.SUBSELECT)
-    @CollectionTable(name = "wallet_relying_party_info_uri",
-        joinColumns = @JoinColumn(name = "wallet_relying_party_id"))
-    @Column(name = "info_uri", nullable = false)
-    @OrderColumn(name = "position")
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "info_uri", columnDefinition = "json", nullable = false)
     private List<String> infoURI = new ArrayList<>();
 
     @Column(name = "created_ms", nullable = false)
