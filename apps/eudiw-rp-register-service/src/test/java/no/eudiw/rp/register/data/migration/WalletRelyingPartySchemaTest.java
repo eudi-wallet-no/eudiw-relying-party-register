@@ -89,8 +89,12 @@ class WalletRelyingPartySchemaTest {
             """, Integer.class));
         assertEquals(0, jdbc.queryForObject("""
             SELECT COUNT(*) FROM information_schema.TABLES
-            WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'legal_person_legal_name'
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME IN ('legal_person_legal_name', 'legal_person_established_by_law')
             """, Integer.class));
+        assertEquals("[]", jdbc.queryForObject(
+            "SELECT established_by_law FROM legal_person WHERE wallet_relying_party_id = 'party-1'",
+            String.class));
         assertEquals(1, jdbc.queryForObject("""
             SELECT COUNT(*) FROM information_schema.COLUMNS
             WHERE TABLE_SCHEMA = DATABASE()
