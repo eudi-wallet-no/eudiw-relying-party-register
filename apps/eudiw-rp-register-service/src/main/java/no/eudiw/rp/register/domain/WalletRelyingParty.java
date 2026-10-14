@@ -39,10 +39,6 @@ public class WalletRelyingParty extends BaseEntity {
     @OneToOne(mappedBy = "walletRelyingParty", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private LegalPerson legalPerson;
 
-    @Setter(AccessLevel.NONE)
-    @OneToOne(mappedBy = "walletRelyingParty", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
-    private SupervisoryAuthority supervisoryAuthority;
-
     // Additional identifiers (e.g. EUID, LEI); orgno is the national unique identifier.
     @ElementCollection(fetch = FetchType.EAGER)
     @Fetch(FetchMode.SUBSELECT)
@@ -132,16 +128,6 @@ public class WalletRelyingParty extends BaseEntity {
         this.legalPerson = legalPerson;
         if (legalPerson != null) {
             legalPerson.setWalletRelyingParty(this);
-        }
-    }
-
-    public void setSupervisoryAuthority(SupervisoryAuthority supervisoryAuthority) {
-        if (this.supervisoryAuthority != null) {
-            this.supervisoryAuthority.setWalletRelyingParty(null);
-        }
-        this.supervisoryAuthority = supervisoryAuthority;
-        if (supervisoryAuthority != null) {
-            supervisoryAuthority.setWalletRelyingParty(this);
         }
     }
 

@@ -81,6 +81,11 @@ digdir:
       environment-name: ${spring.application.environment}
 
 eudiw-rp-register-service:
+  supervisory-authority:
+    name: Datatilsynet
+    country: "NO"
+    phone: "+4722396900"
+    email: "postkasse@datatilsynet.no"
   csr-service:
     access-certificate-ca-id: access2
     ca-service-api:

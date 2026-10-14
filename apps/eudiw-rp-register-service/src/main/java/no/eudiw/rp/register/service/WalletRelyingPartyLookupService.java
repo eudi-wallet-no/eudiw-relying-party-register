@@ -1,7 +1,6 @@
 package no.eudiw.rp.register.service;
 
 import lombok.RequiredArgsConstructor;
-import no.eudiw.rp.register.domain.SupervisoryAuthority;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.integrations.enhetsregisteret.EnhetsregisteretService;
@@ -31,9 +30,6 @@ public class WalletRelyingPartyLookupService {
             true,
             new ArrayList<>()
         );
-        newWalletRelyingParty.setSupervisoryAuthority(new SupervisoryAuthority(
-            "Digitaliseringsdirektoratet", "NO", List.of(), List.of(), List.of()));
-
         boolean isNonsyntheticOrgno = orgno.matches("^[8-9]\\d{8}$");
         if (isNonsyntheticOrgno) {
             EnhetsregisteretService.EnhetsregisteretResponse enhetsregisteretResponse =

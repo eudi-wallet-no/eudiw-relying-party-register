@@ -67,8 +67,16 @@ class WalletRelyingPartySchemaTest {
             "SELECT country FROM wallet_relying_party WHERE id = 'party-1'", String.class));
         assertEquals("WalletRelyingParty", jdbc.queryForObject(
             "SELECT provider_type FROM wallet_relying_party WHERE id = 'party-1'", String.class));
-        assertEquals("Digitaliseringsdirektoratet", jdbc.queryForObject(
-            "SELECT name FROM supervisory_authority WHERE wallet_relying_party_id = 'party-1'", String.class));
+        assertEquals(0, jdbc.queryForObject("""
+            SELECT COUNT(*) FROM information_schema.TABLES
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME IN (
+                  'supervisory_authority',
+                  'supervisory_authority_emails',
+                  'supervisory_authority_phones',
+                  'supervisory_authority_form_uris'
+              )
+            """, Integer.class));
         assertEquals("YES", jdbc.queryForObject("""
             SELECT IS_NULLABLE FROM information_schema.COLUMNS
             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'wallet_relying_party' AND COLUMN_NAME = 'trade_name'
@@ -76,7 +84,6 @@ class WalletRelyingPartySchemaTest {
 
         jdbc.update("DELETE FROM wallet_relying_party WHERE id = 'party-1'");
         assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM legal_person_legal_names", Integer.class));
-        assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM supervisory_authority", Integer.class));
     }
 
     @Test

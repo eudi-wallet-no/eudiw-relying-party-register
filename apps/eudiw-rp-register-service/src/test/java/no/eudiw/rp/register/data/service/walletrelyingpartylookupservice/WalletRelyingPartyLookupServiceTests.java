@@ -1,5 +1,6 @@
 package no.eudiw.rp.register.data.service.walletrelyingpartylookupservice;
 
+import no.eudiw.rp.register.config.SupervisoryAuthorityProperties;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.service.WalletRelyingPartyLookupService;
@@ -33,6 +34,9 @@ public class WalletRelyingPartyLookupServiceTests {
     @Autowired
     private WalletRelyingPartyRepository walletRelyingPartyRepository;
 
+    @Autowired
+    private SupervisoryAuthorityProperties supervisoryAuthorityProperties;
+
     @BeforeEach
     public void initializeMockBeans() {
         when(mockEnhetsregisteretService.queryOrgno(any())).thenReturn(
@@ -65,8 +69,8 @@ public class WalletRelyingPartyLookupServiceTests {
             () -> assertEquals(WalletRelyingParty.PROVIDER_TYPE, created.getProviderType()),
             () -> assertNotNull(created.getTradeName()),
             () -> assertEquals(List.of(created.getTradeName()), created.getLegalPerson().getLegalName()),
-            () -> assertEquals("Digitaliseringsdirektoratet", created.getSupervisoryAuthority().getName()),
-            () -> assertEquals("NO", created.getSupervisoryAuthority().getCountry())
+            () -> assertEquals("Datatilsynet", supervisoryAuthorityProperties.name()),
+            () -> assertEquals("NO", supervisoryAuthorityProperties.country())
         );
     }
 

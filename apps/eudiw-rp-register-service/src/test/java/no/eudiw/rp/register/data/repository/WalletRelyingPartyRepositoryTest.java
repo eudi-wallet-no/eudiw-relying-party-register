@@ -5,7 +5,6 @@ import no.eudiw.rp.register.domain.Identifier;
 import no.eudiw.rp.register.domain.Law;
 import no.eudiw.rp.register.domain.LegalPerson;
 import no.eudiw.rp.register.domain.Policy;
-import no.eudiw.rp.register.domain.SupervisoryAuthority;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
@@ -90,13 +89,6 @@ class WalletRelyingPartyRepositoryTest {
         relyingParty.setLegalPerson(new LegalPerson(
             List.of("Official name"),
             List.of(new Law("https://example.org/law", "Section 1"))));
-        relyingParty.setSupervisoryAuthority(new SupervisoryAuthority(
-            "Data Protection Authority",
-            "NO",
-            List.of("dpa@example.org"),
-            List.of("+4798765432"),
-            List.of("https://example.org/report")));
-
         WalletRelyingParty saved = repository.saveAndFlush(relyingParty);
         entityManager.clear();
 
@@ -115,12 +107,7 @@ class WalletRelyingPartyRepositoryTest {
             () -> assertEquals(List.of("https://example.org/info"), actual.getInfoURI()),
             () -> assertEquals(List.of("Official name"), actual.getLegalPerson().getLegalName()),
             () -> assertEquals("https://example.org/law",
-                actual.getLegalPerson().getEstablishedByLaw().getFirst().getLegislativeIdentifier()),
-            () -> assertEquals("Data Protection Authority", actual.getSupervisoryAuthority().getName()),
-            () -> assertEquals(List.of("dpa@example.org"), actual.getSupervisoryAuthority().getEmail()),
-            () -> assertEquals(List.of("+4798765432"), actual.getSupervisoryAuthority().getPhone()),
-            () -> assertEquals(List.of("https://example.org/report"),
-                actual.getSupervisoryAuthority().getFormURI())
+                actual.getLegalPerson().getEstablishedByLaw().getFirst().getLegislativeIdentifier())
         );
     }
 
