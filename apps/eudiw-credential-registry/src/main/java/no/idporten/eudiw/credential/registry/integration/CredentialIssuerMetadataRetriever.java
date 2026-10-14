@@ -99,6 +99,15 @@ public class CredentialIssuerMetadataRetriever {
         return validateCredentialIssuer(credentialIssuer, uri);
     }
 
+    /**
+     * Reads the credential issuer metadata from the given JSON node and returns a CredentialIssuer object.
+     * Accept metdatadata with invalid CredentialConfiguration, but filter out invalid configurations (bevisdefinisjoner). If the CredentialIssuer is invalid, return null.
+     * <strong>Might not be acceptable to allow Credential-issuer-servers with invalid metadata in final production, but allow for now.</strong>
+     *
+     * @param metadata The JSON node containing the credential issuer metadata.
+     * @param uri      The URI of the credential issuer.
+     * @return A CredentialIssuer object representing the credential issuer metadata.
+     */
     private CredentialIssuer readCredentialIssuerMetadata(JsonNode metadata, URI uri) {
         if (!(metadata instanceof ObjectNode metadataObject) || !metadataObject.path("credential_configurations_supported").isObject()) {
             return metadataMapper.treeToValue(metadata, CredentialIssuer.class);
