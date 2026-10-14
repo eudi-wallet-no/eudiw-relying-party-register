@@ -140,17 +140,12 @@ public class WalletRelyingParty extends BaseEntity {
         }
     }
 
-    /**
-     * The trade name, falling back to the first legal name when no trade name is registered.
-     */
-    public String getTradeNameOrLegalName() {
-        if (tradeName != null) {
+    public String getName() {
+        if (legalPerson == null || legalPerson.getLegalName().isEmpty()) {
             return tradeName;
         }
-        if (legalPerson == null || legalPerson.getLegalName().isEmpty()) {
-            return null;
-        }
-        return legalPerson.getLegalName().getFirst();
+
+       return legalPerson.getLegalName().getFirst();
     }
 
     // for JPA instantiation.

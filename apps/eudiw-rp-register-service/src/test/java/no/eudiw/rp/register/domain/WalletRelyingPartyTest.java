@@ -30,13 +30,13 @@ class WalletRelyingPartyTest {
     @Test
     void tradeNameOrLegalNameFallsBackToTheFirstLegalName() {
         var party = new WalletRelyingParty("Name", "123456785", true, List.of());
-        assertEquals("Name", party.getTradeNameOrLegalName());
+        assertEquals("Name", party.getName());
 
         party.setTradeName(null);
-        assertEquals("Name", party.getTradeNameOrLegalName());
+        assertEquals("Name", party.getName());
 
         party.setLegalPerson(new LegalPerson(List.of(), List.of()));
-        assertNull(party.getTradeNameOrLegalName());
+        assertNull(party.getName());
     }
 
     @Test
