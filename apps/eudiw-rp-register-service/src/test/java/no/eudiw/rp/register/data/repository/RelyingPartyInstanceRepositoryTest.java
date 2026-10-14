@@ -97,12 +97,12 @@ public class RelyingPartyInstanceRepositoryTest {
         }
 
         @Test
-        @DisplayName("then search by legal entity name uses substring matching")
+        @DisplayName("then search by wallet relying party trade name uses substring matching")
         void testSearchByWalletRelyingPartyNameUsesSubstringMatching() {
             WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
-            String searchTerm = walletRelyingParty.getLegalName();
+            String searchTerm = walletRelyingParty.getTradeName();
 
-            walletRelyingParty.setLegalName(TestDataGenerator.generateName() + searchTerm + TestDataGenerator.generateName());
+            walletRelyingParty.setTradeName(TestDataGenerator.generateName() + searchTerm + TestDataGenerator.generateName());
             walletRelyingPartyRepository.saveAndFlush(walletRelyingParty);
 
             Set<UUID> searchResult =
@@ -125,6 +125,50 @@ public class RelyingPartyInstanceRepositoryTest {
                            .collect(Collectors.toSet());
 
             assertEquals(expectedResult, searchResult);
+        }
+
+        @Test
+        @DisplayName("then search by legal name when the trade name is absent")
+        void testSearchByFirstLegalNameWhenTradeNameIsAbsent() {
+            WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
+            String testId = UUID.randomUUID().toString();
+            String legalName = "Legal fallback " + testId;
+            String secondaryLegalName = "Secondary legal name " + testId;
+            walletRelyingParty.setTradeName(null);
+            walletRelyingParty.getLegalPerson().setLegalName(List.of(legalName, secondaryLegalName));
+            walletRelyingPartyRepository.saveAndFlush(walletRelyingParty);
+
+            Set<UUID> searchResult =
+                repository.searchRelyingPartyInstances(
+                        legalName.toLowerCase(Locale.ROOT),
+                        List.of(),
+                        true,
+                        false,
+                        Pageable.unpaged())
+                    .getContent()
+                    .stream()
+                    .map(BaseEntity::getId)
+                    .collect(Collectors.toSet());
+
+            List<RelyingPartyInstance> secondaryNameSearchResult =
+                repository.searchRelyingPartyInstances(
+                        secondaryLegalName.toLowerCase(Locale.ROOT),
+                        List.of(),
+                        true,
+                        false,
+                        Pageable.unpaged())
+                    .getContent();
+
+            Set<UUID> expectedResult =
+                EntityGenerator.instances(walletRelyingParty)
+                    .stream()
+                    .map(BaseEntity::getId)
+                    .collect(Collectors.toSet());
+
+            assertAll(
+                () -> assertEquals(expectedResult, searchResult),
+                () -> assertTrue(secondaryNameSearchResult.isEmpty())
+            );
         }
 
         @Test

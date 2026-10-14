@@ -1,6 +1,11 @@
 package no.eudiw.rp.register.data.repository;
 
 import jakarta.persistence.EntityManager;
+import no.eudiw.rp.register.domain.Identifier;
+import no.eudiw.rp.register.domain.Law;
+import no.eudiw.rp.register.domain.LegalPerson;
+import no.eudiw.rp.register.domain.Policy;
+import no.eudiw.rp.register.domain.PolicyType;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
@@ -11,6 +16,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+
+import java.util.List;
 
 import static no.eudiw.rp.register.testdata.TestDataGenerator.generateValidOrgno;
 import static org.junit.jupiter.api.Assertions.*;
@@ -42,7 +49,8 @@ class WalletRelyingPartyRepositoryTest {
         WalletRelyingParty actual = repository.findById(savedRelyingParty.getId()).orElseThrow();
 
         assertAll(
-            () -> assertEquals(relyingParty.getLegalName(), actual.getLegalName()),
+            () -> assertEquals(relyingParty.getTradeName(), actual.getTradeName()),
+            () -> assertEquals(List.of(relyingParty.getTradeName()), actual.getLegalPerson().getLegalName()),
             () -> assertEquals(relyingParty.getOrgno(), actual.getOrgno()),
             () -> assertEquals(relyingParty.isPsb(), actual.isPsb()),
             () -> assertEquals(2, actual.getServices().size()),
@@ -64,6 +72,63 @@ class WalletRelyingPartyRepositoryTest {
                     actualService.getRelyingPartyInstances().getFirst().getWalletRelyingPartyService().getId())
             );
         }
+    }
+
+    @Test
+    @DisplayName("persists TS5 WalletRelyingParty data")
+    void persistsTs5Data() {
+        WalletRelyingParty relyingParty = EntityGenerator.generateWalletRelyingParty(0);
+        relyingParty.setTradeName("Trading name");
+        relyingParty.setCountry("NO");
+        relyingParty.setIdentifier(List.of(
+            new Identifier("urn:test:orgno", "123456785"),
+            new Identifier("urn:example:euid", "EXAMPLE-123")));
+        relyingParty.setPolicy(List.of(
+            new Policy(PolicyType.TERMS_AND_CONDITIONS.getLabel(), "https://example.org/privacy"),
+            new Policy(PolicyType.PRIVACY_POLICY.getLabel(), "https://example.org/privacy-policy")));
+        relyingParty.setX5c(List.of("certificate-chain"));
+        relyingParty.setPostalAddress(List.of("Example street 1", "Suite 2"));
+        relyingParty.setEmail(List.of("contact@example.org", "support@example.org"));
+        relyingParty.setPhone(List.of("+4712345678", "+4798765432"));
+        relyingParty.setInfoURI(List.of("https://example.org/info", "https://example.org/help"));
+        relyingParty.setLegalPerson(new LegalPerson(
+            List.of("Official name", "Official name in English"),
+            List.of(new Law("https://example.org/law", "Section 1"),
+                new Law("https://example.org/law2", "Section 2"))));
+        WalletRelyingParty saved = repository.saveAndFlush(relyingParty);
+        entityManager.clear();
+
+        WalletRelyingParty actual = repository.findById(saved.getId()).orElseThrow();
+        assertAll(
+            () -> assertEquals("Trading name", actual.getTradeName()),
+            () -> assertEquals("NO", actual.getCountry()),
+            () -> assertEquals("WalletRelyingParty", actual.getProviderType()),
+            () -> assertEquals(2, actual.getIdentifier().size()),
+            () -> assertEquals("urn:test:orgno", actual.getIdentifier().getFirst().type()),
+            () -> assertEquals("123456785", actual.getIdentifier().getFirst().identifier()),
+            () -> assertEquals("urn:example:euid", actual.getIdentifier().get(1).type()),
+            () -> assertEquals("EXAMPLE-123", actual.getIdentifier().get(1).identifier()),
+            () -> assertEquals(2, actual.getPolicy().size()),
+            () -> assertEquals(PolicyType.TERMS_AND_CONDITIONS.getLabel(),
+                actual.getPolicy().getFirst().type()),
+            () -> assertEquals("https://example.org/privacy", actual.getPolicy().getFirst().policyURI()),
+            () -> assertEquals(PolicyType.PRIVACY_POLICY.getLabel(),
+                actual.getPolicy().get(1).type()),
+            () -> assertEquals("https://example.org/privacy-policy",
+                actual.getPolicy().get(1).policyURI()),
+            () -> assertEquals(List.of("certificate-chain"), actual.getX5c()),
+            () -> assertEquals(List.of("Example street 1", "Suite 2"), actual.getPostalAddress()),
+            () -> assertEquals(List.of("contact@example.org", "support@example.org"), actual.getEmail()),
+            () -> assertEquals(List.of("+4712345678", "+4798765432"), actual.getPhone()),
+            () -> assertEquals(List.of("https://example.org/info", "https://example.org/help"),
+                actual.getInfoURI()),
+            () -> assertEquals(List.of("Official name", "Official name in English"),
+                actual.getLegalPerson().getLegalName()),
+            () -> assertEquals("https://example.org/law",
+                actual.getLegalPerson().getEstablishedByLaw().getFirst().legislativeIdentifier()),
+            () -> assertEquals("Section 2",
+                actual.getLegalPerson().getEstablishedByLaw().get(1).legalBasis())
+        );
     }
 
     @Test

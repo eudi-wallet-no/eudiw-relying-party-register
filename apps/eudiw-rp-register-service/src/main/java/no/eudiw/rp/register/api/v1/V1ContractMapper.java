@@ -33,7 +33,7 @@ public class V1ContractMapper {
         return new RelyingPartyResource(
             instance.getId(),
             walletRelyingParty.getOrgno(),
-            walletRelyingParty.getLegalName(),
+            walletRelyingParty.getName(),
             walletService.getServiceTradeName(),
             walletRelyingParty.isPsb(),
             instance.getRelyingPartyEntitlements().stream()

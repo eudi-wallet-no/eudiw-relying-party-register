@@ -87,7 +87,7 @@ class WalletRelyingPartyServiceRepositoryTest {
                 actual.getProvidesAttestations()),
             () -> assertEquals(List.of("urn:test:service-provider"), actual.getEntitlements()),
             () -> assertEquals(relyingParty.getId(), actual.getWalletRelyingParty().getId()),
-            () -> assertEquals("Legal Name", actual.getWalletRelyingParty().getLegalName()),
+            () -> assertEquals("Legal Name", actual.getWalletRelyingParty().getTradeName()),
             () -> assertEquals(1, actual.getRelyingPartyInstances().size()),
             () -> assertEquals(actual.getId(), actualInstance.getWalletRelyingPartyService().getId()),
             () -> assertTrue(actual.getCreatedMs() > 0),

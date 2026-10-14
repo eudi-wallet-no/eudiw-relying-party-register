@@ -1,5 +1,6 @@
 package no.eudiw.rp.register.data.service.walletrelyingpartylookupservice;
 
+import no.eudiw.rp.register.config.SupervisoryAuthorityProperties;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.service.WalletRelyingPartyLookupService;
@@ -12,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -30,6 +33,9 @@ public class WalletRelyingPartyLookupServiceTests {
 
     @Autowired
     private WalletRelyingPartyRepository walletRelyingPartyRepository;
+
+    @Autowired
+    private SupervisoryAuthorityProperties supervisoryAuthorityProperties;
 
     @BeforeEach
     public void initializeMockBeans() {
@@ -57,7 +63,15 @@ public class WalletRelyingPartyLookupServiceTests {
         verify(mockEnhetsregisteretService, times(1)).queryOrgno(orgno);
         verifyNoMoreInteractions(mockEnhetsregisteretService);
 
-        assertTrue(walletRelyingPartyRepository.existsByOrgno(orgno));
+        WalletRelyingParty created = walletRelyingPartyRepository.findByOrgno(orgno).orElseThrow();
+        assertAll(
+            () -> assertEquals("NO", created.getCountry()),
+            () -> assertEquals(WalletRelyingParty.PROVIDER_TYPE, created.getProviderType()),
+            () -> assertNotNull(created.getTradeName()),
+            () -> assertEquals(List.of(created.getTradeName()), created.getLegalPerson().getLegalName()),
+            () -> assertEquals("Datatilsynet", supervisoryAuthorityProperties.name()),
+            () -> assertEquals("NO", supervisoryAuthorityProperties.country())
+        );
     }
 
     @Test

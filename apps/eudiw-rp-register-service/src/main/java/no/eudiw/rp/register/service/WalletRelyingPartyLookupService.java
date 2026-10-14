@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -29,12 +30,11 @@ public class WalletRelyingPartyLookupService {
             true,
             new ArrayList<>()
         );
-
         boolean isNonsyntheticOrgno = orgno.matches("^[8-9]\\d{8}$");
         if (isNonsyntheticOrgno) {
             EnhetsregisteretService.EnhetsregisteretResponse enhetsregisteretResponse =
                 enhetsregisteretService.queryOrgno(orgno);
-            newWalletRelyingParty.setLegalName(enhetsregisteretResponse.name());
+            newWalletRelyingParty.setName(enhetsregisteretResponse.name());
             newWalletRelyingParty.setPsb(enhetsregisteretResponse.publicSector());
         }
 

@@ -45,10 +45,127 @@ class WalletRelyingPartySchemaTest {
     }
 
     @Test
-    void enforcesCertificateOwnershipUniquenessAndCascadingDeletion() {
+    void movesTheExistingNameToTradeNameAndSeedsTs5PartyData() {
+        flyway.clean();
+        Flyway.configure()
+            .configuration(flyway.getConfiguration())
+            .target("21")
+            .load()
+            .migrate();
         jdbc.update("""
             INSERT INTO wallet_relying_party (id, legal_name, orgno, is_psb)
             VALUES ('party-1', 'Party 1', '123456785', TRUE)
+            """);
+
+        flyway.migrate();
+
+        assertEquals("Party 1", jdbc.queryForObject(
+            "SELECT trade_name FROM wallet_relying_party WHERE id = 'party-1'", String.class));
+        assertEquals("[\"Party 1\"]", jdbc.queryForObject(
+            "SELECT legal_name FROM legal_person WHERE wallet_relying_party_id = 'party-1'",
+            String.class));
+        assertEquals("[]", jdbc.queryForObject(
+            "SELECT policy FROM wallet_relying_party WHERE id = 'party-1'", String.class));
+        assertEquals("[]", jdbc.queryForObject(
+            "SELECT identifier FROM wallet_relying_party WHERE id = 'party-1'", String.class));
+        assertEquals("[]", jdbc.queryForObject(
+            "SELECT postal_address FROM wallet_relying_party WHERE id = 'party-1'", String.class));
+        assertEquals("[]", jdbc.queryForObject(
+            "SELECT email FROM wallet_relying_party WHERE id = 'party-1'", String.class));
+        assertEquals("[]", jdbc.queryForObject(
+            "SELECT phone FROM wallet_relying_party WHERE id = 'party-1'", String.class));
+        assertEquals("[]", jdbc.queryForObject(
+            "SELECT info_uri FROM wallet_relying_party WHERE id = 'party-1'", String.class));
+        assertEquals(2, jdbc.queryForObject("""
+            SELECT COUNT(*) FROM information_schema.TABLES
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME IN (
+                  'legal_person',
+                  'wallet_relying_party_x5c'
+              )
+            """, Integer.class));
+        assertEquals(0, jdbc.queryForObject("""
+            SELECT COUNT(*) FROM information_schema.TABLES
+            WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'wallet_relying_party_identifier'
+            """, Integer.class));
+        assertEquals(0, jdbc.queryForObject("""
+            SELECT COUNT(*) FROM information_schema.TABLES
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME IN ('legal_person_legal_name')
+            """, Integer.class));
+        assertEquals("[]", jdbc.queryForObject(
+            "SELECT established_by_law FROM legal_person WHERE wallet_relying_party_id = 'party-1'",
+            String.class));
+        assertEquals(1, jdbc.queryForObject("""
+            SELECT COUNT(*) FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'legal_person'
+              AND COLUMN_NAME = 'legal_name'
+              AND IS_NULLABLE = 'NO'
+            """, Integer.class));
+        assertEquals(0, jdbc.queryForObject("""
+            SELECT COUNT(*) FROM information_schema.TABLES
+            WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'wallet_relying_party_policy'
+            """, Integer.class));
+        assertEquals(6, jdbc.queryForObject("""
+            SELECT COUNT(*) FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'wallet_relying_party'
+              AND COLUMN_NAME IN ('policy', 'identifier', 'postal_address', 'email', 'phone', 'info_uri')
+              AND IS_NULLABLE = 'NO'
+            """, Integer.class));
+        assertEquals(0, jdbc.queryForObject("""
+            SELECT COUNT(*) FROM information_schema.TABLES
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME IN (
+                  'wallet_relying_party_postal_address',
+                  'wallet_relying_party_email',
+                  'wallet_relying_party_phone',
+                  'wallet_relying_party_info_uri'
+              )
+            """, Integer.class));
+        assertEquals(0, jdbc.queryForObject("""
+            SELECT COUNT(*) FROM information_schema.TABLES
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME IN (
+                  'legal_person_legal_names',
+                  'wallet_relying_party_identifiers',
+                  'wallet_relying_party_policies',
+                  'wallet_relying_party_postal_addresses',
+                  'wallet_relying_party_emails',
+                  'wallet_relying_party_phones',
+                  'wallet_relying_party_info_uris'
+              )
+            """, Integer.class));
+        assertEquals("NO", jdbc.queryForObject(
+            "SELECT country FROM wallet_relying_party WHERE id = 'party-1'", String.class));
+        assertEquals("WalletRelyingParty", jdbc.queryForObject(
+            "SELECT provider_type FROM wallet_relying_party WHERE id = 'party-1'", String.class));
+        assertEquals(0, jdbc.queryForObject("""
+            SELECT COUNT(*) FROM information_schema.TABLES
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME IN (
+                  'supervisory_authority',
+                  'supervisory_authority_emails',
+                  'supervisory_authority_phones',
+                  'supervisory_authority_form_uris'
+              )
+            """, Integer.class));
+        assertEquals("YES", jdbc.queryForObject("""
+            SELECT IS_NULLABLE FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'wallet_relying_party' AND COLUMN_NAME = 'trade_name'
+            """, String.class));
+
+        jdbc.update("DELETE FROM wallet_relying_party WHERE id = 'party-1'");
+        assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM legal_person", Integer.class));
+    }
+
+    @Test
+    void enforcesCertificateOwnershipUniquenessAndCascadingDeletion() {
+        jdbc.update("""
+            INSERT INTO wallet_relying_party
+                (id, trade_name, orgno, is_psb, policy, identifier, postal_address, email, phone, info_uri)
+            VALUES ('party-1', 'Party 1', '123456785', TRUE, '[]', '[]', '[]', '[]', '[]', '[]')
             """);
         jdbc.update("""
             INSERT INTO wallet_relying_party_service
