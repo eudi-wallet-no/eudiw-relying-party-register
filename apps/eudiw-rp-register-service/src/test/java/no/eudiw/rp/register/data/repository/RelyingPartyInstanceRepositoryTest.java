@@ -128,6 +128,50 @@ public class RelyingPartyInstanceRepositoryTest {
         }
 
         @Test
+        @DisplayName("then search by legal name when the trade name is absent")
+        void testSearchByFirstLegalNameWhenTradeNameIsAbsent() {
+            WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
+            String testId = UUID.randomUUID().toString();
+            String legalName = "Legal fallback " + testId;
+            String secondaryLegalName = "Secondary legal name " + testId;
+            walletRelyingParty.setTradeName(null);
+            walletRelyingParty.getLegalPerson().setLegalName(List.of(legalName, secondaryLegalName));
+            walletRelyingPartyRepository.saveAndFlush(walletRelyingParty);
+
+            Set<UUID> searchResult =
+                repository.searchRelyingPartyInstances(
+                        legalName.toLowerCase(Locale.ROOT),
+                        List.of(),
+                        true,
+                        false,
+                        Pageable.unpaged())
+                    .getContent()
+                    .stream()
+                    .map(BaseEntity::getId)
+                    .collect(Collectors.toSet());
+
+            List<RelyingPartyInstance> secondaryNameSearchResult =
+                repository.searchRelyingPartyInstances(
+                        secondaryLegalName.toLowerCase(Locale.ROOT),
+                        List.of(),
+                        true,
+                        false,
+                        Pageable.unpaged())
+                    .getContent();
+
+            Set<UUID> expectedResult =
+                EntityGenerator.instances(walletRelyingParty)
+                    .stream()
+                    .map(BaseEntity::getId)
+                    .collect(Collectors.toSet());
+
+            assertAll(
+                () -> assertEquals(expectedResult, searchResult),
+                () -> assertTrue(secondaryNameSearchResult.isEmpty())
+            );
+        }
+
+        @Test
         @DisplayName("then search by orgno uses PREFIX matching, and substring search gives no results")
         void testSearchByWalletRelyingPartyOrgnoUsesPrefixMatching() {
             WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
