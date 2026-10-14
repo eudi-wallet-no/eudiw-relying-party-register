@@ -104,10 +104,10 @@ class WalletRelyingPartyRepositoryTest {
             () -> assertEquals("NO", actual.getCountry()),
             () -> assertEquals("WalletRelyingParty", actual.getProviderType()),
             () -> assertEquals(2, actual.getIdentifier().size()),
-            () -> assertEquals("urn:test:orgno", actual.getIdentifier().getFirst().getType()),
-            () -> assertEquals("123456785", actual.getIdentifier().getFirst().getIdentifier()),
-            () -> assertEquals("urn:example:euid", actual.getIdentifier().get(1).getType()),
-            () -> assertEquals("EXAMPLE-123", actual.getIdentifier().get(1).getIdentifier()),
+            () -> assertEquals("urn:test:orgno", actual.getIdentifier().getFirst().type()),
+            () -> assertEquals("123456785", actual.getIdentifier().getFirst().identifier()),
+            () -> assertEquals("urn:example:euid", actual.getIdentifier().get(1).type()),
+            () -> assertEquals("EXAMPLE-123", actual.getIdentifier().get(1).identifier()),
             () -> assertEquals(2, actual.getPolicy().size()),
             () -> assertEquals(PolicyType.TERMS_AND_CONDITIONS.getLabel(),
                 actual.getPolicy().getFirst().getType()),
@@ -125,9 +125,9 @@ class WalletRelyingPartyRepositoryTest {
             () -> assertEquals(List.of("Official name", "Official name in English"),
                 actual.getLegalPerson().getLegalName()),
             () -> assertEquals("https://example.org/law",
-                actual.getLegalPerson().getEstablishedByLaw().getFirst().getLegislativeIdentifier()),
+                actual.getLegalPerson().getEstablishedByLaw().getFirst().legislativeIdentifier()),
             () -> assertEquals("Section 2",
-                actual.getLegalPerson().getEstablishedByLaw().get(1).getLegalBasis())
+                actual.getLegalPerson().getEstablishedByLaw().get(1).legalBasis())
         );
     }
 

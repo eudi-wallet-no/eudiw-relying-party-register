@@ -1,17 +1,6 @@
 package no.eudiw.rp.register.domain;
 
-import lombok.Getter;
-import lombok.Setter;
-
-@Getter
-@Setter
-public class Law {
-
-    private String legislativeIdentifier;
-
-    private String legalBasis;
-
-    protected Law() { }
+public record Law(String legislativeIdentifier, String legalBasis) {
 
     public Law(String legislativeIdentifier, String legalBasis) {
         this.legislativeIdentifier = legislativeIdentifier;
