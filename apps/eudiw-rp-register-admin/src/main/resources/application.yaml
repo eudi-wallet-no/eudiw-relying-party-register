@@ -12,6 +12,13 @@ server:
         http-only: true
 
 spring:
+  web:
+    resources:
+      chain:
+        strategy:
+          content:
+            enabled: true
+            paths: /**
   threads:
     virtual:
       enabled: true

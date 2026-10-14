@@ -1,6 +1,9 @@
 package no.idporten.eudiw.rp.register.lookup.web.security;
 
+import jakarta.servlet.Filter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProperty;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -18,6 +21,15 @@ public class BaseSecurityConfig {
         http.authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll());
         configureCspHeader(http, csp);
         return http.build();
+    }
+
+    @Bean
+    public FilterRegistrationBean<Filter> securityFilterRegistration(
+            @Qualifier("springSecurityFilterChain") Filter securityFilter) {
+        FilterRegistrationBean<Filter> registration = new FilterRegistrationBean<>(securityFilter);
+        // Security must run before ResourceUrlEncodingFilter to preserve content-versioned URLs.
+        registration.setOrder(-100);
+        return registration;
     }
 
     private static void configureCspHeader(HttpSecurity http, CspProperties csp) {

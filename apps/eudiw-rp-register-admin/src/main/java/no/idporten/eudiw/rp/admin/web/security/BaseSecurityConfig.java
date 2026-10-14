@@ -50,6 +50,7 @@ public class BaseSecurityConfig {
         "/images/**",
         "/webjars/**",
         "/favicon.ico",
+        "/favicon-*.ico",
         "/inter/**"
     };
 

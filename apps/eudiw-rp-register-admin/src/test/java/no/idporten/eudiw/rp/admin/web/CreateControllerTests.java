@@ -19,6 +19,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.servlet.resource.ResourceUrlProvider;
 
 import java.util.List;
 
@@ -41,6 +42,9 @@ public class CreateControllerTests {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private ResourceUrlProvider resourceUrlProvider;
 
     @SuppressWarnings("unused")
     @MockitoBean
@@ -113,8 +117,10 @@ public class CreateControllerTests {
                 .getResponse()
                 .getContentAsString();
 
+            String scriptUrl = resourceUrlProvider.getForLookupPath("/js/dynamic_edit_form_fields.js");
             assertThat(html.indexOf("id=\"eaa_prefill\""))
-                .isLessThan(html.indexOf("<script src=\"/js/dynamic_edit_form_fields.js\"></script>"));
+                .isNotNegative()
+                .isLessThan(html.indexOf("<script src=\"" + scriptUrl + "\"></script>"));
 
             verify(mockRpService, never()).create(any());
         }
