@@ -156,11 +156,10 @@ public class WalletRelyingPartyService extends BaseEntity {
     }
 
     public void setRelyingPartyInstances(List<RelyingPartyInstance> relyingPartyInstances) {
+        List<RelyingPartyInstance> relyingPartyInstancesCopy = relyingPartyInstances == null ? List.of() : new ArrayList<>(relyingPartyInstances);
         this.relyingPartyInstances.clear();
-        if (relyingPartyInstances != null) {
-            relyingPartyInstances.forEach(instance -> instance.setWalletRelyingPartyService(this));
-            this.relyingPartyInstances.addAll(relyingPartyInstances);
-        }
+        relyingPartyInstancesCopy.forEach(instance -> instance.setWalletRelyingPartyService(this));
+        this.relyingPartyInstances.addAll(relyingPartyInstancesCopy);
     }
 
     // Reuse the existing per-instance relation in the service-level TS5 view.
