@@ -33,16 +33,18 @@
         });
     });
 
-    const searchForm = document.getElementById("search_form");
-    if (searchForm) {
-        const searchTerm = searchForm.querySelector("#search_term");
-        const clearButton = searchForm.querySelector('.ds-search button[type="reset"]');
+    document.querySelectorAll("#search_form, .credentials-catalogue__filter").forEach((form) => {
+        const searchTerm = form.querySelector('input[name="searchTerm"]');
+        const clearButton = form.querySelector('.ds-search button[type="reset"]');
         clearButton?.addEventListener("click", (event) => {
             event.preventDefault();
             searchTerm.value = "";
             searchTerm.focus();
         });
+    });
 
+    const searchForm = document.getElementById("search_form");
+    if (searchForm) {
         searchForm.querySelectorAll("[data-dialog-action]").forEach((button) => {
             button.addEventListener("click", () => {
                 const dialog = document.getElementById(button.dataset.dialogTarget);
