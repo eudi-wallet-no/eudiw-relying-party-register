@@ -3,7 +3,6 @@ package no.idporten.eudiw.rp.register.lookup.web.resource.credentials;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -32,7 +31,7 @@ public class CredentialMetadata {
     public static class Claims {
         @NotEmpty
         @JsonProperty(value = "path", required = true)
-        private List<@NotBlank String> paths;
+        private List<String> paths;
 
         @JsonProperty("display")
         private List<@NotNull @Valid Display> displays = new ArrayList<>();
@@ -43,7 +42,7 @@ public class CredentialMetadata {
         public String getDcqlFormattedPaths() {
             return "[%s]".formatted(
                 paths.stream()
-                     .map("\"%s\""::formatted)
+                     .map(path -> path == null ? "null" : "\"%s\"".formatted(path))
                      .collect(Collectors.joining(", ")));
         }
     }
