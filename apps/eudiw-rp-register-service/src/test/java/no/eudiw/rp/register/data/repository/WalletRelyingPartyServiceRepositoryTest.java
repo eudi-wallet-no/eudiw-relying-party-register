@@ -187,6 +187,37 @@ class WalletRelyingPartyServiceRepositoryTest {
 
     @Test
     @Transactional
+    @DisplayName("keeps instances when resetting them from the current collection")
+    void keepsInstancesWhenResettingThemFromCurrentCollection() {
+        var instance = new RelyingPartyInstance(List.of(), List.of(), List.of());
+        var relyingParty = new WalletRelyingParty("Legal Name", generateValidOrgno(), true, List.of());
+        var service = new WalletRelyingPartyService(
+            "Service Trade Name",
+            relyingParty,
+            List.of(instance)
+        );
+        relyingParty.setServices(List.of(service));
+        walletRelyingPartyRepository.saveAndFlush(relyingParty);
+        var serviceId = service.getId();
+        var instanceId = instance.getId();
+        entityManager.clear();
+
+        WalletRelyingPartyService managedService = repository.findById(serviceId).orElseThrow();
+        managedService.setRelyingPartyInstances(managedService.getRelyingPartyInstances());
+        repository.flush();
+        entityManager.clear();
+
+        WalletRelyingPartyService reloadedService = repository.findById(serviceId).orElseThrow();
+        RelyingPartyInstance reloadedInstance = reloadedService.getRelyingPartyInstances().getFirst();
+        assertAll(
+            () -> assertEquals(instanceId, reloadedInstance.getId()),
+            () -> assertEquals(serviceId, reloadedInstance.getWalletRelyingPartyService().getId()),
+            () -> assertTrue(instanceRepository.findById(instanceId).isPresent())
+        );
+    }
+
+    @Test
+    @Transactional
     @DisplayName("deleting a service deletes its instances but keeps its relying party")
     void deletingServiceDeletesItsInstancesOnly() {
         var instance = new RelyingPartyInstance(List.of(), List.of(), List.of());
