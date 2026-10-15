@@ -97,11 +97,10 @@ public class WalletRelyingPartyService extends BaseEntity {
     }
 
     public void setIntendedUses(List<IntendedUse> intendedUses) {
+        List<IntendedUse> intendedUsesCopy = intendedUses == null ? List.of() : new ArrayList<>(intendedUses);
         this.intendedUses.clear();
-        if (intendedUses != null) {
-            intendedUses.forEach(intendedUse -> intendedUse.setWalletRelyingPartyService(this));
-            this.intendedUses.addAll(intendedUses);
-        }
+        intendedUsesCopy.forEach(intendedUse -> intendedUse.setWalletRelyingPartyService(this));
+        this.intendedUses.addAll(intendedUsesCopy);
     }
 
     public void setRelyingPartyInstances(List<RelyingPartyInstance> relyingPartyInstances) {

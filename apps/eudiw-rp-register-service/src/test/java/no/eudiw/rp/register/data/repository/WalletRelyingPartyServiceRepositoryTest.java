@@ -160,6 +160,34 @@ class WalletRelyingPartyServiceRepositoryTest {
 
     @Test
     @Transactional
+    @DisplayName("keeps intended uses when resetting them from the current collection")
+    void keepsIntendedUsesWhenResettingFromCurrentCollection() {
+        var relyingParty = new WalletRelyingParty("Legal Name", generateValidOrgno(), true, List.of());
+        var service = new WalletRelyingPartyService("Service Trade Name", relyingParty, List.of());
+        service.setIntendedUses(List.of(new IntendedUse(
+            "login",
+            "2026-01-02",
+            null,
+            List.of(),
+            List.of()
+        )));
+        relyingParty.setServices(List.of(service));
+        walletRelyingPartyRepository.saveAndFlush(relyingParty);
+        var serviceId = service.getId();
+        entityManager.clear();
+
+        WalletRelyingPartyService managedService = repository.findById(serviceId).orElseThrow();
+        managedService.setIntendedUses(managedService.getIntendedUses());
+        repository.flush();
+        entityManager.clear();
+
+        WalletRelyingPartyService reloadedService = repository.findById(serviceId).orElseThrow();
+        assertEquals(1, reloadedService.getIntendedUses().size());
+        assertEquals("login", reloadedService.getIntendedUses().getFirst().getIntendedUseIdentifier());
+    }
+
+    @Test
+    @Transactional
     @DisplayName("deleting a service deletes its instances but keeps its relying party")
     void deletingServiceDeletesItsInstancesOnly() {
         var instance = new RelyingPartyInstance(List.of(), List.of(), List.of());
