@@ -205,6 +205,37 @@ class WalletRelyingPartyServiceRepositoryTest {
 
     @Test
     @Transactional
+    @DisplayName("rejects invalid intermediary configuration when loading")
+    void rejectsInvalidIntermediaryConfigurationWhenLoading() {
+        var relyingParty = new WalletRelyingParty("Legal Name", generateValidOrgno(), true, List.of());
+        var service = new WalletRelyingPartyService("Service", relyingParty, List.of());
+        relyingParty.setServices(List.of(service));
+        repository.saveAndFlush(service);
+        var serviceId = service.getId();
+        entityManager.createNativeQuery(
+            "UPDATE wallet_relying_party_service SET served_wrp_services = JSON_ARRAY('client-service') WHERE id = :serviceId"
+        ).setParameter("serviceId", serviceId.toString()).executeUpdate();
+        entityManager.clear();
+
+        RuntimeException exception = assertThrows(
+            RuntimeException.class,
+            () -> repository.findById(serviceId)
+        );
+
+        assertTrue(hasCauseMessage(exception, "Only an intermediary service can serve WRP services"));
+    }
+
+    private boolean hasCauseMessage(Throwable exception, String expectedMessage) {
+        for (Throwable cause = exception; cause != null; cause = cause.getCause()) {
+            if (expectedMessage.equals(cause.getMessage())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Test
+    @Transactional
     @DisplayName("keeps intended uses when resetting them from the current collection")
     void keepsIntendedUsesWhenResettingFromCurrentCollection() {
         var relyingParty = new WalletRelyingParty("Legal Name", generateValidOrgno(), true, List.of());

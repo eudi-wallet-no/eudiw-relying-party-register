@@ -190,4 +190,9 @@ public class WalletRelyingPartyService extends BaseEntity {
         validateIntermediaryConfiguration(isIntermediary, usesIntermediaries, servedWRPServices);
         this.lastUpdatedMs = Instant.now().toEpochMilli();
     }
+
+    @PostLoad
+    protected void onPostLoad() {
+        validateIntermediaryConfiguration(isIntermediary, usesIntermediaries, servedWRPServices);
+    }
 }
