@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -88,7 +89,7 @@ class WalletRelyingPartyServiceRepositoryTest {
             () -> assertEquals(List.of(
                 new ProvidedAttestation("dc+sd-jwt", "https://schemas.example/payment")),
                 actual.getProvidesAttestations()),
-            () -> assertFalse(actual.isIntermediary()),
+            () -> assertFalse(intermediaryFlag(actual.getId())),
             () -> assertEquals(List.of(), actual.getUsesIntermediaries()),
             () -> assertEquals(List.of(), actual.getServedWRPServices()),
             () -> assertEquals(List.of(), actual.getIntendedUses()),
@@ -134,7 +135,7 @@ class WalletRelyingPartyServiceRepositoryTest {
         IntendedUse actualIntendedUse = actualClient.getIntendedUses().getFirst();
         WalletRelyingPartyService actualIntermediary = actualClient.getWalletRelyingParty().getServices()
             .stream()
-            .filter(WalletRelyingPartyService::isIntermediary)
+            .filter(service -> service.getServiceIdentifier().equals("intermediary-service"))
             .findFirst()
             .orElseThrow();
 
@@ -144,7 +145,7 @@ class WalletRelyingPartyServiceRepositoryTest {
                 "Intermediary",
                 "https://registry.example/wrp"
             )), actualClient.getUsesIntermediaries()),
-            () -> assertTrue(actualIntermediary.isIntermediary()),
+            () -> assertTrue(intermediaryFlag(actualIntermediary.getId())),
             () -> assertEquals(List.of("client-service"), actualIntermediary.getServedWRPServices()),
             () -> assertEquals("login", actualIntendedUse.getIntendedUseIdentifier()),
             () -> assertEquals("2026-01-02", actualIntendedUse.getCreatedAt()),
@@ -155,6 +156,51 @@ class WalletRelyingPartyServiceRepositoryTest {
                 actualIntendedUse.getPrivacyPolicy()),
             () -> assertEquals(clientServiceId, actualIntendedUse.getWalletRelyingPartyService().getId())
         );
+    }
+
+    private boolean intermediaryFlag(java.util.UUID serviceId) {
+        return (boolean) entityManager.createNativeQuery(
+            "SELECT is_intermediary FROM wallet_relying_party_service WHERE id = :serviceId"
+        ).setParameter("serviceId", serviceId.toString()).getSingleResult();
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("rejects invalid intermediary configuration before insert")
+    void rejectsInvalidIntermediaryConfigurationBeforeInsert() {
+        var relyingParty = new WalletRelyingParty("Legal Name", generateValidOrgno(), true, List.of());
+        var service = new WalletRelyingPartyService("Invalid", relyingParty, List.of());
+        ReflectionTestUtils.setField(service, "isIntermediary", true);
+        ReflectionTestUtils.setField(service, "usesIntermediaries", List.of(
+            new IntermediaryReference("proxy", "Proxy", "https://registry.example/wrp")
+        ));
+        relyingParty.setServices(List.of(service));
+
+        RuntimeException exception = assertThrows(
+            RuntimeException.class,
+            () -> repository.saveAndFlush(service)
+        );
+        assertEquals("An intermediary service cannot use intermediaries", exception.getCause().getMessage());
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("rejects invalid intermediary configuration before update")
+    void rejectsInvalidIntermediaryConfigurationBeforeUpdate() {
+        var relyingParty = new WalletRelyingParty("Legal Name", generateValidOrgno(), true, List.of());
+        var service = new WalletRelyingPartyService("Service", relyingParty, List.of());
+        relyingParty.setServices(List.of(service));
+        repository.saveAndFlush(service);
+        entityManager.clear();
+
+        WalletRelyingPartyService managedService = repository.findById(service.getId()).orElseThrow();
+        ReflectionTestUtils.setField(managedService, "servedWRPServices", List.of("client-service"));
+
+        RuntimeException exception = assertThrows(
+            RuntimeException.class,
+            () -> repository.flush()
+        );
+        assertEquals("Only an intermediary service can serve WRP services", exception.getCause().getMessage());
     }
 
     @Test

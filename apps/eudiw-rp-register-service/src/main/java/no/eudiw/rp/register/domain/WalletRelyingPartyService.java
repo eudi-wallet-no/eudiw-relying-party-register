@@ -124,20 +124,24 @@ public class WalletRelyingPartyService extends BaseEntity {
         List<String> servedWRPServicesCopy =
             servedWRPServices == null ? new ArrayList<>() : new ArrayList<>(servedWRPServices);
 
-        if (isIntermediary && !usesIntermediariesCopy.isEmpty()) {
-            throw new IllegalArgumentException("An intermediary service cannot use intermediaries");
-        }
-        if (!isIntermediary && !servedWRPServicesCopy.isEmpty()) {
-            throw new IllegalArgumentException("Only an intermediary service can serve WRP services");
-        }
+        validateIntermediaryConfiguration(isIntermediary, usesIntermediariesCopy, servedWRPServicesCopy);
 
         this.isIntermediary = isIntermediary;
         this.usesIntermediaries = usesIntermediariesCopy;
         this.servedWRPServices = servedWRPServicesCopy;
     }
 
-    public boolean isIntermediary() {
-        return isIntermediary;
+    private static void validateIntermediaryConfiguration(
+        boolean isIntermediary,
+        List<IntermediaryReference> usesIntermediaries,
+        List<String> servedWRPServices
+    ) {
+        if (isIntermediary && !usesIntermediaries.isEmpty()) {
+            throw new IllegalArgumentException("An intermediary service cannot use intermediaries");
+        }
+        if (!isIntermediary && !servedWRPServices.isEmpty()) {
+            throw new IllegalArgumentException("Only an intermediary service can serve WRP services");
+        }
     }
 
     public List<IntermediaryReference> getUsesIntermediaries() {
@@ -177,11 +181,13 @@ public class WalletRelyingPartyService extends BaseEntity {
 
     @PrePersist
     protected void onPrePersist() {
+        validateIntermediaryConfiguration(isIntermediary, usesIntermediaries, servedWRPServices);
         this.lastUpdatedMs = this.createdMs = Instant.now().toEpochMilli();
     }
 
     @PreUpdate
     protected void onPreUpdate() {
+        validateIntermediaryConfiguration(isIntermediary, usesIntermediaries, servedWRPServices);
         this.lastUpdatedMs = Instant.now().toEpochMilli();
     }
 }
