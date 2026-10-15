@@ -12,10 +12,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest(properties = {
-    "eudiw-admin-web.security.enabled=false",
-    "eudiw-admin-web.csp.mode=enforce"
-})
+@SpringBootTest()
 @ActiveProfiles("junit")
 @AutoConfigureMockMvc
 class CspEnforceDevTests {

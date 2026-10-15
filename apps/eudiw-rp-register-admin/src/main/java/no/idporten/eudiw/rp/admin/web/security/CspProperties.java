@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
 @Validated
-@ConfigurationProperties(prefix = "eudiw-admin-web.csp")
+@ConfigurationProperties(prefix = "eudiw-admin-web.security.csp")
 public record CspProperties(@NotNull Mode mode, @NotBlank String policy) {
 
     public enum Mode {
