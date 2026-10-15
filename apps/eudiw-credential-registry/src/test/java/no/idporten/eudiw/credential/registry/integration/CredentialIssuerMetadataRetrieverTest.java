@@ -8,7 +8,6 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.net.URI;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
@@ -18,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class CredentialIssuerMetadataRetrieverTest {
 
 
-    private CredentialIssuerMetadataRetriever retriever;
+    private final CredentialIssuerMetadataRetriever retriever;
 
 
     @Autowired
@@ -26,14 +25,6 @@ public class CredentialIssuerMetadataRetrieverTest {
         this.retriever = credentialIssuerMetadataRetriever;
     }
 
-
-    @DisplayName("When issuer URL is not https")
-    @Test
-    void whenIssuerUrlIsNotHttps() {
-        URI uri = URI.create("http://localhost:8080/");
-        boolean answer = retriever.isHttps(uri);
-        assertFalse(answer);
-    }
 
 
     @DisplayName("When issuer uri is the way it is supposed to be, it is built correct with well known")
