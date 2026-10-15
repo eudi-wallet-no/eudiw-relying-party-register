@@ -1,7 +1,10 @@
 package no.eudiw.rp.register.data.repository;
 
 import jakarta.persistence.EntityManager;
+import no.eudiw.rp.register.domain.IntendedUse;
+import no.eudiw.rp.register.domain.IntermediaryReference;
 import no.eudiw.rp.register.domain.MultiLangString;
+import no.eudiw.rp.register.domain.Policy;
 import no.eudiw.rp.register.domain.ProvidedAttestation;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
@@ -85,6 +88,10 @@ class WalletRelyingPartyServiceRepositoryTest {
             () -> assertEquals(List.of(
                 new ProvidedAttestation("dc+sd-jwt", "https://schemas.example/payment")),
                 actual.getProvidesAttestations()),
+            () -> assertFalse(actual.isIntermediary()),
+            () -> assertEquals(List.of(), actual.getUsesIntermediaries()),
+            () -> assertEquals(List.of(), actual.getServedWRPServices()),
+            () -> assertEquals(List.of(), actual.getIntendedUses()),
             () -> assertEquals(List.of("urn:test:service-provider"), actual.getEntitlements()),
             () -> assertEquals(relyingParty.getId(), actual.getWalletRelyingParty().getId()),
             () -> assertEquals("Legal Name", actual.getWalletRelyingParty().getTradeName()),
@@ -96,12 +103,75 @@ class WalletRelyingPartyServiceRepositoryTest {
     }
 
     @Test
+    @DisplayName("persists intermediary relationships and intended uses")
+    void persistsIntermediaryRelationshipsAndIntendedUses() {
+        var relyingParty = new WalletRelyingParty("Legal Name", generateValidOrgno(), true, List.of());
+        var intermediaryService = new WalletRelyingPartyService("Intermediary", relyingParty, List.of());
+        intermediaryService.setServiceIdentifier("intermediary-service");
+        intermediaryService.setIntermediary(true);
+        intermediaryService.setServedWRPServices(List.of("client-service"));
+
+        var clientService = new WalletRelyingPartyService("Client", relyingParty, List.of());
+        clientService.setServiceIdentifier("client-service");
+        clientService.setUsesIntermediaries(List.of(new IntermediaryReference(
+            "intermediary-service",
+            "Intermediary",
+            "https://registry.example/wrp"
+        )));
+        clientService.setIntendedUses(List.of(new IntendedUse(
+            "login",
+            "2026-01-02",
+            null,
+            List.of(new MultiLangString("en", "Authenticate the user")),
+            List.of(new Policy("PrivacyPolicy", "https://client.example/privacy"))
+        )));
+        relyingParty.setServices(List.of(intermediaryService, clientService));
+
+        walletRelyingPartyRepository.saveAndFlush(relyingParty);
+        var clientServiceId = clientService.getId();
+        entityManager.clear();
+
+        WalletRelyingPartyService actualClient = repository.findById(clientServiceId).orElseThrow();
+        IntendedUse actualIntendedUse = actualClient.getIntendedUses().getFirst();
+        WalletRelyingPartyService actualIntermediary = actualClient.getWalletRelyingParty().getServices()
+            .stream()
+            .filter(WalletRelyingPartyService::isIntermediary)
+            .findFirst()
+            .orElseThrow();
+
+        assertAll(
+            () -> assertEquals(List.of(new IntermediaryReference(
+                "intermediary-service",
+                "Intermediary",
+                "https://registry.example/wrp"
+            )), actualClient.getUsesIntermediaries()),
+            () -> assertTrue(actualIntermediary.isIntermediary()),
+            () -> assertEquals(List.of("client-service"), actualIntermediary.getServedWRPServices()),
+            () -> assertEquals("login", actualIntendedUse.getIntendedUseIdentifier()),
+            () -> assertEquals("2026-01-02", actualIntendedUse.getCreatedAt()),
+            () -> assertNull(actualIntendedUse.getRevokedAt()),
+            () -> assertEquals(List.of(new MultiLangString("en", "Authenticate the user")),
+                actualIntendedUse.getPurpose()),
+            () -> assertEquals(List.of(new Policy("PrivacyPolicy", "https://client.example/privacy")),
+                actualIntendedUse.getPrivacyPolicy()),
+            () -> assertEquals(clientServiceId, actualIntendedUse.getWalletRelyingPartyService().getId())
+        );
+    }
+
+    @Test
     @Transactional
     @DisplayName("deleting a service deletes its instances but keeps its relying party")
     void deletingServiceDeletesItsInstancesOnly() {
         var instance = new RelyingPartyInstance(List.of(), List.of(), List.of());
         var relyingParty = new WalletRelyingParty("Legal Name", generateValidOrgno(), true, List.of());
         var service = new WalletRelyingPartyService("Service Trade Name", relyingParty, List.of(instance));
+        service.setIntendedUses(List.of(new IntendedUse(
+            "delete-test",
+            "2026-01-02",
+            null,
+            List.of(),
+            List.of()
+        )));
         relyingParty.setServices(List.of(service));
 
         WalletRelyingPartyService savedService = repository.saveAndFlush(service);
@@ -120,6 +190,9 @@ class WalletRelyingPartyServiceRepositoryTest {
         assertAll(
             () -> assertTrue(repository.findById(savedService.getId()).isEmpty()),
             () -> assertTrue(instanceRepository.findById(instanceId).isEmpty()),
+            () -> assertEquals(0L, entityManager.createNativeQuery(
+                "SELECT COUNT(*) FROM wallet_relying_party_service_intended_use WHERE wallet_relying_party_service_id = :serviceId"
+            ).setParameter("serviceId", savedService.getId().toString()).getSingleResult()),
             () -> assertTrue(walletRelyingPartyRepository.findById(relyingPartyId).isPresent()),
             () -> assertTrue(walletRelyingPartyRepository.findById(relyingPartyId).orElseThrow()
                 .getServices().isEmpty())

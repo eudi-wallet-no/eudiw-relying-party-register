@@ -46,10 +46,29 @@ public class WalletRelyingPartyService extends BaseEntity {
     @Column(name = "provides_attestations", columnDefinition = "JSON", nullable = false)
     private List<ProvidedAttestation> providesAttestations = new ArrayList<>();
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "uses_intermediaries", columnDefinition = "JSON", nullable = false)
+    private List<IntermediaryReference> usesIntermediaries = new ArrayList<>();
+
+    @Column(name = "is_intermediary", nullable = false)
+    private boolean isIntermediary;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "served_wrp_services", columnDefinition = "JSON", nullable = false)
+    private List<String> servedWRPServices = new ArrayList<>();
+
     @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "wallet_relying_party_id", columnDefinition = "UUID", nullable = false)
     @JdbcTypeCode(SqlTypes.UUID)
     private WalletRelyingParty walletRelyingParty;
+
+    @Setter(AccessLevel.NONE)
+    @OneToMany(
+        mappedBy = "walletRelyingPartyService",
+        fetch = FetchType.EAGER,
+        cascade = CascadeType.ALL,
+        orphanRemoval = true)
+    private List<IntendedUse> intendedUses = new ArrayList<>();
 
     @Setter(AccessLevel.NONE)
     @OneToMany(
@@ -75,6 +94,14 @@ public class WalletRelyingPartyService extends BaseEntity {
         this.serviceTradeName = serviceTradeName;
         this.walletRelyingParty = walletRelyingParty;
         setRelyingPartyInstances(relyingPartyInstances);
+    }
+
+    public void setIntendedUses(List<IntendedUse> intendedUses) {
+        this.intendedUses.clear();
+        if (intendedUses != null) {
+            intendedUses.forEach(intendedUse -> intendedUse.setWalletRelyingPartyService(this));
+            this.intendedUses.addAll(intendedUses);
+        }
     }
 
     public void setRelyingPartyInstances(List<RelyingPartyInstance> relyingPartyInstances) {
