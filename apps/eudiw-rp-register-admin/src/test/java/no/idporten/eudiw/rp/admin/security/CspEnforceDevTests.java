@@ -6,6 +6,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.servlet.resource.ResourceUrlProvider;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -19,6 +20,16 @@ class CspEnforceDevTests {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private ResourceUrlProvider resourceUrlProvider;
+
+    @Test
+    void versionedFaviconIsPublicOnDevSecurityChain() throws Exception {
+        String faviconUrl = resourceUrlProvider.getForLookupPath("/favicon.ico");
+        mockMvc.perform(get(faviconUrl)).andExpect(status().isOk());
+        mockMvc.perform(get("/search")).andExpect(status().is3xxRedirection());
+    }
 
     @Test
     void enforceHeaderOnDevLoginAndStaticResources() throws Exception {

@@ -26,6 +26,7 @@ public class DevSecurityConfig {
         "/css/**",
         "/images/**",
         "/favicon.ico",
+        "/favicon-*.ico",
         "/inter/**"
     };
 

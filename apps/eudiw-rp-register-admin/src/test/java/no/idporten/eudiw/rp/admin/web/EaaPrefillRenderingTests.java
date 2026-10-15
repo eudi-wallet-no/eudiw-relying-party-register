@@ -14,6 +14,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.servlet.resource.ResourceUrlProvider;
 
 import java.util.List;
 import java.util.UUID;
@@ -33,6 +34,9 @@ class EaaPrefillRenderingTests {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private ResourceUrlProvider resourceUrlProvider;
 
     @SuppressWarnings("unused")
     @MockitoBean
@@ -70,7 +74,8 @@ class EaaPrefillRenderingTests {
         String html = renderEditFormWithEaa("no:minid:mpid:1", "test");
 
         int prefillPosition = html.indexOf("id=\"eaa_prefill\"");
-        int scriptPosition = html.indexOf("<script src=\"/js/dynamic_edit_form_fields.js\"></script>");
+        String scriptUrl = resourceUrlProvider.getForLookupPath("/js/dynamic_edit_form_fields.js");
+        int scriptPosition = html.indexOf("<script src=\"" + scriptUrl + "\"></script>");
 
         assertThat(prefillPosition).isNotNegative();
         assertThat(scriptPosition).isGreaterThan(prefillPosition);
