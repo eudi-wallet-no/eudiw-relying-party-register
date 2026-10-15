@@ -46,13 +46,19 @@ public class WalletRelyingPartyService extends BaseEntity {
     @Column(name = "provides_attestations", columnDefinition = "JSON", nullable = false)
     private List<ProvidedAttestation> providesAttestations = new ArrayList<>();
 
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "uses_intermediaries", columnDefinition = "JSON", nullable = false)
     private List<IntermediaryReference> usesIntermediaries = new ArrayList<>();
 
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
     @Column(name = "is_intermediary", nullable = false)
     private boolean isIntermediary;
 
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "served_wrp_services", columnDefinition = "JSON", nullable = false)
     private List<String> servedWRPServices = new ArrayList<>();
@@ -91,9 +97,55 @@ public class WalletRelyingPartyService extends BaseEntity {
         WalletRelyingParty walletRelyingParty,
         List<RelyingPartyInstance> relyingPartyInstances
     ) {
+        this(serviceTradeName, walletRelyingParty, relyingPartyInstances, false, List.of(), List.of());
+    }
+
+    public WalletRelyingPartyService(
+        String serviceTradeName,
+        WalletRelyingParty walletRelyingParty,
+        List<RelyingPartyInstance> relyingPartyInstances,
+        boolean isIntermediary,
+        List<IntermediaryReference> usesIntermediaries,
+        List<String> servedWRPServices
+    ) {
         this.serviceTradeName = serviceTradeName;
         this.walletRelyingParty = walletRelyingParty;
         setRelyingPartyInstances(relyingPartyInstances);
+        setIntermediaryConfiguration(isIntermediary, usesIntermediaries, servedWRPServices);
+    }
+
+    public void setIntermediaryConfiguration(
+        boolean isIntermediary,
+        List<IntermediaryReference> usesIntermediaries,
+        List<String> servedWRPServices
+    ) {
+        List<IntermediaryReference> usesIntermediariesCopy =
+            usesIntermediaries == null ? new ArrayList<>() : new ArrayList<>(usesIntermediaries);
+        List<String> servedWRPServicesCopy =
+            servedWRPServices == null ? new ArrayList<>() : new ArrayList<>(servedWRPServices);
+
+        if (isIntermediary && !usesIntermediariesCopy.isEmpty()) {
+            throw new IllegalArgumentException("An intermediary service cannot use intermediaries");
+        }
+        if (!isIntermediary && !servedWRPServicesCopy.isEmpty()) {
+            throw new IllegalArgumentException("Only an intermediary service can serve WRP services");
+        }
+
+        this.isIntermediary = isIntermediary;
+        this.usesIntermediaries = usesIntermediariesCopy;
+        this.servedWRPServices = servedWRPServicesCopy;
+    }
+
+    public boolean isIntermediary() {
+        return isIntermediary;
+    }
+
+    public List<IntermediaryReference> getUsesIntermediaries() {
+        return List.copyOf(usesIntermediaries);
+    }
+
+    public List<String> getServedWRPServices() {
+        return List.copyOf(servedWRPServices);
     }
 
     public void setIntendedUses(List<IntendedUse> intendedUses) {

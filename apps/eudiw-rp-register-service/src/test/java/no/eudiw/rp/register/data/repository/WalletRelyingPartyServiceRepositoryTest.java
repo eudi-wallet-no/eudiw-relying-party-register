@@ -108,16 +108,15 @@ class WalletRelyingPartyServiceRepositoryTest {
         var relyingParty = new WalletRelyingParty("Legal Name", generateValidOrgno(), true, List.of());
         var intermediaryService = new WalletRelyingPartyService("Intermediary", relyingParty, List.of());
         intermediaryService.setServiceIdentifier("intermediary-service");
-        intermediaryService.setIntermediary(true);
-        intermediaryService.setServedWRPServices(List.of("client-service"));
+        intermediaryService.setIntermediaryConfiguration(true, List.of(), List.of("client-service"));
 
         var clientService = new WalletRelyingPartyService("Client", relyingParty, List.of());
         clientService.setServiceIdentifier("client-service");
-        clientService.setUsesIntermediaries(List.of(new IntermediaryReference(
+        clientService.setIntermediaryConfiguration(false, List.of(new IntermediaryReference(
             "intermediary-service",
             "Intermediary",
             "https://registry.example/wrp"
-        )));
+        )), List.of());
         clientService.setIntendedUses(List.of(new IntendedUse(
             "login",
             "2026-01-02",
