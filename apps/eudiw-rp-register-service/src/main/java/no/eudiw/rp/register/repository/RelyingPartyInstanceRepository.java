@@ -20,15 +20,18 @@ public interface RelyingPartyInstanceRepository
     @Query("""
     SELECT DISTINCT rpi
     FROM RelyingPartyInstance rpi
+    LEFT JOIN rpi.walletRelyingPartyService.walletRelyingParty.legalPerson legalPerson
     WHERE
-      (rpi.legalEntity.orgno LIKE :searchTerm%
-          OR rpi.legalEntity.name ILIKE %:searchTerm%
-          OR rpi.tradeName ILIKE %:searchTerm%
+      (rpi.walletRelyingPartyService.walletRelyingParty.orgno LIKE :searchTerm%
+          OR rpi.walletRelyingPartyService.walletRelyingParty.tradeName ILIKE %:searchTerm%
+          OR (rpi.walletRelyingPartyService.walletRelyingParty.tradeName IS NULL
+              AND cast(function('json_value', legalPerson.legalName, '$[0]') AS String) ILIKE %:searchTerm%)
+          OR rpi.walletRelyingPartyService.serviceTradeName ILIKE %:searchTerm%
       )
       AND (:includeInactive = TRUE OR rpi.active = TRUE)
       AND (:hideSyntheticOrgnos = FALSE
-              OR rpi.legalEntity.orgno LIKE '8%'
-              OR rpi.legalEntity.orgno LIKE '9%')
+              OR rpi.walletRelyingPartyService.walletRelyingParty.orgno LIKE '8%'
+              OR rpi.walletRelyingPartyService.walletRelyingParty.orgno LIKE '9%')
       AND (
         (SELECT COUNT(DISTINCT e.entitlement)
          FROM RelyingPartyEntitlement e

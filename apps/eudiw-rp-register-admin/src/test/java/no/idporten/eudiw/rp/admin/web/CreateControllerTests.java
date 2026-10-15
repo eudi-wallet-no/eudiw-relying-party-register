@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -102,12 +103,18 @@ public class CreateControllerTests {
             );
 
             var request = post("/admin/create").with(csrf());
-            mockMvc.perform(WebTestUtils.withCreateForm(request, createForm))
+            String html = mockMvc.perform(WebTestUtils.withCreateForm(request, createForm))
                 .andExpectAll(
                     model().attributeHasFieldErrors(
                         CreateController.CREATE_FORM_ATTR, "eaas[0].namespace"),
                     status().isOk(),
-                    view().name("create_form_view"));
+                    view().name("create_form_view"))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+            assertThat(html.indexOf("id=\"eaa_prefill\""))
+                .isLessThan(html.indexOf("<script src=\"/js/dynamic_edit_form_fields.js\"></script>"));
 
             verify(mockRpService, never()).create(any());
         }

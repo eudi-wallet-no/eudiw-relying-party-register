@@ -10,8 +10,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface AccessCertificateRepository
-    extends JpaRepository<AccessCertificate, UUID> {
+public interface AccessCertificateRepository extends JpaRepository<AccessCertificate, UUID> {
 
     @Query("""
         SELECT cert
@@ -19,6 +18,6 @@ public interface AccessCertificateRepository
         WHERE cert.id = :certId AND cert.relyingPartyInstance.id = :relyingPartyId
     """)
     Optional<AccessCertificate> findByIdAndRelyingPartyId(
-        @Param("certId")         UUID certId,
+        @Param("certId") UUID certId,
         @Param("relyingPartyId") UUID relyingPartyId);
 }

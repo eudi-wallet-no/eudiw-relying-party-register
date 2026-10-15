@@ -17,8 +17,8 @@
         <maven-compiler-plugin.version>3.16.0</maven-compiler-plugin.version>
         <lombok.version>1.18.48</lombok.version>
         <idporten-actuator-starter.version>3.1.2</idporten-actuator-starter.version>
-        <idporten-access-log.version>4.0.4</idporten-access-log.version>
-        <idporten-validators.version>1.6.3</idporten-validators.version>
+        <idporten-access-log.version>4.0.6</idporten-access-log.version>
+        <idporten-validators.version>1.6.4</idporten-validators.version>
         <opentelemetry-api.version>1.66.0</opentelemetry-api.version>
         <springdoc.version>3.1.1</springdoc.version>
         <bcpkix-jdk18on.version>1.86</bcpkix-jdk18on.version>
@@ -86,11 +86,6 @@
             <artifactId>flyway-mysql</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
             <groupId>org.mariadb.jdbc</groupId>
             <artifactId>mariadb-java-client</artifactId>
             <version>${mariadb-java-client.version}</version>
@@ -105,6 +100,16 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-mariadb</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-jdbc</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

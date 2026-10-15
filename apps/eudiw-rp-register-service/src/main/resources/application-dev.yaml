@@ -1,0 +1,29 @@
+---
+server:
+  port: 9200
+management:
+  server:
+    port: 9201
+  endpoint:
+    health:
+      show-details: always
+spring:
+  config:
+    import: optional:file:${EUDIW_RP_REGISTER_SERVICE_ENV}[.properties]
+  datasource:
+    url: "jdbc:mariadb://localhost:36306/rp_register_db"
+    username: eudiw_user
+    password: lesssecret
+    driver-class-name: org.mariadb.jdbc.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.MariaDBDialect
+  application:
+    environment: dev
+
+eudiw-rp-register-service:
+  csr-service:
+    ca-service-api:
+      ca-service-base-uri: http://localhost:9220
+
+external-dependency-health-checks:
+  enabled: false

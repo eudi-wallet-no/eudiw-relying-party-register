@@ -17,13 +17,13 @@
     <properties>
         <java.version>25</java.version>
         <idporten-actuator.version>3.1.2</idporten-actuator.version>
-        <idporten-validators.version>1.6.3</idporten-validators.version>
-        <idporten-access-log.version>4.0.4</idporten-access-log.version>
+        <idporten-validators.version>1.6.4</idporten-validators.version>
+        <idporten-access-log.version>4.0.6</idporten-access-log.version>
         <opentelemetry-api.version>1.66.0</opentelemetry-api.version>
         <mariadb-java-client.version>3.5.10</mariadb-java-client.version>
         <springdoc.version>3.1.1</springdoc.version>
         <lombok.version>1.18.48</lombok.version>
-        <idporten-audit-log.version>4.0.5</idporten-audit-log.version>
+        <idporten-audit-log.version>4.0.6</idporten-audit-log.version>
         <mockwebserver.version>5.5.0</mockwebserver.version>
         <bcpkix.version>1.86</bcpkix.version>
         <tomcat.version>11.0.25</tomcat.version>
@@ -64,11 +64,6 @@
             <version>${idporten-audit-log.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
             <groupId>org.mariadb.jdbc</groupId>
             <artifactId>mariadb-java-client</artifactId>
             <version>${mariadb-java-client.version}</version>
@@ -103,6 +98,21 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-mariadb</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-jdbc</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

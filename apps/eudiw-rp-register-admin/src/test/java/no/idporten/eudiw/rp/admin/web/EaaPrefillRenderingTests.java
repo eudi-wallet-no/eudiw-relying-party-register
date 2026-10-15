@@ -65,6 +65,18 @@ class EaaPrefillRenderingTests {
     }
 
     @Test
+    @DisplayName("then existing EAA data appears before the script that builds the form rows")
+    void testEaaPrefillRenderedBeforeScript() throws Exception {
+        String html = renderEditFormWithEaa("no:minid:mpid:1", "test");
+
+        int prefillPosition = html.indexOf("id=\"eaa_prefill\"");
+        int scriptPosition = html.indexOf("<script src=\"/js/dynamic_edit_form_fields.js\"></script>");
+
+        assertThat(prefillPosition).isNotNegative();
+        assertThat(scriptPosition).isGreaterThan(prefillPosition);
+    }
+
+    @Test
     @DisplayName("then a double quote in the namespace is escaped and cannot break out of the attribute")
     void testDoubleQuoteInNamespaceIsEscaped() throws Exception {
         String html = renderEditFormWithEaa("\"onerror", "test");

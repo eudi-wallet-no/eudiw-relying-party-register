@@ -5,8 +5,8 @@ import no.eudiw.rp.register.domain.certificates.AccessCertificate;
 import no.eudiw.rp.register.domain.certificates.IssuerCertificate;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
-import no.eudiw.rp.register.repository.IssuerCertificateRepository;
 import no.eudiw.rp.register.repository.AccessCertificateRepository;
+import no.eudiw.rp.register.repository.IssuerCertificateRepository;
 import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.integrations.certificateservice.CertificateServiceClient;
 import no.eudiw.rp.register.integrations.certificateservice.config.RelyingPartyCertificateServiceProperties;
@@ -65,7 +65,11 @@ public class RelyingPartyCertificateService {
                         "Issuer certificate holder does not exist",
                         "Failed to find relying party with uuid=%s for certificateId uuid=%s "
                                 .formatted(relyingPartyId, certificateId)));
-        IssuerCertificate issuerCert = issuerCertificateRepository.findById(certificateId).orElseThrow(() -> new NotFoundException("Certificate does not exist", "Certificate with uuid %s does not exist in database".formatted(certificateId)));
+        IssuerCertificate issuerCert = issuerCertificateRepository
+            .findByIdAndEntitlementRelyingPartyInstanceId(certificateId, relyingPartyId)
+            .orElseThrow(() -> new NotFoundException(
+                "Certificate does not exist",
+                "Certificate with uuid %s does not exist in database".formatted(certificateId)));
         List<RelyingPartyEntitlement> relyingPartyEntitlements = rp.getRelyingPartyEntitlements();
         if (relyingPartyEntitlements == null || issuerCert.getEntitlement() == null) {
             throw new NotFoundException("No entitlements found for relying party for issuer certificate or in certificate", "No entitlements found for relying party with uuid %s for certificate uuid %s".formatted(relyingPartyId, certificateId));
@@ -104,13 +108,13 @@ public class RelyingPartyCertificateService {
 
         X509Certificate certificate = certificateServiceClient.requestCertificate(
                 csr,
-                relyingParty.getLegalEntity().getOrgno(),
-                relyingParty.getLegalEntity().getName(),
-                relyingParty.getTradeName(),
+                relyingParty.getWalletRelyingPartyService().getWalletRelyingParty().getOrgno(),
+                relyingParty.getWalletRelyingPartyService().getWalletRelyingParty().getName(),
+                relyingParty.getWalletRelyingPartyService().getServiceTradeName(),
                 caId);
 
         IssuerCertificate certificateEntity =
-                new IssuerCertificate(certificate, caId, relyingPartyEntitlement);
+            new IssuerCertificate(certificate, caId, relyingPartyEntitlement);
 
         relyingPartyEntitlement.addIssuerCertificate(certificateEntity);
 
@@ -124,14 +128,14 @@ public class RelyingPartyCertificateService {
 
         X509Certificate certificate = certificateServiceClient.requestCertificate(
                 csr,
-                relyingParty.getLegalEntity().getOrgno(),
-                relyingParty.getLegalEntity().getName(),
-                relyingParty.getTradeName(),
+                relyingParty.getWalletRelyingPartyService().getWalletRelyingParty().getOrgno(),
+                relyingParty.getWalletRelyingPartyService().getWalletRelyingParty().getName(),
+                relyingParty.getWalletRelyingPartyService().getServiceTradeName(),
                 properties.accessCertificateCaId()
                 );
 
         AccessCertificate certificateEntity =
-                new AccessCertificate(properties.accessCertificateCaId(), certificate, relyingParty);
+            new AccessCertificate(properties.accessCertificateCaId(), certificate, relyingParty);
 
         return accessCertificateRepository.saveAndFlush(certificateEntity);
     }
@@ -149,7 +153,7 @@ public class RelyingPartyCertificateService {
                 .orElseThrow(() -> new NotFoundException(
                         "Certificate id and certificate holder does not match, or one of them does not exist"));
 
-        if (certificate.getRevocationStatus() >= 0) {
+        if (certificate.isRevoked()) {
             throw new RegisterServiceException("Certificate has already been revoked");
         }
 
@@ -175,7 +179,7 @@ public class RelyingPartyCertificateService {
                 .orElseThrow(() -> new NotFoundException(
                         "Certificate id and certificate holder does not match, or one of them does not exist"));
 
-        if (certificate.getRevocationStatus() >= 0) {
+        if (certificate.isRevoked()) {
             throw new RegisterServiceException("Certificate has already been revoked");
         }
 

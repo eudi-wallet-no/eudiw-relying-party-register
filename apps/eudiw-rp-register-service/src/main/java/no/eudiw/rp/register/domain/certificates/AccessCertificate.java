@@ -1,6 +1,9 @@
 package no.eudiw.rp.register.domain.certificates;
 
-import jakarta.persistence.*;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -13,8 +16,8 @@ import java.security.cert.X509Certificate;
 @Getter
 @Setter
 @Entity
-@Table(name = "access_certificate")
-public class AccessCertificate extends BaseCertificateEntity {
+@DiscriminatorValue("ACCESS")
+public class AccessCertificate extends RelyingPartyCertificate {
 
     @ToString.Exclude
     @ManyToOne(optional = false)
@@ -26,10 +29,9 @@ public class AccessCertificate extends BaseCertificateEntity {
     private RelyingPartyInstance relyingPartyInstance;
 
     public AccessCertificate(String caId, X509Certificate certificate, RelyingPartyInstance relyingPartyInstance) {
-        super(certificate, caId);
+        super(caId, certificate);
         this.relyingPartyInstance = relyingPartyInstance;
     }
 
-    // for JPA instantiation.
     protected AccessCertificate() { }
 }

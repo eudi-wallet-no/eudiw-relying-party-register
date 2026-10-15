@@ -1,6 +1,9 @@
 package no.eudiw.rp.register.domain.certificates;
 
-import jakarta.persistence.*;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -13,8 +16,8 @@ import java.security.cert.X509Certificate;
 @Getter
 @Setter
 @Entity
-@Table(name = "issuer_certificate")
-public class IssuerCertificate extends BaseCertificateEntity {
+@DiscriminatorValue("ISSUER")
+public class IssuerCertificate extends RelyingPartyCertificate {
 
     @ToString.Exclude
     @ManyToOne(optional = false)
@@ -25,13 +28,13 @@ public class IssuerCertificate extends BaseCertificateEntity {
     @JdbcTypeCode(SqlTypes.UUID)
     private RelyingPartyEntitlement entitlement;
 
-    public IssuerCertificate(X509Certificate certificate,
-                             String caId,
-                             RelyingPartyEntitlement relyingPartyEntitlement) {
-        super(certificate, caId);
-        this.entitlement = relyingPartyEntitlement;
+    public IssuerCertificate(
+        X509Certificate certificate,
+        String caId,
+        RelyingPartyEntitlement entitlement) {
+        super(caId, certificate);
+        this.entitlement = entitlement;
     }
 
-    // for JPA instantiation.
     protected IssuerCertificate() { }
 }

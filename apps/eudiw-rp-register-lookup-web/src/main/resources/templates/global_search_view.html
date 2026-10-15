@@ -9,7 +9,7 @@
     <header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
     <main id="hovudinnhald" tabindex="-1">
-        <div style="display:flex; flex-direction:column; gap:var(--ds-size-2); max-width:720px;">
+        <div class="page-intro">
             <div class="index-search__heading">
                 <h1 class="ds-heading" data-size="xl">Søkeresultat</h1>
                 <span th:if="${!#strings.isEmpty(searchTermAttr)}"
@@ -17,7 +17,7 @@
                       data-variant="tinted"
                       th:attr="data-count=${totalHitsAttr} + ' treff'"></span>
             </div>
-            <p class="ds-paragraph" data-size="lg" style="color:var(--ds-color-neutral-text-subtle);">
+            <p class="ds-paragraph lookup-page__lead" data-size="lg">
                 Søk etter «<span th:text="${searchTermAttr}"></span>» i registeret over brukarstader og beviskatalogen.
             </p>
         </div>
@@ -69,8 +69,7 @@
             </div>
         </form>
 
-        <section aria-labelledby="relying-parties-heading"
-                 style="display:flex; flex-direction:column; gap:var(--ds-size-3);">
+        <section aria-labelledby="relying-parties-heading" class="global-search__section">
             <h2 id="relying-parties-heading" class="ds-heading" data-size="md">Brukarstader</h2>
 
             <div th:if="${#lists.isEmpty(relyingPartiesAttr)}"
@@ -81,9 +80,8 @@
             </div>
 
             <ul th:unless="${#lists.isEmpty(relyingPartiesAttr)}"
-                class="ds-list index-search__results"
-                data-variant="unstyled"
-                style="display:flex; flex-direction:column; gap:var(--ds-size-2);">
+                class="ds-list index-search__results global-search__results"
+                data-variant="unstyled">
                 <li th:each="rp : ${relyingPartiesAttr}">
                     <a th:href="@{/details/{id}(id=${rp.id()})}"
                        class="ds-card index-card"
@@ -115,8 +113,7 @@
             </ul>
         </section>
 
-        <section aria-labelledby="credentials-heading"
-                 style="display:flex; flex-direction:column; gap:var(--ds-size-3);">
+        <section aria-labelledby="credentials-heading" class="global-search__section">
             <h2 id="credentials-heading" class="ds-heading" data-size="md">Beviskatalog</h2>
 
             <div th:if="${#lists.isEmpty(credentialsAttr)}"
@@ -127,9 +124,8 @@
             </div>
 
             <ul th:unless="${#lists.isEmpty(credentialsAttr)}"
-                class="ds-list index-search__results"
-                data-variant="unstyled"
-                style="display:flex; flex-direction:column; gap:var(--ds-size-2);">
+                class="ds-list index-search__results global-search__results"
+                data-variant="unstyled">
                 <li th:each="credential : ${credentialsAttr}">
                     <a th:href="@{/credential
                                  (issuer=${credential.getIssuer()},
@@ -170,32 +166,5 @@
         </section>
     </main>
     <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
-        <script>
-            (() => {
-                const form = document.getElementById("index-search-form");
-                if (!form) return;
-                form.addEventListener("submit", (e) => {
-                    const btn = e.submitter || form.querySelector("button[type=submit]");
-                    if (!btn) return;
-                    btn.disabled = true;
-                    btn.setAttribute("aria-busy", "true");
-                    btn.setAttribute("aria-label", "Søkjer");
-                    btn.innerHTML = '<span class="ds-spinner" data-size="sm" aria-hidden="true">'
-                        + '<svg viewBox="0 0 50 50">'
-                        + '<circle class="ds-spinner__background" cx="25" cy="25" r="20" fill="none" stroke-width="4"></circle>'
-                        + '<circle class="ds-spinner__circle" cx="25" cy="25" r="20" fill="none" stroke-width="4"></circle>'
-                        + '</svg></span>';
-                });
-                const clear = form.querySelector(".index-search__clear");
-                if (clear) {
-                    clear.addEventListener("click", () => {
-                        const input = form.querySelector('input[name="searchTerm"]');
-                        input.value = "";
-                        input.focus();
-                        form.submit();
-                    });
-                }
-            })();
-        </script>
     </body>
 </html>
