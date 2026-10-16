@@ -18,3 +18,8 @@ spring:
 
 eudiw-ca:
   base-uri: "http://localhost:9220"
+  intermediates:
+    access2:
+      certificate-profile:
+        certificate-policies:
+          - "0.4.0.194118.1.2"
