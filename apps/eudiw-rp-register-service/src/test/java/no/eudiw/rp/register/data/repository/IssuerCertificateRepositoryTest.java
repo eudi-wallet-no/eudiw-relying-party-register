@@ -1,5 +1,6 @@
 package no.eudiw.rp.register.data.repository;
 
+import jakarta.persistence.EntityManager;
 import no.eudiw.rp.register.domain.certificates.IssuerCertificate;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
@@ -30,6 +31,9 @@ public class IssuerCertificateRepositoryTest {
     @Autowired
     private WalletRelyingPartyRepository walletRelyingPartyRepository;
 
+    @Autowired
+    private EntityManager entityManager;
+
 
     @Test
     @Transactional
@@ -43,6 +47,9 @@ public class IssuerCertificateRepositoryTest {
         X509Certificate testCert = CertificatesGenerator.generateX509Certificate();
         IssuerCertificate issuerCertificate = new IssuerCertificate(testCert, "caId", entitlement);
         certificateRepository.save(issuerCertificate);
+
+        entityManager.flush();
+        entityManager.clear();
 
         IssuerCertificate retrievedIssuerCertificate = certificateRepository.findById(issuerCertificate
             .getId()).get();
@@ -64,6 +71,9 @@ public class IssuerCertificateRepositoryTest {
         entitlement.setIssuerCertificates(List.of(issuerCertificate));
         walletRelyingPartyRepository.save(savedWalletRelyingParty);
 
+        entityManager.flush();
+        entityManager.clear();
+
         WalletRelyingParty finalWalletRelyingParty = walletRelyingPartyRepository.findById(rp.getId()).get();
         RelyingPartyEntitlement finalEntitlement = EntityGenerator.instances(finalWalletRelyingParty).getFirst().getRelyingPartyEntitlements().stream().findFirst().get();
         assertEquals(entitlement.getIssuerCertificates().getFirst().getCertificate(), finalEntitlement.getIssuerCertificates().getFirst().getCertificate());
@@ -83,12 +93,19 @@ public class IssuerCertificateRepositoryTest {
         entitlement.setIssuerCertificates(List.of(issuerCertificate));
         walletRelyingPartyRepository.save(savedWalletRelyingParty);
 
+        entityManager.flush();
+        entityManager.clear();
+
         WalletRelyingParty finalWalletRelyingParty = walletRelyingPartyRepository.findById(rp.getId()).get();
         RelyingPartyEntitlement finalEntitlement = EntityGenerator.instances(finalWalletRelyingParty).getFirst().getRelyingPartyEntitlements().stream().findFirst().get();
         assertEquals(entitlement.getIssuerCertificates().getFirst().getCertificate(), finalEntitlement.getIssuerCertificates().getFirst().getCertificate());
         EntityGenerator.instances(finalWalletRelyingParty).getFirst().getIssuerCertificates().getFirst().revoke(0);
 
         walletRelyingPartyRepository.save(finalWalletRelyingParty);
+
+        entityManager.flush();
+        entityManager.clear();
+
         assertEquals(0, EntityGenerator.instances(walletRelyingPartyRepository.findById(finalWalletRelyingParty.getId()).get()).getFirst().getIssuerCertificates().getFirst().getRevocationStatus());
     }
 }
