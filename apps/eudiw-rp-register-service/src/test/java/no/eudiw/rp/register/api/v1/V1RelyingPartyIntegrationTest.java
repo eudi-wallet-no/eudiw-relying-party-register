@@ -18,6 +18,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
+import java.util.UUID;
 
 import static no.eudiw.rp.register.testdata.TestDataGenerator.generateName;
 import static no.eudiw.rp.register.testdata.TestDataGenerator.generateValidOrgno;
@@ -131,19 +132,26 @@ public class V1RelyingPartyIntegrationTest {
 
         assertFalse(relyingPartyInstanceRepository.existsById(result.id()));
         assertEquals(siblingBeforeDeletion, relyingPartyService.findRelyingParty(siblingId));
-        var remainingService = walletRelyingPartyServiceRepository.findById(serviceId).orElseThrow();
-        assertEquals(List.of(siblingId),
-            remainingService.getRelyingPartyInstances().stream().map(RelyingPartyInstance::getId).toList());
-        assertTrue(walletRelyingPartyRepository.findById(walletRelyingPartyId).orElseThrow()
-            .getServices().stream().anyMatch(service -> serviceId.equals(service.getId())));
+        List<UUID> remainingInstanceIds = new TransactionTemplate(transactionManager).execute(status ->
+            walletRelyingPartyServiceRepository.findById(serviceId).orElseThrow()
+                .getRelyingPartyInstances().stream().map(RelyingPartyInstance::getId).toList()
+        );
+        assertEquals(List.of(siblingId), remainingInstanceIds);
+        boolean serviceStillLinked = new TransactionTemplate(transactionManager).execute(status ->
+            walletRelyingPartyRepository.findById(walletRelyingPartyId).orElseThrow()
+                .getServices().stream().anyMatch(service -> serviceId.equals(service.getId()))
+        );
+        assertTrue(serviceStillLinked);
 
         relyingPartyService.deleteRelyingParty(siblingId);
         entityManager.clear();
 
         assertFalse(relyingPartyInstanceRepository.existsById(siblingId));
         assertFalse(walletRelyingPartyServiceRepository.existsById(serviceId));
-        assertTrue(walletRelyingPartyRepository.findById(walletRelyingPartyId).orElseThrow()
-            .getServices().isEmpty());
+        boolean hasServices = new TransactionTemplate(transactionManager).execute(status ->
+            !walletRelyingPartyRepository.findById(walletRelyingPartyId).orElseThrow().getServices().isEmpty()
+        );
+        assertFalse(hasServices);
     }
 
     @Test

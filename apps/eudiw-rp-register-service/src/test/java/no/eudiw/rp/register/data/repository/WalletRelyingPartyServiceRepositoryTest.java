@@ -53,6 +53,7 @@ class WalletRelyingPartyServiceRepositoryTest {
     }
 
     @Test
+    @Transactional
     @DisplayName("persists the service, its relying party and its instance")
     void persistsServiceGraph() {
         var instance = new RelyingPartyInstance(
@@ -107,6 +108,7 @@ class WalletRelyingPartyServiceRepositoryTest {
     }
 
     @Test
+    @Transactional
     @DisplayName("persists intermediary relationships and intended uses")
     void persistsIntermediaryRelationshipsAndIntendedUses() throws Exception {
         var relyingParty = new WalletRelyingParty("Legal Name", generateValidOrgno(), true, List.of());
@@ -238,7 +240,8 @@ class WalletRelyingPartyServiceRepositoryTest {
 
         RuntimeException exception = assertThrows(
             RuntimeException.class,
-            () -> repository.findById(service.getId())
+            () -> entityManager.createQuery("SELECT credential FROM Credential credential", Credential.class)
+                .getResultList()
         );
 
         assertTrue(hasCauseMessage(exception, "Each credential claim must have a non-empty path array"));

@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
@@ -31,6 +32,7 @@ public class IssuerCertificateRepositoryTest {
 
 
     @Test
+    @Transactional
     @DisplayName("add issuer certificate and save via issuer-repo")
     void addIssuerCertificateAndSaveViaIssuerRepo() {
         WalletRelyingParty rp = EntityGenerator.generateWalletRelyingParty();
@@ -49,6 +51,7 @@ public class IssuerCertificateRepositoryTest {
     }
 
     @Test
+    @Transactional
     @DisplayName("add issuer certificate and save via rp-repo")
     void addIssuerCertificateAndSaveViaRP() {
         WalletRelyingParty rp = EntityGenerator.generateWalletRelyingParty();
@@ -67,6 +70,7 @@ public class IssuerCertificateRepositoryTest {
     }
 
     @Test
+    @Transactional
     @DisplayName("rp repo issuer certificate revocation test")
     void rpRepoIssuerCertificateRevocationTest() {
         WalletRelyingParty rp = EntityGenerator.generateWalletRelyingParty();
