@@ -40,7 +40,7 @@ public class IntendedUse extends BaseEntity {
     @Setter(AccessLevel.NONE)
     @OneToMany(
         mappedBy = "intendedUse",
-        fetch = FetchType.EAGER,
+        fetch = FetchType.LAZY,
         cascade = CascadeType.ALL,
         orphanRemoval = true)
     private List<Credential> credentials = new ArrayList<>();

@@ -50,7 +50,7 @@ public class WalletRelyingParty extends BaseEntity {
     @Column(name = "policy", columnDefinition = "json", nullable = false)
     private List<Policy> policy = new ArrayList<>();
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.LAZY)
     @Fetch(FetchMode.SUBSELECT)
     @CollectionTable(name = "wallet_relying_party_x5c",
         joinColumns = @JoinColumn(name = "wallet_relying_party_id"))
@@ -88,7 +88,7 @@ public class WalletRelyingParty extends BaseEntity {
     @Setter(AccessLevel.NONE)
     @OneToMany(
         mappedBy = "walletRelyingParty",
-        fetch = FetchType.EAGER,
+        fetch = FetchType.LAZY,
         cascade = CascadeType.ALL,
         orphanRemoval = true)
     private List<WalletRelyingPartyService> services = new ArrayList<>();

@@ -77,6 +77,7 @@ class WalletRelyingPartyRepositoryTest {
     }
 
     @Test
+    @Transactional
     @DisplayName("persists TS5 WalletRelyingParty data")
     void persistsTs5Data() {
         WalletRelyingParty relyingParty = EntityGenerator.generateWalletRelyingParty(0);
