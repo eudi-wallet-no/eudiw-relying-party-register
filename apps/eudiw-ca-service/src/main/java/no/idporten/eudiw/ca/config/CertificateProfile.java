@@ -14,6 +14,9 @@ public class CertificateProfile {
     @NotNull
     private List<String> extendedKeyUsage = new ArrayList<>();
 
+    @NotNull
+    private List<String> certificatePolicies = new ArrayList<>();
+
     private QCStatements qcStatements = new QCStatements();
 
 }
