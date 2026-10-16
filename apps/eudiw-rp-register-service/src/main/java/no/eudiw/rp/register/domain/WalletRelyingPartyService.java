@@ -71,7 +71,7 @@ public class WalletRelyingPartyService extends BaseEntity {
     @Setter(AccessLevel.NONE)
     @OneToMany(
         mappedBy = "walletRelyingPartyService",
-        fetch = FetchType.EAGER,
+        fetch = FetchType.LAZY,
         cascade = CascadeType.ALL,
         orphanRemoval = true)
     private List<IntendedUse> intendedUses = new ArrayList<>();
@@ -79,7 +79,7 @@ public class WalletRelyingPartyService extends BaseEntity {
     @Setter(AccessLevel.NONE)
     @OneToMany(
         mappedBy = "walletRelyingPartyService",
-        fetch = FetchType.EAGER,
+        fetch = FetchType.LAZY,
         cascade = CascadeType.ALL,
         orphanRemoval = true)
     private List<RelyingPartyInstance> relyingPartyInstances = new ArrayList<>();

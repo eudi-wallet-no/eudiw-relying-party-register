@@ -15,6 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -215,6 +216,7 @@ public class RelyingPartyInstanceRepositoryTest {
         }
 
         @Test
+        @Transactional
         @DisplayName("using a search term which exists in both trade names, orgnos, and legal entity names")
         void testSearchTermInMultipleDifferentFields() {
 
