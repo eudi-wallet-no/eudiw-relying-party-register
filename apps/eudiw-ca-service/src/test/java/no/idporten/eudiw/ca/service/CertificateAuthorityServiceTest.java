@@ -7,6 +7,7 @@ import no.idporten.eudiw.ca.data.Certificate;
 import no.idporten.eudiw.ca.data.CertificateRepository;
 import no.idporten.eudiw.ca.data.SerialNumberUtils;
 import org.bouncycastle.asn1.ASN1OctetString;
+import org.bouncycastle.asn1.x509.CertificatePolicies;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.qualified.QCStatement;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -78,11 +79,17 @@ public class CertificateAuthorityServiceTest {
                     -----END NEW CERTIFICATE REQUEST-----""";
             CertificateAuthority intermediate = certificateAuthorities.findIntermediate("access2");
             X509Certificate issuedCertificate = certificateAuthorityService.signLeafCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), new SubjectAttributes("991825827", "foo", " tfoo "));
+            CertificatePolicies certificatePolicies = CertificatePolicies.getInstance(
+                    ASN1OctetString.getInstance(issuedCertificate.getExtensionValue(Extension.certificatePolicies.getId())).getOctets());
             assertAll(
                     () -> assertNotNull(issuedCertificate),
                     () -> assertTrue(issuedCertificate.getBasicConstraints() < 0),
                     () -> assertArrayEquals(new boolean[]{true, false, true, false, false, false, false, false, false}, issuedCertificate.getKeyUsage()),
                     () -> assertTrue(CollectionUtils.isEmpty(issuedCertificate.getSubjectAlternativeNames())),
+                    () -> assertEquals("0.4.0.194118.1.2", certificatePolicies.getPolicyInformation()[0].getPolicyIdentifier().getId()),
+                    () -> assertFalse(issuedCertificate.getCriticalExtensionOIDs().contains(Extension.certificatePolicies.getId())),
+                    () -> assertFalse(issuedCertificate.getCriticalExtensionOIDs().contains(Extension.extendedKeyUsage.getId())),
+                    () -> assertNull(issuedCertificate.getExtensionValue(Extension.qCStatements.getId())),
                     () -> assertEquals(intermediate.getCertificate().getSubjectX500Principal(), issuedCertificate.getIssuerX500Principal()),
                     () -> assertNotNull(issuedCertificate.getExtendedKeyUsage()),
                     () -> assertTrue(issuedCertificate.getExtendedKeyUsage().contains("1.0.18013.5.1.6")),

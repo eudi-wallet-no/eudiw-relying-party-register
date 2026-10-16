@@ -92,6 +92,8 @@ eudiw-ca:
       crl-distribution-point: ${eudiw-ca.base-uri}/v1/certs/intermediates/access2.crl
       certificate-uri: ${eudiw-ca.base-uri}/v1/certs/intermediates/access2.cer
       certificate-profile:
+        certificate-policies:
+          - "0.4.0.194118.1.2"
         extended-key-usage:
           - "1.0.18013.5.1.6"
       keystore:
