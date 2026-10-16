@@ -1,6 +1,7 @@
 package no.eudiw.rp.register.data.repository;
 
 import jakarta.persistence.EntityManager;
+import no.eudiw.rp.register.domain.Credential;
 import no.eudiw.rp.register.domain.IntendedUse;
 import no.eudiw.rp.register.domain.IntermediaryReference;
 import no.eudiw.rp.register.domain.MultiLangString;
@@ -22,7 +23,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static no.eudiw.rp.register.testdata.TestDataGenerator.generateValidOrgno;
 import static org.junit.jupiter.api.Assertions.*;
@@ -105,7 +108,7 @@ class WalletRelyingPartyServiceRepositoryTest {
 
     @Test
     @DisplayName("persists intermediary relationships and intended uses")
-    void persistsIntermediaryRelationshipsAndIntendedUses() {
+    void persistsIntermediaryRelationshipsAndIntendedUses() throws Exception {
         var relyingParty = new WalletRelyingParty("Legal Name", generateValidOrgno(), true, List.of());
         var intermediaryService = new WalletRelyingPartyService("Intermediary", relyingParty, List.of());
         intermediaryService.setServiceIdentifier("intermediary-service");
@@ -118,13 +121,26 @@ class WalletRelyingPartyServiceRepositoryTest {
             "Intermediary",
             "https://registry.example/wrp"
         )), List.of());
-        clientService.setIntendedUses(List.of(new IntendedUse(
+        var loginIntendedUse = new IntendedUse(
             "login",
             "2026-01-02",
             null,
             List.of(new MultiLangString("en", "Authenticate the user")),
             List.of(new Policy("PrivacyPolicy", "https://client.example/privacy"))
-        )));
+        );
+        loginIntendedUse.setCredentials(List.of(
+            new Credential(
+                "dc+sd-jwt",
+                meta("vct_values", List.of("urn:example:pid")),
+                claims("namespace", null, 0)
+            ),
+            new Credential(
+                "mso_mdoc",
+                meta("doctype", "org.iso.18013.5.1.mDL"),
+                claims("org.iso.18013.5.1", "given_name")
+            )
+        ));
+        clientService.setIntendedUses(List.of(loginIntendedUse));
         relyingParty.setServices(List.of(intermediaryService, clientService));
 
         walletRelyingPartyRepository.saveAndFlush(relyingParty);
@@ -133,6 +149,14 @@ class WalletRelyingPartyServiceRepositoryTest {
 
         WalletRelyingPartyService actualClient = repository.findById(clientServiceId).orElseThrow();
         IntendedUse actualIntendedUse = actualClient.getIntendedUses().getFirst();
+        Credential actualSdJwtCredential = actualIntendedUse.getCredentials().stream()
+            .filter(credential -> credential.getFormat().equals("dc+sd-jwt"))
+            .findFirst()
+            .orElseThrow();
+        Credential actualMdocCredential = actualIntendedUse.getCredentials().stream()
+            .filter(credential -> credential.getFormat().equals("mso_mdoc"))
+            .findFirst()
+            .orElseThrow();
         WalletRelyingPartyService actualIntermediary = actualClient.getWalletRelyingParty().getServices()
             .stream()
             .filter(service -> service.getServiceIdentifier().equals("intermediary-service"))
@@ -154,8 +178,109 @@ class WalletRelyingPartyServiceRepositoryTest {
                 actualIntendedUse.getPurpose()),
             () -> assertEquals(List.of(new Policy("PrivacyPolicy", "https://client.example/privacy")),
                 actualIntendedUse.getPrivacyPolicy()),
-            () -> assertEquals(clientServiceId, actualIntendedUse.getWalletRelyingPartyService().getId())
+            () -> assertEquals(clientServiceId, actualIntendedUse.getWalletRelyingPartyService().getId()),
+            () -> assertEquals("dc+sd-jwt", actualSdJwtCredential.getFormat()),
+            () -> assertEquals(meta("vct_values", List.of("urn:example:pid")), actualSdJwtCredential.getMeta()),
+            () -> assertEquals(claims("namespace", null, 0), actualSdJwtCredential.getClaims()),
+            () -> assertEquals("mso_mdoc", actualMdocCredential.getFormat()),
+            () -> assertEquals(meta("doctype", "org.iso.18013.5.1.mDL"), actualMdocCredential.getMeta()),
+            () -> assertEquals(claims("org.iso.18013.5.1", "given_name"), actualMdocCredential.getClaims()),
+            () -> assertEquals(actualIntendedUse.getId(), actualSdJwtCredential.getIntendedUse().getId())
         );
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("rejects invalid credential claims before insert")
+    void rejectsInvalidCredentialBeforeInsert() throws Exception {
+        var relyingParty = new WalletRelyingParty("Legal Name", generateValidOrgno(), true, List.of());
+        var service = new WalletRelyingPartyService("Service", relyingParty, List.of());
+        var intendedUse = new IntendedUse("login", "2026-01-02", null, List.of(), List.of());
+        var credential = new Credential(
+            "mso_mdoc",
+            meta("doctype", "org.iso.18013.5.1.mDL"),
+            claims("given_name")
+        );
+        ReflectionTestUtils.setField(credential, "claims", List.of(Map.of("path", List.of())));
+        intendedUse.setCredentials(List.of(credential));
+        service.setIntendedUses(List.of(intendedUse));
+        relyingParty.setServices(List.of(service));
+
+        RuntimeException exception = assertThrows(
+            RuntimeException.class,
+            () -> repository.saveAndFlush(service)
+        );
+        assertTrue(hasCauseMessage(exception, "Each credential claim must have a non-empty path array"));
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("rejects invalid credential claims when loading")
+    void rejectsInvalidCredentialWhenLoading() {
+        var relyingParty = new WalletRelyingParty("Legal Name", generateValidOrgno(), true, List.of());
+        var service = new WalletRelyingPartyService("Service", relyingParty, List.of());
+        var intendedUse = new IntendedUse("login", "2026-01-02", null, List.of(), List.of());
+        var credential = new Credential(
+            "mso_mdoc",
+            meta("doctype", "org.iso.18013.5.1.mDL"),
+            claims("given_name")
+        );
+        intendedUse.setCredentials(List.of(credential));
+        service.setIntendedUses(List.of(intendedUse));
+        relyingParty.setServices(List.of(service));
+        repository.saveAndFlush(service);
+
+        entityManager.createNativeQuery(
+            "UPDATE wallet_relying_party_service_intended_use_credential " +
+                "SET claims = JSON_ARRAY(JSON_OBJECT('path', JSON_ARRAY())) WHERE id = :credentialId"
+        ).setParameter("credentialId", credential.getId().toString()).executeUpdate();
+        entityManager.clear();
+
+        RuntimeException exception = assertThrows(
+            RuntimeException.class,
+            () -> repository.findById(service.getId())
+        );
+
+        assertTrue(hasCauseMessage(exception, "Each credential claim must have a non-empty path array"));
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("keeps credentials when resetting them from the current collection")
+    void keepsCredentialsWhenResettingThemFromTheCurrentCollection() {
+        var relyingParty = new WalletRelyingParty("Legal Name", generateValidOrgno(), true, List.of());
+        var service = new WalletRelyingPartyService("Service", relyingParty, List.of());
+        var intendedUse = new IntendedUse("login", "2026-01-02", null, List.of(), List.of());
+        intendedUse.setCredentials(List.of(new Credential(
+            "mso_mdoc",
+            meta("doctype", "org.iso.18013.5.1.mDL"),
+            claims("given_name")
+        )));
+        service.setIntendedUses(List.of(intendedUse));
+        relyingParty.setServices(List.of(service));
+        repository.saveAndFlush(service);
+        var serviceId = service.getId();
+        var credentialId = intendedUse.getCredentials().getFirst().getId();
+        entityManager.clear();
+
+        WalletRelyingPartyService managedService = repository.findById(serviceId).orElseThrow();
+        IntendedUse managedIntendedUse = managedService.getIntendedUses().getFirst();
+        managedIntendedUse.setCredentials(managedIntendedUse.getCredentials());
+        repository.flush();
+        entityManager.clear();
+
+        WalletRelyingPartyService reloadedService = repository.findById(serviceId).orElseThrow();
+        Credential reloadedCredential = reloadedService.getIntendedUses().getFirst().getCredentials().getFirst();
+        assertAll(
+            () -> assertEquals(credentialId, reloadedCredential.getId()),
+            () -> assertEquals("mso_mdoc", reloadedCredential.getFormat()),
+            () -> assertTrue(entityManager.find(Credential.class, credentialId) != null)
+        );
+
+        reloadedService.getIntendedUses().getFirst().setCredentials(List.of());
+        repository.flush();
+        entityManager.clear();
+        assertNull(entityManager.find(Credential.class, credentialId));
     }
 
     private boolean intermediaryFlag(java.util.UUID serviceId) {
@@ -300,13 +425,19 @@ class WalletRelyingPartyServiceRepositoryTest {
         var instance = new RelyingPartyInstance(List.of(), List.of(), List.of());
         var relyingParty = new WalletRelyingParty("Legal Name", generateValidOrgno(), true, List.of());
         var service = new WalletRelyingPartyService("Service Trade Name", relyingParty, List.of(instance));
-        service.setIntendedUses(List.of(new IntendedUse(
+        var intendedUse = new IntendedUse(
             "delete-test",
             "2026-01-02",
             null,
             List.of(),
             List.of()
+        );
+        intendedUse.setCredentials(List.of(new Credential(
+            "mso_mdoc",
+            meta("doctype", "org.iso.18013.5.1.mDL"),
+            claims("given_name")
         )));
+        service.setIntendedUses(List.of(intendedUse));
         relyingParty.setServices(List.of(service));
 
         WalletRelyingPartyService savedService = repository.saveAndFlush(service);
@@ -328,9 +459,20 @@ class WalletRelyingPartyServiceRepositoryTest {
             () -> assertEquals(0L, entityManager.createNativeQuery(
                 "SELECT COUNT(*) FROM wallet_relying_party_service_intended_use WHERE wallet_relying_party_service_id = :serviceId"
             ).setParameter("serviceId", savedService.getId().toString()).getSingleResult()),
+            () -> assertEquals(0L, entityManager.createNativeQuery(
+                "SELECT COUNT(*) FROM wallet_relying_party_service_intended_use_credential WHERE intended_use_id = :intendedUseId"
+            ).setParameter("intendedUseId", intendedUse.getId().toString()).getSingleResult()),
             () -> assertTrue(walletRelyingPartyRepository.findById(relyingPartyId).isPresent()),
             () -> assertTrue(walletRelyingPartyRepository.findById(relyingPartyId).orElseThrow()
                 .getServices().isEmpty())
         );
+    }
+
+    private static Map<String, Object> meta(String property, Object value) {
+        return Map.of(property, value);
+    }
+
+    private static List<Map<String, Object>> claims(Object... pathParts) {
+        return List.of(Map.of("path", Arrays.asList(pathParts)));
     }
 }
