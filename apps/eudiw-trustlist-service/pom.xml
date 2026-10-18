@@ -22,13 +22,13 @@
         <idporten-actuator-starter.version>3.1.2</idporten-actuator-starter.version>
         <idporten.keystore.version>3.0.0</idporten.keystore.version>
         <idporten-access-log.version>4.0.6</idporten-access-log.version>
-        <opentelemetry-api.version>1.66.0</opentelemetry-api.version>
+        <opentelemetry-api.version>1.67.0</opentelemetry-api.version>
         <jakarta.xml.bind-api.version>4.0.5</jakarta.xml.bind-api.version>
         <jaxb-impl.version>4.0.9</jaxb-impl.version>
         <jaxb2-maven-plugin.version>4.2.0</jaxb2-maven-plugin.version>
         <bcpkix-jdk18on.version>1.86</bcpkix-jdk18on.version>
         <bcprov-jdk18on.version>1.86</bcprov-jdk18on.version>
-        <dss.version>6.5</dss.version>
+        <dss.version>6.5.1</dss.version>
         <nimbus-jose-jwt.version>10.10</nimbus-jose-jwt.version>
     </properties>
 
