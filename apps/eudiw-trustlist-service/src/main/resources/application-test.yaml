@@ -5,6 +5,8 @@ spring:
 
 trustlist-service:
   tsl612:
+    scheme-information:
+      list-issue-date-time: 2026-10-19T00:00:00.00Z
     service-providers:
       digdir:
         services:
@@ -198,6 +200,30 @@ trustlist-service:
             starting-time: 2026-10-02T00:00:00.00Z
             service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
             cert: MIIDLTCCAtKgAwIBAgIJALcE2Mp63VbAMAoGCCqGSM49BAMCMIGEMR4wHAYDVQRhExVOVFJOTy1OT0ZPUi45OTE4MjU4MjcxCzAJBgNVBAYTAk5PMSQwIgYDVQQKExtESUdJVEFMSVNFUklOR1NESVJFS1RPUkFURVQxLzAtBgNVBAMTJmVpZGFzMnNhbmRrYXNzZSBFQUEgUHJvdmlkZXIgQ0EgMiB0ZXN0MB4XDTI2MDkzMDEzMDM0OFoXDTI3MDkzMDEzMDM0OFowgYIxCzAJBgNVBAYTAk5PMTYwNAYDVQQKDC1TSUtUIC0gS1VOTlNLQVBTU0VLVE9SRU5TIFRKRU5FU1RFTEVWRVJBTkTDmFIxGzAZBgNVBAMMElNpa3QgYmV2aXN1dHN0ZWRlcjEeMBwGA1UEYQwVTlRSTk8tTk9GT1IuOTE5NDc3ODIyMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEmuRmKXgGk8OpmdXHksENoOcQgPgvHBj/USYcF/dMgzZpgRdB01FYUkiClwjuV3cPHtuob7DER1v/tpjXZkTvxKOCASswggEnMB8GA1UdIwQYMBaAFDEUxKbIvGLjcGE5TFhq4QUfhI/vMB0GA1UdDgQWBBRU6g8ClNOldUI6XvJpyphkrY2neDAMBgNVHRMBAf8EAjAAMF0GA1UdHwRWMFQwUqBQoE6GTGh0dHBzOi8vY2EudGVzdC5laWRhczJzYW5ka2Fzc2UubmV0L3YxL2NlcnRzL2ludGVybWVkaWF0ZXMvZWFhX3Byb3ZpZGVyMi5jcmwwaAYIKwYBBQUHAQEEXDBaMFgGCCsGAQUFBzAChkxodHRwczovL2NhLnRlc3QuZWlkYXMyc2FuZGthc3NlLm5ldC92MS9jZXJ0cy9pbnRlcm1lZGlhdGVzL2VhYV9wcm92aWRlcjIuY2VyMA4GA1UdDwEB/wQEAwIFoDAKBggqhkjOPQQDAgNJADBGAiEA7hIbzG8dgJPYQiFBi6RIpTI28ySv4MVyNLxW7cvJ8wACIQDcsfUl8/aHKkli2oBZqVWwZn/koa4ywz4LZKmLPKG+dg==
+      skatteetaten:
+        name:
+          lang-no: Skatteetaten
+          lang-en: The Norwegian Tax Administration
+        trade-name:
+          lang-no: NTRNO-974761076
+          lang-en: NTRNO-974761076
+        information-uris:
+          lang-no: https://wallid-poc-web-nginx-ekom-internett-uinnlogget.nebula-skatt-synt.nebula.skatteetaten-it.no/web/
+          lang-en: https://wallid-poc-web-nginx-ekom-internett-uinnlogget.nebula-skatt-synt.nebula.skatteetaten-it.no/web/
+        website: https://wallid-poc-web-nginx-ekom-internett-uinnlogget.nebula-skatt-synt.nebula.skatteetaten-it.no/web/
+        email: mailto:HansKristian.Granli@skatteetaten.no
+        postal-address:
+          street-address: Fredrik Selmers vei 4
+          postal-code: "0663"
+          locality: Oslo
+          country: "NO"
+        services:
+          - name:
+              lang-no: Skatteetaten Bevisutsteder
+              lang-en: Skatteetaten Bevisutsteder
+            starting-time: 2026-05-11T12:24:57.00Z
+            service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
+            cert: MIIDETCCArigAwIBAgIJANcPWsVF1+DHMAoGCCqGSM49BAMCMIGEMR4wHAYDVQRhExVOVFJOTy1OT0ZPUi45OTE4MjU4MjcxCzAJBgNVBAYTAk5PMSQwIgYDVQQKExtESUdJVEFMSVNFUklOR1NESVJFS1RPUkFURVQxLzAtBgNVBAMTJmVpZGFzMnNhbmRrYXNzZSBFQUEgUHJvdmlkZXIgQ0EgMiB0ZXN0MB4XDTI2MDUxMTEyMjQ1N1oXDTI3MDUxMTEyMjQ1N1owaTELMAkGA1UEBhMCTk8xFTATBgNVBAoMDFNLQVRURUVUQVRFTjEjMCEGA1UEAwwaU2thdHRlZXRhdGVuIEJldmlzdXRzdGVkZXIxHjAcBgNVBGEMFU5UUk5PLU5PRk9SLjk3NDc2MTA3NjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABIQToYvovusE77bUvPA9xEc0+ihe1NO9/Mx1Ep7eI+e5dkRnhy7LV7aKBM9LU23CB82Z7PB15FRKacfc1h0m9bajggErMIIBJzAfBgNVHSMEGDAWgBQxFMSmyLxi43BhOUxYauEFH4SP7zAdBgNVHQ4EFgQUvaGZ1yvptmkZXCSa8FjqESNb4C8wDAYDVR0TAQH/BAIwADBdBgNVHR8EVjBUMFKgUKBOhkxodHRwczovL2NhLnRlc3QuZWlkYXMyc2FuZGthc3NlLm5ldC92MS9jZXJ0cy9pbnRlcm1lZGlhdGVzL2VhYV9wcm92aWRlcjIuY3JsMGgGCCsGAQUFBwEBBFwwWjBYBggrBgEFBQcwAoZMaHR0cHM6Ly9jYS50ZXN0LmVpZGFzMnNhbmRrYXNzZS5uZXQvdjEvY2VydHMvaW50ZXJtZWRpYXRlcy9lYWFfcHJvdmlkZXIyLmNlcjAOBgNVHQ8BAf8EBAMCBaAwCgYIKoZIzj0EAwIDRwAwRAIgFbQ5gHaUw4zOZxuqfHp5DV9TjhjS5we4vLsjuHdIVIoCIDbYroUSPeSQTCgiT7FHqJxp1pVpi9HA3U2E3t8ayby3
 
   tsl602:
     tsl-aca:
