@@ -38,6 +38,10 @@ eudiw-ca:
         password: ${INTERMEDIATE_ACCESS_KEYSTORE_PASSWORD}
         key-alias: ${INTERMEDIATE_ACCESS_KEYSTORE_KEY_ALIAS}
         key-password: ${INTERMEDIATE_ACCESS_KEYSTORE_KEY_PASSWORD}
+    access2:
+      certificate-profile:
+        subject-alt-names:
+          - "https://test.eidas2sandkasse.net"
     pid_provider:
       root: root
       lifetime-days: 365

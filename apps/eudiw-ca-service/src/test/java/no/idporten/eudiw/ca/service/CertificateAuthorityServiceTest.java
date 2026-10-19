@@ -9,6 +9,7 @@ import no.idporten.eudiw.ca.data.SerialNumberUtils;
 import org.bouncycastle.asn1.ASN1OctetString;
 import org.bouncycastle.asn1.x509.CertificatePolicies;
 import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.qualified.QCStatement;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
@@ -86,7 +87,7 @@ public class CertificateAuthorityServiceTest {
                     () -> assertTrue(issuedCertificate.getBasicConstraints() < 0),
                     () -> assertArrayEquals(new boolean[]{true, false, true, false, false, false, false, false, false}, issuedCertificate.getKeyUsage()),
                     () -> assertEquals(1, issuedCertificate.getSubjectAlternativeNames().size()),
-                    () -> assertEquals(List.of(6, "https://example.test/rp"), issuedCertificate.getSubjectAlternativeNames().iterator().next()),
+                    () -> assertEquals(List.of(GeneralName.uniformResourceIdentifier, "https://example.test/rp"), issuedCertificate.getSubjectAlternativeNames().iterator().next()),
                     () -> assertEquals("0.4.0.194118.1.2", certificatePolicies.getPolicyInformation()[0].getPolicyIdentifier().getId()),
                     () -> assertTrue(issuedCertificate.getCriticalExtensionOIDs().contains(Extension.certificatePolicies.getId())),
                     () -> assertFalse(issuedCertificate.getCriticalExtensionOIDs().contains(Extension.subjectAlternativeName.getId())),
@@ -181,7 +182,7 @@ public class CertificateAuthorityServiceTest {
             X509Certificate issuedCertificate = certificateAuthorityService.signLeafCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), new SubjectAttributes("991825827", "foo", "tfoo"));
             assertAll(
                     () -> assertEquals(1, issuedCertificate.getSubjectAlternativeNames().size()),
-                    () -> assertEquals(List.of(6, "https://example.test/rp"), issuedCertificate.getSubjectAlternativeNames().iterator().next()),
+                    () -> assertEquals(List.of(GeneralName.uniformResourceIdentifier, "https://example.test/rp"), issuedCertificate.getSubjectAlternativeNames().iterator().next()),
                     () -> assertNotNull(issuedCertificate.getExtensionValue(Extension.subjectKeyIdentifier.getId()))
             );
         }
