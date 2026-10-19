@@ -19,7 +19,7 @@
         <idporten-actuator-starter.version>3.1.2</idporten-actuator-starter.version>
         <idporten-access-log.version>4.0.6</idporten-access-log.version>
         <idporten-validators.version>1.6.4</idporten-validators.version>
-        <opentelemetry-api.version>1.66.0</opentelemetry-api.version>
+        <opentelemetry-api.version>1.67.0</opentelemetry-api.version>
         <springdoc.version>3.1.1</springdoc.version>
         <bcpkix-jdk18on.version>1.86</bcpkix-jdk18on.version>
         <bcprov-jdk18on.version>1.86</bcprov-jdk18on.version>
