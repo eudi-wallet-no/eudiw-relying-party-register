@@ -37,7 +37,7 @@ management:
       environment: ${spring.application.environment}
 
 credential-registry:
-  read-timeout: 3s
+  read-timeout: 5s
   connect-timeout: 3s
   scheduled-reading: >
     0 */5 * * * *
