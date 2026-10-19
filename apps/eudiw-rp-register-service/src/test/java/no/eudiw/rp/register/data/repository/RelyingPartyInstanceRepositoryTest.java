@@ -73,6 +73,63 @@ public class RelyingPartyInstanceRepositoryTest {
         assertTrue(relyingPartyInstanceRepository.count() >= numTestWalletRelyingParties);
     }
 
+    @Test
+    @DisplayName("issuer URL query returns distinct URLs from active instances only")
+    void findActiveCredentialIssuerUrls() {
+        String activeIssuerUrl = "https://issuer-" + UUID.randomUUID() + ".example.com";
+        String inactiveIssuerUrl = "https://issuer-" + UUID.randomUUID() + ".example.com";
+        RelyingPartyInstance activeInstance = EntityGenerator.generateRelyingParty();
+        activeInstance.setRelyingPartyEntitlements(List.of(
+            new RelyingPartyEntitlement("first", activeIssuerUrl),
+            new RelyingPartyEntitlement("second", activeIssuerUrl)
+        ));
+        RelyingPartyInstance inactiveInstance = EntityGenerator.generateRelyingParty();
+        inactiveInstance.setActive(false);
+        inactiveInstance.setRelyingPartyEntitlements(List.of(
+            new RelyingPartyEntitlement("inactive", inactiveIssuerUrl)
+        ));
+
+        repository.saveAndFlush(activeInstance);
+        repository.saveAndFlush(inactiveInstance);
+
+        Set<String> issuerUrls = repository.findActiveCredentialIssuerUrls();
+
+        assertTrue(issuerUrls.contains(activeIssuerUrl));
+        assertFalse(issuerUrls.contains(inactiveIssuerUrl));
+    }
+
+    @Test
+    @DisplayName("issuer URL query preserves case-sensitive issuer paths")
+    void findActiveCredentialIssuerUrls_preservesPathCase() {
+        String issuerUrl = "https://issuer-" + UUID.randomUUID() + ".example.com";
+        String uppercasePathUrl = issuerUrl + "/Issuer";
+        String lowercasePathUrl = issuerUrl + "/issuer";
+        RelyingPartyInstance instance = EntityGenerator.generateRelyingParty();
+        instance.setRelyingPartyEntitlements(List.of(
+            new RelyingPartyEntitlement("first", uppercasePathUrl),
+            new RelyingPartyEntitlement("second", lowercasePathUrl)
+        ));
+        repository.saveAndFlush(instance);
+
+        Set<String> issuerUrls = repository.findActiveCredentialIssuerUrls();
+
+        assertTrue(issuerUrls.containsAll(Set.of(uppercasePathUrl, lowercasePathUrl)));
+    }
+
+    @Test
+    @DisplayName("issuer URL query excludes null URLs")
+    void findActiveCredentialIssuerUrls_excludesNullUrls() {
+        RelyingPartyInstance instance = EntityGenerator.generateRelyingParty();
+        instance.setRelyingPartyEntitlements(List.of(
+            new RelyingPartyEntitlement("without-url", null)
+        ));
+        repository.saveAndFlush(instance);
+
+        Set<String> issuerUrls = repository.findActiveCredentialIssuerUrls();
+
+        assertFalse(issuerUrls.contains(null));
+    }
+
     @Nested
     @DisplayName("when using the custom RP instance search query")
     class SearchQueryTests {
