@@ -15,8 +15,12 @@ public class CertificateProfile {
     @NotNull
     private List<String> extendedKeyUsage = new ArrayList<>();
 
+    private boolean extendedKeyUsageCritical;
+
     @NotNull
     private List<String> certificatePolicies = new ArrayList<>();
+
+    private boolean certificatePoliciesCritical;
 
     @NotNull
     private List<URI> subjectAltNames = new ArrayList<>();

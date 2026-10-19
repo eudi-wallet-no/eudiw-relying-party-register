@@ -94,8 +94,10 @@ eudiw-ca:
       certificate-profile:
         certificate-policies:
           - "0.4.0.194118.1.2"
+        certificate-policies-critical: false
         extended-key-usage:
           - "1.0.18013.5.1.6"
+        extended-key-usage-critical: false
       keystore:
         type: pkcs12
         location: ${INTERMEDIATE_ACCESS_2_KEYSTORE_LOCATION}

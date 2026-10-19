@@ -174,7 +174,7 @@ public class CertificateAuthorityService {
                     .toArray(PolicyInformation[]::new);
             extensions.add(Extension.create(
                     Extension.certificatePolicies,
-                    false,
+                    certificateProfile.isCertificatePoliciesCritical(),
                     new CertificatePolicies(policies)));
         }
         if (!certificateProfile.getSubjectAltNames().isEmpty()) {
@@ -189,7 +189,7 @@ public class CertificateAuthorityService {
         for (String oid : certificateProfile.getExtendedKeyUsage()) {
             extensions.add(Extension.create(
                     Extension.extendedKeyUsage,
-                    false,
+                    certificateProfile.isExtendedKeyUsageCritical(),
                     new ExtendedKeyUsage(KeyPurposeId.getInstance(new ASN1ObjectIdentifier(oid)))));
         }
         if (certificateProfile.getQcStatements() != null) {
