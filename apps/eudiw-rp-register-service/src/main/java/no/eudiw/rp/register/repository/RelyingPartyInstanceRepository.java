@@ -18,6 +18,15 @@ public interface RelyingPartyInstanceRepository
     Optional<RelyingPartyInstance> findByIdAndActiveTrue(UUID id);
 
     @Query("""
+        SELECT entitlement.credentialIssuerUrl
+        FROM RelyingPartyEntitlement entitlement
+        JOIN entitlement.relyingPartyInstance instance
+        WHERE instance.active = TRUE
+          AND entitlement.credentialIssuerUrl IS NOT NULL
+        """)
+    Set<String> findActiveCredentialIssuerUrls();
+
+    @Query("""
     SELECT DISTINCT rpi
     FROM RelyingPartyInstance rpi
     LEFT JOIN rpi.walletRelyingPartyService.walletRelyingParty.legalPerson legalPerson
