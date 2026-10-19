@@ -24,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.util.CollectionUtils;
 
 import javax.security.auth.x500.X500Principal;
 import java.security.Security;
@@ -32,6 +31,7 @@ import java.security.cert.X509Certificate;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
@@ -85,9 +85,11 @@ public class CertificateAuthorityServiceTest {
                     () -> assertNotNull(issuedCertificate),
                     () -> assertTrue(issuedCertificate.getBasicConstraints() < 0),
                     () -> assertArrayEquals(new boolean[]{true, false, true, false, false, false, false, false, false}, issuedCertificate.getKeyUsage()),
-                    () -> assertTrue(CollectionUtils.isEmpty(issuedCertificate.getSubjectAlternativeNames())),
+                    () -> assertEquals(1, issuedCertificate.getSubjectAlternativeNames().size()),
+                    () -> assertEquals(List.of(6, "https://example.test/rp"), issuedCertificate.getSubjectAlternativeNames().iterator().next()),
                     () -> assertEquals("0.4.0.194118.1.2", certificatePolicies.getPolicyInformation()[0].getPolicyIdentifier().getId()),
                     () -> assertFalse(issuedCertificate.getCriticalExtensionOIDs().contains(Extension.certificatePolicies.getId())),
+                    () -> assertFalse(issuedCertificate.getCriticalExtensionOIDs().contains(Extension.subjectAlternativeName.getId())),
                     () -> assertFalse(issuedCertificate.getCriticalExtensionOIDs().contains(Extension.extendedKeyUsage.getId())),
                     () -> assertNull(issuedCertificate.getExtensionValue(Extension.qCStatements.getId())),
                     () -> assertEquals(intermediate.getCertificate().getSubjectX500Principal(), issuedCertificate.getIssuerX500Principal()),
@@ -178,7 +180,8 @@ public class CertificateAuthorityServiceTest {
             CertificateAuthority intermediate = certificateAuthorities.findIntermediate("access2");
             X509Certificate issuedCertificate = certificateAuthorityService.signLeafCertificate(intermediate, certificateAuthorityService.decodeCsr(csr), new SubjectAttributes("991825827", "foo", "tfoo"));
             assertAll(
-                    () -> assertNull(issuedCertificate.getSubjectAlternativeNames()),
+                    () -> assertEquals(1, issuedCertificate.getSubjectAlternativeNames().size()),
+                    () -> assertEquals(List.of(6, "https://example.test/rp"), issuedCertificate.getSubjectAlternativeNames().iterator().next()),
                     () -> assertNotNull(issuedCertificate.getExtensionValue(Extension.subjectKeyIdentifier.getId()))
             );
         }
@@ -209,6 +212,7 @@ public class CertificateAuthorityServiceTest {
                     () -> assertNotNull(issuedCertificate),
                     () -> assertTrue(issuedCertificate.getBasicConstraints() < 0),
                     () -> assertArrayEquals(new boolean[]{true, false, true, false, false, false, false, false, false}, issuedCertificate.getKeyUsage()),
+                    () -> assertNull(issuedCertificate.getSubjectAlternativeNames()),
                     () -> assertEquals(intermediate.getCertificate().getSubjectX500Principal(), issuedCertificate.getIssuerX500Principal()),
                     () -> assertEquals("SHA256WITHECDSA", issuedCertificate.getSigAlgName()),
                     () -> assertEquals("1.2.840.10045.4.3.2", issuedCertificate.getSigAlgOID()),
@@ -256,6 +260,7 @@ public class CertificateAuthorityServiceTest {
                     () -> assertNotNull(issuedCertificate),
                     () -> assertTrue(issuedCertificate.getBasicConstraints() < 0),
                     () -> assertArrayEquals(new boolean[]{true, false, true, false, false, false, false, false, false}, issuedCertificate.getKeyUsage()),
+                    () -> assertNull(issuedCertificate.getSubjectAlternativeNames()),
                     () -> assertEquals(intermediate.getCertificate().getSubjectX500Principal(), issuedCertificate.getIssuerX500Principal()),
                     () -> assertEquals("SHA256WITHECDSA", issuedCertificate.getSigAlgName()),
                     () -> assertEquals("1.2.840.10045.4.3.2", issuedCertificate.getSigAlgOID()),

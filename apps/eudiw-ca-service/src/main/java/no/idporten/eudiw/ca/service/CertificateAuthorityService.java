@@ -177,6 +177,15 @@ public class CertificateAuthorityService {
                     false,
                     new CertificatePolicies(policies)));
         }
+        if (!certificateProfile.getSubjectAltNames().isEmpty()) {
+            GeneralName[] subjectAltNames = certificateProfile.getSubjectAltNames().stream()
+                    .map(uri -> new GeneralName(GeneralName.uniformResourceIdentifier, uri.toString()))
+                    .toArray(GeneralName[]::new);
+            extensions.add(Extension.create(
+                    Extension.subjectAlternativeName,
+                    false,
+                    new GeneralNames(subjectAltNames)));
+        }
         for (String oid : certificateProfile.getExtendedKeyUsage()) {
             extensions.add(Extension.create(
                     Extension.extendedKeyUsage,
