@@ -16,7 +16,7 @@
         <java.version>25</java.version>
         <idporten-actuator-starter.version>3.1.2</idporten-actuator-starter.version>
         <idporten-access-log.version>4.0.6</idporten-access-log.version>
-        <opentelemetry-api.version>1.66.0</opentelemetry-api.version>
+        <opentelemetry-api.version>1.67.0</opentelemetry-api.version>
         <springdoc.version>3.1.1</springdoc.version>
         <surefire.plugin.version>3.5.3</surefire.plugin.version>
     </properties>
