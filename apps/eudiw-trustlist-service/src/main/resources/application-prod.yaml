@@ -9,6 +9,9 @@ trustlist-service:
       list-issue-date-time: 2026-06-23T00:00:00.00Z
     service-providers:
       digdir:
+        trade-name:
+          lang-no: NTRNO-NOFOR.991825827
+          lang-en: NTRNO-NOFOR.991825827
         services:
           - name:
               lang-no: MinID bevisutsteder

@@ -16,6 +16,9 @@ trustlist-service:
   tsl612:
     service-providers:
       digdir:
+        trade-name:
+          lang-no: NTRNO-NOFOR.991825827
+          lang-en: NTRNO-NOFOR.991825827
         services:
           - name:
               lang-no: Bevisporten EAA utsteder fra Digdir
