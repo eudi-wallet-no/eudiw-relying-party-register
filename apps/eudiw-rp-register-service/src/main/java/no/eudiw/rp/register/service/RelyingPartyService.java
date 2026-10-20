@@ -8,6 +8,7 @@ import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
 import no.eudiw.rp.register.repository.EntitlementRepository;
 import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
+import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.repository.WalletRelyingPartyServiceRepository;
 import no.eudiw.rp.register.exception.BadRequestException;
 import no.eudiw.rp.register.exception.NotFoundException;
@@ -27,6 +28,7 @@ public class RelyingPartyService {
 
     private final EntitlementRepository entitlementRepository;
     private final RelyingPartyInstanceRepository relyingPartyInstanceRepository;
+    private final WalletRelyingPartyRepository walletRelyingPartyRepository;
     private final WalletRelyingPartyLookupService walletRelyingPartyLookupService;
     private final WalletRelyingPartyServiceRepository walletRelyingPartyServiceRepository;
 
@@ -102,6 +104,10 @@ public class RelyingPartyService {
         RelyingPartyInstance relyingPartyInstance = relyingPartyInstanceRepository.findById(id)
             .orElseThrow(() -> new BadRequestException("Relying party instance not found"));
 
+        if (active && !relyingPartyInstance.hasActiveRelyingPartyAndService()) {
+            throw new BadRequestException("Relying party cannot be activated while its party or service is inactive");
+        }
+
         WalletRelyingPartyService walletService = relyingPartyInstance.getWalletRelyingPartyService();
         if (!Objects.equals(walletService.getServiceTradeName(), serviceTradeName)) {
             walletService.setServiceTradeName(serviceTradeName);
@@ -115,6 +121,79 @@ public class RelyingPartyService {
         relyingPartyInstance.setRelyingPartyEaas(eaas);
 
         return relyingPartyInstanceRepository.saveAndFlush(relyingPartyInstance);
+    }
+
+    @Transactional
+    public void deactivateWalletRelyingParty(UUID walletRelyingPartyId) {
+        WalletRelyingParty walletRelyingParty = findWalletRelyingParty(walletRelyingPartyId);
+        walletRelyingParty.setActive(false);
+        for (WalletRelyingPartyService walletRelyingPartyService : walletRelyingParty.getServices()) {
+            walletRelyingPartyService.setActive(false);
+            walletRelyingPartyService.getRelyingPartyInstances()
+                .forEach(relyingPartyInstance -> relyingPartyInstance.setActive(false));
+        }
+        walletRelyingPartyRepository.saveAndFlush(walletRelyingParty);
+    }
+
+    @Transactional
+    public void activateWalletRelyingParty(UUID walletRelyingPartyId) {
+        WalletRelyingParty walletRelyingParty = findWalletRelyingParty(walletRelyingPartyId);
+        walletRelyingParty.setActive(true);
+        walletRelyingPartyRepository.saveAndFlush(walletRelyingParty);
+    }
+
+    @Transactional
+    public void deactivateWalletRelyingPartyService(UUID walletRelyingPartyServiceId) {
+        setWalletRelyingPartyServiceActive(walletRelyingPartyServiceId, false);
+    }
+
+    @Transactional
+    public void activateWalletRelyingPartyService(UUID walletRelyingPartyServiceId) {
+        setWalletRelyingPartyServiceActive(walletRelyingPartyServiceId, true);
+    }
+
+    private void setWalletRelyingPartyServiceActive(UUID walletRelyingPartyServiceId, boolean active) {
+        WalletRelyingPartyService walletRelyingPartyService =
+            walletRelyingPartyServiceRepository.findById(walletRelyingPartyServiceId)
+            .orElseThrow(() -> new NotFoundException("Service not found"));
+
+        if (active && !walletRelyingPartyService.getWalletRelyingParty().isActive()) {
+            throw new BadRequestException("Service cannot be activated while its party is inactive");
+        }
+
+        walletRelyingPartyService.setActive(active);
+        if (!active) {
+            walletRelyingPartyService.getRelyingPartyInstances()
+                .forEach(relyingPartyInstance -> relyingPartyInstance.setActive(false));
+        }
+        walletRelyingPartyServiceRepository.saveAndFlush(walletRelyingPartyService);
+    }
+
+    @Transactional
+    public void deactivateRelyingPartyInstance(UUID relyingPartyInstanceId) {
+        setRelyingPartyInstanceActive(relyingPartyInstanceId, false);
+    }
+
+    @Transactional
+    public void activateRelyingPartyInstance(UUID relyingPartyInstanceId) {
+        setRelyingPartyInstanceActive(relyingPartyInstanceId, true);
+    }
+
+    private void setRelyingPartyInstanceActive(UUID relyingPartyInstanceId, boolean active) {
+        RelyingPartyInstance relyingPartyInstance = relyingPartyInstanceRepository.findById(relyingPartyInstanceId)
+            .orElseThrow(() -> new NotFoundException("Relying party not found"));
+
+        if (active && !relyingPartyInstance.hasActiveRelyingPartyAndService()) {
+            throw new BadRequestException("Relying party cannot be activated while its party or service is inactive");
+        }
+
+        relyingPartyInstance.setActive(active);
+        relyingPartyInstanceRepository.saveAndFlush(relyingPartyInstance);
+    }
+
+    private WalletRelyingParty findWalletRelyingParty(UUID walletRelyingPartyId) {
+        return walletRelyingPartyRepository.findById(walletRelyingPartyId)
+            .orElseThrow(() -> new NotFoundException("Party not found"));
     }
 
     @Transactional

@@ -8,6 +8,7 @@ import no.eudiw.rp.register.exception.BadRequestException;
 import no.eudiw.rp.register.exception.NotFoundException;
 import no.eudiw.rp.register.repository.EntitlementRepository;
 import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
+import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.repository.WalletRelyingPartyServiceRepository;
 import no.eudiw.rp.register.testdata.EntityGenerator;
 import org.junit.jupiter.api.Test;
@@ -31,10 +32,12 @@ class RelyingPartyServiceTest {
 
     private final EntitlementRepository entitlementRepository = mock(EntitlementRepository.class);
     private final RelyingPartyInstanceRepository repository = mock(RelyingPartyInstanceRepository.class);
+    private final WalletRelyingPartyRepository walletRelyingPartyRepository = mock(WalletRelyingPartyRepository.class);
     private final WalletRelyingPartyLookupService walletRelyingPartyLookupService = mock(WalletRelyingPartyLookupService.class);
-    private final WalletRelyingPartyServiceRepository serviceRepository = mock(WalletRelyingPartyServiceRepository.class);
+    private final WalletRelyingPartyServiceRepository walletRelyingPartyServiceRepository = mock(WalletRelyingPartyServiceRepository.class);
     private final RelyingPartyService service =
-        new RelyingPartyService(entitlementRepository, repository, walletRelyingPartyLookupService, serviceRepository);
+        new RelyingPartyService(
+            entitlementRepository, repository, walletRelyingPartyRepository, walletRelyingPartyLookupService, walletRelyingPartyServiceRepository);
 
     @Test
     void createsRelyingPartyForActiveWalletRelyingPartyWithActiveEntitlement() {
@@ -55,7 +58,7 @@ class RelyingPartyServiceTest {
         assertEquals("Trade name", result.getWalletRelyingPartyService().getServiceTradeName());
         assertSame(result, entitlement.getRelyingPartyInstance());
         assertSame(result, eaa.getRelyingPartyInstance());
-        verify(serviceRepository).save(result.getWalletRelyingPartyService());
+        verify(walletRelyingPartyServiceRepository).save(result.getWalletRelyingPartyService());
         assertEquals(List.of(result.getWalletRelyingPartyService()), walletRelyingParty.getServices());
     }
 
@@ -69,7 +72,7 @@ class RelyingPartyServiceTest {
         assertThrows(BadRequestException.class,
             () -> service.updateRelyingParty(UUID.randomUUID(), "Name", true, entitlements, eaas));
 
-        verifyNoInteractions(entitlementRepository, repository, walletRelyingPartyLookupService, serviceRepository);
+        verifyNoInteractions(entitlementRepository, repository, walletRelyingPartyLookupService, walletRelyingPartyServiceRepository);
     }
 
     private static Stream<Arguments> missingCollections() {
@@ -95,7 +98,7 @@ class RelyingPartyServiceTest {
         }
 
         verify(entitlementRepository).existsByEntitlementAndActive("invalid-entitlement", true);
-        verifyNoInteractions(repository, walletRelyingPartyLookupService, serviceRepository);
+        verifyNoInteractions(repository, walletRelyingPartyLookupService, walletRelyingPartyServiceRepository);
     }
 
     @Test
@@ -107,7 +110,7 @@ class RelyingPartyServiceTest {
         assertThrows(BadRequestException.class,
             () -> service.createRelyingParty("123456789", "Name", List.of(), List.of()));
 
-        verifyNoInteractions(repository, serviceRepository);
+        verifyNoInteractions(repository, walletRelyingPartyServiceRepository);
     }
 
     @Test
@@ -134,6 +137,8 @@ class RelyingPartyServiceTest {
     void marksInstanceUpdatedWhenServiceIsRenamed() {
         UUID id = UUID.randomUUID();
         RelyingPartyInstance instance = EntityGenerator.generateRelyingPartyInstance("Old name", List.of(), List.of(), List.of());
+        instance.getWalletRelyingPartyService().setWalletRelyingParty(
+            new WalletRelyingParty("Party", "123456789", false, List.of()));
         long lastUpdatedBefore = instance.getLastUpdatedMs();
         when(repository.findById(id)).thenReturn(Optional.of(instance));
         when(repository.saveAndFlush(instance)).thenReturn(instance);
@@ -141,6 +146,24 @@ class RelyingPartyServiceTest {
         RelyingPartyInstance result = service.updateRelyingParty(id, "New name", true, List.of(), List.of());
 
         assertTrue(result.getLastUpdatedMs() > lastUpdatedBefore);
+    }
+
+    @Test
+    void v1UpdateCannotReactivateRelyingPartyInstanceWhenItsWalletRelyingPartyIsInactive() {
+        WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty(1);
+        walletRelyingParty.setActive(false);
+        RelyingPartyInstance relyingPartyInstance = EntityGenerator.instances(walletRelyingParty).getFirst();
+        relyingPartyInstance.setActive(false);
+        String serviceTradeName = relyingPartyInstance.getWalletRelyingPartyService().getServiceTradeName();
+        UUID relyingPartyInstanceId = UUID.randomUUID();
+        when(repository.findById(relyingPartyInstanceId)).thenReturn(Optional.of(relyingPartyInstance));
+
+        assertThrows(BadRequestException.class,
+            () -> service.updateRelyingParty(relyingPartyInstanceId, "Changed name", true, List.of(), List.of()));
+
+        assertEquals(serviceTradeName, relyingPartyInstance.getWalletRelyingPartyService().getServiceTradeName());
+        assertFalse(relyingPartyInstance.isActive());
+        verify(repository, never()).saveAndFlush(any());
     }
 
     @Test

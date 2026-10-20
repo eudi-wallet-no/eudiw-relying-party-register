@@ -77,6 +77,19 @@ public class RelyingPartyInstance extends BaseEntity {
                 .findFirst();
     }
 
+    public boolean hasActiveRelyingPartyAndService() {
+        if (walletRelyingPartyService == null || walletRelyingPartyService.getWalletRelyingParty() == null) {
+            return false;
+        }
+
+        return walletRelyingPartyService.isActive()
+            && walletRelyingPartyService.getWalletRelyingParty().isActive();
+    }
+
+    public boolean isRegistrationActive() {
+        return active && hasActiveRelyingPartyAndService();
+    }
+
     private void addOrUpdateRelyingPartyEntitlement(RelyingPartyEntitlement newEntitlement) {
         Optional<RelyingPartyEntitlement> existingEntitlement =
             this.getRelyingPartyEntitlement(newEntitlement.getEntitlement());

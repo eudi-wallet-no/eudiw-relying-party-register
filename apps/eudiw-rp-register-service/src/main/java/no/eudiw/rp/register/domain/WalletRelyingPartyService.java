@@ -92,6 +92,9 @@ public class WalletRelyingPartyService extends BaseEntity {
     @Setter(AccessLevel.NONE)
     private long lastUpdatedMs;
 
+    @Column(name = "active", nullable = false)
+    private boolean active = true;
+
     public WalletRelyingPartyService(
         String serviceTradeName,
         WalletRelyingParty walletRelyingParty,
