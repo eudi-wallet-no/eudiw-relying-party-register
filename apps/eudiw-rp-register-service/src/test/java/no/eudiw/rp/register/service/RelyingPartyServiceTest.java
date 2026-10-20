@@ -119,6 +119,7 @@ class RelyingPartyServiceTest {
         WalletRelyingParty walletRelyingParty = new WalletRelyingParty("Entity", "123456789", false, List.of());
         RelyingPartyInstance instance = EntityGenerator.generateRelyingPartyInstance("Old name", List.of(), List.of(), List.of());
         instance.getWalletRelyingPartyService().setWalletRelyingParty(walletRelyingParty);
+        when(walletRelyingPartyRepository.findByInstanceIdForUpdate(id)).thenReturn(Optional.of(walletRelyingParty));
         when(repository.findById(id)).thenReturn(Optional.of(instance));
         when(repository.saveAndFlush(instance)).thenReturn(instance);
 
@@ -139,6 +140,8 @@ class RelyingPartyServiceTest {
         RelyingPartyInstance instance = EntityGenerator.generateRelyingPartyInstance("Old name", List.of(), List.of(), List.of());
         instance.getWalletRelyingPartyService().setWalletRelyingParty(
             new WalletRelyingParty("Party", "123456789", false, List.of()));
+        when(walletRelyingPartyRepository.findByInstanceIdForUpdate(id))
+            .thenReturn(Optional.of(instance.getWalletRelyingPartyService().getWalletRelyingParty()));
         long lastUpdatedBefore = instance.getLastUpdatedMs();
         when(repository.findById(id)).thenReturn(Optional.of(instance));
         when(repository.saveAndFlush(instance)).thenReturn(instance);
@@ -156,6 +159,8 @@ class RelyingPartyServiceTest {
         relyingPartyInstance.setActive(false);
         String serviceTradeName = relyingPartyInstance.getWalletRelyingPartyService().getServiceTradeName();
         UUID relyingPartyInstanceId = UUID.randomUUID();
+        when(walletRelyingPartyRepository.findByInstanceIdForUpdate(relyingPartyInstanceId))
+            .thenReturn(Optional.of(walletRelyingParty));
         when(repository.findById(relyingPartyInstanceId)).thenReturn(Optional.of(relyingPartyInstance));
 
         assertThrows(BadRequestException.class,

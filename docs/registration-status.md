@@ -15,6 +15,12 @@ resource; its descendants remain inactive until explicitly reactivated.
 Reactivating a child requires active ancestors (`400` otherwise). Unknown
 resource IDs return `404`. V2 does not expose physical deletion.
 
+Hierarchy writes acquire a database write lock on the owning Party before reading
+registration state, including V1 creation, update and deletion. Writes within one
+Party are serialized; unrelated Parties can still be changed concurrently.
+These transactions use `READ_COMMITTED` so reads after waiting for the lock see
+the preceding writer's committed state, not an earlier repeatable-read snapshot.
+
 Certificates and their revocation status are preserved when registrations are
 deactivated. New access and issuer certificate requests through the existing V1
 API return `404` if the instance, its Service, or its Party is inactive. Certificate

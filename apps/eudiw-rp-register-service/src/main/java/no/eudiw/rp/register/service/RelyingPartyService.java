@@ -15,6 +15,7 @@ import no.eudiw.rp.register.exception.NotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -24,6 +25,7 @@ import java.util.UUID;
 
 @RequiredArgsConstructor
 @Service
+@Transactional(isolation = Isolation.READ_COMMITTED)
 public class RelyingPartyService {
 
     private final EntitlementRepository entitlementRepository;
@@ -32,7 +34,6 @@ public class RelyingPartyService {
     private final WalletRelyingPartyLookupService walletRelyingPartyLookupService;
     private final WalletRelyingPartyServiceRepository walletRelyingPartyServiceRepository;
 
-    @Transactional
     public RelyingPartyInstance createRelyingParty(
         String orgno,
         String serviceTradeName,
@@ -83,7 +84,6 @@ public class RelyingPartyService {
         );
     }
 
-    @Transactional
     public RelyingPartyInstance updateRelyingParty(
         UUID id,
         String serviceTradeName,
@@ -101,6 +101,8 @@ public class RelyingPartyService {
 
         entitlementCheck(entitlements);
 
+        walletRelyingPartyRepository.findByInstanceIdForUpdate(id)
+            .orElseThrow(() -> new BadRequestException("Relying party instance not found"));
         RelyingPartyInstance relyingPartyInstance = relyingPartyInstanceRepository.findById(id)
             .orElseThrow(() -> new BadRequestException("Relying party instance not found"));
 
@@ -123,7 +125,6 @@ public class RelyingPartyService {
         return relyingPartyInstanceRepository.saveAndFlush(relyingPartyInstance);
     }
 
-    @Transactional
     public void deactivateWalletRelyingParty(UUID walletRelyingPartyId) {
         WalletRelyingParty walletRelyingParty = findWalletRelyingParty(walletRelyingPartyId);
         walletRelyingParty.setActive(false);
@@ -135,24 +136,23 @@ public class RelyingPartyService {
         walletRelyingPartyRepository.saveAndFlush(walletRelyingParty);
     }
 
-    @Transactional
     public void activateWalletRelyingParty(UUID walletRelyingPartyId) {
         WalletRelyingParty walletRelyingParty = findWalletRelyingParty(walletRelyingPartyId);
         walletRelyingParty.setActive(true);
         walletRelyingPartyRepository.saveAndFlush(walletRelyingParty);
     }
 
-    @Transactional
     public void deactivateWalletRelyingPartyService(UUID walletRelyingPartyServiceId) {
         setWalletRelyingPartyServiceActive(walletRelyingPartyServiceId, false);
     }
 
-    @Transactional
     public void activateWalletRelyingPartyService(UUID walletRelyingPartyServiceId) {
         setWalletRelyingPartyServiceActive(walletRelyingPartyServiceId, true);
     }
 
     private void setWalletRelyingPartyServiceActive(UUID walletRelyingPartyServiceId, boolean active) {
+        walletRelyingPartyRepository.findByServiceIdForUpdate(walletRelyingPartyServiceId)
+            .orElseThrow(() -> new NotFoundException("Service not found"));
         WalletRelyingPartyService walletRelyingPartyService =
             walletRelyingPartyServiceRepository.findById(walletRelyingPartyServiceId)
             .orElseThrow(() -> new NotFoundException("Service not found"));
@@ -169,17 +169,17 @@ public class RelyingPartyService {
         walletRelyingPartyServiceRepository.saveAndFlush(walletRelyingPartyService);
     }
 
-    @Transactional
     public void deactivateRelyingPartyInstance(UUID relyingPartyInstanceId) {
         setRelyingPartyInstanceActive(relyingPartyInstanceId, false);
     }
 
-    @Transactional
     public void activateRelyingPartyInstance(UUID relyingPartyInstanceId) {
         setRelyingPartyInstanceActive(relyingPartyInstanceId, true);
     }
 
     private void setRelyingPartyInstanceActive(UUID relyingPartyInstanceId, boolean active) {
+        walletRelyingPartyRepository.findByInstanceIdForUpdate(relyingPartyInstanceId)
+            .orElseThrow(() -> new NotFoundException("Relying party not found"));
         RelyingPartyInstance relyingPartyInstance = relyingPartyInstanceRepository.findById(relyingPartyInstanceId)
             .orElseThrow(() -> new NotFoundException("Relying party not found"));
 
@@ -192,12 +192,13 @@ public class RelyingPartyService {
     }
 
     private WalletRelyingParty findWalletRelyingParty(UUID walletRelyingPartyId) {
-        return walletRelyingPartyRepository.findById(walletRelyingPartyId)
+        return walletRelyingPartyRepository.findByIdForUpdate(walletRelyingPartyId)
             .orElseThrow(() -> new NotFoundException("Party not found"));
     }
 
-    @Transactional
     public void deleteRelyingParty(UUID id) {
+        walletRelyingPartyRepository.findByInstanceIdForUpdate(id)
+            .orElseThrow(() -> new NotFoundException("Relying party not found"));
         RelyingPartyInstance relyingPartyInstance = relyingPartyInstanceRepository.findById(id)
             .orElseThrow(() -> new NotFoundException("Relying party not found"));
         WalletRelyingPartyService walletService = relyingPartyInstance.getWalletRelyingPartyService();

@@ -25,6 +25,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -40,7 +41,7 @@ public class V1ApiService {
     private final CredentialIssuersService credentialIssuersService;
     private final V1ContractMapper v1ContractMapper;
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public RelyingPartyResource createRelyingParty(CreateRelyingPartyResource request) {
         String orgno = request.orgNr();
         String serviceTradeName = request.tradeName();
@@ -52,7 +53,7 @@ public class V1ApiService {
         return v1ContractMapper.toV1RelyingPartyResource(createdInstance);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public RelyingPartyResource updateRelyingParty(UUID id, EditRelyingPartyResource request) {
         String serviceTradeName = request.tradeName();
         List<RelyingPartyEntitlement> entitlements =
@@ -68,7 +69,7 @@ public class V1ApiService {
         return v1ContractMapper.toV1RelyingPartyResource(updatedInstance);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void deleteRelyingParty(UUID id) {
         relyingPartyService.deleteRelyingParty(id);
     }
