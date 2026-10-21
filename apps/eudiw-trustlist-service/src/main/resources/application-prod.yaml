@@ -6,9 +6,12 @@ spring:
 trustlist-service:
   tsl612:
     scheme-information:
-      list-issue-date-time: 2026-06-23T00:00:00.00Z
+      list-issue-date-time: 2026-10-20T00:00:00.00Z
     service-providers:
       digdir:
+        trade-name:
+          lang-no: NTRNO-NOFOR.991825827
+          lang-en: NTRNO-NOFOR.991825827
         services:
           - name:
               lang-no: MinID bevisutsteder

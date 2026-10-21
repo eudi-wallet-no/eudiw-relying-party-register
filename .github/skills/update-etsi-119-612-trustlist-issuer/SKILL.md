@@ -12,7 +12,7 @@ Use this skill when adding an issuer service to the ETSI TS 119 612 trust list. 
 
 1. Read `apps/eudiw-trustlist-service/UPDATE_ROUTINE.md` and inspect `apps/eudiw-trustlist-service/src/main/resources/application-test.yaml` and the related provider entries in `application.yaml`.
 2. Collect the TSP information and issuer service information from the user or their supplied source. Do not invent or silently infer missing or conflicting values. Ask for clarification when needed.
-3. Verify the service certificate is valid Base64-encoded X.509 data and inspect its subject and validity dates. Its organization name and organization identifier must match the TSP name and trade name. Compare the organization number digits: the config uses `NTRNO-<number>`, while a certificate may encode it as `NTRNO-NOFOR.<number>`. Store the certificate as one Base64 line in YAML, without PEM markers or whitespace.
+3. Verify the service certificate is valid Base64-encoded X.509 data and inspect its subject and validity dates. Its organization name and organization identifier must match the TSP name and trade name. Every Norwegian `trade-name` value must use `NTRNO-NOFOR.<organization-number>` (for example, `NTRNO-NOFOR.974760673`), not the legacy `NTRNO-<organization-number>` format. Check both `lang-no` and `lang-en`, preserve the organization number digits, and compare them with the certificate's organization identifier. Store the certificate as one Base64 line in YAML, without PEM markers or whitespace.
 4. Find the TSP in `application-test.yaml` by its organization number (`trade-name`), cross-checking the certificate subject. If more than one entry matches or the identifiers conflict, stop and ask rather than choosing an entry.
 5. Check whether the same service or certificate is already listed. If it is, do not add a duplicate or replace it silently; ask the user how to proceed.
 
@@ -47,3 +47,14 @@ When no existing provider matches the organization number:
   ```
 
 - Confirm the test passes, which exercises the test profile and validates the generated signed trust list against the ETSI schema. Report any failure; do not treat a failed validation as a successful update.
+
+## Final report
+
+End with a clear, concise report that makes the checks performed and the changes made explicit. Include a status for each applicable check, using `PASS`, `FAIL`, `BLOCKED`, or `NOT RUN`; never imply an unperformed check passed. Cover at least:
+
+- TSP and certificate identity match, certificate Base64/X.509 validity, and validity dates.
+- Duplicate check and confirmation that changes are limited to the test ETSI 119 612 trust list.
+- The configuration change made, including whether an existing TSP or a new TSP was updated.
+- Diff/scope review and the focused profile test result.
+
+For each item, state the relevant result briefly. If a check fails or is blocked, explain why and clearly state whether the update is incomplete. Report the exact test command and its outcome.
