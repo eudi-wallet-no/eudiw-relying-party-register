@@ -209,14 +209,6 @@ public class RelyingPartyService {
         }
     }
 
-    private void entitlementCheck(List<RelyingPartyEntitlement> entitlements) {
-        for (RelyingPartyEntitlement entitlement : entitlements) {
-            if (!entitlementRepository.existsByEntitlementAndActive(entitlement.getEntitlement(), true)) {
-                throw new BadRequestException(entitlement.getEntitlement() + " is not a valid active entitlement");
-            }
-        }
-    }
-
     public void validateEntitlements(List<RelyingPartyEntitlement> entitlements) {
         if (entitlements == null) {
             throw new BadRequestException("Entitlements must be an empty list when none exist");
@@ -238,5 +230,13 @@ public class RelyingPartyService {
                     && Objects.equals(existing.getCredentialIssuerUrl(), requested.getCredentialIssuerUrl())))
             .toList();
         entitlementCheck(changedEntitlements);
+    }
+
+    private void entitlementCheck(List<RelyingPartyEntitlement> entitlements) {
+        for (RelyingPartyEntitlement entitlement : entitlements) {
+            if (!entitlementRepository.existsByEntitlementAndActive(entitlement.getEntitlement(), true)) {
+                throw new BadRequestException(entitlement.getEntitlement() + " is not a valid active entitlement");
+            }
+        }
     }
 }

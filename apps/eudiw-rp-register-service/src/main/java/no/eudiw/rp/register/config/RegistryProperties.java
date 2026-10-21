@@ -1,25 +1,29 @@
 package no.eudiw.rp.register.config;
 
-import no.eudiw.rp.register.exception.RegisterServiceException;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
 
 import java.net.URI;
 
+@Validated
 @ConfigurationProperties(prefix = "eudiw-rp-register-service")
-public record RegistryProperties(String registryUri) {
+public record RegistryProperties(
+    @NotBlank(message = "registry-uri (REGISTRY_URI) must be configured; it is advertised in WalletRelyingParty resources")
+    String registryUri
+) {
 
-    public String requireRegistryUri() {
-        if (registryUri == null || registryUri.isBlank()) {
-            throw new RegisterServiceException("Public registry URI is not configured");
+    @AssertTrue(message = "registry-uri (REGISTRY_URI) must be an absolute URL")
+    public boolean isRegistryUriAbsolute() {
+        if (registryUri == null) {
+            return false;
         }
         try {
             URI uri = URI.create(registryUri);
-            if (!uri.isAbsolute() || uri.getHost() == null) {
-                throw new RegisterServiceException("Public registry URI must be an absolute URL");
-            }
+            return uri.isAbsolute() && uri.getHost() != null;
         } catch (IllegalArgumentException exception) {
-            throw new RegisterServiceException("Public registry URI is invalid");
+            return false;
         }
-        return registryUri;
     }
 }

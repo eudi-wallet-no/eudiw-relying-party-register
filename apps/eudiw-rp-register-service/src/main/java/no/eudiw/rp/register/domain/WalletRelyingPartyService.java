@@ -159,10 +159,6 @@ public class WalletRelyingPartyService extends BaseEntity {
         return List.copyOf(servedWRPServices);
     }
 
-    public void setUpdated() {
-        this.lastUpdatedMs = Instant.now().toEpochMilli();
-    }
-
     public void setIntendedUses(List<IntendedUse> intendedUses) {
         List<IntendedUse> intendedUsesCopy = intendedUses == null ? List.of() : new ArrayList<>(intendedUses);
         this.intendedUses.clear();
@@ -189,6 +185,10 @@ public class WalletRelyingPartyService extends BaseEntity {
 
     // for JPA instantiation.
     protected WalletRelyingPartyService() { }
+
+    public void setUpdated() {
+        this.lastUpdatedMs = Instant.now().toEpochMilli();
+    }
 
     @PrePersist
     protected void onPrePersist() {

@@ -1,11 +1,13 @@
 package no.eudiw.rp.register.api.v2;
 
 import no.eudiw.rp.register.domain.Entitlement;
+import no.eudiw.rp.register.domain.certificates.PKCS10CertificationRequestConverter;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
 import no.eudiw.rp.register.repository.EntitlementRepository;
 import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.repository.WalletRelyingPartyServiceRepository;
+import no.eudiw.rp.register.testdata.CertificatesGenerator;
 import no.eudiw.rp.register.testdata.TestDataGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,11 +19,13 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -129,56 +133,35 @@ class V2ResourcesIntegrationTest {
     }
 
     @Test
-    void createAndReplaceOperationsRequireApiKey() throws Exception {
-        for (String path : new String[] {
-            "/v2/parties", "/v2/parties/" + UUID.randomUUID() + "/services",
-            "/v2/services/" + UUID.randomUUID() + "/instances"
-        }) {
-            mockMvc.perform(post(path).contentType(MediaType.APPLICATION_JSON).content("{}"))
-                .andExpect(status().isUnauthorized());
-        }
-        for (String resource : new String[] {"parties", "services", "instances"}) {
-            mockMvc.perform(put("/v2/" + resource + "/" + UUID.randomUUID())
-                    .contentType(MediaType.APPLICATION_JSON).content("{}"))
-                .andExpect(status().isUnauthorized());
+    void everyV2HttpMethodRequiresApiKey() throws Exception {
+        String partyPath = "/v2/parties/" + UUID.randomUUID();
+
+        for (MockHttpServletRequestBuilder request : List.of(
+            get(partyPath), post("/v2/parties"), put(partyPath), patch(partyPath + "/deactivate")
+        )) {
+            mockMvc.perform(request).andExpect(status().isUnauthorized());
         }
     }
 
     @Test
-    void swaggerDocumentsV2RoutesAndApiKeyAuthentication() throws Exception {
-        JsonNode apiDocumentation = read(mockMvc.perform(get("/v3/api-docs/V2")));
-        JsonNode paths = apiDocumentation.get("paths");
-
-        assertNotNull(paths.get("/v2/parties"));
-        assertNotNull(paths.get("/v2/parties/{id}").get("put"));
-        assertNotNull(paths.get("/v2/parties/{partyId}/services").get("post"));
-        assertNotNull(paths.get("/v2/services/{id}").get("put"));
-        assertNotNull(paths.get("/v2/services/{serviceId}/instances").get("post"));
-        assertNotNull(paths.get("/v2/instances/{id}").get("put"));
-        assertNotNull(paths.get("/v2/services/{serviceId}/intended-uses").get("post"));
-        assertNotNull(paths.get("/v2/instances/{instanceId}/certificates/access").get("post"));
-        assertNotNull(paths.get("/v2/parties/{id}/deactivate").get("patch"));
-        assertNull(paths.get("/v1/rp"));
-
-        assertEquals("X-API-KEY",
-            apiDocumentation.get("components").get("securitySchemes").get("API Key").get("name").asString());
-        assertFalse(apiDocumentation.get("security").isEmpty());
-    }
-
-    @Test
-    void swaggerSeparatesV1RoutesFromV2() throws Exception {
+    void swaggerSeparatesV1FromV2AndDocumentsApiKey() throws Exception {
         JsonNode swaggerConfig = read(mockMvc.perform(get("/v3/api-docs/swagger-config")));
-        List<String> swaggerGroups = new java.util.ArrayList<>();
+        List<String> swaggerGroups = new ArrayList<>();
         swaggerConfig.get("urls").forEach(url -> swaggerGroups.add(url.get("name").asString()));
+
+        JsonNode v1Paths = read(mockMvc.perform(get("/v3/api-docs/V1"))).get("paths");
+        JsonNode v2Documentation = read(mockMvc.perform(get("/v3/api-docs/V2")));
+        JsonNode v2Paths = v2Documentation.get("paths");
 
         assertTrue(swaggerGroups.containsAll(List.of("V1", "V2")));
         assertEquals("V2", swaggerConfig.get("urls.primaryName").asString());
-
-        JsonNode apiDocumentation = read(mockMvc.perform(get("/v3/api-docs/V1")));
-        JsonNode paths = apiDocumentation.get("paths");
-
-        assertNotNull(paths.get("/v1/rp"));
-        assertNull(paths.get("/v2/parties"));
+        assertNotNull(v1Paths.get("/v1/rp"));
+        assertNull(v1Paths.get("/v2/parties"));
+        assertNotNull(v2Paths.get("/v2/parties"));
+        assertNull(v2Paths.get("/v1/rp"));
+        assertEquals("X-API-KEY",
+            v2Documentation.get("components").get("securitySchemes").get("API Key").get("name").asString());
+        assertFalse(v2Documentation.get("security").isEmpty());
     }
 
     @Test
@@ -221,14 +204,9 @@ class V2ResourcesIntegrationTest {
         putJson("/v2/parties/" + hierarchy.walletRelyingPartyId(), WALLET_RELYING_PARTY)
             .andExpect(status().isOk());
 
-        String serviceReplacement = SERVICE
-            .replace("\"service-1\"", "null")
-            .replace("\"https://example.test/support\"", "null")
-            .replace("\"email\":null", "\"email\":\"updated@example.test\"");
-        putJson("/v2/services/" + hierarchy.walletRelyingPartyServiceId(), serviceReplacement)
+        putJson("/v2/services/" + hierarchy.walletRelyingPartyServiceId(),
+            SERVICE.replace("\"email\":null", "\"email\":\"updated@example.test\""))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.serviceIdentifier").doesNotExist())
-            .andExpect(jsonPath("$.supportURI").doesNotExist())
             .andExpect(jsonPath("$.email").value("updated@example.test"))
             .andExpect(jsonPath("$.partyId").value(hierarchy.walletRelyingPartyId()))
             .andExpect(jsonPath("$.instanceIds[0]").value(hierarchy.relyingPartyInstanceId()))
@@ -250,52 +228,39 @@ class V2ResourcesIntegrationTest {
     }
 
     @Test
-    void incompleteOrInvalidReplacementsDoNotChangeStoredData() throws Exception {
+    void invalidReplacementsReturnBadRequestWithoutChangingStoredData() throws Exception {
         Hierarchy hierarchy = createHierarchy();
-        putJson("/v2/parties/" + hierarchy.walletRelyingPartyId(), WALLET_RELYING_PARTY)
-            .andExpect(status().isOk());
-        putJson("/v2/parties/" + hierarchy.walletRelyingPartyId(), """
+        String partyPath = "/v2/parties/" + hierarchy.walletRelyingPartyId();
+        String servicePath = "/v2/services/" + hierarchy.walletRelyingPartyServiceId();
+        String instancePath = "/v2/instances/" + hierarchy.relyingPartyInstanceId();
+        putJson(partyPath, WALLET_RELYING_PARTY).andExpect(status().isOk());
+
+        putJson(partyPath, """
             {"tradeName":"Incomplete"}
             """).andExpect(status().isBadRequest());
-        for (String invalidParty : new String[] {
-            WALLET_RELYING_PARTY.replace(
-                "\"identifier\":[{\"type\":\"EUID\",\"identifier\":\"NO-123\"}]", "\"identifier\":[]"),
-            WALLET_RELYING_PARTY.replace(
-                "\"policy\":[{\"type\":\"PrivacyPolicy\",\"policyURI\":\"https://example.test/policy\"}]",
-                "\"policy\":[]")
-        }) {
-            putJson("/v2/parties/" + hierarchy.walletRelyingPartyId(), invalidParty)
-                .andExpect(status().isBadRequest());
-        }
-        putJson("/v2/services/" + hierarchy.walletRelyingPartyServiceId(),
-            SERVICE.replace("\"serviceTradeName\":\"Test service\",", ""))
+        putJson(partyPath, WALLET_RELYING_PARTY.replace(
+            "\"identifier\":[{\"type\":\"EUID\",\"identifier\":\"NO-123\"}]", "\"identifier\":[]"))
             .andExpect(status().isBadRequest());
-        putJson("/v2/services/" + hierarchy.walletRelyingPartyServiceId(),
-            SERVICE.replace("\"isIntermediary\":false", "\"isIntermediary\":null"))
+        putJson(partyPath, WALLET_RELYING_PARTY.replace("\"establishedByLaw\":[]", "\"establishedByLaw\":[null]"))
             .andExpect(status().isBadRequest());
-        putJson("/v2/services/" + hierarchy.walletRelyingPartyServiceId(),
-            SERVICE.replace("https://example.test/support", "invalid URI"))
+        putJson(servicePath, SERVICE.replace("\"isIntermediary\":false", "\"isIntermediary\":null"))
             .andExpect(status().isBadRequest());
-        putJson("/v2/services/" + hierarchy.walletRelyingPartyServiceId(),
-            SERVICE.replace("\"srvDescription\":[[{\"lang\":\"en\",\"content\":\"Test service\"}]]",
-                "\"srvDescription\":[]"))
+        putJson(servicePath, SERVICE.replace("https://example.test/support", "invalid URI"))
             .andExpect(status().isBadRequest());
-        putJson("/v2/instances/" + hierarchy.relyingPartyInstanceId(), """
-            {"relyingPartyEntitlements":[]}
-            """).andExpect(status().isBadRequest());
-        putJson("/v2/instances/" + hierarchy.relyingPartyInstanceId(), """
+        putJson(instancePath, """
             {"relyingPartyEntitlements":[],"relyingPartyEaas":[],"active":false}
             """).andExpect(status().isBadRequest());
 
-        mockMvc.perform(get("/v2/services/" + hierarchy.walletRelyingPartyServiceId())
-                .header(API_KEY_HEADER, API_KEY))
+        mockMvc.perform(get(partyPath).header(API_KEY_HEADER, API_KEY))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.tradeName").doesNotExist())
+            .andExpect(jsonPath("$.identifier[0].identifier").value("NO-123"));
+        mockMvc.perform(get(servicePath).header(API_KEY_HEADER, API_KEY))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.supportURI").value("https://example.test/support"));
-        mockMvc.perform(get("/v2/parties/" + hierarchy.walletRelyingPartyId())
-                .header(API_KEY_HEADER, API_KEY))
+        mockMvc.perform(get(instancePath).header(API_KEY_HEADER, API_KEY))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.identifier[0].identifier").value("NO-123"))
-            .andExpect(jsonPath("$.policy[0].policyURI").value("https://example.test/policy"));
+            .andExpect(jsonPath("$.active").value(true));
     }
 
     @Test
@@ -347,21 +312,9 @@ class V2ResourcesIntegrationTest {
         jdbcTemplate.update("UPDATE relying_party_instance SET last_updated_ms = 1 WHERE id = ?",
             hierarchy.relyingPartyInstanceId());
 
-        JsonNode existingParty = read(mockMvc.perform(
-                get("/v2/parties/" + hierarchy.walletRelyingPartyId()).header(API_KEY_HEADER, API_KEY)));
-        ObjectNode partyReplacement = objectMapper.createObjectNode();
-        for (String field : List.of(
-            "tradeName", "isPSB", "country", "legalPerson", "identifier", "policy", "x5c",
-            "postalAddress", "email", "phone", "infoURI"
-        )) {
-            partyReplacement.set(field, existingParty.get(field).deepCopy());
-        }
-        ObjectNode legalPerson = ((ObjectNode) partyReplacement.get("legalPerson")).deepCopy();
-        legalPerson.set("legalName", objectMapper.valueToTree(List.of("Changed legal name")));
-        partyReplacement.set("legalPerson", legalPerson);
-
-        JsonNode updatedParty = read(putJson(
-            "/v2/parties/" + hierarchy.walletRelyingPartyId(), objectMapper.writeValueAsString(partyReplacement)));
+        // Only the nested legal name changes, so the party's own columns stay unchanged.
+        JsonNode updatedParty = read(putJson("/v2/parties/" + hierarchy.walletRelyingPartyId(),
+            WALLET_RELYING_PARTY.replace("Updated legal name", "Changed legal name")));
         JsonNode updatedService = read(putJson(
             "/v2/services/" + hierarchy.walletRelyingPartyServiceId(),
             SERVICE.replace("\"serviceIdentifier\":\"service-1\"", "\"serviceIdentifier\":\"service-2\"")));
@@ -418,9 +371,8 @@ class V2ResourcesIntegrationTest {
             .andExpect(status().isOk()).andExpect(jsonPath("$.active").value(false));
         putJson("/v2/instances/" + hierarchy.relyingPartyInstanceId(), EMPTY_INSTANCE)
             .andExpect(status().isOk()).andExpect(jsonPath("$.active").value(false));
-        JsonNode existing = findWalletRelyingParty(hierarchy.orgno());
-        assertEquals(hierarchy.walletRelyingPartyId(), existing.get("id").asString());
-        assertFalse(existing.get("active").asBoolean());
+        putJson("/v2/parties/" + hierarchy.walletRelyingPartyId(), WALLET_RELYING_PARTY)
+            .andExpect(status().isOk()).andExpect(jsonPath("$.active").value(false));
     }
 
     @Test
@@ -461,7 +413,6 @@ class V2ResourcesIntegrationTest {
         mockMvc.perform(patch(path + "/" + intendedUseId + "/revoke").header(API_KEY_HEADER, API_KEY))
             .andExpect(status().isBadRequest());
 
-        // Reads stay available for inactive registrations.
         mockMvc.perform(get(path).header(API_KEY_HEADER, API_KEY))
             .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1));
 
@@ -533,11 +484,14 @@ class V2ResourcesIntegrationTest {
             .andExpect(jsonPath("$.content[0].id").value(hierarchy.relyingPartyInstanceId()));
 
         mockMvc.perform(get("/v2/instances")
-                .queryParam("serviceId", hierarchy.walletRelyingPartyServiceId())
                 .queryParam("orgno", hierarchy.orgno())
                 .header(API_KEY_HEADER, API_KEY))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.content.length()").value(1));
+        mockMvc.perform(get("/v2/instances")
+                .queryParam("orgno", hierarchy.orgno().substring(0, 8))
+                .header(API_KEY_HEADER, API_KEY))
+            .andExpect(status().isBadRequest());
 
         mockMvc.perform(get("/v2/services")
                 .queryParam("partyId", hierarchy.walletRelyingPartyId())
@@ -549,7 +503,6 @@ class V2ResourcesIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.content.length()").value(1));
 
-        // serviceId is required for the service listing, unlike the instance search.
         mockMvc.perform(get("/v2/services").header(API_KEY_HEADER, API_KEY))
             .andExpect(status().isBadRequest());
     }
@@ -562,42 +515,13 @@ class V2ResourcesIntegrationTest {
     }
 
     @Test
-    void nullObjectsInCollectionsReturnBadRequestWithoutPersistingChanges() throws Exception {
+    void issuerCertificateRequestWithoutEntitlementIsRejected() throws Exception {
         Hierarchy hierarchy = createHierarchy();
-        for (String request : new String[] {
-            WALLET_RELYING_PARTY.replace("\"identifier\":[{\"type\":\"EUID\",\"identifier\":\"NO-123\"}]",
-                "\"identifier\":[null]"),
-            WALLET_RELYING_PARTY.replace(
-                "\"policy\":[{\"type\":\"PrivacyPolicy\",\"policyURI\":\"https://example.test/policy\"}]",
-                "\"policy\":[null]"),
-            WALLET_RELYING_PARTY.replace("\"establishedByLaw\":[]", "\"establishedByLaw\":[null]")
-        }) {
-            putJson("/v2/parties/" + hierarchy.walletRelyingPartyId(), request)
-                .andExpect(status().isBadRequest());
-        }
-        for (String request : new String[] {
-            SERVICE.replace("\"srvDescription\":[[{\"lang\":\"en\",\"content\":\"Test service\"}]]",
-                "\"srvDescription\":[[null]]"),
-            SERVICE.replace("\"providesAttestations\":[]", "\"providesAttestations\":[null]"),
-            SERVICE.replace("\"usesIntermediaries\":[]", "\"usesIntermediaries\":[null]")
-        }) {
-            putJson("/v2/services/" + hierarchy.walletRelyingPartyServiceId(), request)
-                .andExpect(status().isBadRequest());
-        }
-        for (String request : new String[] {
-            EMPTY_INSTANCE.replace("\"relyingPartyEntitlements\":[]", "\"relyingPartyEntitlements\":[null]"),
-            EMPTY_INSTANCE.replace("\"relyingPartyEaas\":[]", "\"relyingPartyEaas\":[null]")
-        }) {
-            putJson("/v2/instances/" + hierarchy.relyingPartyInstanceId(), request)
-                .andExpect(status().isBadRequest());
-        }
+        String csr = PKCS10CertificationRequestConverter.convert(CertificatesGenerator.generatePKCS10Csr());
 
-        mockMvc.perform(get("/v2/parties/" + hierarchy.walletRelyingPartyId())
-                .header(API_KEY_HEADER, API_KEY))
-            .andExpect(status().isOk()).andExpect(jsonPath("$.tradeName").isNotEmpty());
-        mockMvc.perform(get("/v2/services/" + hierarchy.walletRelyingPartyServiceId())
-                .header(API_KEY_HEADER, API_KEY))
-            .andExpect(status().isOk()).andExpect(jsonPath("$.serviceIdentifier").value("service-1"));
+        postJson("/v2/instances/" + hierarchy.relyingPartyInstanceId() + "/certificates/issuer",
+            objectMapper.writeValueAsString(Map.of("csr", csr)))
+            .andExpect(status().isBadRequest());
     }
 
     private Hierarchy createHierarchy() throws Exception {

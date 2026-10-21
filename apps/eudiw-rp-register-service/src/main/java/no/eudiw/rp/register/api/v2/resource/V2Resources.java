@@ -306,7 +306,7 @@ public final class V2Resources {
         @JsonSerialize(using = PKCS10CertificationRequestJsonSerializer.class)
         @JsonDeserialize(using = PKCS10CertificationRequestJsonDeserializer.class)
         PKCS10CertificationRequest csr,
-        String entitlement
+        @JsonProperty(required = true) @NotBlank String entitlement
     ) { }
 
     private static boolean hasText(String value) {

@@ -15,10 +15,10 @@ import no.eudiw.rp.register.exception.NotFoundException;
 import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.repository.WalletRelyingPartyServiceRepository;
-import no.eudiw.rp.register.service.WalletRelyingPartyLookupService;
 import no.eudiw.rp.register.service.EntitlementService;
 import no.eudiw.rp.register.service.RelyingPartyCertificateService;
 import no.eudiw.rp.register.service.RelyingPartyService;
+import no.eudiw.rp.register.service.WalletRelyingPartyLookupService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -119,6 +119,7 @@ public class V2ApiService {
         if (partyId == null) {
             throw new BadRequestException("partyId is required");
         }
+
         Page<WalletRelyingPartyService> walletRelyingPartyServices =
             walletRelyingPartyServiceRepository.findAllByWalletRelyingParty_Id(
             partyId, pageRequest(
@@ -270,6 +271,7 @@ public class V2ApiService {
         if (intendedUse.getRevokedAt() != null) {
             throw new BadRequestException("IntendedUse is already revoked");
         }
+
         intendedUse.setRevokedAt(LocalDate.now(ZoneOffset.UTC).toString());
         walletRelyingPartyServiceRepository.flush();
         return v2ContractMapper.toIntendedUseResource(intendedUse);
@@ -374,15 +376,16 @@ public class V2ApiService {
 
     private PageRequest pageRequest(
         int page,
-        int requestedPageSize,
+        int pageSize,
         String sort,
         String defaultSort,
         Set<String> allowedSorts
     ) {
-        if (page < 0 || requestedPageSize < 1 || requestedPageSize > MAX_PAGE_SIZE) {
-            throw new BadRequestException("page must be non-negative and pageSize must be between 1 and 100");
+        if (page < 0 || pageSize < 1 || pageSize > MAX_PAGE_SIZE) {
+            throw new BadRequestException(
+                "page must be non-negative and pageSize must be between 1 and " + MAX_PAGE_SIZE);
         }
-        int pageSize = requestedPageSize;
+
         String sortProperty = sort == null ? defaultSort : sort;
         if (!allowedSorts.contains(sortProperty)) {
             throw new BadRequestException("Unsupported sort key");

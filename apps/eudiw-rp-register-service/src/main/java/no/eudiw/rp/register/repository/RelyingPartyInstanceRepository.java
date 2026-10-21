@@ -17,8 +17,6 @@ public interface RelyingPartyInstanceRepository
 
     Optional<RelyingPartyInstance> findByIdAndActiveTrue(UUID id);
 
-    Page<RelyingPartyInstance> findAllByWalletRelyingPartyService_Id(UUID serviceId, Pageable pageable);
-
     @Query("""
         SELECT DISTINCT instance
         FROM RelyingPartyInstance instance

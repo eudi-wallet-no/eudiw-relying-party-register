@@ -1,57 +1,29 @@
-# Registration status (V2)
+# Deactivation and reactivation (V2)
 
-`WalletRelyingParty`, `WalletRelyingPartyService` and `RelyingPartyInstance`
-resources can be deactivated without deleting their data. All operations
-require the existing `X-API-KEY` header and return `204 No Content` on success.
+Deactivation prevents new registrations and certificate issuance without
+deleting the registration, its relationships or its history. This applies to
+`WalletRelyingParty`, `WalletRelyingPartyService` and `RelyingPartyInstance`.
+V2 does not offer physical deletion.
 
-| Domain resource | Deactivate (`PATCH`) | Reactivate (`PATCH`) |
-| --- | --- | --- |
-| `WalletRelyingParty` | `/v2/parties/{id}/deactivate` | `/v2/parties/{id}/activate` |
-| `WalletRelyingPartyService` | `/v2/services/{id}/deactivate` | `/v2/services/{id}/activate` |
-| `RelyingPartyInstance` | `/v2/instances/{id}/deactivate` | `/v2/instances/{id}/activate` |
+Deactivating a `WalletRelyingParty` also deactivates its services and instances.
+Deactivating a service deactivates its instances. Reactivation only affects the
+selected resource, preventing descendants from being unintentionally brought
+back into use. Reactivating a service requires an active `WalletRelyingParty`;
+reactivating an instance requires both an active service and an active
+`WalletRelyingParty`.
 
-Deactivating a `WalletRelyingParty` deactivates all associated
-`WalletRelyingPartyService` and `RelyingPartyInstance` resources. Deactivating a
-`WalletRelyingPartyService` deactivates all associated `RelyingPartyInstance` resources.
-Reactivation only changes the selected resource; its descendants remain inactive
-until explicitly reactivated. Reactivating a child requires active ancestors
-(`400` otherwise). Unknown resource identifiers return `404`. V2 does not expose
-physical deletion.
+Existing data can still be read and edited while the registration is inactive.
+Updating a resource does not reactivate it. New services, instances and
+`IntendedUse` snapshots cannot be created under inactive parents; existing
+snapshots cannot be replaced or revoked there either.
 
-Hierarchy writes acquire a database write lock on the owning
-`WalletRelyingParty` before reading registration state, including V1 creation,
-update and deletion. Writes within one `WalletRelyingParty` are serialized;
-unrelated `WalletRelyingParty` resources can still be changed concurrently.
-These transactions use `READ_COMMITTED` so reads after waiting for the lock see
-the preceding writer's committed state, not an earlier repeatable-read snapshot.
+Deactivation does not revoke certificates. Existing certificates and their
+revocation status are preserved, and certificates can still be retrieved and
+explicitly revoked through the Certificate Authority. Issuing new access or
+issuer certificates requires the entire registration hierarchy to be active.
 
-Certificates and their revocation status are preserved when a resource is
-deactivated. New access and issuer certificate requests through the existing V1
-API return `404` if the `RelyingPartyInstance`, its
-`WalletRelyingPartyService`, or its `WalletRelyingParty` is inactive. Certificate
-retrieval and explicit revocation operations remain available for inactive
-registrations. Revocation still uses the existing Certificate Authority flow
-and only updates the local status after the Certificate Authority confirms it.
-Issuance takes the same `WalletRelyingParty` lock as hierarchy writes before checking
-registration state or contacting the Certificate Authority.
-
-V1 request/response formats and physical deletion remain unchanged. The V1
-`RelyingPartyInstance` update operation cannot reactivate a
-`RelyingPartyInstance` under an
-inactive `WalletRelyingParty` or `WalletRelyingPartyService`. The V27 migration
-adds the `WalletRelyingPartyService` `active` column with a default of `TRUE`,
-and deactivates existing descendants of inactive `WalletRelyingParty` resources
-without changing certificates.
-
-Creating and replacing `IntendedUse` snapshots follows the same rule as the other
-hierarchy writes: it is rejected with `400` while the owning
-`WalletRelyingPartyService` or its `WalletRelyingParty` is inactive. Reading
-existing snapshots remains available.
-
-## V2 request parameters
-
-Collection endpoints page with `page` (default `0`) and `pageSize` (default `25`,
-maximum `100`), and accept `sort` with the keys documented per endpoint. Values
-outside those bounds, or an unsupported `sort` key, return `400`. A missing
-required parameter, such as `partyId` on `GET /v2/services`, also returns `400`
-rather than `500`.
+Change status with `PATCH /v2/{parties,services,instances}/{id}/deactivate` or
+`/activate`. These operations require `X-API-KEY` and return `204` on success,
+`404` for an unknown resource and `400` when attempting reactivation under
+inactive parents. V1 retains physical deletion but cannot reactivate instances
+under inactive parents.

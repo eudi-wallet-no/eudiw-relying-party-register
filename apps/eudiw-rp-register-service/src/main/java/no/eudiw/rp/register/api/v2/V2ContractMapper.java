@@ -25,8 +25,11 @@ import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
 import no.eudiw.rp.register.exception.BadRequestException;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -65,7 +68,7 @@ public class V2ContractMapper {
             walletRelyingParty.getLastUpdatedMs(),
             walletRelyingParty.getServices().stream().map(WalletRelyingPartyService::getId).toList(),
             toSupervisoryAuthorityResource(),
-            registryProperties.requireRegistryUri()
+            registryProperties.registryUri()
         );
     }
 
@@ -195,7 +198,7 @@ public class V2ContractMapper {
         if (resources == null) {
             throw new BadRequestException("Entitlements should be empty if none exists");
         }
-        if (resources.stream().anyMatch(java.util.Objects::isNull)) {
+        if (resources.stream().anyMatch(Objects::isNull)) {
             throw new BadRequestException("RelyingPartyInstance entitlements must not contain null");
         }
         long distinctEntitlements = resources.stream()
@@ -217,7 +220,7 @@ public class V2ContractMapper {
     }
 
     public IntendedUse toDomainIntendedUse(V2Resources.CreateIntendedUseResource resource) {
-        return toDomainIntendedUse(resource, java.time.LocalDate.now(java.time.ZoneOffset.UTC).toString());
+        return toDomainIntendedUse(resource, LocalDate.now(ZoneOffset.UTC).toString());
     }
 
     public IntendedUse toDomainIntendedUse(
@@ -309,7 +312,7 @@ public class V2ContractMapper {
             }
             boolean unchanged = resource.relyingPartyEntitlements().stream()
                 .anyMatch(item -> item.entitlement().equals(existing.getEntitlement())
-                    && java.util.Objects.equals(item.credentialIssuerUrl(), existing.getCredentialIssuerUrl()));
+                    && Objects.equals(item.credentialIssuerUrl(), existing.getCredentialIssuerUrl()));
             if (!unchanged) {
                 throw new BadRequestException(
                     "An entitlement with issuer certificates cannot be removed or changed");

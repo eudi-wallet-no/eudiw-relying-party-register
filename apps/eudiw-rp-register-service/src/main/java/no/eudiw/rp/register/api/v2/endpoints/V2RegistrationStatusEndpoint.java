@@ -39,9 +39,7 @@ public class V2RegistrationStatusEndpoint {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(
-        summary = "Reactivate a WalletRelyingParty"
-    )
+    @Operation(summary = "Reactivate a WalletRelyingParty")
     @Audit(auditId = AUDIT_WALLET_RELYING_PARTY_ACTIVATED)
     @PatchMapping("/parties/{id}/activate")
     public ResponseEntity<Void> activateWalletRelyingParty(@PathVariable("id") UUID walletRelyingPartyId) {

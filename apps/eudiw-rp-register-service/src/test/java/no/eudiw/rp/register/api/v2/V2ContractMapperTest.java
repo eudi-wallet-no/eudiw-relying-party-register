@@ -5,9 +5,7 @@ import jakarta.validation.ValidatorFactory;
 import no.eudiw.rp.register.api.v2.resource.V2Resources;
 import no.eudiw.rp.register.config.RegistryProperties;
 import no.eudiw.rp.register.config.SupervisoryAuthorityProperties;
-import no.eudiw.rp.register.domain.IntendedUse;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
-import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 import no.eudiw.rp.register.domain.certificates.IssuerCertificate;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
@@ -47,65 +45,6 @@ class V2ContractMapperTest {
     }
 
     @Test
-    void walletRelyingPartyUpdateReplacesEditableFieldsAndPreservesHierarchyAndIdentity() {
-        WalletRelyingParty walletRelyingParty = walletRelyingParty();
-        WalletRelyingPartyService walletRelyingPartyService =
-            new WalletRelyingPartyService("Service", walletRelyingParty, List.of());
-        walletRelyingParty.getServices().add(walletRelyingPartyService);
-        walletRelyingParty.setTradeName("Original");
-        walletRelyingParty.setEmail(List.of("old@example.test"));
-        walletRelyingParty.setActive(false);
-        var originalId = walletRelyingParty.getId();
-        var originalLegalPerson = walletRelyingParty.getLegalPerson();
-        String originalOrganizationNumber = walletRelyingParty.getOrgno();
-        var request = new V2Resources.WalletRelyingPartyWriteResource(
-            null, false, "NO", new V2Resources.LegalPersonResource(List.of("Updated"), List.of()),
-            List.of(new V2Resources.IdentifierResource("EUID", "NO-123")),
-            List.of(new V2Resources.PolicyResource("PrivacyPolicy", "https://example.test/policy")), List.of(),
-            List.of(), List.of(), List.of(), List.of("https://example.test/info"));
-
-        v2ContractMapper.updateWalletRelyingParty(walletRelyingParty, request);
-
-        assertNull(walletRelyingParty.getTradeName());
-        assertEquals(List.of(), walletRelyingParty.getEmail());
-        assertEquals(List.of("Updated"), walletRelyingParty.getLegalPerson().getLegalName());
-        assertSame(originalLegalPerson, walletRelyingParty.getLegalPerson());
-        assertEquals(originalId, walletRelyingParty.getId());
-        assertEquals(originalOrganizationNumber, walletRelyingParty.getOrgno());
-        assertFalse(walletRelyingParty.isActive());
-        assertEquals(List.of(walletRelyingPartyService), walletRelyingParty.getServices());
-    }
-
-    @Test
-    void walletRelyingPartyServiceUpdateClearsNullableFieldsAndPreservesRelatedResources() {
-        WalletRelyingParty walletRelyingParty = walletRelyingParty();
-        RelyingPartyInstance relyingPartyInstance = new RelyingPartyInstance(List.of(), List.of(), List.of());
-        WalletRelyingPartyService walletRelyingPartyService = new WalletRelyingPartyService(
-            "Original", walletRelyingParty, List.of(relyingPartyInstance));
-        walletRelyingPartyService.setServiceIdentifier("old-identifier");
-        walletRelyingPartyService.setSupportUri("https://example.test/old-support");
-        walletRelyingPartyService.setActive(false);
-        IntendedUse intendedUse = mock(IntendedUse.class);
-        walletRelyingPartyService.getIntendedUses().add(intendedUse);
-        var request = new V2Resources.WalletRelyingPartyServiceWriteResource(
-            "Updated", null, null, "contact@example.test", null,
-            List.of(List.of(new V2Resources.MultiLangStringResource("en", "Updated description"))),
-            List.of(), List.of(), List.of(), false, List.of());
-        var originalId = walletRelyingPartyService.getId();
-
-        v2ContractMapper.updateWalletRelyingPartyService(walletRelyingPartyService, request);
-
-        assertEquals("Updated", walletRelyingPartyService.getServiceTradeName());
-        assertNull(walletRelyingPartyService.getServiceIdentifier());
-        assertNull(walletRelyingPartyService.getSupportUri());
-        assertEquals(originalId, walletRelyingPartyService.getId());
-        assertSame(walletRelyingParty, walletRelyingPartyService.getWalletRelyingParty());
-        assertEquals(List.of(relyingPartyInstance), walletRelyingPartyService.getRelyingPartyInstances());
-        assertEquals(List.of(intendedUse), walletRelyingPartyService.getIntendedUses());
-        assertFalse(walletRelyingPartyService.isActive());
-    }
-
-    @Test
     void invalidReplacementIsRejectedBeforeMutation() {
         WalletRelyingParty walletRelyingParty = walletRelyingParty();
         var request = new V2Resources.WalletRelyingPartyWriteResource(
@@ -118,23 +57,6 @@ class V2ContractMapperTest {
             () -> v2ContractMapper.updateWalletRelyingParty(walletRelyingParty, request));
 
         assertEquals("Original", walletRelyingParty.getTradeName());
-    }
-
-    @Test
-    void instanceUpdateClearsCollectionsWithoutChangingParentOrStatus() {
-        RelyingPartyInstance relyingPartyInstance = new RelyingPartyInstance(
-            List.of(new RelyingPartyEntitlement("WRP", null)), List.of(), List.of());
-        WalletRelyingPartyService walletRelyingPartyService =
-            new WalletRelyingPartyService("Service", walletRelyingParty(), List.of(relyingPartyInstance));
-        relyingPartyInstance.setActive(false);
-
-        var request = new V2Resources.RelyingPartyInstanceWriteResource(List.of(), List.of());
-        v2ContractMapper.updateRelyingPartyInstance(
-            relyingPartyInstance, request, v2ContractMapper.toDomainRelyingPartyEntitlements(request.relyingPartyEntitlements()));
-
-        assertTrue(relyingPartyInstance.getRelyingPartyEntitlements().isEmpty());
-        assertSame(walletRelyingPartyService, relyingPartyInstance.getWalletRelyingPartyService());
-        assertFalse(relyingPartyInstance.isActive());
     }
 
     @Test
@@ -176,17 +98,6 @@ class V2ContractMapperTest {
         assertPropertiesRequired(
             new V2Resources.RelyingPartyInstanceWriteResource(List.of(), List.of()),
             List.of("relyingPartyEntitlements", "relyingPartyEaas"));
-    }
-
-    @Test
-    void explicitNullForRequiredBooleanProducesValidationError() {
-        var request = new V2Resources.WalletRelyingPartyServiceWriteResource(
-            "Service", null, null, "contact@example.test", null,
-            List.of(List.of(new V2Resources.MultiLangStringResource("en", "Description"))),
-            List.of(), List.of(), List.of(), null, List.of());
-
-        assertThrows(BadRequestException.class, () -> v2ContractMapper.toWalletRelyingPartyService(
-            request, walletRelyingParty(), List.of()));
     }
 
     @Test

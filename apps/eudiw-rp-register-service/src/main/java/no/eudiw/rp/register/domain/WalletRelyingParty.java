@@ -148,12 +148,12 @@ public class WalletRelyingParty extends BaseEntity {
        return legalPerson.getLegalName().getFirst();
     }
 
+    // for JPA instantiation.
+    protected WalletRelyingParty() { }
+
     public void setUpdated() {
         this.lastUpdatedMs = Instant.now().toEpochMilli();
     }
-
-    // for JPA instantiation.
-    protected WalletRelyingParty() { }
 
     @PrePersist
     protected void onPrePersist() {

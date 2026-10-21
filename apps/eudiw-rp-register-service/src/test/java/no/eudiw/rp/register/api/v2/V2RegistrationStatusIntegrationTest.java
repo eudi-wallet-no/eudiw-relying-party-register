@@ -466,5 +466,4 @@ class V2RegistrationStatusIntegrationTest {
         ACCESS,
         ISSUER
     }
-
 }

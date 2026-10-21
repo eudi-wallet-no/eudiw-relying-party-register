@@ -86,7 +86,6 @@ digdir:
       environment-name: ${spring.application.environment}
 
 eudiw-rp-register-service:
-  # Public registry URL advertised in WalletRelyingParty resources; never set this to the internal /v2 API.
   registry-uri: ${REGISTRY_URI:}
   supervisory-authority:
     name: Datatilsynet
