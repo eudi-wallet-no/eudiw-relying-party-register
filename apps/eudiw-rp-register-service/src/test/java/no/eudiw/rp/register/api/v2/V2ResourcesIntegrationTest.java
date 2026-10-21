@@ -446,6 +446,115 @@ class V2ResourcesIntegrationTest {
     }
 
     @Test
+    void intendedUseOperationsAreRejectedForInactiveAncestors() throws Exception {
+        Hierarchy hierarchy = createHierarchy();
+        String path = "/v2/services/" + hierarchy.walletRelyingPartyServiceId() + "/intended-uses";
+        JsonNode intendedUse = read(postJson(path, INTENDED_USE));
+        String intendedUseId = intendedUse.get("id").asString();
+
+        mockMvc.perform(patch("/v2/services/" + hierarchy.walletRelyingPartyServiceId() + "/deactivate")
+                .header(API_KEY_HEADER, API_KEY))
+            .andExpect(status().isNoContent());
+
+        postJson(path, INTENDED_USE).andExpect(status().isBadRequest());
+        postJson(path + "/" + intendedUseId + "/replace", INTENDED_USE).andExpect(status().isBadRequest());
+        mockMvc.perform(patch(path + "/" + intendedUseId + "/revoke").header(API_KEY_HEADER, API_KEY))
+            .andExpect(status().isBadRequest());
+
+        // Reads stay available for inactive registrations.
+        mockMvc.perform(get(path).header(API_KEY_HEADER, API_KEY))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1));
+
+        mockMvc.perform(patch("/v2/services/" + hierarchy.walletRelyingPartyServiceId() + "/activate")
+                .header(API_KEY_HEADER, API_KEY))
+            .andExpect(status().isNoContent());
+        mockMvc.perform(patch("/v2/parties/" + hierarchy.walletRelyingPartyId() + "/deactivate")
+                .header(API_KEY_HEADER, API_KEY))
+            .andExpect(status().isNoContent());
+
+        postJson(path, INTENDED_USE).andExpect(status().isBadRequest());
+        mockMvc.perform(patch(path + "/" + intendedUseId + "/revoke").header(API_KEY_HEADER, API_KEY))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void revokedIntendedUseCannotBeRevokedAgainOrReplaced() throws Exception {
+        Hierarchy hierarchy = createHierarchy();
+        String path = "/v2/services/" + hierarchy.walletRelyingPartyServiceId() + "/intended-uses";
+        String intendedUseId = read(postJson(path, INTENDED_USE)).get("id").asString();
+
+        mockMvc.perform(patch(path + "/" + intendedUseId + "/revoke").header(API_KEY_HEADER, API_KEY))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.revokedAt").isNotEmpty());
+
+        mockMvc.perform(patch(path + "/" + intendedUseId + "/revoke").header(API_KEY_HEADER, API_KEY))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.error_description").value("IntendedUse is already revoked"));
+        postJson(path + "/" + intendedUseId + "/replace", INTENDED_USE).andExpect(status().isBadRequest());
+
+        postJson(path + "/" + UUID.randomUUID() + "/replace", INTENDED_USE).andExpect(status().isNotFound());
+        mockMvc.perform(patch(path + "/" + UUID.randomUUID() + "/revoke").header(API_KEY_HEADER, API_KEY))
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void pagingAndSortParametersAreValidated() throws Exception {
+        createHierarchy();
+
+        mockMvc.perform(get("/v2/parties").queryParam("page", "-1").header(API_KEY_HEADER, API_KEY))
+            .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/v2/parties").queryParam("pageSize", "0").header(API_KEY_HEADER, API_KEY))
+            .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/v2/parties").queryParam("pageSize", "101").header(API_KEY_HEADER, API_KEY))
+            .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/v2/parties").queryParam("sort", "unknownProperty").header(API_KEY_HEADER, API_KEY))
+            .andExpect(status().isBadRequest());
+
+        mockMvc.perform(get("/v2/parties").queryParam("pageSize", "100")
+                .header(API_KEY_HEADER, API_KEY))
+            .andExpect(status().isOk());
+        mockMvc.perform(get("/v2/parties").queryParam("sort", "tradeName")
+                .header(API_KEY_HEADER, API_KEY))
+            .andExpect(status().isOk());
+    }
+
+    @Test
+    void entitlementsAndInstanceSearchAreListed() throws Exception {
+        Hierarchy hierarchy = createHierarchy();
+
+        mockMvc.perform(get("/v2/entitlements").header(API_KEY_HEADER, API_KEY))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.entitlements").isArray());
+
+        mockMvc.perform(get("/v2/instances")
+                .queryParam("serviceId", hierarchy.walletRelyingPartyServiceId())
+                .header(API_KEY_HEADER, API_KEY))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content.length()").value(1))
+            .andExpect(jsonPath("$.content[0].id").value(hierarchy.relyingPartyInstanceId()));
+
+        mockMvc.perform(get("/v2/instances")
+                .queryParam("serviceId", hierarchy.walletRelyingPartyServiceId())
+                .queryParam("orgno", hierarchy.orgno())
+                .header(API_KEY_HEADER, API_KEY))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content.length()").value(1));
+
+        mockMvc.perform(get("/v2/services")
+                .queryParam("partyId", hierarchy.walletRelyingPartyId())
+                .header(API_KEY_HEADER, API_KEY))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content.length()").value(1));
+
+        mockMvc.perform(get("/v2/instances").header(API_KEY_HEADER, API_KEY))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content.length()").value(1));
+
+        // serviceId is required for the service listing, unlike the instance search.
+        mockMvc.perform(get("/v2/services").header(API_KEY_HEADER, API_KEY))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void completeUpdatesReturnNotFoundForUnknownResources() throws Exception {
         putJson("/v2/parties/" + UUID.randomUUID(), WALLET_RELYING_PARTY).andExpect(status().isNotFound());
         putJson("/v2/services/" + UUID.randomUUID(), SERVICE).andExpect(status().isNotFound());

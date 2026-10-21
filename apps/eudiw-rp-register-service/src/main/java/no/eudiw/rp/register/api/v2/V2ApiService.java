@@ -39,7 +39,6 @@ import java.util.UUID;
 @Transactional(isolation = Isolation.READ_COMMITTED)
 public class V2ApiService {
 
-    private static final int DEFAULT_PAGE_SIZE = 25;
     private static final int MAX_PAGE_SIZE = 100;
 
     private final WalletRelyingPartyRepository walletRelyingPartyRepository;
@@ -228,9 +227,7 @@ public class V2ApiService {
         UUID serviceId,
         V2Resources.CreateIntendedUseResource request
     ) {
-        walletRelyingPartyRepository.findByServiceIdForUpdate(serviceId)
-            .orElseThrow(() -> new NotFoundException("WalletRelyingPartyService not found"));
-        WalletRelyingPartyService walletRelyingPartyService = findWalletRelyingPartyService(serviceId);
+        WalletRelyingPartyService walletRelyingPartyService = findActiveWalletRelyingPartyServiceForUpdate(serviceId);
         IntendedUse intendedUse = v2ContractMapper.toDomainIntendedUse(request);
         intendedUse.setWalletRelyingPartyService(walletRelyingPartyService);
         walletRelyingPartyService.getIntendedUses().add(intendedUse);
@@ -243,9 +240,7 @@ public class V2ApiService {
         UUID previousIntendedUseId,
         V2Resources.CreateIntendedUseResource request
     ) {
-        walletRelyingPartyRepository.findByServiceIdForUpdate(serviceId)
-            .orElseThrow(() -> new NotFoundException("WalletRelyingPartyService not found"));
-        WalletRelyingPartyService walletRelyingPartyService = findWalletRelyingPartyService(serviceId);
+        WalletRelyingPartyService walletRelyingPartyService = findActiveWalletRelyingPartyServiceForUpdate(serviceId);
         IntendedUse previousIntendedUse = walletRelyingPartyService.getIntendedUses().stream()
             .filter(candidate -> previousIntendedUseId.equals(candidate.getId()))
             .findFirst()
@@ -267,9 +262,7 @@ public class V2ApiService {
     }
 
     public V2Resources.IntendedUseResource revokeIntendedUse(UUID serviceId, UUID intendedUseId) {
-        walletRelyingPartyRepository.findByServiceIdForUpdate(serviceId)
-            .orElseThrow(() -> new NotFoundException("WalletRelyingPartyService not found"));
-        WalletRelyingPartyService walletRelyingPartyService = findWalletRelyingPartyService(serviceId);
+        WalletRelyingPartyService walletRelyingPartyService = findActiveWalletRelyingPartyServiceForUpdate(serviceId);
         IntendedUse intendedUse = walletRelyingPartyService.getIntendedUses().stream()
             .filter(candidate -> intendedUseId.equals(candidate.getId()))
             .findFirst()
@@ -278,6 +271,7 @@ public class V2ApiService {
             throw new BadRequestException("IntendedUse is already revoked");
         }
         intendedUse.setRevokedAt(LocalDate.now(ZoneOffset.UTC).toString());
+        walletRelyingPartyServiceRepository.flush();
         return v2ContractMapper.toIntendedUseResource(intendedUse);
     }
 
@@ -348,6 +342,21 @@ public class V2ApiService {
             .orElseThrow(() -> new NotFoundException("WalletRelyingPartyService not found"));
     }
 
+    private WalletRelyingPartyService findActiveWalletRelyingPartyServiceForUpdate(UUID id) {
+        WalletRelyingParty walletRelyingParty = walletRelyingPartyRepository.findByServiceIdForUpdate(id)
+            .orElseThrow(() -> new NotFoundException("WalletRelyingPartyService not found"));
+        if (!walletRelyingParty.isActive()) {
+            throw new BadRequestException(
+                "Cannot change intended uses for an inactive WalletRelyingParty");
+        }
+        WalletRelyingPartyService walletRelyingPartyService = findWalletRelyingPartyService(id);
+        if (!walletRelyingPartyService.isActive()) {
+            throw new BadRequestException(
+                "Cannot change intended uses for an inactive WalletRelyingPartyService");
+        }
+        return walletRelyingPartyService;
+    }
+
     private RelyingPartyInstance findRelyingPartyInstance(UUID id) {
         return relyingPartyInstanceRepository.findById(id)
             .orElseThrow(() -> new NotFoundException("RelyingPartyInstance not found"));
@@ -370,10 +379,10 @@ public class V2ApiService {
         String defaultSort,
         Set<String> allowedSorts
     ) {
-        int pageSize = requestedPageSize == 0 ? DEFAULT_PAGE_SIZE : requestedPageSize;
-        if (page < 0 || pageSize < 1 || pageSize > MAX_PAGE_SIZE) {
+        if (page < 0 || requestedPageSize < 1 || requestedPageSize > MAX_PAGE_SIZE) {
             throw new BadRequestException("page must be non-negative and pageSize must be between 1 and 100");
         }
+        int pageSize = requestedPageSize;
         String sortProperty = sort == null ? defaultSort : sort;
         if (!allowedSorts.contains(sortProperty)) {
             throw new BadRequestException("Unsupported sort key");

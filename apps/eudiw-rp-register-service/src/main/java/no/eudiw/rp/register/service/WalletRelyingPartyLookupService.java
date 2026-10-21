@@ -31,7 +31,9 @@ public class WalletRelyingPartyLookupService {
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public WalletRelyingParty createWalletRelyingParty(String orgno) {
-        if (walletRelyingPartyRepository.existsByOrgno(orgno)) {
+        // Take the same orgno lock as getWalletRelyingPartyForOrgno so concurrent creates for the same
+        // organization number serialize here instead of failing on the unique constraint.
+        if (walletRelyingPartyRepository.findByOrgnoForUpdate(orgno).isPresent()) {
             throw new AlreadyExistsException("WalletRelyingParty already exists for organization number");
         }
 

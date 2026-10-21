@@ -42,3 +42,16 @@ inactive `WalletRelyingParty` or `WalletRelyingPartyService`. The V27 migration
 adds the `WalletRelyingPartyService` `active` column with a default of `TRUE`,
 and deactivates existing descendants of inactive `WalletRelyingParty` resources
 without changing certificates.
+
+Creating and replacing `IntendedUse` snapshots follows the same rule as the other
+hierarchy writes: it is rejected with `400` while the owning
+`WalletRelyingPartyService` or its `WalletRelyingParty` is inactive. Reading
+existing snapshots remains available.
+
+## V2 request parameters
+
+Collection endpoints page with `page` (default `0`) and `pageSize` (default `25`,
+maximum `100`), and accept `sort` with the keys documented per endpoint. Values
+outside those bounds, or an unsupported `sort` key, return `400`. A missing
+required parameter, such as `partyId` on `GET /v2/services`, also returns `400`
+rather than `500`.

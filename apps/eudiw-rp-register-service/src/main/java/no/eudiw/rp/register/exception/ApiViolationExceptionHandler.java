@@ -11,6 +11,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.Objects;
@@ -50,6 +51,12 @@ public class ApiViolationExceptionHandler {
     public ResponseEntity<ErrorResponseResource> handleMethodArgumentTypeMismatchException(
         MethodArgumentTypeMismatchException e) {
         return apiViolationErrorResponse("HTTP request parameter type error", e);
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ErrorResponseResource> handleMissingServletRequestParameterException(
+        MissingServletRequestParameterException e) {
+        return apiViolationErrorResponse("Missing required request parameter: " + e.getParameterName(), e);
     }
 
     private ResponseEntity<ErrorResponseResource> apiViolationErrorResponse(String errorDescription, Exception e) {
