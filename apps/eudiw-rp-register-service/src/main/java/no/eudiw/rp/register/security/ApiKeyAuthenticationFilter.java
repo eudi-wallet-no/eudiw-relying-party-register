@@ -5,6 +5,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,11 +26,13 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
 
     private final ApiKeySecurityProperties apiKeySecurityProperties;
     private final List<PathPatternRequestMatcher> excludeMatchers;
+    private final List<PathPatternRequestMatcher> publicGetMatchers;
 
     public ApiKeyAuthenticationFilter(ApiKeySecurityProperties apiKeySecurityProperties, String... excludePaths) {
         super();
         this.apiKeySecurityProperties = apiKeySecurityProperties;
         this.excludeMatchers = createMatchers(excludePaths);
+        this.publicGetMatchers = createMatchers(apiKeySecurityProperties.publicGetPaths());
     }
 
     private List<PathPatternRequestMatcher> createMatchers(String... paths) {
@@ -39,8 +42,14 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if (excludeMatchers.stream().anyMatch(matcher -> matcher.matches(request))) {
+    protected void doFilterInternal(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        FilterChain filterChain
+    ) throws ServletException, IOException {
+        if (excludeMatchers.stream().anyMatch(matcher -> matcher.matches(request))
+            || (HttpMethod.GET.matches(request.getMethod())
+                && publicGetMatchers.stream().anyMatch(matcher -> matcher.matches(request)))) {
             filterChain.doFilter(request, response);
             return;
         }

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -15,6 +16,13 @@ public interface WalletRelyingPartyRepository
     extends JpaRepository<WalletRelyingParty, UUID> {
 
     Optional<WalletRelyingParty> findByOrgno(String orgno);
+
+    @Query(value = """
+        SELECT party.* FROM wallet_relying_party party
+        WHERE party.orgno = :identifier
+           OR JSON_CONTAINS(party.identifier, JSON_OBJECT('identifier', :identifier), '$')
+        """, nativeQuery = true)
+    List<WalletRelyingParty> findAllByRegisteredIdentifier(String identifier);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT party FROM WalletRelyingParty party WHERE party.orgno = :orgno")

@@ -11,6 +11,15 @@ EUDIW Relying Party Register
 - Maven
 - Docker
 
+## WRP API signing configuration
+
+The public `/wrp/{identifier}` endpoint signs its response using the configured
+registry key. Set `WRP_ISSUER`, `WRP_REGISTRY_URI`, `WRP_JWKS_URL`,
+`WRP_SIGNING_KEYSTORE`, `WRP_SIGNING_KEYSTORE_TYPE`,
+`WRP_SIGNING_KEYSTORE_PASSWORD`, `WRP_SIGNING_KEY_ALIAS`, and
+`WRP_SIGNING_KEY_PASSWORD` in the service environment. Keep keystore material
+and passwords in the external secrets configuration, not in the repository.
+
 > [!WARNING]
 > Access to Digitaliseringsdirektoratet infrastructure is required to run the application.
 

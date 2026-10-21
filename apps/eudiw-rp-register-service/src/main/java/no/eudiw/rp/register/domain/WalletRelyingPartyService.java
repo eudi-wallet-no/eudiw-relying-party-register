@@ -155,6 +155,10 @@ public class WalletRelyingPartyService extends BaseEntity {
         return List.copyOf(servedWRPServices);
     }
 
+    public boolean isIntermediary() {
+        return isIntermediary;
+    }
+
     public void setIntendedUses(List<IntendedUse> intendedUses) {
         List<IntendedUse> intendedUsesCopy = intendedUses == null ? List.of() : new ArrayList<>(intendedUses);
         this.intendedUses.clear();
