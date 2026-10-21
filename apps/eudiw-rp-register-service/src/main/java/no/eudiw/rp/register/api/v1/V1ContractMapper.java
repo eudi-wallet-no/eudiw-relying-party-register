@@ -35,7 +35,7 @@ public class V1ContractMapper {
             walletRelyingParty.getOrgno(),
             walletRelyingParty.getName(),
             walletService.getServiceTradeName(),
-            walletRelyingParty.isPsb(),
+            walletRelyingParty.isPSB(),
             instance.getRelyingPartyEntitlements().stream()
                 .map(this::toV1RelyingPartyEntitlementResource).toList(),
             instance.getRelyingPartyEaas().stream().map(this::toV1RelyingPartyEaaResource).toList(),

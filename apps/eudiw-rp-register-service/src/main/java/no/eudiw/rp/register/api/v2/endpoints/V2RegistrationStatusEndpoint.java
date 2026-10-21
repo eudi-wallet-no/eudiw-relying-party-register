@@ -13,7 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
-@Tag(name = "registration-status-api", description = "Activate or deactivate V2 registrations")
+@Tag(
+    name = "registration-status-api",
+    description = "Registration status operations"
+)
 @RestController
 @RequestMapping("/v2")
 @RequiredArgsConstructor
@@ -28,7 +31,7 @@ public class V2RegistrationStatusEndpoint {
 
     private final RelyingPartyService relyingPartyService;
 
-    @Operation(summary = "Deactivate a party and its services and instances")
+    @Operation(summary = "Deactivate a WalletRelyingParty and descendants")
     @Audit(auditId = AUDIT_WALLET_RELYING_PARTY_DEACTIVATED)
     @PatchMapping("/parties/{id}/deactivate")
     public ResponseEntity<Void> deactivateWalletRelyingParty(@PathVariable("id") UUID walletRelyingPartyId) {
@@ -36,7 +39,9 @@ public class V2RegistrationStatusEndpoint {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Reactivate a party without reactivating its services or instances")
+    @Operation(
+        summary = "Reactivate a WalletRelyingParty"
+    )
     @Audit(auditId = AUDIT_WALLET_RELYING_PARTY_ACTIVATED)
     @PatchMapping("/parties/{id}/activate")
     public ResponseEntity<Void> activateWalletRelyingParty(@PathVariable("id") UUID walletRelyingPartyId) {
@@ -44,7 +49,7 @@ public class V2RegistrationStatusEndpoint {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Deactivate a service and its instances")
+    @Operation(summary = "Deactivate a WalletRelyingPartyService and its instances")
     @Audit(auditId = AUDIT_WALLET_RELYING_PARTY_SERVICE_DEACTIVATED)
     @PatchMapping("/services/{id}/deactivate")
     public ResponseEntity<Void> deactivateWalletRelyingPartyService(
@@ -54,7 +59,7 @@ public class V2RegistrationStatusEndpoint {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Reactivate a service without reactivating its instances")
+    @Operation(summary = "Reactivate a WalletRelyingPartyService")
     @Audit(auditId = AUDIT_WALLET_RELYING_PARTY_SERVICE_ACTIVATED)
     @PatchMapping("/services/{id}/activate")
     public ResponseEntity<Void> activateWalletRelyingPartyService(
@@ -64,7 +69,7 @@ public class V2RegistrationStatusEndpoint {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Deactivate an instance")
+    @Operation(summary = "Deactivate a RelyingPartyInstance")
     @Audit(auditId = AUDIT_RELYING_PARTY_INSTANCE_DEACTIVATED)
     @PatchMapping("/instances/{id}/deactivate")
     public ResponseEntity<Void> deactivateRelyingPartyInstance(@PathVariable("id") UUID relyingPartyInstanceId) {
@@ -72,7 +77,7 @@ public class V2RegistrationStatusEndpoint {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Reactivate an instance")
+    @Operation(summary = "Reactivate a RelyingPartyInstance")
     @Audit(auditId = AUDIT_RELYING_PARTY_INSTANCE_ACTIVATED)
     @PatchMapping("/instances/{id}/activate")
     public ResponseEntity<Void> activateRelyingPartyInstance(@PathVariable("id") UUID relyingPartyInstanceId) {

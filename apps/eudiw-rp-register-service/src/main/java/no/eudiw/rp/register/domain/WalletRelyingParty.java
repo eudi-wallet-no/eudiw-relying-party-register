@@ -25,7 +25,7 @@ public class WalletRelyingParty extends BaseEntity {
     private String orgno;
 
     @Column(name = "is_psb", nullable = false)
-    private boolean isPsb;
+    private boolean isPSB;
 
     @Column(name = "trade_name")
     private String tradeName;
@@ -117,12 +117,12 @@ public class WalletRelyingParty extends BaseEntity {
     public WalletRelyingParty(
         String name,
         String orgno,
-        boolean isPsb,
+        boolean isPSB,
         List<WalletRelyingPartyService> services
     ) {
         this.tradeName = name;
         this.orgno = orgno;
-        this.isPsb = isPsb;
+        this.isPSB = isPSB;
         this.setServices(services);
         this.setLegalPerson(new LegalPerson(List.of(name), List.of()));
     }
@@ -148,6 +148,10 @@ public class WalletRelyingParty extends BaseEntity {
        return legalPerson.getLegalName().getFirst();
     }
 
+    public void setUpdated() {
+        this.lastUpdatedMs = Instant.now().toEpochMilli();
+    }
+
     // for JPA instantiation.
     protected WalletRelyingParty() { }
 
@@ -158,6 +162,6 @@ public class WalletRelyingParty extends BaseEntity {
 
     @PreUpdate
     protected void onPreUpdate() {
-        this.lastUpdatedMs = Instant.now().toEpochMilli();
+        setUpdated();
     }
 }

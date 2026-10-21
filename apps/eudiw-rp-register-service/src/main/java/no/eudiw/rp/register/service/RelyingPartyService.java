@@ -114,7 +114,7 @@ public class RelyingPartyService {
         if (!Objects.equals(walletService.getServiceTradeName(), serviceTradeName)) {
             walletService.setServiceTradeName(serviceTradeName);
             for (RelyingPartyInstance serviceInstance : walletService.getRelyingPartyInstances()) {
-                serviceInstance.markUpdated();
+                serviceInstance.setUpdated();
             }
         }
         relyingPartyInstance.setActive(active);
@@ -215,5 +215,28 @@ public class RelyingPartyService {
                 throw new BadRequestException(entitlement.getEntitlement() + " is not a valid active entitlement");
             }
         }
+    }
+
+    public void validateEntitlements(List<RelyingPartyEntitlement> entitlements) {
+        if (entitlements == null) {
+            throw new BadRequestException("Entitlements must be an empty list when none exist");
+        }
+        entitlementCheck(entitlements);
+    }
+
+    public void validateEntitlementsForUpdate(
+        List<RelyingPartyEntitlement> existingEntitlements,
+        List<RelyingPartyEntitlement> requestedEntitlements
+    ) {
+        if (requestedEntitlements == null) {
+            throw new BadRequestException("Entitlements must be an empty list when none exist");
+        }
+
+        List<RelyingPartyEntitlement> changedEntitlements = requestedEntitlements.stream()
+            .filter(requested -> existingEntitlements.stream().noneMatch(existing ->
+                Objects.equals(existing.getEntitlement(), requested.getEntitlement())
+                    && Objects.equals(existing.getCredentialIssuerUrl(), requested.getCredentialIssuerUrl())))
+            .toList();
+        entitlementCheck(changedEntitlements);
     }
 }

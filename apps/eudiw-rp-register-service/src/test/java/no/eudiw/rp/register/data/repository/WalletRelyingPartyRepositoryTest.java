@@ -54,7 +54,7 @@ class WalletRelyingPartyRepositoryTest {
             () -> assertEquals(relyingParty.getTradeName(), actual.getTradeName()),
             () -> assertEquals(List.of(relyingParty.getTradeName()), actual.getLegalPerson().getLegalName()),
             () -> assertEquals(relyingParty.getOrgno(), actual.getOrgno()),
-            () -> assertEquals(relyingParty.isPsb(), actual.isPsb()),
+            () -> assertEquals(relyingParty.isPSB(), actual.isPSB()),
             () -> assertEquals(2, actual.getServices().size()),
             () -> assertTrue(actual.getCreatedMs() > 0),
             () -> assertTrue(actual.getLastUpdatedMs() > 0)

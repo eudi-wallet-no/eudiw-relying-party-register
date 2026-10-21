@@ -53,7 +53,11 @@ class CredentialTest {
         assertThrows(IllegalArgumentException.class, () ->
             new Credential("format", meta("vct_values", List.of(1)), claims("claim")));
         assertThrows(IllegalArgumentException.class, () ->
+            new Credential("format", meta("vct_values", List.of()), claims("claim")));
+        assertThrows(IllegalArgumentException.class, () ->
             new Credential("format", meta("doctype", 1), claims("claim")));
+        assertThrows(IllegalArgumentException.class, () ->
+            new Credential("format", Map.of("doctype", "type", "extra", "value"), claims("claim")));
     }
 
     @Test

@@ -5,20 +5,22 @@ import no.eudiw.rp.register.domain.certificates.AccessCertificate;
 import no.eudiw.rp.register.domain.certificates.IssuerCertificate;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
-import no.eudiw.rp.register.repository.AccessCertificateRepository;
-import no.eudiw.rp.register.repository.IssuerCertificateRepository;
-import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
-import no.eudiw.rp.register.integrations.certificateservice.CertificateServiceClient;
-import no.eudiw.rp.register.integrations.certificateservice.config.RelyingPartyCertificateServiceProperties;
 import no.eudiw.rp.register.exception.BadRequestException;
 import no.eudiw.rp.register.exception.NotFoundException;
 import no.eudiw.rp.register.exception.RegisterServiceException;
+import no.eudiw.rp.register.integrations.certificateservice.CertificateServiceClient;
+import no.eudiw.rp.register.integrations.certificateservice.config.RelyingPartyCertificateServiceProperties;
+import no.eudiw.rp.register.repository.AccessCertificateRepository;
+import no.eudiw.rp.register.repository.IssuerCertificateRepository;
+import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
+import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.cert.X509Certificate;
@@ -33,6 +35,7 @@ public class RelyingPartyCertificateService {
 
     private final RelyingPartyCertificateServiceProperties properties;
     private final RelyingPartyInstanceRepository relyingPartyRepository;
+    private final WalletRelyingPartyRepository walletRelyingPartyRepository;
     private final AccessCertificateRepository accessCertificateRepository;
     private final IssuerCertificateRepository issuerCertificateRepository;
 
@@ -89,12 +92,12 @@ public class RelyingPartyCertificateService {
             .getIssuerCertificates();
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public IssuerCertificate requestIssuerCertificate(
             UUID relyingPartyId,
             PKCS10CertificationRequest csr,
             String entitlement) {
-        RelyingPartyInstance relyingParty = getRelyingParty(relyingPartyId);
+        RelyingPartyInstance relyingParty = getActiveRelyingPartyForUpdate(relyingPartyId);
 
         RelyingPartyEntitlement relyingPartyEntitlement =
                 relyingParty.getRelyingPartyEntitlement(entitlement)
@@ -121,10 +124,10 @@ public class RelyingPartyCertificateService {
         return issuerCertificateRepository.saveAndFlush(certificateEntity);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public AccessCertificate requestAccessCertificateForRelyingParty(
             UUID relyingPartyId, PKCS10CertificationRequest csr) {
-        RelyingPartyInstance relyingParty = getRelyingParty(relyingPartyId);
+        RelyingPartyInstance relyingParty = getActiveRelyingPartyForUpdate(relyingPartyId);
 
         X509Certificate certificate = certificateServiceClient.requestCertificate(
                 csr,
@@ -140,7 +143,9 @@ public class RelyingPartyCertificateService {
         return accessCertificateRepository.saveAndFlush(certificateEntity);
     }
 
-    private RelyingPartyInstance getRelyingParty(UUID relyingPartyId) {
+    private RelyingPartyInstance getActiveRelyingPartyForUpdate(UUID relyingPartyId) {
+        walletRelyingPartyRepository.findByInstanceIdForUpdate(relyingPartyId)
+                .orElseThrow(() -> new NotFoundException("Certificate registree does not exist or is inactive"));
         return relyingPartyRepository
                 .findById(relyingPartyId)
                 .filter(RelyingPartyInstance::isRegistrationActive)

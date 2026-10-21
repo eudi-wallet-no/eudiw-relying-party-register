@@ -4,6 +4,7 @@ import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -23,6 +24,22 @@ public class SwaggerConfiguration {
                         addList("API Key"))
                 .components(new Components().addSecuritySchemes
                         ("API Key", createAPIKeyScheme()));
+    }
+
+    @Bean
+    public GroupedOpenApi v1Api() {
+        return GroupedOpenApi.builder()
+                .group("V1")
+                .pathsToMatch("/v1/**")
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi v2Api() {
+        return GroupedOpenApi.builder()
+                .group("V2")
+                .pathsToMatch("/v2/**")
+                .build();
     }
 
 }

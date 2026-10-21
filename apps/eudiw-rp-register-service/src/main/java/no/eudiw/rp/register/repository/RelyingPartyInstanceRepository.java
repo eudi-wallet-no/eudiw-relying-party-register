@@ -17,6 +17,41 @@ public interface RelyingPartyInstanceRepository
 
     Optional<RelyingPartyInstance> findByIdAndActiveTrue(UUID id);
 
+    Page<RelyingPartyInstance> findAllByWalletRelyingPartyService_Id(UUID serviceId, Pageable pageable);
+
+    @Query("""
+        SELECT DISTINCT instance
+        FROM RelyingPartyInstance instance
+        JOIN instance.walletRelyingPartyService service
+        JOIN service.walletRelyingParty party
+        LEFT JOIN party.legalPerson legalPerson
+        WHERE (:serviceId IS NULL OR service.id = :serviceId)
+          AND (:orgno IS NULL OR party.orgno = :orgno)
+          AND (:searchTerm = '' OR party.orgno LIKE CONCAT('%', :searchTerm, '%')
+              OR party.tradeName ILIKE CONCAT('%', :searchTerm, '%')
+              OR service.serviceTradeName ILIKE CONCAT('%', :searchTerm, '%')
+              OR cast(function('json_value', legalPerson.legalName, '$[0]') AS String)
+                    ILIKE CONCAT('%', :searchTerm, '%'))
+          AND (:includeInactive = TRUE OR
+              (instance.active = TRUE AND service.active = TRUE AND party.active = TRUE))
+          AND (
+            (SELECT COUNT(DISTINCT entitlement.entitlement)
+             FROM RelyingPartyEntitlement entitlement
+             WHERE entitlement.relyingPartyInstance = instance
+               AND entitlement.entitlement IN :requiredEntitlements
+            ) = :numRequiredEntitlements
+          )
+        """)
+    Page<RelyingPartyInstance> searchV2(
+        @Param("serviceId") UUID serviceId,
+        @Param("orgno") String orgno,
+        @Param("searchTerm") String searchTerm,
+        @Param("includeInactive") boolean includeInactive,
+        @Param("requiredEntitlements") Set<String> requiredEntitlements,
+        @Param("numRequiredEntitlements") int numRequiredEntitlements,
+        Pageable pageable
+    );
+
     @Query("""
         SELECT entitlement.credentialIssuerUrl
         FROM RelyingPartyEntitlement entitlement

@@ -147,7 +147,7 @@ public class V1ApiService {
         return new RelyingPartyCertificatesResource(certificates);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public RelyingPartyCertificateResource requestIssuerCertificate(
         UUID relyingPartyId,
         IssuerCsrResource request
@@ -157,7 +157,7 @@ public class V1ApiService {
         return v1ContractMapper.toV1CertificateResource(certificate);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public RelyingPartyCertificateResource requestAccessCertificateForRelyingParty(
         UUID relyingPartyId,
         RelyingPartyCsrResource request

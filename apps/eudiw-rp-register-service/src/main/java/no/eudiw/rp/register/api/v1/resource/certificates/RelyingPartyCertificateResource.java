@@ -17,9 +17,7 @@ public record RelyingPartyCertificateResource(
     @JsonSerialize(using = X509CertificateJsonSerializer.class)
     @JsonDeserialize(using = X509CertificateJsonDeserializer.class)
     X509Certificate certificate,
-    @JsonProperty("entitlement")
     String entitlement,
-    @JsonProperty(value = "id")
     UUID id,
     @JsonProperty("revocation_status")
     Integer revocationStatus

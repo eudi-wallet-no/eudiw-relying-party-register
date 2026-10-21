@@ -65,7 +65,7 @@ public class V1RelyingPartyIntegrationTest {
 
         assertNotNull(instance);
         assertNotEquals(result.id(), instance.getWalletRelyingPartyService().getWalletRelyingParty().getId());
-        assertEquals(result.publicSector(), instance.getWalletRelyingPartyService().getWalletRelyingParty().isPsb());
+        assertEquals(result.publicSector(), instance.getWalletRelyingPartyService().getWalletRelyingParty().isPSB());
     }
 
     @Test

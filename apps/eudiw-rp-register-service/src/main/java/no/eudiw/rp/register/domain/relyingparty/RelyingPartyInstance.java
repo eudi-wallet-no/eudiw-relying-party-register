@@ -143,7 +143,7 @@ public class RelyingPartyInstance extends BaseEntity {
     // for JPA instantiation.
     protected RelyingPartyInstance() { }
 
-    public void markUpdated() {
+    public void setUpdated() {
         this.lastUpdatedMs = Instant.now().toEpochMilli();
     }
 
@@ -154,6 +154,6 @@ public class RelyingPartyInstance extends BaseEntity {
 
     @PreUpdate
     protected void onPreUpdate() {
-        this.lastUpdatedMs = Instant.now().toEpochMilli();
+        setUpdated();
     }
 }

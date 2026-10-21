@@ -2,6 +2,7 @@ package no.eudiw.rp.register.service;
 
 import lombok.RequiredArgsConstructor;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
+import no.eudiw.rp.register.exception.AlreadyExistsException;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.integrations.enhetsregisteret.EnhetsregisteretService;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,19 @@ public class WalletRelyingPartyLookupService {
             return walletRelyingParty;
         }
 
+        return createWalletRelyingParty(orgno);
+    }
+
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public WalletRelyingParty createWalletRelyingParty(String orgno) {
+        if (walletRelyingPartyRepository.existsByOrgno(orgno)) {
+            throw new AlreadyExistsException("WalletRelyingParty already exists for organization number");
+        }
+
+        return createNewWalletRelyingParty(orgno);
+    }
+
+    private WalletRelyingParty createNewWalletRelyingParty(String orgno) {
         WalletRelyingParty newWalletRelyingParty = new WalletRelyingParty(
             "Syntetisk organisasjon %s".formatted(orgno),
             orgno,
@@ -36,7 +50,7 @@ public class WalletRelyingPartyLookupService {
             EnhetsregisteretService.EnhetsregisteretResponse enhetsregisteretResponse =
                 enhetsregisteretService.queryOrgno(orgno);
             newWalletRelyingParty.setName(enhetsregisteretResponse.name());
-            newWalletRelyingParty.setPsb(enhetsregisteretResponse.publicSector());
+            newWalletRelyingParty.setPSB(enhetsregisteretResponse.publicSector());
         }
 
         return walletRelyingPartyRepository.save(newWalletRelyingParty);
