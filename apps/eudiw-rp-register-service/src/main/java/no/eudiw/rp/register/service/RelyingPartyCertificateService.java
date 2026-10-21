@@ -142,7 +142,8 @@ public class RelyingPartyCertificateService {
 
     private RelyingPartyInstance getRelyingParty(UUID relyingPartyId) {
         return relyingPartyRepository
-                .findByIdAndActiveTrue(relyingPartyId)
+                .findById(relyingPartyId)
+                .filter(RelyingPartyInstance::isRegistrationActive)
                 .orElseThrow(() -> new NotFoundException("Certificate registree does not exist or is inactive"));
     }
 

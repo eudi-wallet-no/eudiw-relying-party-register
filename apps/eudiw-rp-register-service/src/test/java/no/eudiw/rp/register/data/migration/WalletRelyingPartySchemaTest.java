@@ -11,6 +11,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.mariadb.MariaDBContainer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -42,6 +43,50 @@ class WalletRelyingPartySchemaTest {
         flyway.validate();
 
         assertEquals(0, flyway.migrate().migrationsExecuted);
+        assertEquals("1", jdbc.queryForObject("""
+            SELECT COLUMN_DEFAULT FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'wallet_relying_party_service'
+              AND COLUMN_NAME = 'active'
+            """, String.class));
+        assertEquals("NO", jdbc.queryForObject("""
+            SELECT IS_NULLABLE FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'wallet_relying_party_service'
+              AND COLUMN_NAME = 'active'
+            """, String.class));
+    }
+
+    @Test
+    void deactivatesExistingDescendantsOfInactivePartiesWhenAddingServiceStatus() {
+        flyway.clean();
+        Flyway.configure()
+            .configuration(flyway.getConfiguration())
+            .target("26")
+            .load()
+            .migrate();
+        jdbc.update("""
+            INSERT INTO wallet_relying_party
+                (id, trade_name, orgno, is_psb, policy, identifier, postal_address, email, phone, info_uri, active)
+            VALUES ('inactive-party', 'Party', '123456785', TRUE, '[]', '[]', '[]', '[]', '[]', '[]', FALSE)
+            """);
+        jdbc.update("""
+            INSERT INTO wallet_relying_party_service
+                (id, service_trade_name, wallet_relying_party_id, created_ms, last_updated_ms)
+            VALUES ('inactive-service', 'Service', 'inactive-party', 1, 1)
+            """);
+        jdbc.update("""
+            INSERT INTO relying_party_instance
+                (id, wallet_relying_party_service_id, created_ms, last_updated_ms, active)
+            VALUES ('inactive-instance', 'inactive-service', 1, 1, TRUE)
+            """);
+
+        flyway.migrate();
+
+        assertFalse(jdbc.queryForObject(
+            "SELECT active FROM wallet_relying_party_service WHERE id = 'inactive-service'", Boolean.class));
+        assertFalse(jdbc.queryForObject(
+            "SELECT active FROM relying_party_instance WHERE id = 'inactive-instance'", Boolean.class));
     }
 
     @Test

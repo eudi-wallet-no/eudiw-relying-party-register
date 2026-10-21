@@ -10,6 +10,7 @@ spring:
     api-key: ${API_KEY}
     include-paths:
       - /v1/**
+      - /v2/**
     exclude-paths:
       - /
       - /health/**

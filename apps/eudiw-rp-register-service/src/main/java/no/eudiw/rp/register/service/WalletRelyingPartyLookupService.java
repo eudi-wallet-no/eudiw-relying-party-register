@@ -5,6 +5,7 @@ import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.integrations.enhetsregisteret.EnhetsregisteretService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -17,9 +18,9 @@ public class WalletRelyingPartyLookupService {
     private final WalletRelyingPartyRepository walletRelyingPartyRepository;
     private final EnhetsregisteretService enhetsregisteretService;
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public WalletRelyingParty getWalletRelyingPartyForOrgno(String orgno) {
-        WalletRelyingParty walletRelyingParty = walletRelyingPartyRepository.findByOrgno(orgno).orElse(null);
+        WalletRelyingParty walletRelyingParty = walletRelyingPartyRepository.findByOrgnoForUpdate(orgno).orElse(null);
         if (walletRelyingParty != null) {
             return walletRelyingParty;
         }

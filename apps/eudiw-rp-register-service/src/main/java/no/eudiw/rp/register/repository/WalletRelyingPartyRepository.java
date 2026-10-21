@@ -1,7 +1,10 @@
 package no.eudiw.rp.register.repository;
 
+import jakarta.persistence.LockModeType;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -12,5 +15,33 @@ public interface WalletRelyingPartyRepository
     extends JpaRepository<WalletRelyingParty, UUID> {
 
     Optional<WalletRelyingParty> findByOrgno(String orgno);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT party FROM WalletRelyingParty party WHERE party.orgno = :orgno")
+    Optional<WalletRelyingParty> findByOrgnoForUpdate(String orgno);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT party FROM WalletRelyingParty party WHERE party.id = :id")
+    Optional<WalletRelyingParty> findByIdForUpdate(UUID id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+        SELECT party FROM WalletRelyingParty party
+        WHERE party.id = (
+            SELECT service.walletRelyingParty.id FROM WalletRelyingPartyService service WHERE service.id = :serviceId
+        )
+        """)
+    Optional<WalletRelyingParty> findByServiceIdForUpdate(UUID serviceId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+        SELECT party FROM WalletRelyingParty party
+        WHERE party.id = (
+            SELECT instance.walletRelyingPartyService.walletRelyingParty.id
+            FROM RelyingPartyInstance instance WHERE instance.id = :instanceId
+        )
+        """)
+    Optional<WalletRelyingParty> findByInstanceIdForUpdate(UUID instanceId);
+
     boolean existsByOrgno(String orgno);
 }
