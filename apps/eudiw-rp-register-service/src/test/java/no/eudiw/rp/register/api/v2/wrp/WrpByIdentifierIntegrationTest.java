@@ -2,6 +2,10 @@ package no.eudiw.rp.register.api.v2.wrp;
 
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.KeyUse;
 import no.eudiw.rp.register.domain.Credential;
 import no.eudiw.rp.register.domain.Identifier;
 import no.eudiw.rp.register.domain.IntendedUse;
@@ -44,7 +48,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("junit")
 class WrpByIdentifierIntegrationTest {
 
-    private static final String JWKS_URL = "https://registry.example.test/jwks";
+    private static final String JWKS_URL = "https://registry.example.test/wrp/jwks";
     private static KeyPair signingKeyPair;
 
     @Autowired
@@ -69,6 +73,7 @@ class WrpByIdentifierIntegrationTest {
 
         KeyProvider keyProvider = mock(KeyProvider.class);
         when(keyProvider.privateKey()).thenReturn(signingKeyPair.getPrivate());
+        when(keyProvider.publicKey()).thenReturn(signingKeyPair.getPublic());
         when(keystoreManager.getKeyProvider("wrp-test")).thenReturn(keyProvider);
     }
 
@@ -112,6 +117,38 @@ class WrpByIdentifierIntegrationTest {
             .andExpect(status().isUnauthorized());
     }
 
+    @Test
+    void publishesPublicKeyThatVerifiesSignedWrpResponse() throws Exception {
+        String orgno = TestDataGenerator.generateValidOrgno();
+        WalletRelyingParty party = EntityGenerator.generateWalletRelyingParty(1);
+        party.setOrgno(orgno);
+        walletRelyingPartyRepository.saveAndFlush(party);
+
+        String token = mockMvc.perform(get("/wrp/{identifier}", orgno))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+        JWSObject jws = JWSObject.parse(token);
+
+        String jwksJson = mockMvc.perform(get("/wrp/jwks"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/jwk-set+json")))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        JWKSet jwkSet = JWKSet.parse(jwksJson);
+        assertEquals(1, jwkSet.getKeys().size());
+        ECKey key = (ECKey) jwkSet.getKeys().getFirst();
+        assertEquals("wrp-test-key", key.getKeyID());
+        assertEquals(Curve.P_256, key.getCurve());
+        assertEquals(KeyUse.SIGNATURE, key.getKeyUse());
+        assertNull(key.getD());
+        assertEquals(jws.getHeader().getKeyID(), key.getKeyID());
+        assertTrue(jws.verify(new ECDSAVerifier(key.toECPublicKey())));
+    }
+
     private void assertSignedWrpResponse(
         String identifier,
         WalletRelyingParty expectedParty,
@@ -127,6 +164,7 @@ class WrpByIdentifierIntegrationTest {
 
         JWSObject jws = JWSObject.parse(token);
         assertEquals("JWT", jws.getHeader().getType().getType());
+        assertEquals("wrp-test-key", jws.getHeader().getKeyID());
         assertTrue(jws.verify(new ECDSAVerifier((ECPublicKey) signingKeyPair.getPublic())));
 
         Map<String, Object> payload = jws.getPayload().toJSONObject();

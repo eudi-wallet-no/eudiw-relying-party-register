@@ -10,5 +10,6 @@ public record WrpApiProperties(
     @NotBlank String issuer,
     @NotBlank String registryUri,
     @NotBlank String jwksUrl,
-    @NotBlank String signingKeystore
+    @NotBlank String signingKeystore,
+    @NotBlank String signingKeyId
 ) { }

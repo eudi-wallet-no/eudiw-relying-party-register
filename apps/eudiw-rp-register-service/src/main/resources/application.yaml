@@ -94,6 +94,7 @@ eudiw-rp-register-service:
     registry-uri: ${WRP_REGISTRY_URI}
     jwks-url: ${WRP_JWKS_URL}
     signing-keystore: wrp-signing
+    signing-key-id: ${WRP_SIGNING_KEY_ID}
   csr-service:
     access-certificate-ca-id: access2
     ca-service-api:

@@ -14,7 +14,8 @@ EUDIW Relying Party Register
 ## WRP API signing configuration
 
 The public `/wrp/{identifier}` endpoint signs its response using the configured
-registry key. Set `WRP_ISSUER`, `WRP_REGISTRY_URI`, `WRP_JWKS_URL`,
+registry key. The corresponding public key is available from `GET /wrp/jwks`.
+Set `WRP_ISSUER`, `WRP_REGISTRY_URI`, `WRP_JWKS_URL`, `WRP_SIGNING_KEY_ID`,
 `WRP_SIGNING_KEYSTORE`, `WRP_SIGNING_KEYSTORE_TYPE`,
 `WRP_SIGNING_KEYSTORE_PASSWORD`, `WRP_SIGNING_KEY_ALIAS`, and
 `WRP_SIGNING_KEY_PASSWORD` in the service environment. Keep keystore material

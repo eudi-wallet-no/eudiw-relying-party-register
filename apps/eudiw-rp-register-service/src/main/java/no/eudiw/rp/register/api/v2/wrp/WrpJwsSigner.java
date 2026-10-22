@@ -39,7 +39,10 @@ public class WrpJwsSigner {
             data
         ));
         JWSObject jws = new JWSObject(
-            new JWSHeader.Builder(JWSAlgorithm.ES256).type(JOSEObjectType.JWT).build(),
+            new JWSHeader.Builder(JWSAlgorithm.ES256)
+                .type(JOSEObjectType.JWT)
+                .keyID(properties.signingKeyId())
+                .build(),
             new Payload(payload)
         );
         try {

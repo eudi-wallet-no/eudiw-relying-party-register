@@ -28,6 +28,7 @@ eudiw-rp-register-service:
     issuer: http://localhost:9200
     registry-uri: http://localhost:9200
     jwks-url: http://localhost:9200/wrp/jwks
+    signing-key-id: wrp-signing-dev
 
 external-dependency-health-checks:
   enabled: false
