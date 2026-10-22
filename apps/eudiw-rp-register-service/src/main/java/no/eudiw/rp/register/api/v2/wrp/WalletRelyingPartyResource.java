@@ -53,7 +53,7 @@ public record WalletRelyingPartyResource(
                 .toList(),
             party.getProviderType(),
             List.copyOf(party.getX5c()),
-            party.isPsb(),
+            party.isPSB(),
             SupervisoryAuthorityResource.from(supervisoryAuthority),
             party.getTradeName(),
             properties.registryUri(),

@@ -13,7 +13,7 @@ import no.eudiw.rp.register.repository.EntitlementRepository;
 import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.repository.WalletRelyingPartyServiceRepository;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
