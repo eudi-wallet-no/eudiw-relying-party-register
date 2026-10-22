@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/wrp")
 @RequiredArgsConstructor
 public class WrpEndpoint {
+    private static final String JWK_URL_HEADER = "x-jku-url";
 
     private final WrpLookupService lookupService;
     private final WrpJwsSigner jwsSigner;
@@ -33,7 +34,7 @@ public class WrpEndpoint {
                 responseCode = "200",
                 description = "Signed Wallet Relying Party",
                 headers = @Header(
-                    name = "x-jku-url",
+                    name = JWK_URL_HEADER,
                     schema = @Schema(type = "string", format = "uri")
                 ),
                 content = @Content(
@@ -52,7 +53,7 @@ public class WrpEndpoint {
         return lookupService.findByIdentifier(identifier)
             .map(data -> ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType("application/jwt"))
-                .header("x-jku-url", properties.jwksUrl())
+                .header(JWK_URL_HEADER, properties.jwksUrl())
                 .body(jwsSigner.sign(data)))
             .orElseGet(() -> ResponseEntity.notFound().build());
     }
