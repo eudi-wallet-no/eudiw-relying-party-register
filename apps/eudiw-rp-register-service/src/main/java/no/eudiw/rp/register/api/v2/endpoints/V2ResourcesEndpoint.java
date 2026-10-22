@@ -193,6 +193,7 @@ public class V2ResourcesEndpoint {
         @RequestParam(required = false) List<@NotBlank String> requiredEntitlements,
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "25") int pageSize,
+        @Parameter(description = "orgno, name, serviceTradeName, createdMs (default) or lastUpdatedMs")
         @RequestParam(required = false) String sort
     ) {
         return new PagedModel<>(v2ApiService.searchRelyingPartyInstances(

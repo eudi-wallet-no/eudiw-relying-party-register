@@ -3,6 +3,7 @@
 ## Before you start
 - Read [`docs/`](../docs/)
 - Multi-file changes, unclear scope, new patterns or architecture decisions: [`proposal`](skills/proposal/SKILL.md) before implementation.
+- Writing or changing tests: [`test-design`](skills/test-design/SKILL.md).
 
 ## README og dokumentasjon
 - README: kort innledning til formål, forutsetninger og hvordan løsningen settes opp og kjøres.

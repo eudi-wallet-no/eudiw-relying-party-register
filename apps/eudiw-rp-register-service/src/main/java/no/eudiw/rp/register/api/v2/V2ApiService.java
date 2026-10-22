@@ -45,6 +45,7 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -87,7 +88,9 @@ public class V2ApiService {
         String sort
     ) {
         String defaultSort = "orgno";
-        Set<String> allowedSortProperties = Set.of("orgno", "tradeName", "createdMs", "lastUpdatedMs");
+        Map<String, String> allowedSortProperties = Map.of(
+            "orgno", "orgno", "tradeName", "tradeName",
+            "createdMs", "createdMs", "lastUpdatedMs", "lastUpdatedMs");
 
         PageRequest pageRequest = pageRequest(
             page, pageSize, sort, defaultSort, allowedSortProperties);
@@ -155,7 +158,8 @@ public class V2ApiService {
                 relyingPartyId,
                 pageRequest(
                     page, pageSize, sort, "serviceTradeName",
-                    Set.of("serviceTradeName", "createdMs", "lastUpdatedMs")));
+                    Map.of("serviceTradeName", "serviceTradeName",
+                        "createdMs", "createdMs", "lastUpdatedMs", "lastUpdatedMs")));
 
         return relyingPartyServices.map(RelyingPartyServiceResponse::from);
     }
@@ -225,7 +229,11 @@ public class V2ApiService {
             includeInactive,
             uniqueRequiredEntitlements,
             uniqueRequiredEntitlements.size(),
-            pageRequest(page, pageSize, sort, "createdMs", Set.of("createdMs", "lastUpdatedMs"))
+            pageRequest(page, pageSize, sort, "createdMs", Map.of(
+                "orgno", "walletRelyingPartyService.walletRelyingParty.orgno",
+                "name", "walletRelyingPartyService.serviceTradeName",
+                "serviceTradeName", "walletRelyingPartyService.serviceTradeName",
+                "createdMs", "createdMs", "lastUpdatedMs", "lastUpdatedMs"))
         );
 
         return relyingPartyInstances.map(RelyingPartyInstanceResponse::from);
@@ -404,7 +412,7 @@ public class V2ApiService {
         int pageSize,
         String sort,
         String defaultSort,
-        Set<String> allowedSorts
+        Map<String, String> allowedSorts
     ) {
         if (page < 0 || pageSize < 1 || pageSize > MAX_PAGE_SIZE
             || (long) page * pageSize > Integer.MAX_VALUE) {
@@ -413,8 +421,9 @@ public class V2ApiService {
                     + ", and page * pageSize must not exceed " + Integer.MAX_VALUE);
         }
 
-        String sortProperty = sort == null ? defaultSort : sort;
-        if (!allowedSorts.contains(sortProperty)) {
+        String sortKey = sort == null ? defaultSort : sort;
+        String sortProperty = allowedSorts.get(sortKey);
+        if (sortProperty == null) {
             throw new BadRequestException("Unsupported sort key");
         }
         return PageRequest.of(page, pageSize, Sort.by(sortProperty).ascending().and(Sort.by("id").ascending()));

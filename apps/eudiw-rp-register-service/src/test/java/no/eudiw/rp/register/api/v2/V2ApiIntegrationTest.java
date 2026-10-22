@@ -32,13 +32,17 @@ import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -147,6 +151,32 @@ class V2ApiIntegrationTest {
         assertEquals(1, relyingPartyInstanceRepository.count());
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"orgno", "name", "serviceTradeName"})
+    void instanceSortAppliesToFilteredResultBeforePagination(String sort) throws Exception {
+        List<String> orgnos = Stream.generate(TestDataGenerator::generateValidOrgno)
+            .distinct().limit(4).sorted().toList();
+        List<String> serviceNames = List.of("Delta match", "Charlie match", "Bravo match", "Alpha match");
+        Map<Integer, String> instanceIds = new TreeMap<>();
+        for (int index : List.of(2, 0, 3, 1)) {
+            instanceIds.put(index, createRegistration(orgnos.get(index), serviceNames.get(index)).relyingPartyInstanceId());
+        }
+        createRegistration(TestDataGenerator.generateValidOrgno(), "Excluded");
+
+        List<String> expectedIds = new ArrayList<>(instanceIds.values());
+        if (!sort.equals("orgno")) {
+            Collections.reverse(expectedIds);
+        }
+        List<String> actualIds = new ArrayList<>();
+        for (int page = 0; page < 2; page++) {
+            JsonNode result = read(get("/v2/instances").param("searchTerm", "match")
+                .param("sort", sort).param("page", Integer.toString(page)).param("pageSize", "2"));
+            assertEquals(4, result.at("/page/totalElements").asInt());
+            result.get("content").forEach(instance -> actualIds.add(instance.get("id").asString()));
+        }
+        assertEquals(expectedIds, actualIds);
+    }
+
     @Test
     void replacementsPersistOwnFieldsWithoutChangingIdentityHierarchyOrStatus() throws Exception {
         Registration registration = createRegistration();
@@ -216,6 +246,8 @@ class V2ApiIntegrationTest {
         assertTrue(read(get(registration.intendedUsesPath())).isEmpty());
         request(get("/v2/parties").param("pageSize", "101")).andExpect(status().isBadRequest());
         request(get("/v2/parties").param("sort", "unknown")).andExpect(status().isBadRequest());
+        request(get("/v2/instances").param("sort", "walletRelyingPartyService.serviceTradeName"))
+            .andExpect(status().isBadRequest());
         request(put("/v2/parties/" + UUID.randomUUID()), RELYING_PARTY).andExpect(status().isNotFound());
         request(post("/v2/services/" + UUID.randomUUID() + "/instances"), RELYING_PARTY_INSTANCE)
             .andExpect(status().isNotFound());
@@ -387,10 +419,14 @@ class V2ApiIntegrationTest {
     }
 
     private Registration createRegistration() throws Exception {
-        String relyingPartyId = read(post("/v2/parties"), "{\"orgno\":\"" + TestDataGenerator.generateValidOrgno() + "\"}")
+        return createRegistration(TestDataGenerator.generateValidOrgno(), "Test service");
+    }
+
+    private Registration createRegistration(String orgno, String serviceName) throws Exception {
+        String relyingPartyId = read(post("/v2/parties"), "{\"orgno\":\"" + orgno + "\"}")
             .get("id").asString();
-        String relyingPartyServiceId = read(post("/v2/parties/" + relyingPartyId + "/services"), RELYING_PARTY_SERVICE)
-            .get("id").asString();
+        String relyingPartyServiceId = read(post("/v2/parties/" + relyingPartyId + "/services"),
+            RELYING_PARTY_SERVICE.replace("Test service", serviceName)).get("id").asString();
         String relyingPartyInstanceId = read(post("/v2/services/" + relyingPartyServiceId + "/instances"), RELYING_PARTY_INSTANCE)
             .get("id").asString();
         return new Registration(relyingPartyId, relyingPartyServiceId, relyingPartyInstanceId);
