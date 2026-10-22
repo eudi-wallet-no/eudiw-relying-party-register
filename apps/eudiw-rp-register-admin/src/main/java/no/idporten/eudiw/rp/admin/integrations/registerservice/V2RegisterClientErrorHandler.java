@@ -1,4 +1,4 @@
-package no.idporten.eudiw.rp.admin.service;
+package no.idporten.eudiw.rp.admin.integrations.registerservice;
 
 import no.idporten.eudiw.rp.admin.exception.AdminServiceException;
 import no.idporten.eudiw.rp.admin.service.exception.ErrorResponseException;
@@ -18,7 +18,7 @@ import tools.jackson.databind.json.JsonMapper;
 import java.io.IOException;
 import java.net.URI;
 
-public class RelyingPartiesServiceResponseErrorHandler
+public class V2RegisterClientErrorHandler
     implements ResponseErrorHandler {
 
     @Override
@@ -36,7 +36,7 @@ public class RelyingPartiesServiceResponseErrorHandler
             HttpStatusCode statusCode = response.getStatusCode();
             if (!statusCode.isError()) {
                 throw new UnrecognizedErrorResponseException(
-                    "Unexpected HTTP status code (%s) in register service response"
+                    "Unable to complete request to register service: unexpected HTTP status code (%s)"
                         .formatted(statusCode));
             }
             if (statusCode.isSameCodeAs(HttpStatus.UNAUTHORIZED)) {
@@ -51,7 +51,7 @@ public class RelyingPartiesServiceResponseErrorHandler
             throw ErrorResponseException.fromResource(errorResource);
         } catch (IOException | JacksonException e) {
             throw new UnrecognizedErrorResponseException(
-                "Unrecognized error response from register service");
+                "Unable to read error response from register service", e);
         }
     }
 }

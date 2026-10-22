@@ -60,6 +60,19 @@ public interface RelyingPartyInstanceRepository
     );
 
     @Query("""
+        SELECT new no.eudiw.rp.register.repository.RegistrationSummaryRow(
+            instance.id, service.serviceTradeName, instance.createdMs, instance.lastUpdatedMs,
+            role.id, role.entitlement)
+        FROM RelyingPartyInstance instance
+        JOIN instance.walletRelyingPartyService service
+        JOIN service.walletRelyingParty party
+        LEFT JOIN instance.relyingPartyEntitlements role
+        WHERE party.orgno = :orgno
+        ORDER BY instance.createdMs ASC, instance.id ASC
+        """)
+    List<RegistrationSummaryRow> findRegistrationSummariesByOrgno(@Param("orgno") String orgno);
+
+    @Query("""
         SELECT entitlement.credentialIssuerUrl
         FROM RelyingPartyEntitlement entitlement
         JOIN entitlement.relyingPartyInstance instance

@@ -4,6 +4,7 @@ import no.eudiw.rp.register.domain.BaseEntity;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
+import no.eudiw.rp.register.repository.RegistrationSummaryRow;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.testdata.EntityGenerator;
@@ -143,6 +144,24 @@ public class RelyingPartyInstanceRepositoryTest {
         Set<String> issuerUrls = repository.findActiveCredentialIssuerUrls();
 
         assertFalse(issuerUrls.contains(null));
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("Retrieve all registrations belonging to the selected organization")
+    void shouldRetrieveAllRegistrationsForOrganization() {
+        RelyingPartyInstance first = EntityGenerator.generateRelyingPartyInstance("Kontrollteneste", List.of(), List.of(), List.of());
+        RelyingPartyInstance second = EntityGenerator.generateRelyingPartyInstance("Innsynsteneste", List.of(), List.of(), List.of());
+        walletRelyingPartyRepository.saveAndFlush(new WalletRelyingParty("Testverksemd", "123456785", true,
+            List.of(first.getWalletRelyingPartyService(), second.getWalletRelyingPartyService())));
+        RelyingPartyInstance otherOrganization = EntityGenerator.generateRelyingPartyInstance("Anna teneste", List.of(), List.of(), List.of());
+        walletRelyingPartyRepository.saveAndFlush(new WalletRelyingParty("Anna verksemd", "223456782", true,
+            List.of(otherOrganization.getWalletRelyingPartyService())));
+
+        List<RegistrationSummaryRow> result = repository.findRegistrationSummariesByOrgno("123456785");
+
+        assertEquals(Set.of(first.getId(), second.getId()), result.stream()
+            .map(RegistrationSummaryRow::instanceId).collect(Collectors.toSet()));
     }
 
     @Nested

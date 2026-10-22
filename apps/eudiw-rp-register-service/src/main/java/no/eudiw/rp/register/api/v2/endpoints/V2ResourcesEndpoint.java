@@ -16,6 +16,7 @@ import no.eudiw.rp.register.api.v2.endpoints.entities.EntitlementsResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.IntendedUseReplacementResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.IntendedUseResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.IssuerCertificateRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationSummaryResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyRequest;
@@ -179,6 +180,15 @@ public class V2ResourcesEndpoint {
         @PathVariable("id") UUID relyingPartyInstanceId
     ) {
         return v2ApiService.getRelyingPartyInstance(relyingPartyInstanceId);
+    }
+
+    @Operation(
+        summary = "List registration summaries for an organization",
+        description = "Returns the organization's registrations with instance IDs, service names, roles, and creation and update timestamps."
+    )
+    @GetMapping(path = "/registrations", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<RegistrationSummaryResponse> getRegistrationsByOrgno(@RequestParam @NotBlank @Orgnr String orgno) {
+        return v2ApiService.getRegistrationsByOrgno(orgno);
     }
 
     @Operation(summary = "Search RelyingPartyInstances")
