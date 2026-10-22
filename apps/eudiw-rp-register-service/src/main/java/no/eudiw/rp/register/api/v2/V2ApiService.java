@@ -106,7 +106,14 @@ public class V2ApiService {
         WalletRelyingParty relyingParty = walletRelyingPartyRepository.findByIdForUpdate(relyingPartyId)
             .orElseThrow(() -> new NotFoundException("RelyingParty not found"));
 
+        String previousName = relyingParty.getName();
+        boolean previousPSB = relyingParty.isPSB();
         request.update(relyingParty);
+        if (!Objects.equals(previousName, relyingParty.getName()) || previousPSB != relyingParty.isPSB()) {
+            relyingParty.getServices().stream()
+                .flatMap(service -> service.getRelyingPartyInstances().stream())
+                .forEach(RelyingPartyInstance::setUpdated);
+        }
 
         return RelyingPartyResponse.from(
             walletRelyingPartyRepository.saveAndFlush(relyingParty),
