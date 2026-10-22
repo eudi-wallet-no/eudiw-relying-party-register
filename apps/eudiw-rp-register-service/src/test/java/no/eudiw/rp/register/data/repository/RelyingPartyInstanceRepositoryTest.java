@@ -74,10 +74,12 @@ public class RelyingPartyInstanceRepositoryTest {
     }
 
     @Test
-    @DisplayName("issuer URL query returns distinct URLs from active instances only")
+    @DisplayName("issuer URL query returns distinct URLs from active registrations only")
     void findActiveCredentialIssuerUrls() {
         String activeIssuerUrl = "https://issuer-" + UUID.randomUUID() + ".example.com";
         String inactiveIssuerUrl = "https://issuer-" + UUID.randomUUID() + ".example.com";
+        String inactiveServiceIssuerUrl = "https://issuer-" + UUID.randomUUID() + ".example.com";
+        String inactivePartyIssuerUrl = "https://issuer-" + UUID.randomUUID() + ".example.com";
         RelyingPartyInstance activeInstance = EntityGenerator.generateRelyingParty();
         activeInstance.setRelyingPartyEntitlements(List.of(
             new RelyingPartyEntitlement("first", activeIssuerUrl),
@@ -88,14 +90,27 @@ public class RelyingPartyInstanceRepositoryTest {
         inactiveInstance.setRelyingPartyEntitlements(List.of(
             new RelyingPartyEntitlement("inactive", inactiveIssuerUrl)
         ));
+        RelyingPartyInstance inactiveServiceInstance = EntityGenerator.generateRelyingParty();
+        inactiveServiceInstance.getWalletRelyingPartyService().setActive(false);
+        inactiveServiceInstance.setRelyingPartyEntitlements(List.of(
+            new RelyingPartyEntitlement("inactive-service", inactiveServiceIssuerUrl)
+        ));
+        RelyingPartyInstance inactivePartyInstance = EntityGenerator.generateRelyingParty();
+        inactivePartyInstance.getWalletRelyingPartyService().getWalletRelyingParty().setActive(false);
+        inactivePartyInstance.setRelyingPartyEntitlements(List.of(
+            new RelyingPartyEntitlement("inactive-party", inactivePartyIssuerUrl)
+        ));
 
         repository.saveAndFlush(activeInstance);
         repository.saveAndFlush(inactiveInstance);
+        repository.saveAndFlush(inactiveServiceInstance);
+        repository.saveAndFlush(inactivePartyInstance);
 
         Set<String> issuerUrls = repository.findActiveCredentialIssuerUrls();
 
         assertTrue(issuerUrls.contains(activeIssuerUrl));
-        assertFalse(issuerUrls.contains(inactiveIssuerUrl));
+        assertTrue(Collections.disjoint(
+            issuerUrls, Set.of(inactiveIssuerUrl, inactiveServiceIssuerUrl, inactivePartyIssuerUrl)));
     }
 
     @Test

@@ -4,6 +4,7 @@ import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import no.eudiw.rp.register.domain.Credential;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -42,5 +43,9 @@ public record CredentialResource(
                     || (part instanceof BigInteger bigIntegerValue && bigIntegerValue.signum() >= 0)
             );
         });
+    }
+
+    public Credential toDomain() {
+        return new Credential(format, meta, claims);
     }
 }

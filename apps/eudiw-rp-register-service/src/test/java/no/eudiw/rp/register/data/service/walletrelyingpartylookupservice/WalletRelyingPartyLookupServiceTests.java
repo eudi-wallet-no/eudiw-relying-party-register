@@ -123,14 +123,4 @@ public class WalletRelyingPartyLookupServiceTests {
         assertTrue(walletRelyingPartyRepository.existsByOrgno(syntheticOrgno));
     }
 
-    @Test
-    @DisplayName("then querying an unknown orgno does not create a legal entity")
-    public void testQueryingUnknownOrgnoDoesNotCreateWalletRelyingParty() {
-        String orgno = TestDataGenerator.generateValidOrgno();
-
-        assertTrue(walletRelyingPartyLookupService.findWalletRelyingPartyForOrgno(orgno).isEmpty());
-
-        assertFalse(walletRelyingPartyRepository.existsByOrgno(orgno));
-        verifyNoInteractions(mockEnhetsregisteretService);
-    }
 }

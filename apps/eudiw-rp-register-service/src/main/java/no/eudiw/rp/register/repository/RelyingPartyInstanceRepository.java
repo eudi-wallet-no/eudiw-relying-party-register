@@ -15,7 +15,16 @@ import java.util.*;
 public interface RelyingPartyInstanceRepository
     extends JpaRepository<RelyingPartyInstance, UUID> {
 
-    Optional<RelyingPartyInstance> findByIdAndActiveTrue(UUID id);
+    @Query("""
+        SELECT instance FROM RelyingPartyInstance instance
+        JOIN instance.walletRelyingPartyService service
+        JOIN service.walletRelyingParty party
+        WHERE instance.id = :id
+          AND instance.active = TRUE
+          AND service.active = TRUE
+          AND party.active = TRUE
+        """)
+    Optional<RelyingPartyInstance> findActiveRegistrationById(@Param("id") UUID id);
 
     @Query("""
         SELECT DISTINCT instance
@@ -54,7 +63,11 @@ public interface RelyingPartyInstanceRepository
         SELECT entitlement.credentialIssuerUrl
         FROM RelyingPartyEntitlement entitlement
         JOIN entitlement.relyingPartyInstance instance
+        JOIN instance.walletRelyingPartyService service
+        JOIN service.walletRelyingParty party
         WHERE instance.active = TRUE
+          AND service.active = TRUE
+          AND party.active = TRUE
           AND entitlement.credentialIssuerUrl IS NOT NULL
         """)
     Set<String> findActiveCredentialIssuerUrls();

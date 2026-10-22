@@ -86,10 +86,6 @@ public class RelyingPartyInstance extends BaseEntity {
             && walletRelyingPartyService.getWalletRelyingParty().isActive();
     }
 
-    public boolean isRegistrationActive() {
-        return active && hasActiveRelyingPartyAndService();
-    }
-
     private void addOrUpdateRelyingPartyEntitlement(RelyingPartyEntitlement newEntitlement) {
         Optional<RelyingPartyEntitlement> existingEntitlement =
             this.getRelyingPartyEntitlement(newEntitlement.getEntitlement());
@@ -113,6 +109,14 @@ public class RelyingPartyInstance extends BaseEntity {
         this.relyingPartyEntitlements.removeIf(doRemoveEntitlement);
 
         relyingPartyEntitlements.forEach(this::addOrUpdateRelyingPartyEntitlement);
+    }
+
+    public boolean canReplaceRelyingPartyEntitlements(List<RelyingPartyEntitlement> requestedEntitlements) {
+        return relyingPartyEntitlements.stream()
+            .filter(existing -> !existing.getIssuerCertificates().isEmpty())
+            .allMatch(existing -> requestedEntitlements.stream().anyMatch(requested ->
+                Objects.equals(requested.getEntitlement(), existing.getEntitlement())
+                    && Objects.equals(requested.getCredentialIssuerUrl(), existing.getCredentialIssuerUrl())));
     }
 
     public void setRelyingPartyEaas(List<RelyingPartyEaa> relyingPartyEaas) {

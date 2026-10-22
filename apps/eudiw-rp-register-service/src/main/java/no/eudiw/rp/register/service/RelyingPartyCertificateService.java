@@ -145,11 +145,11 @@ public class RelyingPartyCertificateService {
 
     private RelyingPartyInstance getActiveRelyingPartyForUpdate(UUID relyingPartyId) {
         // Lock the owning WalletRelyingParty first: registration state is only reliable after the lock is held.
-        walletRelyingPartyRepository.findByInstanceIdForUpdate(relyingPartyId)
-                .orElseThrow(() -> new NotFoundException("Certificate registree does not exist"));
+        walletRelyingPartyRepository.findByActiveInstanceIdForUpdate(relyingPartyId)
+                .orElseThrow(() -> new NotFoundException("Certificate registree does not exist or is inactive"));
+
         return relyingPartyRepository
-                .findById(relyingPartyId)
-                .filter(RelyingPartyInstance::isRegistrationActive)
+                .findActiveRegistrationById(relyingPartyId)
                 .orElseThrow(() -> new NotFoundException("Certificate registree does not exist or is inactive"));
     }
 

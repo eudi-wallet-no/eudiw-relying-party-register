@@ -37,12 +37,6 @@ export DOCKER_HOST="$(docker context inspect colima --format '{{.Endpoints.docke
 export TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock
 ```
 
-`.zprofile` is read by login shells, so GUI applications on macOS — including
-IntelliJ — inherit the variables when started from Dock or Spotlight. This
-means Maven and test runs inside the IDE pick them up without a separate
-IDE test run configuration. Restart IntelliJ after changing the file, since
-the environment is only read at startup.
-
 ## Run everything locally with Docker Compose
 
 Requires Docker with Docker Compose, for example Docker Desktop or Colima on macOS.

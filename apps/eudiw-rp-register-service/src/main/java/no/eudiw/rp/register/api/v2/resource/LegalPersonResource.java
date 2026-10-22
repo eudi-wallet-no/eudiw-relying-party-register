@@ -5,10 +5,20 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import no.eudiw.rp.register.domain.LegalPerson;
 
 import java.util.List;
 
 public record LegalPersonResource(
     @JsonProperty(required = true) @NotEmpty List<@NotBlank String> legalName,
     List<@NotNull @Valid LawResource> establishedByLaw
-) { }
+) {
+    public LegalPerson toDomain() {
+        return new LegalPerson(
+            legalName,
+            establishedByLaw == null ? List.of() : establishedByLaw.stream()
+                .map(LawResource::toDomain)
+                .toList()
+        );
+    }
+}
