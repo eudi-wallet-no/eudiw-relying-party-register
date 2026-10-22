@@ -2,7 +2,13 @@ package no.eudiw.rp.register.api.v2;
 
 import jakarta.validation.Validation;
 import jakarta.validation.ValidatorFactory;
-import no.eudiw.rp.register.api.v2.resource.V2Resources;
+import no.eudiw.rp.register.api.v2.resource.IdentifierResource;
+import no.eudiw.rp.register.api.v2.resource.LegalPersonResource;
+import no.eudiw.rp.register.api.v2.resource.MultiLangStringResource;
+import no.eudiw.rp.register.api.v2.resource.PolicyResource;
+import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.WalletRelyingPartyRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.WalletRelyingPartyServiceRequest;
 import no.eudiw.rp.register.config.RegistryProperties;
 import no.eudiw.rp.register.config.SupervisoryAuthorityProperties;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
@@ -48,10 +54,10 @@ class V2ContractMapperTest {
     @Test
     void invalidReplacementIsRejectedBeforeMutation() {
         WalletRelyingParty walletRelyingParty = walletRelyingParty();
-        var request = new V2Resources.WalletRelyingPartyWriteResource(
-            "Changed", true, "NO", new V2Resources.LegalPersonResource(List.of("Name"), List.of()),
-            List.of(new V2Resources.IdentifierResource("EUID", "NO-123")),
-            List.of(new V2Resources.PolicyResource("PrivacyPolicy", "https://example.test/policy")), List.of(),
+        var request = new WalletRelyingPartyRequest(
+            "Changed", true, "NO", new LegalPersonResource(List.of("Name"), List.of()),
+            List.of(new IdentifierResource("EUID", "NO-123")),
+            List.of(new PolicyResource("PrivacyPolicy", "https://example.test/policy")), List.of(),
             List.of(), List.of(), List.of(), List.of("not a URI"));
 
         assertThrows(BadRequestException.class,
@@ -68,7 +74,7 @@ class V2ContractMapperTest {
         RelyingPartyInstance relyingPartyInstance =
             new RelyingPartyInstance(List.of(relyingPartyEntitlement), List.of(), List.of());
 
-        var request = new V2Resources.RelyingPartyInstanceWriteResource(List.of(), List.of());
+        var request = new RelyingPartyInstanceRequest(List.of(), List.of());
         var requestedEntitlements = v2ContractMapper.toDomainRelyingPartyEntitlements(
             request.relyingPartyEntitlements());
 
@@ -82,10 +88,10 @@ class V2ContractMapperTest {
     @Test
     void walletRelyingPartyUpdateMarksEntityUpdated() {
         WalletRelyingParty walletRelyingParty = walletRelyingParty();
-        var request = new V2Resources.WalletRelyingPartyWriteResource(
-            "Changed", true, "NO", new V2Resources.LegalPersonResource(List.of("Name"), List.of()),
-            List.of(new V2Resources.IdentifierResource("EUID", "NO-123")),
-            List.of(new V2Resources.PolicyResource("PrivacyPolicy", "https://example.test/policy")),
+        var request = new WalletRelyingPartyRequest(
+            "Changed", true, "NO", new LegalPersonResource(List.of("Name"), List.of()),
+            List.of(new IdentifierResource("EUID", "NO-123")),
+            List.of(new PolicyResource("PrivacyPolicy", "https://example.test/policy")),
             List.of(), List.of(), List.of(), List.of(), List.of());
 
         v2ContractMapper.updateWalletRelyingParty(walletRelyingParty, request);
@@ -96,9 +102,9 @@ class V2ContractMapperTest {
     @Test
     void walletRelyingPartyServiceUpdateMarksEntityUpdated() {
         var service = new WalletRelyingPartyService("Original", walletRelyingParty(), List.of());
-        var request = new V2Resources.WalletRelyingPartyServiceWriteResource(
+        var request = new WalletRelyingPartyServiceRequest(
             "Changed", null, null, "contact@example.test", null,
-            List.of(List.of(new V2Resources.MultiLangStringResource("en", "Description"))),
+            List.of(List.of(new MultiLangStringResource("en", "Description"))),
             List.of(), List.of(), List.of(), false, List.of());
 
         v2ContractMapper.updateWalletRelyingPartyService(service, request);
@@ -109,7 +115,7 @@ class V2ContractMapperTest {
     @Test
     void relyingPartyInstanceUpdateMarksEntityUpdated() {
         var instance = new RelyingPartyInstance(List.of(), List.of(), List.of());
-        var request = new V2Resources.RelyingPartyInstanceWriteResource(List.of(), List.of());
+        var request = new RelyingPartyInstanceRequest(List.of(), List.of());
 
         v2ContractMapper.updateRelyingPartyInstance(instance, request, List.of());
 
@@ -118,25 +124,25 @@ class V2ContractMapperTest {
 
     @Test
     void requiredFieldsAreExplicitWhileOptionalTs5FieldsMayBeOmitted() {
-        var party = new V2Resources.WalletRelyingPartyWriteResource(
-            null, true, "NO", new V2Resources.LegalPersonResource(List.of("Name"), List.of()),
-            List.of(new V2Resources.IdentifierResource("EUID", "NO-123")),
-            List.of(new V2Resources.PolicyResource("PrivacyPolicy", "https://example.test/policy")),
+        var party = new WalletRelyingPartyRequest(
+            null, true, "NO", new LegalPersonResource(List.of("Name"), List.of()),
+            List.of(new IdentifierResource("EUID", "NO-123")),
+            List.of(new PolicyResource("PrivacyPolicy", "https://example.test/policy")),
             List.of(), List.of(), List.of(), List.of(), List.of());
         assertPropertiesRequired(party, List.of("isPSB", "country", "identifier", "policy"));
         assertPropertiesOptional(party,
             List.of("tradeName", "legalPerson", "x5c", "postalAddress", "email", "phone", "infoURI"));
 
-        var service = new V2Resources.WalletRelyingPartyServiceWriteResource(
+        var service = new WalletRelyingPartyServiceRequest(
             "Service", null, null, "contact@example.test", null,
-            List.of(List.of(new V2Resources.MultiLangStringResource("en", "Description"))),
+            List.of(List.of(new MultiLangStringResource("en", "Description"))),
             List.of(), List.of(), List.of(), false, List.of());
         assertPropertiesRequired(service, List.of("serviceTradeName", "srvDescription", "isIntermediary"));
         assertPropertiesOptional(service,
             List.of("serviceIdentifier", "supportURI", "email", "phone", "subEntitlements",
                 "providesAttestations", "usesIntermediaries", "servedWRPServices"));
         assertPropertiesRequired(
-            new V2Resources.RelyingPartyInstanceWriteResource(List.of(), List.of()),
+            new RelyingPartyInstanceRequest(List.of(), List.of()),
             List.of("relyingPartyEntitlements", "relyingPartyEaas"));
     }
 

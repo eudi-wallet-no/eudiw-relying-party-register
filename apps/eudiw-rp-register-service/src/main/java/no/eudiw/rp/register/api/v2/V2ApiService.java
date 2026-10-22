@@ -1,7 +1,22 @@
 package no.eudiw.rp.register.api.v2;
 
 import lombok.RequiredArgsConstructor;
-import no.eudiw.rp.register.api.v2.resource.V2Resources;
+import no.eudiw.rp.register.api.v2.endpoints.entities.AccessCertificateRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.CertificateResponse;
+import no.eudiw.rp.register.api.v2.endpoints.entities.CertificatesResponse;
+import no.eudiw.rp.register.api.v2.endpoints.entities.CreateIntendedUseRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.CreateWalletRelyingPartyRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.EntitlementResponse;
+import no.eudiw.rp.register.api.v2.endpoints.entities.EntitlementsResponse;
+import no.eudiw.rp.register.api.v2.endpoints.entities.IntendedUseReplacementResponse;
+import no.eudiw.rp.register.api.v2.endpoints.entities.IntendedUseResponse;
+import no.eudiw.rp.register.api.v2.endpoints.entities.IssuerCertificateRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceResponse;
+import no.eudiw.rp.register.api.v2.endpoints.entities.WalletRelyingPartyRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.WalletRelyingPartyResponse;
+import no.eudiw.rp.register.api.v2.endpoints.entities.WalletRelyingPartyServiceRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.WalletRelyingPartyServiceResponse;
 import no.eudiw.rp.register.domain.Entitlement;
 import no.eudiw.rp.register.domain.IntendedUse;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
@@ -50,8 +65,8 @@ public class V2ApiService {
     private final RelyingPartyCertificateService certificateService;
     private final RelyingPartyService relyingPartyService;
 
-    public V2Resources.WalletRelyingPartyResource createWalletRelyingParty(
-        V2Resources.CreateWalletRelyingPartyResource request
+    public WalletRelyingPartyResponse createWalletRelyingParty(
+        CreateWalletRelyingPartyRequest request
     ) {
         WalletRelyingParty walletRelyingParty =
             walletRelyingPartyLookupService.createWalletRelyingParty(request.orgno());
@@ -59,12 +74,12 @@ public class V2ApiService {
         return v2ContractMapper.toWalletRelyingPartyResponse(walletRelyingParty);
     }
 
-    public V2Resources.WalletRelyingPartyResource getWalletRelyingParty(UUID id) {
+    public WalletRelyingPartyResponse getWalletRelyingParty(UUID id) {
         WalletRelyingParty walletRelyingParty = findWalletRelyingParty(id);
         return v2ContractMapper.toWalletRelyingPartyResponse(walletRelyingParty);
     }
 
-    public Page<V2Resources.WalletRelyingPartyResource> searchWalletRelyingParties(
+    public Page<WalletRelyingPartyResponse> searchWalletRelyingParties(
         String orgno,
         int page,
         int pageSize,
@@ -82,9 +97,9 @@ public class V2ApiService {
         return walletRelyingParties.map(v2ContractMapper::toWalletRelyingPartyResponse);
     }
 
-    public V2Resources.WalletRelyingPartyResource updateWalletRelyingParty(
+    public WalletRelyingPartyResponse updateWalletRelyingParty(
         UUID id,
-        V2Resources.WalletRelyingPartyWriteResource request
+        WalletRelyingPartyRequest request
     ) {
         WalletRelyingParty walletRelyingParty = walletRelyingPartyRepository.findByIdForUpdate(id)
             .orElseThrow(() -> new NotFoundException("WalletRelyingParty not found"));
@@ -95,9 +110,9 @@ public class V2ApiService {
             walletRelyingPartyRepository.saveAndFlush(walletRelyingParty));
     }
 
-    public V2Resources.WalletRelyingPartyServiceResource createWalletRelyingPartyService(
+    public WalletRelyingPartyServiceResponse createWalletRelyingPartyService(
         UUID walletRelyingPartyId,
-        V2Resources.WalletRelyingPartyServiceWriteResource request
+        WalletRelyingPartyServiceRequest request
     ) {
         WalletRelyingParty walletRelyingParty = walletRelyingPartyRepository.findByIdForUpdate(walletRelyingPartyId)
             .orElseThrow(() -> new NotFoundException("WalletRelyingParty not found"));
@@ -115,11 +130,11 @@ public class V2ApiService {
             walletRelyingPartyServiceRepository.saveAndFlush(walletRelyingPartyService));
     }
 
-    public V2Resources.WalletRelyingPartyServiceResource getWalletRelyingPartyService(UUID id) {
+    public WalletRelyingPartyServiceResponse getWalletRelyingPartyService(UUID id) {
         return v2ContractMapper.toWalletRelyingPartyServiceResponse(findWalletRelyingPartyService(id));
     }
 
-    public Page<V2Resources.WalletRelyingPartyServiceResource> searchWalletRelyingPartyServices(
+    public Page<WalletRelyingPartyServiceResponse> searchWalletRelyingPartyServices(
         UUID partyId,
         int page,
         int pageSize,
@@ -138,9 +153,9 @@ public class V2ApiService {
         return walletRelyingPartyServices.map(v2ContractMapper::toWalletRelyingPartyServiceResponse);
     }
 
-    public V2Resources.WalletRelyingPartyServiceResource updateWalletRelyingPartyService(
+    public WalletRelyingPartyServiceResponse updateWalletRelyingPartyService(
         UUID id,
-        V2Resources.WalletRelyingPartyServiceWriteResource request
+        WalletRelyingPartyServiceRequest request
     ) {
         walletRelyingPartyRepository.findByServiceIdForUpdate(id)
             .orElseThrow(() -> new NotFoundException("WalletRelyingPartyService not found"));
@@ -152,9 +167,9 @@ public class V2ApiService {
             walletRelyingPartyServiceRepository.saveAndFlush(walletRelyingPartyService));
     }
 
-    public V2Resources.RelyingPartyInstanceResource createRelyingPartyInstance(
+    public RelyingPartyInstanceResponse createRelyingPartyInstance(
         UUID walletRelyingPartyServiceId,
-        V2Resources.RelyingPartyInstanceWriteResource request
+        RelyingPartyInstanceRequest request
     ) {
         WalletRelyingParty walletRelyingParty = walletRelyingPartyRepository
             .findByServiceIdForUpdate(walletRelyingPartyServiceId)
@@ -188,11 +203,11 @@ public class V2ApiService {
             relyingPartyInstanceRepository.saveAndFlush(relyingPartyInstance));
     }
 
-    public V2Resources.RelyingPartyInstanceResource getRelyingPartyInstance(UUID id) {
+    public RelyingPartyInstanceResponse getRelyingPartyInstance(UUID id) {
         return v2ContractMapper.toRelyingPartyInstanceResponse(findRelyingPartyInstance(id));
     }
 
-    public Page<V2Resources.RelyingPartyInstanceResource> searchRelyingPartyInstances(
+    public Page<RelyingPartyInstanceResponse> searchRelyingPartyInstances(
         UUID serviceId,
         String orgno,
         String searchTerm,
@@ -217,9 +232,9 @@ public class V2ApiService {
         return relyingPartyInstances.map(v2ContractMapper::toRelyingPartyInstanceResponse);
     }
 
-    public V2Resources.RelyingPartyInstanceResource updateRelyingPartyInstance(
+    public RelyingPartyInstanceResponse updateRelyingPartyInstance(
         UUID id,
-        V2Resources.RelyingPartyInstanceWriteResource request
+        RelyingPartyInstanceRequest request
     ) {
         walletRelyingPartyRepository.findByInstanceIdForUpdate(id)
             .orElseThrow(() -> new NotFoundException("RelyingPartyInstance not found"));
@@ -235,16 +250,16 @@ public class V2ApiService {
             relyingPartyInstanceRepository.saveAndFlush(relyingPartyInstance));
     }
 
-    public List<V2Resources.IntendedUseResource> getIntendedUses(UUID serviceId) {
+    public List<IntendedUseResponse> getIntendedUses(UUID serviceId) {
         WalletRelyingPartyService walletRelyingPartyService = findWalletRelyingPartyService(serviceId);
         return walletRelyingPartyService.getIntendedUses().stream()
             .map(v2ContractMapper::toIntendedUseResponse)
             .toList();
     }
 
-    public V2Resources.IntendedUseResource createIntendedUse(
+    public IntendedUseResponse createIntendedUse(
         UUID serviceId,
-        V2Resources.CreateIntendedUseResource request
+        CreateIntendedUseRequest request
     ) {
         WalletRelyingPartyService walletRelyingPartyService = findActiveWalletRelyingPartyServiceForUpdate(serviceId);
         IntendedUse intendedUse = v2ContractMapper.toDomainIntendedUse(request);
@@ -255,10 +270,10 @@ public class V2ApiService {
         return v2ContractMapper.toIntendedUseResponse(intendedUse);
     }
 
-    public V2Resources.IntendedUseReplacementResource replaceIntendedUse(
+    public IntendedUseReplacementResponse replaceIntendedUse(
         UUID serviceId,
         UUID previousIntendedUseId,
-        V2Resources.CreateIntendedUseResource request
+        CreateIntendedUseRequest request
     ) {
         WalletRelyingPartyService walletRelyingPartyService = findActiveWalletRelyingPartyServiceForUpdate(serviceId);
         IntendedUse previousIntendedUse = walletRelyingPartyService.getIntendedUses().stream()
@@ -277,13 +292,13 @@ public class V2ApiService {
         walletRelyingPartyService.getIntendedUses().add(currentIntendedUse);
         walletRelyingPartyServiceRepository.flush();
 
-        return new V2Resources.IntendedUseReplacementResource(
+        return new IntendedUseReplacementResponse(
             v2ContractMapper.toIntendedUseResponse(previousIntendedUse),
             v2ContractMapper.toIntendedUseResponse(currentIntendedUse)
         );
     }
 
-    public V2Resources.IntendedUseResource revokeIntendedUse(UUID serviceId, UUID intendedUseId) {
+    public IntendedUseResponse revokeIntendedUse(UUID serviceId, UUID intendedUseId) {
         WalletRelyingPartyService walletRelyingPartyService = findActiveWalletRelyingPartyServiceForUpdate(serviceId);
         IntendedUse intendedUse = walletRelyingPartyService.getIntendedUses().stream()
             .filter(candidate -> intendedUseId.equals(candidate.getId()))
@@ -301,49 +316,49 @@ public class V2ApiService {
     }
 
     @Transactional(readOnly = true)
-    public V2Resources.EntitlementsResource getEntitlements(boolean includeInactive) {
-        List<V2Resources.EntitlementResource> entitlements =
+    public EntitlementsResponse getEntitlements(boolean includeInactive) {
+        List<EntitlementResponse> entitlements =
             entitlementService.findAllEntitlements(includeInactive).stream()
                 .map(this::toEntitlementResponse)
                 .toList();
-        return new V2Resources.EntitlementsResource(entitlements);
+        return new EntitlementsResponse(entitlements);
     }
 
     @Transactional(readOnly = true)
-    public V2Resources.CertificatesResource getAccessCertificates(UUID instanceId) {
-        return new V2Resources.CertificatesResource(certificateService.getCertificatesForRelyingParty(instanceId)
+    public CertificatesResponse getAccessCertificates(UUID instanceId) {
+        return new CertificatesResponse(certificateService.getCertificatesForRelyingParty(instanceId)
             .stream().map(v2ContractMapper::toCertificateResponse).toList());
     }
 
     @Transactional(readOnly = true)
-    public V2Resources.CertificatesResource getIssuerCertificates(UUID instanceId) {
-        return new V2Resources.CertificatesResource(certificateService.getAllIssuerCertificatesFromRelyingParty(instanceId)
+    public CertificatesResponse getIssuerCertificates(UUID instanceId) {
+        return new CertificatesResponse(certificateService.getAllIssuerCertificatesFromRelyingParty(instanceId)
             .stream().map(v2ContractMapper::toCertificateResponse).toList());
     }
 
     @Transactional(readOnly = true)
-    public V2Resources.CertificateResource getAccessCertificate(UUID instanceId, UUID certificateId) {
+    public CertificateResponse getAccessCertificate(UUID instanceId, UUID certificateId) {
         AccessCertificate certificate = certificateService.getCertificate(certificateId, instanceId);
         return v2ContractMapper.toCertificateResponse(certificate);
     }
 
     @Transactional(readOnly = true)
-    public V2Resources.CertificateResource getIssuerCertificate(UUID instanceId, UUID certificateId) {
+    public CertificateResponse getIssuerCertificate(UUID instanceId, UUID certificateId) {
         IssuerCertificate certificate = certificateService.getIssuerCertificate(certificateId, instanceId);
         return v2ContractMapper.toCertificateResponse(certificate);
     }
 
-    public V2Resources.CertificateResource requestAccessCertificate(
+    public CertificateResponse requestAccessCertificate(
         UUID instanceId,
-        V2Resources.AccessCertificateRequest request
+        AccessCertificateRequest request
     ) {
         return v2ContractMapper.toCertificateResponse(
             certificateService.requestAccessCertificateForRelyingParty(instanceId, request.csr()));
     }
 
-    public V2Resources.CertificateResource requestIssuerCertificate(
+    public CertificateResponse requestIssuerCertificate(
         UUID instanceId,
-        V2Resources.IssuerCertificateRequest request
+        IssuerCertificateRequest request
     ) {
         return v2ContractMapper.toCertificateResponse(
             certificateService.requestIssuerCertificate(instanceId, request.csr(), request.entitlement()));
@@ -387,8 +402,8 @@ public class V2ApiService {
             .orElseThrow(() -> new NotFoundException("RelyingPartyInstance not found"));
     }
 
-    private V2Resources.EntitlementResource toEntitlementResponse(Entitlement entitlement) {
-        return new V2Resources.EntitlementResource(
+    private EntitlementResponse toEntitlementResponse(Entitlement entitlement) {
+        return new EntitlementResponse(
             entitlement.getId(),
             entitlement.getEntitlement(),
             entitlement.isActive(),

@@ -6,10 +6,24 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
-import no.idporten.validators.orgnr.Orgnr;
 import no.eudiw.rp.register.api.v2.V2ApiService;
-import no.eudiw.rp.register.api.v2.resource.V2Resources;
+import no.eudiw.rp.register.api.v2.endpoints.entities.AccessCertificateRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.CertificateResponse;
+import no.eudiw.rp.register.api.v2.endpoints.entities.CertificatesResponse;
+import no.eudiw.rp.register.api.v2.endpoints.entities.CreateIntendedUseRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.CreateWalletRelyingPartyRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.EntitlementsResponse;
+import no.eudiw.rp.register.api.v2.endpoints.entities.IntendedUseReplacementResponse;
+import no.eudiw.rp.register.api.v2.endpoints.entities.IntendedUseResponse;
+import no.eudiw.rp.register.api.v2.endpoints.entities.IssuerCertificateRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceResponse;
+import no.eudiw.rp.register.api.v2.endpoints.entities.WalletRelyingPartyRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.WalletRelyingPartyResponse;
+import no.eudiw.rp.register.api.v2.endpoints.entities.WalletRelyingPartyServiceRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.WalletRelyingPartyServiceResponse;
 import no.idporten.logging.audit.Audit;
+import no.idporten.validators.orgnr.Orgnr;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -62,21 +76,21 @@ public class V2ResourcesEndpoint {
     @Audit(auditId = AUDIT_WALLET_RELYING_PARTY_CREATED)
     @PostMapping(path = "/parties", consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<V2Resources.WalletRelyingPartyResource> createWalletRelyingParty(
-        @Valid @RequestBody V2Resources.CreateWalletRelyingPartyResource request
+    public ResponseEntity<WalletRelyingPartyResponse> createWalletRelyingParty(
+        @Valid @RequestBody CreateWalletRelyingPartyRequest request
     ) {
         return ResponseEntity.ok(v2ApiService.createWalletRelyingParty(request));
     }
 
     @Operation(summary = "Get a WalletRelyingParty")
     @GetMapping(path = "/parties/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public V2Resources.WalletRelyingPartyResource getWalletRelyingParty(@PathVariable UUID id) {
+    public WalletRelyingPartyResponse getWalletRelyingParty(@PathVariable UUID id) {
         return v2ApiService.getWalletRelyingParty(id);
     }
 
     @Operation(summary = "Find by organization number or list WalletRelyingParties")
     @GetMapping(path = "/parties", produces = MediaType.APPLICATION_JSON_VALUE)
-    public PagedModel<V2Resources.WalletRelyingPartyResource> searchWalletRelyingParties(
+    public PagedModel<WalletRelyingPartyResponse> searchWalletRelyingParties(
         @Orgnr
         @RequestParam(required = false) String orgno,
         @RequestParam(defaultValue = "0") int page,
@@ -93,9 +107,9 @@ public class V2ResourcesEndpoint {
     @Audit(auditId = AUDIT_WALLET_RELYING_PARTY_UPDATED)
     @PutMapping(path = "/parties/{id}", consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
-    public V2Resources.WalletRelyingPartyResource updateWalletRelyingParty(
+    public WalletRelyingPartyResponse updateWalletRelyingParty(
         @PathVariable UUID id,
-        @Valid @RequestBody V2Resources.WalletRelyingPartyWriteResource request
+        @Valid @RequestBody WalletRelyingPartyRequest request
     ) {
         return v2ApiService.updateWalletRelyingParty(id, request);
     }
@@ -104,23 +118,23 @@ public class V2ResourcesEndpoint {
     @Audit(auditId = AUDIT_WALLET_RELYING_PARTY_SERVICE_CREATED)
     @PostMapping(path = "/parties/{partyId}/services", consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<V2Resources.WalletRelyingPartyServiceResource> createWalletRelyingPartyService(
+    public ResponseEntity<WalletRelyingPartyServiceResponse> createWalletRelyingPartyService(
         @Parameter(description = "Parent WalletRelyingParty identifier")
         @PathVariable UUID partyId,
-        @Valid @RequestBody V2Resources.WalletRelyingPartyServiceWriteResource request
+        @Valid @RequestBody WalletRelyingPartyServiceRequest request
     ) {
         return ResponseEntity.ok(v2ApiService.createWalletRelyingPartyService(partyId, request));
     }
 
     @Operation(summary = "Get a WalletRelyingPartyService")
     @GetMapping(path = "/services/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public V2Resources.WalletRelyingPartyServiceResource getWalletRelyingPartyService(@PathVariable UUID id) {
+    public WalletRelyingPartyServiceResponse getWalletRelyingPartyService(@PathVariable UUID id) {
         return v2ApiService.getWalletRelyingPartyService(id);
     }
 
     @Operation(summary = "List WalletRelyingPartyServices")
     @GetMapping(path = "/services", produces = MediaType.APPLICATION_JSON_VALUE)
-    public PagedModel<V2Resources.WalletRelyingPartyServiceResource> searchWalletRelyingPartyServices(
+    public PagedModel<WalletRelyingPartyServiceResponse> searchWalletRelyingPartyServices(
         @Parameter(description = "Owning WalletRelyingParty identifier")
         @RequestParam UUID partyId,
         @RequestParam(defaultValue = "0") int page,
@@ -137,9 +151,9 @@ public class V2ResourcesEndpoint {
     @Audit(auditId = AUDIT_WALLET_RELYING_PARTY_SERVICE_UPDATED)
     @PutMapping(path = "/services/{id}", consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
-    public V2Resources.WalletRelyingPartyServiceResource updateWalletRelyingPartyService(
+    public WalletRelyingPartyServiceResponse updateWalletRelyingPartyService(
         @PathVariable UUID id,
-        @Valid @RequestBody V2Resources.WalletRelyingPartyServiceWriteResource request
+        @Valid @RequestBody WalletRelyingPartyServiceRequest request
     ) {
         return v2ApiService.updateWalletRelyingPartyService(id, request);
     }
@@ -148,23 +162,23 @@ public class V2ResourcesEndpoint {
     @Audit(auditId = AUDIT_RELYING_PARTY_INSTANCE_CREATED)
     @PostMapping(path = "/services/{serviceId}/instances", consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<V2Resources.RelyingPartyInstanceResource> createRelyingPartyInstance(
+    public ResponseEntity<RelyingPartyInstanceResponse> createRelyingPartyInstance(
         @Parameter(description = "Parent WalletRelyingPartyService identifier")
         @PathVariable UUID serviceId,
-        @Valid @RequestBody V2Resources.RelyingPartyInstanceWriteResource request
+        @Valid @RequestBody RelyingPartyInstanceRequest request
     ) {
         return ResponseEntity.ok(v2ApiService.createRelyingPartyInstance(serviceId, request));
     }
 
     @Operation(summary = "Get a RelyingPartyInstance")
     @GetMapping(path = "/instances/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public V2Resources.RelyingPartyInstanceResource getRelyingPartyInstance(@PathVariable UUID id) {
+    public RelyingPartyInstanceResponse getRelyingPartyInstance(@PathVariable UUID id) {
         return v2ApiService.getRelyingPartyInstance(id);
     }
 
     @Operation(summary = "Search RelyingPartyInstances")
     @GetMapping(path = "/instances", produces = MediaType.APPLICATION_JSON_VALUE)
-    public PagedModel<V2Resources.RelyingPartyInstanceResource> searchRelyingPartyInstances(
+    public PagedModel<RelyingPartyInstanceResponse> searchRelyingPartyInstances(
         @Parameter(description = "Optional WalletRelyingPartyService identifier")
         @RequestParam(required = false) UUID serviceId,
         @Orgnr
@@ -187,16 +201,16 @@ public class V2ResourcesEndpoint {
     @Audit(auditId = AUDIT_RELYING_PARTY_INSTANCE_UPDATED)
     @PutMapping(path = "/instances/{id}", consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
-    public V2Resources.RelyingPartyInstanceResource updateRelyingPartyInstance(
+    public RelyingPartyInstanceResponse updateRelyingPartyInstance(
         @PathVariable UUID id,
-        @Valid @RequestBody V2Resources.RelyingPartyInstanceWriteResource request
+        @Valid @RequestBody RelyingPartyInstanceRequest request
     ) {
         return v2ApiService.updateRelyingPartyInstance(id, request);
     }
 
     @Operation(summary = "List IntendedUse snapshots")
     @GetMapping(path = "/services/{serviceId}/intended-uses", produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<V2Resources.IntendedUseResource> getIntendedUses(
+    public List<IntendedUseResponse> getIntendedUses(
         @Parameter(description = "Owning WalletRelyingPartyService identifier")
         @PathVariable UUID serviceId
     ) {
@@ -207,10 +221,10 @@ public class V2ResourcesEndpoint {
     @Audit(auditId = AUDIT_INTENDED_USE_CREATED)
     @PostMapping(path = "/services/{serviceId}/intended-uses", consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<V2Resources.IntendedUseResource> createIntendedUse(
+    public ResponseEntity<IntendedUseResponse> createIntendedUse(
         @Parameter(description = "Owning WalletRelyingPartyService identifier")
         @PathVariable UUID serviceId,
-        @Valid @RequestBody V2Resources.CreateIntendedUseResource request
+        @Valid @RequestBody CreateIntendedUseRequest request
     ) {
         return ResponseEntity.ok(v2ApiService.createIntendedUse(serviceId, request));
     }
@@ -219,12 +233,12 @@ public class V2ResourcesEndpoint {
     @Audit(auditId = AUDIT_INTENDED_USE_REPLACED)
     @PostMapping(path = "/services/{serviceId}/intended-uses/{id}/replace",
         consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<V2Resources.IntendedUseReplacementResource> replaceIntendedUse(
+    public ResponseEntity<IntendedUseReplacementResponse> replaceIntendedUse(
         @Parameter(description = "Owning WalletRelyingPartyService identifier")
         @PathVariable UUID serviceId,
         @Parameter(description = "IntendedUse identifier to replace")
         @PathVariable UUID id,
-        @Valid @RequestBody V2Resources.CreateIntendedUseResource request
+        @Valid @RequestBody CreateIntendedUseRequest request
     ) {
         return ResponseEntity.ok(v2ApiService.replaceIntendedUse(serviceId, id, request));
     }
@@ -233,7 +247,7 @@ public class V2ResourcesEndpoint {
     @Audit(auditId = AUDIT_INTENDED_USE_REVOKED)
     @PatchMapping(path = "/services/{serviceId}/intended-uses/{id}/revoke",
         produces = MediaType.APPLICATION_JSON_VALUE)
-    public V2Resources.IntendedUseResource revokeIntendedUse(
+    public IntendedUseResponse revokeIntendedUse(
         @Parameter(description = "Owning WalletRelyingPartyService identifier")
         @PathVariable UUID serviceId,
         @Parameter(description = "IntendedUse identifier to revoke")
@@ -244,7 +258,7 @@ public class V2ResourcesEndpoint {
 
     @Operation(summary = "List entitlements")
     @GetMapping(path = "/entitlements", produces = MediaType.APPLICATION_JSON_VALUE)
-    public V2Resources.EntitlementsResource getEntitlements(
+    public EntitlementsResponse getEntitlements(
         @RequestParam(defaultValue = "false") boolean includeInactive
     ) {
         return v2ApiService.getEntitlements(includeInactive);
@@ -253,21 +267,21 @@ public class V2ResourcesEndpoint {
     @Operation(summary = "List access certificates")
     @GetMapping(path = "/instances/{instanceId}/certificates/access",
         produces = MediaType.APPLICATION_JSON_VALUE)
-    public V2Resources.CertificatesResource getAccessCertificates(@PathVariable UUID instanceId) {
+    public CertificatesResponse getAccessCertificates(@PathVariable UUID instanceId) {
         return v2ApiService.getAccessCertificates(instanceId);
     }
 
     @Operation(summary = "List issuer certificates")
     @GetMapping(path = "/instances/{instanceId}/certificates/issuer",
         produces = MediaType.APPLICATION_JSON_VALUE)
-    public V2Resources.CertificatesResource getIssuerCertificates(@PathVariable UUID instanceId) {
+    public CertificatesResponse getIssuerCertificates(@PathVariable UUID instanceId) {
         return v2ApiService.getIssuerCertificates(instanceId);
     }
 
     @Operation(summary = "Get an access certificate")
     @GetMapping(path = "/instances/{instanceId}/certificates/access/{certificateId}",
         produces = MediaType.APPLICATION_JSON_VALUE)
-    public V2Resources.CertificateResource getAccessCertificate(
+    public CertificateResponse getAccessCertificate(
         @PathVariable UUID instanceId,
         @PathVariable UUID certificateId
     ) {
@@ -277,7 +291,7 @@ public class V2ResourcesEndpoint {
     @Operation(summary = "Get an issuer certificate")
     @GetMapping(path = "/instances/{instanceId}/certificates/issuer/{certificateId}",
         produces = MediaType.APPLICATION_JSON_VALUE)
-    public V2Resources.CertificateResource getIssuerCertificate(
+    public CertificateResponse getIssuerCertificate(
         @PathVariable UUID instanceId,
         @PathVariable UUID certificateId
     ) {
@@ -288,9 +302,9 @@ public class V2ResourcesEndpoint {
     @Audit(auditId = AUDIT_ACCESS_CERTIFICATE_CREATED)
     @PostMapping(path = "/instances/{instanceId}/certificates/access",
         consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public V2Resources.CertificateResource requestAccessCertificate(
+    public CertificateResponse requestAccessCertificate(
         @PathVariable UUID instanceId,
-        @Valid @RequestBody V2Resources.AccessCertificateRequest request
+        @Valid @RequestBody AccessCertificateRequest request
     ) {
         return v2ApiService.requestAccessCertificate(instanceId, request);
     }
@@ -299,9 +313,9 @@ public class V2ResourcesEndpoint {
     @Audit(auditId = AUDIT_ISSUER_CERTIFICATE_CREATED)
     @PostMapping(path = "/instances/{instanceId}/certificates/issuer",
         consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public V2Resources.CertificateResource requestIssuerCertificate(
+    public CertificateResponse requestIssuerCertificate(
         @PathVariable UUID instanceId,
-        @Valid @RequestBody V2Resources.IssuerCertificateRequest request
+        @Valid @RequestBody IssuerCertificateRequest request
     ) {
         return v2ApiService.requestIssuerCertificate(instanceId, request);
     }

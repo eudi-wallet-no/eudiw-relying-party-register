@@ -5,7 +5,9 @@ import no.eudiw.rp.register.api.v1.resource.relyingparty.CreateRelyingPartyResou
 import no.eudiw.rp.register.api.v1.resource.relyingparty.EditRelyingPartyResource;
 import no.eudiw.rp.register.api.v1.resource.relyingparty.RelyingPartyEntitlementResource;
 import no.eudiw.rp.register.api.v2.V2ApiService;
-import no.eudiw.rp.register.api.v2.resource.V2Resources;
+import no.eudiw.rp.register.api.v2.resource.MultiLangStringResource;
+import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.WalletRelyingPartyServiceRequest;
 import no.eudiw.rp.register.domain.Entitlement;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
@@ -175,12 +177,12 @@ class RegistrationStatusConcurrencyTest {
             case V1_CREATION -> v1ApiService.createRelyingParty(
                 new CreateRelyingPartyResource(registration.orgno(), "New service", entitlements, List.of()));
             case V2_SERVICE_CREATION -> v2ApiService.createWalletRelyingPartyService(
-                registration.partyId(), new V2Resources.WalletRelyingPartyServiceWriteResource(
+                registration.partyId(), new WalletRelyingPartyServiceRequest(
                     "New service", null, null, "contact@example.test", null,
-                    List.of(List.of(new V2Resources.MultiLangStringResource("en", "New service"))),
+                    List.of(List.of(new MultiLangStringResource("en", "New service"))),
                     List.of(), List.of(), List.of(), false, List.of()));
             case V2_INSTANCE_CREATION -> v2ApiService.createRelyingPartyInstance(
-                registration.serviceId(), new V2Resources.RelyingPartyInstanceWriteResource(List.of(), List.of()));
+                registration.serviceId(), new RelyingPartyInstanceRequest(List.of(), List.of()));
         }
     }
 

@@ -3,7 +3,26 @@ package no.eudiw.rp.register.api.v2;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
-import no.eudiw.rp.register.api.v2.resource.V2Resources;
+import no.eudiw.rp.register.api.v2.endpoints.entities.CertificateResponse;
+import no.eudiw.rp.register.api.v2.endpoints.entities.CreateIntendedUseRequest;
+import no.eudiw.rp.register.api.v2.resource.CredentialResource;
+import no.eudiw.rp.register.api.v2.resource.IdentifierResource;
+import no.eudiw.rp.register.api.v2.endpoints.entities.IntendedUseResponse;
+import no.eudiw.rp.register.api.v2.resource.IntermediaryReferenceResource;
+import no.eudiw.rp.register.api.v2.resource.LawResource;
+import no.eudiw.rp.register.api.v2.resource.LegalPersonResource;
+import no.eudiw.rp.register.api.v2.resource.MultiLangStringResource;
+import no.eudiw.rp.register.api.v2.resource.PolicyResource;
+import no.eudiw.rp.register.api.v2.resource.ProvidedAttestationResource;
+import no.eudiw.rp.register.api.v2.resource.RelyingPartyEaaResource;
+import no.eudiw.rp.register.api.v2.resource.RelyingPartyEntitlementResource;
+import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceResponse;
+import no.eudiw.rp.register.api.v2.resource.SupervisoryAuthorityResource;
+import no.eudiw.rp.register.api.v2.endpoints.entities.WalletRelyingPartyRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.WalletRelyingPartyResponse;
+import no.eudiw.rp.register.api.v2.endpoints.entities.WalletRelyingPartyServiceRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.WalletRelyingPartyServiceResponse;
 import no.eudiw.rp.register.config.RegistryProperties;
 import no.eudiw.rp.register.config.SupervisoryAuthorityProperties;
 import no.eudiw.rp.register.domain.Credential;
@@ -41,10 +60,10 @@ public class V2ContractMapper {
     private final RegistryProperties registryProperties;
     private final SupervisoryAuthorityProperties supervisoryAuthorityProperties;
 
-    public V2Resources.WalletRelyingPartyResource toWalletRelyingPartyResponse(
+    public WalletRelyingPartyResponse toWalletRelyingPartyResponse(
         WalletRelyingParty walletRelyingParty
     ) {
-        return new V2Resources.WalletRelyingPartyResource(
+        return new WalletRelyingPartyResponse(
             walletRelyingParty.getId(),
             walletRelyingParty.getOrgno(),
             walletRelyingParty.getTradeName(),
@@ -53,10 +72,10 @@ public class V2ContractMapper {
             walletRelyingParty.getProviderType(),
             toLegalPersonResponse(walletRelyingParty.getLegalPerson()),
             walletRelyingParty.getIdentifier().stream()
-                .map(identifier -> new V2Resources.IdentifierResource(identifier.type(), identifier.identifier()))
+                .map(identifier -> new IdentifierResource(identifier.type(), identifier.identifier()))
                 .toList(),
             walletRelyingParty.getPolicy().stream()
-                .map(policy -> new V2Resources.PolicyResource(policy.type(), policy.policyURI()))
+                .map(policy -> new PolicyResource(policy.type(), policy.policyURI()))
                 .toList(),
             List.copyOf(walletRelyingParty.getX5c()),
             walletRelyingParty.getPostalAddress(),
@@ -72,10 +91,10 @@ public class V2ContractMapper {
         );
     }
 
-    public V2Resources.WalletRelyingPartyServiceResource toWalletRelyingPartyServiceResponse(
+    public WalletRelyingPartyServiceResponse toWalletRelyingPartyServiceResponse(
         WalletRelyingPartyService walletRelyingPartyService
     ) {
-        return new V2Resources.WalletRelyingPartyServiceResource(
+        return new WalletRelyingPartyServiceResponse(
             walletRelyingPartyService.getId(),
             walletRelyingPartyService.getWalletRelyingParty().getId(),
             walletRelyingPartyService.getServiceTradeName(),
@@ -87,10 +106,10 @@ public class V2ContractMapper {
             walletRelyingPartyService.getEntitlements(),
             walletRelyingPartyService.getSubEntitlements(),
             walletRelyingPartyService.getProvidesAttestations().stream()
-                .map(item -> new V2Resources.ProvidedAttestationResource(item.format(), item.type()))
+                .map(item -> new ProvidedAttestationResource(item.format(), item.type()))
                 .toList(),
             walletRelyingPartyService.getUsesIntermediaries().stream()
-                .map(item -> new V2Resources.IntermediaryReferenceResource(
+                .map(item -> new IntermediaryReferenceResource(
                     item.serviceIdentifier(), item.serviceTradeName(), item.registryURI()))
                 .toList(),
             walletRelyingPartyService.isIntermediary(),
@@ -103,18 +122,18 @@ public class V2ContractMapper {
         );
     }
 
-    public V2Resources.RelyingPartyInstanceResource toRelyingPartyInstanceResponse(
+    public RelyingPartyInstanceResponse toRelyingPartyInstanceResponse(
         RelyingPartyInstance relyingPartyInstance
     ) {
-        return new V2Resources.RelyingPartyInstanceResource(
+        return new RelyingPartyInstanceResponse(
             relyingPartyInstance.getId(),
             relyingPartyInstance.getWalletRelyingPartyService().getId(),
             relyingPartyInstance.getRelyingPartyEntitlements().stream()
-                .map(item -> new V2Resources.RelyingPartyEntitlementResource(
+                .map(item -> new RelyingPartyEntitlementResource(
                     item.getEntitlement(), item.getCredentialIssuerUrl()))
                 .toList(),
             relyingPartyInstance.getRelyingPartyEaas().stream()
-                .map(item -> new V2Resources.RelyingPartyEaaResource(item.getNamespace(), item.getIntent()))
+                .map(item -> new RelyingPartyEaaResource(item.getNamespace(), item.getIntent()))
                 .toList(),
             relyingPartyInstance.isActive(),
             relyingPartyInstance.getCreatedMs(),
@@ -124,8 +143,8 @@ public class V2ContractMapper {
         );
     }
 
-    public V2Resources.IntendedUseResource toIntendedUseResponse(IntendedUse intendedUse) {
-        return new V2Resources.IntendedUseResource(
+    public IntendedUseResponse toIntendedUseResponse(IntendedUse intendedUse) {
+        return new IntendedUseResponse(
             intendedUse.getId(),
             intendedUse.getWalletRelyingPartyService().getId(),
             intendedUse.getIntendedUseIdentifier(),
@@ -133,22 +152,22 @@ public class V2ContractMapper {
             intendedUse.getRevokedAt(),
             toMultiLangStringResponse(intendedUse.getPurpose()),
             intendedUse.getPrivacyPolicy().stream()
-                .map(policy -> new V2Resources.PolicyResource(policy.type(), policy.policyURI()))
+                .map(policy -> new PolicyResource(policy.type(), policy.policyURI()))
                 .toList(),
             intendedUse.getCredentials().stream()
-                .map(credential -> new V2Resources.CredentialResource(
+                .map(credential -> new CredentialResource(
                     credential.getFormat(), credential.getMeta(), credential.getClaims()))
                 .toList()
         );
     }
 
-    public V2Resources.CertificateResource toCertificateResponse(AccessCertificate certificate) {
-        return new V2Resources.CertificateResource(
+    public CertificateResponse toCertificateResponse(AccessCertificate certificate) {
+        return new CertificateResponse(
             certificate.getCertificate(), null, certificate.getId(), certificate.getRevocationStatus());
     }
 
-    public V2Resources.CertificateResource toCertificateResponse(IssuerCertificate certificate) {
-        return new V2Resources.CertificateResource(
+    public CertificateResponse toCertificateResponse(IssuerCertificate certificate) {
+        return new CertificateResponse(
             certificate.getCertificate(),
             certificate.getEntitlement().getEntitlement(),
             certificate.getId(),
@@ -157,7 +176,7 @@ public class V2ContractMapper {
     }
 
     public WalletRelyingPartyService toWalletRelyingPartyService(
-        V2Resources.WalletRelyingPartyServiceWriteResource resource,
+        WalletRelyingPartyServiceRequest resource,
         WalletRelyingParty walletRelyingParty,
         List<RelyingPartyInstance> relyingPartyInstances
     ) {
@@ -186,14 +205,14 @@ public class V2ContractMapper {
     }
 
     public List<RelyingPartyEntitlement> toDomainRelyingPartyEntitlements(
-        V2Resources.RelyingPartyInstanceWriteResource resource
+        RelyingPartyInstanceRequest resource
     ) {
         validate(resource);
         return toDomainRelyingPartyEntitlements(resource.relyingPartyEntitlements());
     }
 
     public List<RelyingPartyEntitlement> toDomainRelyingPartyEntitlements(
-        List<V2Resources.RelyingPartyEntitlementResource> resources
+        List<RelyingPartyEntitlementResource> resources
     ) {
         if (resources == null) {
             throw new BadRequestException("Entitlements should be empty if none exists");
@@ -202,7 +221,7 @@ public class V2ContractMapper {
             throw new BadRequestException("RelyingPartyInstance entitlements must not contain null");
         }
         long distinctEntitlements = resources.stream()
-            .map(V2Resources.RelyingPartyEntitlementResource::entitlement)
+            .map(RelyingPartyEntitlementResource::entitlement)
             .distinct()
             .count();
         if (distinctEntitlements != resources.size()) {
@@ -214,17 +233,17 @@ public class V2ContractMapper {
     }
 
     public List<RelyingPartyEaa> toDomainRelyingPartyEaas(
-        List<V2Resources.RelyingPartyEaaResource> resources
+        List<RelyingPartyEaaResource> resources
     ) {
         return resources.stream().map(item -> new RelyingPartyEaa(item.namespace(), item.intent())).toList();
     }
 
-    public IntendedUse toDomainIntendedUse(V2Resources.CreateIntendedUseResource resource) {
+    public IntendedUse toDomainIntendedUse(CreateIntendedUseRequest resource) {
         return toDomainIntendedUse(resource, LocalDate.now(ZoneOffset.UTC).toString());
     }
 
     public IntendedUse toDomainIntendedUse(
-        V2Resources.CreateIntendedUseResource resource,
+        CreateIntendedUseRequest resource,
         String createdAt
     ) {
         validate(resource);
@@ -245,7 +264,7 @@ public class V2ContractMapper {
 
     public void updateWalletRelyingParty(
         WalletRelyingParty walletRelyingParty,
-        V2Resources.WalletRelyingPartyWriteResource resource
+        WalletRelyingPartyRequest resource
     ) {
         validate(resource);
         walletRelyingParty.setTradeName(resource.tradeName());
@@ -280,7 +299,7 @@ public class V2ContractMapper {
 
     public void updateWalletRelyingPartyService(
         WalletRelyingPartyService walletRelyingPartyService,
-        V2Resources.WalletRelyingPartyServiceWriteResource resource
+        WalletRelyingPartyServiceRequest resource
     ) {
         validate(resource);
         walletRelyingPartyService.setIntermediaryConfiguration(
@@ -307,7 +326,7 @@ public class V2ContractMapper {
 
     public void updateRelyingPartyInstance(
         RelyingPartyInstance relyingPartyInstance,
-        V2Resources.RelyingPartyInstanceWriteResource resource,
+        RelyingPartyInstanceRequest resource,
         List<RelyingPartyEntitlement> relyingPartyEntitlements
     ) {
         validate(resource);
@@ -329,7 +348,7 @@ public class V2ContractMapper {
         relyingPartyInstance.setUpdated();
     }
 
-    private LegalPerson toDomainLegalPerson(V2Resources.LegalPersonResource resource) {
+    private LegalPerson toDomainLegalPerson(LegalPersonResource resource) {
         return new LegalPerson(
             resource.legalName(),
             listOrEmpty(resource.establishedByLaw()).stream()
@@ -338,21 +357,21 @@ public class V2ContractMapper {
         );
     }
 
-    private V2Resources.LegalPersonResource toLegalPersonResponse(LegalPerson legalPerson) {
+    private LegalPersonResource toLegalPersonResponse(LegalPerson legalPerson) {
         if (legalPerson == null) {
             return null;
         }
 
-        return new V2Resources.LegalPersonResource(
+        return new LegalPersonResource(
             legalPerson.getLegalName(),
             legalPerson.getEstablishedByLaw().stream()
-                .map(item -> new V2Resources.LawResource(item.legislativeIdentifier(), item.legalBasis()))
+                .map(item -> new LawResource(item.legislativeIdentifier(), item.legalBasis()))
                 .toList()
         );
     }
 
-    private V2Resources.SupervisoryAuthorityResource toSupervisoryAuthorityResponse() {
-        return new V2Resources.SupervisoryAuthorityResource(
+    private SupervisoryAuthorityResource toSupervisoryAuthorityResponse() {
+        return new SupervisoryAuthorityResource(
             supervisoryAuthorityProperties.name(),
             supervisoryAuthorityProperties.country(),
             singletonIfPresent(supervisoryAuthorityProperties.phone()),
@@ -369,7 +388,7 @@ public class V2ContractMapper {
         return values == null ? new ArrayList<>() : new ArrayList<>(values);
     }
 
-    private List<List<V2Resources.MultiLangStringResource>> toNestedMultiLangStringResponse(
+    private List<List<MultiLangStringResource>> toNestedMultiLangStringResponse(
         List<List<MultiLangString>> values
     ) {
         if (values == null) {
@@ -378,14 +397,14 @@ public class V2ContractMapper {
         return values.stream().map(this::toMultiLangStringResponse).toList();
     }
 
-    private List<V2Resources.MultiLangStringResource> toMultiLangStringResponse(List<MultiLangString> values) {
+    private List<MultiLangStringResource> toMultiLangStringResponse(List<MultiLangString> values) {
         return values.stream()
-            .map(item -> new V2Resources.MultiLangStringResource(item.lang(), item.content()))
+            .map(item -> new MultiLangStringResource(item.lang(), item.content()))
             .toList();
     }
 
     private List<List<MultiLangString>> toNestedDomainMultiLangStrings(
-        List<List<V2Resources.MultiLangStringResource>> values
+        List<List<MultiLangStringResource>> values
     ) {
         if (values == null) {
             return null;
@@ -393,7 +412,7 @@ public class V2ContractMapper {
         return values.stream().map(this::toDomainMultiLangStrings).toList();
     }
 
-    private List<MultiLangString> toDomainMultiLangStrings(List<V2Resources.MultiLangStringResource> values) {
+    private List<MultiLangString> toDomainMultiLangStrings(List<MultiLangStringResource> values) {
         return values.stream().map(item -> new MultiLangString(item.lang(), item.content())).toList();
     }
 
