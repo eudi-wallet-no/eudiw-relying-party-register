@@ -74,7 +74,7 @@ class WrpByIdentifierIntegrationTest {
         KeyProvider keyProvider = mock(KeyProvider.class);
         when(keyProvider.privateKey()).thenReturn(signingKeyPair.getPrivate());
         when(keyProvider.publicKey()).thenReturn(signingKeyPair.getPublic());
-        when(keystoreManager.getKeyProvider("wrp-test")).thenReturn(keyProvider);
+        when(keystoreManager.getKeyProvider("wrp-signing")).thenReturn(keyProvider);
     }
 
     @Test

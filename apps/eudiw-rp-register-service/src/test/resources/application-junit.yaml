@@ -19,7 +19,7 @@ eudiw-rp-register-service:
     issuer: https://registry.example.test
     registry-uri: https://registry.example.test/wrp
     jwks-url: https://registry.example.test/wrp/jwks
-    signing-keystore: wrp-test
+    signing-keystore: wrp-signing
     signing-key-id: wrp-test-key
   csr-service:
     access-certificate-ca-id: junitaccess1
@@ -28,11 +28,11 @@ eudiw-rp-register-service:
       api-key-value: xxx
 
 idporten-key-manager:
-  default-keystore: wrp-test
+  default-keystore: wrp-signing
   keystores:
-    wrp-test:
-      key-store-location: classpath:/wrp-test.p12
+    wrp-signing:
+      key-store-location: classpath:wrp-test.p12
       key-store-type: PKCS12
-      key-store-password: junit
+      key-store-password: junit-test
       key-alias: wrp-test
-      key-password: junit
+      key-password: junit-test
