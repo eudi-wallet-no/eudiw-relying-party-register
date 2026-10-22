@@ -46,6 +46,10 @@ eudiw-rp-register-service:
   csr-service:
     ca-service-api:
       ca-service-base-uri: http://${LOCAL_SERVICE_HOST:ca-service}:9220
+  wrp:
+    issuer: http://localhost:9200
+    registry-uri: http://localhost:9200
+    jwks-url: http://localhost:9200/wrp/jwks
 
 external-dependency-health-checks:
   enabled: false
