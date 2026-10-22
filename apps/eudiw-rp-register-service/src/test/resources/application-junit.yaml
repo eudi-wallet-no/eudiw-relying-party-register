@@ -21,6 +21,7 @@ eudiw-rp-register-service:
     jwks-url: https://registry.example.test/wrp/jwks
     signing-keystore: wrp-signing
     signing-key-id: wrp-test-key
+  registry-uri: https://registry.example.test/wrp
   csr-service:
     access-certificate-ca-id: junitaccess1
     ca-service-api:

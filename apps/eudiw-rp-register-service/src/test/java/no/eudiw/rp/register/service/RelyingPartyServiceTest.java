@@ -45,7 +45,8 @@ class RelyingPartyServiceTest {
         RelyingPartyEntitlement entitlement = new RelyingPartyEntitlement("active-entitlement");
         RelyingPartyEaa eaa = new RelyingPartyEaa("namespace", "intent");
         when(entitlementRepository.existsByEntitlementAndActive("active-entitlement", true)).thenReturn(true);
-        when(walletRelyingPartyLookupService.getWalletRelyingPartyForOrgno("123456789")).thenReturn(walletRelyingParty);
+        when(walletRelyingPartyLookupService.findWalletRelyingPartyForOrgno("123456789"))
+            .thenReturn(Optional.of(walletRelyingParty));
         when(repository.saveAndFlush(any(RelyingPartyInstance.class))).thenAnswer(call -> call.getArgument(0));
 
         RelyingPartyInstance result =
@@ -60,6 +61,7 @@ class RelyingPartyServiceTest {
         assertSame(result, eaa.getRelyingPartyInstance());
         verify(walletRelyingPartyServiceRepository).save(result.getWalletRelyingPartyService());
         assertEquals(List.of(result.getWalletRelyingPartyService()), walletRelyingParty.getServices());
+        verify(walletRelyingPartyLookupService, never()).createWalletRelyingParty(any());
     }
 
     @ParameterizedTest
@@ -105,7 +107,8 @@ class RelyingPartyServiceTest {
     void rejectsInactiveWalletRelyingPartyBeforeSaving() {
         WalletRelyingParty walletRelyingParty = new WalletRelyingParty("Entity", "123456789", false, List.of());
         walletRelyingParty.setActive(false);
-        when(walletRelyingPartyLookupService.getWalletRelyingPartyForOrgno("123456789")).thenReturn(walletRelyingParty);
+        when(walletRelyingPartyLookupService.findWalletRelyingPartyForOrgno("123456789"))
+            .thenReturn(Optional.of(walletRelyingParty));
 
         assertThrows(BadRequestException.class,
             () -> service.createRelyingParty("123456789", "Name", List.of(), List.of()));

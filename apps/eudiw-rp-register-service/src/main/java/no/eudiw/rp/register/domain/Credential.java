@@ -73,6 +73,9 @@ public class Credential extends BaseEntity {
         if (format == null) {
             throw new IllegalArgumentException("Credential format must be provided");
         }
+        if (format.isBlank()) {
+            throw new IllegalArgumentException("Credential format must not be blank");
+        }
         validateMeta(meta);
         validateClaims(claims);
     }
@@ -84,23 +87,26 @@ public class Credential extends BaseEntity {
 
         boolean hasVctValues = meta.containsKey("vct_values");
         boolean hasDoctype = meta.containsKey("doctype");
-        if (hasVctValues == hasDoctype) {
+        if (hasVctValues == hasDoctype || meta.size() != 1) {
             throw new IllegalArgumentException("Credential meta must contain exactly one of vct_values or doctype");
         }
-        if (hasVctValues && !allTextual(meta.get("vct_values"))) {
+        if (hasVctValues && !allTextual(meta.get("vct_values"), true)) {
             throw new IllegalArgumentException("Credential meta vct_values must be an array of strings");
         }
-        if (hasDoctype && !(meta.get("doctype") instanceof String)) {
+        if (hasDoctype && (!(meta.get("doctype") instanceof String doctype) || doctype.isBlank())) {
             throw new IllegalArgumentException("Credential meta doctype must be a string");
         }
     }
 
-    private static boolean allTextual(Object values) {
+    private static boolean allTextual(Object values, boolean requireNonEmpty) {
         if (!(values instanceof List<?> valueList)) {
             return false;
         }
+        if (requireNonEmpty && valueList.isEmpty()) {
+            return false;
+        }
         for (Object value : valueList) {
-            if (!(value instanceof String)) {
+            if (!(value instanceof String text) || text.isBlank()) {
                 return false;
             }
         }
@@ -121,7 +127,7 @@ public class Credential extends BaseEntity {
                 throw new IllegalArgumentException("Each credential claim must have a non-empty path array");
             }
             for (Object pathPart : pathParts) {
-                if (!(pathPart == null || pathPart instanceof String
+                if (!(pathPart == null || (pathPart instanceof String text && !text.isBlank())
                     || (pathPart instanceof Number number && isNonNegativeInteger(number)))) {
                     throw new IllegalArgumentException(
                         "Credential claim path values must be strings, nulls, or non-negative integers");

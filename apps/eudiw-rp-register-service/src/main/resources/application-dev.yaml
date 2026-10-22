@@ -21,6 +21,7 @@ spring:
     environment: dev
 
 eudiw-rp-register-service:
+  registry-uri: ${REGISTRY_URI:http://localhost:9210/wrp}
   csr-service:
     ca-service-api:
       ca-service-base-uri: http://localhost:9220

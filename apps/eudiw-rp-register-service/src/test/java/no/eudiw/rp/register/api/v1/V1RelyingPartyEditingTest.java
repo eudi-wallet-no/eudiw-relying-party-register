@@ -225,7 +225,7 @@ public class V1RelyingPartyEditingTest {
             Set<RelyingPartyResource> expectedSearchResult =
                 walletRelyingParties.stream()
                              .flatMap(le -> EntityGenerator.instances(le).stream())
-                             .map(v1ContractMapper::toV1RelyingPartyResource)
+                             .map(v1ContractMapper::toV1RelyingPartyResponse)
                              .filter(rp -> rp.relyingPartyEntitlements()
                                              .stream()
                                              .map(RelyingPartyEntitlementResource::entitlement)
