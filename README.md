@@ -30,12 +30,18 @@ Each app has its own README with application-specific setup and configuration.
 
 Database tests start MariaDB automatically; Docker must be running.
 If Testcontainers cannot find Docker when using Colima, set these variables
-in the terminal running Maven (or in the IDE's test run configuration):
+in `~/.zprofile` (not `~/.zshrc`):
 
 ```bash
 export DOCKER_HOST="$(docker context inspect colima --format '{{.Endpoints.docker.Host}}')"
 export TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock
 ```
+
+`.zprofile` is read by login shells, so GUI applications on macOS — including
+IntelliJ — inherit the variables when started from Dock or Spotlight. This
+means Maven and test runs inside the IDE pick them up without a separate
+IDE test run configuration. Restart IntelliJ after changing the file, since
+the environment is only read at startup.
 
 ## Run everything locally with Docker Compose
 

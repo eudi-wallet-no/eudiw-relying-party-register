@@ -9,8 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -20,13 +20,8 @@ public class WalletRelyingPartyLookupService {
     private final EnhetsregisteretService enhetsregisteretService;
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public WalletRelyingParty getWalletRelyingPartyForOrgno(String orgno) {
-        WalletRelyingParty walletRelyingParty = walletRelyingPartyRepository.findByOrgnoForUpdate(orgno).orElse(null);
-        if (walletRelyingParty != null) {
-            return walletRelyingParty;
-        }
-
-        return createWalletRelyingParty(orgno);
+    public Optional<WalletRelyingParty> findWalletRelyingPartyForOrgno(String orgno) {
+        return walletRelyingPartyRepository.findByOrgnoForUpdate(orgno);
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
@@ -39,19 +34,22 @@ public class WalletRelyingPartyLookupService {
     }
 
     private WalletRelyingParty createNewWalletRelyingParty(String orgno) {
-        WalletRelyingParty newWalletRelyingParty = new WalletRelyingParty(
-            "Syntetisk organisasjon %s".formatted(orgno),
-            orgno,
-            true,
-            new ArrayList<>()
-        );
-        boolean isNonsyntheticOrgno = orgno.matches("^[8-9]\\d{8}$");
-        if (isNonsyntheticOrgno) {
+        String name;
+        boolean publicSector;
+        boolean isSyntheticOrgno = !orgno.matches("^[8-9]\\d{8}$");
+
+        if (isSyntheticOrgno) {
+            name = "Syntetisk organisasjon %s".formatted(orgno);
+            publicSector = true;
+        } else {
             EnhetsregisteretService.EnhetsregisteretResponse enhetsregisteretResponse =
                 enhetsregisteretService.queryOrgno(orgno);
-            newWalletRelyingParty.setName(enhetsregisteretResponse.name());
-            newWalletRelyingParty.setPSB(enhetsregisteretResponse.publicSector());
+            name = enhetsregisteretResponse.name();
+            publicSector = enhetsregisteretResponse.publicSector();
         }
+
+        WalletRelyingParty newWalletRelyingParty = new WalletRelyingParty(
+            name, orgno, publicSector, List.of());
 
         return walletRelyingPartyRepository.save(newWalletRelyingParty);
     }

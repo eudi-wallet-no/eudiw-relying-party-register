@@ -46,7 +46,9 @@ public class RelyingPartyService {
         entitlementCheck(entitlements);
 
         WalletRelyingParty walletRelyingParty =
-            walletRelyingPartyLookupService.getWalletRelyingPartyForOrgno(orgno);
+            walletRelyingPartyLookupService.findWalletRelyingPartyForOrgno(orgno)
+                .orElseGet(() -> walletRelyingPartyLookupService.createWalletRelyingParty(orgno));
+
         if (!walletRelyingParty.isActive()) {
             throw new BadRequestException("Legal entity is not active");
         }
@@ -55,6 +57,7 @@ public class RelyingPartyService {
             new RelyingPartyInstance(entitlements, eaas, new ArrayList<>());
         WalletRelyingPartyService walletService =
             new WalletRelyingPartyService(serviceTradeName, walletRelyingParty, List.of(relyingPartyInstance));
+
         walletRelyingParty.getServices().add(walletService);
         walletRelyingPartyServiceRepository.save(walletService);
 

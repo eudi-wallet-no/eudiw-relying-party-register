@@ -253,9 +253,9 @@ public final class V2Resources {
                 return pathParts.stream().allMatch(part ->
                     part == null
                         || (part instanceof String text && !text.isBlank())
-                        || (part instanceof Integer value && value >= 0)
-                        || (part instanceof Long value && value >= 0)
-                        || (part instanceof BigInteger value && value.signum() >= 0)
+                        || (part instanceof Integer integerValue && integerValue >= 0)
+                        || (part instanceof Long longValue && longValue >= 0)
+                        || (part instanceof BigInteger bigIntegerValue && bigIntegerValue.signum() >= 0)
                 );
             });
         }

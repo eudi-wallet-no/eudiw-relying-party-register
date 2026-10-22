@@ -6,6 +6,7 @@ import no.eudiw.rp.register.api.v2.resource.V2Resources;
 import no.eudiw.rp.register.config.RegistryProperties;
 import no.eudiw.rp.register.config.SupervisoryAuthorityProperties;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
+import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 import no.eudiw.rp.register.domain.certificates.IssuerCertificate;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
@@ -57,6 +58,7 @@ class V2ContractMapperTest {
             () -> v2ContractMapper.updateWalletRelyingParty(walletRelyingParty, request));
 
         assertEquals("Original", walletRelyingParty.getTradeName());
+        assertEquals(0, walletRelyingParty.getLastUpdatedMs());
     }
 
     @Test
@@ -74,6 +76,44 @@ class V2ContractMapperTest {
             v2ContractMapper.updateRelyingPartyInstance(relyingPartyInstance, request, requestedEntitlements));
 
         assertSame(relyingPartyEntitlement, relyingPartyInstance.getRelyingPartyEntitlements().getFirst());
+        assertEquals(0, relyingPartyInstance.getLastUpdatedMs());
+    }
+
+    @Test
+    void walletRelyingPartyUpdateMarksEntityUpdated() {
+        WalletRelyingParty walletRelyingParty = walletRelyingParty();
+        var request = new V2Resources.WalletRelyingPartyWriteResource(
+            "Changed", true, "NO", new V2Resources.LegalPersonResource(List.of("Name"), List.of()),
+            List.of(new V2Resources.IdentifierResource("EUID", "NO-123")),
+            List.of(new V2Resources.PolicyResource("PrivacyPolicy", "https://example.test/policy")),
+            List.of(), List.of(), List.of(), List.of(), List.of());
+
+        v2ContractMapper.updateWalletRelyingParty(walletRelyingParty, request);
+
+        assertTrue(walletRelyingParty.getLastUpdatedMs() > 0);
+    }
+
+    @Test
+    void walletRelyingPartyServiceUpdateMarksEntityUpdated() {
+        var service = new WalletRelyingPartyService("Original", walletRelyingParty(), List.of());
+        var request = new V2Resources.WalletRelyingPartyServiceWriteResource(
+            "Changed", null, null, "contact@example.test", null,
+            List.of(List.of(new V2Resources.MultiLangStringResource("en", "Description"))),
+            List.of(), List.of(), List.of(), false, List.of());
+
+        v2ContractMapper.updateWalletRelyingPartyService(service, request);
+
+        assertTrue(service.getLastUpdatedMs() > 0);
+    }
+
+    @Test
+    void relyingPartyInstanceUpdateMarksEntityUpdated() {
+        var instance = new RelyingPartyInstance(List.of(), List.of(), List.of());
+        var request = new V2Resources.RelyingPartyInstanceWriteResource(List.of(), List.of());
+
+        v2ContractMapper.updateRelyingPartyInstance(instance, request, List.of());
+
+        assertTrue(instance.getLastUpdatedMs() > 0);
     }
 
     @Test
@@ -102,7 +142,7 @@ class V2ContractMapperTest {
 
     @Test
     void walletRelyingPartyReadUsesExplicitTs5FieldNamesAndConfiguredPublicRegistryUri() {
-        var resource = v2ContractMapper.toWalletRelyingPartyResource(walletRelyingParty());
+        var resource = v2ContractMapper.toWalletRelyingPartyResponse(walletRelyingParty());
         var json = objectMapper.readTree(objectMapper.writeValueAsString(resource));
 
         assertTrue(json.get("isPSB").booleanValue());

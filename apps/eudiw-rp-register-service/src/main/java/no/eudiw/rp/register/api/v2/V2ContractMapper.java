@@ -41,7 +41,7 @@ public class V2ContractMapper {
     private final RegistryProperties registryProperties;
     private final SupervisoryAuthorityProperties supervisoryAuthorityProperties;
 
-    public V2Resources.WalletRelyingPartyResource toWalletRelyingPartyResource(
+    public V2Resources.WalletRelyingPartyResource toWalletRelyingPartyResponse(
         WalletRelyingParty walletRelyingParty
     ) {
         return new V2Resources.WalletRelyingPartyResource(
@@ -51,7 +51,7 @@ public class V2ContractMapper {
             walletRelyingParty.isPSB(),
             walletRelyingParty.getCountry(),
             walletRelyingParty.getProviderType(),
-            toLegalPersonResource(walletRelyingParty.getLegalPerson()),
+            toLegalPersonResponse(walletRelyingParty.getLegalPerson()),
             walletRelyingParty.getIdentifier().stream()
                 .map(identifier -> new V2Resources.IdentifierResource(identifier.type(), identifier.identifier()))
                 .toList(),
@@ -67,12 +67,12 @@ public class V2ContractMapper {
             walletRelyingParty.getCreatedMs(),
             walletRelyingParty.getLastUpdatedMs(),
             walletRelyingParty.getServices().stream().map(WalletRelyingPartyService::getId).toList(),
-            toSupervisoryAuthorityResource(),
+            toSupervisoryAuthorityResponse(),
             registryProperties.registryUri()
         );
     }
 
-    public V2Resources.WalletRelyingPartyServiceResource toWalletRelyingPartyServiceResource(
+    public V2Resources.WalletRelyingPartyServiceResource toWalletRelyingPartyServiceResponse(
         WalletRelyingPartyService walletRelyingPartyService
     ) {
         return new V2Resources.WalletRelyingPartyServiceResource(
@@ -83,7 +83,7 @@ public class V2ContractMapper {
             walletRelyingPartyService.getSupportUri(),
             walletRelyingPartyService.getEmail(),
             walletRelyingPartyService.getPhone(),
-            toNestedMultiLangStringResource(walletRelyingPartyService.getSrvDescription()),
+            toNestedMultiLangStringResponse(walletRelyingPartyService.getSrvDescription()),
             walletRelyingPartyService.getEntitlements(),
             walletRelyingPartyService.getSubEntitlements(),
             walletRelyingPartyService.getProvidesAttestations().stream()
@@ -103,7 +103,7 @@ public class V2ContractMapper {
         );
     }
 
-    public V2Resources.RelyingPartyInstanceResource toRelyingPartyInstanceResource(
+    public V2Resources.RelyingPartyInstanceResource toRelyingPartyInstanceResponse(
         RelyingPartyInstance relyingPartyInstance
     ) {
         return new V2Resources.RelyingPartyInstanceResource(
@@ -124,14 +124,14 @@ public class V2ContractMapper {
         );
     }
 
-    public V2Resources.IntendedUseResource toIntendedUseResource(IntendedUse intendedUse) {
+    public V2Resources.IntendedUseResource toIntendedUseResponse(IntendedUse intendedUse) {
         return new V2Resources.IntendedUseResource(
             intendedUse.getId(),
             intendedUse.getWalletRelyingPartyService().getId(),
             intendedUse.getIntendedUseIdentifier(),
             intendedUse.getCreatedAt(),
             intendedUse.getRevokedAt(),
-            toMultiLangStringResource(intendedUse.getPurpose()),
+            toMultiLangStringResponse(intendedUse.getPurpose()),
             intendedUse.getPrivacyPolicy().stream()
                 .map(policy -> new V2Resources.PolicyResource(policy.type(), policy.policyURI()))
                 .toList(),
@@ -142,12 +142,12 @@ public class V2ContractMapper {
         );
     }
 
-    public V2Resources.CertificateResource toCertificateResource(AccessCertificate certificate) {
+    public V2Resources.CertificateResource toCertificateResponse(AccessCertificate certificate) {
         return new V2Resources.CertificateResource(
             certificate.getCertificate(), null, certificate.getId(), certificate.getRevocationStatus());
     }
 
-    public V2Resources.CertificateResource toCertificateResource(IssuerCertificate certificate) {
+    public V2Resources.CertificateResource toCertificateResponse(IssuerCertificate certificate) {
         return new V2Resources.CertificateResource(
             certificate.getCertificate(),
             certificate.getEntitlement().getEntitlement(),
@@ -251,6 +251,7 @@ public class V2ContractMapper {
         walletRelyingParty.setTradeName(resource.tradeName());
         walletRelyingParty.setPSB(resource.isPSB());
         walletRelyingParty.setCountry(resource.country());
+
         if (resource.legalPerson() == null) {
             walletRelyingParty.setLegalPerson(null);
         } else if (walletRelyingParty.getLegalPerson() == null) {
@@ -262,6 +263,7 @@ public class V2ContractMapper {
                 .map(item -> new Law(item.legislativeIdentifier(), item.legalBasis()))
                 .toList());
         }
+
         walletRelyingParty.setIdentifier(resource.identifier().stream()
             .map(item -> new Identifier(item.type(), item.identifier()))
             .toList());
@@ -273,6 +275,7 @@ public class V2ContractMapper {
         walletRelyingParty.setEmail(listOrEmpty(resource.email()));
         walletRelyingParty.setPhone(listOrEmpty(resource.phone()));
         walletRelyingParty.setInfoURI(listOrEmpty(resource.infoURI()));
+        walletRelyingParty.setUpdated();
     }
 
     public void updateWalletRelyingPartyService(
@@ -288,6 +291,7 @@ public class V2ContractMapper {
                 .toList(),
             listOrEmpty(resource.servedWRPServices())
         );
+
         walletRelyingPartyService.setServiceTradeName(resource.serviceTradeName());
         walletRelyingPartyService.setServiceIdentifier(resource.serviceIdentifier());
         walletRelyingPartyService.setSupportUri(resource.supportUri());
@@ -298,6 +302,7 @@ public class V2ContractMapper {
         walletRelyingPartyService.setProvidesAttestations(listOrEmpty(resource.providesAttestations()).stream()
             .map(item -> new ProvidedAttestation(item.format(), item.type()))
             .toList());
+        walletRelyingPartyService.setUpdated();
     }
 
     public void updateRelyingPartyInstance(
@@ -318,8 +323,10 @@ public class V2ContractMapper {
                     "An entitlement with issuer certificates cannot be removed or changed");
             }
         }
+
         relyingPartyInstance.setRelyingPartyEntitlements(relyingPartyEntitlements);
         relyingPartyInstance.setRelyingPartyEaas(toDomainRelyingPartyEaas(resource.relyingPartyEaas()));
+        relyingPartyInstance.setUpdated();
     }
 
     private LegalPerson toDomainLegalPerson(V2Resources.LegalPersonResource resource) {
@@ -331,10 +338,11 @@ public class V2ContractMapper {
         );
     }
 
-    private V2Resources.LegalPersonResource toLegalPersonResource(LegalPerson legalPerson) {
+    private V2Resources.LegalPersonResource toLegalPersonResponse(LegalPerson legalPerson) {
         if (legalPerson == null) {
             return null;
         }
+
         return new V2Resources.LegalPersonResource(
             legalPerson.getLegalName(),
             legalPerson.getEstablishedByLaw().stream()
@@ -343,7 +351,7 @@ public class V2ContractMapper {
         );
     }
 
-    private V2Resources.SupervisoryAuthorityResource toSupervisoryAuthorityResource() {
+    private V2Resources.SupervisoryAuthorityResource toSupervisoryAuthorityResponse() {
         return new V2Resources.SupervisoryAuthorityResource(
             supervisoryAuthorityProperties.name(),
             supervisoryAuthorityProperties.country(),
@@ -361,16 +369,16 @@ public class V2ContractMapper {
         return values == null ? new ArrayList<>() : new ArrayList<>(values);
     }
 
-    private List<List<V2Resources.MultiLangStringResource>> toNestedMultiLangStringResource(
+    private List<List<V2Resources.MultiLangStringResource>> toNestedMultiLangStringResponse(
         List<List<MultiLangString>> values
     ) {
         if (values == null) {
             return null;
         }
-        return values.stream().map(this::toMultiLangStringResource).toList();
+        return values.stream().map(this::toMultiLangStringResponse).toList();
     }
 
-    private List<V2Resources.MultiLangStringResource> toMultiLangStringResource(List<MultiLangString> values) {
+    private List<V2Resources.MultiLangStringResource> toMultiLangStringResponse(List<MultiLangString> values) {
         return values.stream()
             .map(item -> new V2Resources.MultiLangStringResource(item.lang(), item.content()))
             .toList();

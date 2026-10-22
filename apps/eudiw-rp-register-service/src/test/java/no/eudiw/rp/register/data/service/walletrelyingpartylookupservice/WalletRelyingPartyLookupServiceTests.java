@@ -51,14 +51,12 @@ public class WalletRelyingPartyLookupServiceTests {
     }
 
     @Test
-    @DisplayName("then querying a non-existent legal entity auto-registers a new one")
-    public void testQueryingUnknownWalletRelyingPartyCreatesANewOne() {
-        System.out.println(walletRelyingPartyRepository.findAll());
-
+    @DisplayName("then creating a legal entity registers a new one")
+    public void testCreatingWalletRelyingPartyRegistersANewOne() {
         String orgno = TestDataGenerator.generateValidOrgno();
         assertFalse(walletRelyingPartyRepository.existsByOrgno(orgno));
 
-        walletRelyingPartyLookupService.getWalletRelyingPartyForOrgno(orgno);
+        walletRelyingPartyLookupService.createWalletRelyingParty(orgno);
 
         verify(mockEnhetsregisteretService, times(1)).queryOrgno(orgno);
         verifyNoMoreInteractions(mockEnhetsregisteretService);
@@ -81,8 +79,9 @@ public class WalletRelyingPartyLookupServiceTests {
         String orgno = TestDataGenerator.generateValidOrgno();
         assertFalse(walletRelyingPartyRepository.existsByOrgno(orgno));
 
-        WalletRelyingParty walletRelyingParty1 = walletRelyingPartyLookupService.getWalletRelyingPartyForOrgno(orgno);
-        WalletRelyingParty walletRelyingParty2 = walletRelyingPartyLookupService.getWalletRelyingPartyForOrgno(orgno);
+        WalletRelyingParty walletRelyingParty1 = walletRelyingPartyLookupService.createWalletRelyingParty(orgno);
+        WalletRelyingParty walletRelyingParty2 =
+            walletRelyingPartyLookupService.findWalletRelyingPartyForOrgno(orgno).orElseThrow();
 
         verify(mockEnhetsregisteretService, times(1)).queryOrgno(orgno);
         verifyNoMoreInteractions(mockEnhetsregisteretService);
@@ -92,16 +91,16 @@ public class WalletRelyingPartyLookupServiceTests {
     }
 
     @Test
-    @DisplayName("then querying distinct orgnos give distinct legal entities and distinct Enhetsregisteret queries")
-    public void testDistinctQueryingOrgnosGivesDistinctWalletRelyingPartiesAndDistinctEnhetsregisteretQueries() {
+    @DisplayName("then creating distinct orgnos gives distinct legal entities and distinct Enhetsregisteret queries")
+    public void testCreatingDistinctOrgnosGivesDistinctWalletRelyingPartiesAndDistinctEnhetsregisteretQueries() {
 
         String orgno = TestDataGenerator.generateValidOrgno();
         String otherOrgno = TestDataGenerator.generateValidOrgno();
         assertFalse(walletRelyingPartyRepository.existsByOrgno(orgno));
         assertFalse(walletRelyingPartyRepository.existsByOrgno(otherOrgno));
 
-        WalletRelyingParty walletRelyingParty = walletRelyingPartyLookupService.getWalletRelyingPartyForOrgno(orgno);
-        WalletRelyingParty otherWalletRelyingParty = walletRelyingPartyLookupService.getWalletRelyingPartyForOrgno(otherOrgno);
+        WalletRelyingParty walletRelyingParty = walletRelyingPartyLookupService.createWalletRelyingParty(orgno);
+        WalletRelyingParty otherWalletRelyingParty = walletRelyingPartyLookupService.createWalletRelyingParty(otherOrgno);
 
         verify(mockEnhetsregisteretService, times(1)).queryOrgno(orgno);
         verify(mockEnhetsregisteretService, times(1)).queryOrgno(otherOrgno);
@@ -113,14 +112,25 @@ public class WalletRelyingPartyLookupServiceTests {
     }
 
     @Test
-    @DisplayName("then querying with a synthetic orgno does not trigger Enhetsregisteret query")
-    public void testQueryingWithSyntheticOrgnoShouldNotQueryEnhetsregisteret() {
+    @DisplayName("then creating with a synthetic orgno does not trigger Enhetsregisteret query")
+    public void testCreatingWithSyntheticOrgnoShouldNotQueryEnhetsregisteret() {
         String syntheticOrgno = "316256139";
         assertFalse(walletRelyingPartyRepository.existsByOrgno(syntheticOrgno));
 
-         walletRelyingPartyLookupService.getWalletRelyingPartyForOrgno(syntheticOrgno);
+        walletRelyingPartyLookupService.createWalletRelyingParty(syntheticOrgno);
 
         verifyNoInteractions(mockEnhetsregisteretService);
         assertTrue(walletRelyingPartyRepository.existsByOrgno(syntheticOrgno));
+    }
+
+    @Test
+    @DisplayName("then querying an unknown orgno does not create a legal entity")
+    public void testQueryingUnknownOrgnoDoesNotCreateWalletRelyingParty() {
+        String orgno = TestDataGenerator.generateValidOrgno();
+
+        assertTrue(walletRelyingPartyLookupService.findWalletRelyingPartyForOrgno(orgno).isEmpty());
+
+        assertFalse(walletRelyingPartyRepository.existsByOrgno(orgno));
+        verifyNoInteractions(mockEnhetsregisteretService);
     }
 }
