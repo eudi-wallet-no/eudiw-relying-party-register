@@ -8,7 +8,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +28,22 @@ public class WrpLookupService {
             throw new IllegalStateException("Registered WRP identifier matches more than one party");
         }
         return matches.stream().findFirst()
-            .map(party -> WalletRelyingPartyResource.from(party, supervisoryAuthorityProperties, wrpApiProperties));
+            .map(party -> {
+                Map<UUID, List<String>> entitlementsByService = repository
+                    .findActiveInstanceEntitlementsByPartyId(party.getId())
+                    .stream()
+                    .collect(Collectors.groupingBy(
+                        WalletRelyingPartyRepository.ServiceEntitlementProjection::getServiceId,
+                        Collectors.mapping(
+                            WalletRelyingPartyRepository.ServiceEntitlementProjection::getEntitlementValue,
+                            Collectors.collectingAndThen(
+                                Collectors.toCollection(java.util.LinkedHashSet::new),
+                                List::copyOf
+                            )
+                        )
+                    ));
+                return WalletRelyingPartyResource.from(
+                    party, entitlementsByService, supervisoryAuthorityProperties, wrpApiProperties);
+            });
     }
 }

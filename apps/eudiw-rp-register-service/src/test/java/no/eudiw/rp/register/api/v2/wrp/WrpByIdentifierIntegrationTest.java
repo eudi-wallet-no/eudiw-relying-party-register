@@ -13,6 +13,8 @@ import no.eudiw.rp.register.domain.MultiLangString;
 import no.eudiw.rp.register.domain.Policy;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
+import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
+import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.testdata.EntityGenerator;
 import no.eudiw.rp.register.testdata.TestDataGenerator;
@@ -33,8 +35,10 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.ECGenParameterSpec;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
@@ -109,6 +113,40 @@ class WrpByIdentifierIntegrationTest {
     void returnsNotFoundForUnknownIdentifier() throws Exception {
         mockMvc.perform(get("/wrp/unknown-identifier"))
             .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void includesDistinctEntitlementsFromActiveInstancesOnly() throws Exception {
+        String orgno = TestDataGenerator.generateValidOrgno();
+        WalletRelyingParty party = EntityGenerator.generateWalletRelyingParty(1);
+        party.setOrgno(orgno);
+        WalletRelyingPartyService service = party.getServices().getFirst();
+        RelyingPartyInstance firstActiveInstance = service.getRelyingPartyInstances().getFirst();
+        firstActiveInstance.setRelyingPartyEntitlements(List.of(
+            new RelyingPartyEntitlement("urn:example:shared"),
+            new RelyingPartyEntitlement("urn:example:first")
+        ));
+
+        RelyingPartyInstance secondActiveInstance = instanceWithEntitlements(
+            "urn:example:shared", "urn:example:second");
+        RelyingPartyInstance inactiveInstance = instanceWithEntitlements("urn:example:inactive-only");
+        inactiveInstance.setActive(false);
+        service.setRelyingPartyInstances(List.of(
+            firstActiveInstance, secondActiveInstance, inactiveInstance));
+        walletRelyingPartyRepository.saveAndFlush(party);
+
+        String token = mockMvc.perform(get("/wrp/{identifier}", orgno))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+        Map<?, ?> data = (Map<?, ?>) JWSObject.parse(token).getPayload().toJSONObject().get("data");
+        Map<?, ?> serviceData = (Map<?, ?>) ((List<?>) data.get("services")).getFirst();
+
+        assertEquals(
+            Set.of("urn:example:shared", "urn:example:first", "urn:example:second"),
+            Set.copyOf((List<?>) serviceData.get("entitlements"))
+        );
     }
 
     @Test
@@ -195,6 +233,14 @@ class WrpByIdentifierIntegrationTest {
         assertEquals(
             List.of(Map.of("path", List.of("org.iso.18013.5.1", "family_name"))),
             credential.get("claims")
+        );
+    }
+
+    private RelyingPartyInstance instanceWithEntitlements(String... entitlements) {
+        return new RelyingPartyInstance(
+            Arrays.stream(entitlements).map(RelyingPartyEntitlement::new).toList(),
+            List.of(),
+            List.of()
         );
     }
 }

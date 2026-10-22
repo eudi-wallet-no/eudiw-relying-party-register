@@ -25,6 +25,16 @@ public interface WalletRelyingPartyRepository
         """, nativeQuery = true)
     List<WalletRelyingParty> findAllByRegisteredIdentifier(String identifier);
 
+    @Query("""
+        SELECT DISTINCT service.id AS serviceId, activeEntitlement.entitlement AS entitlementValue
+        FROM WalletRelyingPartyService service
+        JOIN service.relyingPartyInstances instance
+        JOIN instance.relyingPartyEntitlements activeEntitlement
+        WHERE service.walletRelyingParty.id = :partyId
+          AND instance.active = TRUE
+        """)
+    List<ServiceEntitlementProjection> findActiveInstanceEntitlementsByPartyId(UUID partyId);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT party FROM WalletRelyingParty party WHERE party.orgno = :orgno")
     Optional<WalletRelyingParty> findByOrgnoForUpdate(String orgno);
@@ -53,4 +63,9 @@ public interface WalletRelyingPartyRepository
     Optional<WalletRelyingParty> findByInstanceIdForUpdate(UUID instanceId);
 
     boolean existsByOrgno(String orgno);
+
+    interface ServiceEntitlementProjection {
+        UUID getServiceId();
+        String getEntitlementValue();
+    }
 }

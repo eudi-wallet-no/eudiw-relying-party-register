@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record WalletRelyingPartyResource(
@@ -34,6 +35,7 @@ public record WalletRelyingPartyResource(
 
     public static WalletRelyingPartyResource from(
         WalletRelyingParty party,
+        Map<UUID, List<String>> entitlementsByService,
         SupervisoryAuthorityProperties supervisoryAuthority,
         WrpApiProperties properties
     ) {
@@ -57,7 +59,8 @@ public record WalletRelyingPartyResource(
             properties.registryUri(),
             party.getServices().stream()
                 .filter(WalletRelyingPartyService::isActive)
-                .map(ServiceResource::from)
+                .map(service -> ServiceResource.from(
+                    service, entitlementsByService.getOrDefault(service.getId(), List.of())))
                 .toList()
         );
     }
@@ -127,7 +130,7 @@ public record WalletRelyingPartyResource(
             return supportURI;
         }
 
-        private static ServiceResource from(WalletRelyingPartyService service) {
+        private static ServiceResource from(WalletRelyingPartyService service, List<String> entitlements) {
             return new ServiceResource(
                 service.getServiceTradeName(),
                 service.getServiceIdentifier(),
@@ -136,7 +139,7 @@ public record WalletRelyingPartyResource(
                 service.getPhone(),
                 mapDescriptions(service.getSrvDescription()),
                 service.getIntendedUses().stream().map(IntendedUseResource::from).toList(),
-                service.getEntitlements(),
+                entitlements,
                 service.getSubEntitlements(),
                 service.getProvidesAttestations().stream()
                     .map(attestation -> new ProvidedAttestationResource(
