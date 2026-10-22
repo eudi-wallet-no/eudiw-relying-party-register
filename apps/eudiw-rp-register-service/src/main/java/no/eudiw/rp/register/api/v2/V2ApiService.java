@@ -399,9 +399,11 @@ public class V2ApiService {
         String defaultSort,
         Set<String> allowedSorts
     ) {
-        if (page < 0 || pageSize < 1 || pageSize > MAX_PAGE_SIZE) {
+        if (page < 0 || pageSize < 1 || pageSize > MAX_PAGE_SIZE
+            || (long) page * pageSize > Integer.MAX_VALUE) {
             throw new BadRequestException(
-                "page must be non-negative and pageSize must be between 1 and " + MAX_PAGE_SIZE);
+                "page must be non-negative, pageSize must be between 1 and " + MAX_PAGE_SIZE
+                    + ", and page * pageSize must not exceed " + Integer.MAX_VALUE);
         }
 
         String sortProperty = sort == null ? defaultSort : sort;
