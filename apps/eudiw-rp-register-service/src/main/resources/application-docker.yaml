@@ -48,10 +48,10 @@ eudiw-rp-register-service:
     ca-service-api:
       ca-service-base-uri: http://${LOCAL_SERVICE_HOST:ca-service}:9220
   wrp:
-    issuer: http://localhost:9200
-    registry-uri: http://localhost:9200
-    jwks-url: http://localhost:9200/wrp/jwks
-    signing-key-id: wrp-signing-docker
+    issuer: ${WRP_ISSUER:http://localhost:9200}
+    registry-uri: ${WRP_REGISTRY_URI:http://localhost:9200/wrp}
+    jwks-url: ${WRP_JWKS_URL:http://localhost:9200/wrp/jwks}
+    signing-key-id: ${WRP_SIGNING_KEY_ID:wrp-signing-docker}
 
 external-dependency-health-checks:
   enabled: false
