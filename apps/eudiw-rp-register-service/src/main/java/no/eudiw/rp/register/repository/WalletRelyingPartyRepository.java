@@ -19,8 +19,9 @@ public interface WalletRelyingPartyRepository
 
     @Query(value = """
         SELECT party.* FROM wallet_relying_party party
-        WHERE party.orgno = :identifier
-           OR JSON_CONTAINS(party.identifier, JSON_OBJECT('identifier', :identifier), '$')
+        WHERE party.active = TRUE
+          AND (party.orgno = :identifier
+            OR JSON_CONTAINS(party.identifier, JSON_OBJECT('identifier', :identifier), '$'))
         """, nativeQuery = true)
     List<WalletRelyingParty> findAllByRegisteredIdentifier(String identifier);
 
