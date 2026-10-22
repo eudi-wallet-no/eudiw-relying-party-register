@@ -16,9 +16,9 @@ EUDIW Relying Party Register
 The public `/wrp/{identifier}` endpoint signs its response using the configured
 registry key. The corresponding public key is available from `GET /wrp/jwks`.
 Set `WRP_ISSUER`, `WRP_REGISTRY_URI`, `WRP_JWKS_URL`, `WRP_SIGNING_KEY_ID`,
-`WRP_SIGNING_KEYSTORE`, `WRP_SIGNING_KEYSTORE_TYPE`,
-`WRP_SIGNING_KEYSTORE_PASSWORD`, `WRP_SIGNING_KEY_ALIAS`, and
-`WRP_SIGNING_KEY_PASSWORD` in the service environment. Keep keystore material
+`WRP_SIGNING_KEYSTORE_LOCATION`, `WRP_SIGNING_KEYSTORE_TYPE`,
+`WRP_SIGNING_KEYSTORE_PASSWORD`, `WRP_SIGNING_KEYSTORE_KEY_ALIAS`, and
+`WRP_SIGNING_KEYSTORE_KEY_PASSWORD` in the service environment. Keep keystore material
 and passwords in the external secrets configuration, not in the repository.
 
 > [!WARNING]
