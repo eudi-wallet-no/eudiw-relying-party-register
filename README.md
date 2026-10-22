@@ -30,7 +30,7 @@ Each app has its own README with application-specific setup and configuration.
 
 Database tests start MariaDB automatically; Docker must be running.
 If Testcontainers cannot find Docker when using Colima, set these variables
-in the terminal running Maven (or in the IDE's test run configuration):
+in `~/.zprofile` (not `~/.zshrc`):
 
 ```bash
 export DOCKER_HOST="$(docker context inspect colima --format '{{.Endpoints.docker.Host}}')"

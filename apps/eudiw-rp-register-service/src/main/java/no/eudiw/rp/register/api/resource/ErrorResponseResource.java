@@ -7,7 +7,6 @@ import jakarta.validation.constraints.NotNull;
 @JsonInclude(JsonInclude.Include.ALWAYS)
 public record ErrorResponseResource(
     @NotNull
-    @JsonProperty("error")
     String error,
     @NotNull
     @JsonProperty("error_description")

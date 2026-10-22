@@ -151,6 +151,10 @@ public class WalletRelyingPartyService extends BaseEntity {
         return List.copyOf(usesIntermediaries);
     }
 
+    public boolean isIntermediary() {
+        return isIntermediary;
+    }
+
     public List<String> getServedWRPServices() {
         return List.copyOf(servedWRPServices);
     }
@@ -182,6 +186,10 @@ public class WalletRelyingPartyService extends BaseEntity {
     // for JPA instantiation.
     protected WalletRelyingPartyService() { }
 
+    public void setUpdated() {
+        this.lastUpdatedMs = Instant.now().toEpochMilli();
+    }
+
     @PrePersist
     protected void onPrePersist() {
         validateIntermediaryConfiguration(isIntermediary, usesIntermediaries, servedWRPServices);
@@ -191,7 +199,7 @@ public class WalletRelyingPartyService extends BaseEntity {
     @PreUpdate
     protected void onPreUpdate() {
         validateIntermediaryConfiguration(isIntermediary, usesIntermediaries, servedWRPServices);
-        this.lastUpdatedMs = Instant.now().toEpochMilli();
+        setUpdated();
     }
 
     @PostLoad

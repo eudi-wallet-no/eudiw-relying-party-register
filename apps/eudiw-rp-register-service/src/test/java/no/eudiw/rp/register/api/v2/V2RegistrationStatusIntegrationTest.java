@@ -33,6 +33,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -214,7 +215,7 @@ class V2RegistrationStatusIntegrationTest {
         };
 
         mockMvc.perform(delete(path).header(API_KEY_HEADER, API_KEY))
-            .andExpect(status().isNotFound());
+            .andExpect(status().isMethodNotAllowed());
 
         assertTrue(isWalletRelyingPartyActive(registration));
         assertTrue(isWalletRelyingPartyServiceActive(registration));
@@ -323,7 +324,7 @@ class V2RegistrationStatusIntegrationTest {
     }
 
     private Registration createRegistration() {
-        var entitlement = new RelyingPartyEntitlement("urn:test:issuer");
+        var entitlement = new RelyingPartyEntitlement("urn:test:issuer:" + UUID.randomUUID());
         var relyingPartyInstance = new RelyingPartyInstance(List.of(entitlement), List.of(), List.of());
         var siblingRelyingPartyInstance = new RelyingPartyInstance(List.of(), List.of(), List.of());
         var walletRelyingPartyService = new WalletRelyingPartyService(

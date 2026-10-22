@@ -43,6 +43,10 @@ spring:
       # reject API resources with unknown/extra fields in them
       fail-on-unknown-properties: true
 
+springdoc:
+  swagger-ui:
+    urls-primary-name: V2
+
 # Spring Boot Actuator
 management:
   server:
@@ -82,6 +86,7 @@ digdir:
       environment-name: ${spring.application.environment}
 
 eudiw-rp-register-service:
+  registry-uri: ${REGISTRY_URI:}
   supervisory-authority:
     name: Datatilsynet
     country: "NO"

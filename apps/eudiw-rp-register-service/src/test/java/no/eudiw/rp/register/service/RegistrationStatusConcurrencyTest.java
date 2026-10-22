@@ -13,6 +13,7 @@ import no.eudiw.rp.register.repository.EntitlementRepository;
 import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.repository.WalletRelyingPartyServiceRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -39,6 +40,8 @@ class RegistrationStatusConcurrencyTest {
 
     private static final String ENTITLEMENT = "urn:test:concurrent-activation";
 
+    private Entitlement testEntitlement;
+
     @Autowired
     private RelyingPartyService relyingPartyService;
 
@@ -63,8 +66,12 @@ class RegistrationStatusConcurrencyTest {
     @BeforeEach
     void setUp() {
         partyRepository.deleteAll();
-        entitlementRepository.deleteAll();
-        entitlementRepository.saveAndFlush(new Entitlement(ENTITLEMENT, true, "Test", "test-ca"));
+        testEntitlement = entitlementRepository.saveAndFlush(new Entitlement(ENTITLEMENT, true, "Test", "test-ca"));
+    }
+
+    @AfterEach
+    void removeTestEntitlement() {
+        entitlementRepository.delete(testEntitlement);
     }
 
     @ParameterizedTest
@@ -154,7 +161,7 @@ class RegistrationStatusConcurrencyTest {
     private void activateChild(Registration registration, HierarchyWrite write) {
         var entitlements = List.of(new RelyingPartyEntitlementResource(ENTITLEMENT, null, null));
         switch (write) {
-            case SERVICE_ACTIVATION -> relyingPartyService.activateWalletRelyingPartyService(registration.serviceId());
+            case SERVICE_ACTIVATION -> relyingPartyService.activateRelyingPartyService(registration.serviceId());
             case INSTANCE_ACTIVATION -> relyingPartyService.activateRelyingPartyInstance(registration.instanceId());
             case V1_UPDATE_SERVICE, V1_UPDATE_PARTY -> v1ApiService.updateRelyingParty(
                 registration.instanceId(), new EditRelyingPartyResource("Service", entitlements, List.of(), true));
@@ -165,17 +172,17 @@ class RegistrationStatusConcurrencyTest {
 
     private void deactivateAncestor(Registration registration, HierarchyWrite write) {
         if (write == HierarchyWrite.INSTANCE_ACTIVATION || write == HierarchyWrite.V1_UPDATE_SERVICE) {
-            relyingPartyService.deactivateWalletRelyingPartyService(registration.serviceId());
+            relyingPartyService.deactivateRelyingPartyService(registration.serviceId());
         } else {
-            relyingPartyService.deactivateWalletRelyingParty(registration.partyId());
+            relyingPartyService.deactivateRelyingParty(registration.partyId());
         }
     }
 
     private void reactivateAncestor(Registration registration, HierarchyWrite write) {
         if (write == HierarchyWrite.INSTANCE_ACTIVATION || write == HierarchyWrite.V1_UPDATE_SERVICE) {
-            relyingPartyService.activateWalletRelyingPartyService(registration.serviceId());
+            relyingPartyService.activateRelyingPartyService(registration.serviceId());
         } else {
-            relyingPartyService.activateWalletRelyingParty(registration.partyId());
+            relyingPartyService.activateRelyingParty(registration.partyId());
         }
     }
 

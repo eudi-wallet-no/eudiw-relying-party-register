@@ -46,7 +46,9 @@ public class RelyingPartyService {
         entitlementCheck(entitlements);
 
         WalletRelyingParty walletRelyingParty =
-            walletRelyingPartyLookupService.getWalletRelyingPartyForOrgno(orgno);
+            walletRelyingPartyLookupService.findWalletRelyingPartyForOrgno(orgno)
+                .orElseGet(() -> walletRelyingPartyLookupService.createWalletRelyingParty(orgno));
+
         if (!walletRelyingParty.isActive()) {
             throw new BadRequestException("Legal entity is not active");
         }
@@ -55,6 +57,7 @@ public class RelyingPartyService {
             new RelyingPartyInstance(entitlements, eaas, new ArrayList<>());
         WalletRelyingPartyService walletService =
             new WalletRelyingPartyService(serviceTradeName, walletRelyingParty, List.of(relyingPartyInstance));
+
         walletRelyingParty.getServices().add(walletService);
         walletRelyingPartyServiceRepository.save(walletService);
 
@@ -114,7 +117,7 @@ public class RelyingPartyService {
         if (!Objects.equals(walletService.getServiceTradeName(), serviceTradeName)) {
             walletService.setServiceTradeName(serviceTradeName);
             for (RelyingPartyInstance serviceInstance : walletService.getRelyingPartyInstances()) {
-                serviceInstance.markUpdated();
+                serviceInstance.setUpdated();
             }
         }
         relyingPartyInstance.setActive(active);
@@ -125,8 +128,8 @@ public class RelyingPartyService {
         return relyingPartyInstanceRepository.saveAndFlush(relyingPartyInstance);
     }
 
-    public void deactivateWalletRelyingParty(UUID walletRelyingPartyId) {
-        WalletRelyingParty walletRelyingParty = findWalletRelyingParty(walletRelyingPartyId);
+    public void deactivateRelyingParty(UUID partyId) {
+        WalletRelyingParty walletRelyingParty = findWalletRelyingParty(partyId);
         walletRelyingParty.setActive(false);
         for (WalletRelyingPartyService walletRelyingPartyService : walletRelyingParty.getServices()) {
             walletRelyingPartyService.setActive(false);
@@ -136,25 +139,25 @@ public class RelyingPartyService {
         walletRelyingPartyRepository.saveAndFlush(walletRelyingParty);
     }
 
-    public void activateWalletRelyingParty(UUID walletRelyingPartyId) {
-        WalletRelyingParty walletRelyingParty = findWalletRelyingParty(walletRelyingPartyId);
+    public void activateRelyingParty(UUID partyId) {
+        WalletRelyingParty walletRelyingParty = findWalletRelyingParty(partyId);
         walletRelyingParty.setActive(true);
         walletRelyingPartyRepository.saveAndFlush(walletRelyingParty);
     }
 
-    public void deactivateWalletRelyingPartyService(UUID walletRelyingPartyServiceId) {
-        setWalletRelyingPartyServiceActive(walletRelyingPartyServiceId, false);
+    public void deactivateRelyingPartyService(UUID serviceId) {
+        setRelyingPartyServiceActive(serviceId, false);
     }
 
-    public void activateWalletRelyingPartyService(UUID walletRelyingPartyServiceId) {
-        setWalletRelyingPartyServiceActive(walletRelyingPartyServiceId, true);
+    public void activateRelyingPartyService(UUID serviceId) {
+        setRelyingPartyServiceActive(serviceId, true);
     }
 
-    private void setWalletRelyingPartyServiceActive(UUID walletRelyingPartyServiceId, boolean active) {
-        walletRelyingPartyRepository.findByServiceIdForUpdate(walletRelyingPartyServiceId)
+    private void setRelyingPartyServiceActive(UUID serviceId, boolean active) {
+        walletRelyingPartyRepository.findByServiceIdForUpdate(serviceId)
             .orElseThrow(() -> new NotFoundException("Service not found"));
         WalletRelyingPartyService walletRelyingPartyService =
-            walletRelyingPartyServiceRepository.findById(walletRelyingPartyServiceId)
+            walletRelyingPartyServiceRepository.findById(serviceId)
             .orElseThrow(() -> new NotFoundException("Service not found"));
 
         if (active && !walletRelyingPartyService.getWalletRelyingParty().isActive()) {
@@ -207,6 +210,29 @@ public class RelyingPartyService {
             walletService.getWalletRelyingParty().getServices().remove(walletService);
             walletRelyingPartyServiceRepository.delete(walletService);
         }
+    }
+
+    public void validateEntitlements(List<RelyingPartyEntitlement> entitlements) {
+        if (entitlements == null) {
+            throw new BadRequestException("Entitlements must be an empty list when none exist");
+        }
+        entitlementCheck(entitlements);
+    }
+
+    public void validateEntitlementsForUpdate(
+        List<RelyingPartyEntitlement> existingEntitlements,
+        List<RelyingPartyEntitlement> requestedEntitlements
+    ) {
+        if (requestedEntitlements == null) {
+            throw new BadRequestException("Entitlements must be an empty list when none exist");
+        }
+
+        List<RelyingPartyEntitlement> changedEntitlements = requestedEntitlements.stream()
+            .filter(requested -> existingEntitlements.stream().noneMatch(existing ->
+                Objects.equals(existing.getEntitlement(), requested.getEntitlement())
+                    && Objects.equals(existing.getCredentialIssuerUrl(), requested.getCredentialIssuerUrl())))
+            .toList();
+        entitlementCheck(changedEntitlements);
     }
 
     private void entitlementCheck(List<RelyingPartyEntitlement> entitlements) {

@@ -1,35 +1,30 @@
-# Registration status (V2)
+# Deactivation and reactivation (V2)
 
-V2 registrations can be deactivated without deleting their data. All operations
-require the existing `X-API-KEY` header and return `204 No Content` on success.
+Deactivation prevents new registrations and certificate issuance without
+deleting the registration, its relationships or its history. This applies to
+parties, services and instances.
+V2 does not offer physical deletion.
 
-| Resource | Deactivate (`PATCH`) | Reactivate (`PATCH`) |
-| --- | --- | --- |
-| Party | `/v2/parties/{id}/deactivate` | `/v2/parties/{id}/activate` |
-| Service | `/v2/services/{id}/deactivate` | `/v2/services/{id}/activate` |
-| Instance | `/v2/instances/{id}/deactivate` | `/v2/instances/{id}/activate` |
+Deactivating a party also deactivates its services and instances.
+Deactivating a service deactivates its instances. Reactivation only affects the
+selected resource, preventing descendants from being unintentionally brought
+back into use. Reactivating a service requires an active party;
+reactivating an instance requires both an active service and an active party.
 
-Deactivating a Party deactivates all its Services and instances. Deactivating a
-Service deactivates all its instances. Reactivation only changes the selected
-resource; its descendants remain inactive until explicitly reactivated.
-Reactivating a child requires active ancestors (`400` otherwise). Unknown
-resource IDs return `404`. V2 does not expose physical deletion.
+Existing data can still be read and edited while the registration is inactive.
+Updating a resource does not reactivate it. New services, instances and
+`IntendedUse` snapshots cannot be created under inactive parents; existing
+snapshots cannot be replaced or revoked there either.
+These writes and certificate issuance return `404` when the target or a
+required parent is missing or inactive.
 
-Hierarchy writes acquire a database write lock on the owning Party before reading
-registration state, including V1 creation, update and deletion. Writes within one
-Party are serialized; unrelated Parties can still be changed concurrently.
-These transactions use `READ_COMMITTED` so reads after waiting for the lock see
-the preceding writer's committed state, not an earlier repeatable-read snapshot.
+Deactivation does not revoke certificates. Existing certificates and their
+revocation status are preserved, and certificates can still be retrieved and
+explicitly revoked through the Certificate Authority. Issuing new access or
+issuer certificates requires the entire registration hierarchy to be active.
 
-Certificates and their revocation status are preserved when registrations are
-deactivated. New access and issuer certificate requests through the existing V1
-API return `404` if the instance, its Service, or its Party is inactive. Certificate
-retrieval and explicit revoke operations remain available for inactive
-registrations. Revocation still uses the existing CA flow and only updates the
-local status after the CA confirms it.
-
-V1 request/response formats and physical deletion remain unchanged. Its instance
-update operation cannot reactivate an instance under an inactive Party or
-Service. The V27 migration adds the Service's `active` column with a default of
-`TRUE`, and deactivates existing descendants of inactive Parties without changing
-certificates.
+Change status with `PATCH /v2/{parties,services,instances}/{id}/deactivate` or
+`/activate`. These operations require `X-API-KEY` and return `204` on success,
+`404` for an unknown resource and `400` when attempting reactivation under
+inactive parents. V1 retains physical deletion but cannot reactivate instances
+under inactive parents.
