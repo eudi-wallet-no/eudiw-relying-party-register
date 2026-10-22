@@ -55,7 +55,10 @@ public record WalletRelyingPartyResource(
             SupervisoryAuthorityResource.from(supervisoryAuthority),
             party.getTradeName(),
             properties.registryUri(),
-            party.getServices().stream().map(ServiceResource::from).toList()
+            party.getServices().stream()
+                .filter(WalletRelyingPartyService::isActive)
+                .map(ServiceResource::from)
+                .toList()
         );
     }
 
