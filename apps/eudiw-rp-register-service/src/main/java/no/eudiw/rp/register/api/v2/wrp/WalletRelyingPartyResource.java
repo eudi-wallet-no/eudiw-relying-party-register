@@ -181,10 +181,10 @@ public record WalletRelyingPartyResource(
     ) {
         private static IntendedUseResource from(IntendedUse intendedUse) {
             return new IntendedUseResource(
-                intendedUse.getPurpose().stream()
+                intendedUse.getPurpose() == null ? null : intendedUse.getPurpose().stream()
                     .map(value -> new MultiLangStringResource(value.lang(), value.content()))
                     .toList(),
-                intendedUse.getPrivacyPolicy().stream()
+                    intendedUse.getPrivacyPolicy() == null ? null : intendedUse.getPrivacyPolicy().stream()
                     .map(policy -> new PolicyResource(policy.policyURI(), policy.type()))
                     .toList(),
                 intendedUse.getIntendedUseIdentifier(),

@@ -25,7 +25,6 @@ public class WrpLookupService {
             throw new IllegalStateException("Registered WRP identifier matches more than one party");
         }
         return matches.stream().findFirst()
-            .map(party -> WalletRelyingPartyResource.from(
-                party, supervisoryAuthorityProperties, wrpApiProperties));
+            .map(party -> WalletRelyingPartyResource.from(party, supervisoryAuthorityProperties, wrpApiProperties));
     }
 }
