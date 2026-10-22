@@ -31,6 +31,9 @@ public record CredentialResource(
     @AssertTrue(message = "invalid_credential_claims")
     public boolean hasValidClaims() {
         return claims != null && !claims.isEmpty() && claims.stream().allMatch(claim -> {
+            if (claim == null) {
+                return false;
+            }
             Object path = claim.get("path");
             if (!(path instanceof List<?> pathParts) || pathParts.isEmpty()) {
                 return false;
