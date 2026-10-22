@@ -79,6 +79,9 @@ public record RelyingPartyServiceRequest(
             listOrEmpty(usesIntermediaries).stream().map(item -> item.toDomain()).toList(),
             listOrEmpty(servedWRPServices)
         );
+        if (!java.util.Objects.equals(relyingPartyService.getServiceTradeName(), serviceTradeName)) {
+            relyingPartyService.getRelyingPartyInstances().forEach(RelyingPartyInstance::setUpdated);
+        }
         relyingPartyService.setServiceTradeName(serviceTradeName);
         relyingPartyService.setServiceIdentifier(serviceIdentifier);
         relyingPartyService.setSupportUri(supportUri);
