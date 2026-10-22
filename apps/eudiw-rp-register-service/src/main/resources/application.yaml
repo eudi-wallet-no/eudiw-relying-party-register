@@ -117,11 +117,11 @@ idporten-key-manager:
   default-keystore: wrp-signing
   keystores:
     wrp-signing:
-      key-store-location: ${WRP_SIGNING_KEYSTORE}
+      key-store-location: ${WRP_SIGNING_KEYSTORE_LOCATION}
       key-store-type: ${WRP_SIGNING_KEYSTORE_TYPE}
       key-store-password: ${WRP_SIGNING_KEYSTORE_PASSWORD}
-      key-alias: ${WRP_SIGNING_KEY_ALIAS}
-      key-password: ${WRP_SIGNING_KEY_PASSWORD}
+      key-alias: ${WRP_SIGNING_KEYSTORE_KEY_ALIAS}
+      key-password: ${WRP_SIGNING_KEYSTORE_KEY_PASSWORD}
 
 #external-dependency-health-checks:
 #  health-endpoints:
