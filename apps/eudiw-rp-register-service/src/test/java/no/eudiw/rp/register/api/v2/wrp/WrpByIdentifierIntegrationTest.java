@@ -35,11 +35,14 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.ECGenParameterSpec;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -113,6 +116,96 @@ class WrpByIdentifierIntegrationTest {
     void returnsNotFoundForUnknownIdentifier() throws Exception {
         mockMvc.perform(get("/wrp/unknown-identifier"))
             .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void returnsAnEmptySignedCollectionWhenNoPartiesAreRegistered() throws Exception {
+        JWSObject jws = getCollectionPage(null, null);
+        Map<String, Object> payload = jws.getPayload().toJSONObject();
+
+        assertEquals("https://registry.example.test", payload.get("iss"));
+        assertTrue(((Number) payload.get("iat")).longValue() > 0);
+        assertTrue(((List<?>) payload.get("data")).isEmpty());
+        Map<?, ?> pagination = (Map<?, ?>) payload.get("pagination");
+        assertFalse((Boolean) pagination.get("has_next_page"));
+        assertFalse(pagination.containsKey("next_cursor"));
+    }
+
+    @Test
+    void paginatesTheActiveCollectionUsingTheDefaultLimit() throws Exception {
+        List<WalletRelyingParty> parties = new ArrayList<>();
+        for (int index = 0; index < 21; index++) {
+            parties.add(partyNamed("Collection Party " + index));
+        }
+        WalletRelyingParty inactiveParty = partyNamed("Inactive Collection Party");
+        inactiveParty.setActive(false);
+        parties.add(inactiveParty);
+        walletRelyingPartyRepository.saveAllAndFlush(parties);
+
+        JWSObject firstPage = getCollectionPage(null, null);
+        Map<String, Object> firstPayload = firstPage.getPayload().toJSONObject();
+        List<?> firstData = (List<?>) firstPayload.get("data");
+        Map<?, ?> firstPagination = (Map<?, ?>) firstPayload.get("pagination");
+
+        assertEquals(20, firstData.size());
+        assertTrue((Boolean) firstPagination.get("has_next_page"));
+        assertTrue(firstPagination.get("next_cursor") instanceof String);
+        assertFalse(firstData.stream().anyMatch(item ->
+            "Inactive Collection Party".equals(((Map<?, ?>) item).get("tradeName"))));
+
+        JWSObject secondPage = getCollectionPage(
+            null, (String) firstPagination.get("next_cursor"));
+        Map<String, Object> secondPayload = secondPage.getPayload().toJSONObject();
+        List<?> secondData = (List<?>) secondPayload.get("data");
+        Map<?, ?> secondPagination = (Map<?, ?>) secondPayload.get("pagination");
+
+        assertEquals(1, secondData.size());
+        assertFalse((Boolean) secondPagination.get("has_next_page"));
+        assertFalse(secondPagination.containsKey("next_cursor"));
+        Set<String> tradeNames = new HashSet<>();
+        firstData.forEach(item -> tradeNames.add((String) ((Map<?, ?>) item).get("tradeName")));
+        secondData.forEach(item -> tradeNames.add((String) ((Map<?, ?>) item).get("tradeName")));
+        assertEquals(21, tradeNames.size());
+    }
+
+    @Test
+    void honorsAnExplicitPageLimit() throws Exception {
+        walletRelyingPartyRepository.saveAllAndFlush(List.of(
+            partyNamed("Page One"),
+            partyNamed("Page Two"),
+            partyNamed("Page Three")
+        ));
+
+        JWSObject firstPage = getCollectionPage(2, null);
+        Map<?, ?> firstPagination = (Map<?, ?>) firstPage.getPayload().toJSONObject().get("pagination");
+        assertEquals(2, ((List<?>) firstPage.getPayload().toJSONObject().get("data")).size());
+        assertTrue((Boolean) firstPagination.get("has_next_page"));
+
+        JWSObject secondPage = getCollectionPage(null, (String) firstPagination.get("next_cursor"));
+        Map<?, ?> secondPagination = (Map<?, ?>) secondPage.getPayload().toJSONObject().get("pagination");
+        assertEquals(1, ((List<?>) secondPage.getPayload().toJSONObject().get("data")).size());
+        assertFalse((Boolean) secondPagination.get("has_next_page"));
+    }
+
+    @Test
+    void rejectsInvalidPaginationAndUnsupportedFilters() throws Exception {
+        mockMvc.perform(get("/wrp").param("limit", "0"))
+            .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/wrp").param("limit", "101"))
+            .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/wrp").param("cursor", "not-a-cursor"))
+            .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/wrp").param("identifier", "not-yet-supported"))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void documentsTheCollectionRouteAndPaginationParameters() throws Exception {
+        mockMvc.perform(get("/v3/api-docs/WRP"))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("\"/wrp\"")))
+            .andExpect(content().string(containsString("limit")))
+            .andExpect(content().string(containsString("cursor")));
     }
 
     @Test
@@ -234,6 +327,36 @@ class WrpByIdentifierIntegrationTest {
             List.of(Map.of("path", List.of("org.iso.18013.5.1", "family_name"))),
             credential.get("claims")
         );
+    }
+
+    private JWSObject getCollectionPage(Integer limit, String cursor) throws Exception {
+        var request = get("/wrp");
+        if (limit != null) {
+            request.param("limit", limit.toString());
+        }
+        if (cursor != null) {
+            request.param("cursor", cursor);
+        }
+        String token = mockMvc.perform(request)
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/jwt")))
+            .andExpect(header().string("x-jku-url", JWKS_URL))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        JWSObject jws = JWSObject.parse(token);
+        assertEquals("JWT", jws.getHeader().getType().getType());
+        assertEquals("wrp-test-key", jws.getHeader().getKeyID());
+        assertTrue(jws.verify(new ECDSAVerifier((ECPublicKey) signingKeyPair.getPublic())));
+        return jws;
+    }
+
+    private WalletRelyingParty partyNamed(String tradeName) {
+        WalletRelyingParty party = EntityGenerator.generateWalletRelyingParty(1);
+        party.setOrgno(TestDataGenerator.generateValidOrgno());
+        party.setTradeName(tradeName);
+        return party;
     }
 
     private RelyingPartyInstance instanceWithEntitlements(String... entitlements) {
