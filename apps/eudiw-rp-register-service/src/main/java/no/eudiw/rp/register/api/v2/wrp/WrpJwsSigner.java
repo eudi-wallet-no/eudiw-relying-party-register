@@ -8,6 +8,7 @@ import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.jwk.Curve;
+import no.eudiw.rp.register.config.WrpApiProperties;
 import no.idporten.lib.keystore.KeystoreManager;
 import org.springframework.stereotype.Service;
 import tools.jackson.core.JacksonException;

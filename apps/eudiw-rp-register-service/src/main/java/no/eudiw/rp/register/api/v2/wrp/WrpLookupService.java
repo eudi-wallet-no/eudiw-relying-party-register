@@ -2,6 +2,7 @@ package no.eudiw.rp.register.api.v2.wrp;
 
 import lombok.RequiredArgsConstructor;
 import no.eudiw.rp.register.config.SupervisoryAuthorityProperties;
+import no.eudiw.rp.register.config.WrpApiProperties;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import org.springframework.stereotype.Service;

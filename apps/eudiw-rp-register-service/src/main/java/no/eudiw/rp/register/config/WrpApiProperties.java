@@ -1,4 +1,4 @@
-package no.eudiw.rp.register.api.v2.wrp;
+package no.eudiw.rp.register.config;
 
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;

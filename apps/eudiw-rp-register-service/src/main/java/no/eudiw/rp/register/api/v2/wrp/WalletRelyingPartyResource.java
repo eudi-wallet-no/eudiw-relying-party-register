@@ -3,6 +3,7 @@ package no.eudiw.rp.register.api.v2.wrp;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import no.eudiw.rp.register.config.SupervisoryAuthorityProperties;
+import no.eudiw.rp.register.config.WrpApiProperties;
 import no.eudiw.rp.register.domain.Credential;
 import no.eudiw.rp.register.domain.IntendedUse;
 import no.eudiw.rp.register.domain.LegalPerson;
@@ -34,30 +35,30 @@ public record WalletRelyingPartyResource(
 ) {
 
     public static WalletRelyingPartyResource from(
-        WalletRelyingParty party,
+        WalletRelyingParty relyingParty,
         Map<UUID, List<String>> entitlementsByService,
         SupervisoryAuthorityProperties supervisoryAuthority,
         WrpApiProperties properties
     ) {
         return new WalletRelyingPartyResource(
-            party.getCountry(),
-            party.getEmail(),
-            party.getIdentifier().stream()
+            relyingParty.getCountry(),
+            relyingParty.getEmail(),
+            relyingParty.getIdentifier().stream()
                 .map(identifier -> new IdentifierResource(identifier.identifier(), identifier.type()))
                 .toList(),
-            party.getInfoURI(),
-            legalPerson(party.getLegalPerson()),
-            party.getPhone(),
-            party.getPolicy().stream()
+            relyingParty.getInfoURI(),
+            legalPerson(relyingParty.getLegalPerson()),
+            relyingParty.getPhone(),
+            relyingParty.getPolicy().stream()
                 .map(policy -> new PolicyResource(policy.policyURI(), policy.type()))
                 .toList(),
-            party.getProviderType(),
-            List.copyOf(party.getX5c()),
-            party.isPSB(),
+            relyingParty.getProviderType(),
+            List.copyOf(relyingParty.getX5c()),
+            relyingParty.isPSB(),
             SupervisoryAuthorityResource.from(supervisoryAuthority),
-            party.getTradeName(),
+            relyingParty.getTradeName(),
             properties.registryUri(),
-            party.getServices().stream()
+            relyingParty.getServices().stream()
                 .filter(WalletRelyingPartyService::isActive)
                 .map(service -> ServiceResource.from(
                     service, entitlementsByService.getOrDefault(service.getId(), List.of())))
@@ -130,29 +131,29 @@ public record WalletRelyingPartyResource(
             return supportURI;
         }
 
-        private static ServiceResource from(WalletRelyingPartyService service, List<String> entitlements) {
+        private static ServiceResource from(WalletRelyingPartyService relyingPartyService, List<String> entitlements) {
             return new ServiceResource(
-                service.getServiceTradeName(),
-                service.getServiceIdentifier(),
-                service.getSupportUri(),
-                service.getEmail(),
-                service.getPhone(),
-                mapDescriptions(service.getSrvDescription()),
-                service.getIntendedUses().stream().map(IntendedUseResource::from).toList(),
+                relyingPartyService.getServiceTradeName(),
+                relyingPartyService.getServiceIdentifier(),
+                relyingPartyService.getSupportUri(),
+                relyingPartyService.getEmail(),
+                relyingPartyService.getPhone(),
+                mapDescriptions(relyingPartyService.getSrvDescription()),
+                relyingPartyService.getIntendedUses().stream().map(IntendedUseResource::from).toList(),
                 entitlements,
-                service.getSubEntitlements(),
-                service.getProvidesAttestations().stream()
+                relyingPartyService.getSubEntitlements(),
+                relyingPartyService.getProvidesAttestations().stream()
                     .map(attestation -> new ProvidedAttestationResource(
                         attestation.format(), attestation.type()))
                     .toList(),
-                service.getUsesIntermediaries().stream()
+                relyingPartyService.getUsesIntermediaries().stream()
                     .map(intermediary -> new IntermediaryResource(
                         intermediary.serviceIdentifier(),
                         intermediary.serviceTradeName(),
                         intermediary.registryURI()))
                     .toList(),
-                service.isIntermediary(),
-                service.getServedWRPServices()
+                relyingPartyService.isIntermediary(),
+                relyingPartyService.getServedWRPServices()
             );
         }
 

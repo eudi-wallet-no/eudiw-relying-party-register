@@ -3,6 +3,7 @@ package no.eudiw.rp.register.api.v2.wrp;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
+import no.eudiw.rp.register.config.WrpApiProperties;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

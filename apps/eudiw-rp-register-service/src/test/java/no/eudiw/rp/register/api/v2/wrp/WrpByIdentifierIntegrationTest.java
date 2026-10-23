@@ -85,11 +85,11 @@ class WrpByIdentifierIntegrationTest {
     void findsPartyByOrgnoAndAdditionalIdentifierAndReturnsSignedResponse() throws Exception {
         String orgno = TestDataGenerator.generateValidOrgno();
         String additionalIdentifier = "EXAMPLE-EUID-123";
-        WalletRelyingParty party = EntityGenerator.generateWalletRelyingParty(1);
-        party.setOrgno(orgno);
-        party.setIdentifier(List.of(new Identifier("urn:example:euid", additionalIdentifier)));
-        party.setPostalAddress(List.of("Private address"));
-        WalletRelyingPartyService service = party.getServices().getFirst();
+        WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty(1);
+        walletRelyingParty.setOrgno(orgno);
+        walletRelyingParty.setIdentifier(List.of(new Identifier("urn:example:euid", additionalIdentifier)));
+        walletRelyingParty.setPostalAddress(List.of("Private address"));
+        WalletRelyingPartyService relyingPartyService = walletRelyingParty.getServices().getFirst();
         IntendedUse intendedUse = new IntendedUse(
             "intended-use-1",
             "2026-01-01",
@@ -102,11 +102,11 @@ class WrpByIdentifierIntegrationTest {
             Map.of("doctype", "org.iso.18013-5.1.mDL"),
             List.of(Map.of("path", List.of("org.iso.18013.5.1", "family_name")))
         )));
-        service.setIntendedUses(List.of(intendedUse));
-        walletRelyingPartyRepository.saveAndFlush(party);
+        relyingPartyService.setIntendedUses(List.of(intendedUse));
+        walletRelyingPartyRepository.saveAndFlush(walletRelyingParty);
 
-        assertSignedWrpResponse(orgno, party, additionalIdentifier);
-        assertSignedWrpResponse(additionalIdentifier, party, additionalIdentifier);
+        assertSignedWrpResponse(orgno, walletRelyingParty, additionalIdentifier);
+        assertSignedWrpResponse(additionalIdentifier, walletRelyingParty, additionalIdentifier);
     }
 
     @Test
@@ -118,9 +118,9 @@ class WrpByIdentifierIntegrationTest {
     @Test
     void includesDistinctEntitlementsFromActiveInstancesOnly() throws Exception {
         String orgno = TestDataGenerator.generateValidOrgno();
-        WalletRelyingParty party = EntityGenerator.generateWalletRelyingParty(1);
-        party.setOrgno(orgno);
-        WalletRelyingPartyService service = party.getServices().getFirst();
+        WalletRelyingParty relyingParty = EntityGenerator.generateWalletRelyingParty(1);
+        relyingParty.setOrgno(orgno);
+        WalletRelyingPartyService service = relyingParty.getServices().getFirst();
         RelyingPartyInstance firstActiveInstance = service.getRelyingPartyInstances().getFirst();
         firstActiveInstance.setRelyingPartyEntitlements(List.of(
             new RelyingPartyEntitlement("urn:example:shared"),
@@ -133,7 +133,7 @@ class WrpByIdentifierIntegrationTest {
         inactiveInstance.setActive(false);
         service.setRelyingPartyInstances(List.of(
             firstActiveInstance, secondActiveInstance, inactiveInstance));
-        walletRelyingPartyRepository.saveAndFlush(party);
+        walletRelyingPartyRepository.saveAndFlush(relyingParty);
 
         String token = mockMvc.perform(get("/wrp/{identifier}", orgno))
             .andExpect(status().isOk())
@@ -158,9 +158,9 @@ class WrpByIdentifierIntegrationTest {
     @Test
     void publishesPublicKeyThatVerifiesSignedWrpResponse() throws Exception {
         String orgno = TestDataGenerator.generateValidOrgno();
-        WalletRelyingParty party = EntityGenerator.generateWalletRelyingParty(1);
-        party.setOrgno(orgno);
-        walletRelyingPartyRepository.saveAndFlush(party);
+        WalletRelyingParty relyingParty = EntityGenerator.generateWalletRelyingParty(1);
+        relyingParty.setOrgno(orgno);
+        walletRelyingPartyRepository.saveAndFlush(relyingParty);
 
         String token = mockMvc.perform(get("/wrp/{identifier}", orgno))
             .andExpect(status().isOk())
@@ -189,7 +189,7 @@ class WrpByIdentifierIntegrationTest {
 
     private void assertSignedWrpResponse(
         String identifier,
-        WalletRelyingParty expectedParty,
+        WalletRelyingParty expectedRelyingParty,
         String additionalIdentifier
     ) throws Exception {
         String token = mockMvc.perform(get("/wrp/{identifier}", identifier))
@@ -210,7 +210,7 @@ class WrpByIdentifierIntegrationTest {
         assertTrue(((Number) payload.get("iat")).longValue() > 0);
 
         Map<?, ?> data = (Map<?, ?>) payload.get("data");
-        assertEquals(expectedParty.getTradeName(), data.get("tradeName"));
+        assertEquals(expectedRelyingParty.getTradeName(), data.get("tradeName"));
         assertEquals("https://registry.example.test/wrp", data.get("registryURI"));
         assertTrue(data.containsKey("isPSB"));
         assertFalse(data.containsKey("postalAddress"));
@@ -222,7 +222,7 @@ class WrpByIdentifierIntegrationTest {
         );
         Map<?, ?> service = (Map<?, ?>) ((List<?>) data.get("services")).getFirst();
         assertEquals(
-            expectedParty.getServices().getFirst().getServiceTradeName(),
+            expectedRelyingParty.getServices().getFirst().getServiceTradeName(),
             service.get("serviceTradeName")
         );
         assertFalse(service.containsKey("serviceIdentifier"));
