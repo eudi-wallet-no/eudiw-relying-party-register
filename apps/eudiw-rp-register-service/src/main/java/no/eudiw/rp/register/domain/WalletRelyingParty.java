@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -91,6 +92,7 @@ public class WalletRelyingParty extends BaseEntity {
         fetch = FetchType.LAZY,
         cascade = CascadeType.ALL,
         orphanRemoval = true)
+    @BatchSize(size = 50)
     private List<WalletRelyingPartyService> services = new ArrayList<>();
 
     public void setServices(List<WalletRelyingPartyService> services) {

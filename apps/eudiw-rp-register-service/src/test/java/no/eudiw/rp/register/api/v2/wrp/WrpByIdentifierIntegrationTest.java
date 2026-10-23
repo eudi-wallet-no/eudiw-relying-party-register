@@ -6,6 +6,7 @@ import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyUse;
+import jakarta.persistence.EntityManagerFactory;
 import no.eudiw.rp.register.domain.Credential;
 import no.eudiw.rp.register.domain.Identifier;
 import no.eudiw.rp.register.domain.IntendedUse;
@@ -20,6 +21,8 @@ import no.eudiw.rp.register.testdata.EntityGenerator;
 import no.eudiw.rp.register.testdata.TestDataGenerator;
 import no.idporten.lib.keystore.KeyProvider;
 import no.idporten.lib.keystore.KeystoreManager;
+import org.hibernate.SessionFactory;
+import org.hibernate.stat.Statistics;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -63,6 +66,9 @@ class WrpByIdentifierIntegrationTest {
 
     @Autowired
     private WalletRelyingPartyRepository walletRelyingPartyRepository;
+
+    @Autowired
+    private EntityManagerFactory entityManagerFactory;
 
     @MockitoBean
     private KeystoreManager keystoreManager;
@@ -197,6 +203,42 @@ class WrpByIdentifierIntegrationTest {
             .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("identifier", "not-yet-supported"))
             .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void batchFetchesNestedAssociationsForCollectionPage() throws Exception {
+        List<WalletRelyingParty> parties = new ArrayList<>();
+        for (int index = 0; index < 25; index++) {
+            WalletRelyingParty party = partyNamed("Batch Party " + index);
+            WalletRelyingPartyService service = party.getServices().getFirst();
+            IntendedUse intendedUse = new IntendedUse(
+                "intended-use-" + index,
+                "2026-01-01",
+                null,
+                List.of(new MultiLangString("en", "Purpose")),
+                List.of(new Policy("PrivacyStatement", "https://example.test/privacy"))
+            );
+            intendedUse.setCredentials(List.of(new Credential(
+                "mso_mdoc",
+                Map.of("doctype", "org.iso.18013-5.1.mDL"),
+                List.of(Map.of("path", List.of("family_name")))
+            )));
+            service.setIntendedUses(List.of(intendedUse));
+            parties.add(party);
+        }
+        walletRelyingPartyRepository.saveAllAndFlush(parties);
+
+        Statistics statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
+        statistics.clear();
+        mockMvc.perform(get("/wrp").param("limit", "25"))
+            .andExpect(status().isOk());
+
+        long statementCount = statistics.getPrepareStatementCount();
+        assertTrue(
+            statementCount < parties.size(),
+            "Expected batched association loading, but collection mapping used "
+                + statementCount + " SQL statements for " + parties.size() + " parties"
+        );
     }
 
     @Test
