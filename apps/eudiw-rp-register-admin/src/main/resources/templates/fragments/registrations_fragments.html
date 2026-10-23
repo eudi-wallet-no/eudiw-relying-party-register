@@ -1,5 +1,5 @@
 <div th:fragment="registrations_table_fragment">
-    <!--/*@thymesVar id="registrationsAttr" type="java.util.List<no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource>"*/-->
+    <!--/*@thymesVar id="registrationsAttr" type="java.util.List<no.idporten.eudiw.rp.admin.web.resource.RegistrationSummary>"*/-->
     <div th:with="registrations=${registrationsAttr}">
         <div th:if="${#lists.isEmpty(registrations)}">
             Fann ingen registrerte brukarstader.
@@ -20,7 +20,8 @@
 
             <tr th:each="rp : ${registrations}">
                 <td>
-                    <a th:href="@{|/details/${rp.id}|}" class="clickable-link">
+                    <a th:href="@{|/details/${rp.id}|}" class="clickable-link"
+                       th:attr="aria-label=${#strings.isEmpty(rp.tradeName) ? 'Vis registrering ' + rp.id : null}">
                         <div th:text="${rp.tradeName}"></div>
                     </a>
                 </td>
@@ -29,8 +30,8 @@
                          th:text="${e.displayName()}"
                          class="display-block"></div>
                 </td>
-                <td th:text="${@timestampFormatter.formatEpochMillis(rp.createdMs)}"></td>
-                <td th:text="${@timestampFormatter.formatEpochMillis(rp.lastUpdatedMs)}"></td>
+                <td th:text="${rp.createdMs == null ? '' : @timestampFormatter.formatEpochMillis(rp.createdMs)}"></td>
+                <td th:text="${rp.lastUpdatedMs == null ? '' : @timestampFormatter.formatEpochMillis(rp.lastUpdatedMs)}"></td>
             </tr>
             </tbody>
         </table>

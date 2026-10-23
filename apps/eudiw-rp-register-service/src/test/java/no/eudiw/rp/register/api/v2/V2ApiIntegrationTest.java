@@ -14,6 +14,7 @@ import no.eudiw.rp.register.testdata.CertificatesGenerator;
 import no.eudiw.rp.register.testdata.TestDataGenerator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -384,6 +385,20 @@ class V2ApiIntegrationTest {
         assertEquals(1, relyingPartyServiceRepository.count());
         assertEquals(1, relyingPartyInstanceRepository.count());
         verifyNoInteractions(certificateServiceClient);
+    }
+
+    @Test
+    @DisplayName("Retrieve organization registrations only with authentication and an organization number")
+    void shouldRequireAuthenticationAndOrganizationToRetrieveRegistrations() throws Exception {
+        Registration registration = createRegistration();
+        String orgno = relyingPartyRepository.findById(UUID.fromString(registration.relyingPartyId())).orElseThrow().getOrgno();
+
+        mockMvc.perform(get("/v2/registrations").param("orgno", orgno)).andExpect(status().isUnauthorized());
+        request(get("/v2/registrations")).andExpect(status().isBadRequest());
+        request(get("/v2/registrations").param("orgno", " ")).andExpect(status().isBadRequest());
+        request(get("/v2/registrations").param("orgno", orgno))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].id").value(registration.relyingPartyInstanceId()));
     }
 
     private Registration createRegistration() throws Exception {

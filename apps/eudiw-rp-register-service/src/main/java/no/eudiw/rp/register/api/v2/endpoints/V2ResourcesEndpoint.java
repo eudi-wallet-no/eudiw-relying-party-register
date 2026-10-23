@@ -16,6 +16,7 @@ import no.eudiw.rp.register.api.v2.endpoints.entities.EntitlementsResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.IntendedUseReplacementResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.IntendedUseResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.IssuerCertificateRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationSummaryResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyRequest;
@@ -181,6 +182,15 @@ public class V2ResourcesEndpoint {
         return v2ApiService.getRelyingPartyInstance(relyingPartyInstanceId);
     }
 
+    @Operation(
+        summary = "List registration summaries for an organization",
+        description = "Returns the organization's registrations with instance IDs, service names, roles, and creation and update timestamps."
+    )
+    @GetMapping(path = "/registrations", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<RegistrationSummaryResponse> getRegistrationsByOrgno(@RequestParam @NotBlank @Orgnr String orgno) {
+        return v2ApiService.getRegistrationsByOrgno(orgno);
+    }
+
     @Operation(summary = "Search RelyingPartyInstances")
     @GetMapping(path = "/instances", produces = MediaType.APPLICATION_JSON_VALUE)
     public PagedModel<RelyingPartyInstanceResponse> searchRelyingPartyInstances(
@@ -193,6 +203,7 @@ public class V2ResourcesEndpoint {
         @RequestParam(required = false) List<@NotBlank String> requiredEntitlements,
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "25") int pageSize,
+        @Parameter(description = "orgno, name, serviceTradeName, createdMs (default) or lastUpdatedMs")
         @RequestParam(required = false) String sort
     ) {
         return new PagedModel<>(v2ApiService.searchRelyingPartyInstances(

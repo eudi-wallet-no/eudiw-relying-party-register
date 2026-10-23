@@ -4,6 +4,7 @@ import no.eudiw.rp.register.domain.BaseEntity;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
+import no.eudiw.rp.register.repository.RegistrationSummaryRow;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.testdata.EntityGenerator;
@@ -143,6 +144,24 @@ public class RelyingPartyInstanceRepositoryTest {
         Set<String> issuerUrls = repository.findActiveCredentialIssuerUrls();
 
         assertFalse(issuerUrls.contains(null));
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("Retrieve all registrations belonging to the selected organization")
+    void shouldRetrieveAllRegistrationsForOrganization() {
+        RelyingPartyInstance first = EntityGenerator.generateRelyingPartyInstance("Kontrollteneste", List.of(), List.of(), List.of());
+        RelyingPartyInstance second = EntityGenerator.generateRelyingPartyInstance("Innsynsteneste", List.of(), List.of(), List.of());
+        walletRelyingPartyRepository.saveAndFlush(new WalletRelyingParty("Testverksemd", "123456785", true,
+            List.of(first.getWalletRelyingPartyService(), second.getWalletRelyingPartyService())));
+        RelyingPartyInstance otherOrganization = EntityGenerator.generateRelyingPartyInstance("Anna teneste", List.of(), List.of(), List.of());
+        walletRelyingPartyRepository.saveAndFlush(new WalletRelyingParty("Anna verksemd", "223456782", true,
+            List.of(otherOrganization.getWalletRelyingPartyService())));
+
+        List<RegistrationSummaryRow> result = repository.findRegistrationSummariesByOrgno("123456785");
+
+        assertEquals(Set.of(first.getId(), second.getId()), result.stream()
+            .map(RegistrationSummaryRow::instanceId).collect(Collectors.toSet()));
     }
 
     @Nested
@@ -482,6 +501,26 @@ public class RelyingPartyInstanceRepositoryTest {
 
             assertTrue(isSortedBy(searchResultByLastUpdatedMs,
                                   Comparator.comparing(RelyingPartyInstance::getLastUpdatedMs)));
+        }
+
+        @Test
+        @DisplayName("then V2 search pages through instances in service name order")
+        void shouldPageV2SearchInServiceNameOrder() {
+            String searchTerm = UUID.randomUUID().toString();
+            RelyingPartyInstance bravo = EntityGenerator.generateRelyingParty();
+            bravo.getWalletRelyingPartyService().setServiceTradeName("bravo " + searchTerm);
+            RelyingPartyInstance alpha = EntityGenerator.generateRelyingParty();
+            alpha.getWalletRelyingPartyService().setServiceTradeName("alpha " + searchTerm);
+            repository.saveAndFlush(bravo);
+            repository.saveAndFlush(alpha);
+
+            Sort ordering = Sort.by("walletRelyingPartyService.serviceTradeName", "id");
+            UUID firstPageId = repository.searchV2(
+                null, null, searchTerm, true, Set.of(), 0, PageRequest.of(0, 1, ordering)).getContent().getFirst().getId();
+            UUID secondPageId = repository.searchV2(
+                null, null, searchTerm, true, Set.of(), 0, PageRequest.of(1, 1, ordering)).getContent().getFirst().getId();
+
+            assertEquals(List.of(alpha.getId(), bravo.getId()), List.of(firstPageId, secondPageId));
         }
 
         @Test

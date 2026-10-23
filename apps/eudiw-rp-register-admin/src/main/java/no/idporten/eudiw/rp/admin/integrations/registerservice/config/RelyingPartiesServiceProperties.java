@@ -1,4 +1,4 @@
-package no.idporten.eudiw.rp.admin.service.config;
+package no.idporten.eudiw.rp.admin.integrations.registerservice.config;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;

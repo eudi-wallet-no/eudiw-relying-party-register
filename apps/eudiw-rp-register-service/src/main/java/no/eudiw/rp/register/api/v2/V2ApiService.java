@@ -10,6 +10,7 @@ import no.eudiw.rp.register.api.v2.endpoints.entities.EntitlementsResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.IntendedUseReplacementResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.IntendedUseResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.IssuerCertificateRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationSummaryResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyRequest;
@@ -18,6 +19,7 @@ import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyServiceRequest
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyServiceResponse;
 import no.eudiw.rp.register.config.RegistryProperties;
 import no.eudiw.rp.register.config.SupervisoryAuthorityProperties;
+import no.eudiw.rp.register.domain.Entitlement;
 import no.eudiw.rp.register.domain.IntendedUse;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
@@ -27,6 +29,7 @@ import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
 import no.eudiw.rp.register.exception.BadRequestException;
 import no.eudiw.rp.register.exception.NotFoundException;
+import no.eudiw.rp.register.repository.RegistrationSummaryRow;
 import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.repository.WalletRelyingPartyServiceRepository;
@@ -44,10 +47,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -87,7 +94,9 @@ public class V2ApiService {
         String sort
     ) {
         String defaultSort = "orgno";
-        Set<String> allowedSortProperties = Set.of("orgno", "tradeName", "createdMs", "lastUpdatedMs");
+        Map<String, String> allowedSortProperties = Map.of(
+            "orgno", "orgno", "tradeName", "tradeName",
+            "createdMs", "createdMs", "lastUpdatedMs", "lastUpdatedMs");
 
         PageRequest pageRequest = pageRequest(
             page, pageSize, sort, defaultSort, allowedSortProperties);
@@ -155,7 +164,8 @@ public class V2ApiService {
                 relyingPartyId,
                 pageRequest(
                     page, pageSize, sort, "serviceTradeName",
-                    Set.of("serviceTradeName", "createdMs", "lastUpdatedMs")));
+                    Map.of("serviceTradeName", "serviceTradeName",
+                        "createdMs", "createdMs", "lastUpdatedMs", "lastUpdatedMs")));
 
         return relyingPartyServices.map(RelyingPartyServiceResponse::from);
     }
@@ -206,6 +216,27 @@ public class V2ApiService {
         return RelyingPartyInstanceResponse.from(findRelyingPartyInstance(relyingPartyInstanceId));
     }
 
+    @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
+    public List<RegistrationSummaryResponse> getRegistrationsByOrgno(String orgno) {
+        if (orgno == null || orgno.isBlank()) {
+            throw new BadRequestException("Organization number is required");
+        }
+
+        List<RegistrationSummaryRow> rows = relyingPartyInstanceRepository.findRegistrationSummariesByOrgno(orgno);
+        if (rows.isEmpty()) {
+            return List.of();
+        }
+
+        var entitlements = entitlementService.findAllEntitlements(true).stream()
+            .collect(Collectors.toMap(Entitlement::getEntitlement, Function.identity()));
+        var registrations = rows.stream()
+            .collect(Collectors.groupingBy(RegistrationSummaryRow::instanceId, LinkedHashMap::new, Collectors.toList()));
+
+        return registrations.values().stream()
+            .map(registration -> RegistrationSummaryResponse.from(registration, entitlements))
+            .toList();
+    }
+
     public Page<RelyingPartyInstanceResponse> searchRelyingPartyInstances(
         UUID relyingPartyServiceId,
         String orgno,
@@ -225,7 +256,11 @@ public class V2ApiService {
             includeInactive,
             uniqueRequiredEntitlements,
             uniqueRequiredEntitlements.size(),
-            pageRequest(page, pageSize, sort, "createdMs", Set.of("createdMs", "lastUpdatedMs"))
+            pageRequest(page, pageSize, sort, "createdMs", Map.of(
+                "orgno", "walletRelyingPartyService.walletRelyingParty.orgno",
+                "name", "walletRelyingPartyService.serviceTradeName",
+                "serviceTradeName", "walletRelyingPartyService.serviceTradeName",
+                "createdMs", "createdMs", "lastUpdatedMs", "lastUpdatedMs"))
         );
 
         return relyingPartyInstances.map(RelyingPartyInstanceResponse::from);
@@ -404,7 +439,7 @@ public class V2ApiService {
         int pageSize,
         String sort,
         String defaultSort,
-        Set<String> allowedSorts
+        Map<String, String> allowedSorts
     ) {
         if (page < 0 || pageSize < 1 || pageSize > MAX_PAGE_SIZE
             || (long) page * pageSize > Integer.MAX_VALUE) {
@@ -413,8 +448,9 @@ public class V2ApiService {
                     + ", and page * pageSize must not exceed " + Integer.MAX_VALUE);
         }
 
-        String sortProperty = sort == null ? defaultSort : sort;
-        if (!allowedSorts.contains(sortProperty)) {
+        String sortKey = sort == null ? defaultSort : sort;
+        String sortProperty = allowedSorts.get(sortKey);
+        if (sortProperty == null) {
             throw new BadRequestException("Unsupported sort key");
         }
         return PageRequest.of(page, pageSize, Sort.by(sortProperty).ascending().and(Sort.by("id").ascending()));
