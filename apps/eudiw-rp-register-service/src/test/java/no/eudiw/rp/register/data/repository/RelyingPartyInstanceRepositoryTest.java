@@ -485,6 +485,26 @@ public class RelyingPartyInstanceRepositoryTest {
         }
 
         @Test
+        @DisplayName("then V2 search pages through instances in service name order")
+        void shouldPageV2SearchInServiceNameOrder() {
+            String searchTerm = UUID.randomUUID().toString();
+            RelyingPartyInstance bravo = EntityGenerator.generateRelyingParty();
+            bravo.getWalletRelyingPartyService().setServiceTradeName("bravo " + searchTerm);
+            RelyingPartyInstance alpha = EntityGenerator.generateRelyingParty();
+            alpha.getWalletRelyingPartyService().setServiceTradeName("alpha " + searchTerm);
+            repository.saveAndFlush(bravo);
+            repository.saveAndFlush(alpha);
+
+            Sort ordering = Sort.by("walletRelyingPartyService.serviceTradeName", "id");
+            UUID firstPageId = repository.searchV2(
+                null, null, searchTerm, true, Set.of(), 0, PageRequest.of(0, 1, ordering)).getContent().getFirst().getId();
+            UUID secondPageId = repository.searchV2(
+                null, null, searchTerm, true, Set.of(), 0, PageRequest.of(1, 1, ordering)).getContent().getFirst().getId();
+
+            assertEquals(List.of(alpha.getId(), bravo.getId()), List.of(firstPageId, secondPageId));
+        }
+
+        @Test
         @DisplayName("then an unsorted page request returns every relying party")
         void testSearchWithUnsortedOrderingReturnsAllRelyingParties() {
             Sort unsorted = Sort.unsorted();

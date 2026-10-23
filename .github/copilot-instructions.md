@@ -14,4 +14,4 @@
 - Never create a pull request on the remote. The user creates PRs manually.
 - Branch: `<jira-id>`, preserving the supplied casing; if taken, use `<jira-id>-2`, then `<jira-id>-3`.
 - PR title: `<JIRA-ID>: <Norwegian title>`.
-- PR description: Norwegian, one short paragraph. Problem, what changes, and the practical benefit. Nothing else unless the reviewer needs it to judge the change.
+- PR description: one Norwegian sentence stating the need and what the change provides, in domain terms. Leave out implementation, validation, error codes, unchanged behaviour and tests unless the reviewer cannot judge the change without them.
