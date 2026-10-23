@@ -27,6 +27,8 @@
         <mockwebserver.version>5.5.0</mockwebserver.version>
         <bcpkix.version>1.86</bcpkix.version>
         <tomcat.version>11.0.25</tomcat.version>
+        <idporten.keystore.version>3.0.0</idporten.keystore.version>
+        <nimbus-jose-jwt.version>10.10</nimbus-jose-jwt.version>
     </properties>
     <dependencies>
         <dependency>
@@ -91,6 +93,11 @@
             <version>${idporten-validators.version}</version>
         </dependency>
         <dependency>
+            <groupId>no.idporten</groupId>
+            <artifactId>idporten-lib-keystore-spring-boot-4</artifactId>
+            <version>${idporten.keystore.version}</version>
+        </dependency>
+        <dependency>
             <groupId>no.idporten.logging</groupId>
             <artifactId>idporten-access-log-spring-boot-4-starter</artifactId>
             <version>${idporten-access-log.version}</version>
@@ -131,6 +138,11 @@
             <artifactId>mockwebserver</artifactId>
             <version>${mockwebserver.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>${nimbus-jose-jwt.version}</version>
         </dependency>
     </dependencies>
 

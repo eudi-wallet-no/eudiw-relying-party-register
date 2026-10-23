@@ -15,9 +15,25 @@ spring:
 
 TEST_MOCK_CA_SERVER_PORT: 9207
 eudiw-rp-register-service:
+  wrp:
+    issuer: https://registry.example.test
+    registry-uri: https://registry.example.test/wrp
+    jwks-url: https://registry.example.test/wrp/jwks
+    signing-keystore: wrp-signing
+    signing-key-id: wrp-test-key
   registry-uri: https://registry.example.test/wrp
   csr-service:
     access-certificate-ca-id: junitaccess1
     ca-service-api:
       ca-service-base-uri: http://localhost:${TEST_MOCK_CA_SERVER_PORT}
       api-key-value: xxx
+
+idporten-key-manager:
+  default-keystore: wrp-signing
+  keystores:
+    wrp-signing:
+      key-store-location: classpath:wrp-test.p12
+      key-store-type: PKCS12
+      key-store-password: junit-test
+      key-alias: wrp-test
+      key-password: junit-test

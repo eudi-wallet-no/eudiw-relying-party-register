@@ -173,10 +173,10 @@ public class WalletRelyingPartyService extends BaseEntity {
         this.relyingPartyInstances.addAll(relyingPartyInstancesCopy);
     }
 
-    // Reuse the existing per-instance relation in the service-level TS5 view.
     @Transient
     public List<String> getEntitlements() {
         return relyingPartyInstances.stream()
+            .filter(RelyingPartyInstance::isActive)
             .flatMap(instance -> instance.getRelyingPartyEntitlements().stream())
             .map(RelyingPartyEntitlement::getEntitlement)
             .distinct()

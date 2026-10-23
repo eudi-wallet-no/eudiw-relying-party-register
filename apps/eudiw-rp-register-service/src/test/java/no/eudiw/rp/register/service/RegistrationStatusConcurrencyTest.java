@@ -13,7 +13,7 @@ import no.eudiw.rp.register.repository.EntitlementRepository;
 import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.repository.WalletRelyingPartyServiceRepository;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -40,8 +40,6 @@ class RegistrationStatusConcurrencyTest {
 
     private static final String ENTITLEMENT = "urn:test:concurrent-activation";
 
-    private Entitlement testEntitlement;
-
     @Autowired
     private RelyingPartyService relyingPartyService;
 
@@ -66,12 +64,14 @@ class RegistrationStatusConcurrencyTest {
     @BeforeEach
     void setUp() {
         partyRepository.deleteAll();
-        testEntitlement = entitlementRepository.saveAndFlush(new Entitlement(ENTITLEMENT, true, "Test", "test-ca"));
+        entitlementRepository.findByEntitlement(ENTITLEMENT).ifPresent(entitlementRepository::delete);
+        entitlementRepository.saveAndFlush(new Entitlement(ENTITLEMENT, true, "Test", "test-ca"));
     }
 
-    @AfterEach
-    void removeTestEntitlement() {
-        entitlementRepository.delete(testEntitlement);
+    @Test
+    void setupPreservesSeededEntitlements() {
+        assertTrue(entitlementRepository.existsByEntitlementAndActive(
+            "https://uri.etsi.org/19475/Entitlement/QEAA_Provider", true));
     }
 
     @ParameterizedTest

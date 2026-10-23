@@ -11,6 +11,8 @@ spring:
     include-paths:
       - /v1/**
       - /v2/**
+    public-get-paths:
+      - /wrp/**
     exclude-paths:
       - /
       - /health/**
@@ -86,12 +88,18 @@ digdir:
       environment-name: ${spring.application.environment}
 
 eudiw-rp-register-service:
-  registry-uri: ${REGISTRY_URI:}
+  registry-uri: ${REGISTRY_URI}
   supervisory-authority:
     name: Datatilsynet
     country: "NO"
     phone: "+4722396900"
     email: "postkasse@datatilsynet.no"
+  wrp:
+    issuer: ${WRP_ISSUER}
+    registry-uri: ${WRP_REGISTRY_URI}
+    jwks-url: ${WRP_JWKS_URL}
+    signing-keystore: wrp-signing
+    signing-key-id: ${WRP_SIGNING_KEY_ID}
   csr-service:
     access-certificate-ca-id: access2
     ca-service-api:
@@ -110,6 +118,15 @@ eudiw-rp-register-service:
       - "6100" # Statsforvaltningen
       - "6500" # Kommuneforvaltningen
 
+idporten-key-manager:
+  default-keystore: wrp-signing
+  keystores:
+    wrp-signing:
+      key-store-location: ${WRP_SIGNING_KEYSTORE_LOCATION}
+      key-store-type: ${WRP_SIGNING_KEYSTORE_TYPE}
+      key-store-password: ${WRP_SIGNING_KEYSTORE_PASSWORD}
+      key-alias: ${WRP_SIGNING_KEYSTORE_KEY_ALIAS}
+      key-password: ${WRP_SIGNING_KEYSTORE_KEY_PASSWORD}
 
 #external-dependency-health-checks:
 #  health-endpoints:

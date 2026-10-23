@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -19,6 +20,24 @@ public interface WalletRelyingPartyRepository
     Optional<WalletRelyingParty> findByOrgno(String orgno);
 
     Page<WalletRelyingParty> findAllByOrgno(String orgno, Pageable pageable);
+
+    @Query(value = """
+        SELECT party.* FROM wallet_relying_party party
+        WHERE party.active = TRUE
+          AND (party.orgno = :identifier
+            OR JSON_CONTAINS(party.identifier, JSON_OBJECT('identifier', :identifier), '$'))
+        """, nativeQuery = true)
+    List<WalletRelyingParty> findAllByRegisteredIdentifier(String identifier);
+
+    @Query("""
+        SELECT DISTINCT service.id AS serviceId, activeEntitlement.entitlement AS entitlementValue
+        FROM WalletRelyingPartyService service
+        JOIN service.relyingPartyInstances instance
+        JOIN instance.relyingPartyEntitlements activeEntitlement
+        WHERE service.walletRelyingParty.id = :partyId
+          AND instance.active = TRUE
+        """)
+    List<ServiceEntitlementProjection> findActiveInstanceEntitlementsByPartyId(UUID partyId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT party FROM WalletRelyingParty party WHERE party.orgno = :orgno")
@@ -79,4 +98,9 @@ public interface WalletRelyingPartyRepository
     Optional<WalletRelyingParty> findByActiveInstanceIdForUpdate(UUID instanceId);
 
     boolean existsByOrgno(String orgno);
+
+    interface ServiceEntitlementProjection {
+        UUID getServiceId();
+        String getEntitlementValue();
+    }
 }
