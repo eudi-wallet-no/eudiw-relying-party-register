@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -74,6 +75,7 @@ public class WalletRelyingPartyService extends BaseEntity {
         fetch = FetchType.LAZY,
         cascade = CascadeType.ALL,
         orphanRemoval = true)
+    @BatchSize(size = 50)
     private List<IntendedUse> intendedUses = new ArrayList<>();
 
     @Setter(AccessLevel.NONE)

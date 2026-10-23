@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -30,14 +31,38 @@ public interface WalletRelyingPartyRepository
     List<WalletRelyingParty> findAllByRegisteredIdentifier(String identifier);
 
     @Query("""
+        SELECT party FROM WalletRelyingParty party
+        WHERE party.active = TRUE
+        ORDER BY party.createdMs ASC, party.id ASC
+        """)
+    List<WalletRelyingParty> findActivePage(Pageable pageable);
+
+    @Query("""
+        SELECT party FROM WalletRelyingParty party
+        WHERE party.active = TRUE
+          AND (
+            party.createdMs > :createdMs
+            OR (party.createdMs = :createdMs AND party.id > :id)
+          )
+        ORDER BY party.createdMs ASC, party.id ASC
+        """)
+    List<WalletRelyingParty> findActiveAfterCursor(
+        @Param("createdMs") long createdMs,
+        @Param("id") UUID id,
+        Pageable pageable
+    );
+
+    @Query("""
         SELECT DISTINCT service.id AS serviceId, activeEntitlement.entitlement AS entitlementValue
         FROM WalletRelyingPartyService service
         JOIN service.relyingPartyInstances instance
         JOIN instance.relyingPartyEntitlements activeEntitlement
-        WHERE service.walletRelyingParty.id = :partyId
+        WHERE service.walletRelyingParty.id IN :partyIds
           AND instance.active = TRUE
         """)
-    List<ServiceEntitlementProjection> findActiveInstanceEntitlementsByPartyId(UUID partyId);
+    List<ServiceEntitlementProjection> findActiveInstanceEntitlementsByPartyIds(
+        @Param("partyIds") List<UUID> partyIds
+    );
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT party FROM WalletRelyingParty party WHERE party.orgno = :orgno")
