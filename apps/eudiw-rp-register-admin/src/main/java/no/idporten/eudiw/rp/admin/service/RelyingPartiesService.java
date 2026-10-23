@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.RestClient;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -49,23 +48,6 @@ public class RelyingPartiesService {
             .body(searchResource)
             .retrieve()
             .body(new ParameterizedTypeReference<>() {});
-    }
-
-    public RelyingPartiesResource getAllByOrgno(String orgno) {
-        SearchRelyingPartyResource searchResource =
-            new SearchRelyingPartyResource()
-                .withSearchTerm(orgno)
-                .withIncludeInactive(true)
-                .withPageSize(Integer.MAX_VALUE)
-                .withOrdering(RelyingPartyOrdering.CREATED_ASC);
-        List<RelyingPartyResource> searchResult =
-            this.search(searchResource)
-                .content()
-                .stream()
-                // must filter by orgno since the search is by orgno *and* name.
-                .filter(rp -> Objects.equals(rp.orgno(), orgno))
-                .toList();
-        return new RelyingPartiesResource(searchResult);
     }
 
     public RelyingPartyResource get(UUID id) {

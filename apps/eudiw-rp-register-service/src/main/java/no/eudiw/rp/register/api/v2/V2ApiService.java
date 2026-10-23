@@ -10,6 +10,7 @@ import no.eudiw.rp.register.api.v2.endpoints.entities.EntitlementsResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.IntendedUseReplacementResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.IntendedUseResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.IssuerCertificateRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationSummaryResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyRequest;
@@ -18,6 +19,7 @@ import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyServiceRequest
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyServiceResponse;
 import no.eudiw.rp.register.config.RegistryProperties;
 import no.eudiw.rp.register.config.SupervisoryAuthorityProperties;
+import no.eudiw.rp.register.domain.Entitlement;
 import no.eudiw.rp.register.domain.IntendedUse;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
@@ -27,6 +29,7 @@ import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
 import no.eudiw.rp.register.exception.BadRequestException;
 import no.eudiw.rp.register.exception.NotFoundException;
+import no.eudiw.rp.register.repository.RegistrationSummaryRow;
 import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.repository.WalletRelyingPartyServiceRepository;
@@ -44,11 +47,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -208,6 +214,27 @@ public class V2ApiService {
 
     public RelyingPartyInstanceResponse getRelyingPartyInstance(UUID relyingPartyInstanceId) {
         return RelyingPartyInstanceResponse.from(findRelyingPartyInstance(relyingPartyInstanceId));
+    }
+
+    @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
+    public List<RegistrationSummaryResponse> getRegistrationsByOrgno(String orgno) {
+        if (orgno == null || orgno.isBlank()) {
+            throw new BadRequestException("Organization number is required");
+        }
+
+        List<RegistrationSummaryRow> rows = relyingPartyInstanceRepository.findRegistrationSummariesByOrgno(orgno);
+        if (rows.isEmpty()) {
+            return List.of();
+        }
+
+        var entitlements = entitlementService.findAllEntitlements(true).stream()
+            .collect(Collectors.toMap(Entitlement::getEntitlement, Function.identity()));
+        var registrations = rows.stream()
+            .collect(Collectors.groupingBy(RegistrationSummaryRow::instanceId, LinkedHashMap::new, Collectors.toList()));
+
+        return registrations.values().stream()
+            .map(registration -> RegistrationSummaryResponse.from(registration, entitlements))
+            .toList();
     }
 
     public Page<RelyingPartyInstanceResponse> searchRelyingPartyInstances(
