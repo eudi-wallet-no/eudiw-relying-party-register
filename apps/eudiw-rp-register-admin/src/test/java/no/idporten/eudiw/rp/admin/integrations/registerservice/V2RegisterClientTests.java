@@ -33,7 +33,7 @@ class V2RegisterClientTests {
         var properties = new RelyingPartiesServiceProperties(
             new RelyingPartiesServiceProperties.RegisterServiceApi("https://register.test", "X-API-KEY", "test-api-key"),
             new RelyingPartiesServiceProperties.RestClient(1000, 1000), null);
-        RestClient.Builder builder = new RelyingPartiesServiceConfig(properties).v2RestClient().mutate();
+        RestClient.Builder builder = new RelyingPartiesServiceConfig(properties).v2RestClient(RestClient.builder()).mutate();
         server = MockRestServiceServer.bindTo(builder).build();
         client = new V2RegisterClient(builder.build());
     }

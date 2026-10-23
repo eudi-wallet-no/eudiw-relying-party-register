@@ -19,16 +19,16 @@ public class RelyingPartiesServiceConfig {
 
     @Bean
     @Primary
-    public RestClient restClient() {
-        return createRestClient("/v1");
+    public RestClient restClient(RestClient.Builder builder) {
+        return createRestClient(builder, "/v1");
     }
 
     @Bean
-    public RestClient v2RestClient() {
-        return createRestClient("/v2");
+    public RestClient v2RestClient(RestClient.Builder builder) {
+        return createRestClient(builder, "/v2");
     }
 
-    private RestClient createRestClient(String apiEndpoint) {
+    private RestClient createRestClient(RestClient.Builder builder, String apiEndpoint) {
         HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
         requestFactory.setConnectionRequestTimeout((int) rpServiceProperties.restClient().connectTimeoutMillis());
         requestFactory.setReadTimeout((int) rpServiceProperties.restClient().readTimeoutMillis());
@@ -36,8 +36,7 @@ public class RelyingPartiesServiceConfig {
             rpServiceProperties.registerServiceApi().registerServiceBaseUri()
                 + apiEndpoint);
         return
-            RestClient.builder()
-                      .defaultHeader("accept", MediaType.APPLICATION_JSON.toString())
+            builder.defaultHeader("accept", MediaType.APPLICATION_JSON.toString())
                       .defaultHeader("Content-Type", MediaType.APPLICATION_JSON.toString())
                       .defaultHeader(rpServiceProperties.registerServiceApi().apiKeyHeaderId(),
                                      rpServiceProperties.registerServiceApi().apiKeyValue())
