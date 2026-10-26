@@ -4,8 +4,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -51,7 +50,7 @@ public class WalletRelyingParty extends BaseEntity {
     private List<Policy> policy = new ArrayList<>();
 
     @ElementCollection(fetch = FetchType.LAZY)
-    @Fetch(FetchMode.SUBSELECT)
+    @BatchSize(size = 50)
     @CollectionTable(name = "wallet_relying_party_x5c",
         joinColumns = @JoinColumn(name = "wallet_relying_party_id"))
     @Column(name = "certificate_chain", nullable = false)
@@ -91,6 +90,7 @@ public class WalletRelyingParty extends BaseEntity {
         fetch = FetchType.LAZY,
         cascade = CascadeType.ALL,
         orphanRemoval = true)
+    @BatchSize(size = 50)
     private List<WalletRelyingPartyService> services = new ArrayList<>();
 
     public void setServices(List<WalletRelyingPartyService> services) {
