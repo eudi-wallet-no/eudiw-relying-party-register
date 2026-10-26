@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.1.1</version>
+        <version>4.1.2</version>
         <relativePath/>
     </parent>
     <groupId>no.idporten.eudiw</groupId>
@@ -22,12 +22,12 @@
         <opentelemetry-instrumentation-api.version>1.67.0</opentelemetry-instrumentation-api.version>
         <springdoc.version>3.1.1</springdoc.version>
         <maven-compiler-plugin.version>3.16.0</maven-compiler-plugin.version>
-        <mockwebserver.version>5.5.0</mockwebserver.version>
+        <mockwebserver.version>5.5.1</mockwebserver.version>
         <lombok.version>1.18.48</lombok.version>
         <bcpkix.version>1.86</bcpkix.version>
         <idporten-audit-log.version>4.0.6</idporten-audit-log.version>
-        <spring-security-test.version>7.1.1</spring-security-test.version>
-        <spring-security-oauth2-resource-server.version>7.1.1</spring-security-oauth2-resource-server.version>
+        <spring-security-test.version>7.1.2</spring-security-test.version>
+        <spring-security-oauth2-resource-server.version>7.1.2</spring-security-oauth2-resource-server.version>
         <httpcore5.version>5.4.4</httpcore5.version>
     </properties>
 
