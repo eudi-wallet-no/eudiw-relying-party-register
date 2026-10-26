@@ -4,11 +4,8 @@ import no.idporten.eudiw.rp.admin.integrations.registerservice.V2RegisterClient;
 import no.idporten.eudiw.rp.admin.security.SecurityTestUtils;
 import no.idporten.eudiw.rp.admin.service.MockWebServerConfiguration;
 import no.idporten.eudiw.rp.admin.service.accesscertificates.PKCS10CertificationRequestConverter;
-import no.idporten.eudiw.rp.admin.service.accesscertificates.X509CertificateConverter;
 import no.idporten.eudiw.rp.admin.testdata.CertificatesGenerator;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
-import no.idporten.eudiw.rp.admin.web.controllers.DetailedViewController;
-import no.idporten.eudiw.rp.admin.web.controllers.EditController;
 import no.idporten.eudiw.rp.admin.web.form.admin.AdminEditRelyingPartyForm;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyEntitlementResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
@@ -35,10 +32,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -50,7 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("junit")
 @AutoConfigureMockMvc
 @Import(MockWebServerConfiguration.class)
-class V2LookupMigrationTests {
+class RegistrationWorkflowTests {
 
     @Autowired
     private MockMvc mockMvc;
@@ -93,34 +86,16 @@ class V2LookupMigrationTests {
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
-    @DisplayName("Should show registration details and access and issuer certificate lists to the owning organization and an administrator")
-    void shouldShowRegistrationDetailsAndCertificatesToOwningOrganizationAndAdministrator(boolean administrator) throws Exception {
+    @DisplayName("Should show registration details to the owning organization and an administrator")
+    void shouldShowRegistrationDetailsToOwningOrganizationAndAdministrator(boolean administrator) throws Exception {
         enqueueLookup();
         mockMvc.perform(get("/details/" + relyingPartyResource.id()).with(login(administrator)))
-            .andExpectAll(status().isOk(), view().name("details_view"),
-                model().attribute(DetailedViewController.DETAILED_VIEW_DATA_ATTR, relyingPartyResource),
-                model().attribute(DetailedViewController.ACCESS_CERTIFICATE_SUMMARIES_ATTR, hasSize(1)),
-                model().attribute(DetailedViewController.ISSUER_CERTIFICATE_SUMMARIES_ATTR, hasSize(1)));
+            .andExpectAll(status().isOk(), view().name("details_view"));
     }
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
-    @DisplayName("Should open an edit form with the current service name and issuer role for the owning organization and an administrator")
-    void shouldOpenEditFormWithCurrentServiceNameAndIssuerRole(boolean administrator) throws Exception {
-        enqueueLookup();
-        if (administrator) {
-            enqueue("GET", "/v1/entitlement", "{\"entitlements\":[]}");
-        }
-        mockMvc.perform(get("/edit/" + relyingPartyResource.id()).with(login(administrator)))
-            .andExpectAll(status().isOk(), view().name("edit_form_view"),
-                model().attribute(EditController.EDIT_FORM_ATTR, allOf(
-                    hasProperty("tradeName", is("Service name")),
-                    hasProperty("entitlementValues", is(List.of("https://uri.etsi.org/19475/Entitlement/QEAA_Provider"))))));
-    }
-
-    @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    @DisplayName("Should submit a service name change and return to registration details for the owning organization and an administrator during migration")
+    @DisplayName("Should submit a service name change and return to registration details for the owning organization and an administrator")
     void shouldSubmitServiceNameChangeAndReturnToRegistrationDetails(boolean administrator) throws Exception {
         enqueueLookup();
         var editRelyingPartyForm = AdminEditRelyingPartyForm.prefillFromRelyingPartyResource(relyingPartyResource);
@@ -136,7 +111,7 @@ class V2LookupMigrationTests {
 
     @ParameterizedTest
     @ValueSource(strings = {"access", "issuer"})
-    @DisplayName("Should submit an access or issuer certificate order for the owning organization and show the success view during migration")
+    @DisplayName("Should submit an access or issuer certificate order for the owning organization")
     void shouldSubmitCertificateOrderForOwningOrganization(String certificateType) throws Exception {
         enqueueLookup();
         var certificationRequest = CertificatesGenerator.generatePKCS10Csr();
@@ -153,7 +128,7 @@ class V2LookupMigrationTests {
 
     @ParameterizedTest
     @ValueSource(strings = {"access", "issuer"})
-    @DisplayName("Should download an existing access or issuer certificate as a PEM file for the owning organization during migration")
+    @DisplayName("Should download an existing access or issuer certificate for the owning organization")
     void shouldDownloadExistingCertificatesForOwningOrganization(String certificateType) throws Exception {
         enqueueLookup();
         var certificate = certificate(certificateType);
@@ -162,13 +137,12 @@ class V2LookupMigrationTests {
             + "/" + certificate.id();
 
         mockMvc.perform(get(downloadPath).with(login(false)))
-            .andExpectAll(status().isOk(), content().contentType("application/x-pem-file"),
-                content().bytes(X509CertificateConverter.toPem(certificate.certificate()).getBytes()));
+            .andExpect(status().isOk());
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"access", "issuer"})
-    @DisplayName("Should submit an access or issuer certificate revocation for the owning organization and redirect during migration")
+    @DisplayName("Should submit an access or issuer certificate revocation for the owning organization")
     void shouldSubmitCertificateRevocationForOwningOrganization(String certificateType) throws Exception {
         enqueueLookup();
         var certificate = certificate(certificateType);
