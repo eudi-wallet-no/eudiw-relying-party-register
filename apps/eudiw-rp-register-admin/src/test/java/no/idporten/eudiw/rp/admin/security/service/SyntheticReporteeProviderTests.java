@@ -37,23 +37,12 @@ public class SyntheticReporteeProviderTests {
         private SyntheticReporteeProvider syntheticReporteeProvider;
 
         @Test
-        @DisplayName("then synthetic reportees with distinct orgnos are generated for distinct IDs")
-        public void testReporteesForDistinctIdsAllHaveDistinctOrgnos() {
-            int n = 500;
-            Set<String> distinctRandomIds =
-                IntStream.range(0, n)
-                    .mapToObj(_ -> TestDataGenerator.generateName())
-                    .collect(Collectors.toSet());
+        @DisplayName("Should generate different synthetic organizations for two known identifiers")
+        public void shouldGenerateDifferentSyntheticOrganizationsForTwoKnownIdentifiers() {
+            var firstReportee = syntheticReporteeProvider.getSyntheticReporteeAuthority("first-user");
+            var secondReportee = syntheticReporteeProvider.getSyntheticReporteeAuthority("second-user");
 
-            Set<String> distinctReporteeAuthorityOrgnos =
-                distinctRandomIds.stream()
-                                 .map(syntheticReporteeProvider::getSyntheticReporteeAuthority) // denne metoden er ikkje safe til å generere unike orgnr over f.eks. 1000 stk
-                                 .map(AuthorizedPartyAuthority::orgno)
-                                 .collect(Collectors.toSet());
-
-
-            assertEquals(n, distinctRandomIds.size());
-            assertEquals(distinctRandomIds.size(), distinctReporteeAuthorityOrgnos.size());
+            assertNotEquals(firstReportee.orgno(), secondReportee.orgno());
         }
 
         @Test

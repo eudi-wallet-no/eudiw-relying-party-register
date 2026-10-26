@@ -11,7 +11,7 @@
 
 ## Branch and PR
 - Ask for the JIRA ID if it is missing. Never invent one.
-- Never create a pull request on the remote. The user creates PRs manually.
+- Create a PR, including any necessary commit and push, only at the user's request, including via the app's "Create PR" button.
 - Branch: `<jira-id>`, preserving the supplied casing; if taken, use `<jira-id>-2`, then `<jira-id>-3`.
 - PR title: `<JIRA-ID>: <Norwegian title>`.
 - PR description: one Norwegian sentence stating the need and what the change provides, in domain terms. Leave out implementation, validation, error codes, unchanged behaviour and tests unless the reviewer cannot judge the change without them.

@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import no.eudiw.rp.register.api.v1.resource.relyingparty.*;
+import no.eudiw.rp.register.api.v2.V2ApiService;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
@@ -31,9 +32,34 @@ public class V1RelyingPartyEditingTest {
     @Autowired
     private V1ContractMapper v1ContractMapper;
 
+    @Autowired
+    private V2ApiService v2ApiService;
+
     @BeforeEach
     void clearRepositoryBeforeEachTest() {
         rpRepository.deleteAll();
+    }
+
+    @Test
+    @DisplayName("Should retrieve the edited service name and electronic attestations of attributes through V2 after a V1 edit, without changing the service or owning party")
+    void shouldRetrieveEditedServiceDetailsAndElectronicAttestationsOfAttributesWithoutChangingRegistrationOwnership() {
+        var createdRelyingParty = relyingPartyService.createRelyingParty(generateCreateRelyingPartyResource());
+        var registrationDetails = v2ApiService.getRegistrationDetails(createdRelyingParty.id());
+        var editRelyingPartyResource = new EditRelyingPartyResource(
+            "Updated service name",
+            createdRelyingParty.relyingPartyEntitlements(),
+            List.of(new RelyingPartyEaaResource("urn:changed:eaa", "verification")),
+            registrationDetails.active());
+
+        relyingPartyService.updateRelyingParty(registrationDetails.id(), editRelyingPartyResource);
+
+        var updatedRegistrationDetails = v2ApiService.getRegistrationDetails(registrationDetails.id());
+
+        assertAll(
+            () -> assertEquals(registrationDetails.relyingPartyServiceId(), updatedRegistrationDetails.relyingPartyServiceId()),
+            () -> assertEquals(registrationDetails.relyingPartyId(), updatedRegistrationDetails.relyingPartyId()),
+            () -> assertEquals("Updated service name", updatedRegistrationDetails.serviceTradeName()),
+            () -> assertEquals("urn:changed:eaa", updatedRegistrationDetails.relyingPartyEaas().getFirst().namespace()));
     }
 
     @DisplayName("When editing a relying party")
