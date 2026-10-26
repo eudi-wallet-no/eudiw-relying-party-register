@@ -10,12 +10,17 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import no.eudiw.rp.register.config.WrpApiProperties;
+import no.eudiw.rp.register.exception.BadRequestException;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Set;
 
 @Tag(name = "wrp-api", description = "Public Wallet Relying Party API")
 @RestController
@@ -23,10 +28,60 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class WrpEndpoint {
     private static final String JWK_URL_HEADER = "x-jku-url";
+    private static final Set<String> COLLECTION_PARAMETERS = Set.of("limit", "cursor");
 
     private final WrpLookupService lookupService;
     private final WrpJwsSigner jwsSigner;
     private final WrpApiProperties properties;
+
+    @Operation(
+        summary = "Get a paginated list of Wallet Relying Parties",
+        description = "Returns an unfiltered list of active parties. WRP filters will be added incrementally.",
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "Signed list of Wallet Relying Parties",
+                headers = @Header(
+                    name = JWK_URL_HEADER,
+                    schema = @Schema(type = "string", format = "uri")
+                ),
+                content = @Content(
+                    mediaType = "application/jwt",
+                    schema = @Schema(type = "string", format = "JWS")
+                )
+            ),
+            @ApiResponse(responseCode = "400", description = "Invalid limit, cursor, or query parameter")
+        }
+    )
+    @GetMapping
+    public ResponseEntity<String> getAll(
+        @Parameter(
+            name = "limit",
+            in = ParameterIn.QUERY,
+            description = "Maximum number of parties to return (1-100)",
+            schema = @Schema(type = "integer", defaultValue = "20", minimum = "1", maximum = "100")
+        )
+        @RequestParam(defaultValue = "20") int limit,
+        @Parameter(
+            name = "cursor",
+            in = ParameterIn.QUERY,
+            description = "Opaque cursor returned in the previous page",
+            schema = @Schema(type = "string")
+        )
+        @RequestParam(required = false) String cursor,
+        @Parameter(hidden = true)
+        @RequestParam MultiValueMap<String, String> queryParameters
+    ) {
+        if (!COLLECTION_PARAMETERS.containsAll(queryParameters.keySet())) {
+            throw new BadRequestException("Unsupported WRP query parameter");
+        }
+
+        WrpLookupService.CollectionPage page = lookupService.findAll(limit, cursor);
+        return ResponseEntity.ok()
+            .contentType(MediaType.parseMediaType("application/jwt"))
+            .header(JWK_URL_HEADER, properties.jwksUrl())
+            .body(jwsSigner.signCollection(page.data(), page.nextCursor(), page.hasNextPage()));
+    }
 
     @Operation(
         summary = "Get a Wallet Relying Party by identifier",
