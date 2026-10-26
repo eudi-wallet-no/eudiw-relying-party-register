@@ -55,7 +55,8 @@ class V2RegisterClientTests {
     @Test
     @DisplayName("Should retrieve organization and service details with the issuer role")
     void shouldRetrieveOrganizationAndServiceDetailsWithIssuerRole() {
-        server.expect(requestTo(REGISTRATION_URL)).andExpect(header("X-API-KEY", "test-api-key"))
+        server.expect(requestTo(REGISTRATION_URL))
+            .andExpect(header("X-API-KEY", "test-api-key"))
             .andRespond(withSuccess("""
                 {"id":"00000000-0000-0000-0000-000000000001","orgno":"123456785",
                  "organizationName":"Legal name","serviceTradeName":"Service name","isPSB":true,
@@ -67,10 +68,12 @@ class V2RegisterClientTests {
 
         var relyingPartyResource = client.getRelyingParty(RELYING_PARTY_INSTANCE_ID);
 
-        assertAll(() -> assertEquals("Service name", relyingPartyResource.tradeName()),
+        assertAll(
+            () -> assertEquals("Service name", relyingPartyResource.tradeName()),
             () -> assertEquals("Legal name", relyingPartyResource.orgName()),
             () -> assertTrue(relyingPartyResource.publicSector()),
-            () -> assertEquals(List.of(new RelyingPartyEntitlementResource("urn:issuer", "Issuer", "https://issuer.test")),
+            () -> assertEquals(
+                List.of(new RelyingPartyEntitlementResource("urn:issuer", "Issuer", "https://issuer.test")),
                 relyingPartyResource.relyingPartyEntitlements()));
     }
 
@@ -78,7 +81,8 @@ class V2RegisterClientTests {
     @DisplayName("Should identify the requested registration in a not-found error when it does not exist")
     void shouldIdentifyRequestedRegistrationWhenItDoesNotExist() {
         server.expect(requestTo(REGISTRATION_URL))
-            .andRespond(withStatus(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON)
+            .andRespond(withStatus(HttpStatus.NOT_FOUND)
+                .contentType(MediaType.APPLICATION_JSON)
                 .body("{\"error\":\"not_found\",\"error_description\":\"Missing resource\"}"));
 
         var failure = assertThrows(RelyingPartyNotFoundException.class, () -> client.getRelyingParty(RELYING_PARTY_INSTANCE_ID));
@@ -90,7 +94,8 @@ class V2RegisterClientTests {
     @Test
     @DisplayName("Should fail to retrieve registration details when register service returns no details")
     void shouldFailToRetrieveRegistrationDetailsWhenResponseIsEmpty() {
-        server.expect(requestTo(REGISTRATION_URL)).andRespond(withSuccess());
+        server.expect(requestTo(REGISTRATION_URL))
+            .andRespond(withSuccess());
 
         assertThrows(UnrecognizedErrorResponseException.class, () -> client.getRelyingParty(RELYING_PARTY_INSTANCE_ID));
     }
@@ -99,18 +104,24 @@ class V2RegisterClientTests {
     @DisplayName("Should fail to retrieve registration details with the failed operation and its cause when register service is unreachable")
     void shouldFailToRetrieveRegistrationDetailsWhenRegisterServiceIsUnreachable() {
         var connectionFailure = new ResourceAccessException("Connection refused");
-        server.expect(requestTo(REGISTRATION_URL)).andRespond(request -> { throw connectionFailure; });
+        server.expect(requestTo(REGISTRATION_URL))
+            .andRespond(request -> {
+                throw connectionFailure;
+            });
 
         var failure = assertThrows(AdminServiceException.class, () -> client.getRelyingParty(RELYING_PARTY_INSTANCE_ID));
 
-        assertEquals("Unable to contact register service to retrieve /registrations/" + RELYING_PARTY_INSTANCE_ID, failure.getMessage());
+        assertEquals(
+            "Unable to contact register service to retrieve /registrations/" + RELYING_PARTY_INSTANCE_ID,
+            failure.getMessage());
         assertSame(connectionFailure, failure.getCause());
     }
 
     @Test
     @DisplayName("Should fail to retrieve registration details when register service returns a server error")
     void shouldFailToRetrieveRegistrationDetailsWhenRegisterServiceFails() {
-        server.expect(requestTo(REGISTRATION_URL)).andRespond(withServerError());
+        server.expect(requestTo(REGISTRATION_URL))
+            .andRespond(withServerError());
 
         assertThrows(UnrecognizedErrorResponseException.class, () -> client.getRelyingParty(RELYING_PARTY_INSTANCE_ID));
     }

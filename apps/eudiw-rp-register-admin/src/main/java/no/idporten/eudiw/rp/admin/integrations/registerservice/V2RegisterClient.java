@@ -47,8 +47,12 @@ public class V2RegisterClient {
     public RelyingPartyResource getRelyingParty(UUID relyingPartyInstanceId) {
         String registrationPath = "/registrations/" + relyingPartyInstanceId;
         RegistrationDetails registrationDetails;
+
         try {
-            registrationDetails = restClient.get().uri(registrationPath).retrieve().body(RegistrationDetails.class);
+            registrationDetails = restClient.get()
+                .uri(registrationPath)
+                .retrieve()
+                .body(RegistrationDetails.class);
         } catch (NotFoundException e) {
             var notFound = new RelyingPartyNotFoundException(e.getErrorDescription(), relyingPartyInstanceId.toString());
             notFound.initCause(e);
@@ -56,27 +60,51 @@ public class V2RegisterClient {
         } catch (ResourceAccessException e) {
             throw new AdminServiceException("Unable to contact register service to retrieve " + registrationPath, e);
         }
+
         if (registrationDetails == null) {
             throw new UnrecognizedErrorResponseException(
                 "Unable to retrieve " + registrationPath + " from register service: response body is empty");
         }
+
         return registrationDetails.toRelyingPartyResource();
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public record RegistrationDetails(UUID id, UUID relyingPartyServiceId, UUID relyingPartyId,
-                                      String orgno, String organizationName, String serviceTradeName, boolean isPSB,
-                                      List<RelyingPartyEntitlement> relyingPartyEntitlements,
-                                      List<RelyingPartyEaaResource> relyingPartyEaas,
-                                      List<RelyingPartyCertificateResource> accessCertificates,
-                                      List<RelyingPartyCertificateResource> issuerCertificates,
-                                      long createdMs, long lastUpdatedMs, boolean active) {
+    public record RegistrationDetails(
+        UUID id,
+        UUID relyingPartyServiceId,
+        UUID relyingPartyId,
+        String orgno,
+        String organizationName,
+        String serviceTradeName,
+        boolean isPSB,
+        List<RelyingPartyEntitlement> relyingPartyEntitlements,
+        List<RelyingPartyEaaResource> relyingPartyEaas,
+        List<RelyingPartyCertificateResource> accessCertificates,
+        List<RelyingPartyCertificateResource> issuerCertificates,
+        long createdMs,
+        long lastUpdatedMs,
+        boolean active
+    ) {
         public RelyingPartyResource toRelyingPartyResource() {
-            return new RelyingPartyResource(id, orgno, serviceTradeName, organizationName, isPSB,
-                relyingPartyEntitlements.stream().map(relyingPartyEntitlement -> new RelyingPartyEntitlementResource(
-                    relyingPartyEntitlement.entitlement(), relyingPartyEntitlement.displayName(),
-                    relyingPartyEntitlement.credentialIssuerUrl())).toList(),
-                relyingPartyEaas, accessCertificates, issuerCertificates, createdMs, lastUpdatedMs, active);
+            return new RelyingPartyResource(
+                id,
+                orgno,
+                serviceTradeName,
+                organizationName,
+                isPSB,
+                relyingPartyEntitlements.stream()
+                    .map(relyingPartyEntitlement -> new RelyingPartyEntitlementResource(
+                        relyingPartyEntitlement.entitlement(),
+                        relyingPartyEntitlement.displayName(),
+                        relyingPartyEntitlement.credentialIssuerUrl()))
+                    .toList(),
+                relyingPartyEaas,
+                accessCertificates,
+                issuerCertificates,
+                createdMs,
+                lastUpdatedMs,
+                active);
         }
     }
 

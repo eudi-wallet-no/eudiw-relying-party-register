@@ -45,13 +45,18 @@ public class V1RelyingPartyEditingTest {
     void shouldRetrieveEditedServiceDetailsAndElectronicAttestationsOfAttributesWithoutChangingRegistrationOwnership() {
         var createdRelyingParty = relyingPartyService.createRelyingParty(generateCreateRelyingPartyResource());
         var registrationDetails = v2ApiService.getRegistrationDetails(createdRelyingParty.id());
-        var editRelyingPartyResource = new EditRelyingPartyResource("Updated service name", createdRelyingParty.relyingPartyEntitlements(),
-            List.of(new RelyingPartyEaaResource("urn:changed:eaa", "verification")), registrationDetails.active());
+        var editRelyingPartyResource = new EditRelyingPartyResource(
+            "Updated service name",
+            createdRelyingParty.relyingPartyEntitlements(),
+            List.of(new RelyingPartyEaaResource("urn:changed:eaa", "verification")),
+            registrationDetails.active());
 
         relyingPartyService.updateRelyingParty(registrationDetails.id(), editRelyingPartyResource);
 
         var updatedRegistrationDetails = v2ApiService.getRegistrationDetails(registrationDetails.id());
-        assertAll(() -> assertEquals(registrationDetails.relyingPartyServiceId(), updatedRegistrationDetails.relyingPartyServiceId()),
+
+        assertAll(
+            () -> assertEquals(registrationDetails.relyingPartyServiceId(), updatedRegistrationDetails.relyingPartyServiceId()),
             () -> assertEquals(registrationDetails.relyingPartyId(), updatedRegistrationDetails.relyingPartyId()),
             () -> assertEquals("Updated service name", updatedRegistrationDetails.serviceTradeName()),
             () -> assertEquals("urn:changed:eaa", updatedRegistrationDetails.relyingPartyEaas().getFirst().namespace()));

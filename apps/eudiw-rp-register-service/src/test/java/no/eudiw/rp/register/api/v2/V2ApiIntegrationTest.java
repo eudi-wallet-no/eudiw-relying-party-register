@@ -409,7 +409,8 @@ class V2ApiIntegrationTest {
         String orgno = read(get(registration.relyingPartyPath())).get("orgno").asString();
         String entitlementUri = "urn:test:registration-details";
         testEntitlement = entitlementRepository.saveAndFlush(new Entitlement(entitlementUri, false, "Issuer", "test-ca"));
-        var relyingPartyInstance = relyingPartyInstanceRepository.findById(UUID.fromString(registration.relyingPartyInstanceId())).orElseThrow();
+        var relyingPartyInstance = relyingPartyInstanceRepository.findById(UUID.fromString(registration.relyingPartyInstanceId()))
+            .orElseThrow();
         var relyingPartyEntitlement = new RelyingPartyEntitlement(entitlementUri, "https://issuer.example.test");
         var issuerCertificate = new IssuerCertificate(
             CertificatesGenerator.generateX509Certificate(), "test-ca", relyingPartyEntitlement);
@@ -422,14 +423,18 @@ class V2ApiIntegrationTest {
         UUID accessCertificateId = savedRelyingPartyInstance.getAccessCertificates().getFirst().getId();
         UUID issuerCertificateId = savedRelyingPartyInstance.getIssuerCertificates().getFirst().getId();
 
-        request(patch(registration.relyingPartyPath() + "/deactivate")).andExpect(status().isNoContent());
+        request(patch(registration.relyingPartyPath() + "/deactivate"))
+            .andExpect(status().isNoContent());
 
         JsonNode registrationDetails = read(get("/v2/registrations/" + registration.relyingPartyInstanceId()));
 
-        assertAll(() -> assertEquals(orgno, registrationDetails.get("orgno").asString()),
+        assertAll(
+            () -> assertEquals(orgno, registrationDetails.get("orgno").asString()),
             () -> assertFalse(registrationDetails.get("active").asBoolean()),
             () -> assertEquals("Issuer", registrationDetails.at("/relyingPartyEntitlements/0/displayName").asString()),
-            () -> assertEquals("https://issuer.example.test", registrationDetails.at("/relyingPartyEntitlements/0/credentialIssuerUrl").asString()),
+            () -> assertEquals(
+                "https://issuer.example.test",
+                registrationDetails.at("/relyingPartyEntitlements/0/credentialIssuerUrl").asString()),
             () -> assertEquals(accessCertificateId.toString(), registrationDetails.at("/accessCertificates/0/id").asString()),
             () -> assertEquals(issuerCertificateId.toString(), registrationDetails.at("/issuerCertificates/0/id").asString()));
         verifyNoInteractions(certificateServiceClient);
@@ -438,7 +443,8 @@ class V2ApiIntegrationTest {
     @Test
     @DisplayName("Should return not found when requesting details for a nonexistent registration")
     void shouldReturnNotFoundForNonexistentRegistration() throws Exception {
-        request(get("/v2/registrations/" + new UUID(0, 999))).andExpect(status().isNotFound());
+        request(get("/v2/registrations/" + new UUID(0, 999)))
+            .andExpect(status().isNotFound());
     }
 
     private Registration createRegistration() throws Exception {

@@ -30,28 +30,34 @@ class RegistrationDetailsResponseTest {
     @Test
     @DisplayName("Should receive every registered role in order, including repeats and names from inactive catalog entries")
     void shouldReturnEveryRegisteredRoleInOrderWithCatalogNames() {
-        relyingPartyInstance.getRelyingPartyEntitlements().addAll(List.of(
-            new RelyingPartyEntitlement("urn:issuer", "https://issuer.test"),
-            new RelyingPartyEntitlement("urn:reader", null),
-            new RelyingPartyEntitlement("urn:issuer", "https://other-issuer.test")));
+        relyingPartyInstance.getRelyingPartyEntitlements()
+            .addAll(List.of(
+                new RelyingPartyEntitlement("urn:issuer", "https://issuer.test"),
+                new RelyingPartyEntitlement("urn:reader", null),
+                new RelyingPartyEntitlement("urn:issuer", "https://other-issuer.test")));
         Map<String, Entitlement> entitlementCatalog = Map.of(
             "urn:issuer", new Entitlement("urn:issuer", false, "Issuer", "test-ca"),
             "urn:reader", new Entitlement("urn:reader", true, "Reader", "test-ca"));
 
         var registrationDetails = RegistrationDetailsResponse.from(relyingPartyInstance, entitlementCatalog);
 
-        assertEquals(List.of(new RelyingPartyEntitlementResponse("urn:issuer", "Issuer", "https://issuer.test"),
-            new RelyingPartyEntitlementResponse("urn:reader", "Reader", null),
-            new RelyingPartyEntitlementResponse("urn:issuer", "Issuer", "https://other-issuer.test")),
+        assertEquals(
+            List.of(
+                new RelyingPartyEntitlementResponse("urn:issuer", "Issuer", "https://issuer.test"),
+                new RelyingPartyEntitlementResponse("urn:reader", "Reader", null),
+                new RelyingPartyEntitlementResponse("urn:issuer", "Issuer", "https://other-issuer.test")),
             registrationDetails.relyingPartyEntitlements());
     }
 
     @Test
     @DisplayName("Should identify a registered role by its URI when the role is absent from the catalog")
     void shouldIdentifyUncataloguedRoleByItsRegisteredUri() {
-        relyingPartyInstance.getRelyingPartyEntitlements().add(new RelyingPartyEntitlement("urn:unknown", "https://issuer.test"));
+        relyingPartyInstance.getRelyingPartyEntitlements()
+            .add(new RelyingPartyEntitlement("urn:unknown", "https://issuer.test"));
 
-        assertEquals(List.of(new RelyingPartyEntitlementResponse("urn:unknown", "urn:unknown", "https://issuer.test")),
-            RegistrationDetailsResponse.from(relyingPartyInstance, Map.of()).relyingPartyEntitlements());
+        assertEquals(
+            List.of(new RelyingPartyEntitlementResponse("urn:unknown", "urn:unknown", "https://issuer.test")),
+            RegistrationDetailsResponse.from(relyingPartyInstance, Map.of())
+                .relyingPartyEntitlements());
     }
 }

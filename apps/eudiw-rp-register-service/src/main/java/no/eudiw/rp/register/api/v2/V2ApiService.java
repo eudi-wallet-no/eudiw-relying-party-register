@@ -220,8 +220,10 @@ public class V2ApiService {
     @Transactional(readOnly = true)
     public RegistrationDetailsResponse getRegistrationDetails(UUID relyingPartyInstanceId) {
         RelyingPartyInstance relyingPartyInstance = findRelyingPartyInstance(relyingPartyInstanceId);
-        Map<String, Entitlement> entitlementCatalog = entitlementService.findAllEntitlements(true).stream()
+        Map<String, Entitlement> entitlementCatalog = entitlementService.findAllEntitlements(true)
+            .stream()
             .collect(Collectors.toMap(Entitlement::getEntitlement, Function.identity()));
+
         return RegistrationDetailsResponse.from(relyingPartyInstance, entitlementCatalog);
     }
 

@@ -62,11 +62,24 @@ class RegistrationWorkflowTests {
     void setUp() {
         var certificate = ResourceGenerator.generateCertificateResource();
         var accessCertificate = new RelyingPartyCertificateResource(certificate.certificate(), new UUID(0, 4), null, 0);
-        var issuerCertificate = new RelyingPartyCertificateResource(certificate.certificate(), new UUID(0, 5),
-            "https://uri.etsi.org/19475/Entitlement/QEAA_Provider", 0);
-        relyingPartyResource = new RelyingPartyResource(new UUID(0, 1), "123456785", "Service name", "Legal name", true,
+        var issuerCertificate = new RelyingPartyCertificateResource(
+            certificate.certificate(),
+            new UUID(0, 5),
+            "https://uri.etsi.org/19475/Entitlement/QEAA_Provider",
+            0);
+        relyingPartyResource = new RelyingPartyResource(
+            new UUID(0, 1),
+            "123456785",
+            "Service name",
+            "Legal name",
+            true,
             List.of(new RelyingPartyEntitlementResource(issuerCertificate.entitlement(), "Issuer", "https://issuer.test")),
-            List.of(), List.of(accessCertificate), List.of(issuerCertificate), 1700000000000L, 1710000000000L, true);
+            List.of(),
+            List.of(accessCertificate),
+            List.of(issuerCertificate),
+            1700000000000L,
+            1710000000000L,
+            true);
         initialRequestCount = server.getRequestCount();
     }
 
@@ -77,7 +90,11 @@ class RegistrationWorkflowTests {
             assertNotNull(request, "Missing backend request: " + expected);
             assertEquals(expected, request.getMethod() + " " + request.getPath());
             if (expectedUpdatedServiceName != null && "PUT".equals(request.getMethod())) {
-                assertEquals(expectedUpdatedServiceName, jsonMapper.readTree(request.getBody().readUtf8()).get("name").asString());
+                assertEquals(
+                    expectedUpdatedServiceName,
+                    jsonMapper.readTree(request.getBody().readUtf8())
+                        .get("name")
+                        .asString());
             }
         }
         assertEquals(initialRequestCount + expectedRequests.size(), server.getRequestCount(),
@@ -89,7 +106,9 @@ class RegistrationWorkflowTests {
     @DisplayName("Should show registration details to the owning organization and an administrator")
     void shouldShowRegistrationDetailsToOwningOrganizationAndAdministrator(boolean administrator) throws Exception {
         enqueueLookup();
-        mockMvc.perform(get("/details/" + relyingPartyResource.id()).with(login(administrator)))
+
+        mockMvc.perform(get("/details/" + relyingPartyResource.id())
+                .with(login(administrator)))
             .andExpectAll(status().isOk(), view().name("details_view"));
     }
 
@@ -104,7 +123,9 @@ class RegistrationWorkflowTests {
         enqueue("PUT", "/v1/rp/" + relyingPartyResource.id(), relyingPartyResource);
 
         var request = post((administrator ? "/admin/edit/" : "/edit/") + relyingPartyResource.id())
-            .with(csrf()).with(login(administrator));
+            .with(csrf())
+            .with(login(administrator));
+
         mockMvc.perform(WebTestUtils.withEditForm(request, editRelyingPartyForm))
             .andExpectAll(status().is3xxRedirection(), redirectedUrl("/details/" + relyingPartyResource.id()));
     }
@@ -119,7 +140,9 @@ class RegistrationWorkflowTests {
         String path = "/v1/rp/" + relyingPartyResource.id() + "/certs/" + certificateType;
         enqueue("POST", path, certificate);
 
-        mockMvc.perform(post("/csr/" + certificateType + "/" + relyingPartyResource.id()).with(csrf()).with(login(false))
+        mockMvc.perform(post("/csr/" + certificateType + "/" + relyingPartyResource.id())
+                .with(csrf())
+                .with(login(false))
                 .formField("csrField", PKCS10CertificationRequestConverter.toString(certificationRequest))
                 .formField("entitlement", relyingPartyResource.issuerCertificates().getFirst().entitlement()))
             .andExpectAll(status().isOk(), view().name(certificateType.equals("issuer")
@@ -132,7 +155,10 @@ class RegistrationWorkflowTests {
     void shouldDownloadExistingCertificatesForOwningOrganization(String certificateType) throws Exception {
         enqueueLookup();
         var certificate = certificate(certificateType);
-        enqueue("GET", "/v1/rp/" + relyingPartyResource.id() + "/certs/" + certificateType + "/" + certificate.id(), certificate);
+        enqueue(
+            "GET",
+            "/v1/rp/" + relyingPartyResource.id() + "/certs/" + certificateType + "/" + certificate.id(),
+            certificate);
         String downloadPath = "/get-certificate/" + relyingPartyResource.id() + (certificateType.equals("issuer") ? "/issuer" : "")
             + "/" + certificate.id();
 
@@ -146,9 +172,14 @@ class RegistrationWorkflowTests {
     void shouldSubmitCertificateRevocationForOwningOrganization(String certificateType) throws Exception {
         enqueueLookup();
         var certificate = certificate(certificateType);
-        enqueue("PATCH", "/v1/rp/" + relyingPartyResource.id() + "/certs/" + certificateType + "/" + certificate.id() + "/revoke", "");
+        enqueue(
+            "PATCH",
+            "/v1/rp/" + relyingPartyResource.id() + "/certs/" + certificateType + "/" + certificate.id() + "/revoke",
+            "");
+
         mockMvc.perform(post("/revoke-certificate/" + relyingPartyResource.id() + "/" + certificateType + "/" + certificate.id())
-                .with(csrf()).with(login(false)))
+                .with(csrf())
+                .with(login(false)))
             .andExpect(status().is3xxRedirection());
     }
 
@@ -162,8 +193,10 @@ class RegistrationWorkflowTests {
     void shouldPreventOtherOrganizationsFromAccessingOrChangingRegistration(String operation) throws Exception {
         enqueueLookup();
         String path = operation.substring(operation.indexOf(' ') + 1)
-            .replace("{id}", relyingPartyResource.id().toString()).replace("{cert}", certificate("access").id().toString());
+            .replace("{id}", relyingPartyResource.id().toString())
+            .replace("{cert}", certificate("access").id().toString());
         var request = operation.startsWith("GET") ? get(path) : post(path).with(csrf());
+
         mockMvc.perform(request.with(SecurityTestUtils.oidcLoginForOrgno("987654325")))
             .andExpectAll(status().isNotFound(), view().name("error/404"));
     }
@@ -177,20 +210,37 @@ class RegistrationWorkflowTests {
     }
 
     private void enqueueLookup() {
-        enqueue("GET", "/v2/registrations/" + relyingPartyResource.id(), new V2RegisterClient.RegistrationDetails(
-            relyingPartyResource.id(), relyingPartyServiceId, relyingPartyId, relyingPartyResource.orgno(),
-            relyingPartyResource.orgName(), relyingPartyResource.tradeName(), relyingPartyResource.publicSector(),
-            relyingPartyResource.relyingPartyEntitlements().stream()
-                .map(relyingPartyEntitlement -> new V2RegisterClient.RelyingPartyEntitlement(
-                    relyingPartyEntitlement.entitlement(), relyingPartyEntitlement.displayName(),
-                    relyingPartyEntitlement.credentialIssuerUrl())).toList(),
-            relyingPartyResource.relyingPartyEaas(), relyingPartyResource.accessCertificates(), relyingPartyResource.issuerCertificates(),
-            relyingPartyResource.createdMs(), relyingPartyResource.lastUpdatedMs(), relyingPartyResource.active()));
+        enqueue(
+            "GET",
+            "/v2/registrations/" + relyingPartyResource.id(),
+            new V2RegisterClient.RegistrationDetails(
+                relyingPartyResource.id(),
+                relyingPartyServiceId,
+                relyingPartyId,
+                relyingPartyResource.orgno(),
+                relyingPartyResource.orgName(),
+                relyingPartyResource.tradeName(),
+                relyingPartyResource.publicSector(),
+                relyingPartyResource.relyingPartyEntitlements()
+                    .stream()
+                    .map(relyingPartyEntitlement -> new V2RegisterClient.RelyingPartyEntitlement(
+                        relyingPartyEntitlement.entitlement(),
+                        relyingPartyEntitlement.displayName(),
+                        relyingPartyEntitlement.credentialIssuerUrl()))
+                    .toList(),
+                relyingPartyResource.relyingPartyEaas(),
+                relyingPartyResource.accessCertificates(),
+                relyingPartyResource.issuerCertificates(),
+                relyingPartyResource.createdMs(),
+                relyingPartyResource.lastUpdatedMs(),
+                relyingPartyResource.active()));
     }
 
     private void enqueue(String method, String path, Object response) {
         expectedRequests.add(method + " " + path);
-        server.enqueue(new MockResponse().setResponseCode(200).setHeader("Content-Type", "application/json")
+        server.enqueue(new MockResponse()
+            .setResponseCode(200)
+            .setHeader("Content-Type", "application/json")
             .setBody(response instanceof String json ? json : jsonMapper.writeValueAsString(response)));
     }
 }
