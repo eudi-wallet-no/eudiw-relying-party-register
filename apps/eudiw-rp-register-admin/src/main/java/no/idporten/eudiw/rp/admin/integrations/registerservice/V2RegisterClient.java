@@ -109,23 +109,20 @@ public class V2RegisterClient {
     }
 
     public List<Entitlement> getEntitlements(boolean includeInactive) {
-        Entitlements catalog;
         try {
-            catalog = restClient.get()
-                .uri(builder -> builder.path("/entitlements").queryParam("includeInactive", includeInactive).build())
-                .retrieve()
-                .body(Entitlements.class);
+            return Optional.ofNullable(restClient.get()
+                    .uri(builder -> builder.path("/entitlements").queryParam("includeInactive", includeInactive).build())
+                    .retrieve()
+                    .body(Entitlements.class))
+                .map(Entitlements::entitlements)
+                .filter(entitlements -> entitlements.stream().allMatch(V2RegisterClient::hasRequiredEntitlementData))
+                .orElseThrow(() -> new UnrecognizedErrorResponseException(
+                    "Unable to retrieve entitlements from register service: response is missing the catalog"));
         } catch (ResourceAccessException e) {
             throw new AdminServiceException("Unable to contact register service to retrieve entitlements", e);
         } catch (RestClientException e) {
             throw new UnrecognizedErrorResponseException("Unable to read entitlement catalog from register service", e);
         }
-
-        return Optional.ofNullable(catalog)
-            .map(Entitlements::entitlements)
-            .filter(entitlements -> entitlements.stream().allMatch(V2RegisterClient::hasRequiredEntitlementData))
-            .orElseThrow(() -> new UnrecognizedErrorResponseException(
-                "Unable to retrieve entitlements from register service: response is missing the catalog"));
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
