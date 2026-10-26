@@ -229,13 +229,21 @@ class WrpByIdentifierIntegrationTest {
         walletRelyingPartyRepository.saveAllAndFlush(parties);
 
         Statistics statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
+        boolean statisticsWereEnabled = statistics.isStatisticsEnabled();
+        statistics.setStatisticsEnabled(true);
         statistics.clear();
-        mockMvc.perform(get("/wrp").param("limit", "25"))
-            .andExpect(status().isOk());
+        long statementCount;
+        try {
+            mockMvc.perform(get("/wrp").param("limit", "25"))
+                .andExpect(status().isOk());
+            statementCount = statistics.getPrepareStatementCount();
+        } finally {
+            statistics.setStatisticsEnabled(statisticsWereEnabled);
+        }
 
-        long statementCount = statistics.getPrepareStatementCount();
+        assertTrue(statementCount > 0, "Expected Hibernate to measure SQL statements");
         assertTrue(
-            statementCount < parties.size(),
+            statementCount <= 10,
             "Expected batched association loading, but collection mapping used "
                 + statementCount + " SQL statements for " + parties.size() + " parties"
         );

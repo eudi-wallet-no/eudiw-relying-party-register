@@ -4,6 +4,7 @@ import jakarta.persistence.LockModeType;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -35,6 +36,7 @@ public interface WalletRelyingPartyRepository
         WHERE party.active = TRUE
         ORDER BY party.createdMs ASC, party.id ASC
         """)
+    @EntityGraph(attributePaths = "legalPerson")
     List<WalletRelyingParty> findActivePage(Pageable pageable);
 
     @Query("""
@@ -46,6 +48,7 @@ public interface WalletRelyingPartyRepository
           )
         ORDER BY party.createdMs ASC, party.id ASC
         """)
+    @EntityGraph(attributePaths = "legalPerson")
     List<WalletRelyingParty> findActiveAfterCursor(
         @Param("createdMs") long createdMs,
         @Param("id") UUID id,
