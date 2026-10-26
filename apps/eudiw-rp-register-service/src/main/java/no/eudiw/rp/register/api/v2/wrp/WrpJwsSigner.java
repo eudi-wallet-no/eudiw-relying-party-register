@@ -1,5 +1,7 @@
 package no.eudiw.rp.register.api.v2.wrp;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -15,6 +17,7 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
+import java.util.List;
 
 @Service
 public class WrpJwsSigner {
@@ -34,10 +37,23 @@ public class WrpJwsSigner {
     }
 
     public String sign(WalletRelyingPartyResource data) {
+        return signPayload(data, null);
+    }
+
+    public String signCollection(
+        List<WalletRelyingPartyResource> data,
+        String nextCursor,
+        boolean hasNextPage
+    ) {
+        return signPayload(data, new WrpPagination(nextCursor, hasNextPage));
+    }
+
+    private String signPayload(Object data, WrpPagination pagination) {
         String payload = serialize(new SignedWrpPayload(
             properties.issuer(),
             Instant.now().getEpochSecond(),
-            data
+            data,
+            pagination
         ));
         JWSObject jws = new JWSObject(
             new JWSHeader.Builder(JWSAlgorithm.ES256)
@@ -65,5 +81,12 @@ public class WrpJwsSigner {
         }
     }
 
-    private record SignedWrpPayload(String iss, long iat, WalletRelyingPartyResource data) { }
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private record SignedWrpPayload(String iss, long iat, Object data, WrpPagination pagination) { }
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private record WrpPagination(
+        @JsonProperty("next_cursor") String nextCursor,
+        @JsonProperty("has_next_page") boolean hasNextPage
+    ) { }
 }

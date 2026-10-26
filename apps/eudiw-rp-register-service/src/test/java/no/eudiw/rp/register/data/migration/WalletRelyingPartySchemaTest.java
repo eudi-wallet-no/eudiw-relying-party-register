@@ -10,6 +10,8 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.mariadb.MariaDBContainer;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -55,6 +57,19 @@ class WalletRelyingPartySchemaTest {
               AND TABLE_NAME = 'wallet_relying_party_service'
               AND COLUMN_NAME = 'active'
             """, String.class));
+    }
+
+    @Test
+    void addsCompositeIndexForWrpCollectionPagination() {
+        List<String> columns = jdbc.queryForList("""
+            SELECT COLUMN_NAME FROM information_schema.STATISTICS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'wallet_relying_party'
+              AND INDEX_NAME = 'idx_wrp_active_created_id'
+            ORDER BY SEQ_IN_INDEX
+            """, String.class);
+
+        assertEquals(List.of("active", "created_ms", "id"), columns);
     }
 
     @Test
