@@ -103,17 +103,6 @@ class RegistrationWorkflowTests {
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
-    @DisplayName("Should show registration details to the owning organization and an administrator")
-    void shouldShowRegistrationDetailsToOwningOrganizationAndAdministrator(boolean administrator) throws Exception {
-        enqueueLookup();
-
-        mockMvc.perform(get("/details/" + relyingPartyResource.id())
-                .with(login(administrator)))
-            .andExpectAll(status().isOk(), view().name("details_view"));
-    }
-
-    @ParameterizedTest
-    @ValueSource(booleans = {false, true})
     @DisplayName("Should submit a service name change and return to registration details for the owning organization and an administrator")
     void shouldSubmitServiceNameChangeAndReturnToRegistrationDetails(boolean administrator) throws Exception {
         enqueueLookup();

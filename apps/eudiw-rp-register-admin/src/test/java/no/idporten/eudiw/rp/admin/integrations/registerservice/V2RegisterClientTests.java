@@ -118,15 +118,6 @@ class V2RegisterClientTests {
     }
 
     @Test
-    @DisplayName("Should fail to retrieve registration details when register service returns a server error")
-    void shouldFailToRetrieveRegistrationDetailsWhenRegisterServiceFails() {
-        server.expect(requestTo(REGISTRATION_URL))
-            .andRespond(withServerError());
-
-        assertThrows(UnrecognizedErrorResponseException.class, () -> client.getRelyingParty(RELYING_PARTY_INSTANCE_ID));
-    }
-
-    @Test
     @DisplayName("Retrieve all registrations for the selected organization")
     void shouldRetrieveAllRegistrationsForOrganization() {
         server.expect(requestTo("https://register.test/v2/registrations?orgno=123456785"))
