@@ -85,11 +85,30 @@ class V2RegisterClientTests {
             () -> client.searchInstances(new SearchRelyingPartyResource()));
     }
 
-    @Test
-    @DisplayName("Should distinguish a missing role catalog from a catalog with no roles")
-    void shouldDistinguishMissingCatalogFromNoRoles() {
+    @ParameterizedTest
+    @ValueSource(strings = {"null", "{}"})
+    @DisplayName("Should reject the whole search page when a registration is missing required data")
+    void shouldRejectSearchPageWithIncompleteRegistration(String incompleteRegistration) {
+        server.expect(requestTo("https://register.test/v2/instances?searchTerm=&includeInactive=false&page=0&pageSize=25&sort=createdMs"))
+            .andRespond(withSuccess("""
+                {"content":[
+                    {"id":"00000000-0000-0000-0000-000000000001","orgno":"123456785",
+                     "relyingPartyEntitlements":[],"accessCertificateIds":[],"issuerCertificateIds":[]},
+                    %s
+                ],"page":{"size":25,"number":0,"totalElements":2,"totalPages":1}}
+                """.formatted(incompleteRegistration), MediaType.APPLICATION_JSON));
+
+        assertThrows(UnrecognizedErrorResponseException.class,
+            () -> client.searchInstances(new SearchRelyingPartyResource()));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "{}", "{\"entitlements\":[null]}",
+        "{\"entitlements\":[{\"entitlement\":\"urn:first\"},{}]}"})
+    @DisplayName("Should distinguish a missing or incomplete role catalog from a catalog with no roles")
+    void shouldDistinguishMissingOrIncompleteCatalogFromNoRoles(String response) {
         String url = "https://register.test/v2/entitlements?includeInactive=false";
-        server.expect(requestTo(url)).andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
+        server.expect(requestTo(url)).andRespond(withSuccess(response, MediaType.APPLICATION_JSON));
         server.expect(requestTo(url)).andRespond(withSuccess("{\"entitlements\":[]}", MediaType.APPLICATION_JSON));
 
         assertThrows(UnrecognizedErrorResponseException.class, () -> client.getEntitlements(false));
