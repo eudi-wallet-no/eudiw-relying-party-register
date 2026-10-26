@@ -36,7 +36,7 @@
             <legend>
                 Rolle
             </legend>
-            <div class="ds-field" th:each="e : ${@relyingPartiesService.getValidEntitlementOptions()}">
+            <div class="ds-field" th:each="e : ${entitlementOptionsAttr}">
                 <label th:for="|id-${e.getEntitlement()}|" th:text="${e.getDisplayName()}"></label>
                 <input th:id="|id-${e.getEntitlement()}|"
                        type="checkbox"
@@ -106,8 +106,8 @@
                 </td>
                 <td th:text="${@timestampFormatter.formatEpochMillis(rp.createdMs)}"></td>
                 <td th:text="${@timestampFormatter.formatEpochMillis(rp.lastUpdatedMs)}"></td>
-                <td th:text="${rp.accessCertificates().size()}"></td>
-                <td th:text="${rp.issuerCertificates().size()}"></td>
+                <td th:text="${rp.accessCertificateCount()}"></td>
+                <td th:text="${rp.issuerCertificateCount()}"></td>
             </tr>
             </tbody>
         </table>

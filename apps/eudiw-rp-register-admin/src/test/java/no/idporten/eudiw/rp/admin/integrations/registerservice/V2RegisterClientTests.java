@@ -11,6 +11,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import no.idporten.eudiw.rp.admin.web.resource.SearchRelyingPartyResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -51,6 +54,47 @@ class V2RegisterClientTests {
 
     private static final UUID RELYING_PARTY_INSTANCE_ID = new UUID(0, 1);
     private static final String REGISTRATION_URL = "https://register.test/v2/registrations/" + RELYING_PARTY_INSTANCE_ID;
+
+    @Test
+    @DisplayName("Should preserve literal search text and all role filters when requesting a sorted search page")
+    void shouldPreserveLiteralSearchTextAndAllRoleFiltersOnSortedPage() {
+        server.expect(requestTo("https://register.test/v2/instances?searchTerm=Navn%20%2B%20teneste"
+                + "&includeInactive=true&page=1&pageSize=25&sort=name"
+                + "&requiredEntitlements=urn%3Aissuer%2Bone&requiredEntitlements=urn%3Asecond"))
+            .andExpect(header("X-API-KEY", "test-api-key"))
+            .andRespond(withSuccess("""
+                {"content":[],"page":{"size":25,"number":1,"totalElements":25,"totalPages":1}}
+                """, MediaType.APPLICATION_JSON));
+
+        var results = client.searchInstances(new SearchRelyingPartyResource()
+            .withSearchTerm("Navn + teneste").withIncludeInactive(true).withPage(1).withOrdering("name")
+            .withRequiredEntitlements(List.of("urn:issuer+one", "urn:second")));
+
+        assertTrue(results.content().isEmpty());
+        assertEquals(1, results.page().number());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "{}", "{\"content\":[]}", "{\"content\":[],\"page\":{}}", "not json"})
+    @DisplayName("Should fail rather than show no registrations when search data is missing or unreadable")
+    void shouldFailWhenSearchDataIsMissingOrUnreadable(String response) {
+        server.expect(requestTo("https://register.test/v2/instances?searchTerm=&includeInactive=false&page=0&pageSize=25&sort=createdMs"))
+            .andRespond(withSuccess(response, MediaType.APPLICATION_JSON));
+
+        assertThrows(UnrecognizedErrorResponseException.class,
+            () -> client.searchInstances(new SearchRelyingPartyResource()));
+    }
+
+    @Test
+    @DisplayName("Should distinguish a missing role catalog from a catalog with no roles")
+    void shouldDistinguishMissingCatalogFromNoRoles() {
+        String url = "https://register.test/v2/entitlements?includeInactive=false";
+        server.expect(requestTo(url)).andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
+        server.expect(requestTo(url)).andRespond(withSuccess("{\"entitlements\":[]}", MediaType.APPLICATION_JSON));
+
+        assertThrows(UnrecognizedErrorResponseException.class, () -> client.getEntitlements(false));
+        assertTrue(client.getEntitlements(false).isEmpty());
+    }
 
     @Test
     @DisplayName("Should retrieve organization and service details with the issuer role")

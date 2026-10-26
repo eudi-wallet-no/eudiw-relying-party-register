@@ -9,12 +9,16 @@ import no.idporten.eudiw.rp.admin.service.exception.RelyingPartyNotFoundExceptio
 import no.idporten.eudiw.rp.admin.service.exception.UnrecognizedErrorResponseException;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyEntitlementResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
+import no.idporten.eudiw.rp.admin.web.resource.PagedResponse;
+import no.idporten.eudiw.rp.admin.web.resource.SearchRelyingPartyResource;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClient;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -67,6 +71,78 @@ public class V2RegisterClient {
         }
 
         return registrationDetails.toRelyingPartyResource();
+    }
+
+    public PagedResponse<Instance> searchInstances(SearchRelyingPartyResource searchResource) {
+        PagedResponse<Instance> instances;
+        try {
+            instances = restClient.get()
+                .uri(builder -> {
+                    var parameters = new ArrayList<Object>();
+                    parameters.add(searchResource.getSearchTerm());
+                    builder.path("/instances")
+                        .queryParam("searchTerm", "{searchTerm}")
+                        .queryParam("includeInactive", searchResource.isIncludeInactive())
+                        .queryParam("page", searchResource.getPage())
+                        .queryParam("pageSize", searchResource.getPageSize())
+                        .queryParam("sort", "{sort}");
+                    parameters.add(searchResource.getOrdering());
+                    searchResource.getRequiredEntitlements().forEach(entitlement -> {
+                        builder.queryParam("requiredEntitlements", "{entitlement" + parameters.size() + "}");
+                        parameters.add(entitlement);
+                    });
+                    return builder.build(parameters.toArray());
+                })
+                .retrieve()
+                .body(new ParameterizedTypeReference<>() {});
+        } catch (ResourceAccessException e) {
+            throw new AdminServiceException("Unable to contact register service to search instances", e);
+        } catch (RestClientException e) {
+            throw new UnrecognizedErrorResponseException("Unable to read instance search response from register service", e);
+        }
+        if (instances == null || instances.content() == null || instances.page() == null
+            || instances.content().stream().anyMatch(instance -> instance == null || instance.id() == null
+                || instance.orgno() == null || instance.relyingPartyEntitlements() == null
+                || instance.accessCertificateIds() == null || instance.issuerCertificateIds() == null)) {
+            throw new UnrecognizedErrorResponseException(
+                "Unable to search instances in register service: response is missing search data");
+        }
+        return instances;
+    }
+
+    public List<Entitlement> getEntitlements(boolean includeInactive) {
+        Entitlements catalog;
+        try {
+            catalog = restClient.get()
+                .uri(builder -> builder.path("/entitlements").queryParam("includeInactive", includeInactive).build())
+                .retrieve()
+                .body(Entitlements.class);
+        } catch (ResourceAccessException e) {
+            throw new AdminServiceException("Unable to contact register service to retrieve entitlements", e);
+        } catch (RestClientException e) {
+            throw new UnrecognizedErrorResponseException("Unable to read entitlement catalog from register service", e);
+        }
+        if (catalog == null || catalog.entitlements() == null
+            || catalog.entitlements().stream().anyMatch(entitlement -> entitlement == null || entitlement.entitlement() == null)) {
+            throw new UnrecognizedErrorResponseException(
+                "Unable to retrieve entitlements from register service: response is missing the catalog");
+        }
+        return catalog.entitlements();
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Instance(UUID id, String orgno, String organizationName, String serviceTradeName,
+                           List<RelyingPartyEntitlement> relyingPartyEntitlements,
+                           long createdMs, long lastUpdatedMs,
+                           List<UUID> accessCertificateIds, List<UUID> issuerCertificateIds) {
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Entitlement(UUID id, String entitlement, boolean active, String displayName) {
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Entitlements(List<Entitlement> entitlements) {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

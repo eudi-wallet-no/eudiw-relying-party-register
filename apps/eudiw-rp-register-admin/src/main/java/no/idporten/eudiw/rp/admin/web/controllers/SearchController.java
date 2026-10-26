@@ -3,9 +3,10 @@ package no.idporten.eudiw.rp.admin.web.controllers;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.web.SearchSession;
 import no.idporten.eudiw.rp.admin.web.form.SearchForm;
-import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
+import no.idporten.eudiw.rp.admin.web.resource.RegistrationSearchResult;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -27,8 +28,10 @@ public class SearchController {
     public static final String SEARCH_FORM_ATTR = "searchFormAttr";
     public static final String DETAILED_VIEW_DATA_ATTR = "detailedViewDataAttr";
     public static final String RESULTS_PAGE_ATTR = "resultsPageAttr";
+    public static final String ENTITLEMENT_OPTIONS_ATTR = "entitlementOptionsAttr";
 
     private final SearchSession searchSession;
+    private final RelyingPartiesService relyingPartiesService;
 
     @GetMapping("/search")
     @PreAuthorize("hasRole('ADMIN')")
@@ -39,10 +42,11 @@ public class SearchController {
         oneIndexedPageNum.ifPresent(i -> searchSession.setCurrentPageIdx(i - 1));
         ordering.ifPresent(searchSession::setOrdering);
 
-        List<RelyingPartyResource> resultsPage = searchSession.refreshSearch();
+        List<RegistrationSearchResult> resultsPage = searchSession.refreshSearch();
         return new ModelAndView("search_view", Map.of(
             RESULTS_PAGE_ATTR, resultsPage,
-            SEARCH_FORM_ATTR, searchSession.getLastSearchForm()));
+            SEARCH_FORM_ATTR, searchSession.getLastSearchForm(),
+            ENTITLEMENT_OPTIONS_ATTR, relyingPartiesService.getValidEntitlementOptions()));
     }
 
     @PostMapping("/search")
@@ -53,9 +57,10 @@ public class SearchController {
 
         ModelAndView mav = new ModelAndView("search_view", SEARCH_FORM_ATTR, searchForm);
         if (!bindingResult.hasErrors()) {
-            List<RelyingPartyResource> resultsPage = searchSession.doFreshSearch(searchForm);
+            List<RegistrationSearchResult> resultsPage = searchSession.doFreshSearch(searchForm);
             mav.addObject(RESULTS_PAGE_ATTR, resultsPage);
         }
+        mav.addObject(ENTITLEMENT_OPTIONS_ATTR, relyingPartiesService.getValidEntitlementOptions());
         return mav;
     }
 }

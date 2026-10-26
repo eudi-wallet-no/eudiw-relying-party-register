@@ -7,6 +7,7 @@ import no.idporten.eudiw.rp.admin.service.accesscertificates.PKCS10Certification
 import no.idporten.eudiw.rp.admin.testdata.CertificatesGenerator;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.admin.web.form.admin.AdminEditRelyingPartyForm;
+import no.idporten.eudiw.rp.admin.web.resource.PagedResponse;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyEntitlementResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificateResource;
@@ -16,12 +17,14 @@ import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
@@ -32,6 +35,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -99,6 +103,65 @@ class RegistrationWorkflowTests {
         }
         assertEquals(initialRequestCount + expectedRequests.size(), server.getRequestCount(),
             "Unexpected backend request, e.g. V1 lookup, write or download after access denial");
+    }
+
+    @Test
+    @DisplayName("Should preserve combined search filters across sorted pages and display registration details links")
+    void shouldPreserveCombinedSearchFiltersAcrossSortedPagesAndDisplayDetailsLinks() throws Exception {
+        enqueueSearchPage(0, "createdMs", relyingPartyResource.id(), "First service");
+        var result = mockMvc.perform(post("/search").with(csrf()).with(login(true))
+                .formField("searchTerm", "Test")
+                .formField("includeInactive", "true")
+                .formField("requiredEntitlements", "urn:first", "urn:second"))
+            .andExpectAll(status().isOk(), view().name("search_view"),
+                content().string(allOf(
+                    containsString("<td>123456785</td>"), containsString("<td>Legal name</td>"),
+                    containsString("href=\"/details/" + relyingPartyResource.id() + "\""),
+                    containsString("<div>First service</div>"),
+                    matchesPattern("(?s).*<td>1</td>\\s*<td>1</td>.*"))))
+            .andReturn();
+        UUID secondInstanceId = new UUID(0, 6);
+        enqueueSearchPage(1, "name", secondInstanceId, "Second service");
+
+        mockMvc.perform(get("/search").with(login(true))
+                .session((MockHttpSession) result.getRequest().getSession())
+                .param("page", "2").param("sort", "name"))
+            .andExpectAll(status().isOk(),
+                content().string(allOf(
+                    containsString("href=\"/details/" + secondInstanceId + "\""),
+                    containsString("<div>Second service</div>"))));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"search", "catalog"})
+    @DisplayName("Should show V2 search and catalog failures without falling back to V1 or displaying empty results")
+    void shouldShowV2SearchAndCatalogFailuresWithoutFallback(String failedOperation) throws Exception {
+        String failedPath = "/v2/instances?searchTerm=&includeInactive=false&page=0&pageSize=25&sort=createdMs";
+        if (failedOperation.equals("catalog")) {
+            enqueue("GET", failedPath, new PagedResponse<>(List.of(), new PagedResponse.PageMetadata(25, 0, 0, 0)));
+            failedPath = "/v2/entitlements?includeInactive=false";
+        }
+        expectedRequests.add("GET " + failedPath);
+        server.enqueue(new MockResponse().setResponseCode(500).setHeader("Content-Type", "application/json")
+            .setBody("{\"error\":\"service_unavailable\",\"error_description\":\"Register service unavailable\"}"));
+
+        mockMvc.perform(post("/search").with(csrf()).with(login(true)))
+            .andExpectAll(status().isInternalServerError(), view().name("error/5xx"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"create", "edit"})
+    @DisplayName("Should offer active V2 roles in administrator create and edit forms")
+    void shouldOfferActiveV2RolesInAdministratorCreateAndEditForms(String form) throws Exception {
+        if (form.equals("edit")) {
+            enqueueLookup();
+        }
+        enqueue("GET", "/v2/entitlements?includeInactive=false", new V2RegisterClient.Entitlements(List.of(
+            new V2RegisterClient.Entitlement(new UUID(0, 7), "urn:additional", true, "Additional role"))));
+
+        mockMvc.perform(get(form.equals("create") ? "/create" : "/edit/" + relyingPartyResource.id()).with(login(true)))
+            .andExpectAll(status().isOk(), view().name(form + "_form_view"),
+                content().string(containsString("Additional role")));
     }
 
     @ParameterizedTest
@@ -196,6 +259,22 @@ class RegistrationWorkflowTests {
 
     private RelyingPartyCertificateResource certificate(String certificateType) {
         return (certificateType.equals("issuer") ? relyingPartyResource.issuerCertificates() : relyingPartyResource.accessCertificates()).getFirst();
+    }
+
+    private void enqueueSearchPage(int page, String sort, UUID instanceId, String serviceName) {
+        var entitlements = new V2RegisterClient.Entitlements(List.of(
+            new V2RegisterClient.Entitlement(new UUID(0, 7), "urn:first", true, "First role"),
+            new V2RegisterClient.Entitlement(new UUID(0, 8), "urn:second", true, "Second role")));
+        var instance = new V2RegisterClient.Instance(instanceId, relyingPartyResource.orgno(), relyingPartyResource.orgName(),
+            serviceName, List.of(new V2RegisterClient.RelyingPartyEntitlement("urn:first", null, null),
+                new V2RegisterClient.RelyingPartyEntitlement("urn:second", null, null)),
+            relyingPartyResource.createdMs(), relyingPartyResource.lastUpdatedMs(),
+            List.of(certificate("access").id()), List.of(certificate("issuer").id()));
+        enqueue("GET", "/v2/instances?searchTerm=Test&includeInactive=true&page=" + page + "&pageSize=25&sort=" + sort
+                + "&requiredEntitlements=urn%3Afirst&requiredEntitlements=urn%3Asecond",
+            new PagedResponse<>(List.of(instance), new PagedResponse.PageMetadata(25, page, 26, 2)));
+        enqueue("GET", "/v2/entitlements?includeInactive=true", entitlements);
+        enqueue("GET", "/v2/entitlements?includeInactive=false", entitlements);
     }
 
     private void enqueueLookup() {

@@ -8,7 +8,7 @@ import lombok.Setter;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.web.form.SearchForm;
 import no.idporten.eudiw.rp.admin.web.resource.PagedResponse;
-import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
+import no.idporten.eudiw.rp.admin.web.resource.RegistrationSearchResult;
 import no.idporten.eudiw.rp.admin.web.resource.SearchRelyingPartyResource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.SessionScope;
@@ -35,11 +35,11 @@ public class SearchSession {
     private int currentPageIdx = 0;
     private int pageSize = SearchRelyingPartyResource.DEFAULT_PAGE_SIZE;
 
-    public List<RelyingPartyResource> doFreshSearch(SearchForm searchForm) {
+    public List<RegistrationSearchResult> doFreshSearch(SearchForm searchForm) {
         return this.doSearch(searchForm, 0, this.pageSize, this.ordering);
     }
 
-    public List<RelyingPartyResource> refreshSearch() {
+    public List<RegistrationSearchResult> refreshSearch() {
         return this.doSearch(this.lastSearchForm,
                              this.currentPageIdx,
                              this.pageSize,
@@ -60,7 +60,7 @@ public class SearchSession {
         return IntStream.range(lo, hi).map(k -> k + 1).toArray();
     }
 
-    private List<RelyingPartyResource> doSearch(
+    private List<RegistrationSearchResult> doSearch(
         SearchForm searchForm,
         int pageIdx,
         int pageSize,
@@ -71,7 +71,7 @@ public class SearchSession {
                       .withPageSize(pageSize)
                       .withOrdering(ordering);
 
-        PagedResponse<RelyingPartyResource> searchResult =
+        PagedResponse<RegistrationSearchResult> searchResult =
             relyingPartiesService.search(searchResource);
 
         this.numPages = Math.toIntExact(searchResult.page().totalPages());

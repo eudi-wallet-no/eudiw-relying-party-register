@@ -4,12 +4,15 @@ import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.admin.web.controllers.SearchController;
 import no.idporten.eudiw.rp.admin.web.form.SearchForm;
-import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
+import no.idporten.eudiw.rp.admin.web.resource.PagedResponse;
+import no.idporten.eudiw.rp.admin.web.resource.RegistrationSearchResult;
 import no.idporten.eudiw.rp.admin.web.resource.SearchRelyingPartyResource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -24,8 +27,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 @SpringBootTest
 @ActiveProfiles("junit")
@@ -41,6 +44,16 @@ public class SearchControllerTests {
     @MockitoBean
     private RelyingPartiesService mockRpService;
 
+    @ParameterizedTest
+    @ValueSource(strings = {"GET", "POST"})
+    @WithMockUser(roles = "USER")
+    @DisplayName("Should prevent non-administrators from searching registrations")
+    void shouldPreventNonAdministratorsFromSearchingRegistrations(String method) throws Exception {
+        mockMvc.perform(method.equals("GET") ? get("/search") : post("/search").with(csrf()))
+            .andExpectAll(status().isNotFound(), view().name("error/404"));
+        verifyNoInteractions(mockRpService);
+    }
+
     @Nested
     @DisplayName("when POST'ing the /search endpoint")
     class SearchEndpointPostTests {
@@ -50,10 +63,13 @@ public class SearchControllerTests {
                 .thenAnswer(invocationOnMock -> {
                     SearchRelyingPartyResource searchResource = invocationOnMock.getArgument(0, SearchRelyingPartyResource.class);
 
-                    List<RelyingPartyResource> content =
-                        List.of(ResourceGenerator.generateRelyingPartyResource()
-                                                 .withTradeName(searchResource.getSearchTerm()));
-                    return ResourceGenerator.generatePageResponse(content);
+                    var relyingPartyResource = ResourceGenerator.generateRelyingPartyResource();
+                    var result = new RegistrationSearchResult(
+                        relyingPartyResource.id(), relyingPartyResource.orgno(), relyingPartyResource.orgName(),
+                        searchResource.getSearchTerm(), relyingPartyResource.relyingPartyEntitlements(),
+                        relyingPartyResource.createdMs(), relyingPartyResource.lastUpdatedMs(),
+                        relyingPartyResource.accessCertificates().size(), relyingPartyResource.issuerCertificates().size());
+                    return new PagedResponse<>(List.of(result), new PagedResponse.PageMetadata(25, 0, 1, 1));
                 });
         }
 
