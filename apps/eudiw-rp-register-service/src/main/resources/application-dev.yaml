@@ -21,14 +21,14 @@ spring:
     environment: dev
 
 eudiw-rp-register-service:
-  registry-uri: ${REGISTRY_URI:http://localhost:9210/wrp}
+  registry-uri: ${REGISTRY_URI:http://localhost:9200/wrp}
   csr-service:
     ca-service-api:
       ca-service-base-uri: http://localhost:9220
   wrp:
-    issuer: ${WRP_ISSUER:http://localhost:9210}
-    registry-uri: ${WRP_REGISTRY_URI:http://localhost:9210/wrp}
-    jwks-url: ${WRP_JWKS_URL:http://localhost:9210/wrp/jwks}
+    issuer: ${WRP_ISSUER:http://localhost:9200}
+    registry-uri: ${WRP_REGISTRY_URI:http://localhost:9200/wrp}
+    jwks-url: ${WRP_JWKS_URL:http://localhost:9200/wrp/jwks}
     signing-key-id: ${WRP_SIGNING_KEY_ID:wrp-signing-dev}
 
 external-dependency-health-checks:

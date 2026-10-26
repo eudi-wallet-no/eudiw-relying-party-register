@@ -42,4 +42,11 @@ public class SwaggerConfiguration {
                 .build();
     }
 
+    @Bean
+    public GroupedOpenApi wrp() {
+        return GroupedOpenApi.builder()
+                .group("WRP")
+                .pathsToMatch("/wrp/**")
+                .build();
+    }
 }
