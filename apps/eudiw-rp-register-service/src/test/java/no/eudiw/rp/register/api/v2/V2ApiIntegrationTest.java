@@ -229,6 +229,7 @@ class V2ApiIntegrationTest {
         Registration registration = createRegistration();
         for (MockHttpServletRequestBuilder builder : List.of(
             get(registration.relyingPartyPath()), get("/v2/services"), get("/v2/instances"), get("/v2/entitlements"),
+            get("/v2/registrations/" + registration.relyingPartyInstanceId()),
             post("/v2/parties"), post(registration.relyingPartyPath() + "/services"),
             post(registration.relyingPartyServicePath() + "/instances"),
             put(registration.relyingPartyPath()), put(registration.relyingPartyServicePath()),
@@ -399,6 +400,45 @@ class V2ApiIntegrationTest {
         request(get("/v2/registrations").param("orgno", orgno))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].id").value(registration.relyingPartyInstanceId()));
+    }
+
+    @Test
+    @DisplayName("Should retrieve the owning organization, roles and existing certificates after the relying party is deactivated")
+    void shouldRetrieveExistingRegistrationDetailsAndCertificatesAfterPartyDeactivation() throws Exception {
+        Registration registration = createRegistration();
+        String orgno = read(get(registration.relyingPartyPath())).get("orgno").asString();
+        String entitlementUri = "urn:test:registration-details";
+        testEntitlement = entitlementRepository.saveAndFlush(new Entitlement(entitlementUri, false, "Issuer", "test-ca"));
+        var relyingPartyInstance = relyingPartyInstanceRepository.findById(UUID.fromString(registration.relyingPartyInstanceId())).orElseThrow();
+        var relyingPartyEntitlement = new RelyingPartyEntitlement(entitlementUri, "https://issuer.example.test");
+        var issuerCertificate = new IssuerCertificate(
+            CertificatesGenerator.generateX509Certificate(), "test-ca", relyingPartyEntitlement);
+        relyingPartyEntitlement.addIssuerCertificate(issuerCertificate);
+        relyingPartyInstance.setRelyingPartyEntitlements(List.of(relyingPartyEntitlement));
+        var accessCertificate = new AccessCertificate(
+            "test-ca", CertificatesGenerator.generateX509Certificate(), relyingPartyInstance);
+        relyingPartyInstance.setAccessCertificates(List.of(accessCertificate));
+        var savedRelyingPartyInstance = relyingPartyInstanceRepository.saveAndFlush(relyingPartyInstance);
+        UUID accessCertificateId = savedRelyingPartyInstance.getAccessCertificates().getFirst().getId();
+        UUID issuerCertificateId = savedRelyingPartyInstance.getIssuerCertificates().getFirst().getId();
+
+        request(patch(registration.relyingPartyPath() + "/deactivate")).andExpect(status().isNoContent());
+
+        JsonNode registrationDetails = read(get("/v2/registrations/" + registration.relyingPartyInstanceId()));
+
+        assertAll(() -> assertEquals(orgno, registrationDetails.get("orgno").asString()),
+            () -> assertFalse(registrationDetails.get("active").asBoolean()),
+            () -> assertEquals("Issuer", registrationDetails.at("/relyingPartyEntitlements/0/displayName").asString()),
+            () -> assertEquals("https://issuer.example.test", registrationDetails.at("/relyingPartyEntitlements/0/credentialIssuerUrl").asString()),
+            () -> assertEquals(accessCertificateId.toString(), registrationDetails.at("/accessCertificates/0/id").asString()),
+            () -> assertEquals(issuerCertificateId.toString(), registrationDetails.at("/issuerCertificates/0/id").asString()));
+        verifyNoInteractions(certificateServiceClient);
+    }
+
+    @Test
+    @DisplayName("Should return not found when requesting details for a nonexistent registration")
+    void shouldReturnNotFoundForNonexistentRegistration() throws Exception {
+        request(get("/v2/registrations/" + new UUID(0, 999))).andExpect(status().isNotFound());
     }
 
     private Registration createRegistration() throws Exception {

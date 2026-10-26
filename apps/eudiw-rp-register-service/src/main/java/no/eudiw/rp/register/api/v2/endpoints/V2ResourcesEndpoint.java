@@ -16,6 +16,7 @@ import no.eudiw.rp.register.api.v2.endpoints.entities.EntitlementsResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.IntendedUseReplacementResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.IntendedUseResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.IssuerCertificateRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationDetailsResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationSummaryResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceResponse;
@@ -189,6 +190,20 @@ public class V2ResourcesEndpoint {
     @GetMapping(path = "/registrations", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<RegistrationSummaryResponse> getRegistrationsByOrgno(@RequestParam @NotBlank @Orgnr String orgno) {
         return v2ApiService.getRegistrationsByOrgno(orgno);
+    }
+
+    @Operation(
+        summary = "Get registration details",
+        description = "Returns the owning party and service identifiers, organization and service names, instance status, "
+            + "entitlements with display names, attestations and certificates, including inactive registrations. "
+            + "Certificate revocation status uses revocation_status. Returns 404 for an unknown instance."
+    )
+    @GetMapping(path = "/registrations/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public RegistrationDetailsResponse getRegistrationDetails(
+        @Parameter(description = "RelyingPartyInstance identifier")
+        @PathVariable("id") UUID relyingPartyInstanceId
+    ) {
+        return v2ApiService.getRegistrationDetails(relyingPartyInstanceId);
     }
 
     @Operation(summary = "Search RelyingPartyInstances")

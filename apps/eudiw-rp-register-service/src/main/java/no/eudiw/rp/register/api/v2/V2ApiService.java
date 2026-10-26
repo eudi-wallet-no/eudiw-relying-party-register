@@ -10,6 +10,7 @@ import no.eudiw.rp.register.api.v2.endpoints.entities.EntitlementsResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.IntendedUseReplacementResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.IntendedUseResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.IssuerCertificateRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationDetailsResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationSummaryResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceResponse;
@@ -214,6 +215,14 @@ public class V2ApiService {
 
     public RelyingPartyInstanceResponse getRelyingPartyInstance(UUID relyingPartyInstanceId) {
         return RelyingPartyInstanceResponse.from(findRelyingPartyInstance(relyingPartyInstanceId));
+    }
+
+    @Transactional(readOnly = true)
+    public RegistrationDetailsResponse getRegistrationDetails(UUID relyingPartyInstanceId) {
+        RelyingPartyInstance relyingPartyInstance = findRelyingPartyInstance(relyingPartyInstanceId);
+        Map<String, Entitlement> entitlementCatalog = entitlementService.findAllEntitlements(true).stream()
+            .collect(Collectors.toMap(Entitlement::getEntitlement, Function.identity()));
+        return RegistrationDetailsResponse.from(relyingPartyInstance, entitlementCatalog);
     }
 
     @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)

@@ -2,6 +2,7 @@ package no.idporten.eudiw.rp.admin.service;
 
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.rp.admin.exception.AdminServiceException;
+import no.idporten.eudiw.rp.admin.integrations.registerservice.V2RegisterClient;
 import no.idporten.eudiw.rp.admin.service.exception.*;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEntitlementFormField;
 import no.idporten.eudiw.rp.admin.web.resource.*;
@@ -23,6 +24,7 @@ import java.util.UUID;
 public class RelyingPartiesService {
 
     private final RestClient restClient;
+    private final V2RegisterClient v2RegisterClient;
 
     public RelyingPartyResource create(CreateRelyingPartyResource createResource) {
         return restClient.post()
@@ -51,15 +53,7 @@ public class RelyingPartiesService {
     }
 
     public RelyingPartyResource get(UUID id) {
-        try {
-            return restClient.get()
-                    .uri("/rp/{id}", id)
-                    .retrieve()
-                    .toEntity(RelyingPartyResource.class)
-                    .getBody();
-        } catch (NotFoundException e) {
-            throw new RelyingPartyNotFoundException(e.getErrorDescription(), id.toString());
-        }
+        return v2RegisterClient.getRelyingParty(id);
     }
 
     public RelyingPartyCertificateResource getAccessCertificate(
