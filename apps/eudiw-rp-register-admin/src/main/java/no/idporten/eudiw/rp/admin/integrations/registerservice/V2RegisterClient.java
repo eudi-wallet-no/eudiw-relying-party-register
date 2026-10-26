@@ -20,7 +20,6 @@ import org.springframework.web.client.RestClient;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -102,27 +101,31 @@ public class V2RegisterClient {
             throw new UnrecognizedErrorResponseException("Unable to read instance search response from register service", e);
         }
 
-        return Optional.ofNullable(instances)
-            .filter(V2RegisterClient::hasRequiredSearchData)
-            .orElseThrow(() -> new UnrecognizedErrorResponseException(
-                "Unable to search instances in register service: response is missing search data"));
+        if (instances == null || !hasRequiredSearchData(instances)) {
+            throw new UnrecognizedErrorResponseException(
+                "Unable to search instances in register service: response is missing search data");
+        }
+        return instances;
     }
 
     public List<Entitlement> getEntitlements(boolean includeInactive) {
+        Entitlements entitlementCatalog;
         try {
-            return Optional.ofNullable(restClient.get()
-                    .uri(builder -> builder.path("/entitlements").queryParam("includeInactive", includeInactive).build())
-                    .retrieve()
-                    .body(Entitlements.class))
-                .map(Entitlements::entitlements)
-                .filter(entitlements -> entitlements.stream().allMatch(V2RegisterClient::hasRequiredEntitlementData))
-                .orElseThrow(() -> new UnrecognizedErrorResponseException(
-                    "Unable to retrieve entitlements from register service: response is missing the catalog"));
+            entitlementCatalog = restClient.get()
+                .uri(builder -> builder.path("/entitlements").queryParam("includeInactive", includeInactive).build())
+                .retrieve()
+                .body(Entitlements.class);
         } catch (ResourceAccessException e) {
             throw new AdminServiceException("Unable to contact register service to retrieve entitlements", e);
         } catch (RestClientException e) {
             throw new UnrecognizedErrorResponseException("Unable to read entitlement catalog from register service", e);
         }
+
+        if (entitlementCatalog == null || !hasRequiredCatalogData(entitlementCatalog)) {
+            throw new UnrecognizedErrorResponseException(
+                "Unable to retrieve entitlements from register service: response is missing the catalog");
+        }
+        return entitlementCatalog.entitlements();
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -205,6 +208,11 @@ public class V2RegisterClient {
             && relyingPartyInstance.relyingPartyEntitlements() != null
             && relyingPartyInstance.accessCertificateIds() != null
             && relyingPartyInstance.issuerCertificateIds() != null;
+    }
+
+    private static boolean hasRequiredCatalogData(Entitlements entitlementCatalog) {
+        return entitlementCatalog.entitlements() != null
+            && entitlementCatalog.entitlements().stream().allMatch(V2RegisterClient::hasRequiredEntitlementData);
     }
 
     private static boolean hasRequiredEntitlementData(Entitlement entitlement) {
