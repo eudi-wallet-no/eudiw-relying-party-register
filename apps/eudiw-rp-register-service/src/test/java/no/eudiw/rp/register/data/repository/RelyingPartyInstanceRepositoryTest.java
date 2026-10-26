@@ -529,7 +529,7 @@ public class RelyingPartyInstanceRepositoryTest {
         }
 
         @ParameterizedTest
-        @ValueSource(strings = {"instance", "service", "party"})
+        @ValueSource(strings = {"RelyingPartyInstance", "WalletRelyingPartyService", "WalletRelyingParty"})
         @Transactional
         @DisplayName("Should include an inactive registration hierarchy only when requested")
         void shouldIncludeInactiveHierarchyOnlyWhenRequested(String inactiveResource) {
@@ -540,9 +540,9 @@ public class RelyingPartyInstanceRepositoryTest {
             var relyingPartyService = inactiveInstance.getWalletRelyingPartyService();
             relyingPartyService.setServiceTradeName("Inactive " + searchTerm);
             switch (inactiveResource) {
-                case "instance" -> inactiveInstance.setActive(false);
-                case "service" -> relyingPartyService.setActive(false);
-                case "party" -> relyingPartyService.getWalletRelyingParty().setActive(false);
+                case "RelyingPartyInstance" -> inactiveInstance.setActive(false);
+                case "WalletRelyingPartyService" -> relyingPartyService.setActive(false);
+                case "WalletRelyingParty" -> relyingPartyService.getWalletRelyingParty().setActive(false);
             }
             repository.saveAndFlush(activeInstance);
             repository.saveAndFlush(inactiveInstance);
