@@ -124,8 +124,8 @@ public class CsrControllerTests {
         }
 
         @Test
-        @DisplayName("then form is rejected if CSR is not well-formed, and view returns to CSR form")
-        void testFormRejectedIfCsrInvalid() throws Exception {
+        @DisplayName("Should reject a malformed access CSR without requesting a certificate")
+        void shouldRejectMalformedAccessCsr() throws Exception {
             RelyingPartyResource rpResource =
                 ResourceGenerator.generateRelyingPartyResource();
             UUID id = rpResource.id();

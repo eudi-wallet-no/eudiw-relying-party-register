@@ -67,6 +67,7 @@ class V2CertificateClientTests {
 
     @ParameterizedTest
     @ValueSource(strings = {"access", "issuer"})
+    @DisplayName("Should issue an access or issuer certificate for the requested instance")
     void shouldIssueCertificatesForTheInstanceWithTheOriginalCsr(String type) throws Exception {
         server.enqueue(certificateResponse(-1));
 
@@ -85,6 +86,7 @@ class V2CertificateClientTests {
 
     @ParameterizedTest
     @ValueSource(strings = {"access", "issuer"})
+    @DisplayName("Should retrieve the requested access or issuer certificate with its revocation status")
     void shouldRetrieveTheOwnedCertificateWithItsRevocationStatus(String type) throws Exception {
         server.enqueue(certificateResponse(1));
 
@@ -98,6 +100,7 @@ class V2CertificateClientTests {
 
     @ParameterizedTest
     @ValueSource(strings = {"access", "issuer"})
+    @DisplayName("Should revoke an active access or issuer certificate owned by the instance")
     void shouldRevokeOnlyAfterTheRegisterConfirmsAnActiveOwnedCertificate(String type) throws Exception {
         server.enqueue(certificateResponse(-1));
         server.enqueue(new MockResponse().setResponseCode(204));
@@ -111,6 +114,7 @@ class V2CertificateClientTests {
 
     @ParameterizedTest
     @ValueSource(strings = {"access", "issuer"})
+    @DisplayName("Should accept a revocation already confirmed by the register")
     void shouldAcceptRegisterConfirmedRevocationWithoutAnotherCaOperation(String type) throws Exception {
         server.enqueue(certificateResponse(1));
 
@@ -122,6 +126,7 @@ class V2CertificateClientTests {
 
     @ParameterizedTest
     @ValueSource(strings = {"access", "issuer"})
+    @DisplayName("Should report a missing owned certificate without attempting revocation")
     void shouldReportMissingOwnedCertificatesWithoutAttemptingRevocation(String type) throws Exception {
         server.enqueue(new MockResponse().setResponseCode(404));
 
@@ -133,6 +138,7 @@ class V2CertificateClientTests {
     }
 
     @Test
+    @DisplayName("Should report a certificate removed before revocation")
     void shouldReportACertificateRemovedBetweenLookupAndRevocation() throws Exception {
         server.enqueue(certificateResponse(-1));
         server.enqueue(new MockResponse().setResponseCode(404));
@@ -142,6 +148,7 @@ class V2CertificateClientTests {
     }
 
     @Test
+    @DisplayName("Should report a rejected certificate request without fallback")
     void shouldKeepValidationFailuresVisibleWithoutFallback() {
         server.enqueue(errorResponse(400, "invalid_request"));
 
@@ -150,6 +157,7 @@ class V2CertificateClientTests {
     }
 
     @Test
+    @DisplayName("Should not retry certificate issuance after a service-unavailable response")
     void shouldNotRetryIssuanceWhenTheRegisterReturnsServiceUnavailable() {
         server.enqueue(errorResponse(503, "server_error").setHeader("Retry-After", "0"));
         server.enqueue(new MockResponse().setResponseCode(204));
@@ -159,6 +167,7 @@ class V2CertificateClientTests {
     }
 
     @Test
+    @DisplayName("Should not retry certificate retrieval after a service-unavailable response")
     void shouldNotRetryLookupWhenTheRegisterReturnsServiceUnavailable() {
         server.enqueue(errorResponse(503, "server_error").setHeader("Retry-After", "0"));
         server.enqueue(new MockResponse().setResponseCode(204));
@@ -168,6 +177,7 @@ class V2CertificateClientTests {
     }
 
     @Test
+    @DisplayName("Should report a failed certificate revocation without retry")
     void shouldKeepCaRevocationFailuresVisibleWithoutRetry() throws Exception {
         server.enqueue(certificateResponse(-1));
         server.enqueue(errorResponse(503, "server_error").setHeader("Retry-After", "0"));
@@ -178,6 +188,7 @@ class V2CertificateClientTests {
     }
 
     @Test
+    @DisplayName("Should report a failed revocation when the register still marks the certificate active")
     void shouldNotClaimRevocationWhenOnlyTheCaMayHaveRevokedTheCertificate() throws Exception {
         server.enqueue(certificateResponse(-1));
         server.enqueue(errorResponse(400, "invalid_request"));
@@ -187,6 +198,7 @@ class V2CertificateClientTests {
     }
 
     @Test
+    @DisplayName("Should report an unknown issuance outcome after a timeout without retry")
     void shouldReportUnknownIssuanceOutcomeAfterTimeoutWithoutRetry() throws Exception {
         server.enqueue(certificateResponse(-1).setHeadersDelay(1, TimeUnit.SECONDS));
 
@@ -198,6 +210,7 @@ class V2CertificateClientTests {
     }
 
     @Test
+    @DisplayName("Should report an unknown revocation outcome after a timeout without retry")
     void shouldReportUnknownRevocationOutcomeAfterTimeoutWithoutRetry() throws Exception {
         server.enqueue(certificateResponse(-1));
         server.enqueue(new MockResponse().setResponseCode(204).setHeadersDelay(1, TimeUnit.SECONDS));
@@ -210,6 +223,7 @@ class V2CertificateClientTests {
     }
 
     @Test
+    @DisplayName("Should report a lost certificate lookup without retry")
     void shouldNotRetryLookupAfterALostConnection() {
         server.enqueue(new MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AFTER_REQUEST));
         server.enqueue(new MockResponse().setResponseCode(204));
@@ -221,6 +235,7 @@ class V2CertificateClientTests {
     }
 
     @Test
+    @DisplayName("Should reject a revocation response that does not confirm success")
     void shouldRejectUnconfirmedRevocation() throws Exception {
         server.enqueue(certificateResponse(-1));
         server.enqueue(new MockResponse().setResponseCode(200));
@@ -230,6 +245,7 @@ class V2CertificateClientTests {
 
     @ParameterizedTest
     @ValueSource(strings = {"", "{}", "{\"certificate\":\"not a certificate\"}"})
+    @DisplayName("Should reject an incomplete or unreadable certificate issuance response")
     void shouldRejectMissingOrUnreadableIssuanceResponses(String body) {
         server.enqueue(new MockResponse().setResponseCode(200).setHeader("Content-Type", "application/json").setBody(body));
 
@@ -237,6 +253,7 @@ class V2CertificateClientTests {
     }
 
     @Test
+    @DisplayName("Should reject an issuance response with an unexpected success status")
     void shouldRejectUnexpectedIssuanceSuccessStatus() throws Exception {
         server.enqueue(certificateResponse(-1).setResponseCode(201));
 
@@ -244,6 +261,7 @@ class V2CertificateClientTests {
     }
 
     @Test
+    @DisplayName("Should reject a certificate response with the wrong identity or invalid revocation status")
     void shouldRejectUnconfirmedCertificateIdentityOrStatus() throws Exception {
         var response = (tools.jackson.databind.node.ObjectNode) mapper.valueToTree(certificate);
         response.put("id", UUID.randomUUID().toString());
@@ -261,6 +279,7 @@ class V2CertificateClientTests {
     }
 
     @Test
+    @DisplayName("Should reject a redirect without following it")
     void shouldRejectRedirectsWithoutFollowingThem() {
         server.enqueue(new MockResponse().setResponseCode(307).setHeader("Location", server.url("/v1/fallback")));
         server.enqueue(new MockResponse().setResponseCode(204));
