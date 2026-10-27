@@ -3,7 +3,7 @@ package no.idporten.eudiw.rp.admin.integrations.registerservice;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyEaaResource;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificateResource;
-import no.idporten.eudiw.rp.admin.exception.AdminServiceException;
+import no.idporten.eudiw.rp.admin.integrations.RestClientCall;
 import no.idporten.eudiw.rp.admin.service.exception.NotFoundException;
 import no.idporten.eudiw.rp.admin.service.exception.RelyingPartyNotFoundException;
 import no.idporten.eudiw.rp.admin.service.exception.UnrecognizedErrorResponseException;
@@ -14,8 +14,6 @@ import no.idporten.eudiw.rp.admin.web.resource.SearchRelyingPartyResource;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClient;
 
 import java.util.ArrayList;
@@ -32,15 +30,12 @@ public class V2RegisterClient {
     }
 
     public List<Registration> getRegistrations(String orgno) {
-        List<Registration> registrations;
-        try {
-            registrations = restClient.get()
+        List<Registration> registrations = RestClientCall.execute("register service", "retrieve registrations",
+            () -> restClient.get()
                 .uri(builder -> builder.path("/registrations").queryParam("orgno", orgno).build())
                 .retrieve()
-                .body(new ParameterizedTypeReference<>() {});
-        } catch (ResourceAccessException e) {
-            throw new AdminServiceException("Unable to contact register service to retrieve registrations", e);
-        }
+                .body(new ParameterizedTypeReference<>() {}));
+
         if (registrations == null) {
             throw new UnrecognizedErrorResponseException(
                 "Unable to retrieve registrations from register service: response body is empty");
@@ -53,16 +48,15 @@ public class V2RegisterClient {
         RegistrationDetails registrationDetails;
 
         try {
-            registrationDetails = restClient.get()
-                .uri(registrationPath)
-                .retrieve()
-                .body(RegistrationDetails.class);
+            registrationDetails = RestClientCall.execute("register service", "retrieve " + registrationPath,
+                () -> restClient.get()
+                    .uri(registrationPath)
+                    .retrieve()
+                    .body(RegistrationDetails.class));
         } catch (NotFoundException e) {
             var notFound = new RelyingPartyNotFoundException(e.getErrorDescription(), relyingPartyInstanceId.toString());
             notFound.initCause(e);
             throw notFound;
-        } catch (ResourceAccessException e) {
-            throw new AdminServiceException("Unable to contact register service to retrieve " + registrationPath, e);
         }
 
         if (registrationDetails == null) {
@@ -74,9 +68,8 @@ public class V2RegisterClient {
     }
 
     public PagedResponse<Instance> searchInstances(SearchRelyingPartyResource searchResource) {
-        PagedResponse<Instance> instances;
-        try {
-            instances = restClient.get()
+        PagedResponse<Instance> instances = RestClientCall.execute("register service", "search instances",
+            () -> restClient.get()
                 .uri(builder -> {
                     var parameters = new ArrayList<Object>();
                     parameters.add(searchResource.getSearchTerm());
@@ -94,12 +87,7 @@ public class V2RegisterClient {
                     return builder.build(parameters.toArray());
                 })
                 .retrieve()
-                .body(new ParameterizedTypeReference<>() {});
-        } catch (ResourceAccessException e) {
-            throw new AdminServiceException("Unable to contact register service to search instances", e);
-        } catch (RestClientException e) {
-            throw new UnrecognizedErrorResponseException("Unable to read instance search response from register service", e);
-        }
+                .body(new ParameterizedTypeReference<>() {}));
 
         if (instances == null || !hasRequiredSearchData(instances)) {
             throw new UnrecognizedErrorResponseException(
@@ -109,17 +97,11 @@ public class V2RegisterClient {
     }
 
     public List<Entitlement> getEntitlements(boolean includeInactive) {
-        Entitlements entitlementCatalog;
-        try {
-            entitlementCatalog = restClient.get()
+        Entitlements entitlementCatalog = RestClientCall.execute("register service", "retrieve entitlements",
+            () -> restClient.get()
                 .uri(builder -> builder.path("/entitlements").queryParam("includeInactive", includeInactive).build())
                 .retrieve()
-                .body(Entitlements.class);
-        } catch (ResourceAccessException e) {
-            throw new AdminServiceException("Unable to contact register service to retrieve entitlements", e);
-        } catch (RestClientException e) {
-            throw new UnrecognizedErrorResponseException("Unable to read entitlement catalog from register service", e);
-        }
+                .body(Entitlements.class));
 
         if (entitlementCatalog == null || !hasRequiredCatalogData(entitlementCatalog)) {
             throw new UnrecognizedErrorResponseException(
