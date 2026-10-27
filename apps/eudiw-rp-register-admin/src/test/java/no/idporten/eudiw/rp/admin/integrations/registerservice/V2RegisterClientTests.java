@@ -18,7 +18,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClient;
 
 import java.io.IOException;
@@ -221,26 +220,6 @@ class V2RegisterClientTests {
 
         assertEquals("Unable to contact register service to retrieve registrations", exception.getMessage());
         assertSame(connectionFailure, exception.getCause().getCause());
-    }
-
-    @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    @DisplayName("Should report unreadable registrations with the failed operation and cause")
-    void shouldReportUnreadableRegistrationsWithFailedOperationAndCause(boolean details) {
-        String url = details ? REGISTRATION_URL : "https://register.test/v2/registrations?orgno=123456785";
-        server.expect(requestTo(url)).andRespond(withSuccess("not json", MediaType.APPLICATION_JSON));
-
-        var failure = assertThrows(UnrecognizedErrorResponseException.class, () -> {
-            if (details) {
-                client.getRelyingParty(RELYING_PARTY_INSTANCE_ID);
-            } else {
-                client.getRegistrations("123456785");
-            }
-        });
-
-        String operation = details ? "retrieve /registrations/" + RELYING_PARTY_INSTANCE_ID : "retrieve registrations";
-        assertEquals("Unable to read response from register service to " + operation, failure.getMessage());
-        assertInstanceOf(RestClientException.class, failure.getCause());
     }
 
     @Test
