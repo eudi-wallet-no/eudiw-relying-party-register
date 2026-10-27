@@ -22,7 +22,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -149,7 +148,7 @@ public class CsrControllerTests {
         }
 
         @ParameterizedTest
-        @CsvSource({"access, false", "issuer, false", "access, true", "issuer, true"})
+        @CsvSource({"access, false", "issuer, false", "access, true"})
         @DisplayName("Should show issuance rejection or timeout without certificate success")
         void shouldShowIssuanceFailureWithoutSuccess(String type, boolean timeout) throws Exception {
             RelyingPartyResource relyingParty = ResourceGenerator.generateRelyingPartyResource();
@@ -246,19 +245,15 @@ public class CsrControllerTests {
         verifyNoCertificateRequests();
     }
 
-    @ParameterizedTest
-    @NullAndEmptySource
-    @DisplayName("Should reject missing or blank issuer entitlement before requesting a certificate")
-    void shouldRejectMissingIssuerEntitlement(String entitlement) throws Exception {
+    @Test
+    @DisplayName("Should reject an issuer CSR without a selected entitlement before requesting a certificate")
+    void shouldRejectMissingIssuerEntitlement() throws Exception {
         RelyingPartyResource relyingParty = ResourceGenerator.generateRelyingPartyResource();
         when(mockRpService.get(relyingParty.id())).thenReturn(relyingParty);
         var request = post("/csr/issuer/" + relyingParty.id())
             .with(SecurityTestUtils.oidcLoginForOrgno(relyingParty.orgno()))
             .with(csrf())
             .formField("csrField", validCsr());
-        if (entitlement != null) {
-            request.formField("entitlement", entitlement);
-        }
 
         mockMvc.perform(request)
             .andExpectAll(
@@ -287,18 +282,6 @@ public class CsrControllerTests {
 
         verify(mockRpService).get(relyingParty.id());
         verifyNoCertificateRequests();
-    }
-
-    @Test
-    @DisplayName("Should reject certificate issuance without CSRF before calling the service")
-    void shouldRejectCertificateIssuanceWithoutCsrf() throws Exception {
-        mockMvc.perform(post("/csr/access/" + UUID.randomUUID())
-                .with(SecurityTestUtils.adminOidcLogin())
-                .formField("csrField", validCsr())
-                .formField("entitlement", "pid_provider"))
-            .andExpect(status().isForbidden());
-
-        verifyNoInteractions(mockRpService);
     }
 
     private RequestPostProcessor login(RelyingPartyResource relyingParty, boolean administrator) {

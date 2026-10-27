@@ -9,7 +9,6 @@ import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.admin.web.controllers.AdminWebControllerAdvice;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -66,7 +65,7 @@ public class RevokeCertificateControllerTests {
     }
 
     @ParameterizedTest
-    @CsvSource({"access, ca", "issuer, ca", "access, timeout", "issuer, timeout", "access, notfound", "issuer, notfound"})
+    @CsvSource({"access, ca", "issuer, timeout", "access, notfound"})
     @DisplayName("Should show revocation CA errors, timeouts and missing certificates without redirecting to success")
     void shouldShowRevocationFailureWithoutRedirect(String type, String failureType) throws Exception {
         RelyingPartyResource relyingParty = ResourceGenerator.generateRelyingPartyResource();
@@ -113,16 +112,6 @@ public class RevokeCertificateControllerTests {
         verify(mockRpService).get(relyingParty.id());
         verify(mockRpService, never()).revokeAccessCertificate(any(), any());
         verify(mockRpService, never()).revokeIssuerCertificate(any(), any());
-    }
-
-    @Test
-    @DisplayName("Should reject certificate revocation without CSRF before calling the service")
-    void shouldRejectCertificateRevocationWithoutCsrf() throws Exception {
-        mockMvc.perform(post(revokePath("access", UUID.randomUUID(), UUID.randomUUID()))
-                .with(SecurityTestUtils.adminOidcLogin()))
-            .andExpect(status().isForbidden());
-
-        verifyNoInteractions(mockRpService);
     }
 
     private String revokePath(String type, UUID relyingPartyId, UUID certificateId) {

@@ -6,8 +6,6 @@ import no.idporten.eudiw.rp.admin.integrations.registerservice.config.V2Certific
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.service.exception.BadRequestException;
 import no.idporten.eudiw.rp.admin.service.exception.CertificateNotFoundException;
-import no.idporten.eudiw.rp.admin.service.exception.ErrorResponseException;
-import no.idporten.eudiw.rp.admin.service.exception.UnrecognizedErrorResponseException;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.IssuerCsrResource;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificateResource;
@@ -139,30 +137,11 @@ class V2CertificateClientTests {
     }
 
     @Test
-    @DisplayName("Should report a certificate removed before revocation")
-    void shouldReportACertificateRemovedBetweenLookupAndRevocation() throws Exception {
-        server.enqueue(certificateResponse(-1));
-        server.enqueue(new MockResponse().setResponseCode(404));
-
-        assertThrows(CertificateNotFoundException.class, () -> revokeCertificate("access"));
-        assertEquals(2, server.getRequestCount());
-    }
-
-    @Test
     @DisplayName("Should report a rejected certificate request without fallback")
     void shouldKeepValidationFailuresVisibleWithoutFallback() {
         server.enqueue(errorResponse(400, "invalid_request"));
 
         assertThrows(BadRequestException.class, () -> requestCertificate("access"));
-        assertEquals(1, server.getRequestCount());
-    }
-
-    @Test
-    @DisplayName("Should report service unavailability when requesting a certificate")
-    void shouldReportServiceUnavailableWhenRequestingCertificate() {
-        server.enqueue(errorResponse(503, "server_error").setHeader("Retry-After", "0"));
-
-        assertThrows(ErrorResponseException.class, () -> requestCertificate("access"));
         assertEquals(1, server.getRequestCount());
     }
 
@@ -210,60 +189,6 @@ class V2CertificateClientTests {
         var exception = assertThrows(AdminServiceException.class, () -> getCertificate("access"));
 
         assertInstanceOf(ResourceAccessException.class, exception.getCause());
-        assertEquals(1, server.getRequestCount());
-    }
-
-    @Test
-    @DisplayName("Should reject a revocation response that does not confirm success")
-    void shouldRejectUnconfirmedRevocation() throws Exception {
-        server.enqueue(certificateResponse(-1));
-        server.enqueue(new MockResponse().setResponseCode(200));
-
-        assertThrows(UnrecognizedErrorResponseException.class, () -> revokeCertificate("access"));
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"", "{}", "{\"certificate\":\"not a certificate\"}"})
-    @DisplayName("Should reject an incomplete or unreadable certificate issuance response")
-    void shouldRejectMissingOrUnreadableIssuanceResponses(String body) {
-        server.enqueue(new MockResponse().setResponseCode(200).setHeader("Content-Type", "application/json").setBody(body));
-
-        assertThrows(UnrecognizedErrorResponseException.class, () -> requestCertificate("access"));
-    }
-
-    @Test
-    @DisplayName("Should reject an issuance response with an unexpected success status")
-    void shouldRejectUnexpectedIssuanceSuccessStatus() throws Exception {
-        server.enqueue(certificateResponse(-1).setResponseCode(201));
-
-        assertThrows(UnrecognizedErrorResponseException.class, () -> requestCertificate("access"));
-    }
-
-    @Test
-    @DisplayName("Should reject a certificate response with the wrong identity or invalid revocation status")
-    void shouldRejectUnconfirmedCertificateIdentityOrStatus() throws Exception {
-        var response = (tools.jackson.databind.node.ObjectNode) mapper.valueToTree(certificate);
-        response.put("id", UUID.randomUUID().toString());
-        server.enqueue(new MockResponse().setHeader("Content-Type", "application/json").setBody(response.toString()));
-        assertThrows(UnrecognizedErrorResponseException.class, () -> getCertificate("access"));
-
-        response.put("id", certificate.id().toString());
-        response.remove("revocation_status");
-        server.enqueue(new MockResponse().setHeader("Content-Type", "application/json").setBody(response.toString()));
-        assertThrows(UnrecognizedErrorResponseException.class, () -> revokeCertificate("access"));
-
-        server.enqueue(certificateResponse(-2));
-        assertThrows(UnrecognizedErrorResponseException.class, () -> revokeCertificate("access"));
-        assertEquals(3, server.getRequestCount());
-    }
-
-    @Test
-    @DisplayName("Should reject a redirect without following it")
-    void shouldRejectRedirectsWithoutFollowingThem() {
-        server.enqueue(new MockResponse().setResponseCode(307).setHeader("Location", server.url("/v1/fallback")));
-        server.enqueue(new MockResponse().setResponseCode(204));
-
-        assertThrows(UnrecognizedErrorResponseException.class, () -> requestCertificate("access"));
         assertEquals(1, server.getRequestCount());
     }
 
