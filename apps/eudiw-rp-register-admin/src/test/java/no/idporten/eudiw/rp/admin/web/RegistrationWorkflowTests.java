@@ -24,11 +24,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
-import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import tools.jackson.databind.json.JsonMapper;
+
+import java.net.URI;
+import java.util.regex.Pattern;
+import org.springframework.web.util.HtmlUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -108,28 +111,55 @@ class RegistrationWorkflowTests {
     @Test
     @DisplayName("Should preserve combined search filters across sorted pages and display registration details links")
     void shouldPreserveCombinedSearchFiltersAcrossSortedPagesAndDisplayDetailsLinks() throws Exception {
-        enqueueSearchPage(0, "createdMs", relyingPartyResource.id(), "First service");
-        var result = mockMvc.perform(post("/search").with(csrf()).with(login(true))
-                .formField("searchTerm", "Test")
-                .formField("includeInactive", "true")
-                .formField("requiredEntitlements", "urn:first", "urn:second"))
+        UUID secondInstanceId = new UUID(0, 6);
+        enqueueSearchPage(1, "name", secondInstanceId, "Second service");
+        String secondPageHtml = mockMvc.perform(get("/search").with(login(true))
+                .param("searchTerm", "Test")
+                .param("includeInactive", "true")
+                .param("requiredEntitlements", "urn:first", "urn:second")
+                .param("page", "2").param("sort", "name"))
             .andExpectAll(status().isOk(), view().name("search_view"),
                 content().string(allOf(
                     containsString("<td>123456785</td>"), containsString("<td>Legal name</td>"),
-                    containsString("href=\"/details/" + relyingPartyResource.id() + "\""),
-                    containsString("<div>First service</div>"),
-                    matchesPattern("(?s).*<td>1</td>\\s*<td>1</td>.*"))))
-            .andReturn();
-        UUID secondInstanceId = new UUID(0, 6);
-        enqueueSearchPage(1, "name", secondInstanceId, "Second service");
-
-        mockMvc.perform(get("/search").with(login(true))
-                .session((MockHttpSession) result.getRequest().getSession())
-                .param("page", "2").param("sort", "name"))
-            .andExpectAll(status().isOk(),
-                content().string(allOf(
                     containsString("href=\"/details/" + secondInstanceId + "\""),
-                    containsString("<div>Second service</div>"))));
+                    containsString("<div>Second service</div>"),
+                    matchesPattern("(?s).*<td>1</td>\\s*<td>1</td>.*"))))
+            .andReturn().getResponse().getContentAsString();
+
+        enqueueSearchPage(0, "name", relyingPartyResource.id(), "First service");
+        String firstPageHtml = mockMvc.perform(get(searchLink(secondPageHtml, "page=1")).with(login(true)))
+            .andExpectAll(status().isOk(), content().string(containsString("<div>First service</div>")))
+            .andReturn().getResponse().getContentAsString();
+
+        enqueueSearchPage(0, "createdMs", relyingPartyResource.id(), "First service");
+        mockMvc.perform(get(searchLink(firstPageHtml, "sort=createdMs")).with(login(true)))
+            .andExpectAll(status().isOk(), content().string(containsString("<div>First service</div>")));
+    }
+
+    @Test
+    @DisplayName("Should search only authorized registrations and keep links to matching services")
+    void shouldSearchOnlyAuthorizedRegistrationsAndKeepLinksToMatchingServices() throws Exception {
+        var matching = new V2RegisterClient.Registration(relyingPartyResource.id(), "Kontrollteneste",
+            List.of(new V2RegisterClient.Role("Service Provider")), 1700000000000L, 1710000000000L);
+        var other = new V2RegisterClient.Registration(new UUID(0, 9), "Annan teneste", List.of(), null, null);
+        enqueue("GET", "/v2/registrations?orgno=" + relyingPartyResource.orgno(), List.of(matching, other));
+
+        mockMvc.perform(get("/registrations").with(login(false))
+                .param("searchTerm", "  KONTROLL  ").param("orgno", "987654321"))
+            .andExpectAll(status().isOk(), content().string(allOf(
+                containsString("href=\"/details/" + matching.id() + "\""),
+                containsString("Kontrollteneste"), not(containsString("Annan teneste")))));
+    }
+
+    @Test
+    @DisplayName("Should display register service failures instead of empty registration search results")
+    void shouldDisplayRegisterServiceFailuresInsteadOfEmptyRegistrationSearchResults() throws Exception {
+        expectedRequests.add("GET /v2/registrations?orgno=" + relyingPartyResource.orgno());
+        server.enqueue(new MockResponse().setResponseCode(500).setHeader("Content-Type", "application/json")
+            .setBody("{\"error\":\"service_unavailable\",\"error_description\":\"Register service unavailable\"}"));
+
+        mockMvc.perform(get("/registrations").with(login(false)).param("searchTerm", "Test"))
+            .andExpectAll(status().isInternalServerError(), view().name("error/5xx"));
     }
 
     @ParameterizedTest
@@ -145,7 +175,7 @@ class RegistrationWorkflowTests {
         server.enqueue(new MockResponse().setResponseCode(500).setHeader("Content-Type", "application/json")
             .setBody("{\"error\":\"service_unavailable\",\"error_description\":\"Register service unavailable\"}"));
 
-        mockMvc.perform(post("/search").with(csrf()).with(login(true)))
+        mockMvc.perform(get("/search").with(login(true)))
             .andExpectAll(status().isInternalServerError(), view().name("error/5xx"));
     }
 
@@ -251,6 +281,17 @@ class RegistrationWorkflowTests {
 
         mockMvc.perform(request.with(SecurityTestUtils.oidcLoginForOrgno("987654325")))
             .andExpectAll(status().isNotFound(), view().name("error/404"));
+    }
+
+    private URI searchLink(String html, String parameter) {
+        var links = Pattern.compile("href=\"(/search\\?[^\"]*)\"").matcher(html);
+        while (links.find()) {
+            String link = HtmlUtils.htmlUnescape(links.group(1));
+            if (link.contains(parameter)) {
+                return URI.create(link);
+            }
+        }
+        throw new AssertionError("Missing search link with " + parameter);
     }
 
     private RequestPostProcessor login(boolean administrator) {

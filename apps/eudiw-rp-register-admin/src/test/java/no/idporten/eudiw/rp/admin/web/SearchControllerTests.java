@@ -11,8 +11,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -25,8 +23,6 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
@@ -44,19 +40,18 @@ public class SearchControllerTests {
     @MockitoBean
     private RelyingPartiesService mockRpService;
 
-    @ParameterizedTest
-    @ValueSource(strings = {"GET", "POST"})
+    @Test
     @WithMockUser(roles = "USER")
     @DisplayName("Should prevent non-administrators from searching registrations")
-    void shouldPreventNonAdministratorsFromSearchingRegistrations(String method) throws Exception {
-        mockMvc.perform(method.equals("GET") ? get("/search") : post("/search").with(csrf()))
+    void shouldPreventNonAdministratorsFromSearchingRegistrations() throws Exception {
+        mockMvc.perform(get("/search"))
             .andExpectAll(status().isNotFound(), view().name("error/404"));
         verifyNoInteractions(mockRpService);
     }
 
     @Nested
-    @DisplayName("when POST'ing the /search endpoint")
-    class SearchEndpointPostTests {
+    @DisplayName("when GET'ing the /search endpoint")
+    class SearchEndpointGetTests {
         @BeforeEach
         void setupMockRelyingPartiesService() {
             when(mockRpService.search(any()))
@@ -76,10 +71,9 @@ public class SearchControllerTests {
         @Test
         public void testServiceCalledAndWithEmptyResource() throws Exception {
             SearchForm searchForm = SearchForm.empty();
-            mockMvc.perform(post("/search")
-                    .with(csrf())
-                    .formField("searchTerm", searchForm.getSearchTerm())
-                    .formField("includeInactive", Boolean.toString(searchForm.isIncludeInactive())))
+            mockMvc.perform(get("/search")
+                    .param("searchTerm", searchForm.getSearchTerm())
+                    .param("includeInactive", Boolean.toString(searchForm.isIncludeInactive())))
                 .andExpect(view().name("search_view"))
                 .andExpect(model().attribute(SearchController.SEARCH_FORM_ATTR, searchForm));
 
@@ -93,10 +87,9 @@ public class SearchControllerTests {
             SearchForm testSearchForm = ResourceGenerator.generateSearchForm();
             String includeInactiveStr = Boolean.toString(testSearchForm.isIncludeInactive());
 
-            mockMvc.perform(post("/search")
-                                .with(csrf())
-                                .formField("searchTerm", testSearchForm.getSearchTerm())
-                                .formField("includeInactive", includeInactiveStr))
+            mockMvc.perform(get("/search")
+                                            .param("searchTerm", testSearchForm.getSearchTerm())
+                                .param("includeInactive", includeInactiveStr))
                    .andExpect(view().name("search_view"))
                    .andExpect(model().attribute(SearchController.SEARCH_FORM_ATTR, testSearchForm));
             SearchRelyingPartyResource expectedSearchResource =
@@ -107,10 +100,9 @@ public class SearchControllerTests {
         @Test
         public void testInvalidSearchFormIsRejected() throws Exception {
             String invalidSearchTerm = "foobar$";
-            mockMvc.perform(post("/search")
-                                .with(csrf())
-                                .formField("searchTerm", invalidSearchTerm)
-                                .formField("includeInactive", "true"))
+            mockMvc.perform(get("/search")
+                                            .param("searchTerm", invalidSearchTerm)
+                                .param("includeInactive", "true"))
                    .andExpect(view().name("search_view"))
                    .andExpect(model().attributeHasFieldErrors(SearchController.SEARCH_FORM_ATTR, "searchTerm"));
 
