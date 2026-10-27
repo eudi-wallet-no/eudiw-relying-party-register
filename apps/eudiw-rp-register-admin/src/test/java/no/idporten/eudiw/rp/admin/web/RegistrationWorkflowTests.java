@@ -163,7 +163,6 @@ class RegistrationWorkflowTests {
         var certificate = activeCertificate(certificateType);
         String certificatePath = "/v2/instances/" + relyingPartyResource.id() + "/certificates/"
             + certificateType + "/" + certificate.id();
-        enqueue("GET", certificatePath, certificate);
         expectedRequests.add("PATCH " + certificatePath + "/revoke");
         server.enqueue(new MockResponse().setResponseCode(204));
 

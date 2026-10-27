@@ -6,6 +6,7 @@ import no.idporten.eudiw.rp.admin.integrations.registerservice.config.V2Certific
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.service.exception.BadRequestException;
 import no.idporten.eudiw.rp.admin.service.exception.CertificateNotFoundException;
+import no.idporten.eudiw.rp.admin.service.exception.ErrorResponseException;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.IssuerCsrResource;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificateResource;
@@ -100,33 +101,19 @@ class V2CertificateClientTests {
     @ParameterizedTest
     @ValueSource(strings = {"access", "issuer"})
     @DisplayName("Should revoke an active access or issuer certificate owned by the instance")
-    void shouldRevokeOnlyAfterTheRegisterConfirmsAnActiveOwnedCertificate(String type) throws Exception {
-        server.enqueue(certificateResponse(-1));
+    void shouldRevokeAnActiveOwnedCertificate(String type) throws Exception {
         server.enqueue(new MockResponse().setResponseCode(204));
 
         revokeCertificate(type);
 
-        assertRequest(server.takeRequest(1, TimeUnit.SECONDS), "GET", ownedCertificatePath(type));
         assertRequest(server.takeRequest(1, TimeUnit.SECONDS), "PATCH", ownedCertificatePath(type) + "/revoke");
-        assertEquals(2, server.getRequestCount());
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"access", "issuer"})
-    @DisplayName("Should accept a revocation already confirmed by the register")
-    void shouldAcceptRegisterConfirmedRevocationWithoutAnotherCaOperation(String type) throws Exception {
-        server.enqueue(certificateResponse(1));
-
-        revokeCertificate(type);
-
         assertEquals(1, server.getRequestCount());
-        assertRequest(server.takeRequest(1, TimeUnit.SECONDS), "GET", ownedCertificatePath(type));
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"access", "issuer"})
-    @DisplayName("Should report a missing owned certificate without attempting revocation")
-    void shouldReportMissingOwnedCertificatesWithoutAttemptingRevocation(String type) throws Exception {
+    @DisplayName("Should report a missing certificate when revocation is rejected")
+    void shouldReportMissingCertificatesWhenRevocationIsRejected(String type) throws Exception {
         server.enqueue(new MockResponse().setResponseCode(404));
 
         var exception = assertThrows(CertificateNotFoundException.class, () -> revokeCertificate(type));
@@ -134,6 +121,7 @@ class V2CertificateClientTests {
         assertEquals(instanceId.toString(), exception.getRpId());
         assertEquals(certificate.id().toString(), exception.getCertificateId());
         assertEquals(1, server.getRequestCount());
+        assertRequest(server.takeRequest(1, TimeUnit.SECONDS), "PATCH", ownedCertificatePath(type) + "/revoke");
     }
 
     @Test
@@ -146,13 +134,23 @@ class V2CertificateClientTests {
     }
 
     @Test
-    @DisplayName("Should report a failed revocation when the register still marks the certificate active")
-    void shouldNotClaimRevocationWhenOnlyTheCaMayHaveRevokedTheCertificate() throws Exception {
-        server.enqueue(certificateResponse(-1));
+    @DisplayName("Should report a register server error without fallback")
+    void shouldReportRegisterServerErrorWithoutFallback() {
+        server.enqueue(new MockResponse().setResponseCode(500));
+
+        var exception = assertThrows(ErrorResponseException.class, () -> requestCertificate("access"));
+
+        assertEquals("500 INTERNAL_SERVER_ERROR", exception.getError());
+        assertEquals(1, server.getRequestCount());
+    }
+
+    @Test
+    @DisplayName("Should report a rejected revocation without fallback")
+    void shouldReportRejectedRevocationWithoutFallback() {
         server.enqueue(errorResponse(400, "invalid_request"));
 
         assertThrows(BadRequestException.class, () -> revokeCertificate("access"));
-        assertEquals(2, server.getRequestCount());
+        assertEquals(1, server.getRequestCount());
     }
 
     @Test
@@ -170,14 +168,13 @@ class V2CertificateClientTests {
     @Test
     @DisplayName("Should report an unknown revocation outcome after a timeout without retry")
     void shouldReportUnknownRevocationOutcomeAfterTimeoutWithoutRetry() throws Exception {
-        server.enqueue(certificateResponse(-1));
         server.enqueue(new MockResponse().setResponseCode(204).setHeadersDelay(1, TimeUnit.SECONDS));
 
         var exception = assertThrows(AdminServiceException.class, () -> revokeCertificate("access"));
 
         assertInstanceOf(ResourceAccessException.class, exception.getCause());
         assertTrue(exception.getMessage().contains("outcome is unknown"));
-        assertEquals(2, server.getRequestCount());
+        assertEquals(1, server.getRequestCount());
     }
 
     @Test
