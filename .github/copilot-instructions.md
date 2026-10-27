@@ -14,4 +14,4 @@
 - Create a PR, including any necessary commit and push, only at the user's request, including via the app's "Create PR" button.
 - Branch: `<jira-id>`, preserving the supplied casing; if taken, use `<jira-id>-2`, then `<jira-id>-3`.
 - PR title: `<JIRA-ID>: <Norwegian title>`.
-- PR-beskrivelse: én til to korte setninger på norsk om hva som faktisk er endret, på overordnet nivå. Bruk konkrete ord fra bestillingen; ikke legg til antatt nytte eller omskriv en enkel endring til en teknisk forklaring. Ta med behovet bare når det forklarer endringen. Utelat implementasjonsdetaljer, validering, feilkoder, uendret atferd og tester med mindre revieweren trenger dem for å vurdere endringen.
+- PR description: one or two short sentences in Norwegian describing what actually changed at a high level. Use concrete wording from the request; do not add assumed benefits or turn a simple change into a technical explanation. Include the need only when it explains the change. Omit implementation details, validation, error codes, unchanged behaviour and tests unless the reviewer needs them to assess the change.
