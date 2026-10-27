@@ -124,26 +124,37 @@ class RegistrationWorkflowTests {
                     matchesPattern("(?s).*<td>1</td>\\s*<td>1</td>.*"))))
             .andReturn().getResponse().getContentAsString();
 
-        var detailsLink = Pattern.compile("href=\"(/details/" + secondInstanceId + "\\?[^\"]*)\"").matcher(secondPageHtml);
-        assertTrue(detailsLink.find(), "Missing details link with originating search URL");
+        URI detailsLink = navigationLink(secondPageHtml, "/details/" + secondInstanceId, "returnUrl=");
         enqueueLookup();
-        String detailsHtml = mockMvc.perform(get(URI.create(HtmlUtils.htmlUnescape(detailsLink.group(1)))).with(login(true)))
+        String detailsHtml = mockMvc.perform(get(detailsLink).with(login(true)))
             .andExpectAll(status().isOk(), view().name("details_view"))
             .andReturn().getResponse().getContentAsString();
 
-        URI returnLink = searchLink(detailsHtml, "page=2");
+        URI returnLink = navigationLink(detailsHtml, "/search", "page=2");
         assertEquals(originalSearch, returnLink);
         enqueueSearchPage(1, "name", secondInstanceId, "Second service");
         mockMvc.perform(get(returnLink).with(login(true)))
-            .andExpectAll(status().isOk(), content().string(secondPageHtml));
+            .andExpectAll(status().isOk(), content().string(containsString("<div>Second service</div>")));
+    }
+
+    @Test
+    @DisplayName("Should preserve combined search filters when changing pages and sorting")
+    void shouldPreserveCombinedSearchFiltersWhenChangingPagesAndSorting() throws Exception {
+        enqueueSearchPage(1, "name", relyingPartyResource.id(), "Second service");
+        String secondPageHtml = mockMvc.perform(get("/search").with(login(true))
+                .param("searchTerm", "Test").param("includeInactive", "true")
+                .param("requiredEntitlements", "urn:first", "urn:second")
+                .param("page", "2").param("sort", "name"))
+            .andExpect(status().isOk())
+            .andReturn().getResponse().getContentAsString();
 
         enqueueSearchPage(0, "name", relyingPartyResource.id(), "First service");
-        String firstPageHtml = mockMvc.perform(get(searchLink(secondPageHtml, "page=1")).with(login(true)))
+        String firstPageHtml = mockMvc.perform(get(navigationLink(secondPageHtml, "/search", "page=1")).with(login(true)))
             .andExpectAll(status().isOk(), content().string(containsString("<div>First service</div>")))
             .andReturn().getResponse().getContentAsString();
 
         enqueueSearchPage(0, "createdMs", relyingPartyResource.id(), "First service");
-        mockMvc.perform(get(searchLink(firstPageHtml, "sort=createdMs")).with(login(true)))
+        mockMvc.perform(get(navigationLink(firstPageHtml, "/search", "sort=createdMs")).with(login(true)))
             .andExpectAll(status().isOk(), content().string(containsString("<div>First service</div>")));
     }
 
@@ -294,15 +305,15 @@ class RegistrationWorkflowTests {
             .andExpectAll(status().isNotFound(), view().name("error/404"));
     }
 
-    private URI searchLink(String html, String parameter) {
-        var links = Pattern.compile("href=\"(/search\\?[^\"]*)\"").matcher(html);
+    private URI navigationLink(String html, String path, String parameter) {
+        var links = Pattern.compile("href=\"(" + Pattern.quote(path) + "\\?[^\"]*)\"").matcher(html);
         while (links.find()) {
             String link = HtmlUtils.htmlUnescape(links.group(1));
             if (link.contains(parameter)) {
                 return URI.create(link);
             }
         }
-        throw new AssertionError("Missing search link with " + parameter);
+        throw new AssertionError("Missing " + path + " link with " + parameter);
     }
 
     private RequestPostProcessor login(boolean administrator) {
