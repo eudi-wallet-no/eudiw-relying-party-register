@@ -125,8 +125,8 @@ class RegistrationWorkflowTests {
     void shouldSubmitCertificateOrderForOwningOrganization(String certificateType) throws Exception {
         enqueueLookup();
         var certificationRequest = CertificatesGenerator.generatePKCS10Csr();
-        var certificate = certificate(certificateType);
-        String path = "/v1/rp/" + relyingPartyResource.id() + "/certs/" + certificateType;
+        var certificate = activeCertificate(certificateType);
+        String path = "/v2/instances/" + relyingPartyResource.id() + "/certificates/" + certificateType;
         enqueue("POST", path, certificate);
 
         mockMvc.perform(post("/csr/" + certificateType + "/" + relyingPartyResource.id())
@@ -146,7 +146,7 @@ class RegistrationWorkflowTests {
         var certificate = certificate(certificateType);
         enqueue(
             "GET",
-            "/v1/rp/" + relyingPartyResource.id() + "/certs/" + certificateType + "/" + certificate.id(),
+            "/v2/instances/" + relyingPartyResource.id() + "/certificates/" + certificateType + "/" + certificate.id(),
             certificate);
         String downloadPath = "/get-certificate/" + relyingPartyResource.id() + (certificateType.equals("issuer") ? "/issuer" : "")
             + "/" + certificate.id();
@@ -160,11 +160,12 @@ class RegistrationWorkflowTests {
     @DisplayName("Should submit an access or issuer certificate revocation for the owning organization")
     void shouldSubmitCertificateRevocationForOwningOrganization(String certificateType) throws Exception {
         enqueueLookup();
-        var certificate = certificate(certificateType);
-        enqueue(
-            "PATCH",
-            "/v1/rp/" + relyingPartyResource.id() + "/certs/" + certificateType + "/" + certificate.id() + "/revoke",
-            "");
+        var certificate = activeCertificate(certificateType);
+        String certificatePath = "/v2/instances/" + relyingPartyResource.id() + "/certificates/"
+            + certificateType + "/" + certificate.id();
+        enqueue("GET", certificatePath, certificate);
+        expectedRequests.add("PATCH " + certificatePath + "/revoke");
+        server.enqueue(new MockResponse().setResponseCode(204));
 
         mockMvc.perform(post("/revoke-certificate/" + relyingPartyResource.id() + "/" + certificateType + "/" + certificate.id())
                 .with(csrf())
@@ -196,6 +197,11 @@ class RegistrationWorkflowTests {
 
     private RelyingPartyCertificateResource certificate(String certificateType) {
         return (certificateType.equals("issuer") ? relyingPartyResource.issuerCertificates() : relyingPartyResource.accessCertificates()).getFirst();
+    }
+
+    private RelyingPartyCertificateResource activeCertificate(String certificateType) {
+        var certificate = certificate(certificateType);
+        return new RelyingPartyCertificateResource(certificate.certificate(), certificate.id(), certificate.entitlement(), -1);
     }
 
     private void enqueueLookup() {
