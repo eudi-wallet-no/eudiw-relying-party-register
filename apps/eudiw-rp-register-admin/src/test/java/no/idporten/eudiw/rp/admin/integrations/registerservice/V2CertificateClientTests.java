@@ -54,7 +54,6 @@ class V2CertificateClientTests {
         var config = new V2CertificateClientConfig(properties);
         httpClient = config.v2CertificateHttpClient();
         var client = new V2CertificateClient(config.v2CertificateRestClient(RestClient.builder(), httpClient));
-        // A V1 fallback would fail locally instead of reaching another service.
         service = new RelyingPartiesService(RestClient.builder().build(), null, client);
     }
 
