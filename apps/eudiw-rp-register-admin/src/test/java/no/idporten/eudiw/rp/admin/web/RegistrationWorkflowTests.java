@@ -109,22 +109,33 @@ class RegistrationWorkflowTests {
     }
 
     @Test
-    @DisplayName("Should preserve combined search filters across sorted pages and display registration details links")
-    void shouldPreserveCombinedSearchFiltersAcrossSortedPagesAndDisplayDetailsLinks() throws Exception {
-        UUID secondInstanceId = new UUID(0, 6);
+    @DisplayName("Should preserve combined search filters and sorted pages when returning from registration details")
+    void shouldPreserveCombinedSearchFiltersAndSortedPagesWhenReturningFromDetails() throws Exception {
+        UUID secondInstanceId = relyingPartyResource.id();
+        URI originalSearch = URI.create("/search?searchTerm=Test&includeInactive=true"
+            + "&requiredEntitlements=urn%3Afirst&requiredEntitlements=urn%3Asecond&page=2&sort=name");
         enqueueSearchPage(1, "name", secondInstanceId, "Second service");
-        String secondPageHtml = mockMvc.perform(get("/search").with(login(true))
-                .param("searchTerm", "Test")
-                .param("includeInactive", "true")
-                .param("requiredEntitlements", "urn:first", "urn:second")
-                .param("page", "2").param("sort", "name"))
+        String secondPageHtml = mockMvc.perform(get(originalSearch).with(login(true)))
             .andExpectAll(status().isOk(), view().name("search_view"),
                 content().string(allOf(
                     containsString("<td>123456785</td>"), containsString("<td>Legal name</td>"),
-                    containsString("href=\"/details/" + secondInstanceId + "\""),
+                    containsString("href=\"/details/" + secondInstanceId + "?returnUrl="),
                     containsString("<div>Second service</div>"),
                     matchesPattern("(?s).*<td>1</td>\\s*<td>1</td>.*"))))
             .andReturn().getResponse().getContentAsString();
+
+        var detailsLink = Pattern.compile("href=\"(/details/" + secondInstanceId + "\\?[^\"]*)\"").matcher(secondPageHtml);
+        assertTrue(detailsLink.find(), "Missing details link with originating search URL");
+        enqueueLookup();
+        String detailsHtml = mockMvc.perform(get(URI.create(HtmlUtils.htmlUnescape(detailsLink.group(1)))).with(login(true)))
+            .andExpectAll(status().isOk(), view().name("details_view"))
+            .andReturn().getResponse().getContentAsString();
+
+        URI returnLink = searchLink(detailsHtml, "page=2");
+        assertEquals(originalSearch, returnLink);
+        enqueueSearchPage(1, "name", secondInstanceId, "Second service");
+        mockMvc.perform(get(returnLink).with(login(true)))
+            .andExpectAll(status().isOk(), content().string(secondPageHtml));
 
         enqueueSearchPage(0, "name", relyingPartyResource.id(), "First service");
         String firstPageHtml = mockMvc.perform(get(searchLink(secondPageHtml, "page=1")).with(login(true)))

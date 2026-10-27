@@ -101,7 +101,7 @@
                 <td th:text="${rp.orgno}"></td>
                 <td th:text="${rp.orgName}"></td>
                 <td>
-                    <a th:href="@{|/details/${rp.id}|}" class="clickable-link">
+                    <a th:href="@{/details/{id}(id=${rp.id}, returnUrl=${searchUrlAttr})}" class="clickable-link">
                         <div th:text="${rp.tradeName}"></div>
                     </a>
                 </td>

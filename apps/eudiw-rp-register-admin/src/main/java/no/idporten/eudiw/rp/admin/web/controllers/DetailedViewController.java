@@ -11,6 +11,7 @@ import no.idporten.eudiw.rp.admin.web.security.UserAuthorityService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.List;
@@ -36,7 +37,8 @@ public class DetailedViewController {
     }
 
     @GetMapping("/details/{id}")
-    public ModelAndView detailsGet(@PathVariable("id") @Valid UUID id) {
+    public ModelAndView detailsGet(@PathVariable("id") @Valid UUID id,
+                                   @RequestParam(defaultValue = "/search") String returnUrl) {
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
         userAuthorityService.assertUserHasAccessTo(relyingPartyResource.orgno());
 
@@ -56,7 +58,8 @@ public class DetailedViewController {
         return new ModelAndView("details_view", Map.of(
             DETAILED_VIEW_DATA_ATTR, relyingPartyResource,
             ACCESS_CERTIFICATE_SUMMARIES_ATTR, accessCertificates,
-            ISSUER_CERTIFICATE_SUMMARIES_ATTR, issuerCertificates)
+            ISSUER_CERTIFICATE_SUMMARIES_ATTR, issuerCertificates,
+            "searchUrlAttr", returnUrl.equals("/search") || returnUrl.startsWith("/search?") ? returnUrl : "/search")
         );
     }
 }

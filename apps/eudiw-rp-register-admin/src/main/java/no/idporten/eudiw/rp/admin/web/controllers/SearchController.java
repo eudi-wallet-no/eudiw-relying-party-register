@@ -1,5 +1,6 @@
 package no.idporten.eudiw.rp.admin.web.controllers;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,10 +36,12 @@ public class SearchController {
         @ModelAttribute(SEARCH_FORM_ATTR) @Valid SearchForm searchForm,
         BindingResult bindingResult,
         @RequestParam(value = "page", defaultValue = "1") int oneIndexedPageNum,
-        @RequestParam(value = "sort", defaultValue = SearchRelyingPartyResource.DEFAULT_ORDERING) String ordering) {
+        @RequestParam(value = "sort", defaultValue = SearchRelyingPartyResource.DEFAULT_ORDERING) String ordering,
+        HttpServletRequest request) {
 
         ModelAndView mav = new ModelAndView("search_view", SEARCH_FORM_ATTR, searchForm);
         mav.addObject("orderingAttr", ordering);
+        mav.addObject("searchUrlAttr", request.getQueryString() == null ? "/search" : "/search?" + request.getQueryString());
         if (bindingResult.hasErrors()) {
             mav.addObject(RESULTS_PAGE_ATTR, List.of());
             mav.addObject("numPagesAttr", 0);
