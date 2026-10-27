@@ -83,7 +83,7 @@ public class V2CertificateClient {
             .toBodilessEntity());
     }
 
-    // The register answers every 404 with error code invalid_request, so the shared error handler cannot tell it apart.
+    // The shared error handler cannot attach the instance and certificate ids the certificate-not-found page shows.
     private RestClient.ResponseSpec.ErrorHandler certificateNotFound(UUID instanceId, UUID certificateId) {
         return (request, response) -> {
             throw new CertificateNotFoundException(

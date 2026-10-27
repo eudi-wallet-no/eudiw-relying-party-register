@@ -114,7 +114,7 @@ class V2CertificateClientTests {
     @ValueSource(strings = {"access", "issuer"})
     @DisplayName("Should report a missing certificate when revocation is rejected")
     void shouldReportMissingCertificatesWhenRevocationIsRejected(String type) throws Exception {
-        server.enqueue(new MockResponse().setResponseCode(404));
+        server.enqueue(errorResponse(404, "not_found"));
 
         var exception = assertThrows(CertificateNotFoundException.class, () -> revokeCertificate(type));
 
