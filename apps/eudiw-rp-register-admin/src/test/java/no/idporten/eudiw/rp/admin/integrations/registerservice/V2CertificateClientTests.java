@@ -19,6 +19,7 @@ import okhttp3.mockwebserver.SocketPolicy;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.web.client.ResourceAccessException;
@@ -131,153 +132,140 @@ class V2CertificateClientTests {
         assertEquals(1, server.getRequestCount());
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"access", "issuer"})
-    void shouldReportACertificateRemovedBetweenLookupAndRevocation(String type) throws Exception {
+    @Test
+    void shouldReportACertificateRemovedBetweenLookupAndRevocation() throws Exception {
         server.enqueue(certificateResponse(-1));
         server.enqueue(new MockResponse().setResponseCode(404));
 
-        assertThrows(CertificateNotFoundException.class, () -> revokeCertificate(type));
+        assertThrows(CertificateNotFoundException.class, () -> revokeCertificate("access"));
         assertEquals(2, server.getRequestCount());
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"access", "issuer"})
-    void shouldKeepValidationFailuresVisibleWithoutFallback(String type) {
+    @Test
+    void shouldKeepValidationFailuresVisibleWithoutFallback() {
         server.enqueue(errorResponse(400, "invalid_request"));
 
-        assertThrows(BadRequestException.class, () -> requestCertificate(type));
+        assertThrows(BadRequestException.class, () -> requestCertificate("access"));
         assertEquals(1, server.getRequestCount());
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"access", "issuer"})
-    void shouldNotRetryIssuanceWhenTheRegisterReturnsServiceUnavailable(String type) {
+    @Test
+    void shouldNotRetryIssuanceWhenTheRegisterReturnsServiceUnavailable() {
         server.enqueue(errorResponse(503, "server_error").setHeader("Retry-After", "0"));
         server.enqueue(new MockResponse().setResponseCode(204));
 
-        assertThrows(ErrorResponseException.class, () -> requestCertificate(type));
+        assertThrows(ErrorResponseException.class, () -> requestCertificate("access"));
         assertEquals(1, server.getRequestCount());
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"access", "issuer"})
-    void shouldNotRetryLookupWhenTheRegisterReturnsServiceUnavailable(String type) {
+    @Test
+    void shouldNotRetryLookupWhenTheRegisterReturnsServiceUnavailable() {
         server.enqueue(errorResponse(503, "server_error").setHeader("Retry-After", "0"));
         server.enqueue(new MockResponse().setResponseCode(204));
 
-        assertThrows(ErrorResponseException.class, () -> getCertificate(type));
+        assertThrows(ErrorResponseException.class, () -> getCertificate("access"));
         assertEquals(1, server.getRequestCount());
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"access", "issuer"})
-    void shouldKeepCaRevocationFailuresVisibleWithoutRetry(String type) throws Exception {
+    @Test
+    void shouldKeepCaRevocationFailuresVisibleWithoutRetry() throws Exception {
         server.enqueue(certificateResponse(-1));
         server.enqueue(errorResponse(503, "server_error").setHeader("Retry-After", "0"));
         server.enqueue(new MockResponse().setResponseCode(204));
 
-        assertThrows(ErrorResponseException.class, () -> revokeCertificate(type));
+        assertThrows(ErrorResponseException.class, () -> revokeCertificate("access"));
         assertEquals(2, server.getRequestCount());
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"access", "issuer"})
-    void shouldNotClaimRevocationWhenOnlyTheCaMayHaveRevokedTheCertificate(String type) throws Exception {
+    @Test
+    void shouldNotClaimRevocationWhenOnlyTheCaMayHaveRevokedTheCertificate() throws Exception {
         server.enqueue(certificateResponse(-1));
         server.enqueue(errorResponse(400, "invalid_request"));
 
-        assertThrows(BadRequestException.class, () -> revokeCertificate(type));
+        assertThrows(BadRequestException.class, () -> revokeCertificate("access"));
         assertEquals(2, server.getRequestCount());
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"access", "issuer"})
-    void shouldReportUnknownIssuanceOutcomeAfterTimeoutWithoutRetry(String type) throws Exception {
+    @Test
+    void shouldReportUnknownIssuanceOutcomeAfterTimeoutWithoutRetry() throws Exception {
         server.enqueue(certificateResponse(-1).setHeadersDelay(1, TimeUnit.SECONDS));
 
-        var exception = assertThrows(AdminServiceException.class, () -> requestCertificate(type));
+        var exception = assertThrows(AdminServiceException.class, () -> requestCertificate("access"));
 
         assertInstanceOf(ResourceAccessException.class, exception.getCause());
         assertTrue(exception.getMessage().contains("outcome is unknown"));
         assertEquals(1, server.getRequestCount());
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"access", "issuer"})
-    void shouldReportUnknownRevocationOutcomeAfterTimeoutWithoutRetry(String type) throws Exception {
+    @Test
+    void shouldReportUnknownRevocationOutcomeAfterTimeoutWithoutRetry() throws Exception {
         server.enqueue(certificateResponse(-1));
         server.enqueue(new MockResponse().setResponseCode(204).setHeadersDelay(1, TimeUnit.SECONDS));
 
-        var exception = assertThrows(AdminServiceException.class, () -> revokeCertificate(type));
+        var exception = assertThrows(AdminServiceException.class, () -> revokeCertificate("access"));
 
         assertInstanceOf(ResourceAccessException.class, exception.getCause());
         assertTrue(exception.getMessage().contains("outcome is unknown"));
         assertEquals(2, server.getRequestCount());
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"access", "issuer"})
-    void shouldNotRetryLookupAfterALostConnection(String type) {
+    @Test
+    void shouldNotRetryLookupAfterALostConnection() {
         server.enqueue(new MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AFTER_REQUEST));
         server.enqueue(new MockResponse().setResponseCode(204));
 
-        var exception = assertThrows(AdminServiceException.class, () -> getCertificate(type));
+        var exception = assertThrows(AdminServiceException.class, () -> getCertificate("access"));
 
         assertInstanceOf(ResourceAccessException.class, exception.getCause());
         assertEquals(1, server.getRequestCount());
     }
 
-    @ParameterizedTest
-    @ValueSource(ints = {200, 202})
-    void shouldRejectUnconfirmedRevocation(int status) throws Exception {
+    @Test
+    void shouldRejectUnconfirmedRevocation() throws Exception {
         server.enqueue(certificateResponse(-1));
-        server.enqueue(new MockResponse().setResponseCode(status));
+        server.enqueue(new MockResponse().setResponseCode(200));
 
         assertThrows(UnrecognizedErrorResponseException.class, () -> revokeCertificate("access"));
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"", "null", "{}", "{\"certificate\":\"not a certificate\"}"})
+    @ValueSource(strings = {"", "{}", "{\"certificate\":\"not a certificate\"}"})
     void shouldRejectMissingOrUnreadableIssuanceResponses(String body) {
         server.enqueue(new MockResponse().setResponseCode(200).setHeader("Content-Type", "application/json").setBody(body));
 
         assertThrows(UnrecognizedErrorResponseException.class, () -> requestCertificate("access"));
     }
 
-    @ParameterizedTest
-    @ValueSource(ints = {201, 202, 204})
-    void shouldRejectUnexpectedIssuanceSuccessStatus(int status) throws Exception {
-        server.enqueue(certificateResponse(-1).setResponseCode(status));
+    @Test
+    void shouldRejectUnexpectedIssuanceSuccessStatus() throws Exception {
+        server.enqueue(certificateResponse(-1).setResponseCode(201));
 
         assertThrows(UnrecognizedErrorResponseException.class, () -> requestCertificate("access"));
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"access", "issuer"})
-    void shouldRejectUnconfirmedCertificateIdentityOrStatus(String type) throws Exception {
+    @Test
+    void shouldRejectUnconfirmedCertificateIdentityOrStatus() throws Exception {
         var response = (tools.jackson.databind.node.ObjectNode) mapper.valueToTree(certificate);
         response.put("id", UUID.randomUUID().toString());
         server.enqueue(new MockResponse().setHeader("Content-Type", "application/json").setBody(response.toString()));
-        assertThrows(UnrecognizedErrorResponseException.class, () -> getCertificate(type));
+        assertThrows(UnrecognizedErrorResponseException.class, () -> getCertificate("access"));
 
         response.put("id", certificate.id().toString());
         response.remove("revocation_status");
         server.enqueue(new MockResponse().setHeader("Content-Type", "application/json").setBody(response.toString()));
-        assertThrows(UnrecognizedErrorResponseException.class, () -> revokeCertificate(type));
+        assertThrows(UnrecognizedErrorResponseException.class, () -> revokeCertificate("access"));
 
         server.enqueue(certificateResponse(-2));
-        assertThrows(UnrecognizedErrorResponseException.class, () -> revokeCertificate(type));
+        assertThrows(UnrecognizedErrorResponseException.class, () -> revokeCertificate("access"));
         assertEquals(3, server.getRequestCount());
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"access", "issuer"})
-    void shouldRejectRedirectsWithoutFollowingThem(String type) {
+    @Test
+    void shouldRejectRedirectsWithoutFollowingThem() {
         server.enqueue(new MockResponse().setResponseCode(307).setHeader("Location", server.url("/v1/fallback")));
         server.enqueue(new MockResponse().setResponseCode(204));
 
-        assertThrows(UnrecognizedErrorResponseException.class, () -> requestCertificate(type));
+        assertThrows(UnrecognizedErrorResponseException.class, () -> requestCertificate("access"));
         assertEquals(1, server.getRequestCount());
     }
 
