@@ -11,6 +11,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -20,7 +22,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -95,6 +99,26 @@ public class SearchControllerTests {
             SearchRelyingPartyResource expectedSearchResource =
                 testSearchForm.toResource();
             verify(mockRpService).search(eq(expectedSearchResource));
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = {false, true})
+        @DisplayName("Should preserve the inactive filter without a hidden checkbox marker")
+        void shouldPreserveTheInactiveFilterWithoutAHiddenCheckboxMarker(boolean includeInactive) throws Exception {
+            var request = get("/search").param("searchTerm", "Thomas");
+            if (includeInactive) {
+                request.param("includeInactive", "true");
+            }
+
+            String html = mockMvc.perform(request).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+            assertThat(html).doesNotContain("name=\"_includeInactive\"");
+            var checkbox = Pattern.compile("<input\\b[^>]*id=\"includeInactive\"[^>]*>").matcher(html);
+            assertThat(checkbox.find()).isTrue();
+            assertThat(checkbox.group()).contains("name=\"includeInactive\"", "value=\"true\"");
+            assertThat(checkbox.group().contains("checked")).isEqualTo(includeInactive);
+
+            verify(mockRpService).search(argThat(resource -> resource.isIncludeInactive() == includeInactive));
         }
 
         @Test

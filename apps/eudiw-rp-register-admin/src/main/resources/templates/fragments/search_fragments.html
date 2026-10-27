@@ -23,7 +23,9 @@
     <label for="includeInactive">Ta med inaktive</label>
     <input id="includeInactive"
            type="checkbox"
-           th:field="*{includeInactive}"
+           name="includeInactive"
+           value="true"
+           th:checked="*{includeInactive}"
            class="ds-input">
 
     <ul id="search_term_errors" th:if="${#fields.hasErrors()}">
