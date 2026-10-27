@@ -19,6 +19,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -185,17 +186,21 @@ class RegistrationWorkflowTests {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"search", "catalog"})
+    @CsvSource({
+        "search, 500, '{\"error\":\"service_unavailable\",\"error_description\":\"Register service unavailable\"}'",
+        "catalog, 500, '{\"error\":\"service_unavailable\",\"error_description\":\"Register service unavailable\"}'",
+        "search, 200, not json",
+        "catalog, 200, not json"})
     @DisplayName("Should show V2 search and catalog failures without falling back to V1 or displaying empty results")
-    void shouldShowV2SearchAndCatalogFailuresWithoutFallback(String failedOperation) throws Exception {
+    void shouldShowV2SearchAndCatalogFailuresWithoutFallback(String failedOperation, int status, String body) throws Exception {
         String failedPath = "/v2/instances?searchTerm=&includeInactive=false&page=0&pageSize=25&sort=createdMs";
         if (failedOperation.equals("catalog")) {
             enqueue("GET", failedPath, new PagedResponse<>(List.of(), new PagedResponse.PageMetadata(25, 0, 0, 0)));
             failedPath = "/v2/entitlements?includeInactive=false";
         }
         expectedRequests.add("GET " + failedPath);
-        server.enqueue(new MockResponse().setResponseCode(500).setHeader("Content-Type", "application/json")
-            .setBody("{\"error\":\"service_unavailable\",\"error_description\":\"Register service unavailable\"}"));
+        server.enqueue(new MockResponse().setResponseCode(status).setHeader("Content-Type", "application/json")
+            .setBody(body));
 
         mockMvc.perform(get("/search").with(login(true)))
             .andExpectAll(status().isInternalServerError(), view().name("error/5xx"));

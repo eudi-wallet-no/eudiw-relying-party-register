@@ -1,6 +1,5 @@
 package no.idporten.eudiw.rp.admin.integrations.registerservice;
 
-import no.idporten.eudiw.rp.admin.exception.AdminServiceException;
 import no.idporten.eudiw.rp.admin.integrations.registerservice.config.RelyingPartiesServiceConfig;
 import no.idporten.eudiw.rp.admin.integrations.registerservice.config.RelyingPartiesServiceProperties;
 import no.idporten.eudiw.rp.admin.service.exception.NotFoundException;
@@ -18,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClient;
 
 import java.io.IOException;
@@ -75,9 +75,9 @@ class V2RegisterClientTests {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"", "{}", "{\"content\":[]}", "{\"content\":[],\"page\":{}}", "not json"})
-    @DisplayName("Should fail rather than show no registrations when search data is missing or unreadable")
-    void shouldFailWhenSearchDataIsMissingOrUnreadable(String response) {
+    @ValueSource(strings = {"", "{}", "{\"content\":[]}"})
+    @DisplayName("Should fail rather than show no registrations when search data is missing")
+    void shouldFailWhenSearchDataIsMissing(String response) {
         server.expect(requestTo("https://register.test/v2/instances?searchTerm=&includeInactive=false&page=0&pageSize=25&sort=createdMs"))
             .andRespond(withSuccess(response, MediaType.APPLICATION_JSON));
 
@@ -86,14 +86,25 @@ class V2RegisterClientTests {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"null", "{}"})
+    @ValueSource(strings = {"not json", "{\"content\":[],\"page\":{}}"})
+    @DisplayName("Should propagate an unreadable search response rather than show no registrations")
+    void shouldPropagateUnreadableSearchResponse(String response) {
+        server.expect(requestTo("https://register.test/v2/instances?searchTerm=&includeInactive=false&page=0&pageSize=25&sort=createdMs"))
+            .andRespond(withSuccess(response, MediaType.APPLICATION_JSON));
+
+        assertThrows(RestClientException.class, () -> client.searchInstances(new SearchRelyingPartyResource()));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"null", "{\"createdMs\":0,\"lastUpdatedMs\":0}"})
     @DisplayName("Should reject the whole search page when a registration is missing required data")
     void shouldRejectSearchPageWithIncompleteRegistration(String incompleteRegistration) {
         server.expect(requestTo("https://register.test/v2/instances?searchTerm=&includeInactive=false&page=0&pageSize=25&sort=createdMs"))
             .andRespond(withSuccess("""
                 {"content":[
                     {"id":"00000000-0000-0000-0000-000000000001","orgno":"123456785",
-                     "relyingPartyEntitlements":[],"accessCertificateIds":[],"issuerCertificateIds":[]},
+                     "relyingPartyEntitlements":[],"accessCertificateIds":[],"issuerCertificateIds":[],
+                     "createdMs":0,"lastUpdatedMs":0},
                     %s
                 ],"page":{"size":25,"number":0,"totalElements":2,"totalPages":1}}
                 """.formatted(incompleteRegistration), MediaType.APPLICATION_JSON));
@@ -104,7 +115,7 @@ class V2RegisterClientTests {
 
     @ParameterizedTest
     @ValueSource(strings = {"", "{}", "{\"entitlements\":[null]}",
-        "{\"entitlements\":[{\"entitlement\":\"urn:first\"},{}]}"})
+        "{\"entitlements\":[{\"entitlement\":\"urn:first\",\"active\":true},{\"active\":true}]}"})
     @DisplayName("Should distinguish a missing or incomplete role catalog from a catalog with no roles")
     void shouldDistinguishMissingOrIncompleteCatalogFromNoRoles(String response) {
         String url = "https://register.test/v2/entitlements?includeInactive=false";
@@ -164,20 +175,16 @@ class V2RegisterClientTests {
     }
 
     @Test
-    @DisplayName("Should fail to retrieve registration details with the failed operation and its cause when register service is unreachable")
-    void shouldFailToRetrieveRegistrationDetailsWhenRegisterServiceIsUnreachable() {
+    @DisplayName("Should propagate the connection failure when register service is unreachable for registration details")
+    void shouldPropagateConnectionFailureForRegistrationDetails() {
         var connectionFailure = new ResourceAccessException("Connection refused");
         server.expect(requestTo(REGISTRATION_URL))
             .andRespond(request -> {
                 throw connectionFailure;
             });
 
-        var failure = assertThrows(AdminServiceException.class, () -> client.getRelyingParty(RELYING_PARTY_INSTANCE_ID));
-
-        assertEquals(
-            "Unable to contact register service to retrieve /registrations/" + RELYING_PARTY_INSTANCE_ID,
-            failure.getMessage());
-        assertSame(connectionFailure, failure.getCause());
+        assertSame(connectionFailure,
+            assertThrows(ResourceAccessException.class, () -> client.getRelyingParty(RELYING_PARTY_INSTANCE_ID)));
     }
 
     @Test
@@ -210,16 +217,15 @@ class V2RegisterClientTests {
     }
 
     @Test
-    @DisplayName("Report when register service cannot be reached to retrieve registrations")
-    void shouldReportWhenRegisterServiceCannotBeReached() {
+    @DisplayName("Propagate the connection failure when register service cannot be reached to retrieve registrations")
+    void shouldPropagateConnectionFailureForRegistrations() {
         IOException connectionFailure = new IOException("Connection refused");
         server.expect(requestTo("https://register.test/v2/registrations?orgno=123456785"))
             .andRespond(withException(connectionFailure));
 
-        var exception = assertThrows(AdminServiceException.class, () -> client.getRegistrations("123456785"));
+        var exception = assertThrows(ResourceAccessException.class, () -> client.getRegistrations("123456785"));
 
-        assertEquals("Unable to contact register service to retrieve registrations", exception.getMessage());
-        assertSame(connectionFailure, exception.getCause().getCause());
+        assertSame(connectionFailure, exception.getCause());
     }
 
     @Test
