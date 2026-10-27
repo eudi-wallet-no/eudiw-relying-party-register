@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
@@ -87,6 +89,20 @@ public class AdminWebControllerAdvice {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ModelAndView handleAdminServiceException(AdminServiceException e) {
         log.error("Unhandled service-level exception", e);
+        return new ModelAndView("error/5xx");
+    }
+
+    @ExceptionHandler(ResourceAccessException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ModelAndView handleResourceAccessException(ResourceAccessException e) {
+        log.error("HTTP connection or I/O failure; outcome of write operations may be unknown", e);
+        return new ModelAndView("error/5xx");
+    }
+
+    @ExceptionHandler(RestClientException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ModelAndView handleRestClientException(RestClientException e) {
+        log.error("HTTP client failed to process response", e);
         return new ModelAndView("error/5xx");
     }
 

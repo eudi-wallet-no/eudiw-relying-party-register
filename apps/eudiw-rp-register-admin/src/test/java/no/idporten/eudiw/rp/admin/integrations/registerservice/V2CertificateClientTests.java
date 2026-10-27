@@ -1,6 +1,5 @@
 package no.idporten.eudiw.rp.admin.integrations.registerservice;
 
-import no.idporten.eudiw.rp.admin.exception.AdminServiceException;
 import no.idporten.eudiw.rp.admin.integrations.registerservice.config.RelyingPartiesServiceProperties;
 import no.idporten.eudiw.rp.admin.integrations.registerservice.config.V2CertificateClientConfig;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
@@ -154,26 +153,20 @@ class V2CertificateClientTests {
     }
 
     @Test
-    @DisplayName("Should report an unknown issuance outcome after a timeout without retry")
-    void shouldReportUnknownIssuanceOutcomeAfterTimeoutWithoutRetry() throws Exception {
+    @DisplayName("Should propagate an issuance timeout without retry")
+    void shouldPropagateIssuanceTimeoutWithoutRetry() throws Exception {
         server.enqueue(certificateResponse(-1).setHeadersDelay(1, TimeUnit.SECONDS));
 
-        var exception = assertThrows(AdminServiceException.class, () -> requestCertificate("access"));
-
-        assertInstanceOf(ResourceAccessException.class, exception.getCause());
-        assertTrue(exception.getMessage().contains("outcome is unknown"));
+        assertThrows(ResourceAccessException.class, () -> requestCertificate("access"));
         assertEquals(1, server.getRequestCount());
     }
 
     @Test
-    @DisplayName("Should report an unknown revocation outcome after a timeout without retry")
-    void shouldReportUnknownRevocationOutcomeAfterTimeoutWithoutRetry() throws Exception {
+    @DisplayName("Should propagate a revocation timeout without retry")
+    void shouldPropagateRevocationTimeoutWithoutRetry() throws Exception {
         server.enqueue(new MockResponse().setResponseCode(204).setHeadersDelay(1, TimeUnit.SECONDS));
 
-        var exception = assertThrows(AdminServiceException.class, () -> revokeCertificate("access"));
-
-        assertInstanceOf(ResourceAccessException.class, exception.getCause());
-        assertTrue(exception.getMessage().contains("outcome is unknown"));
+        assertThrows(ResourceAccessException.class, () -> revokeCertificate("access"));
         assertEquals(1, server.getRequestCount());
     }
 
@@ -183,9 +176,7 @@ class V2CertificateClientTests {
         server.enqueue(new MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AFTER_REQUEST));
         server.enqueue(new MockResponse().setResponseCode(204));
 
-        var exception = assertThrows(AdminServiceException.class, () -> getCertificate("access"));
-
-        assertInstanceOf(ResourceAccessException.class, exception.getCause());
+        assertThrows(ResourceAccessException.class, () -> getCertificate("access"));
         assertEquals(1, server.getRequestCount());
     }
 

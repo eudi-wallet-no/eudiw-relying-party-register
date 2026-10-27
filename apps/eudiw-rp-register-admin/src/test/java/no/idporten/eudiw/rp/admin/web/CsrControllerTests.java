@@ -1,6 +1,5 @@
 package no.idporten.eudiw.rp.admin.web;
 
-import no.idporten.eudiw.rp.admin.exception.AdminServiceException;
 import no.idporten.eudiw.rp.admin.security.SecurityTestUtils;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.service.accesscertificates.PKCS10CertificationRequestConverter;
@@ -31,6 +30,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
+import org.springframework.web.client.ResourceAccessException;
 
 import java.net.SocketTimeoutException;
 import java.util.UUID;
@@ -154,7 +154,7 @@ public class CsrControllerTests {
             RelyingPartyResource relyingParty = ResourceGenerator.generateRelyingPartyResource();
             when(mockRpService.get(relyingParty.id())).thenReturn(relyingParty);
             RuntimeException failure = timeout
-                ? new AdminServiceException("Certificate issuance outcome is unknown", new SocketTimeoutException("Read timed out"))
+                ? new ResourceAccessException("Read timed out", new SocketTimeoutException("Read timed out"))
                 : new ErrorResponseException("ca_error", "CA rejected issuance");
             if (type.equals("access")) {
                 when(mockRpService.requestCertificateForRelyingParty(eq(relyingParty.id()), any())).thenThrow(failure);

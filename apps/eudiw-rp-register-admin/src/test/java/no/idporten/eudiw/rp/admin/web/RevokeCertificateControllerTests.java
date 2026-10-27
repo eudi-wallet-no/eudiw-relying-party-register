@@ -1,6 +1,5 @@
 package no.idporten.eudiw.rp.admin.web;
 
-import no.idporten.eudiw.rp.admin.exception.AdminServiceException;
 import no.idporten.eudiw.rp.admin.security.SecurityTestUtils;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.service.exception.CertificateNotFoundException;
@@ -18,6 +17,8 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClientException;
 
 import java.net.SocketTimeoutException;
 import java.util.UUID;
@@ -65,15 +66,16 @@ public class RevokeCertificateControllerTests {
     }
 
     @ParameterizedTest
-    @CsvSource({"access, ca", "issuer, timeout", "access, notfound"})
-    @DisplayName("Should show revocation CA errors, timeouts and missing certificates without redirecting to success")
+    @CsvSource({"access, ca", "issuer, timeout", "access, response", "access, notfound"})
+    @DisplayName("Should show revocation failures without redirecting to success")
     void shouldShowRevocationFailureWithoutRedirect(String type, String failureType) throws Exception {
         RelyingPartyResource relyingParty = ResourceGenerator.generateRelyingPartyResource();
         UUID certificateId = UUID.randomUUID();
         when(mockRpService.get(relyingParty.id())).thenReturn(relyingParty);
         RuntimeException failure = switch (failureType) {
             case "ca" -> new ErrorResponseException("ca_error", "CA rejected revocation");
-            case "timeout" -> new AdminServiceException("Certificate revocation outcome is unknown", new SocketTimeoutException("Read timed out"));
+            case "timeout" -> new ResourceAccessException("Read timed out", new SocketTimeoutException("Read timed out"));
+            case "response" -> new RestClientException("Unable to read response");
             default -> new CertificateNotFoundException("Certificate not found", relyingParty.id().toString(), certificateId.toString());
         };
         if (type.equals("access")) {
