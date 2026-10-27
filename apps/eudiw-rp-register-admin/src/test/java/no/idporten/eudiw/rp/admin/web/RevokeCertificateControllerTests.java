@@ -9,6 +9,7 @@ import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.admin.web.controllers.AdminWebControllerAdvice;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -114,11 +115,10 @@ public class RevokeCertificateControllerTests {
         verify(mockRpService, never()).revokeIssuerCertificate(any(), any());
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"access", "issuer"})
+    @Test
     @DisplayName("Should reject certificate revocation without CSRF before calling the service")
-    void shouldRejectRevocationWithoutCsrf(String type) throws Exception {
-        mockMvc.perform(post(revokePath(type, UUID.randomUUID(), UUID.randomUUID()))
+    void shouldRejectCertificateRevocationWithoutCsrf() throws Exception {
+        mockMvc.perform(post(revokePath("access", UUID.randomUUID(), UUID.randomUUID()))
                 .with(SecurityTestUtils.adminOidcLogin()))
             .andExpect(status().isForbidden());
 

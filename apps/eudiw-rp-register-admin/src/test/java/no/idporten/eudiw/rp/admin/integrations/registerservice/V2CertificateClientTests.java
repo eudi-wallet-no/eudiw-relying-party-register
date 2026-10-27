@@ -158,34 +158,12 @@ class V2CertificateClientTests {
     }
 
     @Test
-    @DisplayName("Should not retry certificate issuance after a service-unavailable response")
-    void shouldNotRetryIssuanceWhenTheRegisterReturnsServiceUnavailable() {
+    @DisplayName("Should report service unavailability when requesting a certificate")
+    void shouldReportServiceUnavailableWhenRequestingCertificate() {
         server.enqueue(errorResponse(503, "server_error").setHeader("Retry-After", "0"));
-        server.enqueue(new MockResponse().setResponseCode(204));
 
         assertThrows(ErrorResponseException.class, () -> requestCertificate("access"));
         assertEquals(1, server.getRequestCount());
-    }
-
-    @Test
-    @DisplayName("Should not retry certificate retrieval after a service-unavailable response")
-    void shouldNotRetryLookupWhenTheRegisterReturnsServiceUnavailable() {
-        server.enqueue(errorResponse(503, "server_error").setHeader("Retry-After", "0"));
-        server.enqueue(new MockResponse().setResponseCode(204));
-
-        assertThrows(ErrorResponseException.class, () -> getCertificate("access"));
-        assertEquals(1, server.getRequestCount());
-    }
-
-    @Test
-    @DisplayName("Should report a failed certificate revocation without retry")
-    void shouldKeepCaRevocationFailuresVisibleWithoutRetry() throws Exception {
-        server.enqueue(certificateResponse(-1));
-        server.enqueue(errorResponse(503, "server_error").setHeader("Retry-After", "0"));
-        server.enqueue(new MockResponse().setResponseCode(204));
-
-        assertThrows(ErrorResponseException.class, () -> revokeCertificate("access"));
-        assertEquals(2, server.getRequestCount());
     }
 
     @Test

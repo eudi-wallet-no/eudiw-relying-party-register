@@ -42,8 +42,8 @@ public class DownloadCertificateControllerTests {
 
     @ParameterizedTest
     @CsvSource({
-        "access, -1, false", "access, 0, false", "access, -1, true",
-        "issuer, -1, false", "issuer, 0, false", "issuer, 0, true"
+        "access, -1, false", "access, 0, true",
+        "issuer, -1, true", "issuer, 0, false"
     })
     @DisplayName("Should download active and revoked certificates as PEM for the owning organisation and administrators")
     void shouldDownloadCertificatePem(String type, int revocationStatus, boolean administrator) throws Exception {

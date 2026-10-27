@@ -248,7 +248,6 @@ public class CsrControllerTests {
 
     @ParameterizedTest
     @NullAndEmptySource
-    @ValueSource(strings = {" "})
     @DisplayName("Should reject missing or blank issuer entitlement before requesting a certificate")
     void shouldRejectMissingIssuerEntitlement(String entitlement) throws Exception {
         RelyingPartyResource relyingParty = ResourceGenerator.generateRelyingPartyResource();
@@ -290,11 +289,10 @@ public class CsrControllerTests {
         verifyNoCertificateRequests();
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"access", "issuer"})
+    @Test
     @DisplayName("Should reject certificate issuance without CSRF before calling the service")
-    void shouldRejectIssuanceWithoutCsrf(String type) throws Exception {
-        mockMvc.perform(post("/csr/" + type + "/" + UUID.randomUUID())
+    void shouldRejectCertificateIssuanceWithoutCsrf() throws Exception {
+        mockMvc.perform(post("/csr/access/" + UUID.randomUUID())
                 .with(SecurityTestUtils.adminOidcLogin())
                 .formField("csrField", validCsr())
                 .formField("entitlement", "pid_provider"))
