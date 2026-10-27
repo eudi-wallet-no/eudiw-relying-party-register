@@ -1,21 +1,20 @@
 package no.idporten.eudiw.rp.admin.integrations.registerservice;
 
 import no.idporten.eudiw.rp.admin.exception.AdminServiceException;
-import no.idporten.eudiw.rp.admin.service.exception.BadRequestException;
 import no.idporten.eudiw.rp.admin.service.exception.CertificateNotFoundException;
-import no.idporten.eudiw.rp.admin.service.exception.ErrorResponseException;
 import no.idporten.eudiw.rp.admin.service.exception.UnrecognizedErrorResponseException;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.IssuerCsrResource;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificateResource;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCsrResource;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpStatusCode;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
 import java.util.UUID;
+import java.util.function.Supplier;
 
 @Component
 public class V2CertificateClient {
@@ -52,67 +51,54 @@ public class V2CertificateClient {
 
     private RelyingPartyCertificateResource getCertificate(UUID instanceId, String type, UUID certificateId) {
         String path = certificatePath(instanceId, type) + "/" + certificateId;
-        try {
-            return restClient.get().uri(path).retrieve()
-                .onStatus(status -> status.value() == 404, (request, response) -> {
-                    throw new CertificateNotFoundException(
-                        response.getStatusCode() + " Certificate not found: " + response.getStatusText(),
-                        instanceId.toString(), certificateId.toString());
-                })
-                .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
-                    throw new BadRequestException(response.getStatusCode() + " Client error: " + response.getStatusText());
-                })
-                .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
-                    throw new ErrorResponseException(response.getStatusCode().toString(), "Server error: " + response.getStatusText());
-                })
-                .body(RelyingPartyCertificateResource.class);
-        } catch (ResourceAccessException e) {
-            throw new AdminServiceException("Unable to contact register service to retrieve " + path, e);
-        } catch (RestClientException e) {
-            throw new UnrecognizedErrorResponseException("Unable to read certificate response from register service for " + path, e);
-        }
+
+        return callRegister(path, "Unable to contact register service to retrieve " + path, () -> restClient.get()
+            .uri(path)
+            .retrieve()
+            .onStatus(HttpStatus.NOT_FOUND::isSameCodeAs, certificateNotFound(instanceId, certificateId))
+            .body(RelyingPartyCertificateResource.class));
     }
 
     private RelyingPartyCertificateResource requestCertificate(UUID instanceId, String type, Object request) {
         String path = certificatePath(instanceId, type);
-        try {
-            return restClient.post().uri(path).body(request).retrieve()
-                .onStatus(HttpStatusCode::is4xxClientError, (httpRequest, response) -> {
-                    throw new BadRequestException(response.getStatusCode() + " Client error: " + response.getStatusText());
-                })
-                .onStatus(HttpStatusCode::is5xxServerError, (httpRequest, response) -> {
-                    throw new ErrorResponseException(response.getStatusCode().toString(), "Server error: " + response.getStatusText());
-                })
-                .body(RelyingPartyCertificateResource.class);
-        } catch (ResourceAccessException e) {
-            throw new AdminServiceException("Unable to contact register service to request " + path
-                + "; certificate issuance outcome is unknown", e);
-        } catch (RestClientException e) {
-            throw new UnrecognizedErrorResponseException("Unable to read issuance response from register service for " + path, e);
-        }
+        String connectionFailure = "Unable to contact register service to request " + path
+            + "; certificate issuance outcome is unknown";
+
+        return callRegister(path, connectionFailure, () -> restClient.post()
+            .uri(path)
+            .body(request)
+            .retrieve()
+            .body(RelyingPartyCertificateResource.class));
     }
 
     private void revokeCertificate(UUID instanceId, String type, UUID certificateId) {
         String path = certificatePath(instanceId, type) + "/" + certificateId + "/revoke";
+        String connectionFailure = "Unable to contact register service to revoke " + path
+            + "; certificate revocation outcome is unknown";
+
+        callRegister(path, connectionFailure, () -> restClient.patch()
+            .uri(path)
+            .retrieve()
+            .onStatus(HttpStatus.NOT_FOUND::isSameCodeAs, certificateNotFound(instanceId, certificateId))
+            .toBodilessEntity());
+    }
+
+    // The register answers every 404 with error code invalid_request, so the shared error handler cannot tell it apart.
+    private RestClient.ResponseSpec.ErrorHandler certificateNotFound(UUID instanceId, UUID certificateId) {
+        return (request, response) -> {
+            throw new CertificateNotFoundException(
+                response.getStatusCode() + " Certificate not found: " + response.getStatusText(),
+                instanceId.toString(), certificateId.toString());
+        };
+    }
+
+    private <T> T callRegister(String path, String connectionFailure, Supplier<T> registerCall) {
         try {
-            restClient.patch().uri(path).retrieve()
-                .onStatus(status -> status.value() == 404, (request, response) -> {
-                    throw new CertificateNotFoundException(
-                        response.getStatusCode() + " Certificate not found: " + response.getStatusText(),
-                        instanceId.toString(), certificateId.toString());
-                })
-                .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
-                    throw new BadRequestException(response.getStatusCode() + " Client error: " + response.getStatusText());
-                })
-                .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
-                    throw new ErrorResponseException(response.getStatusCode().toString(), "Server error: " + response.getStatusText());
-                })
-                .toBodilessEntity();
+            return registerCall.get();
         } catch (ResourceAccessException e) {
-            throw new AdminServiceException("Unable to contact register service to revoke " + path
-                + "; certificate revocation outcome is unknown", e);
+            throw new AdminServiceException(connectionFailure, e);
         } catch (RestClientException e) {
-            throw new UnrecognizedErrorResponseException("Unable to read revocation response from register service for " + path, e);
+            throw new UnrecognizedErrorResponseException("Unable to read register service response for " + path, e);
         }
     }
 

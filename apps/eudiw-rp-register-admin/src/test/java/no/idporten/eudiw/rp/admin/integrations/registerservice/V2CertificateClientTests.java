@@ -136,11 +136,11 @@ class V2CertificateClientTests {
     @Test
     @DisplayName("Should report a register server error without fallback")
     void shouldReportRegisterServerErrorWithoutFallback() {
-        server.enqueue(new MockResponse().setResponseCode(500));
+        server.enqueue(errorResponse(500, "server_error"));
 
         var exception = assertThrows(ErrorResponseException.class, () -> requestCertificate("access"));
 
-        assertEquals("500 INTERNAL_SERVER_ERROR", exception.getError());
+        assertEquals("server_error", exception.getError());
         assertEquals(1, server.getRequestCount());
     }
 
