@@ -20,7 +20,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 import tools.jackson.databind.json.JsonMapper;
@@ -64,9 +64,9 @@ class V2CertificateClientTests {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"access", "issuer"})
+    @EnumSource(CertificateType.class)
     @DisplayName("Should issue an access or issuer certificate for the requested instance")
-    void shouldIssueCertificatesForTheInstanceWithTheOriginalCsr(String type) throws Exception {
+    void shouldIssueCertificatesForTheInstanceWithTheOriginalCsr(CertificateType type) throws Exception {
         server.enqueue(certificateResponse(-1));
 
         RelyingPartyCertificateResource result = requestCertificate(type);
@@ -77,15 +77,15 @@ class V2CertificateClientTests {
         assertRequest(request, "POST", certificatePath(type));
         var body = mapper.readTree(request.getBody().readUtf8());
         assertEquals(mapper.valueToTree(csr).get("csr"), body.get("csr"));
-        if (type.equals("issuer")) {
+        if (type == CertificateType.ISSUER) {
             assertEquals("pid_provider", body.get("entitlement").asText());
         }
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"access", "issuer"})
+    @EnumSource(CertificateType.class)
     @DisplayName("Should retrieve the requested access or issuer certificate with its revocation status")
-    void shouldRetrieveTheOwnedCertificateWithItsRevocationStatus(String type) throws Exception {
+    void shouldRetrieveTheOwnedCertificateWithItsRevocationStatus(CertificateType type) throws Exception {
         server.enqueue(certificateResponse(1));
 
         RelyingPartyCertificateResource result = getCertificate(type);
@@ -97,9 +97,9 @@ class V2CertificateClientTests {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"access", "issuer"})
+    @EnumSource(CertificateType.class)
     @DisplayName("Should revoke an active access or issuer certificate owned by the instance")
-    void shouldRevokeAnActiveOwnedCertificate(String type) throws Exception {
+    void shouldRevokeAnActiveOwnedCertificate(CertificateType type) throws Exception {
         server.enqueue(new MockResponse().setResponseCode(204));
 
         revokeCertificate(type);
@@ -109,9 +109,9 @@ class V2CertificateClientTests {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"access", "issuer"})
+    @EnumSource(CertificateType.class)
     @DisplayName("Should report a missing certificate when revocation is rejected")
-    void shouldReportMissingCertificatesWhenRevocationIsRejected(String type) throws Exception {
+    void shouldReportMissingCertificatesWhenRevocationIsRejected(CertificateType type) throws Exception {
         server.enqueue(errorResponse(404, "not_found"));
 
         var exception = assertThrows(CertificateNotFoundException.class, () -> revokeCertificate(type));
@@ -127,7 +127,7 @@ class V2CertificateClientTests {
     void shouldKeepValidationFailuresVisibleWithoutFallback() {
         server.enqueue(errorResponse(400, "invalid_request"));
 
-        assertThrows(BadRequestException.class, () -> requestCertificate("access"));
+        assertThrows(BadRequestException.class, () -> requestCertificate(CertificateType.ACCESS));
         assertEquals(1, server.getRequestCount());
     }
 
@@ -136,7 +136,7 @@ class V2CertificateClientTests {
     void shouldReportRegisterServerErrorWithoutFallback() {
         server.enqueue(errorResponse(500, "server_error"));
 
-        var exception = assertThrows(ErrorResponseException.class, () -> requestCertificate("access"));
+        var exception = assertThrows(ErrorResponseException.class, () -> requestCertificate(CertificateType.ACCESS));
 
         assertEquals("server_error", exception.getError());
         assertEquals(1, server.getRequestCount());
@@ -147,7 +147,7 @@ class V2CertificateClientTests {
     void shouldReportRejectedRevocationWithoutFallback() {
         server.enqueue(errorResponse(400, "invalid_request"));
 
-        assertThrows(BadRequestException.class, () -> revokeCertificate("access"));
+        assertThrows(BadRequestException.class, () -> revokeCertificate(CertificateType.ACCESS));
         assertEquals(1, server.getRequestCount());
     }
 
@@ -156,7 +156,7 @@ class V2CertificateClientTests {
     void shouldPropagateIssuanceTimeoutWithoutRetry() throws Exception {
         server.enqueue(certificateResponse(-1).setHeadersDelay(1, TimeUnit.SECONDS));
 
-        assertThrows(ResourceAccessException.class, () -> requestCertificate("access"));
+        assertThrows(ResourceAccessException.class, () -> requestCertificate(CertificateType.ACCESS));
         assertEquals(1, server.getRequestCount());
     }
 
@@ -165,7 +165,7 @@ class V2CertificateClientTests {
     void shouldPropagateRevocationTimeoutWithoutRetry() throws Exception {
         server.enqueue(new MockResponse().setResponseCode(204).setHeadersDelay(1, TimeUnit.SECONDS));
 
-        assertThrows(ResourceAccessException.class, () -> revokeCertificate("access"));
+        assertThrows(ResourceAccessException.class, () -> revokeCertificate(CertificateType.ACCESS));
         assertEquals(1, server.getRequestCount());
     }
 
@@ -175,7 +175,7 @@ class V2CertificateClientTests {
         server.enqueue(new MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AFTER_REQUEST));
         server.enqueue(new MockResponse().setResponseCode(204));
 
-        assertThrows(ResourceAccessException.class, () -> getCertificate("access"));
+        assertThrows(ResourceAccessException.class, () -> getCertificate(CertificateType.ACCESS));
         assertEquals(1, server.getRequestCount());
     }
 
@@ -191,33 +191,33 @@ class V2CertificateClientTests {
             .setBody("{\"error\":\"" + error + "\",\"error_description\":\"Register rejected operation\"}");
     }
 
-    private RelyingPartyCertificateResource requestCertificate(String type) {
-        if (type.equals("issuer")) {
+    private RelyingPartyCertificateResource requestCertificate(CertificateType type) {
+        if (type == CertificateType.ISSUER) {
             return service.requestIssuerCertificateForEntitlement(instanceId, new IssuerCsrResource(csr.csr(), "pid_provider"));
         }
         return service.requestCertificateForRelyingParty(instanceId, csr);
     }
 
-    private RelyingPartyCertificateResource getCertificate(String type) {
-        if (type.equals("issuer")) {
+    private RelyingPartyCertificateResource getCertificate(CertificateType type) {
+        if (type == CertificateType.ISSUER) {
             return service.getIssuerCertificate(instanceId, certificate.id());
         }
         return service.getAccessCertificate(instanceId, certificate.id());
     }
 
-    private void revokeCertificate(String type) {
-        if (type.equals("issuer")) {
+    private void revokeCertificate(CertificateType type) {
+        if (type == CertificateType.ISSUER) {
             service.revokeIssuerCertificate(instanceId, certificate.id());
             return;
         }
         service.revokeAccessCertificate(instanceId, certificate.id());
     }
 
-    private String certificatePath(String type) {
-        return "/v2/instances/" + instanceId + "/certificates/" + type;
+    private String certificatePath(CertificateType type) {
+        return "/v2/instances/" + instanceId + "/certificates/" + type.pathSegment();
     }
 
-    private String ownedCertificatePath(String type) {
+    private String ownedCertificatePath(CertificateType type) {
         return certificatePath(type) + "/" + certificate.id();
     }
 

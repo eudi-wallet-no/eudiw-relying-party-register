@@ -21,30 +21,30 @@ public class V2CertificateClient {
     }
 
     public RelyingPartyCertificateResource getAccessCertificate(UUID instanceId, UUID certificateId) {
-        return getCertificate(instanceId, "access", certificateId);
+        return getCertificate(instanceId, CertificateType.ACCESS, certificateId);
     }
 
     public RelyingPartyCertificateResource getIssuerCertificate(UUID instanceId, UUID certificateId) {
-        return getCertificate(instanceId, "issuer", certificateId);
+        return getCertificate(instanceId, CertificateType.ISSUER, certificateId);
     }
 
     public RelyingPartyCertificateResource requestAccessCertificate(UUID instanceId, RelyingPartyCsrResource request) {
-        return requestCertificate(instanceId, "access", request);
+        return requestCertificate(instanceId, CertificateType.ACCESS, request);
     }
 
     public RelyingPartyCertificateResource requestIssuerCertificate(UUID instanceId, IssuerCsrResource request) {
-        return requestCertificate(instanceId, "issuer", request);
+        return requestCertificate(instanceId, CertificateType.ISSUER, request);
     }
 
     public void revokeAccessCertificate(UUID instanceId, UUID certificateId) {
-        revokeCertificate(instanceId, "access", certificateId);
+        revokeCertificate(instanceId, CertificateType.ACCESS, certificateId);
     }
 
     public void revokeIssuerCertificate(UUID instanceId, UUID certificateId) {
-        revokeCertificate(instanceId, "issuer", certificateId);
+        revokeCertificate(instanceId, CertificateType.ISSUER, certificateId);
     }
 
-    private RelyingPartyCertificateResource getCertificate(UUID instanceId, String type, UUID certificateId) {
+    private RelyingPartyCertificateResource getCertificate(UUID instanceId, CertificateType type, UUID certificateId) {
         String path = certificatePath(instanceId, type) + "/" + certificateId;
 
         return restClient.get()
@@ -54,7 +54,7 @@ public class V2CertificateClient {
             .body(RelyingPartyCertificateResource.class);
     }
 
-    private RelyingPartyCertificateResource requestCertificate(UUID instanceId, String type, Object request) {
+    private RelyingPartyCertificateResource requestCertificate(UUID instanceId, CertificateType type, Object request) {
         String path = certificatePath(instanceId, type);
 
         return restClient.post()
@@ -64,7 +64,7 @@ public class V2CertificateClient {
             .body(RelyingPartyCertificateResource.class);
     }
 
-    private void revokeCertificate(UUID instanceId, String type, UUID certificateId) {
+    private void revokeCertificate(UUID instanceId, CertificateType type, UUID certificateId) {
         String path = certificatePath(instanceId, type) + "/" + certificateId + "/revoke";
 
         restClient.patch()
@@ -83,7 +83,7 @@ public class V2CertificateClient {
         };
     }
 
-    private String certificatePath(UUID instanceId, String type) {
-        return "/instances/" + instanceId + "/certificates/" + type;
+    private String certificatePath(UUID instanceId, CertificateType type) {
+        return "/instances/" + instanceId + "/certificates/" + type.pathSegment();
     }
 }

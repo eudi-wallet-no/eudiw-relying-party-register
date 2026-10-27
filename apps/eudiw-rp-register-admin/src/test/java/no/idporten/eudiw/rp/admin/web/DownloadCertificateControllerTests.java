@@ -1,5 +1,6 @@
 package no.idporten.eudiw.rp.admin.web;
 
+import no.idporten.eudiw.rp.admin.integrations.registerservice.CertificateType;
 import no.idporten.eudiw.rp.admin.security.SecurityTestUtils;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.service.accesscertificates.X509CertificateConverter;
@@ -11,7 +12,7 @@ import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertific
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -42,17 +43,17 @@ public class DownloadCertificateControllerTests {
 
     @ParameterizedTest
     @CsvSource({
-        "access, -1, false", "access, 0, true",
-        "issuer, -1, true", "issuer, 0, false"
+        "ACCESS, -1, false", "ACCESS, 0, true",
+        "ISSUER, -1, true", "ISSUER, 0, false"
     })
     @DisplayName("Should download active and revoked certificates as PEM for the owning organisation and administrators")
-    void shouldDownloadCertificatePem(String type, int revocationStatus, boolean administrator) throws Exception {
+    void shouldDownloadCertificatePem(CertificateType type, int revocationStatus, boolean administrator) throws Exception {
         RelyingPartyResource relyingParty = ResourceGenerator.generateRelyingPartyResource();
         RelyingPartyCertificateResource generated = ResourceGenerator.generateCertificateResource();
         RelyingPartyCertificateResource certificate = new RelyingPartyCertificateResource(
-            generated.certificate(), generated.id(), type.equals("issuer") ? "pid_provider" : null, revocationStatus);
+            generated.certificate(), generated.id(), type == CertificateType.ISSUER ? "pid_provider" : null, revocationStatus);
         when(mockRpService.get(relyingParty.id())).thenReturn(relyingParty);
-        if (type.equals("access")) {
+        if (type == CertificateType.ACCESS) {
             when(mockRpService.getAccessCertificate(relyingParty.id(), certificate.id())).thenReturn(certificate);
         } else {
             when(mockRpService.getIssuerCertificate(relyingParty.id(), certificate.id())).thenReturn(certificate);
@@ -68,14 +69,14 @@ public class DownloadCertificateControllerTests {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"access", "issuer"})
+    @EnumSource(CertificateType.class)
     @DisplayName("Should show the requested certificate and relying party in the certificate-not-found page")
-    void shouldShowCertificateNotFound(String type) throws Exception {
+    void shouldShowCertificateNotFound(CertificateType type) throws Exception {
         RelyingPartyResource relyingParty = ResourceGenerator.generateRelyingPartyResource();
         UUID certificateId = UUID.randomUUID();
         when(mockRpService.get(relyingParty.id())).thenReturn(relyingParty);
         var failure = new CertificateNotFoundException("Certificate not found", relyingParty.id().toString(), certificateId.toString());
-        if (type.equals("access")) {
+        if (type == CertificateType.ACCESS) {
             when(mockRpService.getAccessCertificate(relyingParty.id(), certificateId)).thenThrow(failure);
         } else {
             when(mockRpService.getIssuerCertificate(relyingParty.id(), certificateId)).thenThrow(failure);
@@ -92,9 +93,9 @@ public class DownloadCertificateControllerTests {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"access", "issuer"})
+    @EnumSource(CertificateType.class)
     @DisplayName("Should deny certificate download by another organisation without retrieving a certificate")
-    void shouldDenyOtherOrganisation(String type) throws Exception {
+    void shouldDenyOtherOrganisation(CertificateType type) throws Exception {
         RelyingPartyResource relyingParty = ResourceGenerator.generateRelyingPartyResource();
         when(mockRpService.get(relyingParty.id())).thenReturn(relyingParty);
 
@@ -107,7 +108,7 @@ public class DownloadCertificateControllerTests {
         verify(mockRpService, never()).getIssuerCertificate(any(), any());
     }
 
-    private String downloadPath(String type, UUID relyingPartyId, UUID certificateId) {
-        return "/get-certificate/" + relyingPartyId + (type.equals("issuer") ? "/issuer" : "") + "/" + certificateId;
+    private String downloadPath(CertificateType type, UUID relyingPartyId, UUID certificateId) {
+        return "/get-certificate/" + relyingPartyId + (type == CertificateType.ISSUER ? "/issuer" : "") + "/" + certificateId;
     }
 }

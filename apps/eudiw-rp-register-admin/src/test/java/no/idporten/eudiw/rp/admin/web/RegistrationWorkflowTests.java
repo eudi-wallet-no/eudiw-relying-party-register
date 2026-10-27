@@ -1,5 +1,6 @@
 package no.idporten.eudiw.rp.admin.web;
 
+import no.idporten.eudiw.rp.admin.integrations.registerservice.CertificateType;
 import no.idporten.eudiw.rp.admin.integrations.registerservice.V2RegisterClient;
 import no.idporten.eudiw.rp.admin.security.SecurityTestUtils;
 import no.idporten.eudiw.rp.admin.service.MockWebServerConfiguration;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -120,35 +122,35 @@ class RegistrationWorkflowTests {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"access", "issuer"})
+    @EnumSource(CertificateType.class)
     @DisplayName("Should submit an access or issuer certificate order for the owning organization")
-    void shouldSubmitCertificateOrderForOwningOrganization(String certificateType) throws Exception {
+    void shouldSubmitCertificateOrderForOwningOrganization(CertificateType certificateType) throws Exception {
         enqueueLookup();
         var certificationRequest = CertificatesGenerator.generatePKCS10Csr();
         var certificate = activeCertificate(certificateType);
-        String path = "/v2/instances/" + relyingPartyResource.id() + "/certificates/" + certificateType;
+        String path = "/v2/instances/" + relyingPartyResource.id() + "/certificates/" + certificateType.pathSegment();
         enqueue("POST", path, certificate);
 
-        mockMvc.perform(post("/csr/" + certificateType + "/" + relyingPartyResource.id())
+        mockMvc.perform(post("/csr/" + certificateType.pathSegment() + "/" + relyingPartyResource.id())
                 .with(csrf())
                 .with(login(false))
                 .formField("csrField", PKCS10CertificationRequestConverter.toString(certificationRequest))
                 .formField("entitlement", relyingPartyResource.issuerCertificates().getFirst().entitlement()))
-            .andExpectAll(status().isOk(), view().name(certificateType.equals("issuer")
+            .andExpectAll(status().isOk(), view().name(certificateType == CertificateType.ISSUER
                 ? "csr_issuer_submit_success_view" : "csr_submit_success_view"));
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"access", "issuer"})
+    @EnumSource(CertificateType.class)
     @DisplayName("Should download an existing access or issuer certificate for the owning organization")
-    void shouldDownloadExistingCertificatesForOwningOrganization(String certificateType) throws Exception {
+    void shouldDownloadExistingCertificatesForOwningOrganization(CertificateType certificateType) throws Exception {
         enqueueLookup();
         var certificate = certificate(certificateType);
         enqueue(
             "GET",
-            "/v2/instances/" + relyingPartyResource.id() + "/certificates/" + certificateType + "/" + certificate.id(),
+            "/v2/instances/" + relyingPartyResource.id() + "/certificates/" + certificateType.pathSegment() + "/" + certificate.id(),
             certificate);
-        String downloadPath = "/get-certificate/" + relyingPartyResource.id() + (certificateType.equals("issuer") ? "/issuer" : "")
+        String downloadPath = "/get-certificate/" + relyingPartyResource.id() + (certificateType == CertificateType.ISSUER ? "/issuer" : "")
             + "/" + certificate.id();
 
         mockMvc.perform(get(downloadPath).with(login(false)))
@@ -156,17 +158,17 @@ class RegistrationWorkflowTests {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"access", "issuer"})
+    @EnumSource(CertificateType.class)
     @DisplayName("Should submit an access or issuer certificate revocation for the owning organization")
-    void shouldSubmitCertificateRevocationForOwningOrganization(String certificateType) throws Exception {
+    void shouldSubmitCertificateRevocationForOwningOrganization(CertificateType certificateType) throws Exception {
         enqueueLookup();
         var certificate = activeCertificate(certificateType);
         String certificatePath = "/v2/instances/" + relyingPartyResource.id() + "/certificates/"
-            + certificateType + "/" + certificate.id();
+            + certificateType.pathSegment() + "/" + certificate.id();
         expectedRequests.add("PATCH " + certificatePath + "/revoke");
         server.enqueue(new MockResponse().setResponseCode(204));
 
-        mockMvc.perform(post("/revoke-certificate/" + relyingPartyResource.id() + "/" + certificateType + "/" + certificate.id())
+        mockMvc.perform(post("/revoke-certificate/" + relyingPartyResource.id() + "/" + certificateType.pathSegment() + "/" + certificate.id())
                 .with(csrf())
                 .with(login(false)))
             .andExpect(status().is3xxRedirection());
@@ -183,7 +185,7 @@ class RegistrationWorkflowTests {
         enqueueLookup();
         String path = operation.substring(operation.indexOf(' ') + 1)
             .replace("{id}", relyingPartyResource.id().toString())
-            .replace("{cert}", certificate("access").id().toString());
+            .replace("{cert}", certificate(CertificateType.ACCESS).id().toString());
         var request = operation.startsWith("GET") ? get(path) : post(path).with(csrf());
 
         mockMvc.perform(request.with(SecurityTestUtils.oidcLoginForOrgno("987654325")))
@@ -194,11 +196,11 @@ class RegistrationWorkflowTests {
         return administrator ? user("admin").roles("ADMIN") : SecurityTestUtils.oidcLoginForOrgno(relyingPartyResource.orgno());
     }
 
-    private RelyingPartyCertificateResource certificate(String certificateType) {
-        return (certificateType.equals("issuer") ? relyingPartyResource.issuerCertificates() : relyingPartyResource.accessCertificates()).getFirst();
+    private RelyingPartyCertificateResource certificate(CertificateType certificateType) {
+        return (certificateType == CertificateType.ISSUER ? relyingPartyResource.issuerCertificates() : relyingPartyResource.accessCertificates()).getFirst();
     }
 
-    private RelyingPartyCertificateResource activeCertificate(String certificateType) {
+    private RelyingPartyCertificateResource activeCertificate(CertificateType certificateType) {
         var certificate = certificate(certificateType);
         return new RelyingPartyCertificateResource(certificate.certificate(), certificate.id(), certificate.entitlement(), -1);
     }

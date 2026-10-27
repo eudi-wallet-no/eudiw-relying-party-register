@@ -1,5 +1,6 @@
 package no.idporten.eudiw.rp.admin.web;
 
+import no.idporten.eudiw.rp.admin.integrations.registerservice.CertificateType;
 import no.idporten.eudiw.rp.admin.security.SecurityTestUtils;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.service.accesscertificates.PKCS10CertificationRequestConverter;
@@ -148,28 +149,28 @@ public class CsrControllerTests {
         }
 
         @ParameterizedTest
-        @CsvSource({"access, false", "issuer, false", "access, true"})
+        @CsvSource({"ACCESS, false", "ISSUER, false", "ACCESS, true"})
         @DisplayName("Should show issuance rejection or timeout without certificate success")
-        void shouldShowIssuanceFailureWithoutSuccess(String type, boolean timeout) throws Exception {
+        void shouldShowIssuanceFailureWithoutSuccess(CertificateType type, boolean timeout) throws Exception {
             RelyingPartyResource relyingParty = ResourceGenerator.generateRelyingPartyResource();
             when(mockRpService.get(relyingParty.id())).thenReturn(relyingParty);
             RuntimeException failure = timeout
                 ? new ResourceAccessException("Read timed out", new SocketTimeoutException("Read timed out"))
                 : new ErrorResponseException("ca_error", "CA rejected issuance");
-            if (type.equals("access")) {
+            if (type == CertificateType.ACCESS) {
                 when(mockRpService.requestCertificateForRelyingParty(eq(relyingParty.id()), any())).thenThrow(failure);
             } else {
                 when(mockRpService.requestIssuerCertificateForEntitlement(eq(relyingParty.id()), any())).thenThrow(failure);
             }
 
-            var result = mockMvc.perform(post("/csr/" + type + "/" + relyingParty.id())
+            var result = mockMvc.perform(post("/csr/" + type.pathSegment() + "/" + relyingParty.id())
                     .with(SecurityTestUtils.oidcLoginForOrgno(relyingParty.orgno()))
                     .with(csrf())
                     .formField("csrField", validCsr())
                     .formField("entitlement", "pid_provider"))
                 .andExpectAll(
                     status().is(timeout ? 500 : 200),
-                    view().name(timeout ? "error/5xx" : type + "_csr_form_view"),
+                    view().name(timeout ? "error/5xx" : type.pathSegment() + "_csr_form_view"),
                     model().attributeDoesNotExist(CsrController.NEW_CERTIFICATE_ATTR),
                     header().doesNotExist("Location"));
             if (timeout) {
@@ -266,12 +267,12 @@ public class CsrControllerTests {
     }
 
     @ParameterizedTest
-    @CsvSource({"access, false", "issuer, false", "access, true", "issuer, true"})
+    @CsvSource({"ACCESS, false", "ISSUER, false", "ACCESS, true", "ISSUER, true"})
     @DisplayName("Should deny another organisation access to CSR forms and issuance without certificate requests")
-    void shouldDenyOtherOrganisation(String type, boolean submission) throws Exception {
+    void shouldDenyOtherOrganisation(CertificateType type, boolean submission) throws Exception {
         RelyingPartyResource relyingParty = ResourceGenerator.generateRelyingPartyResource();
         when(mockRpService.get(relyingParty.id())).thenReturn(relyingParty);
-        String path = "/csr/" + type + "/" + relyingParty.id();
+        String path = "/csr/" + type.pathSegment() + "/" + relyingParty.id();
         var request = submission
             ? post(path).formField("csrField", validCsr()).formField("entitlement", "pid_provider")
             : get(path);

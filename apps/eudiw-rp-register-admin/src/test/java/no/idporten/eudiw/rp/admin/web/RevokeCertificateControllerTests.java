@@ -1,5 +1,6 @@
 package no.idporten.eudiw.rp.admin.web;
 
+import no.idporten.eudiw.rp.admin.integrations.registerservice.CertificateType;
 import no.idporten.eudiw.rp.admin.security.SecurityTestUtils;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.service.exception.CertificateNotFoundException;
@@ -10,7 +11,7 @@ import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -42,9 +43,9 @@ public class RevokeCertificateControllerTests {
     private RelyingPartiesService mockRpService;
 
     @ParameterizedTest
-    @CsvSource({"access, false", "issuer, false", "access, true", "issuer, true"})
+    @CsvSource({"ACCESS, false", "ISSUER, false", "ACCESS, true", "ISSUER, true"})
     @DisplayName("Should revoke certificates and redirect the owning organisation and administrators to the certificate section")
-    void shouldRevokeCertificateAndRedirect(String type, boolean administrator) throws Exception {
+    void shouldRevokeCertificateAndRedirect(CertificateType type, boolean administrator) throws Exception {
         RelyingPartyResource relyingParty = ResourceGenerator.generateRelyingPartyResource();
         UUID certificateId = UUID.randomUUID();
         when(mockRpService.get(relyingParty.id())).thenReturn(relyingParty);
@@ -54,9 +55,9 @@ public class RevokeCertificateControllerTests {
                 .with(csrf()))
             .andExpectAll(
                 status().is3xxRedirection(),
-                redirectedUrl("/details/" + relyingParty.id() + "#" + type + "-certificates"));
+                redirectedUrl("/details/" + relyingParty.id() + "#" + type.pathSegment() + "-certificates"));
 
-        if (type.equals("access")) {
+        if (type == CertificateType.ACCESS) {
             verify(mockRpService).revokeAccessCertificate(relyingParty.id(), certificateId);
             verify(mockRpService, never()).revokeIssuerCertificate(any(), any());
         } else {
@@ -66,9 +67,9 @@ public class RevokeCertificateControllerTests {
     }
 
     @ParameterizedTest
-    @CsvSource({"access, ca", "issuer, timeout", "access, response", "access, notfound"})
+    @CsvSource({"ACCESS, ca", "ISSUER, timeout", "ACCESS, response", "ACCESS, notfound"})
     @DisplayName("Should show revocation failures without redirecting to success")
-    void shouldShowRevocationFailureWithoutRedirect(String type, String failureType) throws Exception {
+    void shouldShowRevocationFailureWithoutRedirect(CertificateType type, String failureType) throws Exception {
         RelyingPartyResource relyingParty = ResourceGenerator.generateRelyingPartyResource();
         UUID certificateId = UUID.randomUUID();
         when(mockRpService.get(relyingParty.id())).thenReturn(relyingParty);
@@ -78,7 +79,7 @@ public class RevokeCertificateControllerTests {
             case "response" -> new RestClientException("Unable to read response");
             default -> new CertificateNotFoundException("Certificate not found", relyingParty.id().toString(), certificateId.toString());
         };
-        if (type.equals("access")) {
+        if (type == CertificateType.ACCESS) {
             doThrow(failure).when(mockRpService).revokeAccessCertificate(relyingParty.id(), certificateId);
         } else {
             doThrow(failure).when(mockRpService).revokeIssuerCertificate(relyingParty.id(), certificateId);
@@ -100,9 +101,9 @@ public class RevokeCertificateControllerTests {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"access", "issuer"})
+    @EnumSource(CertificateType.class)
     @DisplayName("Should deny certificate revocation by another organisation without revoking a certificate")
-    void shouldDenyOtherOrganisation(String type) throws Exception {
+    void shouldDenyOtherOrganisation(CertificateType type) throws Exception {
         RelyingPartyResource relyingParty = ResourceGenerator.generateRelyingPartyResource();
         when(mockRpService.get(relyingParty.id())).thenReturn(relyingParty);
 
@@ -116,7 +117,7 @@ public class RevokeCertificateControllerTests {
         verify(mockRpService, never()).revokeIssuerCertificate(any(), any());
     }
 
-    private String revokePath(String type, UUID relyingPartyId, UUID certificateId) {
-        return "/revoke-certificate/" + relyingPartyId + "/" + type + "/" + certificateId;
+    private String revokePath(CertificateType type, UUID relyingPartyId, UUID certificateId) {
+        return "/revoke-certificate/" + relyingPartyId + "/" + type.pathSegment() + "/" + certificateId;
     }
 }
