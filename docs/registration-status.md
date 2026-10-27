@@ -28,19 +28,3 @@ Change status with `PATCH /v2/{parties,services,instances}/{id}/deactivate` or
 `404` for an unknown resource and `400` when attempting reactivation under
 inactive parents. V1 retains physical deletion but cannot reactivate instances
 under inactive parents.
-
-## Certificate migration and remaining work
-
-Admin and self-service certificate issuance, retrieval and explicit revocation
-use V2, with the web registration ID identifying the owning Instance.
-
-A timeout leaves the outcome unknown and is shown as an error, without automatic
-retry or V1 fallback. If the register already confirms revocation, no new
-revocation is sent. CA/register disagreement after a lost response or failed
-persistence is not reconciled automatically; that requires a separate decision.
-
-Creation and editing still use V1. Admin search and the role catalogue are
-migrated separately in EUW-2003
-([#133](https://github.com/eudi-wallet-no/eudiw-relying-party-register/pull/133)).
-Remaining work covers creation, editing, selected display/form fields and finally
-ending admin/self-service V1-client use. Backend-V1 and lookup-web are unchanged.
