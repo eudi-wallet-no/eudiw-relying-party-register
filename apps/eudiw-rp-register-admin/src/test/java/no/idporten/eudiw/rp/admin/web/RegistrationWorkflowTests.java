@@ -3,7 +3,6 @@ package no.idporten.eudiw.rp.admin.web;
 import no.idporten.eudiw.rp.admin.integrations.registerservice.CertificateType;
 import no.idporten.eudiw.rp.admin.integrations.registerservice.V2RegisterClient;
 import no.idporten.eudiw.rp.admin.security.SecurityTestUtils;
-import no.idporten.eudiw.rp.admin.service.exception.UnrecognizedErrorResponseException;
 import no.idporten.eudiw.rp.admin.service.MockWebServerConfiguration;
 import no.idporten.eudiw.rp.admin.service.accesscertificates.PKCS10CertificationRequestConverter;
 import no.idporten.eudiw.rp.admin.testdata.CertificatesGenerator;
@@ -19,7 +18,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -157,28 +155,6 @@ class RegistrationWorkflowTests {
 
         mockMvc.perform(get(downloadPath).with(login(false)))
             .andExpect(status().isOk());
-    }
-
-    @ParameterizedTest
-    @CsvSource({"ACCESS, true", "ISSUER, false"})
-    @DisplayName("Should show a register response error instead of certificate order success or a download when the certificate response is empty")
-    void shouldShowRegisterResponseErrorWhenCertificateResponseIsEmpty(CertificateType certificateType, boolean ordering) throws Exception {
-        enqueueLookup();
-        var certificate = certificate(certificateType);
-        String path = "/v2/instances/" + relyingPartyResource.id() + "/certificates/" + certificateType.pathSegment();
-        expectedRequests.add(ordering ? "POST " + path : "GET " + path + "/" + certificate.id());
-        server.enqueue(new MockResponse().setResponseCode(200));
-
-        var request = ordering
-            ? post("/csr/" + certificateType.pathSegment() + "/" + relyingPartyResource.id())
-                .with(csrf())
-                .formField("csrField", PKCS10CertificationRequestConverter.toString(CertificatesGenerator.generatePKCS10Csr()))
-            : get("/get-certificate/" + relyingPartyResource.id() + "/issuer/" + certificate.id());
-
-        mockMvc.perform(request.with(login(false)))
-            .andExpectAll(status().isInternalServerError(), view().name("error/5xx"),
-                header().doesNotExist("Content-Disposition"))
-            .andExpect(result -> assertInstanceOf(UnrecognizedErrorResponseException.class, result.getResolvedException()));
     }
 
     @ParameterizedTest

@@ -1,7 +1,6 @@
 package no.idporten.eudiw.rp.admin.integrations.registerservice;
 
 import no.idporten.eudiw.rp.admin.service.exception.CertificateNotFoundException;
-import no.idporten.eudiw.rp.admin.service.exception.UnrecognizedErrorResponseException;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.IssuerCsrResource;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificateResource;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCsrResource;
@@ -48,33 +47,21 @@ public class V2CertificateClient {
     private RelyingPartyCertificateResource getCertificate(UUID instanceId, CertificateType type, UUID certificateId) {
         String path = certificatePath(instanceId, type) + "/" + certificateId;
 
-        var certificate = restClient.get()
+        return restClient.get()
             .uri(path)
             .retrieve()
             .onStatus(HttpStatus.NOT_FOUND::isSameCodeAs, certificateNotFound(instanceId, certificateId))
             .body(RelyingPartyCertificateResource.class);
-
-        if (certificate == null) {
-            throw new UnrecognizedErrorResponseException(
-                "Unable to retrieve " + path + " from register service: response body is empty");
-        }
-        return certificate;
     }
 
     private RelyingPartyCertificateResource requestCertificate(UUID instanceId, CertificateType type, Object request) {
         String path = certificatePath(instanceId, type);
 
-        var certificate = restClient.post()
+        return restClient.post()
             .uri(path)
             .body(request)
             .retrieve()
             .body(RelyingPartyCertificateResource.class);
-
-        if (certificate == null) {
-            throw new UnrecognizedErrorResponseException(
-                "Unable to order certificate from " + path + " in register service: response body is empty");
-        }
-        return certificate;
     }
 
     private void revokeCertificate(UUID instanceId, CertificateType type, UUID certificateId) {
