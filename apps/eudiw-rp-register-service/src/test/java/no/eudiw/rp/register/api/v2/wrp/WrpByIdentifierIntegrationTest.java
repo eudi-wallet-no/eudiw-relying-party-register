@@ -10,6 +10,7 @@ import jakarta.persistence.EntityManagerFactory;
 import no.eudiw.rp.register.domain.Credential;
 import no.eudiw.rp.register.domain.Identifier;
 import no.eudiw.rp.register.domain.IntendedUse;
+import no.eudiw.rp.register.domain.LegalPerson;
 import no.eudiw.rp.register.domain.MultiLangString;
 import no.eudiw.rp.register.domain.Policy;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
@@ -201,8 +202,160 @@ class WrpByIdentifierIntegrationTest {
             .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("cursor", "not-a-cursor"))
             .andExpect(status().isBadRequest());
-        mockMvc.perform(get("/wrp").param("identifier", "not-yet-supported"))
+        mockMvc.perform(get("/wrp").param("identifier", " "))
             .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/wrp").param("legalname", " "))
+            .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/wrp").param("serviceidentifier", " "))
+            .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/wrp").param("tradename", " "))
+            .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/wrp").param("unsupported", "value"))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void filtersCollectionByIdentifierAndLegalNameBeforeCursorPagination() throws Exception {
+        WalletRelyingParty first = partyWithSearchData(
+            "Filter Match A", "urn:example:shared", "Legal Alpha");
+        WalletRelyingParty second = partyWithSearchData(
+            "Filter Match B", "urn:example:shared", "Legal Beta");
+        WalletRelyingParty third = partyWithSearchData(
+            "Filter Match C", "urn:example:other", "Legal Alpha");
+        WalletRelyingParty inactive = partyWithSearchData(
+            "Filter Inactive", "urn:example:shared", "Legal Alpha");
+        inactive.setActive(false);
+        walletRelyingPartyRepository.saveAllAndFlush(List.of(first, second, third, inactive));
+
+        assertEquals(
+            List.of("Filter Match A"),
+            collectionTradeNames(getCollectionPage(null, null, Map.of(
+                "identifier", first.getOrgno()
+            )))
+        );
+        assertEquals(
+            Set.of("Filter Match A", "Filter Match B"),
+            Set.copyOf(collectionTradeNames(getCollectionPage(null, null, Map.of(
+                "identifier", "urn:example:shared"
+            ))))
+        );
+        assertEquals(
+            Set.of("Filter Match A", "Filter Match C"),
+            Set.copyOf(collectionTradeNames(getCollectionPage(null, null, Map.of(
+                "legalname", "Legal Alpha"
+            ))))
+        );
+        assertEquals(
+            List.of("Filter Match A"),
+            collectionTradeNames(getCollectionPage(null, null, Map.of(
+                "identifier", "urn:example:shared",
+                "legalname", "Legal Alpha"
+            )))
+        );
+        assertTrue(collectionTradeNames(getCollectionPage(null, null, Map.of(
+            "identifier", "urn:example:shared",
+            "legalname", "Legal Gamma"
+        ))).isEmpty());
+        assertTrue(collectionTradeNames(getCollectionPage(null, null, Map.of(
+            "identifier", "urn:example:sha"
+        ))).isEmpty());
+
+        JWSObject firstPage = getCollectionPage(
+            1, null, Map.of("identifier", "urn:example:shared"));
+        Map<?, ?> firstPagination =
+            (Map<?, ?>) firstPage.getPayload().toJSONObject().get("pagination");
+        assertTrue((Boolean) firstPagination.get("has_next_page"));
+
+        JWSObject secondPage = getCollectionPage(
+            1,
+            (String) firstPagination.get("next_cursor"),
+            Map.of("identifier", "urn:example:shared")
+        );
+        Map<?, ?> secondPagination =
+            (Map<?, ?>) secondPage.getPayload().toJSONObject().get("pagination");
+        assertFalse((Boolean) secondPagination.get("has_next_page"));
+        Set<String> pagedNames = new HashSet<>(collectionTradeNames(firstPage));
+        pagedNames.addAll(collectionTradeNames(secondPage));
+        assertEquals(Set.of("Filter Match A", "Filter Match B"), pagedNames);
+    }
+
+    @Test
+    void filtersCollectionByServiceIdentifierAndTradeNameBeforeCursorPagination() throws Exception {
+        WalletRelyingParty wrpNameMatch =
+            partyWithSearchData("Shared Trade Name", "urn:example:shared", "Legal Alpha");
+        WalletRelyingPartyService matchingService = wrpNameMatch.getServices().getFirst();
+        matchingService.setServiceIdentifier("service-one");
+        matchingService.setServiceTradeName("Shared Trade Name");
+        WalletRelyingPartyService secondMatchingService =
+            new WalletRelyingPartyService("Shared Trade Name", wrpNameMatch, List.of());
+        secondMatchingService.setServiceIdentifier("service-one-secondary");
+        wrpNameMatch.setServices(List.of(matchingService, secondMatchingService));
+
+        WalletRelyingParty serviceNameMatch =
+            partyWithSearchData("Other WRP", "urn:example:other", "Legal Alpha");
+        WalletRelyingPartyService otherService = serviceNameMatch.getServices().getFirst();
+        otherService.setServiceIdentifier("service-two");
+        otherService.setServiceTradeName("Shared Trade Name");
+
+        WalletRelyingParty inactiveServiceMatch =
+            partyWithSearchData("Inactive Service WRP", "urn:example:inactive", "Legal Beta");
+        WalletRelyingPartyService inactiveService = inactiveServiceMatch.getServices().getFirst();
+        inactiveService.setServiceIdentifier("inactive-service");
+        inactiveService.setServiceTradeName("Shared Trade Name");
+        inactiveService.setActive(false);
+
+        WalletRelyingParty wrpOnlyMatch =
+            partyWithSearchData("WRP-only Trade Name", "urn:example:wrp-only", "Legal Gamma");
+        walletRelyingPartyRepository.saveAllAndFlush(List.of(
+            wrpNameMatch, serviceNameMatch, inactiveServiceMatch, wrpOnlyMatch));
+
+        assertEquals(
+            List.of("Shared Trade Name"),
+            collectionTradeNames(getCollectionPage(null, null, Map.of(
+                "serviceidentifier", "service-one"
+            )))
+        );
+        assertTrue(collectionTradeNames(getCollectionPage(null, null, Map.of(
+            "serviceidentifier", "service-one-extra"
+        ))).isEmpty());
+        assertTrue(collectionTradeNames(getCollectionPage(null, null, Map.of(
+            "serviceidentifier", "inactive-service"
+        ))).isEmpty());
+        assertEquals(
+            List.of("WRP-only Trade Name"),
+            collectionTradeNames(getCollectionPage(null, null, Map.of(
+                "tradename", "WRP-only Trade Name"
+            )))
+        );
+        assertTrue(collectionTradeNames(getCollectionPage(null, null, Map.of(
+            "tradename", "WRP-only"
+        ))).isEmpty());
+        assertEquals(
+            List.of("Other WRP"),
+            collectionTradeNames(getCollectionPage(null, null, Map.of(
+                "identifier", "urn:example:other",
+                "legalname", "Legal Alpha",
+                "serviceidentifier", "service-two",
+                "tradename", "Shared Trade Name"
+            )))
+        );
+
+        JWSObject firstPage = getCollectionPage(
+            1, null, Map.of("tradename", "Shared Trade Name"));
+        Map<?, ?> firstPagination =
+            (Map<?, ?>) firstPage.getPayload().toJSONObject().get("pagination");
+        assertTrue((Boolean) firstPagination.get("has_next_page"));
+        JWSObject secondPage = getCollectionPage(
+            1,
+            (String) firstPagination.get("next_cursor"),
+            Map.of("tradename", "Shared Trade Name")
+        );
+        Map<?, ?> secondPagination =
+            (Map<?, ?>) secondPage.getPayload().toJSONObject().get("pagination");
+        assertFalse((Boolean) secondPagination.get("has_next_page"));
+        List<String> pagedNames = new ArrayList<>(collectionTradeNames(firstPage));
+        pagedNames.addAll(collectionTradeNames(secondPage));
+        assertEquals(Set.of("Shared Trade Name", "Other WRP"), Set.copyOf(pagedNames));
     }
 
     @Test
@@ -255,7 +408,11 @@ class WrpByIdentifierIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(content().string(containsString("\"/wrp\"")))
             .andExpect(content().string(containsString("limit")))
-            .andExpect(content().string(containsString("cursor")));
+            .andExpect(content().string(containsString("cursor")))
+            .andExpect(content().string(containsString("identifier")))
+            .andExpect(content().string(containsString("legalname")))
+            .andExpect(content().string(containsString("serviceidentifier")))
+            .andExpect(content().string(containsString("tradename")));
     }
 
     @Test
@@ -380,6 +537,14 @@ class WrpByIdentifierIntegrationTest {
     }
 
     private JWSObject getCollectionPage(Integer limit, String cursor) throws Exception {
+        return getCollectionPage(limit, cursor, Map.of());
+    }
+
+    private JWSObject getCollectionPage(
+        Integer limit,
+        String cursor,
+        Map<String, String> filters
+    ) throws Exception {
         var request = get("/wrp");
         if (limit != null) {
             request.param("limit", limit.toString());
@@ -387,6 +552,7 @@ class WrpByIdentifierIntegrationTest {
         if (cursor != null) {
             request.param("cursor", cursor);
         }
+        filters.forEach((name, value) -> request.param(name, value));
         String token = mockMvc.perform(request)
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/jwt")))
@@ -400,6 +566,23 @@ class WrpByIdentifierIntegrationTest {
         assertEquals("wrp-test-key", jws.getHeader().getKeyID());
         assertTrue(jws.verify(new ECDSAVerifier((ECPublicKey) signingKeyPair.getPublic())));
         return jws;
+    }
+
+    private List<String> collectionTradeNames(JWSObject jws) {
+        return ((List<?>) jws.getPayload().toJSONObject().get("data")).stream()
+            .map(item -> (String) ((Map<?, ?>) item).get("tradeName"))
+            .toList();
+    }
+
+    private WalletRelyingParty partyWithSearchData(
+        String tradeName,
+        String registeredIdentifier,
+        String legalName
+    ) {
+        WalletRelyingParty party = partyNamed(tradeName);
+        party.setIdentifier(List.of(new Identifier("urn:example:test", registeredIdentifier)));
+        party.setLegalPerson(new LegalPerson(List.of(legalName), List.of()));
+        return party;
     }
 
     private WalletRelyingParty partyNamed(String tradeName) {

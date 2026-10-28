@@ -17,7 +17,7 @@ import java.util.UUID;
 
 @Repository
 public interface WalletRelyingPartyRepository
-    extends JpaRepository<WalletRelyingParty, UUID> {
+    extends JpaRepository<WalletRelyingParty, UUID>, WalletRelyingPartyCollectionQuery {
 
     Optional<WalletRelyingParty> findByOrgno(String orgno);
 
@@ -30,30 +30,6 @@ public interface WalletRelyingPartyRepository
             OR JSON_CONTAINS(party.identifier, JSON_OBJECT('identifier', :identifier), '$'))
         """, nativeQuery = true)
     List<WalletRelyingParty> findAllByRegisteredIdentifier(String identifier);
-
-    @Query("""
-        SELECT party FROM WalletRelyingParty party
-        WHERE party.active = TRUE
-        ORDER BY party.createdMs ASC, party.id ASC
-        """)
-    @EntityGraph(attributePaths = "legalPerson")
-    List<WalletRelyingParty> findActivePage(Pageable pageable);
-
-    @Query("""
-        SELECT party FROM WalletRelyingParty party
-        WHERE party.active = TRUE
-          AND (
-            party.createdMs > :createdMs
-            OR (party.createdMs = :createdMs AND party.id > :id)
-          )
-        ORDER BY party.createdMs ASC, party.id ASC
-        """)
-    @EntityGraph(attributePaths = "legalPerson")
-    List<WalletRelyingParty> findActiveAfterCursor(
-        @Param("createdMs") long createdMs,
-        @Param("id") UUID id,
-        Pageable pageable
-    );
 
     @Query("""
         SELECT DISTINCT service.id AS serviceId, activeEntitlement.entitlement AS entitlementValue

@@ -5,7 +5,8 @@ import no.idporten.eudiw.rp.admin.service.exception.UnrecognizedErrorResponseExc
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.admin.web.form.SearchForm;
 import no.idporten.eudiw.rp.admin.web.resource.PagedResponse;
-import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
+import no.idporten.eudiw.rp.admin.web.resource.RegistrationSearchResult;
+import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyEntitlementResource;
 import no.idporten.eudiw.rp.admin.web.resource.SearchRelyingPartyResource;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -20,9 +21,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import tools.jackson.databind.json.JsonMapper;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -55,24 +56,31 @@ public class ServiceTest {
     }
 
     @Test
-    @DisplayName("then valid search result responses are properly deserialized")
-    void testCorrectDeserializationOfValidSearchResponse() throws Exception {
-        List<RelyingPartyResource> expectedSearchResultResource = ResourceGenerator.generateRelyingPartiesResource();
-        PagedResponse<RelyingPartyResource> response = ResourceGenerator.generatePageResponse(expectedSearchResultResource);
+    @DisplayName("Should display registration names, historical roles and certificate counts from V2 search")
+    void shouldDisplayRegistrationNamesHistoricalRolesAndCertificateCounts() throws Exception {
+        mockWebServer.enqueue(new MockResponse().setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .setBody("""
+                {"content":[{"id":"00000000-0000-0000-0000-000000000001","orgno":"123456785",
+                  "organizationName":"Legal name","serviceTradeName":"Service name",
+                  "relyingPartyEntitlements":[{"entitlement":"urn:issuer","credentialIssuerUrl":"https://issuer.test"},
+                                              {"entitlement":"urn:unknown"}],
+                  "accessCertificateIds":["00000000-0000-0000-0000-000000000002"],"issuerCertificateIds":[],
+                  "createdMs":1700000000000,"lastUpdatedMs":1710000000000}],
+                 "page":{"size":25,"number":1,"totalElements":26,"totalPages":2}}
+                """));
+        mockWebServer.enqueue(new MockResponse().setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .setBody("""
+                {"entitlements":[{"entitlement":"urn:issuer","displayName":"Historical issuer","active":false}]}
+                """));
 
-        String responseBody = new JsonMapper().writer().writeValueAsString(response);
+        PagedResponse<RegistrationSearchResult> results = relyingPartiesService.search(
+            SearchForm.empty().toResource().withPage(1));
 
-        MockResponse mockValidResponse =
-            new MockResponse()
-                .setResponseCode(200)
-                .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .setBody(responseBody);
-        mockWebServer.enqueue(mockValidResponse);
-
-        PagedResponse<RelyingPartyResource> actualSearchResultResource =
-                relyingPartiesService.search(
-                    SearchForm.empty().toResource());
-        assertEquals(expectedSearchResultResource.getFirst(), actualSearchResultResource.content().getFirst());
+        assertEquals(new RegistrationSearchResult(new UUID(0, 1), "123456785", "Legal name", "Service name",
+            List.of(new RelyingPartyEntitlementResource("urn:issuer", "Historical issuer", "https://issuer.test"),
+                new RelyingPartyEntitlementResource("urn:unknown", "urn:unknown", null)),
+            1700000000000L, 1710000000000L, 1, 0), results.content().getFirst());
+        assertEquals(new PagedResponse.PageMetadata(25, 1, 26, 2), results.page());
     }
 
     @Nested

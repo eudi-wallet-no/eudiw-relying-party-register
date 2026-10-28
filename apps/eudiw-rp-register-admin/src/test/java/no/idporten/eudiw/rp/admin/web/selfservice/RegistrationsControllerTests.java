@@ -18,11 +18,11 @@ import java.util.UUID;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 
 @SpringBootTest
 @ActiveProfiles("junit")
@@ -42,7 +42,7 @@ class RegistrationsControllerTests {
             List.of(new RegistrationSummary.Role("Test role"), new RegistrationSummary.Role(null)),
             1700000000000L, 1710000000000L);
         RegistrationSummary missingFields = new RegistrationSummary(new UUID(0, 43), null, null, null, null);
-        when(registrationsService.getAllByOrgno(authorizedOrgno)).thenReturn(List.of(registration, missingFields));
+        when(registrationsService.searchByOrgno(authorizedOrgno, "")).thenReturn(List.of(registration, missingFields));
 
         String html = mockMvc.perform(get("/registrations").param("orgno", "987654321")
                 .with(SecurityTestUtils.oidcLoginForOrgno(authorizedOrgno)))
@@ -55,6 +55,31 @@ class RegistrationsControllerTests {
             .andReturn().getResponse().getContentAsString();
 
         assertEquals(0, StringUtils.countOccurrencesOf(html, "Ikkje oppgitt"));
-        verify(registrationsService).getAllByOrgno(authorizedOrgno);
+        verify(registrationsService).searchByOrgno(authorizedOrgno, "");
+    }
+
+    @Test
+    @DisplayName("Should search within the signed-in organization regardless of the organization in the URL")
+    void shouldSearchWithinSignedInOrganizationRegardlessOfOrganizationInUrl() throws Exception {
+        when(registrationsService.searchByOrgno("123456785", "Test")).thenReturn(List.of());
+
+        mockMvc.perform(get("/registrations").param("searchTerm", "  Test  ").param("orgno", "987654321")
+                .with(SecurityTestUtils.oidcLoginForOrgno("123456785")))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("value=\"Test\"")))
+            .andExpect(content().string(containsString("Fann ingen registrerte brukarstader.")));
+        verify(registrationsService).searchByOrgno("123456785", "Test");
+        verifyNoMoreInteractions(registrationsService);
+    }
+
+    @Test
+    @DisplayName("Should reject an invalid registration search without calling the register service")
+    void shouldRejectInvalidRegistrationSearchWithoutCallingRegisterService() throws Exception {
+        mockMvc.perform(get("/registrations").param("searchTerm", "invalid$")
+                .with(SecurityTestUtils.oidcLoginForOrgno("123456785")))
+            .andExpect(status().isOk())
+            .andExpect(model().attributeHasFieldErrors("searchFormAttr", "searchTerm"))
+            .andExpect(content().string(containsString("aria-describedby=\"search_term_errors\"")));
+        verifyNoInteractions(registrationsService);
     }
 }

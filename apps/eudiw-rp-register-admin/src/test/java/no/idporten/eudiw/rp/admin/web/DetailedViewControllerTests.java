@@ -8,6 +8,8 @@ import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyCertificate
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -18,6 +20,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.UUID;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -38,6 +41,17 @@ public class DetailedViewControllerTests {
     @SuppressWarnings("unused")
     @MockitoBean
     private RelyingPartiesService mockRpService;
+
+    @ParameterizedTest
+    @ValueSource(strings = {"https://example.org", "//example.org", "javascript:alert(1)", "/search/other"})
+    @DisplayName("Should return to search instead of an untrusted destination")
+    void shouldReturnToSearchInsteadOfUntrustedDestination(String returnUrl) throws Exception {
+        var relyingParty = ResourceGenerator.generateRelyingPartyResource();
+        when(mockRpService.get(relyingParty.id())).thenReturn(relyingParty);
+
+        mockMvc.perform(get("/details/" + relyingParty.id()).param("returnUrl", returnUrl))
+            .andExpectAll(status().isOk(), content().string(containsString("href=\"/search\"")));
+    }
 
     @Nested
     @DisplayName("when GET'ing the /details endpoint for a given RP ID ...")
@@ -66,6 +80,7 @@ public class DetailedViewControllerTests {
             mockMvc.perform(get("/details/" + id))
                    .andExpect(status().isOk())
                    .andExpect(view().name("details_view"))
+                   .andExpect(content().string(containsString("href=\"/search\"")))
                    .andExpect(model().attribute(DetailedViewController.DETAILED_VIEW_DATA_ATTR, rpResource))
                    .andExpect(model().attribute(DetailedViewController.ACCESS_CERTIFICATE_SUMMARIES_ATTR, expectedAccessCerts))
                    .andExpect(model().attribute(DetailedViewController.ISSUER_CERTIFICATE_SUMMARIES_ATTR, expectedIssuerCerts));

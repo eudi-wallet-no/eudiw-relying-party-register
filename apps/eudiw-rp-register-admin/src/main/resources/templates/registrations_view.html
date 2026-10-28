@@ -20,6 +20,21 @@
             </p>
         </div>
 
+        <form th:action="@{/registrations}" method="GET" th:object="${searchFormAttr}"
+              class="space-bottom-1em">
+            <label for="search_term" class="ds-label">Søk på tenestenamn</label>
+            <div class="ds-search space-block-end-2">
+                <input id="search_term" th:field="*{searchTerm}" type="search" class="ds-input"
+                       th:attr="aria-invalid=${#fields.hasErrors('searchTerm')} ? 'true' : 'false',
+                                aria-describedby=${#fields.hasErrors('searchTerm')} ? 'search_term_errors' : null">
+                <button type="submit" class="ds-button" data-variant="primary">Søk</button>
+            </div>
+            <ul id="search_term_errors" th:if="${#fields.hasErrors('searchTerm')}">
+                <li th:each="error : ${#fields.errors('searchTerm')}" th:text="${error}"
+                    class="ds-validation-message"></li>
+            </ul>
+        </form>
+
         <div th:replace="~{fragments/registrations_fragments :: registrations_table_fragment}">
         </div>
     </main>

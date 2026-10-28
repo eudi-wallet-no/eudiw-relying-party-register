@@ -149,6 +149,24 @@ class V2ApiIntegrationTest {
     }
 
     @Test
+    @DisplayName("Should return organization and service names in instance search without certificate service calls")
+    void shouldReturnOrganizationAndServiceNamesInInstanceSearch() throws Exception {
+        Registration registration = createRegistration();
+        JsonNode relyingParty = read(put(registration.relyingPartyPath()), RELYING_PARTY);
+
+        JsonNode searchResult = read(get("/v2/instances")
+            .param("orgno", relyingParty.get("orgno").asString())
+            .param("searchTerm", "Legal name")).at("/content/0");
+
+        assertAll(
+            () -> assertEquals(registration.relyingPartyInstanceId(), searchResult.get("id").asString()),
+            () -> assertEquals(relyingParty.get("orgno"), searchResult.get("orgno")),
+            () -> assertEquals("Legal name", searchResult.get("organizationName").asString()),
+            () -> assertEquals("Test service", searchResult.get("serviceTradeName").asString()));
+        verifyNoInteractions(certificateServiceClient);
+    }
+
+    @Test
     void replacementsPersistOwnFieldsWithoutChangingIdentityHierarchyOrStatus() throws Exception {
         Registration registration = createRegistration();
         JsonNode intendedUse = read(post(registration.intendedUsesPath()), INTENDED_USE);
@@ -489,7 +507,11 @@ class V2ApiIntegrationTest {
             .andExpect(status().isNoContent());
 
         JsonNode registrationDetails = read(get("/v2/registrations/" + registration.relyingPartyInstanceId()));
+        JsonNode searchResult = read(get("/v2/instances").param("orgno", orgno)
+            .param("includeInactive", "true")).at("/content/0");
 
+        assertEquals(accessCertificateId.toString(), searchResult.at("/accessCertificateIds/0").asString());
+        assertEquals(issuerCertificateId.toString(), searchResult.at("/issuerCertificateIds/0").asString());
         assertAll(
             () -> assertEquals(orgno, registrationDetails.get("orgno").asString()),
             () -> assertFalse(registrationDetails.get("active").asBoolean()),

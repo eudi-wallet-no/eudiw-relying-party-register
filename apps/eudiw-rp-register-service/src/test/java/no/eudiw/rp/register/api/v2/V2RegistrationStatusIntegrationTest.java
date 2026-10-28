@@ -18,9 +18,11 @@ import no.eudiw.rp.register.service.RelyingPartyCertificateService;
 import no.eudiw.rp.register.testdata.CertificatesGenerator;
 import no.eudiw.rp.register.testdata.TestDataGenerator;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -39,6 +41,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -225,22 +228,78 @@ class V2RegistrationStatusIntegrationTest {
     }
 
     @Test
-    void explicitlyRevokesCertificatesForInactiveRegistrationThroughCertificateAuthority() throws Exception {
+    @DisplayName("Should read and revoke both certificate types through V2 when the entire hierarchy is inactive")
+    void shouldReadAndRevokeCertificatesThroughV2ForInactiveRegistration() throws Exception {
         Registration registration = createRegistration();
         changeRegistrationStatus("/v2/parties/%s/deactivate".formatted(registration.walletRelyingParty().getId()));
+        assertRegistrationStatus(registration, false, false, false, false, false, false);
         when(certificateServiceClient.revokeCertificate(anyString(), anyInt(), anyString()))
             .thenReturn(HttpStatus.NO_CONTENT);
 
-        relyingPartyCertificateService.revokeAccessCertificate(
-            registration.accessCertificate().getId(), registration.relyingPartyInstance().getId());
-        relyingPartyCertificateService.revokeIssuerCertificate(
-            registration.issuerCertificate().getId(), registration.relyingPartyInstance().getId());
+        for (String certificateType : List.of("access", "issuer")) {
+            UUID certificateId = certificateType.equals("access")
+                ? registration.accessCertificate().getId() : registration.issuerCertificate().getId();
+            String certificatesPath = "/v2/instances/%s/certificates/%s".formatted(
+                registration.relyingPartyInstance().getId(), certificateType);
+            String certificatePath = certificatesPath + "/" + certificateId;
+
+            mockMvc.perform(get(certificatesPath).header(API_KEY_HEADER, API_KEY))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.certificates[0].id").value(certificateId.toString()));
+            mockMvc.perform(get(certificatePath).header(API_KEY_HEADER, API_KEY))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(certificateId.toString()))
+                .andExpect(jsonPath("$.revocation_status").value(-1));
+
+            mockMvc.perform(patch(certificatePath + "/revoke").header(API_KEY_HEADER, API_KEY))
+                .andExpect(status().isNoContent());
+
+            mockMvc.perform(get(certificatePath).header(API_KEY_HEADER, API_KEY))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.revocation_status").value(0));
+        }
 
         assertEquals(0, accessCertificateRepository.findById(registration.accessCertificate().getId())
             .orElseThrow().getRevocationStatus());
         assertEquals(0, issuerCertificateRepository.findById(registration.issuerCertificate().getId())
             .orElseThrow().getRevocationStatus());
         verify(certificateServiceClient, times(2)).revokeCertificate(anyString(), anyInt(), anyString());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"access", "issuer"})
+    @DisplayName("Should restrict V2 certificate reads and revocation to the owning instance")
+    void shouldRestrictV2CertificateReadsAndRevocationToOwningInstance(String certificateType) throws Exception {
+        Registration owner = createRegistration();
+        Registration other = createRegistration();
+        UUID certificateId = certificateType.equals("access")
+            ? owner.accessCertificate().getId() : owner.issuerCertificate().getId();
+        UUID otherCertificateId = certificateType.equals("access")
+            ? other.accessCertificate().getId() : other.issuerCertificate().getId();
+        String ownerCertificatesPath = "/v2/instances/%s/certificates/%s".formatted(
+            owner.relyingPartyInstance().getId(), certificateType);
+        String otherCertificatesPath = "/v2/instances/%s/certificates/%s".formatted(
+            other.relyingPartyInstance().getId(), certificateType);
+
+        mockMvc.perform(get(ownerCertificatesPath).header(API_KEY_HEADER, API_KEY))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.certificates.length()").value(1))
+            .andExpect(jsonPath("$.certificates[0].id").value(certificateId.toString()));
+        mockMvc.perform(get(otherCertificatesPath).header(API_KEY_HEADER, API_KEY))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.certificates.length()").value(1))
+            .andExpect(jsonPath("$.certificates[0].id").value(otherCertificateId.toString()));
+        mockMvc.perform(get(otherCertificatesPath + "/" + certificateId).header(API_KEY_HEADER, API_KEY))
+            .andExpect(status().isNotFound());
+        mockMvc.perform(patch(otherCertificatesPath + "/" + certificateId + "/revoke")
+                .header(API_KEY_HEADER, API_KEY))
+            .andExpect(status().isNotFound());
+
+        mockMvc.perform(get(ownerCertificatesPath + "/" + certificateId).header(API_KEY_HEADER, API_KEY))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(certificateId.toString()))
+            .andExpect(jsonPath("$.revocation_status").value(-1));
+        verifyNoInteractions(certificateServiceClient);
     }
 
     @Test
@@ -261,25 +320,29 @@ class V2RegistrationStatusIntegrationTest {
         var objectMapper = new ObjectMapper();
         long accessCertificateCount = accessCertificateRepository.count();
         long issuerCertificateCount = issuerCertificateRepository.count();
-        String certificatePath = "/v1/rp/%s/certs".formatted(registration.relyingPartyInstance().getId());
+        List<String> certificatePaths = List.of(
+            "/v1/rp/%s/certs".formatted(registration.relyingPartyInstance().getId()),
+            "/v2/instances/%s/certificates".formatted(registration.relyingPartyInstance().getId()));
 
-        mockMvc.perform(post(certificatePath + "/access")
-                .header(API_KEY_HEADER, API_KEY)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new RelyingPartyCsrResource(certificateSigningRequest))))
-            .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.error").value("not_found"))
-            .andExpect(jsonPath("$.error_description")
-                .value("Certificate registree does not exist or is inactive"));
-        mockMvc.perform(post(certificatePath + "/issuer")
-                .header(API_KEY_HEADER, API_KEY)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new IssuerCsrResource(
-                    certificateSigningRequest, registration.entitlement().getEntitlement()))))
-            .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.error").value("not_found"))
-            .andExpect(jsonPath("$.error_description")
-                .value("Certificate registree does not exist or is inactive"));
+        for (String certificatePath : certificatePaths) {
+            mockMvc.perform(post(certificatePath + "/access")
+                    .header(API_KEY_HEADER, API_KEY)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(new RelyingPartyCsrResource(certificateSigningRequest))))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("not_found"))
+                .andExpect(jsonPath("$.error_description")
+                    .value("Certificate registree does not exist or is inactive"));
+            mockMvc.perform(post(certificatePath + "/issuer")
+                    .header(API_KEY_HEADER, API_KEY)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(new IssuerCsrResource(
+                        certificateSigningRequest, registration.entitlement().getEntitlement()))))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("not_found"))
+                .andExpect(jsonPath("$.error_description")
+                    .value("Certificate registree does not exist or is inactive"));
+        }
 
         assertEquals(accessCertificateCount, accessCertificateRepository.count());
         assertEquals(issuerCertificateCount, issuerCertificateRepository.count());

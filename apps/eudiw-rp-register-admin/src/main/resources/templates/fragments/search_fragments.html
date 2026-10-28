@@ -2,15 +2,19 @@
 <form th:fragment="search_form_fragment"
       th:object="${searchFormAttr}"
       th:action="@{/search}"
-      method="POST">
+      method="GET">
+    <input type="hidden" name="sort" th:value="${orderingAttr}">
     <div class="space-bottom-1em">
+    <label for="search_term" class="ds-label">Søk på org.nr. eller namn</label>
     <div class="ds-search space-block-end-2">
         <input id="search_term"
                th:field="*{searchTerm}"
                placeholder="Søk på org.nr. eller namn"
                size="50"
                type="text"
-               class="ds-input">
+               class="ds-input"
+               th:attr="aria-invalid=${#fields.hasErrors('searchTerm')} ? 'true' : 'false',
+                        aria-describedby=${#fields.hasErrors('searchTerm')} ? 'search_term_errors' : null">
         <button type="submit"
                 class="ds-button"
                 data-variant="primary">Søk</button>
@@ -19,10 +23,12 @@
     <label for="includeInactive">Ta med inaktive</label>
     <input id="includeInactive"
            type="checkbox"
-           th:field="*{includeInactive}"
+           name="includeInactive"
+           value="true"
+           th:checked="*{includeInactive}"
            class="ds-input">
 
-    <ul th:if="${#fields.hasErrors()}">
+    <ul id="search_term_errors" th:if="${#fields.hasErrors()}">
         <li th:each="error : ${#fields.errors('searchTerm')}"
             th:text="${error}"
             class="ds-validation-message"></li>
@@ -36,7 +42,7 @@
             <legend>
                 Rolle
             </legend>
-            <div class="ds-field" th:each="e : ${@relyingPartiesService.getValidEntitlementOptions()}">
+            <div class="ds-field" th:each="e : ${entitlementOptionsAttr}">
                 <label th:for="|id-${e.getEntitlement()}|" th:text="${e.getDisplayName()}"></label>
                 <input th:id="|id-${e.getEntitlement()}|"
                        type="checkbox"
@@ -50,38 +56,38 @@
 </form>
 
 <div th:fragment="results_table_fragment">
-    <div th:with="resultsPage=${resultsPageAttr}">
+    <div th:with="resultsPage=${resultsPageAttr}" th:object="${searchFormAttr}">
         <div th:if="${#lists.isEmpty(resultsPage)}">
-            Fann ingen brukarstader.
+            <span th:unless="${#fields.hasErrors()}">Fann ingen brukarstader.</span>
         </div>
 
         <table th:unless="${#lists.isEmpty(resultsPage)}"
                class="ds-table"
                data-border="true"
-               th:with="currentOrdering=${@searchSession.getOrdering()},
+               th:with="currentOrdering=${orderingAttr},
                         orderingOpts=${T(no.idporten.eudiw.rp.admin.web.resource.RelyingPartyOrdering)}"
         >
             <thead class="clickableHeaders">
             <tr>
                 <th th:class="${currentOrdering == orderingOpts.ORGNO_ASC ? 'focused' : ''}">
-                    <a th:href="@{search(sort=|${orderingOpts.ORGNO_ASC}|)}" class="ds-link">
+                    <a th:href="@{/search(searchTerm=${searchFormAttr.searchTerm}, includeInactive=${searchFormAttr.includeInactive}, requiredEntitlements=${searchFormAttr.requiredEntitlements}, sort=|${orderingOpts.ORGNO_ASC}|)}" class="ds-link">
                         Org.nr.
                     </a>
                 </th>
                 <th>Organisasjon</th>
                 <th th:class="${currentOrdering == orderingOpts.NAME_ASC ? 'focused' : ''}">
-                    <a th:href="@{search(sort=|${orderingOpts.NAME_ASC}|)}" class="ds-link">
+                    <a th:href="@{/search(searchTerm=${searchFormAttr.searchTerm}, includeInactive=${searchFormAttr.includeInactive}, requiredEntitlements=${searchFormAttr.requiredEntitlements}, sort=|${orderingOpts.NAME_ASC}|)}" class="ds-link">
                         Tenestenamn
                     </a>
                 </th>
                 <th>Roller</th>
                 <th th:class="${currentOrdering == orderingOpts.CREATED_ASC ? 'focused' : ''}">
-                    <a th:href="@{search(sort=|${orderingOpts.CREATED_ASC}|)}" class="ds-link">
+                    <a th:href="@{/search(searchTerm=${searchFormAttr.searchTerm}, includeInactive=${searchFormAttr.includeInactive}, requiredEntitlements=${searchFormAttr.requiredEntitlements}, sort=|${orderingOpts.CREATED_ASC}|)}" class="ds-link">
                         Oppretta
                     </a>
                 </th>
                 <th th:class="${currentOrdering == orderingOpts.LAST_UPDATED_ASC ? 'focused' : ''}">
-                    <a th:href="@{search(sort=|${orderingOpts.LAST_UPDATED_ASC}|)}" class="ds-link">
+                    <a th:href="@{/search(searchTerm=${searchFormAttr.searchTerm}, includeInactive=${searchFormAttr.includeInactive}, requiredEntitlements=${searchFormAttr.requiredEntitlements}, sort=|${orderingOpts.LAST_UPDATED_ASC}|)}" class="ds-link">
                         Sist endra
                     </a>
                 </th>
@@ -95,7 +101,7 @@
                 <td th:text="${rp.orgno}"></td>
                 <td th:text="${rp.orgName}"></td>
                 <td>
-                    <a th:href="@{|/details/${rp.id}|}" class="clickable-link">
+                    <a th:href="@{/details/{id}(id=${rp.id}, returnUrl=${searchUrlAttr})}" class="clickable-link">
                         <div th:text="${rp.tradeName}"></div>
                     </a>
                 </td>
@@ -106,21 +112,21 @@
                 </td>
                 <td th:text="${@timestampFormatter.formatEpochMillis(rp.createdMs)}"></td>
                 <td th:text="${@timestampFormatter.formatEpochMillis(rp.lastUpdatedMs)}"></td>
-                <td th:text="${rp.accessCertificates().size()}"></td>
-                <td th:text="${rp.issuerCertificates().size()}"></td>
+                <td th:text="${rp.accessCertificateCount()}"></td>
+                <td th:text="${rp.issuerCertificateCount()}"></td>
             </tr>
             </tbody>
         </table>
     </div>
 
-    <nav th:with="pageWindow=${@searchSession.getPaginationWindow()},
-                  currentPageNum=${@searchSession.getCurrentPageIdx() + 1},
-                  numPages=${@searchSession.getNumPages()}"
+    <nav th:with="pageWindow=${paginationWindowAttr},
+                  currentPageNum=${currentPageNumAttr},
+                  numPages=${numPagesAttr}"
          class="ds-pagination"
     >
         <ul th:if="${numPages > 1}">
             <li th:unless="${#lists.contains(pageWindow, 1)}">
-                <a th:href="@{search(page=1)}"
+                <a th:href="@{/search(searchTerm=${searchFormAttr.searchTerm}, includeInactive=${searchFormAttr.includeInactive}, requiredEntitlements=${searchFormAttr.requiredEntitlements}, page=1, sort=${orderingAttr})}"
                    class="ds-button"
                    data-variant="tertiary">
                     <<
@@ -130,13 +136,13 @@
             <li th:each="pageNum : ${pageWindow}">
 
                 <a th:if="${pageNum == currentPageNum}"
-                   th:href="@{search(page=${pageNum})}"
+                   th:href="@{/search(searchTerm=${searchFormAttr.searchTerm}, includeInactive=${searchFormAttr.includeInactive}, requiredEntitlements=${searchFormAttr.requiredEntitlements}, page=${pageNum}, sort=${orderingAttr})}"
                    class="ds-button"
                    data-variant="primary">
                     <span th:text="${pageNum}"></span>
                 </a>
                 <a th:unless="${pageNum == currentPageNum}"
-                   th:href="@{search(page=${pageNum})}"
+                   th:href="@{/search(searchTerm=${searchFormAttr.searchTerm}, includeInactive=${searchFormAttr.includeInactive}, requiredEntitlements=${searchFormAttr.requiredEntitlements}, page=${pageNum}, sort=${orderingAttr})}"
                    class="ds-button"
                    data-variant="tertiary">
                     <span th:text="${pageNum}"></span>
@@ -144,7 +150,7 @@
             </li>
 
             <li th:unless="${#lists.contains(pageWindow, numPages)}">
-                <a th:href="@{search(page=${numPages})}"
+                <a th:href="@{/search(searchTerm=${searchFormAttr.searchTerm}, includeInactive=${searchFormAttr.includeInactive}, requiredEntitlements=${searchFormAttr.requiredEntitlements}, page=${numPages}, sort=${orderingAttr})}"
                    class="ds-button"
                    data-variant="tertiary">
                     >>
