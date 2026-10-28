@@ -23,7 +23,8 @@ public class V2CredentialIssuersEndpoint {
     @Operation(
         summary = "Get credential issuer URLs",
         description = "Returns credential_issuer_urls with unique, non-null registered URLs "
-            + "from active parties, services and instances. An empty list returns 200. "
+            + "from active parties, services and instances. A successful register read with no active issuer URLs "
+            + "returns 200 with an empty list. Register read failures return an error, not an empty list. "
             + "Requires X-API-KEY."
     )
     @ApiResponse(responseCode = "200", description = "Credential issuer URLs retrieved")

@@ -16,7 +16,6 @@ import org.springframework.web.client.RestClient;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static no.idporten.eudiw.credential.registry.exception.CredentialRegisterException.ERROR;
@@ -56,10 +55,9 @@ public class RelyingPartyServiceIntegration {
 
 
     private @NotNull List<URI> getValidUris(CredentialIssuerUrls uris) {
-        if(uris == null || uris.credentialIssuerUrls() == null) {
-            log.warn("No issuer urls found in response from rp-service");
-            return Collections.emptyList();
-
+        if (uris == null || uris.credentialIssuerUrls() == null) {
+            throw new CredentialRegisterException(ERROR, "Missing issuer URL list in response from rp-service",
+                HttpStatus.SERVICE_UNAVAILABLE);
         }
         List<URI> listOfURI = new ArrayList<>();
         for (String issuerUrl : uris.credentialIssuerUrls()) {

@@ -1,6 +1,7 @@
 package no.eudiw.rp.register.api.v2;
 
-import no.eudiw.rp.register.service.CredentialIssuersService;
+import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -32,13 +33,13 @@ class V2CredentialIssuersEndpointTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private CredentialIssuersService credentialIssuersService;
+    private RelyingPartyInstanceRepository relyingPartyInstanceRepository;
 
     @ParameterizedTest
     @ValueSource(strings = {"/v2/credential-issuers", "/v1/credential-issuers"})
     @DisplayName("Should return the URLs of registered credential issuers")
     void shouldReturnTheUrlsOfRegisteredCredentialIssuers(String path) throws Exception {
-        when(credentialIssuersService.getRegisteredCredentialIssuerUrls())
+        when(relyingPartyInstanceRepository.findActiveCredentialIssuerUrls())
             .thenReturn(Set.of("https://issuer.example/Issuer", "https://issuer.example/issuer"));
 
         mockMvc.perform(get(path).header(API_KEY_HEADER, API_KEY))
@@ -51,7 +52,7 @@ class V2CredentialIssuersEndpointTest {
     @ValueSource(strings = {"/v2/credential-issuers", "/v1/credential-issuers"})
     @DisplayName("Should return an empty list when no credential issuers are registered")
     void shouldReturnAnEmptyListWhenNoCredentialIssuersAreRegistered(String path) throws Exception {
-        when(credentialIssuersService.getRegisteredCredentialIssuerUrls()).thenReturn(Set.of());
+        when(relyingPartyInstanceRepository.findActiveCredentialIssuerUrls()).thenReturn(Set.of());
 
         mockMvc.perform(get(path).header(API_KEY_HEADER, API_KEY))
             .andExpect(status().isOk())
@@ -60,11 +61,24 @@ class V2CredentialIssuersEndpointTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"/v2/credential-issuers", "/v1/credential-issuers"})
+    @DisplayName("Should report an error instead of an empty issuer list when registered issuers cannot be read")
+    void shouldReportAnErrorInsteadOfAnEmptyIssuerListWhenRegisteredIssuersCannotBeRead(String path) throws Exception {
+        when(relyingPartyInstanceRepository.findActiveCredentialIssuerUrls())
+            .thenThrow(new DataAccessResourceFailureException("Issuer register database unavailable"));
+
+        mockMvc.perform(get(path).header(API_KEY_HEADER, API_KEY))
+            .andExpect(status().isInternalServerError())
+            .andExpect(jsonPath("$.error").value("server_error"))
+            .andExpect(jsonPath("$.credential_issuer_urls").doesNotExist());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"/v2/credential-issuers", "/v1/credential-issuers"})
     @DisplayName("Should reject issuer reads without an API key")
     void shouldRejectIssuerReadsWithoutAnApiKey(String path) throws Exception {
         mockMvc.perform(get(path)).andExpect(status().isUnauthorized());
 
-        verifyNoInteractions(credentialIssuersService);
+        verifyNoInteractions(relyingPartyInstanceRepository);
     }
 
     @ParameterizedTest
@@ -74,6 +88,6 @@ class V2CredentialIssuersEndpointTest {
         mockMvc.perform(get(path).header(API_KEY_HEADER, "invalid-api-key"))
             .andExpect(status().isUnauthorized());
 
-        verifyNoInteractions(credentialIssuersService);
+        verifyNoInteractions(relyingPartyInstanceRepository);
     }
 }

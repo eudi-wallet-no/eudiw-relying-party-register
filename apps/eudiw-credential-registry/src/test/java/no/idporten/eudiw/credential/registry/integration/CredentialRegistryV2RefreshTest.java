@@ -12,21 +12,27 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.test.web.client.ResponseCreator;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 import tools.jackson.databind.ObjectMapper;
 
+import java.net.SocketTimeoutException;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.time.Duration;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withException;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
@@ -65,9 +71,10 @@ class CredentialRegistryV2RefreshTest {
         metadataServer.verify();
     }
 
-    @Test
-    @DisplayName("Should keep previously available credentials when access to the issuer register is denied")
-    void shouldKeepPreviouslyAvailableCredentialsWhenAccessToTheIssuerRegisterIsDenied() {
+    @ParameterizedTest
+    @ValueSource(ints = {401, 500})
+    @DisplayName("Should keep previously available credentials when the issuer register reports an error")
+    void shouldKeepPreviouslyAvailableCredentialsWhenTheIssuerRegisterReportsAnError(int status) {
         expectIssuerMetadata();
 
         credentialRegisterService.updateCredentialMetadataRetriever();
@@ -80,13 +87,13 @@ class CredentialRegistryV2RefreshTest {
         registerServer.expect(requestTo(RP_SERVICE_URL))
             .andExpect(method(GET))
             .andExpect(header("X-API-KEY", API_KEY))
-            .andRespond(withStatus(HttpStatus.UNAUTHORIZED));
+            .andRespond(withStatus(HttpStatus.valueOf(status)));
 
         var exception = assertThrows(CredentialRegisterException.class,
             credentialRegisterService::updateCredentialMetadataRetriever);
 
         var cause = assertInstanceOf(RestClientResponseException.class, exception.getCause());
-        assertEquals(HttpStatus.UNAUTHORIZED, cause.getStatusCode());
+        assertEquals(HttpStatus.valueOf(status), cause.getStatusCode());
         assertSame(cachedCredentials, credentialRegisterService.getCredentials());
     }
 
@@ -134,6 +141,103 @@ class CredentialRegistryV2RefreshTest {
 
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE, exception.getHttpStatus());
         assertSame(previousCredentials, credentialRegisterService.getCredentials());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "null", "{}", "{\"credential_issuer_urls\": null}"})
+    @DisplayName("Should keep previously available credentials when the issuer register returns an incomplete response")
+    void shouldKeepPreviouslyAvailableCredentialsWhenTheIssuerRegisterReturnsAnIncompleteResponse(String response) {
+        expectIssuerMetadata();
+        credentialRegisterService.updateCredentialMetadataRetriever();
+        var previousCredentials = credentialRegisterService.getCredentials();
+        registerServer.reset();
+        registerServer.expect(requestTo(RP_SERVICE_URL))
+            .andRespond(withSuccess(response, MediaType.APPLICATION_JSON));
+
+        var exception = assertThrows(CredentialRegisterException.class,
+            credentialRegisterService::updateCredentialMetadataRetriever);
+
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, exception.getHttpStatus());
+        assertSame(previousCredentials, credentialRegisterService.getCredentials());
+    }
+
+    @ParameterizedTest
+    @MethodSource("failedMetadataResponses")
+    @DisplayName("Should keep previously available credentials when all issuers fail to provide valid metadata and update them when available again")
+    void shouldKeepPreviouslyAvailableCredentialsWhenAllIssuersFailToProvideValidMetadataAndUpdateThemWhenAvailableAgain(
+        ResponseCreator response) {
+        expectIssuerMetadata();
+        credentialRegisterService.updateCredentialMetadataRetriever();
+        var previousCredentials = credentialRegisterService.getCredentials();
+        registerServer.reset();
+        metadataServer.reset();
+        registerServer.expect(requestTo(RP_SERVICE_URL))
+            .andRespond(withSuccess("{\"credential_issuer_urls\": [\"https://issuer.example\", \"https://unavailable.example\"]}",
+                MediaType.APPLICATION_JSON));
+        metadataServer.expect(requestTo(ISSUER_URL + "/.well-known/openid-credential-issuer"))
+            .andRespond(response);
+        metadataServer.expect(requestTo("https://unavailable.example/.well-known/openid-credential-issuer"))
+            .andRespond(response);
+
+        var exception = assertThrows(CredentialRegisterException.class,
+            credentialRegisterService::updateCredentialMetadataRetriever);
+
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, exception.getHttpStatus());
+        assertSame(previousCredentials, credentialRegisterService.getCredentials());
+        registerServer.verify();
+        metadataServer.verify();
+        registerServer.reset();
+        metadataServer.reset();
+        expectIssuerMetadata();
+
+        credentialRegisterService.updateCredentialMetadataRetriever();
+
+        assertNotSame(previousCredentials, credentialRegisterService.getCredentials());
+        assertEquals(1, credentialRegisterService.getCredentials().credentials().size());
+        assertEquals(ISSUER_URL, credentialRegisterService.getCredentials().credentials().getFirst().credentialIssuer());
+    }
+
+    @Test
+    @DisplayName("Should publish available credentials even when another issuer cannot provide metadata")
+    void shouldPublishAvailableCredentialsEvenWhenAnotherIssuerCannotProvideMetadata() {
+        expectIssuerMetadata("\"https://issuer.example\", \"https://unavailable.example\"");
+        metadataServer.expect(requestTo("https://unavailable.example/.well-known/openid-credential-issuer"))
+            .andRespond(withStatus(HttpStatus.SERVICE_UNAVAILABLE));
+
+        credentialRegisterService.updateCredentialMetadataRetriever();
+
+        assertEquals(1, credentialRegisterService.getCredentials().credentials().size());
+        assertEquals(ISSUER_URL, credentialRegisterService.getCredentials().credentials().getFirst().credentialIssuer());
+    }
+
+    @Test
+    @DisplayName("Should remove previously available credentials when valid issuer metadata no longer offers credentials")
+    void shouldRemovePreviouslyAvailableCredentialsWhenValidIssuerMetadataNoLongerOffersCredentials() {
+        expectIssuerMetadata();
+        credentialRegisterService.updateCredentialMetadataRetriever();
+        assertFalse(credentialRegisterService.getCredentials().credentials().isEmpty());
+        registerServer.reset();
+        metadataServer.reset();
+        registerServer.expect(requestTo(RP_SERVICE_URL))
+            .andRespond(withSuccess("{\"credential_issuer_urls\": [\"https://issuer.example\"]}", MediaType.APPLICATION_JSON));
+        metadataServer.expect(requestTo(ISSUER_URL + "/.well-known/openid-credential-issuer"))
+            .andRespond(withSuccess("{\"credential_issuer\": \"https://issuer.example\", \"credential_configurations_supported\": {}}",
+                MediaType.APPLICATION_JSON));
+
+        credentialRegisterService.updateCredentialMetadataRetriever();
+
+        assertTrue(credentialRegisterService.getCredentials().credentials().isEmpty());
+    }
+
+    private static Stream<ResponseCreator> failedMetadataResponses() {
+        return Stream.of(
+            withException(new UnknownHostException("issuer.example")),
+            withException(new SocketTimeoutException("Metadata request timed out")),
+            withStatus(HttpStatus.SERVICE_UNAVAILABLE),
+            withSuccess("", MediaType.APPLICATION_JSON),
+            withSuccess("null", MediaType.APPLICATION_JSON),
+            withSuccess("{", MediaType.APPLICATION_JSON),
+            withSuccess("{}", MediaType.APPLICATION_JSON));
     }
 
     private void expectIssuerMetadata() {

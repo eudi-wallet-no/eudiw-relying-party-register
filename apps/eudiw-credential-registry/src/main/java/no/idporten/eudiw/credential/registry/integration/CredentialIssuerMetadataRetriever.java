@@ -3,12 +3,14 @@ package no.idporten.eudiw.credential.registry.integration;
 import io.micrometer.core.instrument.Counter;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
+import no.idporten.eudiw.credential.registry.exception.CredentialRegisterException;
 import no.idporten.eudiw.credential.registry.integration.model.CredentialConfiguration;
 import no.idporten.eudiw.credential.registry.integration.model.CredentialIssuer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
@@ -20,6 +22,8 @@ import tools.jackson.databind.node.ObjectNode;
 import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static no.idporten.eudiw.credential.registry.exception.CredentialRegisterException.ERROR;
 
 /**
  * Responsible for sending get-request to well-known openid credential issuer endpoints of all issuers registered
@@ -63,10 +67,15 @@ public class CredentialIssuerMetadataRetriever {
             listOfIssuer = new ArrayList<>();
             return;
         }
-        listOfIssuer = listOfURI.stream().map(this::fetchCredentialIssuerFromMetadataRequest).filter(Objects::nonNull).toList();
-        if (listOfIssuer.isEmpty()) {
-            log.info("No issuers found in list of issuers: {}", listOfIssuer);
+        List<CredentialIssuer> retrievedIssuers = listOfURI.stream()
+            .map(this::fetchCredentialIssuerFromMetadataRequest)
+            .filter(Objects::nonNull)
+            .toList();
+        if (retrievedIssuers.isEmpty()) {
+            throw new CredentialRegisterException(ERROR, "Failed to retrieve valid metadata from any registered issuer",
+                HttpStatus.SERVICE_UNAVAILABLE);
         }
+        listOfIssuer = retrievedIssuers;
     }
 
 
@@ -91,7 +100,7 @@ public class CredentialIssuerMetadataRetriever {
             log.warn("Failed fetching content, ignore credential-issuer with well-known url: {}", wellknown, e);
             return null;
         }
-        if (metadata == null) {
+        if (metadata == null || metadata.isNull()) {
             log.warn("No metadata returned, ignore credential-issuer with well-known url: {}", wellknown);
             return null;
         }

@@ -27,7 +27,9 @@ public class CredentialsController {
 
     @Operation(
             summary = "Hente alle typer bevis som er registrert i sandkassen",
-            description = "Hent alle bevisene som finnes på .well-known/openid-credential-issuer endepunktene til registrerte utstedere")
+            description = "Hent bevisene fra siste vellykkede innlesing av registrerte utstederes metadata. "
+                + "Ved feil i registerlesingen eller når ingen utstedere gir gyldige metadata, beholdes siste resultat "
+                + "uten aldersutløp så lenge applikasjonen lever. En vellykket registerlesing uten aktive utsteder-URL-er gir tom liste.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Alle bevis hentes"),
             @ApiResponse(responseCode = "500", description = "Intern feil",
