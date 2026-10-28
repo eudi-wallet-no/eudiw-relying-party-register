@@ -6,7 +6,7 @@ import no.eudiw.rp.register.config.WrpApiProperties;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.exception.BadRequestException;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
-import org.springframework.data.domain.PageRequest;
+import no.eudiw.rp.register.repository.WrpSearchCriteria;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,16 +40,23 @@ public class WrpLookupService {
     }
 
     @Transactional(readOnly = true)
-    public CollectionPage findAll(int limit, String cursorToken) {
+    public CollectionPage findAll(
+        int limit,
+        String cursorToken,
+        String identifier,
+        String legalName
+    ) {
         if (limit < 1 || limit > MAX_PAGE_SIZE) {
             throw new BadRequestException("limit must be between 1 and " + MAX_PAGE_SIZE);
         }
 
         Cursor cursor = decodeCursor(cursorToken);
-        var pageable = PageRequest.of(0, limit + 1);
-        List<WalletRelyingParty> candidates = cursor == null
-            ? repository.findActivePage(pageable)
-            : repository.findActiveAfterCursor(cursor.createdMs(), cursor.id(), pageable);
+        List<WalletRelyingParty> candidates = repository.findActivePage(
+            new WrpSearchCriteria(identifier, legalName),
+            cursor == null ? null : cursor.createdMs(),
+            cursor == null ? null : cursor.id(),
+            limit + 1
+        );
 
         boolean hasNextPage = candidates.size() > limit;
         List<WalletRelyingParty> parties = hasNextPage

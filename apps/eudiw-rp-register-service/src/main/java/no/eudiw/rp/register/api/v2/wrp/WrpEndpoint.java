@@ -28,7 +28,8 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class WrpEndpoint {
     private static final String JWK_URL_HEADER = "x-jku-url";
-    private static final Set<String> COLLECTION_PARAMETERS = Set.of("limit", "cursor");
+    private static final Set<String> COLLECTION_PARAMETERS =
+        Set.of("limit", "cursor", "identifier", "legalname");
 
     private final WrpLookupService lookupService;
     private final WrpJwsSigner jwsSigner;
@@ -36,7 +37,7 @@ public class WrpEndpoint {
 
     @Operation(
         summary = "Get a paginated list of Wallet Relying Parties",
-        description = "Returns an unfiltered list of active parties. WRP filters will be added incrementally.",
+        description = "Returns active parties matching the optional identifier and legalname filters.",
         responses = {
             @ApiResponse(
                 responseCode = "200",
@@ -50,7 +51,7 @@ public class WrpEndpoint {
                     schema = @Schema(type = "string", format = "JWS")
                 )
             ),
-            @ApiResponse(responseCode = "400", description = "Invalid limit, cursor, or query parameter")
+            @ApiResponse(responseCode = "400", description = "Invalid limit, cursor, filter, or query parameter")
         }
     )
     @GetMapping
@@ -69,14 +70,33 @@ public class WrpEndpoint {
             schema = @Schema(type = "string")
         )
         @RequestParam(required = false) String cursor,
+        @Parameter(
+            name = "identifier",
+            in = ParameterIn.QUERY,
+            description = "Exact organization number or registered identifier",
+            schema = @Schema(type = "string")
+        )
+        @RequestParam(required = false) String identifier,
+        @Parameter(
+            name = "legalname",
+            in = ParameterIn.QUERY,
+            description = "Exact registered legal name",
+            schema = @Schema(type = "string")
+        )
+        @RequestParam(name = "legalname", required = false) String legalName,
         @Parameter(hidden = true)
         @RequestParam MultiValueMap<String, String> queryParameters
     ) {
         if (!COLLECTION_PARAMETERS.containsAll(queryParameters.keySet())) {
             throw new BadRequestException("Unsupported WRP query parameter");
         }
+        if ((identifier != null && identifier.isBlank())
+            || (legalName != null && legalName.isBlank())) {
+            throw new BadRequestException("WRP filters must not be blank");
+        }
 
-        WrpLookupService.CollectionPage page = lookupService.findAll(limit, cursor);
+        WrpLookupService.CollectionPage page =
+            lookupService.findAll(limit, cursor, identifier, legalName);
         return ResponseEntity.ok()
             .contentType(MediaType.parseMediaType("application/jwt"))
             .header(JWK_URL_HEADER, properties.jwksUrl())
