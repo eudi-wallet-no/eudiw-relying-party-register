@@ -49,8 +49,7 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
                 builder.asc(party.get("id"))
             );
 
-        TypedQuery<WalletRelyingParty> typedQuery = entityManager.createQuery(query)
-            .setMaxResults(pageSize);
+        TypedQuery<WalletRelyingParty> typedQuery = entityManager.createQuery(query).setMaxResults(pageSize);
         bindFilterParameters(typedQuery, criteria);
         return typedQuery.getResultList();
     }
