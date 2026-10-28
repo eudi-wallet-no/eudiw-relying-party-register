@@ -20,6 +20,9 @@ import java.util.UUID;
 
 @Repository
 class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollectionQuery {
+    private static final String IDENTIFIER_PARAMETER = "identifier";
+    private static final String LEGAL_NAME_PARAMETER = "legalName";
+
     @PersistenceContext
     private EntityManager entityManager;
 
@@ -77,7 +80,7 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         CriteriaBuilder builder,
         Root<WalletRelyingParty> party
     ) {
-        ParameterExpression<String> identifier = builder.parameter(String.class, "identifier");
+        ParameterExpression<String> identifier = builder.parameter(String.class, IDENTIFIER_PARAMETER);
         var identifierObject = builder.function(
             "JSON_OBJECT", String.class, builder.literal("identifier"), identifier);
         var containsIdentifier = builder.function(
@@ -97,10 +100,8 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         CriteriaBuilder builder,
         Root<WalletRelyingParty> party
     ) {
-        Join<WalletRelyingParty, LegalPerson> legalPerson =
-            party.join("legalPerson", JoinType.INNER);
-        ParameterExpression<String> legalName =
-            builder.parameter(String.class, "legalName");
+        Join<WalletRelyingParty, LegalPerson> legalPerson = party.join("legalPerson", JoinType.INNER);
+        ParameterExpression<String> legalName = builder.parameter(String.class, LEGAL_NAME_PARAMETER);
         var quotedLegalName = builder.function("JSON_QUOTE", String.class, legalName);
         var containsLegalName = builder.function(
             "JSON_CONTAINS",
@@ -132,10 +133,10 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         WrpSearchCriteria criteria
     ) {
         if (criteria.identifier() != null) {
-            query.setParameter("identifier", criteria.identifier());
+            query.setParameter(IDENTIFIER_PARAMETER, criteria.identifier());
         }
         if (criteria.legalName() != null) {
-            query.setParameter("legalName", criteria.legalName());
+            query.setParameter(LEGAL_NAME_PARAMETER, criteria.legalName());
         }
     }
 }
