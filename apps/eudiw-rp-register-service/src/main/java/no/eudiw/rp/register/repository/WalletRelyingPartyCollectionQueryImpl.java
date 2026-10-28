@@ -10,8 +10,10 @@ import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.ParameterExpression;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import no.eudiw.rp.register.domain.LegalPerson;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
+import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -22,6 +24,8 @@ import java.util.UUID;
 class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollectionQuery {
     private static final String IDENTIFIER_PARAMETER = "identifier";
     private static final String LEGAL_NAME_PARAMETER = "legalName";
+    private static final String SERVICE_IDENTIFIER_PARAMETER = "serviceIdentifier";
+    private static final String TRADE_NAME_PARAMETER = "tradeName";
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -43,7 +47,7 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         party.fetch("legalPerson", JoinType.LEFT);
 
         query.select(party)
-            .where(buildPredicates(builder, party, criteria, cursorCreatedMs, cursorId))
+            .where(buildPredicates(builder, query, party, criteria, cursorCreatedMs, cursorId))
             .orderBy(
                 builder.asc(party.get("createdMs")),
                 builder.asc(party.get("id"))
@@ -56,6 +60,7 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
 
     private static Predicate[] buildPredicates(
         CriteriaBuilder builder,
+        CriteriaQuery<?> query,
         Root<WalletRelyingParty> party,
         WrpSearchCriteria criteria,
         Long cursorCreatedMs,
@@ -68,6 +73,12 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         }
         if (criteria.legalName() != null) {
             predicates.add(legalNamePredicate(builder, party));
+        }
+        if (criteria.serviceIdentifier() != null) {
+            predicates.add(serviceIdentifierPredicate(builder, query, party));
+        }
+        if (criteria.tradeName() != null) {
+            predicates.add(tradeNamePredicate(builder, query, party));
         }
         if (cursorCreatedMs != null) {
             predicates.add(cursorPredicate(builder, party, cursorCreatedMs, cursorId));
@@ -127,6 +138,47 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         );
     }
 
+    private static Predicate serviceIdentifierPredicate(
+        CriteriaBuilder builder,
+        CriteriaQuery<?> query,
+        Root<WalletRelyingParty> party
+    ) {
+        ParameterExpression<String> serviceIdentifier =
+            builder.parameter(String.class, SERVICE_IDENTIFIER_PARAMETER);
+        return activeServicePredicate(builder, query, party, "serviceIdentifier", serviceIdentifier);
+    }
+
+    private static Predicate tradeNamePredicate(
+        CriteriaBuilder builder,
+        CriteriaQuery<?> query,
+        Root<WalletRelyingParty> party
+    ) {
+        ParameterExpression<String> tradeName = builder.parameter(String.class, TRADE_NAME_PARAMETER);
+        return builder.or(
+            builder.equal(party.get("tradeName"), tradeName),
+            activeServicePredicate(builder, query, party, "serviceTradeName", tradeName)
+        );
+    }
+
+    private static Predicate activeServicePredicate(
+        CriteriaBuilder builder,
+        CriteriaQuery<?> query,
+        Root<WalletRelyingParty> party,
+        String serviceAttribute,
+        ParameterExpression<String> value
+    ) {
+        Subquery<Integer> matchingService = query.subquery(Integer.class);
+        Root<WalletRelyingParty> correlatedParty = matchingService.correlate(party);
+        Join<WalletRelyingParty, WalletRelyingPartyService> service =
+            correlatedParty.join("services", JoinType.INNER);
+        matchingService.select(builder.literal(1))
+            .where(
+                builder.isTrue(service.get("active")),
+                builder.equal(service.get(serviceAttribute), value)
+            );
+        return builder.exists(matchingService);
+    }
+
     private static void bindFilterParameters(
         TypedQuery<WalletRelyingParty> query,
         WrpSearchCriteria criteria
@@ -136,6 +188,12 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         }
         if (criteria.legalName() != null) {
             query.setParameter(LEGAL_NAME_PARAMETER, criteria.legalName());
+        }
+        if (criteria.serviceIdentifier() != null) {
+            query.setParameter(SERVICE_IDENTIFIER_PARAMETER, criteria.serviceIdentifier());
+        }
+        if (criteria.tradeName() != null) {
+            query.setParameter(TRADE_NAME_PARAMETER, criteria.tradeName());
         }
     }
 }

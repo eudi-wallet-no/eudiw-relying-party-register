@@ -206,6 +206,10 @@ class WrpByIdentifierIntegrationTest {
             .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("legalname", " "))
             .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/wrp").param("serviceidentifier", " "))
+            .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/wrp").param("tradename", " "))
+            .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("unsupported", "value"))
             .andExpect(status().isBadRequest());
     }
@@ -276,6 +280,85 @@ class WrpByIdentifierIntegrationTest {
     }
 
     @Test
+    void filtersCollectionByServiceIdentifierAndTradeNameBeforeCursorPagination() throws Exception {
+        WalletRelyingParty wrpNameMatch =
+            partyWithSearchData("Shared Trade Name", "urn:example:shared", "Legal Alpha");
+        WalletRelyingPartyService matchingService = wrpNameMatch.getServices().getFirst();
+        matchingService.setServiceIdentifier("service-one");
+        matchingService.setServiceTradeName("Shared Trade Name");
+        WalletRelyingPartyService secondMatchingService =
+            new WalletRelyingPartyService("Shared Trade Name", wrpNameMatch, List.of());
+        secondMatchingService.setServiceIdentifier("service-one-secondary");
+        wrpNameMatch.setServices(List.of(matchingService, secondMatchingService));
+
+        WalletRelyingParty serviceNameMatch =
+            partyWithSearchData("Other WRP", "urn:example:other", "Legal Alpha");
+        WalletRelyingPartyService otherService = serviceNameMatch.getServices().getFirst();
+        otherService.setServiceIdentifier("service-two");
+        otherService.setServiceTradeName("Shared Trade Name");
+
+        WalletRelyingParty inactiveServiceMatch =
+            partyWithSearchData("Inactive Service WRP", "urn:example:inactive", "Legal Beta");
+        WalletRelyingPartyService inactiveService = inactiveServiceMatch.getServices().getFirst();
+        inactiveService.setServiceIdentifier("inactive-service");
+        inactiveService.setServiceTradeName("Shared Trade Name");
+        inactiveService.setActive(false);
+
+        WalletRelyingParty wrpOnlyMatch =
+            partyWithSearchData("WRP-only Trade Name", "urn:example:wrp-only", "Legal Gamma");
+        walletRelyingPartyRepository.saveAllAndFlush(List.of(
+            wrpNameMatch, serviceNameMatch, inactiveServiceMatch, wrpOnlyMatch));
+
+        assertEquals(
+            List.of("Shared Trade Name"),
+            collectionTradeNames(getCollectionPage(null, null, Map.of(
+                "serviceidentifier", "service-one"
+            )))
+        );
+        assertTrue(collectionTradeNames(getCollectionPage(null, null, Map.of(
+            "serviceidentifier", "service-one-extra"
+        ))).isEmpty());
+        assertTrue(collectionTradeNames(getCollectionPage(null, null, Map.of(
+            "serviceidentifier", "inactive-service"
+        ))).isEmpty());
+        assertEquals(
+            List.of("WRP-only Trade Name"),
+            collectionTradeNames(getCollectionPage(null, null, Map.of(
+                "tradename", "WRP-only Trade Name"
+            )))
+        );
+        assertTrue(collectionTradeNames(getCollectionPage(null, null, Map.of(
+            "tradename", "WRP-only"
+        ))).isEmpty());
+        assertEquals(
+            List.of("Other WRP"),
+            collectionTradeNames(getCollectionPage(null, null, Map.of(
+                "identifier", "urn:example:other",
+                "legalname", "Legal Alpha",
+                "serviceidentifier", "service-two",
+                "tradename", "Shared Trade Name"
+            )))
+        );
+
+        JWSObject firstPage = getCollectionPage(
+            1, null, Map.of("tradename", "Shared Trade Name"));
+        Map<?, ?> firstPagination =
+            (Map<?, ?>) firstPage.getPayload().toJSONObject().get("pagination");
+        assertTrue((Boolean) firstPagination.get("has_next_page"));
+        JWSObject secondPage = getCollectionPage(
+            1,
+            (String) firstPagination.get("next_cursor"),
+            Map.of("tradename", "Shared Trade Name")
+        );
+        Map<?, ?> secondPagination =
+            (Map<?, ?>) secondPage.getPayload().toJSONObject().get("pagination");
+        assertFalse((Boolean) secondPagination.get("has_next_page"));
+        List<String> pagedNames = new ArrayList<>(collectionTradeNames(firstPage));
+        pagedNames.addAll(collectionTradeNames(secondPage));
+        assertEquals(Set.of("Shared Trade Name", "Other WRP"), Set.copyOf(pagedNames));
+    }
+
+    @Test
     void batchFetchesNestedAssociationsForCollectionPage() throws Exception {
         List<WalletRelyingParty> parties = new ArrayList<>();
         for (int index = 0; index < 25; index++) {
@@ -327,7 +410,9 @@ class WrpByIdentifierIntegrationTest {
             .andExpect(content().string(containsString("limit")))
             .andExpect(content().string(containsString("cursor")))
             .andExpect(content().string(containsString("identifier")))
-            .andExpect(content().string(containsString("legalname")));
+            .andExpect(content().string(containsString("legalname")))
+            .andExpect(content().string(containsString("serviceidentifier")))
+            .andExpect(content().string(containsString("tradename")));
     }
 
     @Test
