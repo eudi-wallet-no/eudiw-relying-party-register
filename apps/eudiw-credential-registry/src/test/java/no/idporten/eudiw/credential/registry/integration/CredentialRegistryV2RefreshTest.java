@@ -11,6 +11,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -105,11 +107,44 @@ class CredentialRegistryV2RefreshTest {
         assertTrue(credentialRegisterService.getCredentials().credentials().isEmpty());
     }
 
+    @Test
+    @DisplayName("Should update available credentials even when another issuer has an invalid address")
+    void shouldUpdateAvailableCredentialsEvenWhenAnotherIssuerHasAnInvalidAddress() {
+        expectIssuerMetadata("\"https://bad host\", \"https://issuer.example\"");
+
+        credentialRegisterService.updateCredentialMetadataRetriever();
+
+        assertEquals(1, credentialRegisterService.getCredentials().credentials().size());
+        assertEquals(ISSUER_URL, credentialRegisterService.getCredentials().credentials().getFirst().credentialIssuer());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"[\"http://issuer.example\", \"https:///issuer\", null]", "[\"https://bad host\"]", "[null]"})
+    @DisplayName("Should keep previously available credentials when none of the registered issuer addresses can be used")
+    void shouldKeepPreviouslyAvailableCredentialsWhenNoneOfTheRegisteredIssuerAddressesCanBeUsed(String issuerUrls) {
+        expectIssuerMetadata();
+        credentialRegisterService.updateCredentialMetadataRetriever();
+        var previousCredentials = credentialRegisterService.getCredentials();
+        registerServer.reset();
+        registerServer.expect(requestTo(RP_SERVICE_URL))
+            .andRespond(withSuccess("{\"credential_issuer_urls\": " + issuerUrls + "}", MediaType.APPLICATION_JSON));
+
+        var exception = assertThrows(CredentialRegisterException.class,
+            credentialRegisterService::updateCredentialMetadataRetriever);
+
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, exception.getHttpStatus());
+        assertSame(previousCredentials, credentialRegisterService.getCredentials());
+    }
+
     private void expectIssuerMetadata() {
+        expectIssuerMetadata("\"" + ISSUER_URL + "\"");
+    }
+
+    private void expectIssuerMetadata(String issuerUrls) {
         registerServer.expect(requestTo(RP_SERVICE_URL))
             .andExpect(method(GET))
             .andExpect(header("X-API-KEY", API_KEY))
-            .andRespond(withSuccess("{\"credential_issuer_urls\": [\"" + ISSUER_URL + "\"]}",
+            .andRespond(withSuccess("{\"credential_issuer_urls\": [" + issuerUrls + "]}",
                 MediaType.APPLICATION_JSON));
         metadataServer.expect(requestTo(ISSUER_URL + "/.well-known/openid-credential-issuer"))
             .andExpect(method(GET))

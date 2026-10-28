@@ -43,8 +43,8 @@ class RelyingPartyServiceIntegrationTest {
     }
 
     @Test
-    @DisplayName("retrieveCredentialIssuerUrlsFromRPService filters out invalid URLs")
-    void retrieveCredentialIssuerUrlsFromRPService_filtersInvalidUrls() {
+    @DisplayName("Should return valid issuer addresses even when other registered addresses are invalid")
+    void shouldReturnValidIssuerAddressesEvenWhenOtherRegisteredAddressesAreInvalid() {
         server.expect(requestTo(RP_SERVICE_URL))
                 .andExpect(method(GET))
                 .andRespond(withSuccess("""
@@ -53,6 +53,10 @@ class RelyingPartyServiceIntegrationTest {
                             "https://issuer.example.com",
                             "http://issuer.example.com",
                             "https:///path",
+                            "https://bad host",
+                            "https://issuer.example.com/Issuer",
+                            "https://issuer.example.com/issuer",
+                            "https://issuer.example.com",
                             null
                           ]
                         }
@@ -60,7 +64,11 @@ class RelyingPartyServiceIntegrationTest {
 
         List<URI> result = integration.retrieveCredentialIssuerUrlsFromRPService();
 
-        assertEquals(List.of(URI.create("https://issuer.example.com")), result);
+        assertEquals(List.of(
+            URI.create("https://issuer.example.com"),
+            URI.create("https://issuer.example.com/Issuer"),
+            URI.create("https://issuer.example.com/issuer"),
+            URI.create("https://issuer.example.com")), result);
         verify(counter, never()).increment();
         server.verify();
     }

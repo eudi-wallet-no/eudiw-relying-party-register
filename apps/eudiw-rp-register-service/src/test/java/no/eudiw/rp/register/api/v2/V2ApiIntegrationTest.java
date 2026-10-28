@@ -298,6 +298,68 @@ class V2ApiIntegrationTest {
         }
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"http://issuer.example.test", "urn:example:issuer", "https:///issuer", "https://bad host", "issuer.example.test", "HTTPS://issuer.example.test", ""})
+    @DisplayName("Should reject issuer addresses that are not HTTPS addresses with a host without changing the registration")
+    void shouldRejectIssuerAddressesThatAreNotHttpsAddressesWithAHostWithoutChangingTheRegistration(String issuerUrl) throws Exception {
+        Registration registration = createRegistration();
+        String entitlementValue = "urn:test:issuer:" + UUID.randomUUID();
+        testEntitlement = entitlementRepository.saveAndFlush(new Entitlement(entitlementValue, true, "Issuer", "test-ca"));
+        String content = objectMapper.writeValueAsString(Map.of(
+            "relyingPartyEntitlements", List.of(Map.of("entitlement", entitlementValue, "credentialIssuerUrl", issuerUrl)),
+            "relyingPartyEaas", List.of()));
+        JsonNode before = read(get(registration.relyingPartyInstancePath()));
+
+        request(post(registration.relyingPartyServicePath() + "/instances"), content)
+            .andExpect(status().isBadRequest());
+        request(put(registration.relyingPartyInstancePath()), content)
+            .andExpect(status().isBadRequest());
+
+        assertEquals(1, relyingPartyInstanceRepository.count());
+        assertEquals(before, read(get(registration.relyingPartyInstancePath())));
+    }
+
+    @Test
+    @DisplayName("Should register an issuer with an HTTPS address and allow its address to be omitted")
+    void shouldRegisterAnIssuerWithAnHttpsAddressAndAllowItsAddressToBeOmitted() throws Exception {
+        Registration registration = createRegistration();
+        String entitlementValue = "urn:test:issuer:" + UUID.randomUUID();
+        testEntitlement = entitlementRepository.saveAndFlush(new Entitlement(entitlementValue, true, "Issuer", "test-ca"));
+        String content = """
+            {"relyingPartyEntitlements":[{"entitlement":"%s","credentialIssuerUrl":"https://issuer.example.test/Issuer"}],
+             "relyingPartyEaas":[]}
+            """.formatted(entitlementValue);
+
+        JsonNode issuer = read(post(registration.relyingPartyServicePath() + "/instances"), content);
+        String issuerPath = "/v2/instances/" + issuer.get("id").asString();
+        assertEquals("https://issuer.example.test/Issuer", read(get(issuerPath))
+            .at("/relyingPartyEntitlements/0/credentialIssuerUrl").asString());
+
+        read(put(issuerPath), content.replace("\"https://issuer.example.test/Issuer\"", "null"));
+
+        assertTrue(read(get(issuerPath)).at("/relyingPartyEntitlements/0/credentialIssuerUrl").isNull());
+    }
+
+    @Test
+    @DisplayName("Should preserve existing issuer address registration rules for legacy clients")
+    void shouldPreserveExistingIssuerAddressRegistrationRulesForLegacyClients() throws Exception {
+        String entitlementValue = "urn:test:issuer:" + UUID.randomUUID();
+        testEntitlement = entitlementRepository.saveAndFlush(new Entitlement(entitlementValue, true, "Issuer", "test-ca"));
+        String content = """
+            {"org_nr":"%s","name":"Legacy issuer",
+             "relying_party_entitlements":[{"entitlement":"%s","credential_issuer_url":"http://issuer.example.test"}],
+             "relying_party_eaas":[]}
+            """.formatted(TestDataGenerator.generateValidOrgno(), entitlementValue);
+
+        JsonNode issuer = read(post("/v1/rp"), content);
+        String issuerId = issuer.get("id").asString();
+
+        assertEquals("http://issuer.example.test", read(get("/v1/rp/" + issuerId))
+            .at("/relying_party_entitlements/0/credential_issuer_url").asString());
+        assertEquals("http://issuer.example.test", read(get("/v2/instances/" + issuerId))
+            .at("/relyingPartyEntitlements/0/credentialIssuerUrl").asString());
+    }
+
     @Test
     void instanceUpdatesPreserveCertificatesAndRejectRemovingOrChangingTheirEntitlement() throws Exception {
         Registration registration = createRegistration();
