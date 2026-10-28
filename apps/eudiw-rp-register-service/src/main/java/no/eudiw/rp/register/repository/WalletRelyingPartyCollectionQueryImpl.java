@@ -43,43 +43,11 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         predicates.add(builder.isTrue(party.get("active")));
 
         if (criteria.identifier() != null) {
-            ParameterExpression<String> identifier = builder.parameter(String.class, "identifier");
-            var identifierObject = builder.function(
-                "JSON_OBJECT",
-                String.class,
-                builder.literal("identifier"),
-                identifier
-            );
-            var containsIdentifier = builder.function(
-                "JSON_CONTAINS",
-                Integer.class,
-                party.get("identifier"),
-                identifierObject,
-                builder.literal("$")
-            );
-            predicates.add(builder.or(
-                builder.equal(party.get("orgno"), identifier),
-                builder.equal(containsIdentifier, 1)
-            ));
+            addIdentifierCriteria(builder, party, predicates);
         }
 
         if (criteria.legalName() != null) {
-            Join<WalletRelyingParty, LegalPerson> legalPerson = party.join("legalPerson", JoinType.INNER);
-            ParameterExpression<String> legalName =
-                builder.parameter(String.class, "legalName");
-            var quotedLegalName = builder.function(
-                "JSON_QUOTE",
-                String.class,
-                legalName
-            );
-            var containsLegalName = builder.function(
-                "JSON_CONTAINS",
-                Integer.class,
-                legalPerson.get("legalName"),
-                quotedLegalName,
-                builder.literal("$")
-            );
-            predicates.add(builder.equal(containsLegalName, 1));
+            addLegalnameCriteria(party, builder, predicates);
         }
 
         if (cursorCreatedMs != null) {
@@ -108,5 +76,52 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
             typedQuery.setParameter("legalName", criteria.legalName());
         }
         return typedQuery.getResultList();
+    }
+
+    private static void addLegalnameCriteria(
+            Root<WalletRelyingParty> party,
+            CriteriaBuilder builder,
+            List<Predicate> predicates) {
+        Join<WalletRelyingParty, LegalPerson> legalPerson = party.join("legalPerson", JoinType.INNER);
+        ParameterExpression<String> legalName =
+            builder.parameter(String.class, "legalName");
+        var quotedLegalName = builder.function(
+            "JSON_QUOTE",
+            String.class,
+            legalName
+        );
+        var containsLegalName = builder.function(
+            "JSON_CONTAINS",
+            Integer.class,
+            legalPerson.get("legalName"),
+            quotedLegalName,
+            builder.literal("$")
+        );
+        predicates.add(builder.equal(containsLegalName, 1));
+    }
+
+    private static void addIdentifierCriteria(
+            CriteriaBuilder builder,
+            Root<WalletRelyingParty> party,
+            List<Predicate> predicates
+    ) {
+        ParameterExpression<String> identifier = builder.parameter(String.class, "identifier");
+        var identifierObject = builder.function(
+            "JSON_OBJECT",
+            String.class,
+            builder.literal("identifier"),
+            identifier
+        );
+        var containsIdentifier = builder.function(
+            "JSON_CONTAINS",
+            Integer.class,
+            party.get("identifier"),
+            identifierObject,
+            builder.literal("$")
+        );
+        predicates.add(builder.or(
+            builder.equal(party.get("orgno"), identifier),
+            builder.equal(containsIdentifier, 1)
+        ));
     }
 }
