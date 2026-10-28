@@ -28,7 +28,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 @DisplayName("Relying party service integration tests")
 class RelyingPartyServiceIntegrationTest {
 
-    private static final String RP_SERVICE_URL = "https://rp-service.example.com";
+    private static final String RP_SERVICE_URL = "https://rp-service.example.com/v2/credential-issuers";
 
     private MockRestServiceServer server;
     private Counter counter;
