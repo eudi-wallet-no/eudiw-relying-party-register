@@ -271,6 +271,28 @@ class CredentialRegistryV2RefreshTest {
         assertTrue(credentialRegisterService.getCredentials().credentials().isEmpty());
     }
 
+    @Test
+    @DisplayName("Should publish valid credentials when the same issuer also offers invalid configurations")
+    void shouldPublishValidCredentialsWhenTheSameIssuerAlsoOffersInvalidConfigurations() {
+        registerServer.expect(requestTo(RP_SERVICE_URL))
+            .andRespond(withSuccess("{\"credential_issuer_urls\": [\"https://issuer.example\"]}", MediaType.APPLICATION_JSON));
+        metadataServer.expect(requestTo(ISSUER_URL + "/.well-known/openid-credential-issuer"))
+            .andRespond(withSuccess("""
+                {
+                  "credential_issuer": "https://issuer.example",
+                  "credential_configurations_supported": {
+                    "invalid": {},
+                    "example": {"format": "dc+sd-jwt", "vct": "urn:example:credential"}
+                  }
+                }
+                """, MediaType.APPLICATION_JSON));
+
+        credentialRegisterService.updateCredentialMetadataRetriever();
+
+        assertEquals(1, credentialRegisterService.getCredentials().credentials().size());
+        assertEquals("example", credentialRegisterService.getCredentials().credentials().getFirst().credentialConfigurationId());
+    }
+
     private static Stream<ResponseCreator> failedMetadataResponses() {
         return Stream.of(
             withException(new UnknownHostException("issuer.example")),
@@ -279,7 +301,13 @@ class CredentialRegistryV2RefreshTest {
             withSuccess("", MediaType.APPLICATION_JSON),
             withSuccess("null", MediaType.APPLICATION_JSON),
             withSuccess("{", MediaType.APPLICATION_JSON),
-            withSuccess("{}", MediaType.APPLICATION_JSON));
+            withSuccess("{}", MediaType.APPLICATION_JSON),
+            withSuccess("{\"credential_issuer\": \"https://issuer.example\", \"credential_configurations_supported\": {\"example\": {}}}",
+                MediaType.APPLICATION_JSON),
+            withSuccess("{\"credential_issuer\": \"https://issuer.example\", \"credential_configurations_supported\": {\"example\": null}}",
+                MediaType.APPLICATION_JSON),
+            withSuccess("{\"credential_issuer\": \"https://issuer.example\", \"credential_configurations_supported\": {\"example\": 123}}",
+                MediaType.APPLICATION_JSON));
     }
 
     private void expectIssuerMetadata() {

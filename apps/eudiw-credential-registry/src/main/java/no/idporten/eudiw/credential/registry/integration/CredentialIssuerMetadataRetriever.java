@@ -106,6 +106,9 @@ public class CredentialIssuerMetadataRetriever {
         }
         try {
             CredentialIssuer credentialIssuer = readCredentialIssuerMetadata(metadata, uri);
+            if (credentialIssuer == null) {
+                return null;
+            }
             return validateCredentialIssuer(credentialIssuer, uri);
         } catch (JacksonException e) {
             log.warn("Failed parsing content, ignore credential-issuer with well-known url: {}", wellknown, e);
@@ -115,7 +118,8 @@ public class CredentialIssuerMetadataRetriever {
 
     /**
      * Reads the credential issuer metadata from the given JSON node and returns a CredentialIssuer object.
-     * Accepts metadata with invalid CredentialConfiguration objects, but filters out invalid configurations (bevisdefinisjoner). If the CredentialIssuer is invalid, returns null.
+     * Filters out invalid configurations (bevisdefinisjoner), but returns null if a non-empty configuration map has no valid entries.
+     * An explicitly empty configuration map is accepted; issuer validation is performed by the caller.
      * <strong>Might not be acceptable to allow Credential-issuer-servers with invalid metadata in final production, but allow for now.</strong>
      *
      * @param metadata The JSON node containing the credential issuer metadata.
@@ -144,6 +148,11 @@ public class CredentialIssuerMetadataRetriever {
                         entry.getKey(), uri, e.getMessage());
             }
         });
+
+        if (!configurations.isEmpty() && validConfigurations.isEmpty()) {
+            log.warn("No valid credential configurations, ignore credential-issuer {}", uri);
+            return null;
+        }
 
         credentialIssuer.setCredentialConfiguration(validConfigurations);
         return credentialIssuer;
