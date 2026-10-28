@@ -72,6 +72,48 @@ class CredentialRegistryV2RefreshTest {
     }
 
     @ParameterizedTest
+    @MethodSource("failedMetadataResponses")
+    @DisplayName("Should allow startup without available credentials and publish them when issuer metadata becomes available")
+    void shouldAllowStartupWithoutAvailableCredentialsAndPublishThemWhenIssuerMetadataBecomesAvailable(
+        ResponseCreator response) {
+        registerServer.expect(requestTo(RP_SERVICE_URL))
+            .andRespond(withSuccess("{\"credential_issuer_urls\": [\"https://issuer.example\"]}", MediaType.APPLICATION_JSON));
+        metadataServer.expect(requestTo(ISSUER_URL + "/.well-known/openid-credential-issuer"))
+            .andRespond(response);
+
+        assertDoesNotThrow(credentialRegisterService::init);
+        assertNull(credentialRegisterService.getCredentials());
+        registerServer.verify();
+        metadataServer.verify();
+        registerServer.reset();
+        metadataServer.reset();
+        expectIssuerMetadata();
+
+        credentialRegisterService.updateCredentialMetadataRetriever();
+
+        assertEquals(1, credentialRegisterService.getCredentials().credentials().size());
+        assertEquals(ISSUER_URL, credentialRegisterService.getCredentials().credentials().getFirst().credentialIssuer());
+    }
+
+    @Test
+    @DisplayName("Should allow startup without available credentials and publish them when the issuer register becomes available")
+    void shouldAllowStartupWithoutAvailableCredentialsAndPublishThemWhenTheIssuerRegisterBecomesAvailable() {
+        registerServer.expect(requestTo(RP_SERVICE_URL))
+            .andRespond(withStatus(HttpStatus.SERVICE_UNAVAILABLE));
+
+        assertDoesNotThrow(credentialRegisterService::init);
+        assertNull(credentialRegisterService.getCredentials());
+        registerServer.verify();
+        registerServer.reset();
+        expectIssuerMetadata();
+
+        credentialRegisterService.updateCredentialMetadataRetriever();
+
+        assertEquals(1, credentialRegisterService.getCredentials().credentials().size());
+        assertEquals(ISSUER_URL, credentialRegisterService.getCredentials().credentials().getFirst().credentialIssuer());
+    }
+
+    @ParameterizedTest
     @ValueSource(ints = {401, 500})
     @DisplayName("Should keep previously available credentials when the issuer register reports an error")
     void shouldKeepPreviouslyAvailableCredentialsWhenTheIssuerRegisterReportsAnError(int status) {
