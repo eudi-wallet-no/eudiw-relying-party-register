@@ -64,8 +64,8 @@ class CredentialRegistryV2RefreshTest {
     }
 
     @Test
-    @DisplayName("Should refresh credentials through V2 and retain the cache on access failure without V1 fallback")
-    void shouldRefreshCredentialsThroughV2AndRetainCacheOnAccessFailureWithoutV1Fallback() {
+    @DisplayName("Should keep previously available credentials when access to the issuer register is denied")
+    void shouldKeepPreviouslyAvailableCredentialsWhenAccessToTheIssuerRegisterIsDenied() {
         expectIssuerMetadata();
 
         credentialRegisterService.updateCredentialMetadataRetriever();
@@ -89,8 +89,8 @@ class CredentialRegistryV2RefreshTest {
     }
 
     @Test
-    @DisplayName("Should clear cached credentials when V2 returns an empty issuer list")
-    void shouldClearCachedCredentialsWhenV2ReturnsAnEmptyIssuerList() {
+    @DisplayName("Should remove previously available credentials when the issuer register returns no issuers")
+    void shouldRemovePreviouslyAvailableCredentialsWhenTheIssuerRegisterReturnsNoIssuers() {
         expectIssuerMetadata();
         credentialRegisterService.updateCredentialMetadataRetriever();
         assertFalse(credentialRegisterService.getCredentials().credentials().isEmpty());

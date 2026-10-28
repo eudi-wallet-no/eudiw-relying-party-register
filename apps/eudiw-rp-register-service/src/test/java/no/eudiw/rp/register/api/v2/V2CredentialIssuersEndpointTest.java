@@ -36,8 +36,8 @@ class V2CredentialIssuersEndpointTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"/v2/credential-issuers", "/v1/credential-issuers"})
-    @DisplayName("Should return registered issuer URLs through V2 and preserve V1")
-    void shouldReturnRegisteredIssuerUrlsThroughV2AndPreserveV1(String path) throws Exception {
+    @DisplayName("Should return the URLs of registered credential issuers")
+    void shouldReturnTheUrlsOfRegisteredCredentialIssuers(String path) throws Exception {
         when(credentialIssuersService.getRegisteredCredentialIssuerUrls())
             .thenReturn(Set.of("https://issuer.example/Issuer", "https://issuer.example/issuer"));
 
@@ -49,8 +49,8 @@ class V2CredentialIssuersEndpointTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"/v2/credential-issuers", "/v1/credential-issuers"})
-    @DisplayName("Should return an empty issuer list through V2 and preserve V1")
-    void shouldReturnAnEmptyIssuerListThroughV2AndPreserveV1(String path) throws Exception {
+    @DisplayName("Should return an empty list when no credential issuers are registered")
+    void shouldReturnAnEmptyListWhenNoCredentialIssuersAreRegistered(String path) throws Exception {
         when(credentialIssuersService.getRegisteredCredentialIssuerUrls()).thenReturn(Set.of());
 
         mockMvc.perform(get(path).header(API_KEY_HEADER, API_KEY))
