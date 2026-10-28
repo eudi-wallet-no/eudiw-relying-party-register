@@ -1,5 +1,7 @@
 package no.idporten.eudiw.rp.admin.web.resource;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 
 public record PagedResponse<T>(
@@ -7,9 +9,9 @@ public record PagedResponse<T>(
     PageMetadata page) {
 
     public record PageMetadata(
-        long size,
-        long number,
-        long totalElements,
-        long totalPages
+        @JsonProperty(required = true) long size,
+        @JsonProperty(required = true) long number,
+        @JsonProperty(required = true) long totalElements,
+        @JsonProperty(required = true) long totalPages
     ) { }
 }
