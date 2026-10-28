@@ -43,10 +43,7 @@ public class WrpLookupService {
     public CollectionPage findAll(
         int limit,
         String cursorToken,
-        String identifier,
-        String legalName,
-        String serviceIdentifier,
-        String tradeName
+        WrpCollectionFilters filters
     ) {
         if (limit < 1 || limit > MAX_PAGE_SIZE) {
             throw new BadRequestException("limit must be between 1 and " + MAX_PAGE_SIZE);
@@ -54,7 +51,12 @@ public class WrpLookupService {
 
         Cursor cursor = decodeCursor(cursorToken);
         List<WalletRelyingParty> candidates = repository.findActivePage(
-            new WrpSearchCriteria(identifier, legalName, serviceIdentifier, tradeName),
+            new WrpSearchCriteria(
+                filters.identifier(),
+                filters.legalName(),
+                filters.serviceIdentifier(),
+                filters.tradeName()
+            ),
             cursor == null ? null : cursor.createdMs(),
             cursor == null ? null : cursor.id(),
             limit + 1

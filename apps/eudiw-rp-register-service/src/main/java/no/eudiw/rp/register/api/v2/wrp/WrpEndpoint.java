@@ -112,8 +112,8 @@ public class WrpEndpoint {
             throw new BadRequestException("WRP filters must not be blank");
         }
 
-        WrpLookupService.CollectionPage page =
-            lookupService.findAll(limit, cursor, identifier, legalName, serviceIdentifier, tradeName);
+        WrpCollectionFilters filters = new WrpCollectionFilters(identifier, legalName, serviceIdentifier, tradeName);
+        WrpLookupService.CollectionPage page = lookupService.findAll(limit, cursor, filters);
         return ResponseEntity.ok()
             .contentType(MediaType.parseMediaType("application/jwt"))
             .header(JWK_URL_HEADER, properties.jwksUrl())
