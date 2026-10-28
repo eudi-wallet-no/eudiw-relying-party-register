@@ -1,8 +1,8 @@
 <div th:fragment="registrations_table_fragment">
     <!--/*@thymesVar id="registrationsAttr" type="java.util.List<no.idporten.eudiw.rp.admin.web.resource.RegistrationSummary>"*/-->
-    <div th:with="registrations=${registrationsAttr}">
+    <div th:with="registrations=${registrationsAttr}" th:object="${searchFormAttr}">
         <div th:if="${#lists.isEmpty(registrations)}">
-            Fann ingen registrerte brukarstader.
+            <span th:unless="${#fields.hasErrors()}">Fann ingen registrerte brukarstader.</span>
         </div>
 
         <table th:unless="${#lists.isEmpty(registrations)}"

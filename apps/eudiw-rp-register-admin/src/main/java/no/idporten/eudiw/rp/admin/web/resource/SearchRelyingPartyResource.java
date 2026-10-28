@@ -16,7 +16,7 @@ import java.util.List;
 @Getter
 public class SearchRelyingPartyResource {
     public final static int DEFAULT_PAGE_SIZE = 25;
-    public final static String DEFAULT_ORDERING = RelyingPartyOrdering.UNSORTED;
+    public final static String DEFAULT_ORDERING = RelyingPartyOrdering.CREATED_ASC;
 
     @JsonProperty("search_term")
     private String searchTerm = "";

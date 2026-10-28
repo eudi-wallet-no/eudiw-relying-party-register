@@ -10,6 +10,8 @@ import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.testdata.EntityGenerator;
 import no.eudiw.rp.register.testdata.TestDataGenerator;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
@@ -501,6 +503,57 @@ public class RelyingPartyInstanceRepositoryTest {
 
             assertTrue(isSortedBy(searchResultByLastUpdatedMs,
                                   Comparator.comparing(RelyingPartyInstance::getLastUpdatedMs)));
+        }
+
+        @Test
+        @Transactional
+        @DisplayName("Should match the legal name despite a trade name and require every selected role")
+        void shouldMatchLegalNameAndRequireEverySelectedRole() {
+            String searchTerm = UUID.randomUUID().toString();
+            RelyingPartyInstance matchingInstance = EntityGenerator.generateRelyingParty();
+            var relyingParty = matchingInstance.getWalletRelyingPartyService().getWalletRelyingParty();
+            relyingParty.setName("Legal " + searchTerm);
+            relyingParty.setTradeName("Unrelated trade name");
+            matchingInstance.setRelyingPartyEntitlements(List.of(
+                new RelyingPartyEntitlement("urn:first", null), new RelyingPartyEntitlement("urn:second", null)));
+            RelyingPartyInstance missingRole = EntityGenerator.generateRelyingParty();
+            missingRole.getWalletRelyingPartyService().getWalletRelyingParty().setName("Legal " + searchTerm);
+            missingRole.setRelyingPartyEntitlements(List.of(new RelyingPartyEntitlement("urn:first", null)));
+            repository.saveAndFlush(matchingInstance);
+            repository.saveAndFlush(missingRole);
+
+            var results = repository.searchV2(null, null, searchTerm, false,
+                Set.of("urn:first", "urn:second"), 2, PageRequest.of(0, 25, Sort.by("createdMs", "id")));
+
+            assertEquals(List.of(matchingInstance.getId()), results.getContent().stream().map(BaseEntity::getId).toList());
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"RelyingPartyInstance", "WalletRelyingPartyService", "WalletRelyingParty"})
+        @Transactional
+        @DisplayName("Should include an inactive registration hierarchy only when requested")
+        void shouldIncludeInactiveHierarchyOnlyWhenRequested(String inactiveResource) {
+            String searchTerm = UUID.randomUUID().toString();
+            RelyingPartyInstance activeInstance = EntityGenerator.generateRelyingParty();
+            activeInstance.getWalletRelyingPartyService().setServiceTradeName("Active " + searchTerm);
+            RelyingPartyInstance inactiveInstance = EntityGenerator.generateRelyingParty();
+            var relyingPartyService = inactiveInstance.getWalletRelyingPartyService();
+            relyingPartyService.setServiceTradeName("Inactive " + searchTerm);
+            switch (inactiveResource) {
+                case "RelyingPartyInstance" -> inactiveInstance.setActive(false);
+                case "WalletRelyingPartyService" -> relyingPartyService.setActive(false);
+                case "WalletRelyingParty" -> relyingPartyService.getWalletRelyingParty().setActive(false);
+            }
+            repository.saveAndFlush(activeInstance);
+            repository.saveAndFlush(inactiveInstance);
+            var page = PageRequest.of(0, 25, Sort.by("createdMs", "id"));
+
+            var activeResults = repository.searchV2(null, null, searchTerm, false, Set.of(), 0, page);
+            var allResults = repository.searchV2(null, null, searchTerm, true, Set.of(), 0, page);
+
+            assertEquals(List.of(activeInstance.getId()), activeResults.getContent().stream().map(BaseEntity::getId).toList());
+            assertEquals(Set.of(activeInstance.getId(), inactiveInstance.getId()),
+                allResults.getContent().stream().map(BaseEntity::getId).collect(Collectors.toSet()));
         }
 
         @Test

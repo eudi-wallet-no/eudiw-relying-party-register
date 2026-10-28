@@ -45,6 +45,21 @@ class V2RegistrationsServiceTests {
     }
 
     @Test
+    @DisplayName("Should search service names without losing matching duplicates or their order")
+    void shouldSearchServiceNamesWithoutLosingMatchingDuplicatesOrTheirOrder() {
+        Registration matching = new Registration(new UUID(0, 1), "KontrollTENESTE", List.of(), null, null);
+        Registration other = new Registration(new UUID(0, 2), "Annan teneste", List.of(), null, null);
+        Registration missing = new Registration(new UUID(0, 3), null, null, null, null);
+        when(client.getRegistrations(ORGNO)).thenReturn(List.of(matching, other, missing, matching));
+
+        assertEquals(List.of(RegistrationSummary.from(matching), RegistrationSummary.from(matching)),
+            service.searchByOrgno(ORGNO, "  kontroll  "));
+        assertTrue(service.searchByOrgno(ORGNO, "Ukjend").isEmpty());
+        assertEquals(List.of(RegistrationSummary.from(matching), RegistrationSummary.from(other),
+            RegistrationSummary.from(missing), RegistrationSummary.from(matching)), service.searchByOrgno(ORGNO, " "));
+    }
+
+    @Test
     @DisplayName("Require an organization before retrieving its registrations")
     void shouldRequireOrganizationToRetrieveRegistrations() {
         assertThrows(IllegalArgumentException.class, () -> service.getAllByOrgno(" "));
