@@ -14,6 +14,9 @@ import java.util.UUID;
 public record RelyingPartyInstanceResponse(
     UUID id,
     @JsonProperty("serviceId") UUID relyingPartyServiceId,
+    String orgno,
+    String organizationName,
+    String serviceTradeName,
     List<@Valid RelyingPartyEntitlementResource> relyingPartyEntitlements,
     List<@Valid RelyingPartyEaaResource> relyingPartyEaas,
     boolean active,
@@ -23,9 +26,15 @@ public record RelyingPartyInstanceResponse(
     List<UUID> issuerCertificateIds
 ) {
     public static RelyingPartyInstanceResponse from(RelyingPartyInstance relyingPartyInstance) {
+        var relyingPartyService = relyingPartyInstance.getWalletRelyingPartyService();
+        var relyingParty = relyingPartyService.getWalletRelyingParty();
+
         return new RelyingPartyInstanceResponse(
             relyingPartyInstance.getId(),
-            relyingPartyInstance.getWalletRelyingPartyService().getId(),
+            relyingPartyService.getId(),
+            relyingParty.getOrgno(),
+            relyingParty.getName(),
+            relyingPartyService.getServiceTradeName(),
             relyingPartyInstance.getRelyingPartyEntitlements().stream()
                 .map(item -> new RelyingPartyEntitlementResource(
                     item.getEntitlement(), item.getCredentialIssuerUrl()))

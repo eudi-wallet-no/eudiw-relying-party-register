@@ -206,7 +206,13 @@ public class V2ResourcesEndpoint {
         return v2ApiService.getRegistrationDetails(relyingPartyInstanceId);
     }
 
-    @Operation(summary = "Search RelyingPartyInstances")
+    @Operation(
+        summary = "Search RelyingPartyInstances",
+        description = "Returns instances with organization and service names and certificate identifiers. "
+            + "Search matches organization numbers, trade names, service names and the first legal name. "
+            + "All required entitlements must match. Excludes inactive parties, services and instances unless includeInactive is true. "
+            + "Results are sorted ascending with the instance ID as a stable secondary key."
+    )
     @GetMapping(path = "/instances", produces = MediaType.APPLICATION_JSON_VALUE)
     public PagedModel<RelyingPartyInstanceResponse> searchRelyingPartyInstances(
         @Parameter(description = "Optional RelyingPartyService identifier")

@@ -17,7 +17,7 @@
 
         <p sec:authorize="hasRole('ADMIN')"
            class="ds-paragraph">
-            <a th:href="@{/search}" class="ds-button" data-variant="secondary">
+            <a th:href="@{${searchUrlAttr}}" class="ds-button" data-variant="secondary">
                 Tilbake til søk
             </a>
         </p>
