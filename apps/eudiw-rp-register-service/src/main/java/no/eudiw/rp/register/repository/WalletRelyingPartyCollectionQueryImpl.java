@@ -5,12 +5,14 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.ParameterExpression;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
+import no.eudiw.rp.register.domain.IntendedUse;
 import no.eudiw.rp.register.domain.LegalPerson;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
@@ -26,6 +28,7 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
     private static final String LEGAL_NAME_PARAMETER = "legalName";
     private static final String SERVICE_IDENTIFIER_PARAMETER = "serviceIdentifier";
     private static final String TRADE_NAME_PARAMETER = "tradeName";
+    private static final String POLICY_PARAMETER = "policy";
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -79,6 +82,9 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         }
         if (criteria.tradeName() != null) {
             predicates.add(tradeNamePredicate(builder, query, party));
+        }
+        if (criteria.policy() != null) {
+            predicates.add(policyPredicate(builder, query, party));
         }
         if (cursorCreatedMs != null) {
             predicates.add(cursorPredicate(builder, party, cursorCreatedMs, cursorId));
@@ -160,6 +166,53 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         );
     }
 
+    private static Predicate policyPredicate(
+        CriteriaBuilder builder,
+        CriteriaQuery<?> query,
+        Root<WalletRelyingParty> party
+    ) {
+        ParameterExpression<String> policy = builder.parameter(String.class, POLICY_PARAMETER);
+        var policyObject = builder.function(
+            "JSON_OBJECT", String.class, builder.literal("policyURI"), policy);
+        var containsWrpPolicy = builder.function(
+            "JSON_CONTAINS",
+            Integer.class,
+            party.get("policy"),
+            policyObject,
+            builder.literal("$")
+        );
+        return builder.or(
+            builder.equal(containsWrpPolicy, 1),
+            intendedUsePolicyPredicate(builder, query, party, policyObject)
+        );
+    }
+
+    private static Predicate intendedUsePolicyPredicate(
+        CriteriaBuilder builder,
+        CriteriaQuery<?> query,
+        Root<WalletRelyingParty> party,
+        Expression<String> policyObject
+    ) {
+        Subquery<Integer> matchingIntendedUse = query.subquery(Integer.class);
+        Root<WalletRelyingPartyService> service = matchingIntendedUse.from(WalletRelyingPartyService.class);
+        Join<WalletRelyingPartyService, IntendedUse> intendedUse =
+            service.join("intendedUses", JoinType.INNER);
+        var containsIntendedUsePolicy = builder.function(
+            "JSON_CONTAINS",
+            Integer.class,
+            intendedUse.get("privacyPolicy"),
+            policyObject,
+            builder.literal("$")
+        );
+        matchingIntendedUse.select(builder.literal(1))
+            .where(
+                builder.equal(service.get("walletRelyingParty").get("id"), party.get("id")),
+                builder.isTrue(service.get("active")),
+                builder.equal(containsIntendedUsePolicy, 1)
+            );
+        return builder.exists(matchingIntendedUse);
+    }
+
     private static Predicate activeServicePredicate(
         CriteriaBuilder builder,
         CriteriaQuery<?> query,
@@ -194,6 +247,9 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         }
         if (criteria.tradeName() != null) {
             query.setParameter(TRADE_NAME_PARAMETER, criteria.tradeName());
+        }
+        if (criteria.policy() != null) {
+            query.setParameter(POLICY_PARAMETER, criteria.policy());
         }
     }
 }

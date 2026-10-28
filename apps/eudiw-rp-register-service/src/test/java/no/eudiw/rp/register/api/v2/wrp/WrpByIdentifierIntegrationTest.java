@@ -204,11 +204,19 @@ class WrpByIdentifierIntegrationTest {
             .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("identifier", " "))
             .andExpect(status().isBadRequest());
-        mockMvc.perform(get("/wrp").param("legalname", " "))
+        mockMvc.perform(get("/wrp").param("legalName", " "))
             .andExpect(status().isBadRequest());
-        mockMvc.perform(get("/wrp").param("serviceidentifier", " "))
+        mockMvc.perform(get("/wrp").param("legalname", "Legal Alpha"))
             .andExpect(status().isBadRequest());
-        mockMvc.perform(get("/wrp").param("tradename", " "))
+        mockMvc.perform(get("/wrp").param("serviceIdentifier", " "))
+            .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/wrp").param("serviceidentifier", "service-one"))
+            .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/wrp").param("tradeName", " "))
+            .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/wrp").param("tradename", "A trade name"))
+            .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/wrp").param("policy", " "))
             .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("unsupported", "value"))
             .andExpect(status().isBadRequest());
@@ -242,19 +250,19 @@ class WrpByIdentifierIntegrationTest {
         assertEquals(
             Set.of("Filter Match A", "Filter Match C"),
             Set.copyOf(collectionTradeNames(getCollectionPage(null, null, Map.of(
-                "legalname", "Legal Alpha"
+                "legalName", "Legal Alpha"
             ))))
         );
         assertEquals(
             List.of("Filter Match A"),
             collectionTradeNames(getCollectionPage(null, null, Map.of(
                 "identifier", "urn:example:shared",
-                "legalname", "Legal Alpha"
+                "legalName", "Legal Alpha"
             )))
         );
         assertTrue(collectionTradeNames(getCollectionPage(null, null, Map.of(
             "identifier", "urn:example:shared",
-            "legalname", "Legal Gamma"
+            "legalName", "Legal Gamma"
         ))).isEmpty());
         assertTrue(collectionTradeNames(getCollectionPage(null, null, Map.of(
             "identifier", "urn:example:sha"
@@ -312,43 +320,43 @@ class WrpByIdentifierIntegrationTest {
         assertEquals(
             List.of("Shared Trade Name"),
             collectionTradeNames(getCollectionPage(null, null, Map.of(
-                "serviceidentifier", "service-one"
+                "serviceIdentifier", "service-one"
             )))
         );
         assertTrue(collectionTradeNames(getCollectionPage(null, null, Map.of(
-            "serviceidentifier", "service-one-extra"
+            "serviceIdentifier", "service-one-extra"
         ))).isEmpty());
         assertTrue(collectionTradeNames(getCollectionPage(null, null, Map.of(
-            "serviceidentifier", "inactive-service"
+            "serviceIdentifier", "inactive-service"
         ))).isEmpty());
         assertEquals(
             List.of("WRP-only Trade Name"),
             collectionTradeNames(getCollectionPage(null, null, Map.of(
-                "tradename", "WRP-only Trade Name"
+                "tradeName", "WRP-only Trade Name"
             )))
         );
         assertTrue(collectionTradeNames(getCollectionPage(null, null, Map.of(
-            "tradename", "WRP-only"
+            "tradeName", "WRP-only"
         ))).isEmpty());
         assertEquals(
             List.of("Other WRP"),
             collectionTradeNames(getCollectionPage(null, null, Map.of(
                 "identifier", "urn:example:other",
-                "legalname", "Legal Alpha",
-                "serviceidentifier", "service-two",
-                "tradename", "Shared Trade Name"
+                "legalName", "Legal Alpha",
+                "serviceIdentifier", "service-two",
+                "tradeName", "Shared Trade Name"
             )))
         );
 
         JWSObject firstPage = getCollectionPage(
-            1, null, Map.of("tradename", "Shared Trade Name"));
+            1, null, Map.of("tradeName", "Shared Trade Name"));
         Map<?, ?> firstPagination =
             (Map<?, ?>) firstPage.getPayload().toJSONObject().get("pagination");
         assertTrue((Boolean) firstPagination.get("has_next_page"));
         JWSObject secondPage = getCollectionPage(
             1,
             (String) firstPagination.get("next_cursor"),
-            Map.of("tradename", "Shared Trade Name")
+            Map.of("tradeName", "Shared Trade Name")
         );
         Map<?, ?> secondPagination =
             (Map<?, ?>) secondPage.getPayload().toJSONObject().get("pagination");
@@ -356,6 +364,64 @@ class WrpByIdentifierIntegrationTest {
         List<String> pagedNames = new ArrayList<>(collectionTradeNames(firstPage));
         pagedNames.addAll(collectionTradeNames(secondPage));
         assertEquals(Set.of("Shared Trade Name", "Other WRP"), Set.copyOf(pagedNames));
+    }
+
+    @Test
+    void filtersCollectionByExactPolicyUriAtWrpAndIntendedUseLevels() throws Exception {
+        String wrpPolicyUri = "https://example.test/policies/wrp";
+        String intendedUsePolicyUri = "https://example.test/policies/intended-use";
+        WalletRelyingParty wrpPolicyMatch =
+            partyWithSearchData("WRP policy match", "urn:example:wrp-policy", "Policy Alpha");
+        wrpPolicyMatch.setPolicy(List.of(new Policy("PrivacyStatement", wrpPolicyUri)));
+        WalletRelyingParty secondWrpPolicyMatch =
+            partyWithSearchData("Second WRP policy match", "urn:example:wrp-policy-second", "Policy Alpha");
+        secondWrpPolicyMatch.setPolicy(List.of(new Policy("PrivacyStatement", wrpPolicyUri)));
+
+        WalletRelyingParty intendedUsePolicyMatch =
+            partyWithSearchData("Intended use policy match", "urn:example:intended-policy", "Policy Beta");
+        WalletRelyingPartyService service = intendedUsePolicyMatch.getServices().getFirst();
+        service.setIntendedUses(List.of(new IntendedUse(
+            "policy-intended-use",
+            "2026-01-01",
+            null,
+            List.of(new MultiLangString("en", "Purpose")),
+            List.of(new Policy("PrivacyStatement", intendedUsePolicyUri))
+        )));
+
+        WalletRelyingParty partialPolicyMatch =
+            partyWithSearchData("Partial policy mismatch", "urn:example:partial-policy", "Policy Beta");
+        partialPolicyMatch.setPolicy(List.of(new Policy("PrivacyStatement", wrpPolicyUri + "/extended")));
+        walletRelyingPartyRepository.saveAllAndFlush(
+            List.of(wrpPolicyMatch, secondWrpPolicyMatch, intendedUsePolicyMatch, partialPolicyMatch));
+
+        JWSObject firstPolicyPage = getCollectionPage(1, null, Map.of("policy", wrpPolicyUri));
+        Map<?, ?> pagination =
+            (Map<?, ?>) firstPolicyPage.getPayload().toJSONObject().get("pagination");
+        assertTrue((Boolean) pagination.get("has_next_page"));
+        JWSObject secondPolicyPage = getCollectionPage(
+            1, (String) pagination.get("next_cursor"), Map.of("policy", wrpPolicyUri));
+        Map<?, ?> secondPagination =
+            (Map<?, ?>) secondPolicyPage.getPayload().toJSONObject().get("pagination");
+        assertFalse((Boolean) secondPagination.get("has_next_page"));
+        List<String> policyMatches = new ArrayList<>(collectionTradeNames(firstPolicyPage));
+        policyMatches.addAll(collectionTradeNames(secondPolicyPage));
+        assertEquals(
+            Set.of("WRP policy match", "Second WRP policy match"),
+            Set.copyOf(policyMatches)
+        );
+        assertEquals(
+            List.of("Intended use policy match"),
+            collectionTradeNames(getCollectionPage(null, null, Map.of("policy", intendedUsePolicyUri)))
+        );
+        assertTrue(collectionTradeNames(getCollectionPage(
+            null, null, Map.of("policy", "https://example.test/policies"))).isEmpty());
+        assertEquals(
+            List.of("Intended use policy match"),
+            collectionTradeNames(getCollectionPage(null, null, Map.of(
+                "policy", intendedUsePolicyUri,
+                "legalName", "Policy Beta"
+            )))
+        );
     }
 
     @Test
@@ -410,9 +476,10 @@ class WrpByIdentifierIntegrationTest {
             .andExpect(content().string(containsString("limit")))
             .andExpect(content().string(containsString("cursor")))
             .andExpect(content().string(containsString("identifier")))
-            .andExpect(content().string(containsString("legalname")))
-            .andExpect(content().string(containsString("serviceidentifier")))
-            .andExpect(content().string(containsString("tradename")));
+            .andExpect(content().string(containsString("legalName")))
+            .andExpect(content().string(containsString("serviceIdentifier")))
+            .andExpect(content().string(containsString("tradeName")))
+            .andExpect(content().string(containsString("policy")));
     }
 
     @Test
