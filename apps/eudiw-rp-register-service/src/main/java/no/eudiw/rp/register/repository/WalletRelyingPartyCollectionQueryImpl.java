@@ -39,29 +39,8 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         Root<WalletRelyingParty> party = query.from(WalletRelyingParty.class);
         party.fetch("legalPerson", JoinType.LEFT);
 
-        List<Predicate> predicates = new ArrayList<>();
-        predicates.add(builder.isTrue(party.get("active")));
-
-        if (criteria.identifier() != null) {
-            addIdentifierCriteria(builder, party, predicates);
-        }
-
-        if (criteria.legalName() != null) {
-            addLegalnameCriteria(party, builder, predicates);
-        }
-
-        if (cursorCreatedMs != null) {
-            predicates.add(builder.or(
-                builder.greaterThan(party.get("createdMs"), cursorCreatedMs),
-                builder.and(
-                    builder.equal(party.get("createdMs"), cursorCreatedMs),
-                    builder.greaterThan(party.<UUID>get("id"), cursorId)
-                )
-            ));
-        }
-
         query.select(party)
-            .where(predicates.toArray(Predicate[]::new))
+            .where(buildPredicates(builder, party, criteria, cursorCreatedMs, cursorId))
             .orderBy(
                 builder.asc(party.get("createdMs")),
                 builder.asc(party.get("id"))
@@ -69,49 +48,38 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
 
         TypedQuery<WalletRelyingParty> typedQuery = entityManager.createQuery(query)
             .setMaxResults(pageSize);
-        if (criteria.identifier() != null) {
-            typedQuery.setParameter("identifier", criteria.identifier());
-        }
-        if (criteria.legalName() != null) {
-            typedQuery.setParameter("legalName", criteria.legalName());
-        }
+        bindFilterParameters(typedQuery, criteria);
         return typedQuery.getResultList();
     }
 
-    private static void addLegalnameCriteria(
-            Root<WalletRelyingParty> party,
-            CriteriaBuilder builder,
-            List<Predicate> predicates) {
-        Join<WalletRelyingParty, LegalPerson> legalPerson = party.join("legalPerson", JoinType.INNER);
-        ParameterExpression<String> legalName =
-            builder.parameter(String.class, "legalName");
-        var quotedLegalName = builder.function(
-            "JSON_QUOTE",
-            String.class,
-            legalName
-        );
-        var containsLegalName = builder.function(
-            "JSON_CONTAINS",
-            Integer.class,
-            legalPerson.get("legalName"),
-            quotedLegalName,
-            builder.literal("$")
-        );
-        predicates.add(builder.equal(containsLegalName, 1));
+    private static Predicate[] buildPredicates(
+        CriteriaBuilder builder,
+        Root<WalletRelyingParty> party,
+        WrpSearchCriteria criteria,
+        Long cursorCreatedMs,
+        UUID cursorId
+    ) {
+        List<Predicate> predicates = new ArrayList<>();
+        predicates.add(builder.isTrue(party.get("active")));
+        if (criteria.identifier() != null) {
+            predicates.add(identifierPredicate(builder, party));
+        }
+        if (criteria.legalName() != null) {
+            predicates.add(legalNamePredicate(builder, party));
+        }
+        if (cursorCreatedMs != null) {
+            predicates.add(cursorPredicate(builder, party, cursorCreatedMs, cursorId));
+        }
+        return predicates.toArray(Predicate[]::new);
     }
 
-    private static void addIdentifierCriteria(
-            CriteriaBuilder builder,
-            Root<WalletRelyingParty> party,
-            List<Predicate> predicates
+    private static Predicate identifierPredicate(
+        CriteriaBuilder builder,
+        Root<WalletRelyingParty> party
     ) {
         ParameterExpression<String> identifier = builder.parameter(String.class, "identifier");
         var identifierObject = builder.function(
-            "JSON_OBJECT",
-            String.class,
-            builder.literal("identifier"),
-            identifier
-        );
+            "JSON_OBJECT", String.class, builder.literal("identifier"), identifier);
         var containsIdentifier = builder.function(
             "JSON_CONTAINS",
             Integer.class,
@@ -119,9 +87,55 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
             identifierObject,
             builder.literal("$")
         );
-        predicates.add(builder.or(
+        return builder.or(
             builder.equal(party.get("orgno"), identifier),
             builder.equal(containsIdentifier, 1)
-        ));
+        );
+    }
+
+    private static Predicate legalNamePredicate(
+        CriteriaBuilder builder,
+        Root<WalletRelyingParty> party
+    ) {
+        Join<WalletRelyingParty, LegalPerson> legalPerson =
+            party.join("legalPerson", JoinType.INNER);
+        ParameterExpression<String> legalName =
+            builder.parameter(String.class, "legalName");
+        var quotedLegalName = builder.function("JSON_QUOTE", String.class, legalName);
+        var containsLegalName = builder.function(
+            "JSON_CONTAINS",
+            Integer.class,
+            legalPerson.get("legalName"),
+            quotedLegalName,
+            builder.literal("$")
+        );
+        return builder.equal(containsLegalName, 1);
+    }
+
+    private static Predicate cursorPredicate(
+        CriteriaBuilder builder,
+        Root<WalletRelyingParty> party,
+        long cursorCreatedMs,
+        UUID cursorId
+    ) {
+        return builder.or(
+            builder.greaterThan(party.get("createdMs"), cursorCreatedMs),
+            builder.and(
+                builder.equal(party.get("createdMs"), cursorCreatedMs),
+                builder.greaterThan(party.<UUID>get("id"), cursorId)
+            )
+        );
+    }
+
+    private static void bindFilterParameters(
+        TypedQuery<WalletRelyingParty> query,
+        WrpSearchCriteria criteria
+    ) {
+        if (criteria.identifier() != null) {
+            query.setParameter("identifier", criteria.identifier());
+        }
+        if (criteria.legalName() != null) {
+            query.setParameter("legalName", criteria.legalName());
+        }
     }
 }
