@@ -1,6 +1,10 @@
-## Jira-sak
+## Relatert sak
 
-<!-- Digdir legg inn Jira-ID og lenkje -->
+<!-- Lenke til ei eksisterande GitHub-issue, eller opprett gjerne ei issue
+for å drøfte endringa. Har de allereie avklart endringa med prosjektgruppa,
+kan du vise til den avklaringa her. -->
+
+<!-- Digdir legg til Jira-ID når endringa er avklart. -->
 
 ## Endring
 
