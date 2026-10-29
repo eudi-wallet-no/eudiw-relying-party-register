@@ -5,6 +5,7 @@ public record WrpCollectionFilters(
     String legalName,
     String serviceIdentifier,
     String tradeName,
-    String policy
+    String policy,
+    String entitlement
 ) {
 }

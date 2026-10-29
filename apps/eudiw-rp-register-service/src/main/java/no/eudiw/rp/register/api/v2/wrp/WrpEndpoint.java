@@ -30,7 +30,8 @@ public class WrpEndpoint {
     private static final String JWK_URL_HEADER = "x-jku-url";
     private static final Set<String> COLLECTION_PARAMETERS =
         Set.of(
-            "limit", "cursor", "identifier", "legalName", "serviceIdentifier", "tradeName", "policy"
+            "limit", "cursor", "identifier", "legalName", "serviceIdentifier", "tradeName", "policy",
+            "entitlement"
         );
 
     private final WrpLookupService lookupService;
@@ -39,8 +40,9 @@ public class WrpEndpoint {
 
     @Operation(
         summary = "Get a paginated list of Wallet Relying Parties",
-        description = "Returns active relying parties matching the optional identifier, legalName, "
-            + "serviceIdentifier, tradeName, and policy filters.",
+        description = """
+             Returns active relying parties matching the optional identifier, legalName,
+             serviceIdentifier, tradeName, policy, and entitlement filters.""",
         responses = {
             @ApiResponse(
                 responseCode = "200",
@@ -108,6 +110,13 @@ public class WrpEndpoint {
             schema = @Schema(type = "string", format = "uri")
         )
         @RequestParam(name = "policy", required = false) String policy,
+        @Parameter(
+            name = "entitlement",
+            in = ParameterIn.QUERY,
+            description = "Exact URI of an active service entitlement or sub-entitlement",
+            schema = @Schema(type = "string", format = "uri")
+        )
+        @RequestParam(name = "entitlement", required = false) String entitlement,
         @Parameter(hidden = true)
         @RequestParam MultiValueMap<String, String> queryParameters
     ) {
@@ -118,12 +127,13 @@ public class WrpEndpoint {
             || (legalName != null && legalName.isBlank())
             || (serviceIdentifier != null && serviceIdentifier.isBlank())
             || (tradeName != null && tradeName.isBlank())
-            || (policy != null && policy.isBlank())) {
+            || (policy != null && policy.isBlank())
+            || (entitlement != null && entitlement.isBlank())) {
             throw new BadRequestException("WRP filters must not be blank");
         }
 
         WrpCollectionFilters filters =
-            new WrpCollectionFilters(identifier, legalName, serviceIdentifier, tradeName, policy);
+            new WrpCollectionFilters(identifier, legalName, serviceIdentifier, tradeName, policy, entitlement);
         WrpLookupService.CollectionPage page = lookupService.findAll(limit, cursor, filters);
         return ResponseEntity.ok()
             .contentType(MediaType.parseMediaType("application/jwt"))
