@@ -13,6 +13,7 @@ import no.eudiw.rp.register.domain.IntendedUse;
 import no.eudiw.rp.register.domain.LegalPerson;
 import no.eudiw.rp.register.domain.MultiLangString;
 import no.eudiw.rp.register.domain.Policy;
+import no.eudiw.rp.register.domain.ProvidedAttestation;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
@@ -219,6 +220,10 @@ class WrpByIdentifierIntegrationTest {
         mockMvc.perform(get("/wrp").param("policy", " "))
             .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("entitlement", " "))
+            .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/wrp").param("providedAttestation", " "))
+            .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/wrp").param("providedattestation", "https://schemas.example/payment"))
             .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("unsupported", "value"))
             .andExpect(status().isBadRequest());
@@ -529,6 +534,102 @@ class WrpByIdentifierIntegrationTest {
     }
 
     @Test
+    void filtersCollectionByExactProvidedAttestationTypeBeforeCursorPagination() throws Exception {
+        String attestationType = "https://schemas.example/attestations/payment";
+        WalletRelyingParty firstMatch =
+            partyWithSearchData("Provided attestation match A", "urn:example:attestation-a", "Attestation Alpha");
+        WalletRelyingPartyService firstService = firstMatch.getServices().getFirst();
+        firstService.setProvidesAttestations(List.of(
+            new ProvidedAttestation("dc+sd-jwt", attestationType),
+            new ProvidedAttestation("mso_mdoc", attestationType)
+        ));
+        WalletRelyingPartyService secondMatchingService =
+            new WalletRelyingPartyService("Second matching service", firstMatch, List.of());
+        secondMatchingService.setProvidesAttestations(List.of(
+            new ProvidedAttestation("dc+sd-jwt", attestationType)
+        ));
+        WalletRelyingPartyService otherActiveService =
+            new WalletRelyingPartyService("Other active service", firstMatch, List.of());
+        firstMatch.setServices(List.of(firstService, secondMatchingService, otherActiveService));
+
+        WalletRelyingParty secondMatch =
+            partyWithSearchData("Provided attestation match B", "urn:example:attestation-b", "Attestation Beta");
+        secondMatch.getServices().getFirst().setProvidesAttestations(List.of(
+            new ProvidedAttestation("dc+sd-jwt", attestationType)
+        ));
+
+        WalletRelyingParty partialMatch =
+            partyWithSearchData("Provided attestation partial", "urn:example:attestation-partial", "Other");
+        partialMatch.getServices().getFirst().setProvidesAttestations(List.of(
+            new ProvidedAttestation("dc+sd-jwt", attestationType + "/extended")
+        ));
+
+        WalletRelyingParty caseMismatch =
+            partyWithSearchData("Provided attestation case mismatch", "urn:example:attestation-case", "Other");
+        caseMismatch.getServices().getFirst().setProvidesAttestations(List.of(
+            new ProvidedAttestation("dc+sd-jwt", "https://schemas.example/attestations/Payment")
+        ));
+
+        WalletRelyingParty inactiveServiceMatch =
+            partyWithSearchData(
+                "Inactive provided attestation service", "urn:example:attestation-inactive", "Other");
+        WalletRelyingPartyService inactiveService = inactiveServiceMatch.getServices().getFirst();
+        inactiveService.setProvidesAttestations(List.of(
+            new ProvidedAttestation("dc+sd-jwt", attestationType)
+        ));
+        inactiveService.setActive(false);
+
+        walletRelyingPartyRepository.saveAllAndFlush(List.of(
+            firstMatch, secondMatch, partialMatch, caseMismatch, inactiveServiceMatch
+        ));
+
+        assertEquals(
+            Set.of("Provided attestation match A", "Provided attestation match B"),
+            Set.copyOf(collectionTradeNames(getCollectionPage(null, null, Map.of(
+                "providedAttestation", attestationType
+            ))))
+        );
+        JWSObject firstPage = getCollectionPage(1, null, Map.of("providedAttestation", attestationType));
+        Map<?, ?> firstPagination = (Map<?, ?>) firstPage.getPayload().toJSONObject().get("pagination");
+        assertTrue((Boolean) firstPagination.get("has_next_page"));
+        JWSObject secondPage = getCollectionPage(
+            1, (String) firstPagination.get("next_cursor"), Map.of("providedAttestation", attestationType));
+        Map<?, ?> secondPagination = (Map<?, ?>) secondPage.getPayload().toJSONObject().get("pagination");
+        assertFalse((Boolean) secondPagination.get("has_next_page"));
+        assertFalse(secondPagination.containsKey("next_cursor"));
+        assertEquals(
+            Set.of("Provided attestation match A", "Provided attestation match B"),
+            Set.copyOf(
+                List.of(collectionTradeNames(firstPage).getFirst(), collectionTradeNames(secondPage).getFirst()))
+        );
+        assertEquals(
+            List.of("Provided attestation match A"),
+            collectionTradeNames(getCollectionPage(null, null, Map.of(
+                "providedAttestation", attestationType,
+                "legalName", "Attestation Alpha"
+            )))
+        );
+        assertTrue(collectionTradeNames(getCollectionPage(null, null, Map.of(
+            "providedAttestation", attestationType + "/pay"
+        ))).isEmpty());
+        assertEquals(
+            List.of("Provided attestation case mismatch"),
+            collectionTradeNames(getCollectionPage(null, null, Map.of(
+                "providedAttestation", "https://schemas.example/attestations/Payment"
+            )))
+        );
+        assertTrue(collectionTradeNames(getCollectionPage(null, null, Map.of(
+            "providedAttestation", "dc+sd-jwt"
+        ))).isEmpty());
+
+        Map<?, ?> matchingWrp = (Map<?, ?>) ((List<?>) getCollectionPage(null, null, Map.of(
+            "providedAttestation", attestationType,
+            "legalName", "Attestation Alpha"
+        )).getPayload().toJSONObject().get("data")).getFirst();
+        assertEquals(3, ((List<?>) matchingWrp.get("services")).size());
+    }
+
+    @Test
     void batchFetchesNestedAssociationsForCollectionPage() throws Exception {
         List<WalletRelyingParty> parties = new ArrayList<>();
         for (int index = 0; index < 25; index++) {
@@ -584,7 +685,8 @@ class WrpByIdentifierIntegrationTest {
             .andExpect(content().string(containsString("serviceIdentifier")))
             .andExpect(content().string(containsString("tradeName")))
             .andExpect(content().string(containsString("policy")))
-            .andExpect(content().string(containsString("entitlement")));
+            .andExpect(content().string(containsString("entitlement")))
+            .andExpect(content().string(containsString("providedAttestation")));
     }
 
     @Test
