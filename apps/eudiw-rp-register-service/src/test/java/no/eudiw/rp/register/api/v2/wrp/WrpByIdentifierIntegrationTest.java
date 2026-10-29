@@ -218,6 +218,8 @@ class WrpByIdentifierIntegrationTest {
             .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("policy", " "))
             .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/wrp").param("entitlement", " "))
+            .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("unsupported", "value"))
             .andExpect(status().isBadRequest());
     }
@@ -425,6 +427,108 @@ class WrpByIdentifierIntegrationTest {
     }
 
     @Test
+    void filtersCollectionByExactEntitlementAndSubEntitlementBeforeCursorPagination() throws Exception {
+        String entitlement = "https://example.test/entitlements/provider";
+        WalletRelyingParty multipleEntitlementMatches =
+            partyWithSearchData("Entitlement match A", "urn:example:entitlement-a", "Entitlement Alpha");
+        WalletRelyingPartyService firstService = multipleEntitlementMatches.getServices().getFirst();
+        firstService.setRelyingPartyInstances(List.of(
+            instanceWithEntitlements(entitlement),
+            instanceWithEntitlements(entitlement)
+        ));
+        WalletRelyingPartyService subEntitlementService =
+            new WalletRelyingPartyService("Matching sub-entitlement service", multipleEntitlementMatches, List.of());
+        subEntitlementService.setSubEntitlements(List.of(entitlement));
+        WalletRelyingPartyService otherActiveService =
+            new WalletRelyingPartyService("Other active service", multipleEntitlementMatches, List.of());
+        multipleEntitlementMatches.setServices(List.of(firstService, subEntitlementService, otherActiveService));
+
+        WalletRelyingParty subEntitlementMatch =
+            partyWithSearchData("Entitlement match B", "urn:example:entitlement-b", "Entitlement Beta");
+        subEntitlementMatch.getServices().getFirst().setSubEntitlements(List.of(entitlement));
+
+        WalletRelyingParty secondInstanceMatch =
+            partyWithSearchData("Entitlement match C", "urn:example:entitlement-c", "Entitlement Gamma");
+        secondInstanceMatch.getServices().getFirst().setRelyingPartyInstances(
+            List.of(instanceWithEntitlements(entitlement)));
+
+        WalletRelyingParty partialMatch =
+            partyWithSearchData("Entitlement partial match", "urn:example:entitlement-partial", "Other Legal Name");
+        partialMatch.getServices().getFirst().setSubEntitlements(List.of(entitlement + "/extended"));
+
+        WalletRelyingParty inactiveInstanceMatch =
+            partyWithSearchData("Inactive instance entitlement", "urn:example:entitlement-inactive-instance", "Other");
+        RelyingPartyInstance inactiveInstance = instanceWithEntitlements(entitlement);
+        inactiveInstance.setActive(false);
+        inactiveInstanceMatch.getServices().getFirst().setRelyingPartyInstances(List.of(inactiveInstance));
+
+        WalletRelyingParty inactiveServiceMatch =
+            partyWithSearchData("Inactive service entitlement", "urn:example:entitlement-inactive-service", "Other");
+        WalletRelyingPartyService inactiveService = inactiveServiceMatch.getServices().getFirst();
+        inactiveService.setSubEntitlements(List.of(entitlement));
+        inactiveService.setActive(false);
+
+        walletRelyingPartyRepository.saveAllAndFlush(List.of(
+            multipleEntitlementMatches,
+            subEntitlementMatch,
+            secondInstanceMatch,
+            partialMatch,
+            inactiveInstanceMatch,
+            inactiveServiceMatch
+        ));
+
+        JWSObject firstPage = getCollectionPage(1, null, Map.of("entitlement", entitlement));
+        Map<?, ?> firstPagination = (Map<?, ?>) firstPage.getPayload().toJSONObject().get("pagination");
+        assertTrue((Boolean) firstPagination.get("has_next_page"));
+        JWSObject secondPage = getCollectionPage(
+            1, (String) firstPagination.get("next_cursor"), Map.of("entitlement", entitlement));
+        Map<?, ?> secondPagination = (Map<?, ?>) secondPage.getPayload().toJSONObject().get("pagination");
+        assertTrue((Boolean) secondPagination.get("has_next_page"));
+        JWSObject thirdPage = getCollectionPage(
+            1, (String) secondPagination.get("next_cursor"), Map.of("entitlement", entitlement));
+        Map<?, ?> thirdPagination = (Map<?, ?>) thirdPage.getPayload().toJSONObject().get("pagination");
+        assertFalse((Boolean) thirdPagination.get("has_next_page"));
+
+        List<String> matchingTradeNames = new ArrayList<>(collectionTradeNames(firstPage));
+        matchingTradeNames.addAll(collectionTradeNames(secondPage));
+        matchingTradeNames.addAll(collectionTradeNames(thirdPage));
+        assertEquals(
+            Set.of("Entitlement match A", "Entitlement match B", "Entitlement match C"),
+            Set.copyOf(matchingTradeNames)
+        );
+        JWSObject matchingWrpPage = getCollectionPage(null, null, Map.of(
+            "entitlement", entitlement,
+            "legalName", "Entitlement Alpha"
+        ));
+        assertEquals(
+            List.of("Entitlement match A"),
+            collectionTradeNames(matchingWrpPage)
+        );
+
+        Map<?, ?> matchingWrp = (Map<?, ?>) ((List<?>) matchingWrpPage.getPayload().toJSONObject().get("data"))
+            .getFirst();
+        assertEquals(3, ((List<?>) matchingWrp.get("services")).size());
+    }
+
+    @Test
+    void matchesInstanceEntitlementsWithCaseSensitiveUriComparison() throws Exception {
+        String storedEntitlement = "https://example.test/entitlements/Provider";
+        WalletRelyingParty relyingParty =
+            partyWithSearchData("Case-sensitive entitlement", "urn:example:case-sensitive", "Case Sensitive");
+        relyingParty.getServices().getFirst().setRelyingPartyInstances(
+            List.of(instanceWithEntitlements(storedEntitlement)));
+        walletRelyingPartyRepository.saveAndFlush(relyingParty);
+
+        assertTrue(collectionTradeNames(getCollectionPage(null, null, Map.of(
+            "entitlement", "https://example.test/entitlements/provider"
+        ))).isEmpty());
+        assertEquals(
+            List.of("Case-sensitive entitlement"),
+            collectionTradeNames(getCollectionPage(null, null, Map.of("entitlement", storedEntitlement)))
+        );
+    }
+
+    @Test
     void batchFetchesNestedAssociationsForCollectionPage() throws Exception {
         List<WalletRelyingParty> parties = new ArrayList<>();
         for (int index = 0; index < 25; index++) {
@@ -479,7 +583,8 @@ class WrpByIdentifierIntegrationTest {
             .andExpect(content().string(containsString("legalName")))
             .andExpect(content().string(containsString("serviceIdentifier")))
             .andExpect(content().string(containsString("tradeName")))
-            .andExpect(content().string(containsString("policy")));
+            .andExpect(content().string(containsString("policy")))
+            .andExpect(content().string(containsString("entitlement")));
     }
 
     @Test

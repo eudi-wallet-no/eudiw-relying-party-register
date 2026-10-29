@@ -16,6 +16,8 @@ import no.eudiw.rp.register.domain.IntendedUse;
 import no.eudiw.rp.register.domain.LegalPerson;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
+import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
+import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -29,6 +31,7 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
     private static final String SERVICE_IDENTIFIER_PARAMETER = "serviceIdentifier";
     private static final String TRADE_NAME_PARAMETER = "tradeName";
     private static final String POLICY_PARAMETER = "policy";
+    private static final String ENTITLEMENT_PARAMETER = "entitlement";
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -85,6 +88,9 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         }
         if (criteria.policy() != null) {
             predicates.add(policyPredicate(builder, query, party));
+        }
+        if (criteria.entitlement() != null) {
+            predicates.add(entitlementPredicate(builder, query, party));
         }
         if (cursorCreatedMs != null) {
             predicates.add(cursorPredicate(builder, party, cursorCreatedMs, cursorId));
@@ -213,6 +219,69 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         return builder.exists(matchingIntendedUse);
     }
 
+    private static Predicate entitlementPredicate(
+        CriteriaBuilder builder,
+        CriteriaQuery<?> query,
+        Root<WalletRelyingParty> party
+    ) {
+        ParameterExpression<String> entitlement =
+            builder.parameter(String.class, ENTITLEMENT_PARAMETER);
+        return builder.or(
+            serviceSubEntitlementPredicate(builder, query, party, entitlement),
+            activeInstanceEntitlementPredicate(builder, query, party, entitlement)
+        );
+    }
+
+    private static Predicate serviceSubEntitlementPredicate(
+        CriteriaBuilder builder,
+        CriteriaQuery<?> query,
+        Root<WalletRelyingParty> party,
+        ParameterExpression<String> entitlement
+    ) {
+        Subquery<Integer> matchingService = query.subquery(Integer.class);
+        Root<WalletRelyingPartyService> service = matchingService.from(WalletRelyingPartyService.class);
+        var containsSubEntitlement = builder.function(
+            "JSON_CONTAINS",
+            Integer.class,
+            service.get("subEntitlements"),
+            builder.function("JSON_QUOTE", String.class, entitlement),
+            builder.literal("$")
+        );
+        matchingService.select(builder.literal(1))
+            .where(
+                builder.equal(service.get("walletRelyingParty").get("id"), party.get("id")),
+                builder.isTrue(service.get("active")),
+                builder.equal(containsSubEntitlement, 1)
+            );
+        return builder.exists(matchingService);
+    }
+
+    private static Predicate activeInstanceEntitlementPredicate(
+        CriteriaBuilder builder,
+        CriteriaQuery<?> query,
+        Root<WalletRelyingParty> party,
+        ParameterExpression<String> entitlementValue
+    ) {
+        Subquery<Integer> matchingInstanceEntitlement = query.subquery(Integer.class);
+        Root<WalletRelyingPartyService> service =
+            matchingInstanceEntitlement.from(WalletRelyingPartyService.class);
+        Join<WalletRelyingPartyService, RelyingPartyInstance> instance =
+            service.join("relyingPartyInstances", JoinType.INNER);
+        Join<RelyingPartyInstance, RelyingPartyEntitlement> registeredEntitlement =
+            instance.join("relyingPartyEntitlements", JoinType.INNER);
+        var storedEntitlement = builder.function(
+            "BINARY", String.class, registeredEntitlement.get("entitlement"));
+        var requestedEntitlement = builder.function("BINARY", String.class, entitlementValue);
+        matchingInstanceEntitlement.select(builder.literal(1))
+            .where(
+                builder.equal(service.get("walletRelyingParty").get("id"), party.get("id")),
+                builder.isTrue(service.get("active")),
+                builder.isTrue(instance.get("active")),
+                builder.equal(storedEntitlement, requestedEntitlement)
+            );
+        return builder.exists(matchingInstanceEntitlement);
+    }
+
     private static Predicate activeServicePredicate(
         CriteriaBuilder builder,
         CriteriaQuery<?> query,
@@ -250,6 +319,9 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         }
         if (criteria.policy() != null) {
             query.setParameter(POLICY_PARAMETER, criteria.policy());
+        }
+        if (criteria.entitlement() != null) {
+            query.setParameter(ENTITLEMENT_PARAMETER, criteria.entitlement());
         }
     }
 }
