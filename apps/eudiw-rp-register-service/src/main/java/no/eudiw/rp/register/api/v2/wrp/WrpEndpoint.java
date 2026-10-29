@@ -31,7 +31,7 @@ public class WrpEndpoint {
     private static final Set<String> COLLECTION_PARAMETERS =
         Set.of(
             "limit", "cursor", "identifier", "legalName", "serviceIdentifier", "tradeName", "policy",
-            "entitlement"
+            "entitlement", "providedAttestation"
         );
 
     private final WrpLookupService lookupService;
@@ -42,7 +42,7 @@ public class WrpEndpoint {
         summary = "Get a paginated list of Wallet Relying Parties",
         description = """
              Returns active relying parties matching the optional identifier, legalName,
-             serviceIdentifier, tradeName, policy, and entitlement filters.""",
+             serviceIdentifier, tradeName, policy, entitlement, and providedAttestation filters.""",
         responses = {
             @ApiResponse(
                 responseCode = "200",
@@ -117,6 +117,13 @@ public class WrpEndpoint {
             schema = @Schema(type = "string", format = "uri")
         )
         @RequestParam(name = "entitlement", required = false) String entitlement,
+        @Parameter(
+            name = "providedAttestation",
+            in = ParameterIn.QUERY,
+            description = "Exact type of an attestation provided by an active service",
+            schema = @Schema(type = "string")
+        )
+        @RequestParam(name = "providedAttestation", required = false) String providedAttestation,
         @Parameter(hidden = true)
         @RequestParam MultiValueMap<String, String> queryParameters
     ) {
@@ -128,12 +135,14 @@ public class WrpEndpoint {
             || (serviceIdentifier != null && serviceIdentifier.isBlank())
             || (tradeName != null && tradeName.isBlank())
             || (policy != null && policy.isBlank())
-            || (entitlement != null && entitlement.isBlank())) {
+            || (entitlement != null && entitlement.isBlank())
+            || (providedAttestation != null && providedAttestation.isBlank())) {
             throw new BadRequestException("WRP filters must not be blank");
         }
 
         WrpCollectionFilters filters =
-            new WrpCollectionFilters(identifier, legalName, serviceIdentifier, tradeName, policy, entitlement);
+            new WrpCollectionFilters(
+                identifier, legalName, serviceIdentifier, tradeName, policy, entitlement, providedAttestation);
         WrpLookupService.CollectionPage page = lookupService.findAll(limit, cursor, filters);
         return ResponseEntity.ok()
             .contentType(MediaType.parseMediaType("application/jwt"))

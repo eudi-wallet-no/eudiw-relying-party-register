@@ -32,6 +32,7 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
     private static final String TRADE_NAME_PARAMETER = "tradeName";
     private static final String POLICY_PARAMETER = "policy";
     private static final String ENTITLEMENT_PARAMETER = "entitlement";
+    private static final String PROVIDED_ATTESTATION_PARAMETER = "providedAttestation";
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -91,6 +92,9 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         }
         if (criteria.entitlement() != null) {
             predicates.add(entitlementPredicate(builder, query, party));
+        }
+        if (criteria.providedAttestation() != null) {
+            predicates.add(providedAttestationPredicate(builder, query, party));
         }
         if (cursorCreatedMs != null) {
             predicates.add(cursorPredicate(builder, party, cursorCreatedMs, cursorId));
@@ -282,6 +286,33 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         return builder.exists(matchingInstanceEntitlement);
     }
 
+    private static Predicate providedAttestationPredicate(
+        CriteriaBuilder builder,
+        CriteriaQuery<?> query,
+        Root<WalletRelyingParty> party
+    ) {
+        ParameterExpression<String> providedAttestation =
+            builder.parameter(String.class, PROVIDED_ATTESTATION_PARAMETER);
+        var providedAttestationObject = builder.function(
+            "JSON_OBJECT", String.class, builder.literal("type"), providedAttestation);
+        Subquery<Integer> matchingService = query.subquery(Integer.class);
+        Root<WalletRelyingPartyService> service = matchingService.from(WalletRelyingPartyService.class);
+        var containsProvidedAttestation = builder.function(
+            "JSON_CONTAINS",
+            Integer.class,
+            service.get("providesAttestations"),
+            providedAttestationObject,
+            builder.literal("$")
+        );
+        matchingService.select(builder.literal(1))
+            .where(
+                builder.equal(service.get("walletRelyingParty").get("id"), party.get("id")),
+                builder.isTrue(service.get("active")),
+                builder.equal(containsProvidedAttestation, 1)
+            );
+        return builder.exists(matchingService);
+    }
+
     private static Predicate activeServicePredicate(
         CriteriaBuilder builder,
         CriteriaQuery<?> query,
@@ -322,6 +353,9 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         }
         if (criteria.entitlement() != null) {
             query.setParameter(ENTITLEMENT_PARAMETER, criteria.entitlement());
+        }
+        if (criteria.providedAttestation() != null) {
+            query.setParameter(PROVIDED_ATTESTATION_PARAMETER, criteria.providedAttestation());
         }
     }
 }
