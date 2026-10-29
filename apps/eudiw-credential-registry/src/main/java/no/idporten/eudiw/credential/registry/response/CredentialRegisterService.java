@@ -34,7 +34,11 @@ public class CredentialRegisterService {
 
     @PostConstruct
     public void init() {
-        updateCredentialMetadataRetriever();
+        try {
+            updateCredentialMetadataRetriever();
+        } catch (CredentialRegisterException ex) {
+            log.warn("Initial credential loading failed; credentials remain unavailable until a scheduled refresh succeeds", ex);
+        }
     }
 
     @Scheduled(cron = "${credential-registry.scheduled-reading}")
