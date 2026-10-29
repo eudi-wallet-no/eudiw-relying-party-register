@@ -12,7 +12,7 @@
 
 - [ ] Alle commits i PR-en er signerte og verifiserte på GitHub.
 - [ ] Oppdatert testar og/eller skrive nye testar som dekker endringa.
-- [ ] Køyrt relevante testar.
+- [ ] Har køyrt relevante testar, eller forklart kva testar som ikkje kunne køyre og kvifor. (det er libs på veg til å bli open-source som koden er avhengig av p.t.)
 - [ ] Følgt kodestilen og mønstra i prosjektet.
 - [ ] Endringa er drøfta med prosjektgruppa.
 
