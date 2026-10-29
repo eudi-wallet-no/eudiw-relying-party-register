@@ -511,6 +511,24 @@ class WrpByIdentifierIntegrationTest {
     }
 
     @Test
+    void matchesInstanceEntitlementsWithCaseSensitiveUriComparison() throws Exception {
+        String storedEntitlement = "https://example.test/entitlements/Provider";
+        WalletRelyingParty relyingParty =
+            partyWithSearchData("Case-sensitive entitlement", "urn:example:case-sensitive", "Case Sensitive");
+        relyingParty.getServices().getFirst().setRelyingPartyInstances(
+            List.of(instanceWithEntitlements(storedEntitlement)));
+        walletRelyingPartyRepository.saveAndFlush(relyingParty);
+
+        assertTrue(collectionTradeNames(getCollectionPage(null, null, Map.of(
+            "entitlement", "https://example.test/entitlements/provider"
+        ))).isEmpty());
+        assertEquals(
+            List.of("Case-sensitive entitlement"),
+            collectionTradeNames(getCollectionPage(null, null, Map.of("entitlement", storedEntitlement)))
+        );
+    }
+
+    @Test
     void batchFetchesNestedAssociationsForCollectionPage() throws Exception {
         List<WalletRelyingParty> parties = new ArrayList<>();
         for (int index = 0; index < 25; index++) {

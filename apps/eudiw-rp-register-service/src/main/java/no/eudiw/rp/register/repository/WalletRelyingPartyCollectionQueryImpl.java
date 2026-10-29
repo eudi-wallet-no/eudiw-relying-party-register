@@ -269,12 +269,15 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
             service.join("relyingPartyInstances", JoinType.INNER);
         Join<RelyingPartyInstance, RelyingPartyEntitlement> registeredEntitlement =
             instance.join("relyingPartyEntitlements", JoinType.INNER);
+        var storedEntitlement = builder.function(
+            "BINARY", String.class, registeredEntitlement.get("entitlement"));
+        var requestedEntitlement = builder.function("BINARY", String.class, entitlementValue);
         matchingInstanceEntitlement.select(builder.literal(1))
             .where(
                 builder.equal(service.get("walletRelyingParty").get("id"), party.get("id")),
                 builder.isTrue(service.get("active")),
                 builder.isTrue(instance.get("active")),
-                builder.equal(registeredEntitlement.get("entitlement"), entitlementValue)
+                builder.equal(storedEntitlement, requestedEntitlement)
             );
         return builder.exists(matchingInstanceEntitlement);
     }
