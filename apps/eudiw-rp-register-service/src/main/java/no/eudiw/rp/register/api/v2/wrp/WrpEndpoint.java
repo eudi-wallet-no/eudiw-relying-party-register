@@ -39,7 +39,7 @@ public class WrpEndpoint {
 
     @Operation(
         summary = "Get a paginated list of Wallet Relying Parties",
-        description = "Returns active parties matching the optional identifier, legalName, "
+        description = "Returns active relying parties matching the optional identifier, legalName, "
             + "serviceIdentifier, tradeName, and policy filters.",
         responses = {
             @ApiResponse(
