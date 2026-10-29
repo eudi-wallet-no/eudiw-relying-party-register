@@ -9,6 +9,7 @@ import com.nimbusds.jose.jwk.KeyUse;
 import jakarta.persistence.EntityManagerFactory;
 import no.eudiw.rp.register.domain.Credential;
 import no.eudiw.rp.register.domain.Identifier;
+import no.eudiw.rp.register.domain.IntermediaryReference;
 import no.eudiw.rp.register.domain.IntendedUse;
 import no.eudiw.rp.register.domain.LegalPerson;
 import no.eudiw.rp.register.domain.MultiLangString;
@@ -223,7 +224,11 @@ class WrpByIdentifierIntegrationTest {
             .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("providedAttestation", " "))
             .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/wrp").param("usesIntermediary", " "))
+            .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("providedattestation", "https://schemas.example/payment"))
+            .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/wrp").param("usesintermediary", "intermediary-service"))
             .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("unsupported", "value"))
             .andExpect(status().isBadRequest());
@@ -534,6 +539,85 @@ class WrpByIdentifierIntegrationTest {
     }
 
     @Test
+    void filtersCollectionByExactIntermediaryServiceIdentifierBeforeCursorPagination() throws Exception {
+        String intermediaryServiceIdentifier = "https://registry.example/wrp/services/Provider";
+        IntermediaryReference intermediaryReference = new IntermediaryReference(
+            intermediaryServiceIdentifier, "Intermediary", "https://registry.example/wrp");
+
+        WalletRelyingParty firstMatch =
+            partyWithSearchData("Intermediary match A", "urn:example:intermediary-a", "Intermediary Alpha");
+        WalletRelyingPartyService firstService = firstMatch.getServices().getFirst();
+        firstService.setIntermediaryConfiguration(false, List.of(intermediaryReference), List.of());
+        WalletRelyingPartyService secondMatchingService =
+            new WalletRelyingPartyService("Second matching service", firstMatch, List.of());
+        secondMatchingService.setIntermediaryConfiguration(false, List.of(intermediaryReference), List.of());
+        WalletRelyingPartyService otherActiveService =
+            new WalletRelyingPartyService("Other active service", firstMatch, List.of());
+        firstMatch.setServices(List.of(firstService, secondMatchingService, otherActiveService));
+
+        WalletRelyingParty secondMatch =
+            partyWithSearchData("Intermediary match B", "urn:example:intermediary-b", "Intermediary Beta");
+        secondMatch.getServices().getFirst().setIntermediaryConfiguration(
+            false, List.of(intermediaryReference), List.of());
+
+        WalletRelyingParty differentReference =
+            partyWithSearchData("Different intermediary", "urn:example:intermediary-other", "Other");
+        differentReference.getServices().getFirst().setIntermediaryConfiguration(
+            false,
+            List.of(new IntermediaryReference(
+                "https://registry.example/wrp/services/Other", "Other intermediary",
+                "https://registry.example/wrp")),
+            List.of());
+
+        WalletRelyingParty caseMismatch =
+            partyWithSearchData("Case-different intermediary", "urn:example:intermediary-case", "Other");
+        caseMismatch.getServices().getFirst().setIntermediaryConfiguration(
+            false,
+            List.of(new IntermediaryReference(
+                "https://registry.example/wrp/services/provider", "Intermediary",
+                "https://registry.example/wrp")),
+            List.of());
+
+        WalletRelyingParty inactiveServiceMatch =
+            partyWithSearchData("Inactive intermediary service", "urn:example:intermediary-inactive", "Other");
+        WalletRelyingPartyService inactiveService = inactiveServiceMatch.getServices().getFirst();
+        inactiveService.setIntermediaryConfiguration(false, List.of(intermediaryReference), List.of());
+        inactiveService.setActive(false);
+
+        walletRelyingPartyRepository.saveAllAndFlush(List.of(
+            firstMatch, secondMatch, differentReference, caseMismatch, inactiveServiceMatch
+        ));
+
+        JWSObject firstPage = getCollectionPage(
+            1, null, Map.of("usesIntermediary", intermediaryServiceIdentifier));
+        Map<?, ?> firstPagination = (Map<?, ?>) firstPage.getPayload().toJSONObject().get("pagination");
+        assertTrue((Boolean) firstPagination.get("has_next_page"));
+        JWSObject secondPage = getCollectionPage(
+            1,
+            (String) firstPagination.get("next_cursor"),
+            Map.of("usesIntermediary", intermediaryServiceIdentifier));
+        Map<?, ?> secondPagination = (Map<?, ?>) secondPage.getPayload().toJSONObject().get("pagination");
+        assertFalse((Boolean) secondPagination.get("has_next_page"));
+        assertEquals(
+            Set.of("Intermediary match A", "Intermediary match B"),
+            Set.of(collectionTradeNames(firstPage).getFirst(), collectionTradeNames(secondPage).getFirst())
+        );
+        assertEquals(
+            List.of("Intermediary match A"),
+            collectionTradeNames(getCollectionPage(null, null, Map.of(
+                "usesIntermediary", intermediaryServiceIdentifier,
+                "legalName", "Intermediary Alpha"
+            )))
+        );
+
+        Map<?, ?> matchingWrp = (Map<?, ?>) ((List<?>) getCollectionPage(null, null, Map.of(
+            "usesIntermediary", intermediaryServiceIdentifier,
+            "legalName", "Intermediary Alpha"
+        )).getPayload().toJSONObject().get("data")).getFirst();
+        assertEquals(3, ((List<?>) matchingWrp.get("services")).size());
+    }
+
+    @Test
     void filtersCollectionByExactProvidedAttestationTypeBeforeCursorPagination() throws Exception {
         String attestationType = "https://schemas.example/attestations/payment";
         WalletRelyingParty firstMatch =
@@ -686,7 +770,8 @@ class WrpByIdentifierIntegrationTest {
             .andExpect(content().string(containsString("tradeName")))
             .andExpect(content().string(containsString("policy")))
             .andExpect(content().string(containsString("entitlement")))
-            .andExpect(content().string(containsString("providedAttestation")));
+            .andExpect(content().string(containsString("providedAttestation")))
+            .andExpect(content().string(containsString("usesIntermediary")));
     }
 
     @Test
