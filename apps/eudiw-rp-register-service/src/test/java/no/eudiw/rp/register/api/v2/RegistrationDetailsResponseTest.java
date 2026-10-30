@@ -2,6 +2,8 @@ package no.eudiw.rp.register.api.v2;
 
 import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationDetailsResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationDetailsResponse.RelyingPartyEntitlementResponse;
+import no.eudiw.rp.register.config.RegistryProperties;
+import no.eudiw.rp.register.config.SupervisoryAuthorityProperties;
 import no.eudiw.rp.register.domain.Entitlement;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
@@ -17,6 +19,10 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class RegistrationDetailsResponseTest {
+
+    private static final RegistryProperties REGISTRY_PROPERTIES = new RegistryProperties("https://registry.test/wrp");
+    private static final SupervisoryAuthorityProperties SUPERVISORY_AUTHORITY_PROPERTIES =
+        new SupervisoryAuthorityProperties("Datatilsynet", "NO", null, null, null);
 
     private RelyingPartyInstance relyingPartyInstance;
 
@@ -39,7 +45,8 @@ class RegistrationDetailsResponseTest {
             "urn:issuer", new Entitlement("urn:issuer", false, "Issuer", "test-ca"),
             "urn:reader", new Entitlement("urn:reader", true, "Reader", "test-ca"));
 
-        var registrationDetails = RegistrationDetailsResponse.from(relyingPartyInstance, entitlementCatalog);
+        var registrationDetails = RegistrationDetailsResponse.from(
+            relyingPartyInstance, entitlementCatalog, REGISTRY_PROPERTIES, SUPERVISORY_AUTHORITY_PROPERTIES);
 
         assertEquals(
             List.of(
@@ -57,7 +64,8 @@ class RegistrationDetailsResponseTest {
 
         assertEquals(
             List.of(new RelyingPartyEntitlementResponse("urn:unknown", "urn:unknown", "https://issuer.test")),
-            RegistrationDetailsResponse.from(relyingPartyInstance, Map.of())
+            RegistrationDetailsResponse.from(
+                    relyingPartyInstance, Map.of(), REGISTRY_PROPERTIES, SUPERVISORY_AUTHORITY_PROPERTIES)
                 .relyingPartyEntitlements());
     }
 }

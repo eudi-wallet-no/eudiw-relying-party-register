@@ -89,7 +89,10 @@ class RegistrationWorkflowTests {
             List.of(issuerCertificate),
             1700000000000L,
             1710000000000L,
-            true);
+            true,
+            null,
+            null,
+            List.of());
         initialRequestCount = server.getRequestCount();
     }
 
@@ -376,7 +379,10 @@ class RegistrationWorkflowTests {
                 relyingPartyResource.issuerCertificates(),
                 relyingPartyResource.createdMs(),
                 relyingPartyResource.lastUpdatedMs(),
-                relyingPartyResource.active()));
+                relyingPartyResource.active(),
+                relyingPartyResource.relyingParty(),
+                relyingPartyResource.relyingPartyService()));
+        enqueue("GET", "/v2/services/" + relyingPartyServiceId + "/intended-uses", List.of());
     }
 
     private void enqueue(String method, String path, Object response) {

@@ -1,5 +1,13 @@
 package no.eudiw.rp.register.api.v2;
 
+import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationDetailsResponse;
+import no.eudiw.rp.register.api.v2.resource.IdentifierResource;
+import no.eudiw.rp.register.api.v2.resource.LawResource;
+import no.eudiw.rp.register.api.v2.resource.LegalPersonResource;
+import no.eudiw.rp.register.api.v2.resource.MultiLangStringResource;
+import no.eudiw.rp.register.api.v2.resource.PolicyResource;
+import no.eudiw.rp.register.api.v2.resource.ProvidedAttestationResource;
+import no.eudiw.rp.register.api.v2.resource.SupervisoryAuthorityResource;
 import no.eudiw.rp.register.domain.Entitlement;
 import no.eudiw.rp.register.domain.certificates.AccessCertificate;
 import no.eudiw.rp.register.domain.certificates.IssuerCertificate;
@@ -32,6 +40,7 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 import java.util.List;
 import java.util.Map;
@@ -480,6 +489,84 @@ class V2ApiIntegrationTest {
         request(get("/v2/registrations").param("orgno", orgno))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].id").value(registration.relyingPartyInstanceId()));
+    }
+
+    @Test
+    @DisplayName("Should return relying party and relying party service fields with registration details")
+    void shouldReturnRelyingPartyAndRelyingPartyServiceFieldsWithRegistrationDetails() throws Exception {
+        Registration registration = createRegistration();
+        var expectedRelyingParty = new RegistrationDetailsResponse.RelyingPartyDetails(
+            "Updated party",
+            "SE",
+            "WalletRelyingParty",
+            new LegalPersonResource(List.of("Legal name"), List.of(new LawResource("law-1", "Act 1"))),
+            List.of(new IdentifierResource("EUID", "NO-123")),
+            List.of(new PolicyResource("PrivacyPolicy", "https://example.test/privacy")),
+            List.of("Street 1"),
+            List.of("party@example.test"),
+            List.of("+4712345678"),
+            List.of("https://example.test/info"),
+            List.of("certificate-chain"),
+            new SupervisoryAuthorityResource(
+                "Datatilsynet", "NO", List.of("+4722396900"), List.of("postkasse@datatilsynet.no"), List.of()),
+            "https://registry.example.test/wrp");
+        var expectedRelyingPartyService = new RegistrationDetailsResponse.RelyingPartyServiceDetails(
+            "service-1",
+            List.of(List.of(new MultiLangStringResource("en", "Service description"))),
+            "https://example.test/support",
+            "service@example.test",
+            "+4798765432",
+            List.of("urn:example:sub"),
+            List.of(new ProvidedAttestationResource("jwt", "attestation")),
+            true,
+            List.of(),
+            List.of("service-2"),
+            true);
+        ObjectNode relyingPartyRequest = objectMapper.valueToTree(expectedRelyingParty);
+        relyingPartyRequest.remove(List.of("providerType", "supervisoryAuthority", "registryURI"));
+        relyingPartyRequest.put("isPSB", false);
+        ObjectNode relyingPartyServiceRequest = objectMapper.valueToTree(expectedRelyingPartyService);
+        relyingPartyServiceRequest.remove("active");
+        relyingPartyServiceRequest.put("serviceTradeName", "Test service");
+        request(put(registration.relyingPartyPath()), relyingPartyRequest.toString()).andExpect(status().isOk());
+        request(put(registration.relyingPartyServicePath()), relyingPartyServiceRequest.toString())
+            .andExpect(status().isOk());
+
+        JsonNode details = read(get("/v2/registrations/" + registration.relyingPartyInstanceId()));
+
+        assertAll(
+            () -> assertEquals(registration.relyingPartyInstanceId(), details.get("id").asString()),
+            () -> assertEquals(expectedRelyingParty, objectMapper.treeToValue(
+                details.get("relyingParty"), RegistrationDetailsResponse.RelyingPartyDetails.class)),
+            () -> assertEquals(expectedRelyingPartyService, objectMapper.treeToValue(
+                details.get("relyingPartyService"), RegistrationDetailsResponse.RelyingPartyServiceDetails.class)));
+    }
+
+    @Test
+    @DisplayName("Should return empty and null fields for older registrations")
+    void shouldReturnEmptyAndNullFieldsForOlderRegistrations() throws Exception {
+        Registration registration = createRegistration();
+        var relyingPartyService = relyingPartyServiceRepository
+            .findById(UUID.fromString(registration.relyingPartyServiceId()))
+            .orElseThrow();
+        relyingPartyService.setSrvDescription(null);
+        relyingPartyService.setEmail(null);
+        relyingPartyService.setPhone(null);
+        relyingPartyServiceRepository.saveAndFlush(relyingPartyService);
+
+        JsonNode details = read(get("/v2/registrations/" + registration.relyingPartyInstanceId()));
+
+        var relyingParty = objectMapper.treeToValue(
+            details.get("relyingParty"), RegistrationDetailsResponse.RelyingPartyDetails.class);
+        assertAll(
+            () -> assertEquals(List.of(), relyingParty.identifier()),
+            () -> assertEquals(List.of(), relyingParty.policy()),
+            () -> assertEquals(
+                new RegistrationDetailsResponse.RelyingPartyServiceDetails(
+                    "service-1", null, "https://example.test/support", null, null,
+                    List.of(), List.of(), false, List.of(), List.of(), true),
+                objectMapper.treeToValue(
+                    details.get("relyingPartyService"), RegistrationDetailsResponse.RelyingPartyServiceDetails.class)));
     }
 
     @Test
