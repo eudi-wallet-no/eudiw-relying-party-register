@@ -8,14 +8,14 @@ Monorepo for EUDI Wallet Relying Party Register applications.
 
 ## Applications
 
-| Application | Description | README |
-| --- | --- | --- |
-| [eudiw-rp-register-admin](apps/eudiw-rp-register-admin) | Relying Party Register Admin + self-service | [README](apps/eudiw-rp-register-admin/README.md) |
-| [eudiw-rp-register-service](apps/eudiw-rp-register-service) | Relying Party Register Service | [README](apps/eudiw-rp-register-service/README.md) |
+| Application                                                       | Description                                 | README                                                |
+|-------------------------------------------------------------------|---------------------------------------------|-------------------------------------------------------|
+| [eudiw-rp-register-admin](apps/eudiw-rp-register-admin)           | Relying Party Register Admin + self-service | [README](apps/eudiw-rp-register-admin/README.md)      |
+| [eudiw-rp-register-service](apps/eudiw-rp-register-service)       | Relying Party Register Service              | [README](apps/eudiw-rp-register-service/README.md)    |
 | [eudiw-rp-register-lookup-web](apps/eudiw-rp-register-lookup-web) | Relying Party Register lookup (public view) | [README](apps/eudiw-rp-register-lookup-web/README.md) |
-| [eudiw-credential-registry](apps/eudiw-credential-registry) | Credential Issuer Registry | [README](apps/eudiw-credential-registry/README.md) |
-| [eudiw-trustlist-service](apps/eudiw-trustlist-service) | Trust List Service for the eIDAS2 sandbox | [README](apps/eudiw-trustlist-service/README.md) |
-| [eudiw-ca-service](apps/eudiw-ca-service) | CA Service for the eIDAS2 sandbox | [README](apps/eudiw-ca-service/README.md) |
+| [eudiw-credential-registry](apps/eudiw-credential-registry)       | Credential Issuer Registry                  | [README](apps/eudiw-credential-registry/README.md)    |
+| [eudiw-trustlist-service](apps/eudiw-trustlist-service)           | Trust List Service for the eIDAS2 sandbox   | [README](apps/eudiw-trustlist-service/README.md)      |
+| [eudiw-ca-service](apps/eudiw-ca-service)                         | CA Service for the eIDAS2 sandbox           | [README](apps/eudiw-ca-service/README.md)             |
 
 ## Structure
 
@@ -58,15 +58,15 @@ Services in `docker-compose.yaml`:
 
 ### Application, Ports
 
-| Application | API | Management | Debug |
-| --- | --- | --- | --- |
-| rp-register-service | 9200 | 9201 | 9205 |
-| rp-register-lookup-web | 9210 | 9211 | 9215 |
-| rp-register-admin | 9250 | 9250 | 9251 |
-| rp-register-selfservice | 9255 | 9255 | 9256 |
-| ca-service | 9220 | 9221 | 9225 |
-| credential-registry | 9294 | 9294 | 9295 |
-| trustlist-service | 9230 | 9230 | 9235 |
+| Application             | API  | Management | Debug |
+|-------------------------|------|------------|-------|
+| rp-register-service     | 9200 | 9201       | 9205  |
+| rp-register-lookup-web  | 9210 | 9211       | 9215  |
+| rp-register-admin       | 9250 | 9250       | 9251  |
+| rp-register-selfservice | 9255 | 9255       | 9256  |
+| ca-service              | 9220 | 9221       | 9225  |
+| credential-registry     | 9294 | 9294       | 9295  |
+| trustlist-service       | 9230 | 9230       | 9235  |
 
 To debug an app running in Docker, create an IntelliJ *Remote JVM Debug*
 configuration with host `localhost` and the app's debug port. Rebuild the image

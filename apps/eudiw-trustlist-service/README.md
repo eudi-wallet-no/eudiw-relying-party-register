@@ -25,12 +25,13 @@ To add trusted enties/trusted-serviceproviders or services to the trusted listes
 
 Profiles in the [resources](src/main/resources) folder:
 
-| Profile | Description                                |
-|---------|--------------------------------------------|
-| dev     | Local development                          |
+| Profile | Description                                         |
+|---------|-----------------------------------------------------|
+| dev     | Local development                                   |
 | docker  | Docker locally, run by the root docker-compose file |
-| systest | Systest environment                        |
-| test    | Test environment                           |
+| systest | Systest environment                                 |
+| test    | Test environment                                    |
+| prod    | Production environment                              |
 
 For local setup, run commands and ports, see
 [Local development](../../README.md#running-locally-in-intellij).
