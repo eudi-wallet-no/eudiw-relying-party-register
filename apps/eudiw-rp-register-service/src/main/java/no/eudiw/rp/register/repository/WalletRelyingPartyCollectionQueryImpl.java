@@ -31,6 +31,7 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
     private static final String SERVICE_IDENTIFIER_PARAMETER = "serviceIdentifier";
     private static final String TRADE_NAME_PARAMETER = "tradeName";
     private static final String POLICY_PARAMETER = "policy";
+    private static final String INTENDED_USE_IDENTIFIER_PARAMETER = "intendedUseIdentifier";
     private static final String ENTITLEMENT_PARAMETER = "entitlement";
     private static final String PROVIDED_ATTESTATION_PARAMETER = "providedAttestation";
     private static final String USES_INTERMEDIARY_PARAMETER = "usesIntermediary";
@@ -91,6 +92,9 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         }
         if (criteria.policy() != null) {
             predicates.add(policyPredicate(builder, query, party));
+        }
+        if (criteria.intendedUseIdentifier() != null) {
+            predicates.add(intendedUseIdentifierPredicate(builder, query, party));
         }
         if (criteria.entitlement() != null) {
             predicates.add(entitlementPredicate(builder, query, party));
@@ -227,6 +231,29 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
                 builder.equal(service.get("walletRelyingParty").get("id"), party.get("id")),
                 builder.isTrue(service.get("active")),
                 builder.equal(containsIntendedUsePolicy, 1)
+            );
+        return builder.exists(matchingIntendedUse);
+    }
+
+    private static Predicate intendedUseIdentifierPredicate(
+        CriteriaBuilder builder,
+        CriteriaQuery<?> query,
+        Root<WalletRelyingParty> party
+    ) {
+        ParameterExpression<String> intendedUseIdentifier =
+            builder.parameter(String.class, INTENDED_USE_IDENTIFIER_PARAMETER);
+        Subquery<Integer> matchingIntendedUse = query.subquery(Integer.class);
+        Root<WalletRelyingPartyService> service = matchingIntendedUse.from(WalletRelyingPartyService.class);
+        Join<WalletRelyingPartyService, IntendedUse> intendedUse =
+            service.join("intendedUses", JoinType.INNER);
+        var storedIdentifier = builder.function(
+            "BINARY", String.class, intendedUse.get("intendedUseIdentifier"));
+        var requestedIdentifier = builder.function("BINARY", String.class, intendedUseIdentifier);
+        matchingIntendedUse.select(builder.literal(1))
+            .where(
+                builder.equal(service.get("walletRelyingParty").get("id"), party.get("id")),
+                builder.isTrue(service.get("active")),
+                builder.equal(storedIdentifier, requestedIdentifier)
             );
         return builder.exists(matchingIntendedUse);
     }
@@ -402,6 +429,9 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         }
         if (criteria.policy() != null) {
             query.setParameter(POLICY_PARAMETER, criteria.policy());
+        }
+        if (criteria.intendedUseIdentifier() != null) {
+            query.setParameter(INTENDED_USE_IDENTIFIER_PARAMETER, criteria.intendedUseIdentifier());
         }
         if (criteria.entitlement() != null) {
             query.setParameter(ENTITLEMENT_PARAMETER, criteria.entitlement());

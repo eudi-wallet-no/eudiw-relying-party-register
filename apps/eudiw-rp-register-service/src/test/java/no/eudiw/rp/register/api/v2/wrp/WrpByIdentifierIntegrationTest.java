@@ -220,6 +220,8 @@ class WrpByIdentifierIntegrationTest {
             .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("policy", " "))
             .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/wrp").param("intendedUseIdentifier", " "))
+            .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("entitlement", " "))
             .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("providedAttestation", " "))
@@ -444,6 +446,80 @@ class WrpByIdentifierIntegrationTest {
                 "legalName", "Policy Beta"
             )))
         );
+    }
+
+    @Test
+    void filtersCollectionByIntendedUseIdentifierBeforeCursorPagination() throws Exception {
+        String intendedUseIdentifier = "intended-use-match";
+        WalletRelyingParty firstMatch =
+            partyWithSearchData("Intended use match A", "urn:example:intended-use-a", "Intended Use Alpha");
+        firstMatch.getServices().getFirst().setIntendedUses(List.of(new IntendedUse(
+            intendedUseIdentifier,
+            "2026-01-01",
+            "2026-06-01",
+            List.of(new MultiLangString("en", "Purpose A")),
+            List.of(new Policy("PrivacyStatement", "https://example.test/privacy-a"))
+        )));
+        firstMatch.setServices(List.of(
+            firstMatch.getServices().getFirst(),
+            new WalletRelyingPartyService("Other active service", firstMatch, List.of())
+        ));
+
+        WalletRelyingParty secondMatch =
+            partyWithSearchData("Intended use match B", "urn:example:intended-use-b", "Intended Use Beta");
+        secondMatch.getServices().getFirst().setIntendedUses(List.of(new IntendedUse(
+            intendedUseIdentifier,
+            "2026-01-01",
+            null,
+            List.of(new MultiLangString("en", "Purpose B")),
+            List.of(new Policy("PrivacyStatement", "https://example.test/privacy-b"))
+        )));
+
+        WalletRelyingParty differentIdentifier =
+            partyWithSearchData("Different intended use", "urn:example:intended-use-other", "Intended Use Beta");
+        differentIdentifier.getServices().getFirst().setIntendedUses(List.of(new IntendedUse(
+            intendedUseIdentifier + "-other",
+            "2026-01-01",
+            null,
+            List.of(new MultiLangString("en", "Other purpose")),
+            List.of(new Policy("PrivacyStatement", "https://example.test/privacy-other"))
+        )));
+
+        WalletRelyingParty inactiveServiceMatch =
+            partyWithSearchData("Inactive intended use service", "urn:example:intended-use-inactive", "Other");
+        WalletRelyingPartyService inactiveService = inactiveServiceMatch.getServices().getFirst();
+        inactiveService.setIntendedUses(List.of(new IntendedUse(
+            intendedUseIdentifier,
+            "2026-01-01",
+            null,
+            List.of(new MultiLangString("en", "Inactive purpose")),
+            List.of(new Policy("PrivacyStatement", "https://example.test/privacy-inactive"))
+        )));
+        inactiveService.setActive(false);
+        walletRelyingPartyRepository.saveAllAndFlush(
+            List.of(firstMatch, secondMatch, differentIdentifier, inactiveServiceMatch));
+
+        JWSObject firstPage = getCollectionPage(1, null, Map.of("intendedUseIdentifier", intendedUseIdentifier));
+        Map<?, ?> firstPagination = (Map<?, ?>) firstPage.getPayload().toJSONObject().get("pagination");
+        assertTrue((Boolean) firstPagination.get("has_next_page"));
+        JWSObject secondPage = getCollectionPage(
+            1, (String) firstPagination.get("next_cursor"), Map.of("intendedUseIdentifier", intendedUseIdentifier));
+        Map<?, ?> secondPagination = (Map<?, ?>) secondPage.getPayload().toJSONObject().get("pagination");
+        assertFalse((Boolean) secondPagination.get("has_next_page"));
+        List<String> matchingNames = new ArrayList<>(collectionTradeNames(firstPage));
+        matchingNames.addAll(collectionTradeNames(secondPage));
+        assertEquals(Set.of("Intended use match A", "Intended use match B"), Set.copyOf(matchingNames));
+
+        Map<?, ?> combinedFilterMatch = (Map<?, ?>) ((List<?>) getCollectionPage(null, null, Map.of(
+            "intendedUseIdentifier", intendedUseIdentifier,
+            "legalName", "Intended Use Alpha"
+        )).getPayload().toJSONObject().get("data")).getFirst();
+        assertEquals("Intended use match A", combinedFilterMatch.get("tradeName"));
+        assertEquals(2, ((List<?>) combinedFilterMatch.get("services")).size());
+        assertTrue(collectionTradeNames(getCollectionPage(
+            null, null, Map.of("intendedUseIdentifier", "no-such-intended-use"))).isEmpty());
+        assertTrue(collectionTradeNames(getCollectionPage(
+            null, null, Map.of("intendedUseIdentifier", "INTENDED-USE-MATCH"))).isEmpty());
     }
 
     @Test
@@ -870,7 +946,8 @@ class WrpByIdentifierIntegrationTest {
             .andExpect(content().string(containsString("entitlement")))
             .andExpect(content().string(containsString("providedAttestation")))
             .andExpect(content().string(containsString("usesIntermediary")))
-            .andExpect(content().string(containsString("isIntermediary")));
+            .andExpect(content().string(containsString("isIntermediary")))
+            .andExpect(content().string(containsString("intendedUseIdentifier")));
     }
 
     @Test

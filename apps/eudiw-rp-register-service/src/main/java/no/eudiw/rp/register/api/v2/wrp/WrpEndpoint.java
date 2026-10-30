@@ -31,7 +31,7 @@ public class WrpEndpoint {
     private static final Set<String> COLLECTION_PARAMETERS =
         Set.of(
             "limit", "cursor", "identifier", "legalName", "serviceIdentifier", "tradeName", "policy",
-            "entitlement", "providedAttestation", "usesIntermediary", "isIntermediary"
+            "intendedUseIdentifier", "entitlement", "providedAttestation", "usesIntermediary", "isIntermediary"
         );
 
     private final WrpLookupService lookupService;
@@ -42,8 +42,8 @@ public class WrpEndpoint {
         summary = "Get a paginated list of Wallet Relying Parties",
         description = """
              Returns active relying parties matching the optional identifier, legalName,
-             serviceIdentifier, tradeName, policy, entitlement, providedAttestation, and
-             usesIntermediary, and isIntermediary filters.""",
+             serviceIdentifier, tradeName, policy, intendedUseIdentifier, entitlement,
+             providedAttestation, usesIntermediary, and isIntermediary filters.""",
         responses = {
             @ApiResponse(
                 responseCode = "200",
@@ -112,6 +112,13 @@ public class WrpEndpoint {
         )
         @RequestParam(name = "policy", required = false) String policy,
         @Parameter(
+            name = "intendedUseIdentifier",
+            in = ParameterIn.QUERY,
+            description = "Exact identifier of an intended use registered by an active service",
+            schema = @Schema(type = "string")
+        )
+        @RequestParam(name = "intendedUseIdentifier", required = false) String intendedUseIdentifier,
+        @Parameter(
             name = "entitlement",
             in = ParameterIn.QUERY,
             description = "Exact URI of an active service entitlement or sub-entitlement",
@@ -161,6 +168,7 @@ public class WrpEndpoint {
             || (serviceIdentifier != null && serviceIdentifier.isBlank())
             || (tradeName != null && tradeName.isBlank())
             || (policy != null && policy.isBlank())
+            || (intendedUseIdentifier != null && intendedUseIdentifier.isBlank())
             || (entitlement != null && entitlement.isBlank())
             || (providedAttestation != null && providedAttestation.isBlank())
             || (usesIntermediary != null && usesIntermediary.isBlank())) {
@@ -169,7 +177,7 @@ public class WrpEndpoint {
 
         WrpCollectionFilters filters =
             new WrpCollectionFilters(
-                identifier, legalName, serviceIdentifier, tradeName, policy, entitlement,
+                identifier, legalName, serviceIdentifier, tradeName, policy, intendedUseIdentifier, entitlement,
                 providedAttestation, usesIntermediary, isIntermediary);
         WrpLookupService.CollectionPage page = lookupService.findAll(limit, cursor, filters);
         return ResponseEntity.ok()
