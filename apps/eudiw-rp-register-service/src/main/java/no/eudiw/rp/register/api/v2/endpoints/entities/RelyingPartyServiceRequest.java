@@ -50,6 +50,22 @@ public record RelyingPartyServiceRequest(
         return supportUri == null || V2ResourceValidation.isAbsoluteUri(supportUri);
     }
 
+    public static RelyingPartyServiceRequest from(RelyingPartyServiceResponse relyingPartyService) {
+        return new RelyingPartyServiceRequest(
+            relyingPartyService.serviceTradeName(),
+            relyingPartyService.serviceIdentifier(),
+            relyingPartyService.supportUri(),
+            relyingPartyService.email(),
+            relyingPartyService.phone(),
+            relyingPartyService.srvDescription(),
+            relyingPartyService.subEntitlements(),
+            relyingPartyService.providesAttestations(),
+            relyingPartyService.usesIntermediaries(),
+            relyingPartyService.isIntermediary(),
+            relyingPartyService.servedWRPServices()
+        );
+    }
+
     public WalletRelyingPartyService toDomain(
         WalletRelyingParty relyingParty,
         List<RelyingPartyInstance> relyingPartyInstances

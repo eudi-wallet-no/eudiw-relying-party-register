@@ -23,7 +23,7 @@ class V2ApiServiceTest {
     private final RelyingPartyInstanceRepository relyingPartyInstanceRepository =
         mock(RelyingPartyInstanceRepository.class);
     private final V2ApiService service = new V2ApiService(
-        null, null, relyingPartyInstanceRepository, null, null, null, null, null, null);
+        null, null, relyingPartyInstanceRepository, null, null, null, null, null, null, null, null);
 
     @ParameterizedTest
     @CsvSource({

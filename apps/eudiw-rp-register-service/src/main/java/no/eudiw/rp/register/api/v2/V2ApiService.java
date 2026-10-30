@@ -1,5 +1,8 @@
 package no.eudiw.rp.register.api.v2;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import no.eudiw.rp.register.api.v2.endpoints.entities.AccessCertificateRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.CertificateResponse;
@@ -11,6 +14,7 @@ import no.eudiw.rp.register.api.v2.endpoints.entities.IntendedUseReplacementResp
 import no.eudiw.rp.register.api.v2.endpoints.entities.IntendedUseResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.IssuerCertificateRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationDetailsResponse;
+import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationPatchRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationSummaryResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceResponse;
@@ -44,6 +48,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -73,6 +80,8 @@ public class V2ApiService {
     private final EntitlementService entitlementService;
     private final RelyingPartyCertificateService certificateService;
     private final RelyingPartyService relyingPartyService;
+    private final ObjectMapper objectMapper;
+    private final Validator validator;
 
     public RelyingPartyResponse createRelyingParty(
         CreateRelyingPartyRequest request
@@ -116,14 +125,7 @@ public class V2ApiService {
         WalletRelyingParty relyingParty = walletRelyingPartyRepository.findByIdForUpdate(relyingPartyId)
             .orElseThrow(() -> new NotFoundException("RelyingParty not found"));
 
-        String previousName = relyingParty.getName();
-        boolean previousPSB = relyingParty.isPSB();
-        request.update(relyingParty);
-        if (!Objects.equals(previousName, relyingParty.getName()) || previousPSB != relyingParty.isPSB()) {
-            relyingParty.getServices().stream()
-                .flatMap(service -> service.getRelyingPartyInstances().stream())
-                .forEach(RelyingPartyInstance::setUpdated);
-        }
+        replaceRelyingParty(relyingParty, request);
 
         return RelyingPartyResponse.from(
             walletRelyingPartyRepository.saveAndFlush(relyingParty),
@@ -219,13 +221,45 @@ public class V2ApiService {
 
     @Transactional(readOnly = true)
     public RegistrationDetailsResponse getRegistrationDetails(UUID relyingPartyInstanceId) {
-        RelyingPartyInstance relyingPartyInstance = findRelyingPartyInstance(relyingPartyInstanceId);
-        Map<String, Entitlement> entitlementCatalog = entitlementService.findAllEntitlements(true)
-            .stream()
-            .collect(Collectors.toMap(Entitlement::getEntitlement, Function.identity()));
+        return toRegistrationDetails(findRelyingPartyInstance(relyingPartyInstanceId));
+    }
 
-        return RegistrationDetailsResponse.from(
-            relyingPartyInstance, entitlementCatalog, registryProperties, supervisoryAuthorityProperties);
+    public RegistrationDetailsResponse patchRegistration(
+        UUID relyingPartyInstanceId,
+        RegistrationPatchRequest request
+    ) {
+        walletRelyingPartyRepository.findByInstanceIdForUpdate(relyingPartyInstanceId)
+            .orElseThrow(() -> new NotFoundException("RelyingPartyInstance not found"));
+
+        RelyingPartyInstance relyingPartyInstance = findRelyingPartyInstance(relyingPartyInstanceId);
+        WalletRelyingPartyService walletRelyingPartyService = relyingPartyInstance.getWalletRelyingPartyService();
+        WalletRelyingParty relyingParty = walletRelyingPartyService.getWalletRelyingParty();
+
+        RelyingPartyRequest relyingPartyRequest = request.relyingParty() == null ? null : patchedRequest(
+            RelyingPartyRequest.from(
+                RelyingPartyResponse.from(relyingParty, registryProperties, supervisoryAuthorityProperties)),
+            request.relyingParty(), RelyingPartyRequest.class);
+        RelyingPartyServiceRequest relyingPartyServiceRequest = request.relyingPartyService() == null ? null
+            : patchedRequest(
+                RelyingPartyServiceRequest.from(RelyingPartyServiceResponse.from(walletRelyingPartyService)),
+                request.relyingPartyService(), RelyingPartyServiceRequest.class);
+        RelyingPartyInstanceRequest relyingPartyInstanceRequest = request.relyingPartyInstance() == null ? null
+            : patchedRequest(
+                RelyingPartyInstanceRequest.from(RelyingPartyInstanceResponse.from(relyingPartyInstance)),
+                request.relyingPartyInstance(), RelyingPartyInstanceRequest.class);
+
+        if (relyingPartyRequest != null) {
+            replaceRelyingParty(relyingParty, relyingPartyRequest);
+        }
+        if (relyingPartyServiceRequest != null) {
+            relyingPartyServiceRequest.update(walletRelyingPartyService);
+        }
+        if (relyingPartyInstanceRequest != null) {
+            replaceRelyingPartyInstance(relyingPartyInstance, relyingPartyInstanceRequest);
+        }
+        walletRelyingPartyRepository.flush();
+
+        return toRegistrationDetails(relyingPartyInstance);
     }
 
     @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
@@ -286,14 +320,7 @@ public class V2ApiService {
             .orElseThrow(() -> new NotFoundException("RelyingPartyInstance not found"));
 
         RelyingPartyInstance relyingPartyInstance = findRelyingPartyInstance(relyingPartyInstanceId);
-        List<RelyingPartyEntitlement> requestedEntitlements = request.toDomainRelyingPartyEntitlements();
-        relyingPartyService.validateEntitlementsForUpdate(
-            relyingPartyInstance.getRelyingPartyEntitlements(), requestedEntitlements);
-        if (!relyingPartyInstance.canReplaceRelyingPartyEntitlements(requestedEntitlements)) {
-            throw new BadRequestException(
-                "An entitlement with issuer certificates cannot be removed or changed");
-        }
-        request.update(relyingPartyInstance, requestedEntitlements);
+        replaceRelyingPartyInstance(relyingPartyInstance, request);
 
         return RelyingPartyInstanceResponse.from(
             relyingPartyInstanceRepository.saveAndFlush(relyingPartyInstance));
@@ -421,6 +448,62 @@ public class V2ApiService {
 
     public void revokeIssuerCertificate(UUID relyingPartyInstanceId, UUID certificateId) {
         certificateService.revokeIssuerCertificate(certificateId, relyingPartyInstanceId);
+    }
+
+    private RegistrationDetailsResponse toRegistrationDetails(RelyingPartyInstance relyingPartyInstance) {
+        Map<String, Entitlement> entitlementCatalog = entitlementService.findAllEntitlements(true)
+            .stream()
+            .collect(Collectors.toMap(Entitlement::getEntitlement, Function.identity()));
+
+        return RegistrationDetailsResponse.from(
+            relyingPartyInstance, entitlementCatalog, registryProperties, supervisoryAuthorityProperties);
+    }
+
+    private <T> T patchedRequest(T currentRequest, ObjectNode suppliedProperties, Class<T> requestType) {
+        ObjectNode currentProperties = objectMapper.valueToTree(currentRequest);
+        ObjectNode mergedProperties = currentProperties.deepCopy();
+        mergedProperties.setAll(suppliedProperties);
+
+        T mergedRequest;
+        try {
+            mergedRequest = objectMapper.treeToValue(mergedProperties, requestType);
+        } catch (JacksonException exception) {
+            throw new BadRequestException("Registration patch contains invalid or unknown properties");
+        }
+
+        Set<ConstraintViolation<T>> violations = validator.validate(mergedRequest).stream()
+            .filter(violation -> RegistrationPatchRequest.concernsSuppliedProperty(
+                violation, suppliedProperties.propertyNames(), currentProperties.propertyNames()))
+            .collect(Collectors.toSet());
+        if (!violations.isEmpty()) {
+            throw new ConstraintViolationException(violations);
+        }
+        return mergedRequest;
+    }
+
+    private void replaceRelyingParty(WalletRelyingParty relyingParty, RelyingPartyRequest request) {
+        String previousName = relyingParty.getName();
+        boolean previousPSB = relyingParty.isPSB();
+        request.update(relyingParty);
+        if (!Objects.equals(previousName, relyingParty.getName()) || previousPSB != relyingParty.isPSB()) {
+            relyingParty.getServices().stream()
+                .flatMap(service -> service.getRelyingPartyInstances().stream())
+                .forEach(RelyingPartyInstance::setUpdated);
+        }
+    }
+
+    private void replaceRelyingPartyInstance(
+        RelyingPartyInstance relyingPartyInstance,
+        RelyingPartyInstanceRequest request
+    ) {
+        List<RelyingPartyEntitlement> requestedEntitlements = request.toDomainRelyingPartyEntitlements();
+        relyingPartyService.validateEntitlementsForUpdate(
+            relyingPartyInstance.getRelyingPartyEntitlements(), requestedEntitlements);
+        if (!relyingPartyInstance.canReplaceRelyingPartyEntitlements(requestedEntitlements)) {
+            throw new BadRequestException(
+                "An entitlement with issuer certificates cannot be removed or changed");
+        }
+        request.update(relyingPartyInstance, requestedEntitlements);
     }
 
     private WalletRelyingParty findRelyingParty(UUID relyingPartyId) {

@@ -17,6 +17,7 @@ import no.eudiw.rp.register.api.v2.endpoints.entities.IntendedUseReplacementResp
 import no.eudiw.rp.register.api.v2.endpoints.entities.IntendedUseResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.IssuerCertificateRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationDetailsResponse;
+import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationPatchRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationSummaryResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceResponse;
@@ -61,6 +62,7 @@ public class V2ResourcesEndpoint {
         "V2-WALLET-RELYING-PARTY-SERVICE-UPDATED";
     private static final String AUDIT_RELYING_PARTY_INSTANCE_CREATED = "V2-RELYING-PARTY-INSTANCE-CREATED";
     private static final String AUDIT_RELYING_PARTY_INSTANCE_UPDATED = "V2-RELYING-PARTY-INSTANCE-UPDATED";
+    private static final String AUDIT_REGISTRATION_UPDATED = "V2-REGISTRATION-UPDATED";
     private static final String AUDIT_INTENDED_USE_CREATED = "V2-INTENDED-USE-CREATED";
     private static final String AUDIT_INTENDED_USE_REVOKED = "V2-INTENDED-USE-REVOKED";
     private static final String AUDIT_INTENDED_USE_REPLACED = "V2-INTENDED-USE-REPLACED";
@@ -204,6 +206,24 @@ public class V2ResourcesEndpoint {
         @PathVariable("id") UUID relyingPartyInstanceId
     ) {
         return v2ApiService.getRegistrationDetails(relyingPartyInstanceId);
+    }
+
+    @Operation(
+        summary = "Update registration properties",
+        description = "Updates party, service and instance properties together. Omitted sections and properties "
+            + "are unchanged; supplied properties replace current values and follow the same rules as the "
+            + "PUT endpoints for each resource. Returns the updated registration details, 400 if a supplied "
+            + "property is invalid and 404 for an unknown instance."
+    )
+    @Audit(auditId = AUDIT_REGISTRATION_UPDATED)
+    @PatchMapping(path = "/registrations/{id}", consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    public RegistrationDetailsResponse patchRegistration(
+        @Parameter(description = "RelyingPartyInstance identifier")
+        @PathVariable("id") UUID relyingPartyInstanceId,
+        @RequestBody RegistrationPatchRequest request
+    ) {
+        return v2ApiService.patchRegistration(relyingPartyInstanceId, request);
     }
 
     @Operation(
