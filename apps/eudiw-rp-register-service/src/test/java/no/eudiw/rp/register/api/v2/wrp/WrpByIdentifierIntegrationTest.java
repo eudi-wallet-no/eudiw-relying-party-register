@@ -226,6 +226,8 @@ class WrpByIdentifierIntegrationTest {
             .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("usesIntermediary", " "))
             .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/wrp").param("isIntermediary", "TRUE"))
+            .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("isIntermediary", "not-a-boolean"))
             .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("isintermediary", "true"))
