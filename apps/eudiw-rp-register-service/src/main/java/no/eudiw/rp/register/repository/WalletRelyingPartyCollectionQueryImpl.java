@@ -270,15 +270,12 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
     ) {
         ParameterExpression<String> claimPath = builder.parameter(String.class, CLAIM_PATH_PARAMETER);
         var claimPathArray = builder.function("JSON_ARRAY", String.class, claimPath);
-        var claim = builder.function(
-            "JSON_OBJECT", String.class, builder.literal("path"), claimPathArray);
+        var claim = builder.function("JSON_OBJECT", String.class, builder.literal("path"), claimPathArray);
         Subquery<Integer> matchingClaimPath = query.subquery(Integer.class);
         Root<WalletRelyingPartyService> service = matchingClaimPath.from(WalletRelyingPartyService.class);
-        Join<WalletRelyingPartyService, IntendedUse> intendedUse =
-            service.join("intendedUses", JoinType.INNER);
+        Join<WalletRelyingPartyService, IntendedUse> intendedUse = service.join("intendedUses", JoinType.INNER);
         Join<IntendedUse, Credential> credential = intendedUse.join("credentials", JoinType.INNER);
-        var containsClaimPath = builder.function(
-            "JSON_CONTAINS", Integer.class, credential.get("claims"), claim);
+        var containsClaimPath = builder.function("JSON_CONTAINS", Integer.class, credential.get("claims"), claim);
         matchingClaimPath.select(builder.literal(1))
             .where(
                 builder.equal(service.get("walletRelyingParty").get("id"), party.get("id")),
