@@ -145,6 +145,10 @@ public class WrpEndpoint {
         if (!COLLECTION_PARAMETERS.containsAll(queryParameters.keySet())) {
             throw new BadRequestException("Unsupported WRP query parameter");
         }
+        if (queryParameters.containsKey("isIntermediary")
+            && queryParameters.get("isIntermediary").size() != 1) {
+            throw new BadRequestException("isIntermediary must be specified at most once");
+        }
         String intermediaryFlag = queryParameters.getFirst("isIntermediary");
         if (intermediaryFlag != null
                 && !intermediaryFlag.equals("true")
