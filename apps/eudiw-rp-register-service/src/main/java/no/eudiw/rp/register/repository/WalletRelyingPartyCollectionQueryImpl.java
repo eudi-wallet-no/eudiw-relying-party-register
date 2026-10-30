@@ -12,6 +12,7 @@ import jakarta.persistence.criteria.ParameterExpression;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
+import no.eudiw.rp.register.domain.Credential;
 import no.eudiw.rp.register.domain.IntendedUse;
 import no.eudiw.rp.register.domain.LegalPerson;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
@@ -32,6 +33,7 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
     private static final String TRADE_NAME_PARAMETER = "tradeName";
     private static final String POLICY_PARAMETER = "policy";
     private static final String INTENDED_USE_IDENTIFIER_PARAMETER = "intendedUseIdentifier";
+    private static final String CLAIM_PATH_PARAMETER = "claimPath";
     private static final String ENTITLEMENT_PARAMETER = "entitlement";
     private static final String PROVIDED_ATTESTATION_PARAMETER = "providedAttestation";
     private static final String USES_INTERMEDIARY_PARAMETER = "usesIntermediary";
@@ -95,6 +97,9 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         }
         if (criteria.intendedUseIdentifier() != null) {
             predicates.add(intendedUseIdentifierPredicate(builder, query, party));
+        }
+        if (criteria.claimPath() != null) {
+            predicates.add(claimPathElementPredicate(builder, query, party));
         }
         if (criteria.entitlement() != null) {
             predicates.add(entitlementPredicate(builder, query, party));
@@ -256,6 +261,31 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
                 builder.equal(storedIdentifier, requestedIdentifier)
             );
         return builder.exists(matchingIntendedUse);
+    }
+
+    private static Predicate claimPathElementPredicate(
+        CriteriaBuilder builder,
+        CriteriaQuery<?> query,
+        Root<WalletRelyingParty> party
+    ) {
+        ParameterExpression<String> claimPath = builder.parameter(String.class, CLAIM_PATH_PARAMETER);
+        var claimPathArray = builder.function("JSON_ARRAY", String.class, claimPath);
+        var claim = builder.function(
+            "JSON_OBJECT", String.class, builder.literal("path"), claimPathArray);
+        Subquery<Integer> matchingClaimPath = query.subquery(Integer.class);
+        Root<WalletRelyingPartyService> service = matchingClaimPath.from(WalletRelyingPartyService.class);
+        Join<WalletRelyingPartyService, IntendedUse> intendedUse =
+            service.join("intendedUses", JoinType.INNER);
+        Join<IntendedUse, Credential> credential = intendedUse.join("credentials", JoinType.INNER);
+        var containsClaimPath = builder.function(
+            "JSON_CONTAINS", Integer.class, credential.get("claims"), claim);
+        matchingClaimPath.select(builder.literal(1))
+            .where(
+                builder.equal(service.get("walletRelyingParty").get("id"), party.get("id")),
+                builder.isTrue(service.get("active")),
+                builder.equal(containsClaimPath, 1)
+            );
+        return builder.exists(matchingClaimPath);
     }
 
     private static Predicate entitlementPredicate(
@@ -432,6 +462,9 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         }
         if (criteria.intendedUseIdentifier() != null) {
             query.setParameter(INTENDED_USE_IDENTIFIER_PARAMETER, criteria.intendedUseIdentifier());
+        }
+        if (criteria.claimPath() != null) {
+            query.setParameter(CLAIM_PATH_PARAMETER, criteria.claimPath());
         }
         if (criteria.entitlement() != null) {
             query.setParameter(ENTITLEMENT_PARAMETER, criteria.entitlement());
