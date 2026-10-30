@@ -7,6 +7,7 @@ public record WrpCollectionFilters(
     String tradeName,
     String policy,
     String entitlement,
-    String providedAttestation
+    String providedAttestation,
+    String usesIntermediary
 ) {
 }
