@@ -127,17 +127,26 @@ class V2RegisterClientTests {
     }
 
     @Test
-    @DisplayName("Should retrieve organization and service details with the issuer role")
-    void shouldRetrieveOrganizationAndServiceDetailsWithIssuerRole() {
+    @DisplayName("Should retrieve relying party and relying party service details with the issuer role")
+    void shouldRetrieveRelyingPartyAndRelyingPartyServiceDetailsWithIssuerRole() {
+        UUID relyingPartyServiceId = new UUID(0, 2);
         server.expect(requestTo(REGISTRATION_URL))
             .andExpect(header("X-API-KEY", "test-api-key"))
             .andRespond(withSuccess("""
                 {"id":"00000000-0000-0000-0000-000000000001","orgno":"123456785",
+                 "relyingPartyServiceId":"00000000-0000-0000-0000-000000000002",
                  "organizationName":"Legal name","serviceTradeName":"Service name","isPSB":true,
                  "relyingPartyEntitlements":[{"entitlement":"urn:issuer","displayName":"Issuer",
                                                "credentialIssuerUrl":"https://issuer.test"}],
                  "relyingPartyEaas":[],"accessCertificates":[],"issuerCertificates":[],
-                 "createdMs":1700000000000,"lastUpdatedMs":1710000000000,"active":false}
+                 "createdMs":1700000000000,"lastUpdatedMs":1710000000000,"active":false,
+                 "relyingParty":{"country":"NO"},
+                 "relyingPartyService":{"serviceIdentifier":"service-1","isIntermediary":false,"active":true}}
+                """, MediaType.APPLICATION_JSON));
+        server.expect(requestTo("https://register.test/v2/services/" + relyingPartyServiceId + "/intended-uses"))
+            .andExpect(header("X-API-KEY", "test-api-key"))
+            .andRespond(withSuccess("""
+                [{"id":"00000000-0000-0000-0000-000000000003","intendedUseIdentifier":"pid-verification"}]
                 """, MediaType.APPLICATION_JSON));
 
         var relyingPartyResource = client.getRelyingParty(RELYING_PARTY_INSTANCE_ID);
@@ -146,9 +155,37 @@ class V2RegisterClientTests {
             () -> assertEquals("Service name", relyingPartyResource.tradeName()),
             () -> assertEquals("Legal name", relyingPartyResource.orgName()),
             () -> assertTrue(relyingPartyResource.publicSector()),
+            () -> assertEquals("NO", relyingPartyResource.relyingParty().country()),
+            () -> assertEquals("service-1", relyingPartyResource.relyingPartyService().serviceIdentifier()),
+            () -> assertEquals(
+                "pid-verification",
+                relyingPartyResource.intendedUses().getFirst().intendedUseIdentifier()),
             () -> assertEquals(
                 List.of(new RelyingPartyEntitlementResource("urn:issuer", "Issuer", "https://issuer.test")),
                 relyingPartyResource.relyingPartyEntitlements()));
+    }
+
+    @Test
+    @DisplayName("Should read older registration details without relying party or relying party service properties")
+    void shouldReadOlderRegistrationDetailsWithoutRelyingPartyOrRelyingPartyServiceFields() {
+        UUID relyingPartyServiceId = new UUID(0, 2);
+        server.expect(requestTo(REGISTRATION_URL))
+            .andRespond(withSuccess("""
+                {"id":"00000000-0000-0000-0000-000000000001","orgno":"123456785",
+                 "relyingPartyServiceId":"00000000-0000-0000-0000-000000000002",
+                 "organizationName":"Legal name","serviceTradeName":"Service name","isPSB":true,
+                 "relyingPartyEntitlements":[],"relyingPartyEaas":[],"accessCertificates":[],
+                 "issuerCertificates":[],"createdMs":1700000000000,"lastUpdatedMs":1710000000000,"active":true}
+                """, MediaType.APPLICATION_JSON));
+        server.expect(requestTo("https://register.test/v2/services/" + relyingPartyServiceId + "/intended-uses"))
+            .andRespond(withSuccess("[]", MediaType.APPLICATION_JSON));
+
+        var relyingPartyResource = client.getRelyingParty(RELYING_PARTY_INSTANCE_ID);
+
+        assertAll(
+            () -> assertNull(relyingPartyResource.relyingParty()),
+            () -> assertNull(relyingPartyResource.relyingPartyService()),
+            () -> assertTrue(relyingPartyResource.intendedUses().isEmpty()));
     }
 
     @Test

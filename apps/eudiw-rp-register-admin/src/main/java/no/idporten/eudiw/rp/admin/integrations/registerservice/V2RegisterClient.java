@@ -60,7 +60,21 @@ public class V2RegisterClient {
                 "Unable to retrieve " + registrationPath + " from register service: response body is empty");
         }
 
-        return registrationDetails.toRelyingPartyResource();
+        return registrationDetails.toRelyingPartyResource(
+            getIntendedUses(registrationDetails.relyingPartyServiceId()));
+    }
+
+    private List<RelyingPartyResource.IntendedUseDetails> getIntendedUses(UUID relyingPartyServiceId) {
+        String intendedUsesPath = "/services/" + relyingPartyServiceId + "/intended-uses";
+        List<RelyingPartyResource.IntendedUseDetails> intendedUses = restClient.get()
+            .uri(intendedUsesPath)
+            .retrieve()
+            .body(new ParameterizedTypeReference<>() {});
+        if (intendedUses == null) {
+            throw new UnrecognizedErrorResponseException(
+                "Unable to retrieve " + intendedUsesPath + " from register service: response body is empty");
+        }
+        return intendedUses;
     }
 
     public PagedResponse<Instance> searchInstances(SearchRelyingPartyResource searchResource) {
@@ -134,9 +148,13 @@ public class V2RegisterClient {
         List<RelyingPartyCertificateResource> issuerCertificates,
         long createdMs,
         long lastUpdatedMs,
-        boolean active
+        boolean active,
+        RelyingPartyResource.RelyingPartyDetails relyingParty,
+        RelyingPartyResource.RelyingPartyServiceDetails relyingPartyService
     ) {
-        public RelyingPartyResource toRelyingPartyResource() {
+        public RelyingPartyResource toRelyingPartyResource(
+            List<RelyingPartyResource.IntendedUseDetails> intendedUses
+        ) {
             return new RelyingPartyResource(
                 id,
                 orgno,
@@ -154,7 +172,10 @@ public class V2RegisterClient {
                 issuerCertificates,
                 createdMs,
                 lastUpdatedMs,
-                active);
+                active,
+                relyingParty,
+                relyingPartyService,
+                intendedUses);
         }
     }
 

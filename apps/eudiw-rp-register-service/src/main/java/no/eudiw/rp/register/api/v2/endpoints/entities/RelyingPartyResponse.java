@@ -85,7 +85,7 @@ public record RelyingPartyResponse(
         );
     }
 
-    private static SupervisoryAuthorityResource supervisoryAuthorityResource(
+    static SupervisoryAuthorityResource supervisoryAuthorityResource(
         SupervisoryAuthorityProperties properties
     ) {
         return new SupervisoryAuthorityResource(
