@@ -353,8 +353,7 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         CriteriaQuery<?> query,
         Root<WalletRelyingParty> party
     ) {
-        ParameterExpression<Boolean> isIntermediary =
-            builder.parameter(Boolean.class, IS_INTERMEDIARY_PARAMETER);
+        ParameterExpression<Boolean> isIntermediary = builder.parameter(Boolean.class, IS_INTERMEDIARY_PARAMETER);
         Subquery<Integer> matchingService = query.subquery(Integer.class);
         Root<WalletRelyingPartyService> service = matchingService.from(WalletRelyingPartyService.class);
         matchingService.select(builder.literal(1))
