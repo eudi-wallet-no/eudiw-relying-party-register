@@ -229,7 +229,11 @@ class WrpByIdentifierIntegrationTest {
         mockMvc.perform(get("/wrp").param("isIntermediary", "TRUE"))
             .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("isIntermediary", "not-a-boolean"))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isBadRequest())
+            .andExpect(content().string(containsString("isIntermediary must be true or false")));
+        mockMvc.perform(get("/wrp").param("isIntermediary", "true", "not-a-boolean"))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().string(containsString("isIntermediary must be specified at most once")));
         mockMvc.perform(get("/wrp").param("isintermediary", "true"))
             .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("providedattestation", "https://schemas.example/payment"))

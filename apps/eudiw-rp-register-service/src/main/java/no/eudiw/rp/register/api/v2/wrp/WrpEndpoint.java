@@ -138,7 +138,7 @@ public class WrpEndpoint {
             description = "Whether an active service is registered as an intermediary",
             schema = @Schema(type = "boolean")
         )
-        @RequestParam(name = "isIntermediary", required = false) Boolean isIntermediary,
+        @RequestParam(name = "isIntermediary", required = false) String isIntermediaryString,
         @Parameter(hidden = true)
         @RequestParam MultiValueMap<String, String> queryParameters
     ) {
@@ -149,13 +149,13 @@ public class WrpEndpoint {
             && queryParameters.get("isIntermediary").size() != 1) {
             throw new BadRequestException("isIntermediary must be specified at most once");
         }
-        String intermediaryFlag = queryParameters.getFirst("isIntermediary");
-        if (intermediaryFlag != null
-                && !intermediaryFlag.equals("true")
-                && !intermediaryFlag.equals("false")) {
-            throw new BadRequestException(
-                    "isIntermediary must be true or false");
+        if (isIntermediaryString != null
+            && !isIntermediaryString.equals("true")
+            && !isIntermediaryString.equals("false")) {
+            throw new BadRequestException("isIntermediary must be true or false");
         }
+        Boolean isIntermediary = isIntermediaryString == null ? null : Boolean.parseBoolean(isIntermediaryString);
+
         if ((identifier != null && identifier.isBlank())
             || (legalName != null && legalName.isBlank())
             || (serviceIdentifier != null && serviceIdentifier.isBlank())
