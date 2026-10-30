@@ -683,6 +683,40 @@ class V2ApiIntegrationTest {
             () -> assertTrue(details.at("/relyingParty/identifier").isEmpty()));
     }
 
+    @Test
+    @DisplayName("Should document nullable registration properties without changing replacement schemas")
+    void shouldDocumentNullableRegistrationPropertiesWithoutChangingReplacementSchemas() throws Exception {
+        JsonNode schemas = read(get("/v3/api-docs/V2")).at("/components/schemas");
+
+        assertAll(
+            () -> assertTrue(isNullable(schemas.at(
+                "/RegistrationPatchRequest/properties/relyingParty"))),
+            () -> assertTrue(isNullable(schemas.at(
+                "/RelyingPartyPatch/properties/tradeName"))),
+            () -> assertTrue(isNullable(schemas.at(
+                "/RelyingPartyPatch/properties/legalPerson"))),
+            () -> assertTrue(isNullable(schemas.at(
+                "/RelyingPartyServicePatch/properties/serviceIdentifier"))),
+            () -> assertFalse(isNullable(schemas.at(
+                "/RelyingPartyRequest/properties/legalPerson"))));
+    }
+
+    private boolean isNullable(JsonNode schema) {
+        for (JsonNode alternative : schema.path("anyOf")) {
+            JsonNode type = alternative.path("type");
+            if (type.isArray()) {
+                for (JsonNode value : type) {
+                    if ("null".equals(value.asString())) {
+                        return true;
+                    }
+                }
+            } else if ("null".equals(type.asString())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private Registration createRegistration() throws Exception {
         String relyingPartyId = read(post("/v2/parties"), "{\"orgno\":\"" + TestDataGenerator.generateValidOrgno() + "\"}")
             .get("id").asString();
