@@ -53,7 +53,10 @@ public class ResourceGenerator extends TestDataGenerator {
             List.of(),
             timeNow,
             timeNow,
-            true
+            true,
+            null,
+            null,
+            List.of()
         );
     }
     public static List<RelyingPartyResource> generateRelyingPartiesResource() {

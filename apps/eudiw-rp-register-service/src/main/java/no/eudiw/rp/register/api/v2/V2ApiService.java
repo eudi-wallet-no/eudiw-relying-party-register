@@ -224,7 +224,8 @@ public class V2ApiService {
             .stream()
             .collect(Collectors.toMap(Entitlement::getEntitlement, Function.identity()));
 
-        return RegistrationDetailsResponse.from(relyingPartyInstance, entitlementCatalog);
+        return RegistrationDetailsResponse.from(
+            relyingPartyInstance, entitlementCatalog, registryProperties, supervisoryAuthorityProperties);
     }
 
     @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
