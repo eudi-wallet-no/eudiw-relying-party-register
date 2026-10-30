@@ -31,7 +31,8 @@ public class WrpEndpoint {
     private static final Set<String> COLLECTION_PARAMETERS =
         Set.of(
             "limit", "cursor", "identifier", "legalName", "serviceIdentifier", "tradeName", "policy",
-            "intendedUseIdentifier", "entitlement", "providedAttestation", "usesIntermediary", "isIntermediary"
+            "intendedUseIdentifier", "claimPath", "entitlement", "providedAttestation", "usesIntermediary",
+            "isIntermediary"
         );
 
     private final WrpLookupService lookupService;
@@ -42,7 +43,7 @@ public class WrpEndpoint {
         summary = "Get a paginated list of Wallet Relying Parties",
         description = """
              Returns active relying parties matching the optional identifier, legalName,
-             serviceIdentifier, tradeName, policy, intendedUseIdentifier, entitlement,
+             serviceIdentifier, tradeName, policy, intendedUseIdentifier, claimPath, entitlement,
              providedAttestation, usesIntermediary, and isIntermediary filters.""",
         responses = {
             @ApiResponse(
@@ -119,6 +120,13 @@ public class WrpEndpoint {
         )
         @RequestParam(name = "intendedUseIdentifier", required = false) String intendedUseIdentifier,
         @Parameter(
+            name = "claimPath",
+            in = ParameterIn.QUERY,
+            description = "Case-sensitive exact match against any string element of a registered credential claim path",
+            schema = @Schema(type = "string")
+        )
+        @RequestParam(name = "claimPath", required = false) String claimPath,
+        @Parameter(
             name = "entitlement",
             in = ParameterIn.QUERY,
             description = "Exact URI of an active service entitlement or sub-entitlement",
@@ -169,6 +177,7 @@ public class WrpEndpoint {
             || (tradeName != null && tradeName.isBlank())
             || (policy != null && policy.isBlank())
             || (intendedUseIdentifier != null && intendedUseIdentifier.isBlank())
+            || (claimPath != null && claimPath.isBlank())
             || (entitlement != null && entitlement.isBlank())
             || (providedAttestation != null && providedAttestation.isBlank())
             || (usesIntermediary != null && usesIntermediary.isBlank())) {
@@ -177,8 +186,8 @@ public class WrpEndpoint {
 
         WrpCollectionFilters filters =
             new WrpCollectionFilters(
-                identifier, legalName, serviceIdentifier, tradeName, policy, intendedUseIdentifier, entitlement,
-                providedAttestation, usesIntermediary, isIntermediary);
+                identifier, legalName, serviceIdentifier, tradeName, policy, intendedUseIdentifier, claimPath,
+                entitlement, providedAttestation, usesIntermediary, isIntermediary);
         WrpLookupService.CollectionPage page = lookupService.findAll(limit, cursor, filters);
         return ResponseEntity.ok()
             .contentType(MediaType.parseMediaType("application/jwt"))

@@ -222,6 +222,8 @@ class WrpByIdentifierIntegrationTest {
             .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("intendedUseIdentifier", " "))
             .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/wrp").param("claimPath", " "))
+            .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("entitlement", " "))
             .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("providedAttestation", " "))
@@ -520,6 +522,107 @@ class WrpByIdentifierIntegrationTest {
             null, null, Map.of("intendedUseIdentifier", "no-such-intended-use"))).isEmpty());
         assertTrue(collectionTradeNames(getCollectionPage(
             null, null, Map.of("intendedUseIdentifier", "INTENDED-USE-MATCH"))).isEmpty());
+    }
+
+    @Test
+    void filtersCollectionByExactClaimPathElementBeforeCursorPagination() throws Exception {
+        WalletRelyingParty pidMatch =
+            partyWithSearchData("Claim path PID match", "urn:example:claim-path-pid", "Claim Path Alpha");
+        IntendedUse revokedIntendedUse = new IntendedUse(
+            "claim-path-revoked",
+            "2026-01-01",
+            "2026-02-01",
+            List.of(new MultiLangString("en", "Purpose")),
+            List.of(new Policy("PrivacyStatement", "https://example.test/privacy"))
+        );
+        revokedIntendedUse.setCredentials(List.of(new Credential(
+            "mso_mdoc",
+            Map.of("doctype", "org.iso.18013-5.1.mDL"),
+            List.of(
+                claimPath("eudi.pid.no", "birthdate"),
+                claimPath("another.namespace", "birthdate")
+            )
+        )));
+        pidMatch.getServices().getFirst().setIntendedUses(List.of(revokedIntendedUse));
+        pidMatch.setServices(List.of(
+            pidMatch.getServices().getFirst(),
+            new WalletRelyingPartyService("Additional active service", pidMatch, List.of())
+        ));
+
+        WalletRelyingParty drivingLicenceMatch =
+            partyWithSearchData("Claim path driving licence match", "urn:example:claim-path-dl", "Claim Path Beta");
+        IntendedUse drivingLicenceIntendedUse = intendedUseWithClaims(
+            "claim-path-driving-licence",
+            List.of(claimPath("drivinglicence.no", "birthdate"))
+        );
+        drivingLicenceMatch.getServices().getFirst().setIntendedUses(List.of(drivingLicenceIntendedUse));
+
+        WalletRelyingParty substringOnly =
+            partyWithSearchData("Claim path substring only", "urn:example:claim-path-substring", "Other");
+        substringOnly.getServices().getFirst().setIntendedUses(List.of(intendedUseWithClaims(
+            "claim-path-substring",
+            List.of(claimPath("birthdateVerified"), claimPath(null, 2))
+        )));
+
+        WalletRelyingParty caseOnly =
+            partyWithSearchData("Claim path case only", "urn:example:claim-path-case", "Other");
+        caseOnly.getServices().getFirst().setIntendedUses(List.of(intendedUseWithClaims(
+            "claim-path-case",
+            List.of(claimPath("Birthdate"))
+        )));
+
+        WalletRelyingParty wildcardCharacters =
+            partyWithSearchData("Claim path literal wildcard", "urn:example:claim-path-wildcard", "Other");
+        wildcardCharacters.getServices().getFirst().setIntendedUses(List.of(intendedUseWithClaims(
+            "claim-path-wildcard",
+            List.of(claimPath("IBAN_100%"))
+        )));
+
+        WalletRelyingParty inactiveServiceMatch =
+            partyWithSearchData("Claim path inactive service", "urn:example:claim-path-inactive", "Other");
+        WalletRelyingPartyService inactiveService = inactiveServiceMatch.getServices().getFirst();
+        inactiveService.setIntendedUses(List.of(intendedUseWithClaims(
+            "claim-path-inactive",
+            List.of(claimPath("birthdate"))
+        )));
+        inactiveService.setActive(false);
+
+        walletRelyingPartyRepository.saveAllAndFlush(List.of(
+            pidMatch, drivingLicenceMatch, substringOnly, caseOnly, wildcardCharacters, inactiveServiceMatch
+        ));
+
+        JWSObject firstPage = getCollectionPage(1, null, Map.of("claimPath", "birthdate"));
+        Map<?, ?> firstPagination = (Map<?, ?>) firstPage.getPayload().toJSONObject().get("pagination");
+        assertTrue((Boolean) firstPagination.get("has_next_page"));
+        JWSObject secondPage = getCollectionPage(
+            1, (String) firstPagination.get("next_cursor"), Map.of("claimPath", "birthdate"));
+        Map<?, ?> secondPagination = (Map<?, ?>) secondPage.getPayload().toJSONObject().get("pagination");
+        assertFalse((Boolean) secondPagination.get("has_next_page"));
+        List<String> matchingNames = new ArrayList<>(collectionTradeNames(firstPage));
+        matchingNames.addAll(collectionTradeNames(secondPage));
+        assertEquals(Set.of("Claim path PID match", "Claim path driving licence match"), Set.copyOf(matchingNames));
+
+        Map<?, ?> combinedFilterMatch = (Map<?, ?>) ((List<?>) getCollectionPage(null, null, Map.of(
+            "claimPath", "birthdate",
+            "legalName", "Claim Path Alpha"
+        )).getPayload().toJSONObject().get("data")).getFirst();
+        assertEquals("Claim path PID match", combinedFilterMatch.get("tradeName"));
+        assertEquals(2, ((List<?>) combinedFilterMatch.get("services")).size());
+        assertEquals(
+            List.of("Claim path substring only"),
+            collectionTradeNames(getCollectionPage(null, null, Map.of("claimPath", "birthdateVerified")))
+        );
+        assertTrue(collectionTradeNames(getCollectionPage(null, null, Map.of("claimPath", "birth"))).isEmpty());
+        assertTrue(collectionTradeNames(getCollectionPage(null, null, Map.of("claimPath", "2"))).isEmpty());
+        assertTrue(collectionTradeNames(getCollectionPage(null, null, Map.of("claimPath", "null"))).isEmpty());
+        assertEquals(
+            List.of("Claim path case only"),
+            collectionTradeNames(getCollectionPage(null, null, Map.of("claimPath", "Birthdate")))
+        );
+        assertTrue(collectionTradeNames(getCollectionPage(
+            null, null, Map.of("claimPath", "IBAN_100%"))).contains("Claim path literal wildcard"));
+        assertTrue(collectionTradeNames(getCollectionPage(
+            null, null, Map.of("claimPath", "IBAN"))).isEmpty());
     }
 
     @Test
@@ -947,7 +1050,8 @@ class WrpByIdentifierIntegrationTest {
             .andExpect(content().string(containsString("providedAttestation")))
             .andExpect(content().string(containsString("usesIntermediary")))
             .andExpect(content().string(containsString("isIntermediary")))
-            .andExpect(content().string(containsString("intendedUseIdentifier")));
+            .andExpect(content().string(containsString("intendedUseIdentifier")))
+            .andExpect(content().string(containsString("claimPath")));
     }
 
     @Test
@@ -1118,6 +1222,26 @@ class WrpByIdentifierIntegrationTest {
         party.setIdentifier(List.of(new Identifier("urn:example:test", registeredIdentifier)));
         party.setLegalPerson(new LegalPerson(List.of(legalName), List.of()));
         return party;
+    }
+
+    private IntendedUse intendedUseWithClaims(String identifier, List<Map<String, Object>> claims) {
+        IntendedUse intendedUse = new IntendedUse(
+            identifier,
+            "2026-01-01",
+            null,
+            List.of(new MultiLangString("en", "Purpose")),
+            List.of(new Policy("PrivacyStatement", "https://example.test/privacy"))
+        );
+        intendedUse.setCredentials(List.of(new Credential(
+            "mso_mdoc",
+            Map.of("doctype", "org.iso.18013-5.1.mDL"),
+            claims
+        )));
+        return intendedUse;
+    }
+
+    private Map<String, Object> claimPath(Object... pathParts) {
+        return Map.of("path", Arrays.asList(pathParts));
     }
 
     private WalletRelyingParty partyNamed(String tradeName) {
