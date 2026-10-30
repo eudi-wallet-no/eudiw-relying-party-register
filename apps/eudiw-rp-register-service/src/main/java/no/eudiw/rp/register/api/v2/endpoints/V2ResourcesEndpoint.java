@@ -209,11 +209,9 @@ public class V2ResourcesEndpoint {
     }
 
     @Operation(
-        summary = "Update registration properties",
-        description = "Updates party, service and instance properties together. Omitted sections and properties "
-            + "are unchanged; supplied properties replace current values and follow the same rules as the "
-            + "PUT endpoints for each resource. Returns the updated registration details, 400 if a supplied "
-            + "property is invalid and 404 for an unknown instance."
+        summary = "Update a registration",
+        description = "Updates the registration's party, service and instance in one operation. "
+            + "Omitted properties are unchanged."
     )
     @Audit(auditId = AUDIT_REGISTRATION_UPDATED)
     @PatchMapping(path = "/registrations/{id}", consumes = MediaType.APPLICATION_JSON_VALUE,
