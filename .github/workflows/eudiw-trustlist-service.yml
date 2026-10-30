@@ -25,7 +25,7 @@ jobs:
       contents: write
       packages: read
       pull-requests: write
-    uses: felleslosninger/github-workflows/.github/workflows/ci-pr-checks-image.yml@PF-2306-add-maven-composite-actions
+    uses: felleslosninger/github-workflows/.github/workflows/ci-pr-checks-image.yml@main
     with:
       application-type: spring-boot
       application-path: apps/eudiw-trustlist-service/
@@ -47,7 +47,7 @@ jobs:
       contents: write
       packages: write
       id-token: write
-    uses: felleslosninger/github-workflows/.github/workflows/ci-build-publish-image.yml@PF-2306-add-maven-composite-actions
+    uses: felleslosninger/github-workflows/.github/workflows/ci-build-publish-image.yml@main
     with:
       application-type: spring-boot
       application-path: apps/eudiw-trustlist-service/
