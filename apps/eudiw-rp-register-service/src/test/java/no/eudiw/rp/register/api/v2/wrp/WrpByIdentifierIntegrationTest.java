@@ -691,6 +691,27 @@ class WrpByIdentifierIntegrationTest {
     }
 
     @Test
+    void matchesBothIntermediaryFlagsForMixedActiveServices() throws Exception {
+        WalletRelyingParty party =
+            partyWithSearchData("Mixed services", "urn:example:mixed-services", "Mixed Services");
+        WalletRelyingPartyService intermediary = party.getServices().getFirst();
+        intermediary.setIntermediaryConfiguration(true, List.of(), List.of());
+        WalletRelyingPartyService regular =
+            new WalletRelyingPartyService("Regular service", party, List.of());
+        regular.setIntermediaryConfiguration(false, List.of(), List.of());
+        party.setServices(List.of(intermediary, regular));
+        walletRelyingPartyRepository.saveAndFlush(party);
+
+        for (String flag : List.of("true", "false")) {
+            JWSObject page = getCollectionPage(null, null, Map.of("isIntermediary", flag));
+            assertEquals(List.of("Mixed services"), collectionTradeNames(page));
+            Map<?, ?> matchingWrp =
+                (Map<?, ?>) ((List<?>) page.getPayload().toJSONObject().get("data")).getFirst();
+            assertEquals(2, ((List<?>) matchingWrp.get("services")).size());
+        }
+    }
+
+    @Test
     void filtersCollectionByExactProvidedAttestationTypeBeforeCursorPagination() throws Exception {
         String attestationType = "https://schemas.example/attestations/payment";
         WalletRelyingParty firstMatch =
