@@ -7,6 +7,7 @@ public record WrpSearchCriteria(
     String tradeName,
     String policy,
     String entitlement,
-    String providedAttestation
+    String providedAttestation,
+    String usesIntermediary
 ) {
 }

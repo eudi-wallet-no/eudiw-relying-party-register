@@ -33,6 +33,7 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
     private static final String POLICY_PARAMETER = "policy";
     private static final String ENTITLEMENT_PARAMETER = "entitlement";
     private static final String PROVIDED_ATTESTATION_PARAMETER = "providedAttestation";
+    private static final String USES_INTERMEDIARY_PARAMETER = "usesIntermediary";
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -95,6 +96,9 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         }
         if (criteria.providedAttestation() != null) {
             predicates.add(providedAttestationPredicate(builder, query, party));
+        }
+        if (criteria.usesIntermediary() != null) {
+            predicates.add(usesIntermediaryPredicate(builder, query, party));
         }
         if (cursorCreatedMs != null) {
             predicates.add(cursorPredicate(builder, party, cursorCreatedMs, cursorId));
@@ -313,6 +317,33 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         return builder.exists(matchingService);
     }
 
+    private static Predicate usesIntermediaryPredicate(
+        CriteriaBuilder builder,
+        CriteriaQuery<?> query,
+        Root<WalletRelyingParty> party
+    ) {
+        ParameterExpression<String> usesIntermediary =
+            builder.parameter(String.class, USES_INTERMEDIARY_PARAMETER);
+        var intermediaryReference = builder.function(
+            "JSON_OBJECT", String.class, builder.literal("serviceIdentifier"), usesIntermediary);
+        Subquery<Integer> matchingService = query.subquery(Integer.class);
+        Root<WalletRelyingPartyService> service = matchingService.from(WalletRelyingPartyService.class);
+        var containsIntermediary = builder.function(
+            "JSON_CONTAINS",
+            Integer.class,
+            service.get("usesIntermediaries"),
+            intermediaryReference,
+            builder.literal("$")
+        );
+        matchingService.select(builder.literal(1))
+            .where(
+                builder.equal(service.get("walletRelyingParty").get("id"), party.get("id")),
+                builder.isTrue(service.get("active")),
+                builder.equal(containsIntermediary, 1)
+            );
+        return builder.exists(matchingService);
+    }
+
     private static Predicate activeServicePredicate(
         CriteriaBuilder builder,
         CriteriaQuery<?> query,
@@ -356,6 +387,9 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         }
         if (criteria.providedAttestation() != null) {
             query.setParameter(PROVIDED_ATTESTATION_PARAMETER, criteria.providedAttestation());
+        }
+        if (criteria.usesIntermediary() != null) {
+            query.setParameter(USES_INTERMEDIARY_PARAMETER, criteria.usesIntermediary());
         }
     }
 }
