@@ -518,6 +518,8 @@ class WrpByIdentifierIntegrationTest {
         assertEquals(2, ((List<?>) combinedFilterMatch.get("services")).size());
         assertTrue(collectionTradeNames(getCollectionPage(
             null, null, Map.of("intendedUseIdentifier", "no-such-intended-use"))).isEmpty());
+        assertTrue(collectionTradeNames(getCollectionPage(
+            null, null, Map.of("intendedUseIdentifier", "INTENDED-USE-MATCH"))).isEmpty());
     }
 
     @Test

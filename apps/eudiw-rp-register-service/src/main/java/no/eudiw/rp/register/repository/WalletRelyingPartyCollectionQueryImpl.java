@@ -246,11 +246,14 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         Root<WalletRelyingPartyService> service = matchingIntendedUse.from(WalletRelyingPartyService.class);
         Join<WalletRelyingPartyService, IntendedUse> intendedUse =
             service.join("intendedUses", JoinType.INNER);
+        var storedIdentifier = builder.function(
+            "BINARY", String.class, intendedUse.get("intendedUseIdentifier"));
+        var requestedIdentifier = builder.function("BINARY", String.class, intendedUseIdentifier);
         matchingIntendedUse.select(builder.literal(1))
             .where(
                 builder.equal(service.get("walletRelyingParty").get("id"), party.get("id")),
                 builder.isTrue(service.get("active")),
-                builder.equal(intendedUse.get("intendedUseIdentifier"), intendedUseIdentifier)
+                builder.equal(storedIdentifier, requestedIdentifier)
             );
         return builder.exists(matchingIntendedUse);
     }
