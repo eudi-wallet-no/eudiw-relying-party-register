@@ -8,6 +8,7 @@ public record WrpSearchCriteria(
     String policy,
     String entitlement,
     String providedAttestation,
-    String usesIntermediary
+    String usesIntermediary,
+    Boolean isIntermediary
 ) {
 }

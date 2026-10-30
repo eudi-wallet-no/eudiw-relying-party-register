@@ -31,7 +31,7 @@ public class WrpEndpoint {
     private static final Set<String> COLLECTION_PARAMETERS =
         Set.of(
             "limit", "cursor", "identifier", "legalName", "serviceIdentifier", "tradeName", "policy",
-            "entitlement", "providedAttestation", "usesIntermediary"
+            "entitlement", "providedAttestation", "usesIntermediary", "isIntermediary"
         );
 
     private final WrpLookupService lookupService;
@@ -43,7 +43,7 @@ public class WrpEndpoint {
         description = """
              Returns active relying parties matching the optional identifier, legalName,
              serviceIdentifier, tradeName, policy, entitlement, providedAttestation, and
-             usesIntermediary filters.""",
+             usesIntermediary, and isIntermediary filters.""",
         responses = {
             @ApiResponse(
                 responseCode = "200",
@@ -132,11 +132,25 @@ public class WrpEndpoint {
             schema = @Schema(type = "string")
         )
         @RequestParam(name = "usesIntermediary", required = false) String usesIntermediary,
+        @Parameter(
+            name = "isIntermediary",
+            in = ParameterIn.QUERY,
+            description = "Whether an active service is registered as an intermediary",
+            schema = @Schema(type = "boolean")
+        )
+        @RequestParam(name = "isIntermediary", required = false) Boolean isIntermediary,
         @Parameter(hidden = true)
         @RequestParam MultiValueMap<String, String> queryParameters
     ) {
         if (!COLLECTION_PARAMETERS.containsAll(queryParameters.keySet())) {
             throw new BadRequestException("Unsupported WRP query parameter");
+        }
+        String intermediaryFlag = queryParameters.getFirst("isIntermediary");
+        if (intermediaryFlag != null
+                && !intermediaryFlag.equals("true")
+                && !intermediaryFlag.equals("false")) {
+            throw new BadRequestException(
+                    "isIntermediary must be true or false");
         }
         if ((identifier != null && identifier.isBlank())
             || (legalName != null && legalName.isBlank())
@@ -152,7 +166,7 @@ public class WrpEndpoint {
         WrpCollectionFilters filters =
             new WrpCollectionFilters(
                 identifier, legalName, serviceIdentifier, tradeName, policy, entitlement,
-                providedAttestation, usesIntermediary);
+                providedAttestation, usesIntermediary, isIntermediary);
         WrpLookupService.CollectionPage page = lookupService.findAll(limit, cursor, filters);
         return ResponseEntity.ok()
             .contentType(MediaType.parseMediaType("application/jwt"))

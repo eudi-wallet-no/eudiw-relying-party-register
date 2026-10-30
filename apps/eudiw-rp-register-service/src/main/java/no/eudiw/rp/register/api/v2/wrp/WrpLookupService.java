@@ -59,7 +59,8 @@ public class WrpLookupService {
                 filters.policy(),
                 filters.entitlement(),
                 filters.providedAttestation(),
-                filters.usesIntermediary()
+                filters.usesIntermediary(),
+                filters.isIntermediary()
             ),
             cursor == null ? null : cursor.createdMs(),
             cursor == null ? null : cursor.id(),
