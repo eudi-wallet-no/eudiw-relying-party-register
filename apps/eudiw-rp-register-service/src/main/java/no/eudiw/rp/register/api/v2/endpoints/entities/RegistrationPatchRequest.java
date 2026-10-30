@@ -11,14 +11,11 @@ import java.util.Set;
 @Schema(description = "Partial registration update. Omitted sections and properties are unchanged; "
     + "supplied properties replace the current value, also when null.")
 public record RegistrationPatchRequest(
-    @Schema(implementation = RelyingPartyRequest.class, requiredMode = Schema.RequiredMode.NOT_REQUIRED,
-        description = "Properties from PUT /v2/parties/{id}")
+    @Schema(implementation = Object.class, ref = "#/components/schemas/RelyingPartyPatch")
     ObjectNode relyingParty,
-    @Schema(implementation = RelyingPartyServiceRequest.class, requiredMode = Schema.RequiredMode.NOT_REQUIRED,
-        description = "Properties from PUT /v2/services/{id}")
+    @Schema(implementation = Object.class, ref = "#/components/schemas/RelyingPartyServicePatch")
     ObjectNode relyingPartyService,
-    @Schema(implementation = RelyingPartyInstanceRequest.class, requiredMode = Schema.RequiredMode.NOT_REQUIRED,
-        description = "Properties from PUT /v2/instances/{id}")
+    @Schema(implementation = Object.class, ref = "#/components/schemas/RelyingPartyInstancePatch")
     ObjectNode relyingPartyInstance
 ) {
     private static final Map<String, Set<String>> PROPERTIES_BY_CONSTRAINED_NAME = Map.of(
