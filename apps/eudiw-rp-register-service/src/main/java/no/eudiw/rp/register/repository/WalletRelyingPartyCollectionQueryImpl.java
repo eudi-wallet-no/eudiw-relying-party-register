@@ -34,6 +34,7 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
     private static final String ENTITLEMENT_PARAMETER = "entitlement";
     private static final String PROVIDED_ATTESTATION_PARAMETER = "providedAttestation";
     private static final String USES_INTERMEDIARY_PARAMETER = "usesIntermediary";
+    private static final String IS_INTERMEDIARY_PARAMETER = "isIntermediary";
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -99,6 +100,9 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         }
         if (criteria.usesIntermediary() != null) {
             predicates.add(usesIntermediaryPredicate(builder, query, party));
+        }
+        if (criteria.isIntermediary() != null) {
+            predicates.add(isIntermediaryPredicate(builder, query, party));
         }
         if (cursorCreatedMs != null) {
             predicates.add(cursorPredicate(builder, party, cursorCreatedMs, cursorId));
@@ -344,6 +348,23 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         return builder.exists(matchingService);
     }
 
+    private static Predicate isIntermediaryPredicate(
+        CriteriaBuilder builder,
+        CriteriaQuery<?> query,
+        Root<WalletRelyingParty> party
+    ) {
+        ParameterExpression<Boolean> isIntermediary = builder.parameter(Boolean.class, IS_INTERMEDIARY_PARAMETER);
+        Subquery<Integer> matchingService = query.subquery(Integer.class);
+        Root<WalletRelyingPartyService> service = matchingService.from(WalletRelyingPartyService.class);
+        matchingService.select(builder.literal(1))
+            .where(
+                builder.equal(service.get("walletRelyingParty").get("id"), party.get("id")),
+                builder.isTrue(service.get("active")),
+                builder.equal(service.get("isIntermediary"), isIntermediary)
+            );
+        return builder.exists(matchingService);
+    }
+
     private static Predicate activeServicePredicate(
         CriteriaBuilder builder,
         CriteriaQuery<?> query,
@@ -390,6 +411,9 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         }
         if (criteria.usesIntermediary() != null) {
             query.setParameter(USES_INTERMEDIARY_PARAMETER, criteria.usesIntermediary());
+        }
+        if (criteria.isIntermediary() != null) {
+            query.setParameter(IS_INTERMEDIARY_PARAMETER, criteria.isIntermediary());
         }
     }
 }

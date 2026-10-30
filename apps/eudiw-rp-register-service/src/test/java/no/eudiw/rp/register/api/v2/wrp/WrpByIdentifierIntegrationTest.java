@@ -226,6 +226,16 @@ class WrpByIdentifierIntegrationTest {
             .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("usesIntermediary", " "))
             .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/wrp").param("isIntermediary", "TRUE"))
+            .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/wrp").param("isIntermediary", "not-a-boolean"))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().string(containsString("isIntermediary must be true or false")));
+        mockMvc.perform(get("/wrp").param("isIntermediary", "true", "not-a-boolean"))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().string(containsString("isIntermediary must be specified at most once")));
+        mockMvc.perform(get("/wrp").param("isintermediary", "true"))
+            .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("providedattestation", "https://schemas.example/payment"))
             .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("usesintermediary", "intermediary-service"))
@@ -618,6 +628,94 @@ class WrpByIdentifierIntegrationTest {
     }
 
     @Test
+    void filtersCollectionByIntermediaryFlagBeforeCursorPagination() throws Exception {
+        WalletRelyingParty firstIntermediary =
+            partyWithSearchData("Intermediary true A", "urn:example:intermediary-true-a", "Intermediary Alpha");
+        WalletRelyingPartyService firstIntermediaryService = firstIntermediary.getServices().getFirst();
+        firstIntermediaryService.setIntermediaryConfiguration(true, List.of(), List.of());
+        WalletRelyingPartyService secondIntermediaryService =
+            new WalletRelyingPartyService("Second intermediary service", firstIntermediary, List.of());
+        secondIntermediaryService.setIntermediaryConfiguration(true, List.of(), List.of());
+        firstIntermediary.setServices(List.of(firstIntermediaryService, secondIntermediaryService));
+
+        WalletRelyingParty secondIntermediary =
+            partyWithSearchData("Intermediary true B", "urn:example:intermediary-true-b", "Intermediary Beta");
+        secondIntermediary.getServices().getFirst().setIntermediaryConfiguration(true, List.of(), List.of());
+
+        WalletRelyingParty firstNonIntermediary =
+            partyWithSearchData("Intermediary false A", "urn:example:intermediary-false-a", "Regular Alpha");
+        WalletRelyingParty secondNonIntermediary =
+            partyWithSearchData("Intermediary false B", "urn:example:intermediary-false-b", "Regular Beta");
+
+        WalletRelyingParty inactiveIntermediary =
+            partyWithSearchData("Inactive intermediary", "urn:example:intermediary-inactive", "Inactive");
+        WalletRelyingPartyService inactiveService = inactiveIntermediary.getServices().getFirst();
+        inactiveService.setIntermediaryConfiguration(true, List.of(), List.of());
+        inactiveService.setActive(false);
+        WalletRelyingPartyService activeNonIntermediaryService =
+            new WalletRelyingPartyService("Active regular service", inactiveIntermediary, List.of());
+        inactiveIntermediary.setServices(List.of(inactiveService, activeNonIntermediaryService));
+
+        walletRelyingPartyRepository.saveAllAndFlush(List.of(
+            firstIntermediary,
+            secondIntermediary,
+            firstNonIntermediary,
+            secondNonIntermediary,
+            inactiveIntermediary
+        ));
+
+        JWSObject firstPage = getCollectionPage(1, null, Map.of("isIntermediary", "true"));
+        Map<?, ?> firstPagination = (Map<?, ?>) firstPage.getPayload().toJSONObject().get("pagination");
+        assertTrue((Boolean) firstPagination.get("has_next_page"));
+        JWSObject secondPage = getCollectionPage(
+            1, (String) firstPagination.get("next_cursor"), Map.of("isIntermediary", "true"));
+        Map<?, ?> secondPagination = (Map<?, ?>) secondPage.getPayload().toJSONObject().get("pagination");
+        assertFalse((Boolean) secondPagination.get("has_next_page"));
+        assertEquals(
+            Set.of("Intermediary true A", "Intermediary true B"),
+            Set.of(collectionTradeNames(firstPage).getFirst(), collectionTradeNames(secondPage).getFirst())
+        );
+        assertEquals(
+            Set.of("Intermediary false A", "Intermediary false B", "Inactive intermediary"),
+            Set.copyOf(collectionTradeNames(getCollectionPage(null, null, Map.of("isIntermediary", "false"))))
+        );
+        assertEquals(
+            List.of("Intermediary true A"),
+            collectionTradeNames(getCollectionPage(null, null, Map.of(
+                "isIntermediary", "true",
+                "legalName", "Intermediary Alpha"
+            )))
+        );
+
+        Map<?, ?> matchingWrp = (Map<?, ?>) ((List<?>) getCollectionPage(null, null, Map.of(
+            "isIntermediary", "true",
+            "legalName", "Intermediary Alpha"
+        )).getPayload().toJSONObject().get("data")).getFirst();
+        assertEquals(2, ((List<?>) matchingWrp.get("services")).size());
+    }
+
+    @Test
+    void matchesBothIntermediaryFlagsForMixedActiveServices() throws Exception {
+        WalletRelyingParty party =
+            partyWithSearchData("Mixed services", "urn:example:mixed-services", "Mixed Services");
+        WalletRelyingPartyService intermediary = party.getServices().getFirst();
+        intermediary.setIntermediaryConfiguration(true, List.of(), List.of());
+        WalletRelyingPartyService regular =
+            new WalletRelyingPartyService("Regular service", party, List.of());
+        regular.setIntermediaryConfiguration(false, List.of(), List.of());
+        party.setServices(List.of(intermediary, regular));
+        walletRelyingPartyRepository.saveAndFlush(party);
+
+        for (String flag : List.of("true", "false")) {
+            JWSObject page = getCollectionPage(null, null, Map.of("isIntermediary", flag));
+            assertEquals(List.of("Mixed services"), collectionTradeNames(page));
+            Map<?, ?> matchingWrp =
+                (Map<?, ?>) ((List<?>) page.getPayload().toJSONObject().get("data")).getFirst();
+            assertEquals(2, ((List<?>) matchingWrp.get("services")).size());
+        }
+    }
+
+    @Test
     void filtersCollectionByExactProvidedAttestationTypeBeforeCursorPagination() throws Exception {
         String attestationType = "https://schemas.example/attestations/payment";
         WalletRelyingParty firstMatch =
@@ -771,7 +869,8 @@ class WrpByIdentifierIntegrationTest {
             .andExpect(content().string(containsString("policy")))
             .andExpect(content().string(containsString("entitlement")))
             .andExpect(content().string(containsString("providedAttestation")))
-            .andExpect(content().string(containsString("usesIntermediary")));
+            .andExpect(content().string(containsString("usesIntermediary")))
+            .andExpect(content().string(containsString("isIntermediary")));
     }
 
     @Test

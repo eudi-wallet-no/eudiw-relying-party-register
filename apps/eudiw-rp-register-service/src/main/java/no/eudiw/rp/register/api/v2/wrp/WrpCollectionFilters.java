@@ -8,6 +8,7 @@ public record WrpCollectionFilters(
     String policy,
     String entitlement,
     String providedAttestation,
-    String usesIntermediary
+    String usesIntermediary,
+    Boolean isIntermediary
 ) {
 }
