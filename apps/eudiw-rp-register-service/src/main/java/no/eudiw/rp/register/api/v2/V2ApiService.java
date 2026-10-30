@@ -1,8 +1,5 @@
 package no.eudiw.rp.register.api.v2;
 
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.ConstraintViolationException;
-import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import no.eudiw.rp.register.api.v2.endpoints.entities.AccessCertificateRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.CertificateResponse;
@@ -14,8 +11,8 @@ import no.eudiw.rp.register.api.v2.endpoints.entities.IntendedUseReplacementResp
 import no.eudiw.rp.register.api.v2.endpoints.entities.IntendedUseResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.IssuerCertificateRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationDetailsResponse;
-import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationPatchRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationSummaryResponse;
+import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationUpdateRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyRequest;
@@ -48,10 +45,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
-
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.HashSet;
@@ -80,8 +73,6 @@ public class V2ApiService {
     private final EntitlementService entitlementService;
     private final RelyingPartyCertificateService certificateService;
     private final RelyingPartyService relyingPartyService;
-    private final ObjectMapper objectMapper;
-    private final Validator validator;
 
     public RelyingPartyResponse createRelyingParty(
         CreateRelyingPartyRequest request
@@ -224,9 +215,9 @@ public class V2ApiService {
         return toRegistrationDetails(findRelyingPartyInstance(relyingPartyInstanceId));
     }
 
-    public RegistrationDetailsResponse patchRegistration(
+    public RegistrationDetailsResponse updateRegistration(
         UUID relyingPartyInstanceId,
-        RegistrationPatchRequest request
+        RegistrationUpdateRequest request
     ) {
         walletRelyingPartyRepository.findByInstanceIdForUpdate(relyingPartyInstanceId)
             .orElseThrow(() -> new NotFoundException("RelyingPartyInstance not found"));
@@ -235,28 +226,9 @@ public class V2ApiService {
         WalletRelyingPartyService walletRelyingPartyService = relyingPartyInstance.getWalletRelyingPartyService();
         WalletRelyingParty relyingParty = walletRelyingPartyService.getWalletRelyingParty();
 
-        RelyingPartyRequest relyingPartyRequest = request.relyingParty() == null ? null : patchedRequest(
-            RelyingPartyRequest.from(
-                RelyingPartyResponse.from(relyingParty, registryProperties, supervisoryAuthorityProperties)),
-            request.relyingParty(), RelyingPartyRequest.class);
-        RelyingPartyServiceRequest relyingPartyServiceRequest = request.relyingPartyService() == null ? null
-            : patchedRequest(
-                RelyingPartyServiceRequest.from(RelyingPartyServiceResponse.from(walletRelyingPartyService)),
-                request.relyingPartyService(), RelyingPartyServiceRequest.class);
-        RelyingPartyInstanceRequest relyingPartyInstanceRequest = request.relyingPartyInstance() == null ? null
-            : patchedRequest(
-                RelyingPartyInstanceRequest.from(RelyingPartyInstanceResponse.from(relyingPartyInstance)),
-                request.relyingPartyInstance(), RelyingPartyInstanceRequest.class);
-
-        if (relyingPartyRequest != null) {
-            replaceRelyingParty(relyingParty, relyingPartyRequest);
-        }
-        if (relyingPartyServiceRequest != null) {
-            relyingPartyServiceRequest.update(walletRelyingPartyService);
-        }
-        if (relyingPartyInstanceRequest != null) {
-            replaceRelyingPartyInstance(relyingPartyInstance, relyingPartyInstanceRequest);
-        }
+        replaceRelyingParty(relyingParty, request.relyingParty());
+        request.relyingPartyService().update(walletRelyingPartyService);
+        replaceRelyingPartyInstance(relyingPartyInstance, request.relyingPartyInstance());
         walletRelyingPartyRepository.flush();
 
         return toRegistrationDetails(relyingPartyInstance);
@@ -457,28 +429,6 @@ public class V2ApiService {
 
         return RegistrationDetailsResponse.from(
             relyingPartyInstance, entitlementCatalog, registryProperties, supervisoryAuthorityProperties);
-    }
-
-    private <T> T patchedRequest(T currentRequest, ObjectNode suppliedProperties, Class<T> requestType) {
-        ObjectNode currentProperties = objectMapper.valueToTree(currentRequest);
-        ObjectNode mergedProperties = currentProperties.deepCopy();
-        mergedProperties.setAll(suppliedProperties);
-
-        T mergedRequest;
-        try {
-            mergedRequest = objectMapper.treeToValue(mergedProperties, requestType);
-        } catch (JacksonException exception) {
-            throw new BadRequestException("Registration patch contains invalid or unknown properties");
-        }
-
-        Set<ConstraintViolation<T>> violations = validator.validate(mergedRequest).stream()
-            .filter(violation -> RegistrationPatchRequest.concernsSuppliedProperty(
-                violation, suppliedProperties.propertyNames(), currentProperties.propertyNames()))
-            .collect(Collectors.toSet());
-        if (!violations.isEmpty()) {
-            throw new ConstraintViolationException(violations);
-        }
-        return mergedRequest;
     }
 
     private void replaceRelyingParty(WalletRelyingParty relyingParty, RelyingPartyRequest request) {

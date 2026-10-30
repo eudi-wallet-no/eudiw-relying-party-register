@@ -263,7 +263,7 @@ class V2ApiIntegrationTest {
             put(registration.relyingPartyInstancePath()), patch(registration.relyingPartyPath() + "/deactivate"),
             post(registration.intendedUsesPath()), patch(registration.intendedUsesPath() + "/" + UUID.randomUUID() + "/revoke"),
             post(registration.relyingPartyInstancePath() + "/certificates/access"),
-            patch(registration.registrationPath()))) {
+            put(registration.registrationPath()))) {
             if (!apiKey.isEmpty()) {
                 builder.header("X-API-KEY", apiKey);
             }
@@ -620,20 +620,25 @@ class V2ApiIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should replace supplied registration properties and keep omitted properties")
-    void shouldReplaceSuppliedRegistrationPropertiesAndKeepOmittedProperties() throws Exception {
+    @DisplayName("Should replace a registration across all resource levels")
+    void shouldReplaceRegistrationAcrossAllResourceLevels() throws Exception {
         Registration registration = createRegistration();
         read(put(registration.relyingPartyPath()), RELYING_PARTY);
+        ObjectNode relyingParty = (ObjectNode) objectMapper.readTree(RELYING_PARTY);
+        relyingParty.put("tradeName", "Patched party");
+        relyingParty.remove("email");
 
-        JsonNode details = read(patch(registration.registrationPath()), """
-            {"relyingParty":{"tradeName":"Patched party"},
-             "relyingPartyService":{"serviceTradeName":"Patched service","email":"service@example.test"},
-             "relyingPartyInstance":{"relyingPartyEaas":[{"namespace":"example","intent":"read"}]}}
-            """);
+        JsonNode details = read(put(registration.registrationPath()), registrationUpdateContent(
+            relyingParty.toString(),
+            RELYING_PARTY_SERVICE.replace("Test service", "Patched service")
+                .replace("\"serviceIdentifier\":\"service-1\",",
+                    "\"serviceIdentifier\":\"service-1\",\"email\":\"service@example.test\","),
+            RELYING_PARTY_INSTANCE.replace("\"relyingPartyEaas\":[]",
+                "\"relyingPartyEaas\":[{\"namespace\":\"example\",\"intent\":\"read\"}]")));
 
         assertAll(
             () -> assertEquals("Patched party", details.at("/relyingParty/tradeName").asString()),
-            () -> assertEquals("contact@example.test", details.at("/relyingParty/email/0").asString()),
+            () -> assertTrue(details.at("/relyingParty/email").isEmpty()),
             () -> assertEquals("Patched service", details.get("serviceTradeName").asString()),
             () -> assertEquals("service@example.test", details.at("/relyingPartyService/email").asString()),
             () -> assertEquals("service-1", details.at("/relyingPartyService/serviceIdentifier").asString()),
@@ -641,26 +646,48 @@ class V2ApiIntegrationTest {
             () -> assertEquals(details, read(get(registration.registrationPath()))));
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {
-        "{\"relyingPartyService\":{\"serviceTradeName\":null}}",
-        "{\"relyingPartyService\":{\"supportURI\":null}}",
-        "{\"relyingParty\":{\"unknown\":\"value\"}}",
-        "{\"relyingParty\":{\"tradeName\":\"Changed\"},\"relyingPartyInstance\":{\"relyingPartyEntitlements\":[{\"entitlement\":\"unknown\"}]}}"
-    })
-    @DisplayName("Should reject invalid registration patches without changing the registration")
-    void shouldRejectInvalidRegistrationPatchesWithoutChangingTheRegistration(String content) throws Exception {
+    @Test
+    @DisplayName("Should reject invalid registration replacements without changing the registration")
+    void shouldRejectInvalidRegistrationReplacementsWithoutChangingTheRegistration() throws Exception {
         Registration registration = createRegistration();
         JsonNode before = read(get(registration.registrationPath()));
+        ObjectNode update = (ObjectNode) objectMapper.readTree(registrationUpdateContent(
+            RELYING_PARTY, RELYING_PARTY_SERVICE, RELYING_PARTY_INSTANCE));
 
-        request(patch(registration.registrationPath()), content).andExpect(status().isBadRequest());
+        update.remove("relyingPartyInstance");
+        request(put(registration.registrationPath()), update.toString()).andExpect(status().isBadRequest());
+        assertEquals(before, read(get(registration.registrationPath())));
+
+        update = (ObjectNode) objectMapper.readTree(registrationUpdateContent(
+            RELYING_PARTY, RELYING_PARTY_SERVICE, RELYING_PARTY_INSTANCE));
+        ((ObjectNode) update.get("relyingPartyService")).putNull("serviceTradeName");
+        request(put(registration.registrationPath()), update.toString()).andExpect(status().isBadRequest());
+        assertEquals(before, read(get(registration.registrationPath())));
+
+        update = (ObjectNode) objectMapper.readTree(registrationUpdateContent(
+            RELYING_PARTY, RELYING_PARTY_SERVICE, RELYING_PARTY_INSTANCE));
+        ((ObjectNode) update.get("relyingPartyService")).putNull("supportURI");
+        request(put(registration.registrationPath()), update.toString()).andExpect(status().isBadRequest());
+        assertEquals(before, read(get(registration.registrationPath())));
+
+        update = (ObjectNode) objectMapper.readTree(registrationUpdateContent(
+            RELYING_PARTY.replace("Updated party", "Changed"), RELYING_PARTY_SERVICE, RELYING_PARTY_INSTANCE));
+        ((ObjectNode) update.get("relyingParty")).put("unknown", "value");
+        request(put(registration.registrationPath()), update.toString()).andExpect(status().isBadRequest());
+        assertEquals(before, read(get(registration.registrationPath())));
+
+        update = (ObjectNode) objectMapper.readTree(registrationUpdateContent(
+            RELYING_PARTY.replace("Updated party", "Changed"), RELYING_PARTY_SERVICE, RELYING_PARTY_INSTANCE));
+        ((ObjectNode) update.get("relyingPartyInstance"))
+            .set("relyingPartyEntitlements", objectMapper.readTree("[{\"entitlement\":\"unknown\"}]"));
+        request(put(registration.registrationPath()), update.toString()).andExpect(status().isBadRequest());
 
         assertEquals(before, read(get(registration.registrationPath())));
     }
 
     @Test
-    @DisplayName("Should update service name and roles of an older registration without the new fields")
-    void shouldUpdateServiceNameAndRolesOfAnOlderRegistrationWithoutTheNewFields() throws Exception {
+    @DisplayName("Should replace an older registration when the request supplies its missing required properties")
+    void shouldReplaceOlderRegistrationWhenRequestSuppliesMissingRequiredProperties() throws Exception {
         Registration registration = createRegistration();
         var relyingPartyService = relyingPartyServiceRepository
             .findById(UUID.fromString(registration.relyingPartyServiceId()))
@@ -668,49 +695,47 @@ class V2ApiIntegrationTest {
         relyingPartyService.setSrvDescription(null);
         relyingPartyService.setSupportUri(null);
         relyingPartyServiceRepository.saveAndFlush(relyingPartyService);
-        String entitlement = "urn:test:patch:" + UUID.randomUUID();
+        String entitlement = "urn:test:put:" + UUID.randomUUID();
         testEntitlement = entitlementRepository.saveAndFlush(new Entitlement(entitlement, true, "Issuer", "test-ca"));
 
-        JsonNode details = read(patch(registration.registrationPath()), """
-            {"relyingPartyService":{"serviceTradeName":"Renamed service"},
-             "relyingPartyInstance":{"relyingPartyEntitlements":[{"entitlement":"%s"}]}}
-            """.formatted(entitlement));
+        JsonNode update = objectMapper.readTree(registrationUpdateContent(
+            RELYING_PARTY,
+            RELYING_PARTY_SERVICE.replace("Test service", "Renamed service"),
+            "{\"relyingPartyEntitlements\":[{\"entitlement\":\"%s\"}],\"relyingPartyEaas\":[]}"
+                .formatted(entitlement)));
+        JsonNode details = read(put(registration.registrationPath()), update.toString());
 
         assertAll(
             () -> assertEquals("Renamed service", details.get("serviceTradeName").asString()),
             () -> assertEquals(entitlement, details.at("/relyingPartyEntitlements/0/entitlement").asString()),
-            () -> assertTrue(details.at("/relyingPartyService/srvDescription").isNull()),
-            () -> assertTrue(details.at("/relyingParty/identifier").isEmpty()));
+            () -> assertFalse(details.at("/relyingPartyService/srvDescription").isNull()),
+            () -> assertEquals("https://example.test/support",
+                details.at("/relyingPartyService/supportURI").asString()),
+            () -> assertEquals("NO-123",
+                details.at("/relyingParty/identifier/0/identifier").asString()));
     }
 
     @Test
-    @DisplayName("Should document nullable registration properties without changing replacement schemas")
-    void shouldDocumentNullableRegistrationPropertiesWithoutChangingReplacementSchemas() throws Exception {
+    @DisplayName("Should document all registration resources as required for replacement")
+    void shouldDocumentAllRegistrationResourcesAsRequiredForReplacement() throws Exception {
         JsonNode schemas = read(get("/v3/api-docs/V2")).at("/components/schemas");
+        JsonNode registrationUpdate = schemas.get("RegistrationUpdateRequest");
 
         assertAll(
-            () -> assertTrue(isNullable(schemas.at(
-                "/RegistrationPatchRequest/properties/relyingParty"))),
-            () -> assertTrue(isNullable(schemas.at(
-                "/RelyingPartyPatch/properties/tradeName"))),
-            () -> assertTrue(isNullable(schemas.at(
-                "/RelyingPartyPatch/properties/legalPerson"))),
-            () -> assertTrue(isNullable(schemas.at(
-                "/RelyingPartyServicePatch/properties/serviceIdentifier"))),
-            () -> assertFalse(isNullable(schemas.at(
-                "/RelyingPartyRequest/properties/legalPerson"))));
+            () -> assertTrue(hasRequiredProperty(registrationUpdate, "relyingParty")),
+            () -> assertTrue(hasRequiredProperty(registrationUpdate, "relyingPartyService")),
+            () -> assertTrue(hasRequiredProperty(registrationUpdate, "relyingPartyInstance")),
+            () -> assertEquals("#/components/schemas/RelyingPartyRequest",
+                registrationUpdate.at("/properties/relyingParty/$ref").asString()),
+            () -> assertEquals("#/components/schemas/RelyingPartyServiceRequest",
+                registrationUpdate.at("/properties/relyingPartyService/$ref").asString()),
+            () -> assertEquals("#/components/schemas/RelyingPartyInstanceRequest",
+                registrationUpdate.at("/properties/relyingPartyInstance/$ref").asString()));
     }
 
-    private boolean isNullable(JsonNode schema) {
-        for (JsonNode alternative : schema.path("anyOf")) {
-            JsonNode type = alternative.path("type");
-            if (type.isArray()) {
-                for (JsonNode value : type) {
-                    if ("null".equals(value.asString())) {
-                        return true;
-                    }
-                }
-            } else if ("null".equals(type.asString())) {
+    private boolean hasRequiredProperty(JsonNode schema, String propertyName) {
+        for (JsonNode property : schema.path("required")) {
+            if (propertyName.equals(property.asString())) {
                 return true;
             }
         }
@@ -725,6 +750,13 @@ class V2ApiIntegrationTest {
         String relyingPartyInstanceId = read(post("/v2/services/" + relyingPartyServiceId + "/instances"), RELYING_PARTY_INSTANCE)
             .get("id").asString();
         return new Registration(relyingPartyId, relyingPartyServiceId, relyingPartyInstanceId);
+    }
+
+    private String registrationUpdateContent(String relyingParty, String relyingPartyService,
+                                             String relyingPartyInstance) {
+        return """
+            {"relyingParty":%s,"relyingPartyService":%s,"relyingPartyInstance":%s}
+            """.formatted(relyingParty, relyingPartyService, relyingPartyInstance);
     }
 
     private ResultActions request(MockHttpServletRequestBuilder builder) throws Exception {

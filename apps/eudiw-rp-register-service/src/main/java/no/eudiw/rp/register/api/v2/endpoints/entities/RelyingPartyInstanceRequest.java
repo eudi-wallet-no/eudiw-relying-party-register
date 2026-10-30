@@ -17,13 +17,6 @@ public record RelyingPartyInstanceRequest(
     @JsonProperty(required = true) @NotNull List<@NotNull @Valid RelyingPartyEntitlementResource> relyingPartyEntitlements,
     @JsonProperty(required = true) @NotNull List<@NotNull @Valid RelyingPartyEaaResource> relyingPartyEaas
 ) {
-    public static RelyingPartyInstanceRequest from(RelyingPartyInstanceResponse relyingPartyInstance) {
-        return new RelyingPartyInstanceRequest(
-            relyingPartyInstance.relyingPartyEntitlements(),
-            relyingPartyInstance.relyingPartyEaas()
-        );
-    }
-
     public List<RelyingPartyEntitlement> toDomainRelyingPartyEntitlements() {
         if (relyingPartyEntitlements == null) {
             throw new BadRequestException("Entitlements should be empty if none exists");

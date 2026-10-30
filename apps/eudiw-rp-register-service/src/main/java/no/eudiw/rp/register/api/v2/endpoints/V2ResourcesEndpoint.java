@@ -17,8 +17,8 @@ import no.eudiw.rp.register.api.v2.endpoints.entities.IntendedUseReplacementResp
 import no.eudiw.rp.register.api.v2.endpoints.entities.IntendedUseResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.IssuerCertificateRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationDetailsResponse;
-import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationPatchRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationSummaryResponse;
+import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationUpdateRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyRequest;
@@ -210,18 +210,17 @@ public class V2ResourcesEndpoint {
 
     @Operation(
         summary = "Update a registration",
-        description = "Updates the registration's party, service and instance in one operation. "
-            + "Omitted properties are unchanged."
+        description = "Replaces the registration's party, service and instance in one operation."
     )
     @Audit(auditId = AUDIT_REGISTRATION_UPDATED)
-    @PatchMapping(path = "/registrations/{id}", consumes = MediaType.APPLICATION_JSON_VALUE,
+    @PutMapping(path = "/registrations/{id}", consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
-    public RegistrationDetailsResponse patchRegistration(
+    public RegistrationDetailsResponse updateRegistration(
         @Parameter(description = "RelyingPartyInstance identifier")
         @PathVariable("id") UUID relyingPartyInstanceId,
-        @RequestBody RegistrationPatchRequest request
+        @Valid @RequestBody RegistrationUpdateRequest request
     ) {
-        return v2ApiService.patchRegistration(relyingPartyInstanceId, request);
+        return v2ApiService.updateRegistration(relyingPartyInstanceId, request);
     }
 
     @Operation(

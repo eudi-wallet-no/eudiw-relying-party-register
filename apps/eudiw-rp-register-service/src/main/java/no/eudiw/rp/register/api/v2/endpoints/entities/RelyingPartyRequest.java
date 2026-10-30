@@ -33,22 +33,6 @@ public record RelyingPartyRequest(
         return infoURI == null || infoURI.stream().allMatch(V2ResourceValidation::isAbsoluteUri);
     }
 
-    public static RelyingPartyRequest from(RelyingPartyResponse relyingParty) {
-        return new RelyingPartyRequest(
-            relyingParty.tradeName(),
-            relyingParty.isPSB(),
-            relyingParty.country(),
-            relyingParty.legalPerson(),
-            relyingParty.identifier(),
-            relyingParty.policy(),
-            relyingParty.x5c(),
-            relyingParty.postalAddress(),
-            relyingParty.email(),
-            relyingParty.phone(),
-            relyingParty.infoURI()
-        );
-    }
-
     public void update(WalletRelyingParty relyingParty) {
         relyingParty.setTradeName(tradeName);
         relyingParty.setPSB(isPSB);
