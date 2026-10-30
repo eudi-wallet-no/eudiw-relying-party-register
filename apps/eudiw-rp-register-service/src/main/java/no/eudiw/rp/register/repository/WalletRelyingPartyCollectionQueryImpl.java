@@ -34,6 +34,7 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
     private static final String POLICY_PARAMETER = "policy";
     private static final String INTENDED_USE_IDENTIFIER_PARAMETER = "intendedUseIdentifier";
     private static final String CLAIM_PATH_PARAMETER = "claimPath";
+    private static final String CREDENTIAL_META_PARAMETER = "credentialMeta";
     private static final String ENTITLEMENT_PARAMETER = "entitlement";
     private static final String PROVIDED_ATTESTATION_PARAMETER = "providedAttestation";
     private static final String USES_INTERMEDIARY_PARAMETER = "usesIntermediary";
@@ -100,6 +101,9 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         }
         if (criteria.claimPath() != null) {
             predicates.add(claimPathElementPredicate(builder, query, party));
+        }
+        if (criteria.credentialMeta() != null) {
+            predicates.add(credentialMetaPredicate(builder, query, party));
         }
         if (criteria.entitlement() != null) {
             predicates.add(entitlementPredicate(builder, query, party));
@@ -285,6 +289,37 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         return builder.exists(matchingClaimPath);
     }
 
+    private static Predicate credentialMetaPredicate(
+        CriteriaBuilder builder,
+        CriteriaQuery<?> query,
+        Root<WalletRelyingParty> party
+    ) {
+        ParameterExpression<String> credentialMeta = builder.parameter(String.class, CREDENTIAL_META_PARAMETER);
+        var vctValuesCandidate = builder.function(
+            "JSON_OBJECT",
+            String.class,
+            builder.literal("vct_values"),
+            builder.function("JSON_ARRAY", String.class, credentialMeta)
+        );
+        var doctypeCandidate = builder.function("JSON_OBJECT", String.class, builder.literal("doctype"), credentialMeta);
+        Subquery<Integer> matchingCredentialMeta = query.subquery(Integer.class);
+        Root<WalletRelyingPartyService> service = matchingCredentialMeta.from(WalletRelyingPartyService.class);
+        Join<WalletRelyingPartyService, IntendedUse> intendedUse = service.join("intendedUses", JoinType.INNER);
+        Join<IntendedUse, Credential> credential = intendedUse.join("credentials", JoinType.INNER);
+        var containsVctValue = builder.function("JSON_CONTAINS", Integer.class, credential.get("meta"), vctValuesCandidate);
+        var containsDoctype = builder.function("JSON_CONTAINS", Integer.class, credential.get("meta"), doctypeCandidate);
+        matchingCredentialMeta.select(builder.literal(1))
+            .where(
+                builder.equal(service.get("walletRelyingParty").get("id"), party.get("id")),
+                builder.isTrue(service.get("active")),
+                builder.or(
+                    builder.equal(containsVctValue, 1),
+                    builder.equal(containsDoctype, 1)
+                )
+            );
+        return builder.exists(matchingCredentialMeta);
+    }
+
     private static Predicate entitlementPredicate(
         CriteriaBuilder builder,
         CriteriaQuery<?> query,
@@ -462,6 +497,9 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         }
         if (criteria.claimPath() != null) {
             query.setParameter(CLAIM_PATH_PARAMETER, criteria.claimPath());
+        }
+        if (criteria.credentialMeta() != null) {
+            query.setParameter(CREDENTIAL_META_PARAMETER, criteria.credentialMeta());
         }
         if (criteria.entitlement() != null) {
             query.setParameter(ENTITLEMENT_PARAMETER, criteria.entitlement());
