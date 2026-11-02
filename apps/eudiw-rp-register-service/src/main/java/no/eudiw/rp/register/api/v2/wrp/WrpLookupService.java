@@ -79,7 +79,9 @@ public class WrpLookupService {
             parties.stream().map(WalletRelyingParty::getId).toList()
         );
         List<WalletRelyingPartyResource> data = parties.stream()
-            .map(party -> toResource(party, entitlementsByService))
+            .map(party -> WalletRelyingPartyResource.from(
+                party, entitlementsByService, supervisoryAuthorityProperties, wrpApiProperties,
+                filters.serviceIdentifier()))
             .toList();
         String nextCursor = hasNextPage
             ? encodeCursor(parties.getLast().getCreatedMs(), parties.getLast().getId())

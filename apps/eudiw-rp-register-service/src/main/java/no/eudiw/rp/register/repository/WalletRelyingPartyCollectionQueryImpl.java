@@ -186,7 +186,17 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
     ) {
         ParameterExpression<String> serviceIdentifier =
             builder.parameter(String.class, SERVICE_IDENTIFIER_PARAMETER);
-        return activeServicePredicate(builder, query, party, "serviceIdentifier", serviceIdentifier);
+        Subquery<Integer> matchingService = query.subquery(Integer.class);
+        Root<WalletRelyingPartyService> service = matchingService.from(WalletRelyingPartyService.class);
+        var storedIdentifier = builder.function("BINARY", String.class, service.get("serviceIdentifier"));
+        var requestedIdentifier = builder.function("BINARY", String.class, serviceIdentifier);
+        matchingService.select(builder.literal(1))
+            .where(
+                builder.equal(service.get("walletRelyingParty").get("id"), party.get("id")),
+                builder.isTrue(service.get("active")),
+                builder.equal(storedIdentifier, requestedIdentifier)
+            );
+        return builder.exists(matchingService);
     }
 
     private static Predicate tradeNamePredicate(
