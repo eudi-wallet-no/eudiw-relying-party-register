@@ -35,6 +35,7 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
     private static final String INTENDED_USE_IDENTIFIER_PARAMETER = "intendedUseIdentifier";
     private static final String CLAIM_PATH_PARAMETER = "claimPath";
     private static final String CREDENTIAL_META_PARAMETER = "credentialMeta";
+    private static final String CREDENTIAL_FORMAT_PARAMETER = "credentialFormat";
     private static final String ENTITLEMENT_PARAMETER = "entitlement";
     private static final String PROVIDED_ATTESTATION_PARAMETER = "providedAttestation";
     private static final String USES_INTERMEDIARY_PARAMETER = "usesIntermediary";
@@ -104,6 +105,9 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         }
         if (criteria.credentialMeta() != null) {
             predicates.add(credentialMetaPredicate(builder, query, party));
+        }
+        if (criteria.credentialFormat() != null) {
+            predicates.add(credentialFormatPredicate(builder, query, party));
         }
         if (criteria.entitlement() != null) {
             predicates.add(entitlementPredicate(builder, query, party));
@@ -320,6 +324,28 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         return builder.exists(matchingCredentialMeta);
     }
 
+    private static Predicate credentialFormatPredicate(
+        CriteriaBuilder builder,
+        CriteriaQuery<?> query,
+        Root<WalletRelyingParty> party
+    ) {
+        ParameterExpression<String> credentialFormat =
+            builder.parameter(String.class, CREDENTIAL_FORMAT_PARAMETER);
+        Subquery<Integer> matchingCredentialFormat = query.subquery(Integer.class);
+        Root<WalletRelyingPartyService> service = matchingCredentialFormat.from(WalletRelyingPartyService.class);
+        Join<WalletRelyingPartyService, IntendedUse> intendedUse = service.join("intendedUses", JoinType.INNER);
+        Join<IntendedUse, Credential> credential = intendedUse.join("credentials", JoinType.INNER);
+        var storedFormat = builder.function("BINARY", String.class, credential.get("format"));
+        var requestedFormat = builder.function("BINARY", String.class, credentialFormat);
+        matchingCredentialFormat.select(builder.literal(1))
+            .where(
+                builder.equal(service.get("walletRelyingParty").get("id"), party.get("id")),
+                builder.isTrue(service.get("active")),
+                builder.equal(storedFormat, requestedFormat)
+            );
+        return builder.exists(matchingCredentialFormat);
+    }
+
     private static Predicate entitlementPredicate(
         CriteriaBuilder builder,
         CriteriaQuery<?> query,
@@ -500,6 +526,9 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         }
         if (criteria.credentialMeta() != null) {
             query.setParameter(CREDENTIAL_META_PARAMETER, criteria.credentialMeta());
+        }
+        if (criteria.credentialFormat() != null) {
+            query.setParameter(CREDENTIAL_FORMAT_PARAMETER, criteria.credentialFormat());
         }
         if (criteria.entitlement() != null) {
             query.setParameter(ENTITLEMENT_PARAMETER, criteria.entitlement());
