@@ -553,6 +553,7 @@
             <form th:action="@{|/admin/status/${relyingPartyResource.id}|}" method="post"
                   th:classappend="${relyingPartyResource.active ? 'confirm-deactivation' : ''}">
                 <input type="hidden" name="active" th:value="${!relyingPartyResource.active}">
+                <input type="hidden" name="returnUrl" th:value="${searchUrlAttr}">
                 <button type="submit" class="ds-button"
                         th:attr="data-variant=${relyingPartyResource.active ? 'secondary' : 'primary'},
                                  data-color=${relyingPartyResource.active ? 'danger' : null}"

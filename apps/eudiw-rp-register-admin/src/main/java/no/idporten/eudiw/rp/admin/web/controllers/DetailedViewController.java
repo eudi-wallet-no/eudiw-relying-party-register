@@ -59,7 +59,11 @@ public class DetailedViewController {
             DETAILED_VIEW_DATA_ATTR, relyingPartyResource,
             ACCESS_CERTIFICATE_SUMMARIES_ATTR, accessCertificates,
             ISSUER_CERTIFICATE_SUMMARIES_ATTR, issuerCertificates,
-            "searchUrlAttr", returnUrl.equals("/search") || returnUrl.startsWith("/search?") ? returnUrl : "/search")
+            "searchUrlAttr", validSearchUrl(returnUrl))
         );
+    }
+
+    static String validSearchUrl(String returnUrl) {
+        return returnUrl != null && (returnUrl.equals("/search") || returnUrl.startsWith("/search?")) ? returnUrl : "/search";
     }
 }

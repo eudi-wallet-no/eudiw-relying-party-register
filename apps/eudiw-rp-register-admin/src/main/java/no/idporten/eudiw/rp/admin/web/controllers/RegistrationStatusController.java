@@ -13,7 +13,9 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.UUID;
 
@@ -30,7 +32,8 @@ public class RegistrationStatusController {
     public ModelAndView updateStatus(
         @PathVariable UUID id,
         @ModelAttribute @Valid RegistrationStatusForm form,
-        @AuditIgnore BindingResult bindingResult
+        @AuditIgnore BindingResult bindingResult,
+        @RequestParam(defaultValue = "/search") String returnUrl
     ) {
         userAuthorityService.assertUserHasAdminAuthority();
         var registration = relyingPartiesService.get(id);
@@ -39,6 +42,11 @@ public class RegistrationStatusController {
         if (!bindingResult.hasErrors() && form.getActive() != registration.active()) {
             relyingPartiesService.updateInstanceStatus(registration.id(), form.getActive());
         }
-        return new ModelAndView("redirect:/details/" + registration.id());
+        String detailsUrl = UriComponentsBuilder.fromPath("/details/{id}")
+            .queryParam("returnUrl", "{returnUrl}")
+            .encode()
+            .buildAndExpand(registration.id(), DetailedViewController.validSearchUrl(returnUrl))
+            .toUriString();
+        return new ModelAndView("redirect:" + detailsUrl);
     }
 }

@@ -140,6 +140,20 @@ class RegistrationWorkflowTests {
 
         URI returnLink = navigationLink(detailsHtml, "/search", "page=2");
         assertEquals(originalSearch, returnLink);
+
+        enqueueLookup();
+        expectedRequests.add("PATCH /v2/instances/" + secondInstanceId + "/deactivate");
+        server.enqueue(new MockResponse().setResponseCode(204));
+        String redirect = mockMvc.perform(post("/admin/status/" + secondInstanceId).with(login(true)).with(csrf())
+                .param("active", "false").param("returnUrl", originalSearch.toString()))
+            .andExpect(status().is3xxRedirection())
+            .andReturn().getResponse().getRedirectedUrl();
+        relyingPartyResource = relyingPartyResource.withActive(false);
+        enqueueLookup();
+        detailsHtml = mockMvc.perform(get(URI.create(redirect)).with(login(true)))
+            .andExpect(status().isOk())
+            .andReturn().getResponse().getContentAsString();
+        assertEquals(originalSearch, navigationLink(detailsHtml, "/search", "page=2"));
         enqueueSearchPage(1, "name", secondInstanceId, "Second service");
         mockMvc.perform(get(returnLink).with(login(true)))
             .andExpectAll(status().isOk(), content().string(containsString("<div>Second service</div>")));
@@ -335,7 +349,7 @@ class RegistrationWorkflowTests {
         server.enqueue(new MockResponse().setResponseCode(204));
         mockMvc.perform(post("/admin/status/" + relyingPartyResource.id()).with(login(true)).with(csrf())
                 .param("active", Boolean.toString(active)))
-            .andExpectAll(status().is3xxRedirection(), redirectedUrl("/details/" + relyingPartyResource.id()));
+            .andExpectAll(status().is3xxRedirection(), redirectedUrl("/details/" + relyingPartyResource.id() + "?returnUrl=%2Fsearch"));
 
         relyingPartyResource = relyingPartyResource.withActive(active);
         enqueueLookup();
@@ -353,15 +367,16 @@ class RegistrationWorkflowTests {
         enqueueLookup();
         mockMvc.perform(post("/admin/status/" + relyingPartyResource.id()).with(login(true)).with(csrf())
                 .param("active", Boolean.toString(active)))
-            .andExpectAll(status().is3xxRedirection(), redirectedUrl("/details/" + relyingPartyResource.id()));
+            .andExpectAll(status().is3xxRedirection(), redirectedUrl("/details/" + relyingPartyResource.id() + "?returnUrl=%2Fsearch"));
     }
 
     @Test
     @DisplayName("Should not change status when no status is selected")
     void shouldNotChangeStatusWhenNoStatusIsSelected() throws Exception {
         enqueueLookup();
-        mockMvc.perform(post("/admin/status/" + relyingPartyResource.id()).with(login(true)).with(csrf()))
-            .andExpectAll(status().is3xxRedirection(), redirectedUrl("/details/" + relyingPartyResource.id()));
+        mockMvc.perform(post("/admin/status/" + relyingPartyResource.id()).with(login(true)).with(csrf())
+                .param("returnUrl", "https://example.com/search"))
+            .andExpectAll(status().is3xxRedirection(), redirectedUrl("/details/" + relyingPartyResource.id() + "?returnUrl=%2Fsearch"));
     }
 
     @Test
