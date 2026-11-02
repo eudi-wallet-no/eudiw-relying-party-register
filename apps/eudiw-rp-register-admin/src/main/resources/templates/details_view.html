@@ -29,9 +29,14 @@
             </a>
         </p>
 
-        <h1 class="ds-heading" data-size="lg">
-            Detaljar for brukarstad: <span th:text="${relyingPartyResource.tradeName}"/>
-        </h1>
+        <div class="registration-title">
+            <h1 class="ds-heading break-word" data-size="lg">
+                Detaljar for brukarstad: <span th:text="${relyingPartyResource.tradeName}"/>
+            </h1>
+            <span class="status-badge"
+                  th:classappend="${relyingPartyResource.active ? 'status-badge-success' : 'status-badge-danger'}"
+                  th:text="${relyingPartyResource.active ? 'Aktiv' : 'Inaktiv'}"></span>
+        </div>
 
         <nav id="tabs_container">
             <a href="#about" class="tab" data-size="lg">
@@ -72,5 +77,6 @@
 
 <script th:src="@{/js/simple_tabs.js}"></script>
 <script th:src="@{/js/confirm_revocation.js}"></script>
+<script th:src="@{/js/confirm_deactivation.js}"></script>
 </body>
 </html>

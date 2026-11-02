@@ -65,6 +65,10 @@ public class RelyingPartiesService {
         return v2RegisterClient.getRelyingParty(id);
     }
 
+    public void updateInstanceStatus(UUID instanceId, boolean active) {
+        v2RegisterClient.updateInstanceStatus(instanceId, active);
+    }
+
     public RelyingPartyCertificateResource getAccessCertificate(
         UUID relyingPartyId, UUID certificateId) {
         return v2CertificateClient.getAccessCertificate(relyingPartyId, certificateId);

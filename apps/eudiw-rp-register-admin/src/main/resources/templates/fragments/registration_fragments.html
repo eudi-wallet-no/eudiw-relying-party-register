@@ -1,0 +1,10 @@
+<div th:fragment="card_heading(title, editUrl)" class="registration-card-heading">
+    <h2 class="ds-heading" data-size="md" th:text="${title}"></h2>
+    <a th:if="${editUrl != null}"
+       th:href="${editUrl}"
+       th:aria-label="|Rediger ${title.toLowerCase()}|"
+       class="ds-button"
+       data-variant="secondary">
+        Rediger
+    </a>
+</div>

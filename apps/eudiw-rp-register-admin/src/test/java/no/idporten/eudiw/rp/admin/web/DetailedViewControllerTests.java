@@ -161,9 +161,9 @@ public class DetailedViewControllerTests {
                 () -> assertTrue(response.contains("en: Service description")),
                 () -> assertTrue(response.contains("pid-verification")),
                 () -> assertTrue(response.contains("Verify identity")),
-                () -> assertTrue(response.contains("<h2 class=\"ds-heading\">Føremål</h2>")
-                    && response.indexOf("<h2 class=\"ds-heading\">Føremål</h2>")
-                    < response.indexOf("<h2 class=\"ds-heading\">Roller og bevistypar</h2>")),
+                () -> assertTrue(response.contains("<td>1 aktive</td>")),
+                () -> assertTrue(response.matches("(?s).*Generelt</h2>.*Brukarstad</h2>.*Teneste</h2>"
+                    + ".*Føremål</h2>.*Roller og bevistypar</h2>.*")),
                 () -> assertTrue(response.contains("dc+sd-jwt")),
                 () -> assertTrue(response.contains("Aktiv")),
                 () -> assertTrue(response.contains("Revokert")));
