@@ -1,6 +1,7 @@
 package no.idporten.eudiw.rp.admin.web.form;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.Setter;
 import no.idporten.eudiw.rp.admin.integrations.registerservice.V2RegisterClient;
@@ -15,6 +16,7 @@ public class RelyingPartyInformationForm {
     private String tradeName;
 
     @NotBlank(message = "Skriv inn land.")
+    @Pattern(regexp = "[A-Z]{2}", message = "Skriv inn ein landskode med to store bokstavar.")
     private String country;
 
     private String postalAddress;

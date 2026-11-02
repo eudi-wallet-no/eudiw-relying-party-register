@@ -316,9 +316,12 @@ class V2ApiIntegrationTest {
             read(get(registration.relyingPartyServicePath())), read(get(registration.relyingPartyInstancePath())));
 
         for (String content : List.of("{", "{}", RELYING_PARTY.replace("\"identifier\":[{\"type\":\"EUID\",\"identifier\":\"NO-123\"}]", "\"identifier\":[]"),
-            RELYING_PARTY.replace("\"establishedByLaw\":[]", "\"establishedByLaw\":[null]"))) {
+            RELYING_PARTY.replace("\"establishedByLaw\":[]", "\"establishedByLaw\":[null]"),
+            RELYING_PARTY.replace("\"country\":\"NO\"", "\"country\":\"Noreg\""))) {
             request(put(registration.relyingPartyPath()), content).andExpect(status().isBadRequest());
         }
+        request(patch(registration.informationPath()), "{\"country\":\"Noreg\"}")
+            .andExpect(status().isBadRequest());
         request(put(registration.relyingPartyServicePath()),
             RELYING_PARTY_SERVICE.replace("https://example.test/support", "invalid URI"))
             .andExpect(status().isBadRequest()).andExpect(jsonPath("$.error_description").isNotEmpty());

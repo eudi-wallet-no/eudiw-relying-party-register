@@ -477,6 +477,19 @@ class RegistrationWorkflowTests {
                     containsString("href=\"#country\""), containsString("autofocus"))));
     }
 
+    @Test
+    @DisplayName("Should show a field error when the country code is invalid")
+    void shouldShowFieldErrorWhenCountryCodeIsInvalid() throws Exception {
+        enqueueLookup();
+        enqueueRelyingParty("Original alias");
+        mockMvc.perform(post("/relying-party/edit/" + relyingPartyResource.id()).with(login(false)).with(csrf())
+                .param("tradeName", "New alias").param("country", "Noreg"))
+            .andExpectAll(status().isOk(), view().name("relying_party_information_form_view"),
+                content().string(allOf(containsString("New alias"),
+                    containsString("Skriv inn ein landskode med to store bokstavar."),
+                    containsString("aria-invalid=\"true\""), containsString("aria-describedby=\"country-error\""))));
+    }
+
 
     @ParameterizedTest
     @ValueSource(strings = {"GET", "POST"})

@@ -515,7 +515,8 @@
             <td th:unless="${editingRelyingParty}" th:text="${relyingPartyResource.relyingParty?.country == null ? 'Ikkje registrert.' : relyingPartyResource.relyingParty.country}"></td>
             <td th:if="${editingRelyingParty}">
                 <label for="country" class="ds-sr-only">Land</label>
-                <input id="country" th:field="*{country}" class="ds-input" type="text" required
+                <input id="country" th:field="*{country}" class="ds-input" type="text" required maxlength="2"
+                       pattern="[A-Z]{2}" title="Skriv inn ein landskode med to store bokstavar."
                        th:aria-invalid="${#fields.hasErrors('country')}"
                        th:aria-describedby="${#fields.hasErrors('country') ? 'country-error' : null}">
                 <p id="country-error" th:if="${#fields.hasErrors('country')}" th:errors="*{country}"
