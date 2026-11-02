@@ -1,6 +1,7 @@
 package no.idporten.eudiw.rp.admin.integrations.registerservice;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyEaaResource;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificateResource;
 import no.idporten.eudiw.rp.admin.service.exception.NotFoundException;
@@ -110,6 +111,33 @@ public class V2RegisterClient {
             .uri("/instances/{id}/{action}", instanceId, active ? "activate" : "deactivate")
             .retrieve()
             .toBodilessEntity();
+    }
+
+    public RelyingParty getRelyingPartyInformation(UUID relyingPartyId) {
+        return restClient.get()
+            .uri("/relying-parties/{id}", relyingPartyId)
+            .retrieve()
+            .body(RelyingParty.class);
+    }
+
+    public void updateRelyingPartyInformation(UUID relyingPartyId, RelyingPartyInformation information) {
+        restClient.patch()
+            .uri("/relying-parties/{id}", relyingPartyId)
+            .body(information)
+            .retrieve()
+            .toBodilessEntity();
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record RelyingParty(UUID id, String orgno, String tradeName, String country,
+                        boolean isPSB, RelyingPartyResource.LegalPersonDetails legalPerson,
+                        List<String> postalAddress, List<String> email, List<String> phone,
+                        @JsonProperty("infoURI") List<String> informationUri) {
+    }
+
+    public record RelyingPartyInformation(String tradeName, String country, List<String> postalAddress,
+                                        List<String> email, List<String> phone,
+                                        @JsonProperty("infoURI") List<String> informationUri) {
     }
 
     public List<Entitlement> getEntitlements(boolean includeInactive) {

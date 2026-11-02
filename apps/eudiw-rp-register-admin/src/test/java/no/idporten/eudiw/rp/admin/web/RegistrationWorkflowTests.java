@@ -67,6 +67,7 @@ class RegistrationWorkflowTests {
     private RelyingPartyResource relyingPartyResource;
     private String expectedUpdatedServiceName;
     private int initialRequestCount;
+    private String expectedRelyingPartyAlias;
 
     @BeforeEach
     void setUp() {
@@ -90,7 +91,9 @@ class RegistrationWorkflowTests {
             1700000000000L,
             1710000000000L,
             true,
-            null,
+            new RelyingPartyResource.RelyingPartyDetails("Original alias", "NO", "WalletRelyingParty",
+                new RelyingPartyResource.LegalPersonDetails(List.of("Legal name"), List.of()),
+                List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), null, null),
             null,
             List.of(),
             relyingPartyId,
@@ -110,6 +113,10 @@ class RegistrationWorkflowTests {
                     jsonMapper.readTree(request.getBody().readUtf8())
                         .get("name")
                         .asString());
+            }
+            if (expectedRelyingPartyAlias != null && "PATCH".equals(request.getMethod())) {
+                assertEquals(jsonMapper.readTree(expectedRelyingPartyAlias),
+                    jsonMapper.readTree(request.getBody().readUtf8()));
             }
         }
         assertEquals(initialRequestCount + expectedRequests.size(), server.getRequestCount(),
@@ -414,6 +421,80 @@ class RegistrationWorkflowTests {
             }
         }
         throw new AssertionError("Missing " + path + " link with " + parameter);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    @DisplayName("Should save trade name and country and keep lists with several values unchanged")
+    void shouldSaveTradeNameAndCountryAndKeepListsWithSeveralValuesUnchanged(boolean administrator) throws Exception {
+        relyingPartyResource = relyingPartyResource.withActive(false);
+        enqueueLookup();
+        String html = mockMvc.perform(get("/details/" + relyingPartyResource.id()).with(login(administrator)))
+            .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        URI editLink = navigationLink(html, "/relying-party/edit/" + relyingPartyResource.id(), "returnUrl=");
+        enqueueLookup();
+        enqueueRelyingParty("Original alias");
+        mockMvc.perform(get(editLink).with(login(administrator)))
+            .andExpectAll(status().isOk(), view().name("relying_party_information_form_view"),
+                content().string(allOf(containsString("Original alias"), containsString("Legal name"),
+                    containsString("alle tenestene"), containsString("Postboks 1"), containsString("0100 Oslo"),
+                    not(containsString("name=\"postalAddress\"")), containsString("name=\"email\""),
+                    containsString("post@example.test"), not(containsString("name=\"legalName\"")),
+                    not(containsString("name=\"isPSB\"")))));
+        enqueueLookup();
+        enqueueRelyingParty("Original alias");
+        expectedRelyingPartyAlias = """
+            {"tradeName":"Digdir","country":"SE","postalAddress":null,"email":[],
+             "phone":["+4711111111"],"infoURI":["https://digdir.no"]}
+            """;
+        enqueue("PATCH", "/v2/relying-parties/" + relyingPartyId, "{}");
+        String redirect = mockMvc.perform(post(editLink).with(login(administrator)).with(csrf())
+                .param("tradeName", " Digdir ").param("country", "SE")
+                .param("postalAddress", " Postboks 2 ").param("email", "")
+                .param("phone", "+4711111111").param("informationUri", "https://digdir.no")
+                .param("isPSB", "true").param("legalName", "Changed").param("orgno", "987654321"))
+            .andExpect(status().is3xxRedirection()).andReturn().getResponse().getRedirectedUrl();
+        relyingPartyResource = relyingPartyResource.withRelyingParty(
+            new RelyingPartyResource.RelyingPartyDetails("Digdir", "SE", "WalletRelyingParty",
+                new RelyingPartyResource.LegalPersonDetails(List.of("Legal name"), List.of()),
+                List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), null, null));
+        enqueueLookup();
+        mockMvc.perform(get(URI.create(redirect)).with(login(administrator)))
+            .andExpectAll(status().isOk(), content().string(allOf(
+                containsString("Digdir"), containsString("Legal name"), containsString("Service name"))));
+    }
+
+    @Test
+    @DisplayName("Should keep entered values and show an error when a required field is missing")
+    void shouldKeepEnteredValuesAndShowErrorWhenCountryIsMissing() throws Exception {
+        enqueueLookup();
+        enqueueRelyingParty("Original alias");
+        mockMvc.perform(post("/relying-party/edit/" + relyingPartyResource.id()).with(login(false)).with(csrf())
+                .param("tradeName", "New alias").param("country", " "))
+            .andExpectAll(status().isOk(), view().name("relying_party_information_form_view"),
+                content().string(allOf(containsString("New alias"), containsString("Skriv inn land."),
+                    containsString("aria-invalid=\"true\""), containsString("aria-describedby=\"country-error\""),
+                    containsString("href=\"#country\""), containsString("autofocus"))));
+    }
+
+
+    @ParameterizedTest
+    @ValueSource(strings = {"GET", "POST"})
+    @DisplayName("Should deny editing a relying party that belongs to another organization")
+    void shouldDenyEditingRelyingPartyForAnotherOrganization(String method) throws Exception {
+        enqueueLookup();
+        var request = method.equals("GET") ? get("/relying-party/edit/" + relyingPartyResource.id())
+            : post("/relying-party/edit/" + relyingPartyResource.id()).with(csrf()).param("country", "NO");
+        mockMvc.perform(request.with(SecurityTestUtils.oidcLoginForOrgno("987654321")))
+            .andExpectAll(status().isNotFound(), view().name("error/404"));
+    }
+
+
+    private void enqueueRelyingParty(String alias) {
+        enqueue("GET", "/v2/relying-parties/" + relyingPartyId, new V2RegisterClient.RelyingParty(
+            relyingPartyId, relyingPartyResource.orgno(), alias, "NO", false,
+            new RelyingPartyResource.LegalPersonDetails(List.of("Legal name"), List.of()),
+            List.of("Postboks 1", "0100 Oslo"), List.of("post@example.test"), List.of(), List.of("https://example.test")));
     }
 
     private RequestPostProcessor login(boolean administrator) {

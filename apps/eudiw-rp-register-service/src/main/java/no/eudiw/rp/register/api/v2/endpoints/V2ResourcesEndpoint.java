@@ -15,6 +15,7 @@ import no.eudiw.rp.register.api.v2.endpoints.entities.CreateRelyingPartyRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.EntitlementsResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.IntendedUseReplacementResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.IntendedUseResponse;
+import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInformationRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.IssuerCertificateRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationDetailsResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationSummaryResponse;
@@ -73,10 +74,10 @@ public class V2ResourcesEndpoint {
 
     @Operation(
         summary = "Create a RelyingParty",
-        description = "Returns 400 if the organization number already exists; find it with GET /v2/parties?orgno={orgno}."
+        description = "Returns 400 if the organization number already exists; find it with GET /v2/relying-parties?orgno={orgno}."
     )
     @Audit(auditId = AUDIT_PARTY_CREATED)
-    @PostMapping(path = "/parties", consumes = MediaType.APPLICATION_JSON_VALUE,
+    @PostMapping(path = "/relying-parties", consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<RelyingPartyResponse> createRelyingParty(
         @Valid @RequestBody CreateRelyingPartyRequest request
@@ -85,13 +86,13 @@ public class V2ResourcesEndpoint {
     }
 
     @Operation(summary = "Get a RelyingParty")
-    @GetMapping(path = "/parties/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/relying-parties/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public RelyingPartyResponse getRelyingParty(@PathVariable("id") UUID relyingPartyId) {
         return v2ApiService.getRelyingParty(relyingPartyId);
     }
 
-    @Operation(summary = "Find by organization number or list parties")
-    @GetMapping(path = "/parties", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Find by organization number or list relying parties")
+    @GetMapping(path = "/relying-parties", produces = MediaType.APPLICATION_JSON_VALUE)
     public PagedModel<RelyingPartyResponse> searchRelyingParties(
         @Orgnr
         @RequestParam(required = false) String orgno,
@@ -103,11 +104,11 @@ public class V2ResourcesEndpoint {
     }
 
     @Operation(
-        summary = "Replace editable party properties",
+        summary = "Replace editable relying party properties",
         description = "Replaces editable properties only; omitted optional properties are cleared and relations preserved."
     )
     @Audit(auditId = AUDIT_PARTY_UPDATED)
-    @PutMapping(path = "/parties/{id}", consumes = MediaType.APPLICATION_JSON_VALUE,
+    @PutMapping(path = "/relying-parties/{id}", consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
     public RelyingPartyResponse updateRelyingParty(
         @PathVariable("id") UUID relyingPartyId,
@@ -116,13 +117,29 @@ public class V2ResourcesEndpoint {
         return v2ApiService.updateRelyingParty(relyingPartyId, request);
     }
 
+    @Operation(
+        summary = "Update RelyingParty information",
+        description = "Replaces trade name and country, including for inactive relying parties. "
+            + "A missing or blank trade name clears the alias. Postal addresses, emails, phone numbers and information URIs "
+            + "are replaced only when present; an empty list clears them. Other relying party data and related resources are preserved."
+    )
+    @Audit(auditId = AUDIT_PARTY_UPDATED)
+    @PatchMapping(path = "/relying-parties/{id}", consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    public RelyingPartyResponse updateRelyingPartyInformation(
+        @PathVariable("id") UUID relyingPartyId,
+        @Valid @RequestBody RelyingPartyInformationRequest request
+    ) {
+        return v2ApiService.updateRelyingPartyInformation(relyingPartyId, request);
+    }
+
     @Operation(summary = "Create a RelyingPartyService")
     @Audit(auditId = AUDIT_SERVICE_CREATED)
-    @PostMapping(path = "/parties/{partyId}/services", consumes = MediaType.APPLICATION_JSON_VALUE,
+    @PostMapping(path = "/relying-parties/{relyingPartyId}/services", consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<RelyingPartyServiceResponse> createRelyingPartyService(
         @Parameter(description = "Parent RelyingParty identifier")
-        @PathVariable("partyId") UUID relyingPartyId,
+        @PathVariable("relyingPartyId") UUID relyingPartyId,
         @Valid @RequestBody RelyingPartyServiceRequest request
     ) {
         return ResponseEntity.ok(v2ApiService.createRelyingPartyService(relyingPartyId, request));

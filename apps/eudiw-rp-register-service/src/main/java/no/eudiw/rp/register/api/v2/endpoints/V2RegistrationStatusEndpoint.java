@@ -35,7 +35,7 @@ public class V2RegistrationStatusEndpoint {
 
     @Operation(summary = "Deactivate a RelyingParty and descendants")
     @Audit(auditId = AUDIT_PARTY_DEACTIVATED)
-    @PatchMapping("/parties/{id}/deactivate")
+    @PatchMapping("/relying-parties/{id}/deactivate")
     public ResponseEntity<Void> deactivateRelyingParty(@PathVariable("id") UUID relyingPartyId) {
         relyingPartyService.deactivateRelyingParty(relyingPartyId);
         return ResponseEntity.noContent().build();
@@ -43,7 +43,7 @@ public class V2RegistrationStatusEndpoint {
 
     @Operation(summary = "Reactivate a RelyingParty")
     @Audit(auditId = AUDIT_PARTY_ACTIVATED)
-    @PatchMapping("/parties/{id}/activate")
+    @PatchMapping("/relying-parties/{id}/activate")
     public ResponseEntity<Void> activateRelyingParty(@PathVariable("id") UUID relyingPartyId) {
         relyingPartyService.activateRelyingParty(relyingPartyId);
         return ResponseEntity.noContent().build();
