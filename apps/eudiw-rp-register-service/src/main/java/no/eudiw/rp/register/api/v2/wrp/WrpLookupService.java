@@ -60,6 +60,7 @@ public class WrpLookupService {
                 filters.intendedUseIdentifier(),
                 filters.claimPath(),
                 filters.credentialMeta(),
+                filters.credentialFormat(),
                 filters.entitlement(),
                 filters.providedAttestation(),
                 filters.usesIntermediary(),

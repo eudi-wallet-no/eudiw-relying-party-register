@@ -9,6 +9,7 @@ public record WrpSearchCriteria(
     String intendedUseIdentifier,
     String claimPath,
     String credentialMeta,
+    String credentialFormat,
     String entitlement,
     String providedAttestation,
     String usesIntermediary,
