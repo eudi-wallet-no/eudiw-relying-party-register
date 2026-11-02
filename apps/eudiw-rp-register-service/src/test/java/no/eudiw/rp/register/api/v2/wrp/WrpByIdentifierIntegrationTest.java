@@ -224,6 +224,8 @@ class WrpByIdentifierIntegrationTest {
             .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("claimPath", " "))
             .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/wrp").param("credentialMeta", " "))
+            .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("entitlement", " "))
             .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("providedAttestation", " "))
@@ -623,6 +625,116 @@ class WrpByIdentifierIntegrationTest {
             null, null, Map.of("claimPath", "IBAN_100%"))).contains("Claim path literal wildcard"));
         assertTrue(collectionTradeNames(getCollectionPage(
             null, null, Map.of("claimPath", "IBAN"))).isEmpty());
+    }
+
+    @Test
+    void filtersCollectionByExactCredentialMetaValueBeforeCursorPagination() throws Exception {
+        String vctValue = "urn:example:pid";
+        WalletRelyingParty firstVctMatch =
+            partyWithSearchData("Credential meta VCT match A", "urn:example:meta-vct-a", "Credential Meta Alpha");
+        firstVctMatch.getServices().getFirst().setIntendedUses(List.of(intendedUseWithCredentials(
+            "credential-meta-revoked",
+            "2026-02-01",
+            List.of(
+                credentialWithMeta(Map.of("vct_values", List.of(vctValue, "urn:example:other-vct"))),
+                credentialWithMeta(Map.of("vct_values", List.of(vctValue)))
+            )
+        )));
+
+        WalletRelyingParty secondVctMatch =
+            partyWithSearchData("Credential meta VCT match B", "urn:example:meta-vct-b", "Credential Meta Beta");
+        secondVctMatch.getServices().getFirst().setIntendedUses(List.of(intendedUseWithCredentials(
+            "credential-meta-vct",
+            null,
+            List.of(credentialWithMeta(Map.of("vct_values", List.of(vctValue))))
+        )));
+
+        WalletRelyingParty doctypeMatch =
+            partyWithSearchData("Credential meta doctype match", "urn:example:meta-doctype", "Credential Meta Gamma");
+        doctypeMatch.getServices().getFirst().setIntendedUses(List.of(intendedUseWithCredentials(
+            "credential-meta-doctype",
+            null,
+            List.of(credentialWithMeta(Map.of("doctype", "org.iso.18013-5.1.mDL")))
+        )));
+
+        WalletRelyingParty substringOnly =
+            partyWithSearchData("Credential meta substring only", "urn:example:meta-substring", "Other");
+        substringOnly.getServices().getFirst().setIntendedUses(List.of(intendedUseWithCredentials(
+            "credential-meta-substring",
+            null,
+            List.of(credentialWithMeta(Map.of("vct_values", List.of(vctValue + "-extended"))))
+        )));
+
+        WalletRelyingParty caseOnly =
+            partyWithSearchData("Credential meta case only", "urn:example:meta-case", "Other");
+        caseOnly.getServices().getFirst().setIntendedUses(List.of(intendedUseWithCredentials(
+            "credential-meta-case",
+            null,
+            List.of(credentialWithMeta(Map.of("vct_values", List.of("URN:EXAMPLE:PID"))))
+        )));
+
+        WalletRelyingParty wildcardCharacters =
+            partyWithSearchData("Credential meta literal wildcard", "urn:example:meta-wildcard", "Other");
+        wildcardCharacters.getServices().getFirst().setIntendedUses(List.of(intendedUseWithCredentials(
+            "credential-meta-wildcard",
+            null,
+            List.of(credentialWithMeta(Map.of("vct_values", List.of("urn:example:pid_100%"))))
+        )));
+
+        WalletRelyingParty inactiveServiceMatch =
+            partyWithSearchData("Credential meta inactive service", "urn:example:meta-inactive", "Other");
+        WalletRelyingPartyService inactiveService = inactiveServiceMatch.getServices().getFirst();
+        inactiveService.setIntendedUses(List.of(intendedUseWithCredentials(
+            "credential-meta-inactive",
+            null,
+            List.of(credentialWithMeta(Map.of("vct_values", List.of(vctValue))))
+        )));
+        inactiveService.setActive(false);
+
+        walletRelyingPartyRepository.saveAllAndFlush(List.of(
+            firstVctMatch, secondVctMatch, doctypeMatch, substringOnly, caseOnly, wildcardCharacters,
+            inactiveServiceMatch
+        ));
+
+        JWSObject firstPage = getCollectionPage(1, null, Map.of("credentialMeta", vctValue));
+        Map<?, ?> firstPagination = (Map<?, ?>) firstPage.getPayload().toJSONObject().get("pagination");
+        assertTrue((Boolean) firstPagination.get("has_next_page"));
+        JWSObject secondPage = getCollectionPage(
+            1, (String) firstPagination.get("next_cursor"), Map.of("credentialMeta", vctValue));
+        Map<?, ?> secondPagination = (Map<?, ?>) secondPage.getPayload().toJSONObject().get("pagination");
+        assertFalse((Boolean) secondPagination.get("has_next_page"));
+        List<String> matchingNames = new ArrayList<>(collectionTradeNames(firstPage));
+        matchingNames.addAll(collectionTradeNames(secondPage));
+        assertEquals(
+            Set.of("Credential meta VCT match A", "Credential meta VCT match B"),
+            Set.copyOf(matchingNames)
+        );
+
+        assertEquals(
+            List.of("Credential meta doctype match"),
+            collectionTradeNames(getCollectionPage(
+                null, null, Map.of("credentialMeta", "org.iso.18013-5.1.mDL")))
+        );
+        assertEquals(
+            List.of("Credential meta literal wildcard"),
+            collectionTradeNames(getCollectionPage(
+                null, null, Map.of("credentialMeta", "urn:example:pid_100%")))
+        );
+        assertTrue(collectionTradeNames(getCollectionPage(
+            null, null, Map.of("credentialMeta", "urn:example:pi"))).isEmpty());
+        assertTrue(collectionTradeNames(getCollectionPage(
+            null, null, Map.of("credentialMeta", "urn:example:pidX100Z"))).isEmpty());
+        assertEquals(
+            List.of("Credential meta case only"),
+            collectionTradeNames(getCollectionPage(
+                null, null, Map.of("credentialMeta", "URN:EXAMPLE:PID")))
+        );
+
+        Map<?, ?> combinedFilterMatch = (Map<?, ?>) ((List<?>) getCollectionPage(null, null, Map.of(
+            "credentialMeta", vctValue,
+            "legalName", "Credential Meta Alpha"
+        )).getPayload().toJSONObject().get("data")).getFirst();
+        assertEquals("Credential meta VCT match A", combinedFilterMatch.get("tradeName"));
     }
 
     @Test
@@ -1051,7 +1163,8 @@ class WrpByIdentifierIntegrationTest {
             .andExpect(content().string(containsString("usesIntermediary")))
             .andExpect(content().string(containsString("isIntermediary")))
             .andExpect(content().string(containsString("intendedUseIdentifier")))
-            .andExpect(content().string(containsString("claimPath")));
+            .andExpect(content().string(containsString("claimPath")))
+            .andExpect(content().string(containsString("credentialMeta")));
     }
 
     @Test
@@ -1238,6 +1351,26 @@ class WrpByIdentifierIntegrationTest {
             claims
         )));
         return intendedUse;
+    }
+
+    private IntendedUse intendedUseWithCredentials(
+        String identifier,
+        String revokedAt,
+        List<Credential> credentials
+    ) {
+        IntendedUse intendedUse = new IntendedUse(
+            identifier,
+            "2026-01-01",
+            revokedAt,
+            List.of(new MultiLangString("en", "Purpose")),
+            List.of(new Policy("PrivacyStatement", "https://example.test/privacy"))
+        );
+        intendedUse.setCredentials(credentials);
+        return intendedUse;
+    }
+
+    private Credential credentialWithMeta(Map<String, Object> meta) {
+        return new Credential("dc+sd-jwt", meta, List.of(claimPath("credential-meta-claim")));
     }
 
     private Map<String, Object> claimPath(Object... pathParts) {
