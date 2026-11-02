@@ -150,168 +150,57 @@
      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
 
     <!--/*@thymesVar id="relyingPartyResource" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
-    <div class="space-padding-bottom-2em">
-        <table class="ds-table">
-            <tbody>
-            <th:block sec:authorize="hasRole('ADMIN')">
-                <tr>
-                    <th>Org.nr.</th>
-                    <td th:text="${relyingPartyResource.orgno}"></td>
-                </tr>
-                <tr>
-                    <th>Organisasjon</th>
-                    <td th:text="${relyingPartyResource.orgName}"></td>
-                </tr>
-            </th:block>
-            <tr>
-                <th>Tenestenamn</th>
-                <td th:text="${relyingPartyResource.tradeName}"></td>
-            </tr>
-            <tr>
-                <th>Sektor</th>
-                <td th:text="${relyingPartyResource.publicSector ? 'offentleg' : 'privat'}"></td>
-            </tr>
-            <tr>
-                <th>Oppretta</th>
-                <td th:text="${@timestampFormatter.formatEpochMillis(relyingPartyResource.createdMs)}"></td>
-            </tr>
-            <tr>
-                <th>Sist endra</th>
-                <td th:text="${@timestampFormatter.formatEpochMillis(relyingPartyResource.lastUpdatedMs)}"></td>
-            </tr>
-            <tr>
-                <th>Aktiv</th>
-                <td th:text="${relyingPartyResource.active ? 'ja' : 'nei'}"></td>
-            </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <div class="space-bottom-1em">
-        <h2 class="ds-heading">Føremål</h2>
-        <p class="ds-paragraph" th:if="${#lists.isEmpty(relyingPartyResource.intendedUses)}">Tenesta har ingen registrerte føremål.</p>
-        <details class="ds-details"
-                 th:each="intendedUse, intendedUseStatus : ${relyingPartyResource.intendedUses}">
-            <summary th:text="${intendedUse.intendedUseIdentifier ?: ('Bruk ' + intendedUseStatus.count)}">Bruk</summary>
+    <section class="ds-card registration-card space-bottom-1em">
+        <div class="ds-card__block">
+            <div th:replace="~{fragments/registration_fragments :: card_heading('Generelt', null)}"></div>
             <div class="table-wrap">
                 <table class="ds-table">
-                    <caption th:text="${intendedUse.intendedUseIdentifier ?: ('Bruk ' + intendedUseStatus.count)}">Bruk</caption>
+                    <caption class="ds-sr-only">Generelle opplysningar om registreringa</caption>
                     <tbody>
+                    <th:block sec:authorize="hasRole('ADMIN')">
+                        <tr>
+                            <th scope="row">Org.nr.</th>
+                            <td th:text="${relyingPartyResource.orgno}"></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Organisasjon</th>
+                            <td th:text="${relyingPartyResource.orgName}"></td>
+                        </tr>
+                    </th:block>
                     <tr>
-                        <th scope="row">Identifikator</th>
-                        <td th:text="${intendedUse.intendedUseIdentifier ?: 'Ikkje registrert.'}"></td>
+                        <th scope="row">Tenestenamn</th>
+                        <td th:text="${relyingPartyResource.tradeName}"></td>
                     </tr>
                     <tr>
-                        <th scope="row">Status</th>
-                        <td th:text="${intendedUse.revokedAt == null ? 'Aktiv' : 'Revokert'}"></td>
-                    </tr>
-                    <tr>
-                        <th scope="row">Oppretta</th>
-                        <td th:text="${intendedUse.createdAt ?: 'Ikkje registrert.'}"></td>
-                    </tr>
-                    <tr>
-                        <th scope="row">Revokert</th>
-                        <td th:text="${intendedUse.revokedAt ?: 'Ikkje revokert.'}"></td>
+                        <th scope="row">Sektor</th>
+                        <td th:text="${relyingPartyResource.publicSector ? 'offentleg' : 'privat'}"></td>
                     </tr>
                     <tr>
                         <th scope="row">Føremål</th>
-                        <td>
-                            <em th:if="${#lists.isEmpty(intendedUse.purpose)}">Ikkje registrert.</em>
-                            <ul th:unless="${#lists.isEmpty(intendedUse.purpose)}">
-                                <li th:each="purpose : ${intendedUse.purpose}"
-                                    th:text="|${purpose.lang}: ${purpose.content}|"></li>
-                            </ul>
-                        </td>
+                        <td th:text="|${#lists.size(relyingPartyResource.intendedUses.?[revokedAt == null])} aktive|"></td>
                     </tr>
                     <tr>
-                        <th scope="row">Personvernreglar</th>
-                        <td>
-                            <em th:if="${#lists.isEmpty(intendedUse.privacyPolicy)}">Ikkje registrert.</em>
-                            <ul th:unless="${#lists.isEmpty(intendedUse.privacyPolicy)}">
-                                <li th:each="policy : ${intendedUse.privacyPolicy}"
-                                    th:text="|${policy.type}: ${policy.policyUri}|"></li>
-                            </ul>
-                        </td>
+                        <th scope="row">Oppretta</th>
+                        <td th:text="${@timestampFormatter.formatEpochMillis(relyingPartyResource.createdMs)}"></td>
                     </tr>
                     <tr>
-                        <th scope="row">Etterspurde bevis</th>
-                        <td>
-                            <em th:if="${#lists.isEmpty(intendedUse.credentials)}">Ikkje registrert.</em>
-                            <div th:unless="${#lists.isEmpty(intendedUse.credentials)}"
-                                 th:each="credential : ${intendedUse.credentials}">
-                                <p><strong>Format:</strong>
-                                    <span th:text="${credential.format == null ? 'Ikkje registrert.' : credential.format}"></span>
-                                </p>
-                                <p><strong>Metadata:</strong>
-                                    <code class="break-word"
-                                          th:text="${#maps.isEmpty(credential.meta) ? 'Ikkje registrert.' : credential.meta}"></code>
-                                </p>
-                                <p><strong>Attributt:</strong>
-                                    <code class="break-word"
-                                          th:text="${#lists.isEmpty(credential.claims) ? 'Ikkje registrert.' : credential.claims}"></code>
-                                </p>
-                            </div>
-                        </td>
+                        <th scope="row">Sist endra</th>
+                        <td th:text="${@timestampFormatter.formatEpochMillis(relyingPartyResource.lastUpdatedMs)}"></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Aktiv</th>
+                        <td th:text="${relyingPartyResource.active ? 'ja' : 'nei'}"></td>
                     </tr>
                     </tbody>
                 </table>
             </div>
-        </details>
-    </div>
+        </div>
+    </section>
 
-    <div class="space-bottom-1em">
-        <h2 class="ds-heading">Roller og bevistypar</h2>
-
-        <details class="ds-details" data-variant="default">
-            <summary>Roller</summary>
-
-            <div th:if="${ #lists.isEmpty(relyingPartyResource.relyingPartyEntitlements)}">
-                <em>Ikkje registrert.</em>
-            </div>
-            <div th:unless="${ #lists.isEmpty(relyingPartyResource.relyingPartyEntitlements)}">
-                <table class="ds-table" data-sticky-header="true">
-                    <thead>
-                        <tr>
-                            <th>Rolle</th>
-                            <th>Utstedar-URL</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr th:each="e : ${relyingPartyResource.relyingPartyEntitlements}">
-                            <td th:text="${e.displayName}"></td>
-                            <td th:text="${e.credentialIssuerUrl}"></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </details>
-
-        <details class="ds-details">
-            <summary>Bevistypar (EAA)</summary>
-            <div th:if="${ #lists.isEmpty(relyingPartyResource.relyingPartyEaas)}">
-                <em>Ikkje registrert.</em>
-            </div>
-            <div th:unless="${ #lists.isEmpty(relyingPartyResource.relyingPartyEaas)}">
-                <table class="ds-table" data-sticky-header="true">
-                    <thead>
-                        <tr>
-                            <th>Bevistype</th>
-                            <th>Føremål</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="eaa : ${relyingPartyResource.relyingPartyEaas}">
-                        <td th:text="${eaa.namespace}"></td>
-                        <td th:text="${eaa.intent}"></td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-        </details>
-    </div>
-
-    <div class="space-bottom-1em">
-        <h2 class="ds-heading">Brukarstad</h2>
+    <section class="ds-card registration-card space-bottom-1em">
+        <div class="ds-card__block">
+            <div th:replace="~{fragments/registration_fragments :: card_heading('Brukarstad', null)}"></div>
+        </div>
         <details class="ds-details">
             <summary>Opplysningar om brukarstaden</summary>
             <div class="table-wrap">
@@ -434,10 +323,12 @@
                 </table>
             </div>
         </details>
-    </div>
+    </section>
 
-    <div class="space-bottom-1em">
-        <h2 class="ds-heading">Teneste</h2>
+    <section class="ds-card registration-card space-bottom-1em">
+        <div class="ds-card__block">
+            <div th:replace="~{fragments/registration_fragments :: card_heading('Teneste', null)}"></div>
+        </div>
         <details class="ds-details">
             <summary>Opplysningar om tenesta</summary>
             <div class="table-wrap">
@@ -524,8 +415,151 @@
                 </table>
             </div>
         </details>
+    </section>
+
+    <div class="space-bottom-1em">
+        <h2 class="ds-heading">Føremål</h2>
+        <p class="ds-paragraph" th:if="${#lists.isEmpty(relyingPartyResource.intendedUses)}">Tenesta har ingen registrerte føremål.</p>
+        <details class="ds-details"
+                 th:each="intendedUse, intendedUseStatus : ${relyingPartyResource.intendedUses}">
+            <summary th:text="${intendedUse.intendedUseIdentifier ?: ('Bruk ' + intendedUseStatus.count)}">Bruk</summary>
+            <div class="table-wrap">
+                <table class="ds-table">
+                    <caption th:text="${intendedUse.intendedUseIdentifier ?: ('Bruk ' + intendedUseStatus.count)}">Bruk</caption>
+                    <tbody>
+                    <tr>
+                        <th scope="row">Identifikator</th>
+                        <td th:text="${intendedUse.intendedUseIdentifier ?: 'Ikkje registrert.'}"></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Status</th>
+                        <td th:text="${intendedUse.revokedAt == null ? 'Aktiv' : 'Revokert'}"></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Oppretta</th>
+                        <td th:text="${intendedUse.createdAt ?: 'Ikkje registrert.'}"></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Revokert</th>
+                        <td th:text="${intendedUse.revokedAt ?: 'Ikkje revokert.'}"></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Føremål</th>
+                        <td>
+                            <em th:if="${#lists.isEmpty(intendedUse.purpose)}">Ikkje registrert.</em>
+                            <ul th:unless="${#lists.isEmpty(intendedUse.purpose)}">
+                                <li th:each="purpose : ${intendedUse.purpose}"
+                                    th:text="|${purpose.lang}: ${purpose.content}|"></li>
+                            </ul>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Personvernreglar</th>
+                        <td>
+                            <em th:if="${#lists.isEmpty(intendedUse.privacyPolicy)}">Ikkje registrert.</em>
+                            <ul th:unless="${#lists.isEmpty(intendedUse.privacyPolicy)}">
+                                <li th:each="policy : ${intendedUse.privacyPolicy}"
+                                    th:text="|${policy.type}: ${policy.policyUri}|"></li>
+                            </ul>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Etterspurde bevis</th>
+                        <td>
+                            <em th:if="${#lists.isEmpty(intendedUse.credentials)}">Ikkje registrert.</em>
+                            <div th:unless="${#lists.isEmpty(intendedUse.credentials)}"
+                                 th:each="credential : ${intendedUse.credentials}">
+                                <p><strong>Format:</strong>
+                                    <span th:text="${credential.format == null ? 'Ikkje registrert.' : credential.format}"></span>
+                                </p>
+                                <p><strong>Metadata:</strong>
+                                    <code class="break-word"
+                                          th:text="${#maps.isEmpty(credential.meta) ? 'Ikkje registrert.' : credential.meta}"></code>
+                                </p>
+                                <p><strong>Attributt:</strong>
+                                    <code class="break-word"
+                                          th:text="${#lists.isEmpty(credential.claims) ? 'Ikkje registrert.' : credential.claims}"></code>
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </details>
     </div>
 
+    <section class="ds-card registration-card space-bottom-1em">
+        <div class="ds-card__block">
+            <div th:replace="~{fragments/registration_fragments :: card_heading('Roller og bevistypar', null)}"></div>
+        </div>
+
+        <details class="ds-details" data-variant="default">
+            <summary>Roller</summary>
+
+            <div th:if="${ #lists.isEmpty(relyingPartyResource.relyingPartyEntitlements)}">
+                <em>Ikkje registrert.</em>
+            </div>
+            <div th:unless="${ #lists.isEmpty(relyingPartyResource.relyingPartyEntitlements)}">
+                <table class="ds-table" data-sticky-header="true">
+                    <thead>
+                        <tr>
+                            <th>Rolle</th>
+                            <th>Utstedar-URL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="e : ${relyingPartyResource.relyingPartyEntitlements}">
+                            <td th:text="${e.displayName}"></td>
+                            <td th:text="${e.credentialIssuerUrl}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </details>
+
+        <details class="ds-details">
+            <summary>Bevistypar (EAA)</summary>
+            <div th:if="${ #lists.isEmpty(relyingPartyResource.relyingPartyEaas)}">
+                <em>Ikkje registrert.</em>
+            </div>
+            <div th:unless="${ #lists.isEmpty(relyingPartyResource.relyingPartyEaas)}">
+                <table class="ds-table" data-sticky-header="true">
+                    <thead>
+                        <tr>
+                            <th>Bevistype</th>
+                            <th>Føremål</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="eaa : ${relyingPartyResource.relyingPartyEaas}">
+                        <td th:text="${eaa.namespace}"></td>
+                        <td th:text="${eaa.intent}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </details>
+    </section>
+
+    <section sec:authorize="hasRole('ADMIN')" id="registration-status"
+             class="ds-card registration-card space-bottom-1em">
+        <div class="ds-card__block">
+            <div th:replace="~{fragments/registration_fragments :: card_heading('Registreringsstatus', null)}"></div>
+            <p class="ds-paragraph">
+                Ein deaktivert registrering blir ikkje publisert i registeret, og det kan ikkje utferdast nye sertifikat.
+                Eksisterande sertifikat må tilbakekallast separat. Gjeld berre denne registreringa.
+            </p>
+            <form th:action="@{|/admin/status/${relyingPartyResource.id}|}" method="post"
+                  th:classappend="${relyingPartyResource.active ? 'confirm-deactivation' : ''}">
+                <input type="hidden" name="active" th:value="${!relyingPartyResource.active}">
+                <button type="submit" class="ds-button"
+                        th:attr="data-variant=${relyingPartyResource.active ? 'secondary' : 'primary'},
+                                 data-color=${relyingPartyResource.active ? 'danger' : null}"
+                        th:text="${relyingPartyResource.active ? 'Deaktiver registrering' : 'Aktiver registrering'}"></button>
+            </form>
+        </div>
+    </section>
 
     <a th:href="@{|/edit/${relyingPartyResource.id}|}"
        class="ds-button"

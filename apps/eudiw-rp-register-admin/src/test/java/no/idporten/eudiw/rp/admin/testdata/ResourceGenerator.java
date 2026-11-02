@@ -56,7 +56,9 @@ public class ResourceGenerator extends TestDataGenerator {
             true,
             null,
             null,
-            List.of()
+            List.of(),
+            UUID.randomUUID(),
+            UUID.randomUUID()
         );
     }
     public static List<RelyingPartyResource> generateRelyingPartiesResource() {

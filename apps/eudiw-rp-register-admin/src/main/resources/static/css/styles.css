@@ -13,6 +13,19 @@ div.ds-card + div.ds-card { margin-top: 8px; }
 .space-bottom-15rem { margin-bottom: 1.5rem; }
 .space-block-end-2 { margin-block-end: var(--ds-size-2); }
 .space-padding-bottom-2em { padding-bottom: 2em; }
+.registration-card-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--ds-size-4);
+    margin: 0;
+}
+.registration-card-heading .ds-heading { margin: 0; overflow-wrap: anywhere; hyphens: auto; min-inline-size: 0; }
+.registration-card { overflow-wrap: anywhere; }
+.registration-card form { margin-block-start: var(--ds-size-4); }
+.registration-title { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ds-size-4); }
+.registration-title .ds-heading { margin: 0; min-inline-size: 0; }
 .header-logo { padding-right: 8px; }
 .clickable-link { cursor: pointer; }
 .display-block { display: block; }

@@ -135,6 +135,7 @@ class V2RegisterClientTests {
             .andRespond(withSuccess("""
                 {"id":"00000000-0000-0000-0000-000000000001","orgno":"123456785",
                  "relyingPartyServiceId":"00000000-0000-0000-0000-000000000002",
+                 "relyingPartyId":"00000000-0000-0000-0000-000000000004",
                  "organizationName":"Legal name","serviceTradeName":"Service name","isPSB":true,
                  "relyingPartyEntitlements":[{"entitlement":"urn:issuer","displayName":"Issuer",
                                                "credentialIssuerUrl":"https://issuer.test"}],
@@ -152,6 +153,8 @@ class V2RegisterClientTests {
         var relyingPartyResource = client.getRelyingParty(RELYING_PARTY_INSTANCE_ID);
 
         assertAll(
+            () -> assertEquals(new UUID(0, 4), relyingPartyResource.relyingPartyId()),
+            () -> assertEquals(relyingPartyServiceId, relyingPartyResource.relyingPartyServiceId()),
             () -> assertEquals("Service name", relyingPartyResource.tradeName()),
             () -> assertEquals("Legal name", relyingPartyResource.orgName()),
             () -> assertTrue(relyingPartyResource.publicSector()),

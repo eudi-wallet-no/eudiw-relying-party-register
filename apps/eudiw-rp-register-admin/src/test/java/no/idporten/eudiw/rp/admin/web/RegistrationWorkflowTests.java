@@ -92,7 +92,9 @@ class RegistrationWorkflowTests {
             true,
             null,
             null,
-            List.of());
+            List.of(),
+            relyingPartyId,
+            relyingPartyServiceId);
         initialRequestCount = server.getRequestCount();
     }
 
@@ -313,6 +315,80 @@ class RegistrationWorkflowTests {
 
         mockMvc.perform(request.with(SecurityTestUtils.oidcLoginForOrgno("987654325")))
             .andExpectAll(status().isNotFound(), view().name("error/404"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    @DisplayName("Should change registration status from the status section and show the new status badge")
+    void shouldChangeRegistrationStatusFromStatusSectionAndShowNewStatusBadge(boolean active) throws Exception {
+        relyingPartyResource = relyingPartyResource.withActive(!active);
+        enqueueLookup();
+        mockMvc.perform(get("/details/" + relyingPartyResource.id()).with(login(true)))
+            .andExpectAll(status().isOk(), content().string(allOf(
+                containsString(active ? ">Inaktiv</span>" : ">Aktiv</span>"),
+                containsString("Registreringsstatus</h2>"),
+                containsString("name=\"active\" value=\"" + active + "\""),
+                containsString(active ? ">Aktiver registrering</button>" : ">Deaktiver registrering</button>"))));
+
+        enqueueLookup();
+        expectedRequests.add("PATCH /v2/instances/" + relyingPartyResource.id() + "/" + (active ? "activate" : "deactivate"));
+        server.enqueue(new MockResponse().setResponseCode(204));
+        mockMvc.perform(post("/admin/status/" + relyingPartyResource.id()).with(login(true)).with(csrf())
+                .param("active", Boolean.toString(active)))
+            .andExpectAll(status().is3xxRedirection(), redirectedUrl("/details/" + relyingPartyResource.id()));
+
+        relyingPartyResource = relyingPartyResource.withActive(active);
+        enqueueLookup();
+        mockMvc.perform(get("/details/" + relyingPartyResource.id()).with(login(true)))
+            .andExpectAll(status().isOk(), content().string(allOf(
+                containsString(active ? ">Aktiv</span>" : ">Inaktiv</span>"),
+                containsString(active ? ">Deaktiver registrering</button>" : ">Aktiver registrering</button>"))));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    @DisplayName("Should keep the current registration status without an unnecessary status update")
+    void shouldKeepCurrentRegistrationStatusWithoutUnnecessaryUpdate(boolean active) throws Exception {
+        relyingPartyResource = relyingPartyResource.withActive(active);
+        enqueueLookup();
+        mockMvc.perform(post("/admin/status/" + relyingPartyResource.id()).with(login(true)).with(csrf())
+                .param("active", Boolean.toString(active)))
+            .andExpectAll(status().is3xxRedirection(), redirectedUrl("/details/" + relyingPartyResource.id()));
+    }
+
+    @Test
+    @DisplayName("Should not change status when no status is selected")
+    void shouldNotChangeStatusWhenNoStatusIsSelected() throws Exception {
+        enqueueLookup();
+        mockMvc.perform(post("/admin/status/" + relyingPartyResource.id()).with(login(true)).with(csrf()))
+            .andExpectAll(status().is3xxRedirection(), redirectedUrl("/details/" + relyingPartyResource.id()));
+    }
+
+    @Test
+    @DisplayName("Should show the status badge but deny self service access to status changes")
+    void shouldShowStatusBadgeButDenySelfServiceAccessToStatusChanges() throws Exception {
+        mockMvc.perform(post("/admin/status/" + relyingPartyResource.id()).with(login(false)).with(csrf())
+                .param("active", "false"))
+            .andExpect(status().isForbidden());
+
+        enqueueLookup();
+        mockMvc.perform(get("/details/" + relyingPartyResource.id()).with(login(false)))
+            .andExpectAll(status().isOk(), content().string(allOf(
+                containsString(">Aktiv</span>"), not(containsString("Registreringsstatus")),
+                not(containsString("/admin/status/")))));
+    }
+
+    @Test
+    @DisplayName("Should show backend errors rather than confirm a failed status change")
+    void shouldShowBackendErrorsRatherThanConfirmFailedStatusChange() throws Exception {
+        enqueueLookup();
+        expectedRequests.add("PATCH /v2/instances/" + relyingPartyResource.id() + "/deactivate");
+        server.enqueue(new MockResponse().setResponseCode(500).setHeader("Content-Type", "application/json")
+            .setBody("{\"error\":\"service_unavailable\",\"error_description\":\"Register service unavailable\"}"));
+
+        mockMvc.perform(post("/admin/status/" + relyingPartyResource.id()).with(login(true)).with(csrf())
+                .param("active", "false"))
+            .andExpectAll(status().isInternalServerError(), view().name("error/5xx"));
     }
 
     private URI navigationLink(String html, String path, String parameter) {

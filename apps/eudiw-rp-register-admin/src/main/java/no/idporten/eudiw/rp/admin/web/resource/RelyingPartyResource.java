@@ -58,7 +58,13 @@ public record RelyingPartyResource(
     RelyingPartyServiceDetails relyingPartyService,
 
     @JsonProperty("intended_uses")
-    List<IntendedUseDetails> intendedUses
+    List<IntendedUseDetails> intendedUses,
+
+    @JsonProperty("relying_party_id")
+    UUID relyingPartyId,
+
+    @JsonProperty("relying_party_service_id")
+    UUID relyingPartyServiceId
 ) {
 
     @JsonIgnoreProperties(ignoreUnknown = true)

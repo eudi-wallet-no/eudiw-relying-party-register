@@ -105,6 +105,13 @@ public class V2RegisterClient {
         return instances;
     }
 
+    public void updateInstanceStatus(UUID instanceId, boolean active) {
+        restClient.patch()
+            .uri("/instances/{id}/{action}", instanceId, active ? "activate" : "deactivate")
+            .retrieve()
+            .toBodilessEntity();
+    }
+
     public List<Entitlement> getEntitlements(boolean includeInactive) {
         Entitlements entitlementCatalog = restClient.get()
             .uri(builder -> builder.path("/entitlements").queryParam("includeInactive", includeInactive).build())
@@ -175,7 +182,9 @@ public class V2RegisterClient {
                 active,
                 relyingParty,
                 relyingPartyService,
-                intendedUses);
+                intendedUses,
+                relyingPartyId,
+                relyingPartyServiceId);
         }
     }
 

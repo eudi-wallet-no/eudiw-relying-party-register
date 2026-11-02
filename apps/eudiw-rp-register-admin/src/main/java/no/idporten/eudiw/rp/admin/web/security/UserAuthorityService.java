@@ -38,6 +38,12 @@ public class UserAuthorityService {
             || Objects.equals(getAuthorizedPartyAuthority().orgno(), orgno);
     }
 
+    public void assertUserHasAdminAuthority() {
+        if (!userHasAdminAuthority()) {
+            throw new InsufficientAuthorityException("User does not have administrator access");
+        }
+    }
+
     public void assertUserHasAccessTo(String orgno) {
         if (!userHasAccessTo(orgno)) {
             throw new InsufficientAuthorityException(
