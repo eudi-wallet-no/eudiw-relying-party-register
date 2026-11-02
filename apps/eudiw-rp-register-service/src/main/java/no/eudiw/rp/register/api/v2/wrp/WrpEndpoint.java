@@ -96,7 +96,7 @@ public class WrpEndpoint {
         @Parameter(
             name = "serviceIdentifier",
             in = ParameterIn.QUERY,
-            description = "Exact identifier of an active service",
+            description = "Exact, case-sensitive identifier of an active service; only that service is included in the response",
             schema = @Schema(type = "string")
         )
         @RequestParam(name = "serviceIdentifier", required = false) String serviceIdentifier,

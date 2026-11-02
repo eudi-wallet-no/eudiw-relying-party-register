@@ -406,6 +406,69 @@ class WrpByIdentifierIntegrationTest {
     }
 
     @Test
+    void isolatesServiceIdentifierMatchesWithoutChangingOtherReads() throws Exception {
+        WalletRelyingParty first = partyWithSearchData("Isolation A", "urn:example:isolation-a", "Isolation Alpha");
+        WalletRelyingPartyService matchingService = first.getServices().getFirst();
+        matchingService.setServiceIdentifier("isolated-service");
+        WalletRelyingPartyService otherService = new WalletRelyingPartyService("Other service", first, List.of());
+        otherService.setServiceIdentifier("other-service");
+        otherService.setServiceTradeName("Other service trade name");
+        first.setServices(List.of(matchingService, otherService));
+
+        WalletRelyingParty second = partyWithSearchData("Isolation B", "urn:example:isolation-b", "Isolation Beta");
+        second.getServices().getFirst().setServiceIdentifier("isolated-service");
+        WalletRelyingParty inactive = partyNamed("Inactive isolated service");
+        inactive.getServices().getFirst().setServiceIdentifier("isolated-service");
+        inactive.getServices().getFirst().setActive(false);
+        walletRelyingPartyRepository.saveAllAndFlush(List.of(first, second, inactive));
+
+        JWSObject firstPage = getCollectionPage(1, null, Map.of("serviceIdentifier", "isolated-service"));
+        Map<?, ?> pagination = (Map<?, ?>) firstPage.getPayload().toJSONObject().get("pagination");
+        assertTrue((Boolean) pagination.get("has_next_page"));
+        JWSObject secondPage = getCollectionPage(
+            1, (String) pagination.get("next_cursor"), Map.of("serviceIdentifier", "isolated-service"));
+        assertFalse((Boolean) ((Map<?, ?>) secondPage.getPayload().toJSONObject().get("pagination"))
+            .get("has_next_page"));
+        Set<String> names = new HashSet<>();
+        for (JWSObject page : List.of(firstPage, secondPage)) {
+            List<?> data = (List<?>) page.getPayload().toJSONObject().get("data");
+            assertEquals(1, data.size());
+            Map<?, ?> party = (Map<?, ?>) data.getFirst();
+            names.add((String) party.get("tradeName"));
+            List<?> services = (List<?>) party.get("services");
+            assertEquals(1, services.size());
+            assertEquals("isolated-service", ((Map<?, ?>) services.getFirst()).get("serviceIdentifier"));
+        }
+        assertEquals(Set.of("Isolation A", "Isolation B"), names);
+
+        JWSObject combined = getCollectionPage(null, null, Map.of(
+            "serviceIdentifier", "isolated-service",
+            "tradeName", "Other service trade name"
+        ));
+        assertEquals(List.of("Isolation A"), collectionTradeNames(combined));
+        Map<?, ?> combinedParty = (Map<?, ?>) ((List<?>) combined.getPayload().toJSONObject().get("data"))
+            .getFirst();
+        List<?> isolatedServices = (List<?>) combinedParty.get("services");
+        assertEquals(1, isolatedServices.size());
+        assertEquals("isolated-service", ((Map<?, ?>) isolatedServices.getFirst()).get("serviceIdentifier"));
+        for (String identifier : List.of("ISOLATED-SERVICE", "isolated-service ", "missing-service")) {
+            assertTrue(collectionTradeNames(getCollectionPage(
+                null, null, Map.of("serviceIdentifier", identifier))).isEmpty(), identifier);
+        }
+
+        JWSObject unisolated = getCollectionPage(null, null, Map.of("identifier", first.getOrgno()));
+        Map<?, ?> unisolatedParty = (Map<?, ?>) ((List<?>) unisolated.getPayload().toJSONObject().get("data"))
+            .getFirst();
+        assertEquals(2, ((List<?>) unisolatedParty.get("services")).size());
+        JWSObject byIdentifier = JWSObject.parse(mockMvc.perform(get("/wrp/{identifier}", first.getOrgno()))
+            .andExpect(status().isOk())
+            .andReturn().getResponse().getContentAsString());
+        assertTrue(byIdentifier.verify(new ECDSAVerifier((ECPublicKey) signingKeyPair.getPublic())));
+        Map<?, ?> byIdentifierParty = (Map<?, ?>) byIdentifier.getPayload().toJSONObject().get("data");
+        assertEquals(2, ((List<?>) byIdentifierParty.get("services")).size());
+    }
+
+    @Test
     void filtersCollectionByExactPolicyUriAtWrpAndIntendedUseLevels() throws Exception {
         String wrpPolicyUri = "https://example.test/policies/wrp";
         String intendedUsePolicyUri = "https://example.test/policies/intended-use";
