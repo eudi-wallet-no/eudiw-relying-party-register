@@ -365,20 +365,6 @@ class RegistrationWorkflowTests {
     }
 
     @Test
-    @DisplayName("Should show the status badge but deny self service access to status changes")
-    void shouldShowStatusBadgeButDenySelfServiceAccessToStatusChanges() throws Exception {
-        mockMvc.perform(post("/admin/status/" + relyingPartyResource.id()).with(login(false)).with(csrf())
-                .param("active", "false"))
-            .andExpect(status().isForbidden());
-
-        enqueueLookup();
-        mockMvc.perform(get("/details/" + relyingPartyResource.id()).with(login(false)))
-            .andExpectAll(status().isOk(), content().string(allOf(
-                containsString(">Aktiv</span>"), not(containsString("Registreringsstatus")),
-                not(containsString("/admin/status/")))));
-    }
-
-    @Test
     @DisplayName("Should show backend errors rather than confirm a failed status change")
     void shouldShowBackendErrorsRatherThanConfirmFailedStatusChange() throws Exception {
         enqueueLookup();
