@@ -550,12 +550,19 @@
                 Ein deaktivert registrering blir ikkje publisert i registeret, og det kan ikkje utferdast nye sertifikat.
                 Eksisterande sertifikat må tilbakekallast separat. Gjeld berre denne registreringa.
             </p>
+            <p class="ds-paragraph" id="registration-status-blocked"
+               th:if="${!relyingPartyResource.active and relyingPartyResource.relyingPartyService != null and !relyingPartyResource.relyingPartyService.active}">
+                Tenesta er deaktivert. Aktiver tenesta før du aktiverer registreringa.
+            </p>
             <form th:action="@{|/admin/status/${relyingPartyResource.id}|}" method="post"
                   th:classappend="${relyingPartyResource.active ? 'confirm-deactivation' : ''}">
                 <input type="hidden" name="active" th:value="${!relyingPartyResource.active}">
                 <input type="hidden" name="returnUrl" th:value="${searchUrlAttr}">
                 <button type="submit" class="ds-button"
-                        th:attr="data-variant=${relyingPartyResource.active ? 'secondary' : 'primary'},
+                        th:with="activationBlocked=${!relyingPartyResource.active and relyingPartyResource.relyingPartyService != null and !relyingPartyResource.relyingPartyService.active}"
+                        th:disabled="${activationBlocked}"
+                        th:attr="aria-describedby=${activationBlocked ? 'registration-status-blocked' : null},
+                                 data-variant=${relyingPartyResource.active ? 'secondary' : 'primary'},
                                  data-color=${relyingPartyResource.active ? 'danger' : null}"
                         th:text="${relyingPartyResource.active ? 'Deaktiver registrering' : 'Aktiver registrering'}"></button>
             </form>

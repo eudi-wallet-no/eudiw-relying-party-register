@@ -359,6 +359,19 @@ class RegistrationWorkflowTests {
                 containsString(active ? ">Deaktiver registrering</button>" : ">Aktiver registrering</button>"))));
     }
 
+    @Test
+    @DisplayName("Should not offer activation when the service is inactive")
+    void shouldNotOfferActivationWhenServiceIsInactive() throws Exception {
+        relyingPartyResource = relyingPartyResource.withActive(false).withRelyingPartyService(
+            new RelyingPartyResource.RelyingPartyServiceDetails(null, List.of(), null, null, null, List.of(), List.of(),
+                false, List.of(), List.of(), false));
+        enqueueLookup();
+        mockMvc.perform(get("/details/" + relyingPartyResource.id()).with(login(true)))
+            .andExpectAll(status().isOk(), content().string(allOf(
+                containsString("Aktiver tenesta før du aktiverer registreringa."),
+                containsString("disabled=\"disabled\""))));
+    }
+
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     @DisplayName("Should keep the current registration status without an unnecessary status update")
