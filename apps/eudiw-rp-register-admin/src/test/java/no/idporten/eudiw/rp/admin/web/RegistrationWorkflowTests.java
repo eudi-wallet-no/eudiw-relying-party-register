@@ -402,11 +402,22 @@ class RegistrationWorkflowTests {
     }
 
     @ParameterizedTest
-    @CsvSource({"GET, /csr/access/", "POST, /csr/access/", "GET, /csr/issuer/", "POST, /csr/issuer/",
-        "GET, /edit/", "POST, /edit/", "GET, /relying-party/edit/", "POST, /relying-party/edit/"})
-    @DisplayName("Should send self-service users back to the details page when the service is inactive")
-    void shouldSendSelfServiceUsersBackToDetailsWhenServiceIsInactive(String method, String path) throws Exception {
-        relyingPartyResource = relyingPartyResource.withActive(false);
+    @CsvSource({
+        "instance, GET, /csr/access/", "instance, POST, /csr/access/",
+        "instance, GET, /csr/issuer/", "instance, POST, /csr/issuer/",
+        "instance, GET, /edit/", "instance, POST, /edit/",
+        "instance, GET, /relying-party/edit/", "instance, POST, /relying-party/edit/",
+        "service, GET, /csr/access/", "service, POST, /csr/access/",
+        "service, GET, /csr/issuer/", "service, POST, /csr/issuer/",
+        "service, GET, /edit/", "service, POST, /edit/",
+        "service, GET, /relying-party/edit/", "service, POST, /relying-party/edit/"})
+    @DisplayName("Should send self-service users back to the details page when the service or instance is inactive")
+    void shouldSendSelfServiceUsersBackToDetailsWhenServiceOrInstanceIsInactive(String inactive, String method, String path)
+        throws Exception {
+        relyingPartyResource = inactive.equals("instance")
+            ? relyingPartyResource.withActive(false)
+            : relyingPartyResource.withRelyingPartyService(new RelyingPartyResource.RelyingPartyServiceDetails(null,
+                List.of(), null, null, null, List.of(), List.of(), false, List.of(), List.of(), false));
         enqueueLookup();
         var request = method.equals("GET")
             ? get(path + relyingPartyResource.id())
