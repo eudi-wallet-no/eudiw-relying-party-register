@@ -68,7 +68,7 @@ public class RelyingPartiesService {
     public void updateServiceAndInstanceStatus(RelyingPartyResource registration, boolean active) {
         v2RegisterClient.updateServiceStatus(registration.relyingPartyServiceId(), active);
         if (active) {
-            v2RegisterClient.updateInstanceStatus(registration.id(), true);
+            activateInstanceOrDeactivateService(registration);
         }
     }
 
@@ -145,5 +145,18 @@ public class RelyingPartiesService {
             instance.id(), instance.orgno(), instance.organizationName(), instance.serviceTradeName(), entitlements,
             instance.createdMs(), instance.lastUpdatedMs(),
             instance.accessCertificateIds().size(), instance.issuerCertificateIds().size());
+    }
+
+    private void activateInstanceOrDeactivateService(RelyingPartyResource registration) {
+        try {
+            v2RegisterClient.updateInstanceStatus(registration.id(), true);
+        } catch (RuntimeException instanceActivationFailure) {
+            try {
+                v2RegisterClient.updateServiceStatus(registration.relyingPartyServiceId(), false);
+            } catch (RuntimeException serviceDeactivationFailure) {
+                instanceActivationFailure.addSuppressed(serviceDeactivationFailure);
+            }
+            throw instanceActivationFailure;
+        }
     }
 }

@@ -440,6 +440,24 @@ class RegistrationWorkflowTests {
             .andExpectAll(status().isInternalServerError(), view().name("error/5xx"));
     }
 
+    @Test
+    @DisplayName("Should deactivate the service again when instance activation fails")
+    void shouldDeactivateServiceAgainWhenInstanceActivationFails() throws Exception {
+        relyingPartyResource = relyingPartyResource.withActive(false);
+        enqueueLookup();
+        expectedRequests.add("PATCH /v2/services/" + relyingPartyServiceId + "/activate");
+        server.enqueue(new MockResponse().setResponseCode(204));
+        expectedRequests.add("PATCH /v2/instances/" + relyingPartyResource.id() + "/activate");
+        server.enqueue(new MockResponse().setResponseCode(500).setHeader("Content-Type", "application/json")
+            .setBody("{\"error\":\"service_unavailable\",\"error_description\":\"Register service unavailable\"}"));
+        expectedRequests.add("PATCH /v2/services/" + relyingPartyServiceId + "/deactivate");
+        server.enqueue(new MockResponse().setResponseCode(204));
+
+        mockMvc.perform(post("/admin/status/" + relyingPartyResource.id()).with(login(true)).with(csrf())
+                .param("active", "true"))
+            .andExpectAll(status().isInternalServerError(), view().name("error/5xx"));
+    }
+
     private URI navigationLink(String html, String path, String parameter) {
         var links = Pattern.compile("href=\"(" + Pattern.quote(path) + "\\?[^\"]*)\"").matcher(html);
         while (links.find()) {
