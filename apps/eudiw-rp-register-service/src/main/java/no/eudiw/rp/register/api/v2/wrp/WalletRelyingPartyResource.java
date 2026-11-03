@@ -40,6 +40,16 @@ public record WalletRelyingPartyResource(
         SupervisoryAuthorityProperties supervisoryAuthority,
         WrpApiProperties properties
     ) {
+        return from(relyingParty, entitlementsByService, supervisoryAuthority, properties, null);
+    }
+
+    public static WalletRelyingPartyResource from(
+        WalletRelyingParty relyingParty,
+        Map<UUID, List<String>> entitlementsByService,
+        SupervisoryAuthorityProperties supervisoryAuthority,
+        WrpApiProperties properties,
+        String serviceIdentifier
+    ) {
         return new WalletRelyingPartyResource(
             relyingParty.getCountry(),
             relyingParty.getEmail(),
@@ -60,6 +70,7 @@ public record WalletRelyingPartyResource(
             properties.registryUri(),
             relyingParty.getServices().stream()
                 .filter(WalletRelyingPartyService::isActive)
+                .filter(service -> serviceIdentifier == null || serviceIdentifier.equals(service.getServiceIdentifier()))
                 .map(service -> ServiceResource.from(
                     service, entitlementsByService.getOrDefault(service.getId(), List.of())))
                 .toList()

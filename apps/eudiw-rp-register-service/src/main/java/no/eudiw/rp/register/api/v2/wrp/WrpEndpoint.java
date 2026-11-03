@@ -31,7 +31,7 @@ public class WrpEndpoint {
     private static final Set<String> COLLECTION_PARAMETERS =
         Set.of(
             "limit", "cursor", "identifier", "legalName", "serviceIdentifier", "tradeName", "policy",
-            "intendedUseIdentifier", "claimPath", "credentialMeta", "entitlement",
+            "intendedUseIdentifier", "claimPath", "credentialMeta", "credentialFormat", "entitlement",
             "providedAttestation", "usesIntermediary",
             "isIntermediary"
         );
@@ -45,7 +45,7 @@ public class WrpEndpoint {
         description = """
              Returns active relying parties matching the optional identifier, legalName,
              serviceIdentifier, tradeName, policy, intendedUseIdentifier, claimPath, credentialMeta,
-             entitlement,
+             credentialFormat, entitlement,
              providedAttestation, usesIntermediary, and isIntermediary filters.""",
         responses = {
             @ApiResponse(
@@ -96,7 +96,7 @@ public class WrpEndpoint {
         @Parameter(
             name = "serviceIdentifier",
             in = ParameterIn.QUERY,
-            description = "Exact identifier of an active service",
+            description = "Exact, case-sensitive identifier of an active service; only that service is included in the response",
             schema = @Schema(type = "string")
         )
         @RequestParam(name = "serviceIdentifier", required = false) String serviceIdentifier,
@@ -135,6 +135,16 @@ public class WrpEndpoint {
             schema = @Schema(type = "string")
         )
         @RequestParam(name = "credentialMeta", required = false) String credentialMeta,
+        @Parameter(
+            name = "credentialFormat",
+            in = ParameterIn.QUERY,
+            description = """
+                Case-sensitive exact match against a registered credential format.
+                Percent-encode '+' as '%2B', e.g. /wrp?credentialFormat=dc%2Bsd-jwt;
+                an unencoded '+' is decoded as a space.""",
+            schema = @Schema(type = "string", example = "dc+sd-jwt")
+        )
+        @RequestParam(name = "credentialFormat", required = false) String credentialFormat,
         @Parameter(
             name = "entitlement",
             in = ParameterIn.QUERY,
@@ -188,6 +198,7 @@ public class WrpEndpoint {
             || (intendedUseIdentifier != null && intendedUseIdentifier.isBlank())
             || (claimPath != null && claimPath.isBlank())
             || (credentialMeta != null && credentialMeta.isBlank())
+            || (credentialFormat != null && credentialFormat.isBlank())
             || (entitlement != null && entitlement.isBlank())
             || (providedAttestation != null && providedAttestation.isBlank())
             || (usesIntermediary != null && usesIntermediary.isBlank())) {
@@ -197,7 +208,7 @@ public class WrpEndpoint {
         WrpCollectionFilters filters =
             new WrpCollectionFilters(
                 identifier, legalName, serviceIdentifier, tradeName, policy, intendedUseIdentifier, claimPath,
-                credentialMeta, entitlement, providedAttestation, usesIntermediary, isIntermediary);
+                credentialMeta, credentialFormat, entitlement, providedAttestation, usesIntermediary, isIntermediary);
         WrpLookupService.CollectionPage page = lookupService.findAll(limit, cursor, filters);
         return ResponseEntity.ok()
             .contentType(MediaType.parseMediaType("application/jwt"))

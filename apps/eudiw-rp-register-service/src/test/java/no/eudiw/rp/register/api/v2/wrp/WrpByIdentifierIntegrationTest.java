@@ -31,16 +31,22 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.ECGenParameterSpec;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -56,7 +62,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @ActiveProfiles("junit")
 class WrpByIdentifierIntegrationTest {
@@ -66,6 +72,9 @@ class WrpByIdentifierIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @LocalServerPort
+    private int port;
 
     @Autowired
     private WalletRelyingPartyRepository walletRelyingPartyRepository;
@@ -225,6 +234,8 @@ class WrpByIdentifierIntegrationTest {
         mockMvc.perform(get("/wrp").param("claimPath", " "))
             .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("credentialMeta", " "))
+            .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/wrp").param("credentialFormat", " "))
             .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("entitlement", " "))
             .andExpect(status().isBadRequest());
@@ -392,6 +403,69 @@ class WrpByIdentifierIntegrationTest {
         List<String> pagedNames = new ArrayList<>(collectionTradeNames(firstPage));
         pagedNames.addAll(collectionTradeNames(secondPage));
         assertEquals(Set.of("Shared Trade Name", "Other WRP"), Set.copyOf(pagedNames));
+    }
+
+    @Test
+    void isolatesServiceIdentifierMatchesWithoutChangingOtherReads() throws Exception {
+        WalletRelyingParty first = partyWithSearchData("Isolation A", "urn:example:isolation-a", "Isolation Alpha");
+        WalletRelyingPartyService matchingService = first.getServices().getFirst();
+        matchingService.setServiceIdentifier("isolated-service");
+        WalletRelyingPartyService otherService = new WalletRelyingPartyService("Other service", first, List.of());
+        otherService.setServiceIdentifier("other-service");
+        otherService.setServiceTradeName("Other service trade name");
+        first.setServices(List.of(matchingService, otherService));
+
+        WalletRelyingParty second = partyWithSearchData("Isolation B", "urn:example:isolation-b", "Isolation Beta");
+        second.getServices().getFirst().setServiceIdentifier("isolated-service");
+        WalletRelyingParty inactive = partyNamed("Inactive isolated service");
+        inactive.getServices().getFirst().setServiceIdentifier("isolated-service");
+        inactive.getServices().getFirst().setActive(false);
+        walletRelyingPartyRepository.saveAllAndFlush(List.of(first, second, inactive));
+
+        JWSObject firstPage = getCollectionPage(1, null, Map.of("serviceIdentifier", "isolated-service"));
+        Map<?, ?> pagination = (Map<?, ?>) firstPage.getPayload().toJSONObject().get("pagination");
+        assertTrue((Boolean) pagination.get("has_next_page"));
+        JWSObject secondPage = getCollectionPage(
+            1, (String) pagination.get("next_cursor"), Map.of("serviceIdentifier", "isolated-service"));
+        assertFalse((Boolean) ((Map<?, ?>) secondPage.getPayload().toJSONObject().get("pagination"))
+            .get("has_next_page"));
+        Set<String> names = new HashSet<>();
+        for (JWSObject page : List.of(firstPage, secondPage)) {
+            List<?> data = (List<?>) page.getPayload().toJSONObject().get("data");
+            assertEquals(1, data.size());
+            Map<?, ?> party = (Map<?, ?>) data.getFirst();
+            names.add((String) party.get("tradeName"));
+            List<?> services = (List<?>) party.get("services");
+            assertEquals(1, services.size());
+            assertEquals("isolated-service", ((Map<?, ?>) services.getFirst()).get("serviceIdentifier"));
+        }
+        assertEquals(Set.of("Isolation A", "Isolation B"), names);
+
+        JWSObject combined = getCollectionPage(null, null, Map.of(
+            "serviceIdentifier", "isolated-service",
+            "tradeName", "Other service trade name"
+        ));
+        assertEquals(List.of("Isolation A"), collectionTradeNames(combined));
+        Map<?, ?> combinedParty = (Map<?, ?>) ((List<?>) combined.getPayload().toJSONObject().get("data"))
+            .getFirst();
+        List<?> isolatedServices = (List<?>) combinedParty.get("services");
+        assertEquals(1, isolatedServices.size());
+        assertEquals("isolated-service", ((Map<?, ?>) isolatedServices.getFirst()).get("serviceIdentifier"));
+        for (String identifier : List.of("ISOLATED-SERVICE", "isolated-service ", "missing-service")) {
+            assertTrue(collectionTradeNames(getCollectionPage(
+                null, null, Map.of("serviceIdentifier", identifier))).isEmpty(), identifier);
+        }
+
+        JWSObject unisolated = getCollectionPage(null, null, Map.of("identifier", first.getOrgno()));
+        Map<?, ?> unisolatedParty = (Map<?, ?>) ((List<?>) unisolated.getPayload().toJSONObject().get("data"))
+            .getFirst();
+        assertEquals(2, ((List<?>) unisolatedParty.get("services")).size());
+        JWSObject byIdentifier = JWSObject.parse(mockMvc.perform(get("/wrp/{identifier}", first.getOrgno()))
+            .andExpect(status().isOk())
+            .andReturn().getResponse().getContentAsString());
+        assertTrue(byIdentifier.verify(new ECDSAVerifier((ECPublicKey) signingKeyPair.getPublic())));
+        Map<?, ?> byIdentifierParty = (Map<?, ?>) byIdentifier.getPayload().toJSONObject().get("data");
+        assertEquals(2, ((List<?>) byIdentifierParty.get("services")).size());
     }
 
     @Test
@@ -735,6 +809,112 @@ class WrpByIdentifierIntegrationTest {
             "legalName", "Credential Meta Alpha"
         )).getPayload().toJSONObject().get("data")).getFirst();
         assertEquals("Credential meta VCT match A", combinedFilterMatch.get("tradeName"));
+    }
+
+    @Test
+    void filtersCollectionByExactCredentialFormatBeforeCursorPagination() throws Exception {
+        WalletRelyingParty firstMatch = partyWithCredentialFormats("Format match A", "dc+sd-jwt", "dc+sd-jwt");
+        IntendedUse revokedIntendedUse = firstMatch.getServices().getFirst().getIntendedUses().getFirst();
+        revokedIntendedUse.setRevokedAt("2026-02-01");
+        List<Credential> credentials = new ArrayList<>(revokedIntendedUse.getCredentials());
+        credentials.add(new Credential(
+            "mso_mdoc",
+            Map.of("doctype", "org.example.mDL"),
+            List.of(claimPath("driving_privileges"))
+        ));
+        revokedIntendedUse.setCredentials(credentials);
+        firstMatch.setServices(List.of(
+            firstMatch.getServices().getFirst(),
+            new WalletRelyingPartyService("Additional active service", firstMatch, List.of())
+        ));
+        WalletRelyingParty secondMatch = partyWithCredentialFormats("Format match B", "dc+sd-jwt");
+        WalletRelyingParty inactiveServiceMatch =
+            partyWithCredentialFormats("Format inactive service", "dc+sd-jwt");
+        inactiveServiceMatch.getServices().getFirst().setActive(false);
+        WalletRelyingParty inactivePartyMatch = partyWithCredentialFormats("Format inactive party", "dc+sd-jwt");
+        inactivePartyMatch.setActive(false);
+        walletRelyingPartyRepository.saveAllAndFlush(List.of(
+            firstMatch,
+            secondMatch,
+            inactiveServiceMatch,
+            inactivePartyMatch,
+            partyWithCredentialFormats("Format case variant", "DC+SD-JWT"),
+            partyWithCredentialFormats("Format suffix", "dc+sd-jwt-extra"),
+            partyWithCredentialFormats("Format trailing space", "dc+sd-jwt "),
+            partyWithCredentialFormats("Format wildcard literal", "custom_100%")
+        ));
+
+        JWSObject firstPage = getCollectionPage(1, null, Map.of("credentialFormat", "dc+sd-jwt"));
+        Map<?, ?> firstPagination = (Map<?, ?>) firstPage.getPayload().toJSONObject().get("pagination");
+        assertTrue((Boolean) firstPagination.get("has_next_page"));
+        JWSObject secondPage = getCollectionPage(
+            1, (String) firstPagination.get("next_cursor"), Map.of("credentialFormat", "dc+sd-jwt"));
+        assertFalse((Boolean) ((Map<?, ?>) secondPage.getPayload().toJSONObject().get("pagination"))
+            .get("has_next_page"));
+        List<String> matchingNames = new ArrayList<>(collectionTradeNames(firstPage));
+        matchingNames.addAll(collectionTradeNames(secondPage));
+        assertEquals(2, matchingNames.size());
+        assertEquals(Set.of("Format match A", "Format match B"), Set.copyOf(matchingNames));
+        assertEquals(
+            List.of("Format match A"),
+            collectionTradeNames(getCollectionPage(null, null, Map.of("credentialFormat", "mso_mdoc")))
+        );
+        assertEquals(
+            List.of("Format case variant"),
+            collectionTradeNames(getCollectionPage(null, null, Map.of("credentialFormat", "DC+SD-JWT")))
+        );
+        assertEquals(
+            List.of("Format wildcard literal"),
+            collectionTradeNames(getCollectionPage(null, null, Map.of("credentialFormat", "custom_100%")))
+        );
+        for (String nonMatch : List.of("dc+sd", "unknown-format", "customX100Z", "custom%", "dc+sd-jwt  ")) {
+            assertTrue(collectionTradeNames(getCollectionPage(
+                null, null, Map.of("credentialFormat", nonMatch))).isEmpty(), nonMatch);
+        }
+
+        JWSObject combinedPage = getCollectionPage(null, null, Map.of(
+            "credentialFormat", "dc+sd-jwt",
+            "credentialMeta", "org.example.mDL",
+            "claimPath", "driving_privileges",
+            "legalName", "Format match A"
+        ));
+        assertEquals(List.of("Format match A"), collectionTradeNames(combinedPage));
+        Map<?, ?> combinedMatch = (Map<?, ?>) ((List<?>) combinedPage.getPayload().toJSONObject().get("data"))
+            .getFirst();
+        assertEquals(2, ((List<?>) combinedMatch.get("services")).size());
+        assertTrue(collectionTradeNames(getCollectionPage(null, null, Map.of(
+            "credentialFormat", "mso_mdoc",
+            "legalName", "Format match B"
+        ))).isEmpty());
+    }
+
+    @Test
+    void decodesCredentialFormatQueryOverHttpExactlyOnce() throws Exception {
+        walletRelyingPartyRepository.saveAllAndFlush(List.of(
+            partyWithCredentialFormats("Encoded plus", "dc+sd-jwt"),
+            partyWithCredentialFormats("Decoded space", "dc sd-jwt")
+        ));
+        try (HttpClient client = HttpClient.newHttpClient()) {
+            Map<String, List<String>> expectedNamesByEncodedValue = Map.of(
+                "dc%2Bsd-jwt", List.of("Encoded plus"),
+                "dc+sd-jwt", List.of("Decoded space"),
+                "dc%252Bsd-jwt", List.of()
+            );
+            for (var entry : expectedNamesByEncodedValue.entrySet()) {
+                HttpRequest request = HttpRequest.newBuilder(
+                    URI.create("http://localhost:" + port + "/wrp?credentialFormat=" + entry.getKey()))
+                    .timeout(Duration.ofSeconds(10))
+                    .GET()
+                    .build();
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                assertEquals(200, response.statusCode());
+                assertEquals("application/jwt", response.headers().firstValue("Content-Type").orElseThrow());
+                assertEquals(JWKS_URL, response.headers().firstValue("x-jku-url").orElseThrow());
+                JWSObject jws = JWSObject.parse(response.body());
+                assertTrue(jws.verify(new ECDSAVerifier((ECPublicKey) signingKeyPair.getPublic())));
+                assertEquals(entry.getValue(), collectionTradeNames(jws), entry.getKey());
+            }
+        }
     }
 
     @Test
@@ -1164,7 +1344,9 @@ class WrpByIdentifierIntegrationTest {
             .andExpect(content().string(containsString("isIntermediary")))
             .andExpect(content().string(containsString("intendedUseIdentifier")))
             .andExpect(content().string(containsString("claimPath")))
-            .andExpect(content().string(containsString("credentialMeta")));
+            .andExpect(content().string(containsString("credentialMeta")))
+            .andExpect(content().string(containsString("credentialFormat")))
+            .andExpect(content().string(containsString("/wrp?credentialFormat=dc%2Bsd-jwt")));
     }
 
     @Test
@@ -1367,6 +1549,19 @@ class WrpByIdentifierIntegrationTest {
         );
         intendedUse.setCredentials(credentials);
         return intendedUse;
+    }
+
+    private WalletRelyingParty partyWithCredentialFormats(String name, String... formats) {
+        WalletRelyingParty party = partyWithSearchData(name, "urn:example:" + name, name);
+        party.getServices().getFirst().setIntendedUses(List.of(intendedUseWithCredentials(
+            "format-intended-use",
+            null,
+            Arrays.stream(formats)
+                .map(format -> new Credential(
+                    format, Map.of("vct_values", List.of("urn:example:pid")), List.of(claimPath("birthdate"))))
+                .toList()
+        )));
+        return party;
     }
 
     private Credential credentialWithMeta(Map<String, Object> meta) {
