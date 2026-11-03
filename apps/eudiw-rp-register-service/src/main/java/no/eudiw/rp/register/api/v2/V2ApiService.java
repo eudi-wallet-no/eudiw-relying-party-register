@@ -15,6 +15,7 @@ import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationSummaryRespons
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInformationRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyServiceRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyServiceResponse;
@@ -47,6 +48,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -124,6 +126,36 @@ public class V2ApiService {
                 .flatMap(service -> service.getRelyingPartyInstances().stream())
                 .forEach(RelyingPartyInstance::setUpdated);
         }
+
+        return RelyingPartyResponse.from(
+            walletRelyingPartyRepository.saveAndFlush(relyingParty),
+            registryProperties,
+            supervisoryAuthorityProperties);
+    }
+
+    public RelyingPartyResponse updateRelyingPartyInformation(
+        UUID relyingPartyId,
+        RelyingPartyInformationRequest request
+    ) {
+        WalletRelyingParty relyingParty = walletRelyingPartyRepository.findByIdForUpdate(relyingPartyId)
+            .orElseThrow(() -> new NotFoundException("RelyingParty not found"));
+
+        String tradeName = request.tradeName();
+        relyingParty.setTradeName(tradeName == null || tradeName.isBlank() ? null : tradeName.strip());
+        relyingParty.setCountry(request.country());
+        if (request.postalAddress() != null) {
+            relyingParty.setPostalAddress(new ArrayList<>(request.postalAddress()));
+        }
+        if (request.email() != null) {
+            relyingParty.setEmail(new ArrayList<>(request.email()));
+        }
+        if (request.phone() != null) {
+            relyingParty.setPhone(new ArrayList<>(request.phone()));
+        }
+        if (request.infoURI() != null) {
+            relyingParty.setInfoURI(new ArrayList<>(request.infoURI()));
+        }
+        relyingParty.setUpdated();
 
         return RelyingPartyResponse.from(
             walletRelyingPartyRepository.saveAndFlush(relyingParty),

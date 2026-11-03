@@ -120,28 +120,29 @@ class V2ApiIntegrationTest {
     }
 
     @Test
-    void createsIndependentResourcesAndReadsThemThroughV2AndV1() throws Exception {
+    @DisplayName("Should make a new relying party available for services and registrations")
+    void shouldMakeNewRelyingPartyAvailableForServicesAndRegistrations() throws Exception {
         String orgno = TestDataGenerator.generateValidOrgno();
-        assertTrue(read(get("/v2/parties").param("orgno", orgno)).get("content").isEmpty());
+        assertTrue(read(get("/v2/relying-parties").param("orgno", orgno)).get("content").isEmpty());
         assertEquals(0, relyingPartyRepository.count());
 
-        JsonNode relyingParty = read(post("/v2/parties"), "{\"orgno\":\"" + orgno + "\"}");
+        JsonNode relyingParty = read(post("/v2/relying-parties"), "{\"orgno\":\"" + orgno + "\"}");
         String relyingPartyId = relyingParty.get("id").asString();
         assertEquals("https://registry.example.test/wrp", relyingParty.get("registryURI").asString());
         assertEquals(0, relyingPartyServiceRepository.count());
-        request(post("/v2/parties"), "{\"orgno\":\"" + orgno + "\"}")
+        request(post("/v2/relying-parties"), "{\"orgno\":\"" + orgno + "\"}")
             .andExpect(status().isBadRequest());
         assertEquals(relyingPartyId,
-            read(get("/v2/parties").param("orgno", orgno)).at("/content/0/id").asString());
+            read(get("/v2/relying-parties").param("orgno", orgno)).at("/content/0/id").asString());
 
-        String relyingPartyServiceId = read(post("/v2/parties/" + relyingPartyId + "/services"),
+        String relyingPartyServiceId = read(post("/v2/relying-parties/" + relyingPartyId + "/services"),
             RELYING_PARTY_SERVICE).get("id").asString();
         assertEquals(0, relyingPartyInstanceRepository.count());
         String relyingPartyInstanceId = read(post("/v2/services/" + relyingPartyServiceId + "/instances"),
             RELYING_PARTY_INSTANCE).get("id").asString();
 
         assertEquals(relyingPartyServiceId,
-            read(get("/v2/parties/" + relyingPartyId)).at("/serviceIds/0").asString());
+            read(get("/v2/relying-parties/" + relyingPartyId)).at("/serviceIds/0").asString());
         assertEquals(relyingPartyId,
             read(get("/v2/services/" + relyingPartyServiceId)).get("partyId").asString());
         assertEquals(relyingPartyServiceId,
@@ -214,6 +215,99 @@ class V2ApiIntegrationTest {
             read(get(registration.intendedUsesPath())).get(0).get("credentials"));
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    @DisplayName("Should save party details without changing its services or registrations")
+    void shouldSavePartyDetailsWithoutChangingServicesOrRegistrations(boolean active) throws Exception {
+        Registration registration = createRegistration();
+        read(put(registration.relyingPartyPath()), RELYING_PARTY.replace(
+            "\"email\":[\"contact@example.test\"]",
+            """
+            "email":["contact@example.test"],"x5c":["chain"],"postalAddress":["Street 1"],
+            "phone":["+4712345678"],"infoURI":["https://example.test/info"]
+            """));
+        read(post(registration.intendedUsesPath()), INTENDED_USE);
+        var instance = relyingPartyInstanceRepository.findById(
+            UUID.fromString(registration.relyingPartyInstanceId())).orElseThrow();
+        instance.setAccessCertificates(List.of(
+            new AccessCertificate("test-ca", CertificatesGenerator.generateX509Certificate(), instance)));
+        relyingPartyInstanceRepository.saveAndFlush(instance);
+        if (!active) {
+            request(patch(registration.relyingPartyPath() + "/deactivate")).andExpect(status().isNoContent());
+        }
+        ObjectNode beforeRelyingParty = (ObjectNode) read(get(registration.relyingPartyPath()));
+        ObjectNode beforeDetails = (ObjectNode) read(get("/v2/registrations/" + registration.relyingPartyInstanceId()));
+        JsonNode beforeService = read(get(registration.relyingPartyServicePath()));
+        JsonNode beforeIntendedUses = read(get(registration.intendedUsesPath()));
+
+        request(patch(registration.informationPath()), """
+            {"tradeName":" Digdir ","country":"SE","isPSB":true,
+             "legalPerson":{"legalName":["Overposted name"]},"active":true}
+            """).andExpect(status().isBadRequest());
+        read(patch(registration.informationPath()),
+            "{\"tradeName\":\" Digdir \",\"country\":\"SE\"}");
+        ObjectNode afterRelyingParty = (ObjectNode) read(get(registration.relyingPartyPath()));
+        ObjectNode afterDetails = (ObjectNode) read(get("/v2/registrations/" + registration.relyingPartyInstanceId()));
+        assertEquals("Digdir", afterRelyingParty.get("tradeName").asString());
+        assertEquals("SE", afterRelyingParty.get("country").asString());
+        assertEquals("Legal name", afterDetails.get("organizationName").asString());
+        assertEquals(beforeService, read(get(registration.relyingPartyServicePath())));
+        assertEquals(beforeIntendedUses, read(get(registration.intendedUsesPath())));
+        for (ObjectNode relyingParty : List.of(beforeRelyingParty, afterRelyingParty)) {
+            relyingParty.remove(List.of("tradeName", "country", "lastUpdatedMs"));
+        }
+        for (ObjectNode details : List.of(beforeDetails, afterDetails)) {
+            ((ObjectNode) details.get("relyingParty")).remove(List.of("tradeName", "country"));
+        }
+        assertEquals(beforeRelyingParty, afterRelyingParty);
+        assertEquals(beforeDetails, afterDetails);
+        assertTrue(read(patch(registration.informationPath()),
+            "{\"tradeName\":\"  \",\"country\":\"SE\"}").get("tradeName").isNull());
+        assertTrue(read(get(registration.relyingPartyPath())).get("tradeName").isNull());
+        verifyNoInteractions(certificateServiceClient);
+    }
+
+
+    @Test
+    @DisplayName("Should keep multiple contact details when other party details are saved")
+    void shouldKeepMultipleContactDetailsWhenOtherPartyDetailsAreSaved() throws Exception {
+        Registration registration = createRegistration();
+        read(put(registration.relyingPartyPath()), RELYING_PARTY.replace(
+            "\"email\":[\"contact@example.test\"]",
+            """
+            "email":["contact@example.test"],"postalAddress":["Street 1","Street 2"],
+            "phone":["+4712345678"],"infoURI":["https://example.test/info"]
+            """));
+
+        JsonNode updated = read(patch(registration.informationPath()), """
+            {"tradeName":"Digdir","country":"SE","postalAddress":null,"email":["post@example.test"],
+             "phone":["+4711111111"],"infoURI":["https://example.test/info"]}
+            """);
+        assertEquals("Digdir", updated.get("tradeName").asString());
+        assertEquals("SE", updated.get("country").asString());
+        assertEquals("post@example.test", updated.at("/email/0").asString());
+        assertEquals(2, updated.get("postalAddress").size());
+        assertEquals("Street 1", updated.at("/postalAddress/0").asString());
+        assertEquals("Street 2", updated.at("/postalAddress/1").asString());
+
+        read(patch(registration.informationPath()), "{\"tradeName\":\"Digdir\",\"country\":\"SE\",\"phone\":[]}");
+        JsonNode after = read(get(registration.relyingPartyPath()));
+        assertEquals(2, after.get("postalAddress").size());
+        assertEquals("Street 1", after.at("/postalAddress/0").asString());
+        assertEquals("Street 2", after.at("/postalAddress/1").asString());
+        assertEquals("post@example.test", after.at("/email/0").asString());
+        assertEquals("https://example.test/info", after.at("/infoURI/0").asString());
+        assertEquals(0, after.get("phone").size());
+        request(patch(registration.informationPath()),
+            "{\"tradeName\":\"Digdir\",\"country\":\"SE\",\"infoURI\":[\"not-a-uri\"]}")
+            .andExpect(status().isBadRequest());
+        request(patch(registration.informationPath()),
+            "{\"tradeName\":\"Digdir\",\"country\":\"SE\",\"email\":[\" \"]}")
+            .andExpect(status().isBadRequest());
+        assertEquals(after, read(get(registration.relyingPartyPath())));
+    }
+
+
     @Test
     void invalidRequestsAndUnknownResourcesReturnErrorsWithoutPersistingChanges() throws Exception {
         Registration registration = createRegistration();
@@ -222,9 +316,12 @@ class V2ApiIntegrationTest {
             read(get(registration.relyingPartyServicePath())), read(get(registration.relyingPartyInstancePath())));
 
         for (String content : List.of("{", "{}", RELYING_PARTY.replace("\"identifier\":[{\"type\":\"EUID\",\"identifier\":\"NO-123\"}]", "\"identifier\":[]"),
-            RELYING_PARTY.replace("\"establishedByLaw\":[]", "\"establishedByLaw\":[null]"))) {
+            RELYING_PARTY.replace("\"establishedByLaw\":[]", "\"establishedByLaw\":[null]"),
+            RELYING_PARTY.replace("\"country\":\"NO\"", "\"country\":\"Noreg\""))) {
             request(put(registration.relyingPartyPath()), content).andExpect(status().isBadRequest());
         }
+        request(patch(registration.informationPath()), "{\"country\":\"Noreg\"}")
+            .andExpect(status().isBadRequest());
         request(put(registration.relyingPartyServicePath()),
             RELYING_PARTY_SERVICE.replace("https://example.test/support", "invalid URI"))
             .andExpect(status().isBadRequest()).andExpect(jsonPath("$.error_description").isNotEmpty());
@@ -242,9 +339,9 @@ class V2ApiIntegrationTest {
             request(post(registration.intendedUsesPath()), content).andExpect(status().isBadRequest());
         }
         assertTrue(read(get(registration.intendedUsesPath())).isEmpty());
-        request(get("/v2/parties").param("pageSize", "101")).andExpect(status().isBadRequest());
-        request(get("/v2/parties").param("sort", "unknown")).andExpect(status().isBadRequest());
-        request(put("/v2/parties/" + UUID.randomUUID()), RELYING_PARTY).andExpect(status().isNotFound());
+        request(get("/v2/relying-parties").param("pageSize", "101")).andExpect(status().isBadRequest());
+        request(get("/v2/relying-parties").param("sort", "unknown")).andExpect(status().isBadRequest());
+        request(put("/v2/relying-parties/" + UUID.randomUUID()), RELYING_PARTY).andExpect(status().isNotFound());
         request(post("/v2/services/" + UUID.randomUUID() + "/instances"), RELYING_PARTY_INSTANCE)
             .andExpect(status().isNotFound());
         assertEquals(1, relyingPartyInstanceRepository.count());
@@ -257,7 +354,7 @@ class V2ApiIntegrationTest {
         for (MockHttpServletRequestBuilder builder : List.of(
             get(registration.relyingPartyPath()), get("/v2/services"), get("/v2/instances"), get("/v2/entitlements"),
             get("/v2/registrations/" + registration.relyingPartyInstanceId()),
-            post("/v2/parties"), post(registration.relyingPartyPath() + "/services"),
+            post("/v2/relying-parties"), post(registration.relyingPartyPath() + "/services"),
             post(registration.relyingPartyServicePath() + "/instances"),
             put(registration.relyingPartyPath()), put(registration.relyingPartyServicePath()),
             put(registration.relyingPartyInstancePath()), patch(registration.relyingPartyPath() + "/deactivate"),
@@ -274,17 +371,17 @@ class V2ApiIntegrationTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"parties", "services"})
+    @ValueSource(strings = {"relying-parties", "services"})
     void inactiveAncestorsRejectChildAndIntendedUseWrites(String level) throws Exception {
         Registration registration = createRegistration();
         JsonNode intendedUse = read(post(registration.intendedUsesPath()), INTENDED_USE);
-        String ancestorPath = level.equals("parties")
+        String ancestorPath = level.equals("relying-parties")
             ? registration.relyingPartyPath() : registration.relyingPartyServicePath();
         request(patch(ancestorPath + "/deactivate")).andExpect(status().isNoContent());
 
         request(post(registration.relyingPartyServicePath() + "/instances"), RELYING_PARTY_INSTANCE)
             .andExpect(status().isNotFound());
-        if (level.equals("parties")) {
+        if (level.equals("relying-parties")) {
             request(post(registration.relyingPartyPath() + "/services"), RELYING_PARTY_SERVICE)
                 .andExpect(status().isNotFound());
         }
@@ -619,9 +716,9 @@ class V2ApiIntegrationTest {
     }
 
     private Registration createRegistration() throws Exception {
-        String relyingPartyId = read(post("/v2/parties"), "{\"orgno\":\"" + TestDataGenerator.generateValidOrgno() + "\"}")
+        String relyingPartyId = read(post("/v2/relying-parties"), "{\"orgno\":\"" + TestDataGenerator.generateValidOrgno() + "\"}")
             .get("id").asString();
-        String relyingPartyServiceId = read(post("/v2/parties/" + relyingPartyId + "/services"), RELYING_PARTY_SERVICE)
+        String relyingPartyServiceId = read(post("/v2/relying-parties/" + relyingPartyId + "/services"), RELYING_PARTY_SERVICE)
             .get("id").asString();
         String relyingPartyInstanceId = read(post("/v2/services/" + relyingPartyServiceId + "/instances"), RELYING_PARTY_INSTANCE)
             .get("id").asString();
@@ -649,7 +746,8 @@ class V2ApiIntegrationTest {
     }
 
     private record Registration(String relyingPartyId, String relyingPartyServiceId, String relyingPartyInstanceId) {
-        String relyingPartyPath() { return "/v2/parties/" + relyingPartyId; }
+        String relyingPartyPath() { return "/v2/relying-parties/" + relyingPartyId; }
+        String informationPath() { return relyingPartyPath(); }
         String relyingPartyServicePath() { return "/v2/services/" + relyingPartyServiceId; }
         String relyingPartyInstancePath() { return "/v2/instances/" + relyingPartyInstanceId; }
         String intendedUsesPath() { return relyingPartyServicePath() + "/intended-uses"; }

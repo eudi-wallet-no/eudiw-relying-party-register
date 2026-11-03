@@ -111,11 +111,11 @@ class V2RegistrationStatusIntegrationTest {
 
         assertRegistrationStatus(registration, true, true, true, false, true, true);
 
-        changeRegistrationStatus("/v2/parties/%s/deactivate".formatted(registration.walletRelyingParty().getId()));
+        changeRegistrationStatus("/v2/relying-parties/%s/deactivate".formatted(registration.walletRelyingParty().getId()));
 
         assertRegistrationStatus(registration, false, false, false, false, false, false);
 
-        changeRegistrationStatus("/v2/parties/%s/activate".formatted(registration.walletRelyingParty().getId()));
+        changeRegistrationStatus("/v2/relying-parties/%s/activate".formatted(registration.walletRelyingParty().getId()));
 
         assertRegistrationStatus(registration, true, false, false, false, false, false);
 
@@ -139,14 +139,14 @@ class V2RegistrationStatusIntegrationTest {
     @Test
     void cannotReactivateChildWhileAnyAncestorIsInactive() throws Exception {
         Registration registration = createRegistration();
-        changeRegistrationStatus("/v2/parties/%s/deactivate".formatted(registration.walletRelyingParty().getId()));
+        changeRegistrationStatus("/v2/relying-parties/%s/deactivate".formatted(registration.walletRelyingParty().getId()));
 
         mockMvc.perform(patch("/v2/services/%s/activate".formatted(registration.walletRelyingPartyService().getId()))
                 .header(API_KEY_HEADER, API_KEY))
             .andExpect(status().isBadRequest());
         assertFalse(isWalletRelyingPartyServiceActive(registration));
 
-        changeRegistrationStatus("/v2/parties/%s/activate".formatted(registration.walletRelyingParty().getId()));
+        changeRegistrationStatus("/v2/relying-parties/%s/activate".formatted(registration.walletRelyingParty().getId()));
 
         mockMvc.perform(patch("/v2/instances/%s/activate".formatted(registration.relyingPartyInstance().getId()))
                 .header(API_KEY_HEADER, API_KEY))
@@ -162,7 +162,7 @@ class V2RegistrationStatusIntegrationTest {
     void rejectsCertificateIssuanceWhenAnyRegistrationLevelIsInactive(RegistrationLevel level) throws Exception {
         Registration registration = createRegistration();
         String path = switch (level) {
-            case WALLET_RELYING_PARTY -> "/v2/parties/%s/deactivate".formatted(registration.walletRelyingParty().getId());
+            case WALLET_RELYING_PARTY -> "/v2/relying-parties/%s/deactivate".formatted(registration.walletRelyingParty().getId());
             case WALLET_RELYING_PARTY_SERVICE -> "/v2/services/%s/deactivate".formatted(registration.walletRelyingPartyService().getId());
             case RELYING_PARTY_INSTANCE -> "/v2/instances/%s/deactivate".formatted(registration.relyingPartyInstance().getId());
         };
@@ -193,7 +193,7 @@ class V2RegistrationStatusIntegrationTest {
         registration.issuerCertificate().revoke(1);
         issuerCertificateRepository.saveAndFlush(registration.issuerCertificate());
         String path = switch (level) {
-            case WALLET_RELYING_PARTY -> "/v2/parties/%s/deactivate".formatted(registration.walletRelyingParty().getId());
+            case WALLET_RELYING_PARTY -> "/v2/relying-parties/%s/deactivate".formatted(registration.walletRelyingParty().getId());
             case WALLET_RELYING_PARTY_SERVICE -> "/v2/services/%s/deactivate".formatted(registration.walletRelyingPartyService().getId());
             case RELYING_PARTY_INSTANCE -> "/v2/instances/%s/deactivate".formatted(registration.relyingPartyInstance().getId());
         };
@@ -212,7 +212,7 @@ class V2RegistrationStatusIntegrationTest {
     void v2DoesNotOfferPhysicalDeletion(RegistrationLevel level) throws Exception {
         Registration registration = createRegistration();
         String path = switch (level) {
-            case WALLET_RELYING_PARTY -> "/v2/parties/%s".formatted(registration.walletRelyingParty().getId());
+            case WALLET_RELYING_PARTY -> "/v2/relying-parties/%s".formatted(registration.walletRelyingParty().getId());
             case WALLET_RELYING_PARTY_SERVICE -> "/v2/services/%s".formatted(registration.walletRelyingPartyService().getId());
             case RELYING_PARTY_INSTANCE -> "/v2/instances/%s".formatted(registration.relyingPartyInstance().getId());
         };
@@ -231,7 +231,7 @@ class V2RegistrationStatusIntegrationTest {
     @DisplayName("Should read and revoke both certificate types through V2 when the entire hierarchy is inactive")
     void shouldReadAndRevokeCertificatesThroughV2ForInactiveRegistration() throws Exception {
         Registration registration = createRegistration();
-        changeRegistrationStatus("/v2/parties/%s/deactivate".formatted(registration.walletRelyingParty().getId()));
+        changeRegistrationStatus("/v2/relying-parties/%s/deactivate".formatted(registration.walletRelyingParty().getId()));
         assertRegistrationStatus(registration, false, false, false, false, false, false);
         when(certificateServiceClient.revokeCertificate(anyString(), anyInt(), anyString()))
             .thenReturn(HttpStatus.NO_CONTENT);
@@ -304,7 +304,7 @@ class V2RegistrationStatusIntegrationTest {
 
     @Test
     void requiresApiKeyForV2StatusOperations() throws Exception {
-        mockMvc.perform(patch("/v2/parties/%s/deactivate".formatted(java.util.UUID.randomUUID())))
+        mockMvc.perform(patch("/v2/relying-parties/%s/deactivate".formatted(java.util.UUID.randomUUID())))
             .andExpect(status().isUnauthorized());
 
         verifyNoInteractions(certificateServiceClient);

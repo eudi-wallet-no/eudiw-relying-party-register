@@ -23,7 +23,7 @@ revocation status are preserved, and certificates can still be retrieved and
 explicitly revoked through the Certificate Authority. Issuing new access or
 issuer certificates requires the entire registration hierarchy to be active.
 
-Change status with `PATCH /v2/{parties,services,instances}/{id}/deactivate` or
+Change status with `PATCH /v2/{relying-parties,services,instances}/{id}/deactivate` or
 `/activate`. These operations require `X-API-KEY` and return `204` on success,
 `404` for an unknown resource and `400` when attempting reactivation under
 inactive parents. V1 retains physical deletion but cannot reactivate instances

@@ -6,6 +6,7 @@ import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import no.eudiw.rp.register.api.v2.resource.IdentifierResource;
 import no.eudiw.rp.register.api.v2.resource.LegalPersonResource;
 import no.eudiw.rp.register.api.v2.resource.PolicyResource;
@@ -18,7 +19,7 @@ import java.util.List;
 public record RelyingPartyRequest(
     String tradeName,
     @JsonProperty(required = true) @NotNull Boolean isPSB,
-    @JsonProperty(required = true) @NotBlank String country,
+    @JsonProperty(required = true) @NotBlank @Pattern(regexp = "[A-Z]{2}") String country,
     @Valid LegalPersonResource legalPerson,
     @JsonProperty(required = true) @NotEmpty List<@NotNull @Valid IdentifierResource> identifier,
     @JsonProperty(required = true) @NotEmpty List<@NotNull @Valid PolicyResource> policy,

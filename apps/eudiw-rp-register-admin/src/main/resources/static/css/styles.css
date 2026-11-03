@@ -24,6 +24,28 @@ div.ds-card + div.ds-card { margin-top: 8px; }
 .registration-card-heading .ds-heading { margin: 0; overflow-wrap: anywhere; hyphens: auto; min-inline-size: 0; }
 .registration-card { overflow-wrap: anywhere; }
 .registration-card form { margin-block-start: var(--ds-size-4); }
+.registration-card > .ds-details > summary .ds-heading { margin: 0; overflow-wrap: anywhere; }
+.relying-party-information-table { inline-size: 100%; }
+.relying-party-field-status { display: flex; inline-size: fit-content; margin-block-start: var(--ds-size-2); }
+.relying-party-add-value { margin-inline-start: var(--ds-size-3); }
+.relying-party-information-table--editing caption { padding-block-start: var(--ds-size-6); }
+.relying-party-card-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--ds-size-4); padding: var(--ds-size-4) var(--ds-size-5); }
+.relying-party-card-bar .ds-heading { margin: 0; }
+.relying-party-information-table--editing th,
+.relying-party-information-table--editing td { padding-block: var(--ds-size-4); }
+.relying-party-information-table--editing tr:has(.relying-party-field-status--readonly) { background-color: var(--ds-color-neutral-surface-tinted); }
+.registration-card .ds-card__block .button-group { margin-block-start: var(--ds-size-6); }
+@media (max-width: 600px) {
+    .relying-party-information-table tbody,
+    .relying-party-information-table tr,
+    .relying-party-information-table th,
+    .relying-party-information-table td {
+        display: block;
+        inline-size: auto;
+    }
+    .relying-party-information-table th { padding-block-end: var(--ds-size-1); }
+    .relying-party-information-table td { padding-block-start: var(--ds-size-1); }
+}
 .registration-title { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ds-size-4); }
 .registration-title .ds-heading { margin: 0; min-inline-size: 0; }
 .header-logo { padding-right: 8px; }
