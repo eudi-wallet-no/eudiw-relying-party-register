@@ -555,6 +555,28 @@ class RegistrationWorkflowTests {
     }
 
     @Test
+    @DisplayName("Should remove a certificate-free legacy role with an HTTP issuer URL")
+    void shouldRemoveCertificateFreeLegacyRoleWithHttpIssuerUrl() throws Exception {
+        relyingPartyResource = relyingPartyResource
+            .withIssuerCertificates(List.of())
+            .withRelyingPartyEntitlements(List.of(
+                new RelyingPartyEntitlementResource(QEAA, "Issuer", "http://legacy.test")));
+        enqueueLookup();
+        enqueueRoleCatalog();
+        expectedRolesRequest = """
+            {"relyingPartyEntitlements":[{"entitlement":"urn:second","credentialIssuerUrl":"https://second.test"}],
+             "relyingPartyEaas":[]}
+            """;
+        enqueue("PUT", "/v2/instances/" + relyingPartyResource.id(), "{}");
+
+        mockMvc.perform(post("/roles/edit/" + relyingPartyResource.id()).with(login(true)).with(csrf())
+                .param("entitlements[0].credentialIssuerUrl", "http://legacy.test")
+                .param("entitlements[1].entitlement", "urn:second")
+                .param("entitlements[1].credentialIssuerUrl", "https://second.test"))
+            .andExpect(status().is3xxRedirection());
+    }
+
+    @Test
     @DisplayName("Should save issuer URL and EAA for self-service while the role set stays unchanged")
     void shouldSaveEaaForSelfServiceAndKeepRoles() throws Exception {
         enqueueLookup();

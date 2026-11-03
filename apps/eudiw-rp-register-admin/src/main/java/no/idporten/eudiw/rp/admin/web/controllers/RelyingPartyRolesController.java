@@ -1,6 +1,7 @@
 package no.idporten.eudiw.rp.admin.web.controllers;
 
 import jakarta.validation.Valid;
+import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.service.exception.BadRequestException;
@@ -43,6 +44,7 @@ public class RelyingPartyRolesController {
 
     private final RelyingPartiesService relyingPartiesService;
     private final UserAuthorityService userAuthorityService;
+    private final Validator validator;
 
     @InitBinder(FORM_ATTR)
     public void initBinder(WebDataBinder binder) {
@@ -70,6 +72,7 @@ public class RelyingPartyRolesController {
         var options = roleOptions(registration);
         assertPostedRolesAllowed(registration, options, form);
         form.addMissingRoleRows(options);
+        validateSelectedEntitlements(form, bindingResult);
 
         if (!bindingResult.hasErrors()) {
             try {
@@ -128,6 +131,19 @@ public class RelyingPartyRolesController {
             if (!existing.equals(selected)) {
                 throw new InsufficientAuthorityException("Only administrators can change the role set");
             }
+        }
+    }
+
+    private void validateSelectedEntitlements(InstanceRolesForm form, BindingResult bindingResult) {
+        var selected = form.selectedEntitlements();
+        for (int i = 0; i < form.getEntitlements().size(); i++) {
+            var role = form.getEntitlements().get(i);
+            if (!selected.contains(role)) {
+                continue;
+            }
+            String fieldPrefix = "entitlements[" + i + "].";
+            validator.validate(role).forEach(violation -> bindingResult.rejectValue(
+                fieldPrefix + violation.getPropertyPath(), "invalid", violation.getMessage()));
         }
     }
 

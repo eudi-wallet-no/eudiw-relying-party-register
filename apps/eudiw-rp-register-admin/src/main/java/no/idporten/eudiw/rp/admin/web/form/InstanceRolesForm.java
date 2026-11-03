@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 @Setter
 public class InstanceRolesForm {
 
-    @Valid
     private List<RelyingPartyEntitlementFormField> entitlements = new ArrayList<>();
 
     @Valid
