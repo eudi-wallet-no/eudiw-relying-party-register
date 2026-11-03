@@ -61,6 +61,7 @@ div.ds-card + div.ds-card { margin-top: 8px; }
 .certificate-actions { display: flex; flex-direction: column; gap: 10px; }
 .certificate-download { display: flex; white-space: nowrap; margin: 0; }
 .certificate-revoke { display: inline; margin: 0; }
+.registration-status-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 body {
     font-family: 'Inter', sans-serif;
     font-feature-settings: 'cv05' 1; /* Enable lowercase l with tail */

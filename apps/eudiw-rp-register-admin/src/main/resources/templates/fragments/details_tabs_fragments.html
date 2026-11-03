@@ -447,16 +447,21 @@
                 Deaktiverte tenester og instansar blir ikkje publiserte og kan ikkje få nye sertifikat.
                 Eksisterande sertifikat må tilbakekallast separat.
             </p>
-            <form th:action="@{|/admin/status/${relyingPartyResource.id}|}" method="post"
-                  th:with="active=${relyingPartyResource.serviceAndInstanceActive()}"
-                  th:classappend="${active ? 'confirm-deactivation' : ''}">
-                <input type="hidden" name="active" th:value="${!active}">
-                <input type="hidden" name="returnUrl" th:value="${searchUrlAttr}">
-                <button type="submit" class="ds-button"
-                        th:attr="data-variant=${active ? 'secondary' : 'primary'},
-                                 data-color=${active ? 'danger' : null}"
-                        th:text="${active ? 'Deaktiver teneste' : 'Aktiver teneste'}"></button>
-            </form>
+            <div class="registration-status-actions">
+                <form th:unless="${relyingPartyResource.serviceAndInstanceActive()}"
+                      th:action="@{|/admin/status/${relyingPartyResource.id}|}" method="post">
+                    <input type="hidden" name="active" value="true">
+                    <input type="hidden" name="returnUrl" th:value="${searchUrlAttr}">
+                    <button type="submit" class="ds-button" data-variant="primary">Aktiver teneste</button>
+                </form>
+                <form th:if="${relyingPartyResource.serviceOrInstanceActive()}"
+                      th:action="@{|/admin/status/${relyingPartyResource.id}|}" method="post"
+                      class="confirm-deactivation">
+                    <input type="hidden" name="active" value="false">
+                    <input type="hidden" name="returnUrl" th:value="${searchUrlAttr}">
+                    <button type="submit" class="ds-button" data-variant="secondary" data-color="danger">Deaktiver teneste</button>
+                </form>
+            </div>
         </div>
     </section>
 

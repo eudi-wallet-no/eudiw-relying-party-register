@@ -172,7 +172,15 @@ public record RelyingPartyResource(
 
     @JsonIgnore
     public boolean serviceAndInstanceActive() {
-        boolean serviceActive = relyingPartyService == null || relyingPartyService.active();
-        return active && serviceActive;
+        return active && serviceActive();
+    }
+
+    @JsonIgnore
+    public boolean serviceOrInstanceActive() {
+        return active || serviceActive();
+    }
+
+    private boolean serviceActive() {
+        return relyingPartyService == null || relyingPartyService.active();
     }
 }

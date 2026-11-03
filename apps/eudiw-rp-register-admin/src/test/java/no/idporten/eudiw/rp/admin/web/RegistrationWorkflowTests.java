@@ -382,6 +382,25 @@ class RegistrationWorkflowTests {
                 containsString(">Inaktiv</span>"), containsString(">Aktiver teneste</button>"))));
     }
 
+    @Test
+    @DisplayName("Should let administrators deactivate an active service when only the instance is inactive")
+    void shouldDeactivateActiveServiceWhenOnlyInstanceIsInactive() throws Exception {
+        relyingPartyResource = relyingPartyResource.withActive(false);
+        enqueueLookup();
+        mockMvc.perform(get("/details/" + relyingPartyResource.id()).with(login(true)))
+            .andExpectAll(status().isOk(), content().string(allOf(
+                containsString(">Inaktiv</span>"),
+                containsString(">Aktiver teneste</button>"),
+                containsString(">Deaktiver teneste</button>"))));
+
+        enqueueLookup();
+        expectedRequests.add("PATCH /v2/services/" + relyingPartyServiceId + "/deactivate");
+        server.enqueue(new MockResponse().setResponseCode(204));
+        mockMvc.perform(post("/admin/status/" + relyingPartyResource.id()).with(login(true)).with(csrf())
+                .param("active", "false"))
+            .andExpectAll(status().is3xxRedirection(), redirectedUrl("/details/" + relyingPartyResource.id() + "?returnUrl=%2Fsearch"));
+    }
+
     @ParameterizedTest
     @CsvSource({"GET, /csr/access/", "POST, /csr/access/", "GET, /csr/issuer/", "POST, /csr/issuer/",
         "GET, /edit/", "POST, /edit/", "GET, /relying-party/edit/", "POST, /relying-party/edit/"})
@@ -411,7 +430,10 @@ class RegistrationWorkflowTests {
     @ValueSource(booleans = {true, false})
     @DisplayName("Should keep the current registration status without an unnecessary status update")
     void shouldKeepCurrentRegistrationStatusWithoutUnnecessaryUpdate(boolean active) throws Exception {
-        relyingPartyResource = relyingPartyResource.withActive(active);
+        relyingPartyResource = relyingPartyResource
+            .withActive(active)
+            .withRelyingPartyService(new RelyingPartyResource.RelyingPartyServiceDetails(null, List.of(), null, null,
+                null, List.of(), List.of(), false, List.of(), List.of(), active));
         enqueueLookup();
         mockMvc.perform(post("/admin/status/" + relyingPartyResource.id()).with(login(true)).with(csrf())
                 .param("active", Boolean.toString(active)))

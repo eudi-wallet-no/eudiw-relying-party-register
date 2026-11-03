@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.web.form.RegistrationStatusForm;
+import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.security.UserAuthorityService;
 import no.idporten.logging.audit.Audit;
 import no.idporten.logging.audit.AuditIgnore;
@@ -39,7 +40,7 @@ public class RegistrationStatusController {
         var registration = relyingPartiesService.get(id);
         userAuthorityService.assertUserHasAccessTo(registration.orgno());
 
-        if (!bindingResult.hasErrors() && form.getActive() != registration.serviceAndInstanceActive()) {
+        if (!bindingResult.hasErrors() && statusChangeNeeded(registration, form.getActive())) {
             relyingPartiesService.updateServiceAndInstanceStatus(registration, form.getActive());
         }
         String detailsUrl = UriComponentsBuilder.fromPath("/details/{id}")
@@ -48,5 +49,11 @@ public class RegistrationStatusController {
             .buildAndExpand(registration.id(), DetailedViewController.validSearchUrl(returnUrl))
             .toUriString();
         return new ModelAndView("redirect:" + detailsUrl);
+    }
+
+    private static boolean statusChangeNeeded(RelyingPartyResource registration, boolean activate) {
+        boolean activationNeeded = activate && !registration.serviceAndInstanceActive();
+        boolean deactivationNeeded = !activate && registration.serviceOrInstanceActive();
+        return activationNeeded || deactivationNeeded;
     }
 }
