@@ -12,6 +12,8 @@ spring:
   application:
     name: digital-lommebok-rp-register-admin
     environment: dev
+  thymeleaf:
+    cache: false
 
 external-dependency-health-checks:
   health-endpoints:

@@ -321,9 +321,9 @@ public class V2ApiService {
         List<RelyingPartyEntitlement> requestedEntitlements = request.toDomainRelyingPartyEntitlements();
         relyingPartyService.validateEntitlementsForUpdate(
             relyingPartyInstance.getRelyingPartyEntitlements(), requestedEntitlements);
-        if (!relyingPartyInstance.canReplaceRelyingPartyEntitlements(requestedEntitlements)) {
+        if (!relyingPartyInstance.keepsEntitlementsWithIssuerCertificates(requestedEntitlements)) {
             throw new BadRequestException(
-                "An entitlement with issuer certificates cannot be removed or changed");
+                "An entitlement with issuer certificates cannot be removed");
         }
         request.update(relyingPartyInstance, requestedEntitlements);
 

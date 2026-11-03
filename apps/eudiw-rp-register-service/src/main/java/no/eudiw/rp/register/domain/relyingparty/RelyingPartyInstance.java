@@ -111,12 +111,11 @@ public class RelyingPartyInstance extends BaseEntity {
         relyingPartyEntitlements.forEach(this::addOrUpdateRelyingPartyEntitlement);
     }
 
-    public boolean canReplaceRelyingPartyEntitlements(List<RelyingPartyEntitlement> requestedEntitlements) {
+    public boolean keepsEntitlementsWithIssuerCertificates(List<RelyingPartyEntitlement> requestedEntitlements) {
         return relyingPartyEntitlements.stream()
             .filter(existing -> !existing.getIssuerCertificates().isEmpty())
             .allMatch(existing -> requestedEntitlements.stream().anyMatch(requested ->
-                Objects.equals(requested.getEntitlement(), existing.getEntitlement())
-                    && Objects.equals(requested.getCredentialIssuerUrl(), existing.getCredentialIssuerUrl())));
+                Objects.equals(requested.getEntitlement(), existing.getEntitlement())));
     }
 
     public void setRelyingPartyEaas(List<RelyingPartyEaa> relyingPartyEaas) {

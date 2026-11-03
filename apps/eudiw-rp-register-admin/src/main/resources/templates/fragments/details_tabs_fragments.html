@@ -394,7 +394,12 @@
     <section class="ds-card registration-card space-bottom-1em">
         <details class="ds-details" open>
             <summary><h2 class="ds-heading" data-size="md">Roller og bevistypar</h2></summary>
-            <h3 class="ds-heading" data-size="xs">Roller</h3>
+            <div class="registration-section-bar">
+                <h3 class="ds-heading" data-size="xs">Roller</h3>
+                <a th:if="${relyingPartyResource.active or #authorization.expression('hasRole(''ADMIN'')')}"
+                   th:href="${'/roles/edit/' + relyingPartyResource.id + '?returnUrl=' + #uris.escapeQueryParam(searchUrlAttr ?: '/search')}"
+                   aria-label="Rediger roller og bevistypar" class="ds-button" data-variant="secondary" data-size="sm">Rediger</a>
+            </div>
 
             <div th:if="${ #lists.isEmpty(relyingPartyResource.relyingPartyEntitlements)}">
                 <em>Ikkje registrert.</em>
@@ -410,13 +415,15 @@
                     <tbody>
                         <tr th:each="e : ${relyingPartyResource.relyingPartyEntitlements}">
                             <td th:text="${e.displayName}"></td>
-                            <td th:text="${e.credentialIssuerUrl}"></td>
+                            <td th:text="${e.credentialIssuerUrl ?: 'Ikkje registrert.'}"></td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
-            <h3 class="ds-heading" data-size="xs">Bevistypar (EAA)</h3>
+            <div class="registration-section-bar">
+                <h3 class="ds-heading" data-size="xs">Bevistypar (EAA)</h3>
+            </div>
             <div th:if="${ #lists.isEmpty(relyingPartyResource.relyingPartyEaas)}">
                 <em>Ikkje registrert.</em>
             </div>
