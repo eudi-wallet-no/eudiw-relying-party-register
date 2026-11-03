@@ -34,9 +34,15 @@
                 Detaljar for brukarstad: <span th:text="${relyingPartyResource.tradeName}"/>
             </h1>
             <span class="status-badge"
-                  th:classappend="${relyingPartyResource.active ? 'status-badge-success' : 'status-badge-danger'}"
-                  th:text="${relyingPartyResource.active ? 'Aktiv' : 'Inaktiv'}"></span>
+                  th:with="active=${relyingPartyResource.serviceAndInstanceActive()}"
+                  th:classappend="${active ? 'status-badge-success' : 'status-badge-danger'}"
+                  th:text="${active ? 'Aktiv' : 'Inaktiv'}"></span>
         </div>
+
+        <p sec:authorize="!hasRole('ADMIN')" th:unless="${relyingPartyResource.serviceAndInstanceActive()}"
+           class="ds-alert" data-color="info" role="status">
+            Tenesta og instansen er deaktiverte, og det er ikkje mogleg å gjere endringar eller bestille nye sertifikat. Kontakt ein administrator for å aktivere dei igjen.
+        </p>
 
         <nav id="tabs_container">
             <a href="#about" class="tab" data-size="lg">

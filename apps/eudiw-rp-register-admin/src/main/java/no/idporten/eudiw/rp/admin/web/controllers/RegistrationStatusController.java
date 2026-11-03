@@ -39,8 +39,8 @@ public class RegistrationStatusController {
         var registration = relyingPartiesService.get(id);
         userAuthorityService.assertUserHasAccessTo(registration.orgno());
 
-        if (!bindingResult.hasErrors() && form.getActive() != registration.active()) {
-            relyingPartiesService.updateInstanceStatus(registration.id(), form.getActive());
+        if (!bindingResult.hasErrors() && form.getActive() != registration.serviceAndInstanceActive()) {
+            relyingPartiesService.updateServiceAndInstanceStatus(registration, form.getActive());
         }
         String detailsUrl = UriComponentsBuilder.fromPath("/details/{id}")
             .queryParam("returnUrl", "{returnUrl}")

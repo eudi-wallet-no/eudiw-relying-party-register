@@ -65,8 +65,11 @@ public class RelyingPartiesService {
         return v2RegisterClient.getRelyingParty(id);
     }
 
-    public void updateInstanceStatus(UUID instanceId, boolean active) {
-        v2RegisterClient.updateInstanceStatus(instanceId, active);
+    public void updateServiceAndInstanceStatus(RelyingPartyResource registration, boolean active) {
+        v2RegisterClient.updateServiceStatus(registration.relyingPartyServiceId(), active);
+        if (active) {
+            v2RegisterClient.updateInstanceStatus(registration.id(), true);
+        }
     }
 
     public V2RegisterClient.RelyingParty getRelyingPartyInformation(UUID relyingPartyId) {

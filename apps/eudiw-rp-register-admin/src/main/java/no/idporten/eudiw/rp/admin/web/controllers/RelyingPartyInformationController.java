@@ -40,6 +40,9 @@ public class RelyingPartyInformationController {
     public ModelAndView edit(@PathVariable UUID id,
                              @RequestParam(defaultValue = "/search") String returnUrl) {
         var registration = getAuthorizedRegistration(id);
+        if (!registration.serviceAndInstanceActive() && !userAuthorityService.userHasAdminAuthority()) {
+            return new ModelAndView("redirect:" + detailsUrl(registration.id(), returnUrl));
+        }
         var relyingParty = getAuthorizedRelyingParty(registration.relyingPartyId());
         return formView(registration, relyingParty, returnUrl)
             .addObject("relyingPartyForm", RelyingPartyInformationForm.from(relyingParty));
@@ -52,6 +55,9 @@ public class RelyingPartyInformationController {
                                @AuditIgnore BindingResult bindingResult,
                                @RequestParam(defaultValue = "/search") String returnUrl) {
         var registration = getAuthorizedRegistration(id);
+        if (!registration.serviceAndInstanceActive() && !userAuthorityService.userHasAdminAuthority()) {
+            return new ModelAndView("redirect:" + detailsUrl(registration.id(), returnUrl));
+        }
         var relyingParty = getAuthorizedRelyingParty(registration.relyingPartyId());
         if (!form.hasValidInformationUris()) {
             bindingResult.rejectValue("informationUri", "invalid",

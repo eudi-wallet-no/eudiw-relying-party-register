@@ -149,7 +149,7 @@ class RegistrationWorkflowTests {
         assertEquals(originalSearch, returnLink);
 
         enqueueLookup();
-        expectedRequests.add("PATCH /v2/instances/" + secondInstanceId + "/deactivate");
+        expectedRequests.add("PATCH /v2/services/" + relyingPartyServiceId + "/deactivate");
         server.enqueue(new MockResponse().setResponseCode(204));
         String redirect = mockMvc.perform(post("/admin/status/" + secondInstanceId).with(login(true)).with(csrf())
                 .param("active", "false").param("returnUrl", originalSearch.toString()))
@@ -340,20 +340,24 @@ class RegistrationWorkflowTests {
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
-    @DisplayName("Should change registration status from the status section and show the new status badge")
-    void shouldChangeRegistrationStatusFromStatusSectionAndShowNewStatusBadge(boolean active) throws Exception {
+    @DisplayName("Should change the service and instance status from the status section and show the new status badge")
+    void shouldChangeServiceAndInstanceStatusFromStatusSectionAndShowNewStatusBadge(boolean active) throws Exception {
         relyingPartyResource = relyingPartyResource.withActive(!active);
         enqueueLookup();
         mockMvc.perform(get("/details/" + relyingPartyResource.id()).with(login(true)))
             .andExpectAll(status().isOk(), content().string(allOf(
                 containsString(active ? ">Inaktiv</span>" : ">Aktiv</span>"),
-                containsString("Registreringsstatus</h2>"),
+                containsString("Status for tenesta</h2>"),
                 containsString("name=\"active\" value=\"" + active + "\""),
-                containsString(active ? ">Aktiver registrering</button>" : ">Deaktiver registrering</button>"))));
+                containsString(active ? ">Aktiver teneste</button>" : ">Deaktiver teneste</button>"))));
 
         enqueueLookup();
-        expectedRequests.add("PATCH /v2/instances/" + relyingPartyResource.id() + "/" + (active ? "activate" : "deactivate"));
+        expectedRequests.add("PATCH /v2/services/" + relyingPartyServiceId + "/" + (active ? "activate" : "deactivate"));
         server.enqueue(new MockResponse().setResponseCode(204));
+        if (active) {
+            expectedRequests.add("PATCH /v2/instances/" + relyingPartyResource.id() + "/activate");
+            server.enqueue(new MockResponse().setResponseCode(204));
+        }
         mockMvc.perform(post("/admin/status/" + relyingPartyResource.id()).with(login(true)).with(csrf())
                 .param("active", Boolean.toString(active)))
             .andExpectAll(status().is3xxRedirection(), redirectedUrl("/details/" + relyingPartyResource.id() + "?returnUrl=%2Fsearch"));
@@ -363,20 +367,44 @@ class RegistrationWorkflowTests {
         mockMvc.perform(get("/details/" + relyingPartyResource.id()).with(login(true)))
             .andExpectAll(status().isOk(), content().string(allOf(
                 containsString(active ? ">Aktiv</span>" : ">Inaktiv</span>"),
-                containsString(active ? ">Deaktiver registrering</button>" : ">Aktiver registrering</button>"))));
+                containsString(active ? ">Deaktiver teneste</button>" : ">Aktiver teneste</button>"))));
     }
 
     @Test
-    @DisplayName("Should not offer activation when the service is inactive")
-    void shouldNotOfferActivationWhenServiceIsInactive() throws Exception {
-        relyingPartyResource = relyingPartyResource.withActive(false).withRelyingPartyService(
+    @DisplayName("Should show the service as inactive and offer activation when only the service is inactive")
+    void shouldShowServiceAsInactiveWhenOnlyServiceIsInactive() throws Exception {
+        relyingPartyResource = relyingPartyResource.withRelyingPartyService(
             new RelyingPartyResource.RelyingPartyServiceDetails(null, List.of(), null, null, null, List.of(), List.of(),
                 false, List.of(), List.of(), false));
         enqueueLookup();
         mockMvc.perform(get("/details/" + relyingPartyResource.id()).with(login(true)))
             .andExpectAll(status().isOk(), content().string(allOf(
-                containsString("Aktiver tenesta før du aktiverer registreringa."),
-                containsString("disabled=\"disabled\""))));
+                containsString(">Inaktiv</span>"), containsString(">Aktiver teneste</button>"))));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"GET, /csr/access/", "POST, /csr/access/", "GET, /csr/issuer/", "POST, /csr/issuer/",
+        "GET, /edit/", "POST, /edit/", "GET, /relying-party/edit/", "POST, /relying-party/edit/"})
+    @DisplayName("Should send self-service users back to the details page when the service is inactive")
+    void shouldSendSelfServiceUsersBackToDetailsWhenServiceIsInactive(String method, String path) throws Exception {
+        relyingPartyResource = relyingPartyResource.withActive(false);
+        enqueueLookup();
+        var request = method.equals("GET")
+            ? get(path + relyingPartyResource.id())
+            : post(path + relyingPartyResource.id()).with(csrf());
+
+        mockMvc.perform(request.with(login(false)))
+            .andExpectAll(status().is3xxRedirection(), redirectedUrlPattern("/details/" + relyingPartyResource.id() + "**"));
+    }
+
+    @Test
+    @DisplayName("Should tell self-service users to contact an administrator when the service is inactive")
+    void shouldTellSelfServiceUsersToContactAdministratorWhenServiceIsInactive() throws Exception {
+        relyingPartyResource = relyingPartyResource.withActive(false);
+        enqueueLookup();
+        mockMvc.perform(get("/details/" + relyingPartyResource.id()).with(login(false)))
+            .andExpectAll(status().isOk(), content().string(
+                containsString("Kontakt ein administrator for å aktivere dei igjen.")));
     }
 
     @ParameterizedTest
@@ -403,7 +431,7 @@ class RegistrationWorkflowTests {
     @DisplayName("Should show backend errors rather than confirm a failed status change")
     void shouldShowBackendErrorsRatherThanConfirmFailedStatusChange() throws Exception {
         enqueueLookup();
-        expectedRequests.add("PATCH /v2/instances/" + relyingPartyResource.id() + "/deactivate");
+        expectedRequests.add("PATCH /v2/services/" + relyingPartyServiceId + "/deactivate");
         server.enqueue(new MockResponse().setResponseCode(500).setHeader("Content-Type", "application/json")
             .setBody("{\"error\":\"service_unavailable\",\"error_description\":\"Register service unavailable\"}"));
 
@@ -427,7 +455,7 @@ class RegistrationWorkflowTests {
     @ValueSource(booleans = {true, false})
     @DisplayName("Should save trade name and country and keep lists with several values unchanged")
     void shouldSaveTradeNameAndCountryAndKeepListsWithSeveralValuesUnchanged(boolean administrator) throws Exception {
-        relyingPartyResource = relyingPartyResource.withActive(false);
+        relyingPartyResource = relyingPartyResource.withActive(!administrator);
         enqueueLookup();
         String html = mockMvc.perform(get("/details/" + relyingPartyResource.id()).with(login(administrator)))
             .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();

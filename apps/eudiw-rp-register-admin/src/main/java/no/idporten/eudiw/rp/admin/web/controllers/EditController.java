@@ -69,6 +69,9 @@ public class EditController {
     public ModelAndView editGet(@PathVariable("id") @Valid UUID id) {
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
         userAuthorityService.assertUserHasAccessTo(relyingPartyResource.orgno());
+        if (isSelfServiceBlocked(relyingPartyResource)) {
+            return new ModelAndView("redirect:/details/" + relyingPartyResource.id());
+        }
 
         AdminEditRelyingPartyForm editForm =
             AdminEditRelyingPartyForm.prefillFromRelyingPartyResource(relyingPartyResource);
@@ -89,6 +92,9 @@ public class EditController {
         @AuditIgnore BindingResult editFormBindingResult) {
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
         userAuthorityService.assertUserHasAccessTo(relyingPartyResource.orgno());
+        if (isSelfServiceBlocked(relyingPartyResource)) {
+            return new ModelAndView("redirect:/details/" + relyingPartyResource.id());
+        }
 
         if (editFormBindingResult.hasErrors()) {
             List<RelyingPartyEntitlementFormField> entitlementOptions =
@@ -129,5 +135,10 @@ public class EditController {
         EditRelyingPartyResource editResource = editForm.toResource();
         relyingPartiesService.edit(relyingPartyResource.id(), editResource);
         return new ModelAndView("redirect:/details/" + relyingPartyResource.id());
+    }
+
+    private boolean isSelfServiceBlocked(RelyingPartyResource relyingPartyResource) {
+        return !relyingPartyResource.serviceAndInstanceActive()
+            && !userAuthorityService.userHasAdminAuthority();
     }
 }

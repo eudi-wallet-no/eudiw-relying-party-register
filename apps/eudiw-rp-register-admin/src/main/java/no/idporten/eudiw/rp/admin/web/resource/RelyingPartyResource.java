@@ -169,4 +169,10 @@ public record RelyingPartyResource(
                    .stream()
                    .anyMatch(Entitlements::isIssuerEntitlement);
     }
+
+    @JsonIgnore
+    public boolean serviceAndInstanceActive() {
+        boolean serviceActive = relyingPartyService == null || relyingPartyService.active();
+        return active && serviceActive;
+    }
 }

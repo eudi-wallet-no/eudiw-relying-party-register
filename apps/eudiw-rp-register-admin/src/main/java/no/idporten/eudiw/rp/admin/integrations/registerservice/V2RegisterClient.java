@@ -106,6 +106,13 @@ public class V2RegisterClient {
         return instances;
     }
 
+    public void updateServiceStatus(UUID serviceId, boolean active) {
+        restClient.patch()
+            .uri("/services/{id}/{action}", serviceId, active ? "activate" : "deactivate")
+            .retrieve()
+            .toBodilessEntity();
+    }
+
     public void updateInstanceStatus(UUID instanceId, boolean active) {
         restClient.patch()
             .uri("/instances/{id}/{action}", instanceId, active ? "activate" : "deactivate")

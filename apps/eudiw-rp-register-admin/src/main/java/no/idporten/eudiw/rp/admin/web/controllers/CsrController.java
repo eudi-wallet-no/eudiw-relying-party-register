@@ -47,6 +47,9 @@ public class CsrController {
     public ModelAndView registerAccessCsrGet(@PathVariable("id") @Valid UUID id) {
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
         userAuthorityService.assertUserHasAccessTo(relyingPartyResource.orgno());
+        if (!relyingPartyResource.serviceAndInstanceActive()) {
+            return new ModelAndView("redirect:/details/" + relyingPartyResource.id());
+        }
 
         return new ModelAndView("access_csr_form_view", Map.of(
                 CSR_FORM_ATTR, CsrAccessForm.empty(),
@@ -62,6 +65,9 @@ public class CsrController {
     ) {
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
         userAuthorityService.assertUserHasAccessTo(relyingPartyResource.orgno());
+        if (!relyingPartyResource.serviceAndInstanceActive()) {
+            return new ModelAndView("redirect:/details/" + relyingPartyResource.id());
+        }
 
         ModelAndView mav = new ModelAndView("access_csr_form_view", Map.of(DETAILED_VIEW_DATA_ATTR, relyingPartyResource));
         if (csrFormBindingResult.hasErrors()) {
@@ -87,6 +93,9 @@ public class CsrController {
     public ModelAndView registerIssuerCsrGet(@PathVariable("id") @Valid UUID id) {
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
         userAuthorityService.assertUserHasAccessTo(relyingPartyResource.orgno());
+        if (!relyingPartyResource.serviceAndInstanceActive()) {
+            return new ModelAndView("redirect:/details/" + relyingPartyResource.id());
+        }
 
         return new ModelAndView("issuer_csr_form_view", Map.of(
                 CSR_FORM_ATTR, CsrIssuerForm.empty(),
@@ -102,6 +111,9 @@ public class CsrController {
     ) {
         RelyingPartyResource relyingPartyResource = relyingPartiesService.get(id);
         userAuthorityService.assertUserHasAccessTo(relyingPartyResource.orgno());
+        if (!relyingPartyResource.serviceAndInstanceActive()) {
+            return new ModelAndView("redirect:/details/" + relyingPartyResource.id());
+        }
 
         ModelAndView mav = new ModelAndView("issuer_csr_form_view", Map.of(DETAILED_VIEW_DATA_ATTR, relyingPartyResource));
 
