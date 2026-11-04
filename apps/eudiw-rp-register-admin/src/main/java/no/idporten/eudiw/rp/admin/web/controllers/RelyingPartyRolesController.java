@@ -73,6 +73,7 @@ public class RelyingPartyRolesController {
         assertPostedRolesAllowed(registration, options, form);
         form.addMissingRoleRows(options);
         validateSelectedEntitlements(form, bindingResult);
+        validateAdministratorSelectedRole(form, bindingResult);
 
         if (!bindingResult.hasErrors()) {
             try {
@@ -89,9 +90,6 @@ public class RelyingPartyRolesController {
     private RelyingPartyResource getAuthorizedRegistration(UUID id) {
         var registration = relyingPartiesService.get(id);
         userAuthorityService.assertUserHasAccessTo(registration.orgno());
-        if (!registration.active() && !userAuthorityService.userHasAdminAuthority()) {
-            throw new InsufficientAuthorityException("Only administrators can edit inactive registrations");
-        }
         return registration;
     }
 
@@ -144,6 +142,12 @@ public class RelyingPartyRolesController {
             String fieldPrefix = "entitlements[" + i + "].";
             validator.validate(role).forEach(violation -> bindingResult.rejectValue(
                 fieldPrefix + violation.getPropertyPath(), "invalid", violation.getMessage()));
+        }
+    }
+
+    private void validateAdministratorSelectedRole(InstanceRolesForm form, BindingResult bindingResult) {
+        if (userAuthorityService.userHasAdminAuthority() && form.selectedEntitlements().isEmpty()) {
+            bindingResult.reject("noRoleSelected", "Brukerstedet må ha minst ei rolle");
         }
     }
 

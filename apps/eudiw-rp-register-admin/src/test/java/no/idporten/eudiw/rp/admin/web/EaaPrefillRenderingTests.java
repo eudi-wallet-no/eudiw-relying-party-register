@@ -42,14 +42,14 @@ class EaaPrefillRenderingTests {
     @MockitoBean
     private RelyingPartiesService mockRpService;
 
-    private String renderEditFormWithEaa(String namespace, String intent) throws Exception {
+    private String renderRolesFormWithEaa(String namespace, String intent) throws Exception {
         RelyingPartyResource rpResource = ResourceGenerator.generateRelyingPartyResource();
         UUID id = rpResource.id();
         RelyingPartyResource withEaa = rpResource.withRelyingPartyEaas(
             List.of(new RelyingPartyEaaResource(namespace, intent)));
         when(mockRpService.get(id)).thenReturn(withEaa);
 
-        return mockMvc.perform(get("/edit/{id}", id))
+        return mockMvc.perform(get("/roles/edit/{id}", id))
                       .andExpect(status().isOk())
                       .andReturn()
                       .getResponse()
@@ -59,7 +59,7 @@ class EaaPrefillRenderingTests {
     @Test
     @DisplayName("then EAA values are emitted as data attributes, not inlined into a script")
     void testEaaValuesRenderedAsDataAttributes() throws Exception {
-        String html = renderEditFormWithEaa("no:minid:mpid:1", "test");
+        String html = renderRolesFormWithEaa("no:minid:mpid:1", "test");
 
         assertThat(html).contains("id=\"eaa_prefill\"");
         assertThat(html).contains("data-namespace=\"no:minid:mpid:1\"");
@@ -71,10 +71,10 @@ class EaaPrefillRenderingTests {
     @Test
     @DisplayName("then existing EAA data appears before the script that builds the form rows")
     void testEaaPrefillRenderedBeforeScript() throws Exception {
-        String html = renderEditFormWithEaa("no:minid:mpid:1", "test");
+        String html = renderRolesFormWithEaa("no:minid:mpid:1", "test");
 
         int prefillPosition = html.indexOf("id=\"eaa_prefill\"");
-        String scriptUrl = resourceUrlProvider.getForLookupPath("/js/dynamic_edit_form_fields.js");
+        String scriptUrl = resourceUrlProvider.getForLookupPath("/js/dynamic_form_fields.js");
         int scriptPosition = html.indexOf("<script src=\"" + scriptUrl + "\"></script>");
 
         assertThat(prefillPosition).isNotNegative();
@@ -84,7 +84,7 @@ class EaaPrefillRenderingTests {
     @Test
     @DisplayName("then a double quote in the namespace is escaped and cannot break out of the attribute")
     void testDoubleQuoteInNamespaceIsEscaped() throws Exception {
-        String html = renderEditFormWithEaa("\"onerror", "test");
+        String html = renderRolesFormWithEaa("\"onerror", "test");
 
         assertThat(html).contains("data-namespace=\"&quot;onerror\"");
         assertThat(html).doesNotContain("data-namespace=\"\"onerror\"");

@@ -7,12 +7,10 @@ import no.idporten.eudiw.rp.admin.service.MockWebServerConfiguration;
 import no.idporten.eudiw.rp.admin.service.accesscertificates.PKCS10CertificationRequestConverter;
 import no.idporten.eudiw.rp.admin.testdata.CertificatesGenerator;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
-import no.idporten.eudiw.rp.admin.web.form.admin.AdminEditRelyingPartyForm;
 import no.idporten.eudiw.rp.admin.web.resource.PagedResponse;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyEntitlementResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificateResource;
-import no.idporten.eudiw.rp.admin.web.utils.WebTestUtils;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterEach;
@@ -244,37 +242,15 @@ class RegistrationWorkflowTests {
             .andExpectAll(status().isInternalServerError(), view().name("error/5xx"));
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"create", "edit"})
-    @DisplayName("Should offer active V2 roles in administrator create and edit forms")
-    void shouldOfferActiveV2RolesInAdministratorCreateAndEditForms(String form) throws Exception {
-        if (form.equals("edit")) {
-            enqueueLookup();
-        }
+    @Test
+    @DisplayName("Should offer active V2 roles in the administrator create form")
+    void shouldOfferActiveV2RolesInAdministratorCreateForm() throws Exception {
         enqueue("GET", "/v2/entitlements?includeInactive=false", new V2RegisterClient.Entitlements(List.of(
             new V2RegisterClient.Entitlement(new UUID(0, 7), "urn:additional", true, "Additional role"))));
 
-        mockMvc.perform(get(form.equals("create") ? "/create" : "/edit/" + relyingPartyResource.id()).with(login(true)))
-            .andExpectAll(status().isOk(), view().name(form + "_form_view"),
+        mockMvc.perform(get("/create").with(login(true)))
+            .andExpectAll(status().isOk(), view().name("create_form_view"),
                 content().string(containsString("Additional role")));
-    }
-
-    @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    @DisplayName("Should submit a service name change and return to registration details for the owning organization and an administrator")
-    void shouldSubmitServiceNameChangeAndReturnToRegistrationDetails(boolean administrator) throws Exception {
-        enqueueLookup();
-        var editRelyingPartyForm = AdminEditRelyingPartyForm.prefillFromRelyingPartyResource(relyingPartyResource);
-        expectedUpdatedServiceName = "Updated service name";
-        editRelyingPartyForm.setTradeName(expectedUpdatedServiceName);
-        enqueue("PUT", "/v1/rp/" + relyingPartyResource.id(), relyingPartyResource);
-
-        var request = post((administrator ? "/admin/edit/" : "/edit/") + relyingPartyResource.id())
-            .with(csrf())
-            .with(login(administrator));
-
-        mockMvc.perform(WebTestUtils.withEditForm(request, editRelyingPartyForm))
-            .andExpectAll(status().is3xxRedirection(), redirectedUrl("/details/" + relyingPartyResource.id()));
     }
 
     @ParameterizedTest
@@ -331,9 +307,9 @@ class RegistrationWorkflowTests {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"GET /details/{id}", "GET /edit/{id}", "GET /csr/access/{id}",
+    @ValueSource(strings = {"GET /details/{id}", "GET /csr/access/{id}",
         "GET /csr/issuer/{id}", "GET /get-certificate/{id}/{cert}",
-        "GET /get-certificate/{id}/issuer/{cert}", "POST /edit/{id}", "POST /csr/access/{id}",
+        "GET /get-certificate/{id}/issuer/{cert}", "POST /csr/access/{id}",
         "POST /csr/issuer/{id}", "POST /revoke-certificate/{id}/access/{cert}",
         "POST /revoke-certificate/{id}/issuer/{cert}"})
     @DisplayName("Should prevent another organization from viewing or editing the registration, ordering or downloading certificates, or submitting revocations")
@@ -637,6 +613,30 @@ class RegistrationWorkflowTests {
     }
 
     @Test
+    @DisplayName("Should reject an EAA namespace containing a double quote")
+    void shouldRejectEaaNamespaceWithDoubleQuote() throws Exception {
+        enqueueLookup();
+        enqueueRoleCatalog();
+
+        mockMvc.perform(post("/roles/edit/" + relyingPartyResource.id()).with(login(true)).with(csrf())
+                .param("entitlements[0].entitlement", QEAA)
+                .param("eaas[0].namespace", "\"onerror").param("eaas[0].intent", "test"))
+            .andExpectAll(status().isOk(), view().name("roles_form_view"),
+                model().attributeHasFieldErrors("editFormAttr", "eaas[0].namespace"));
+    }
+
+    @Test
+    @DisplayName("Should show an error when an administrator saves roles with no role selected")
+    void shouldShowErrorWhenAdministratorSavesRolesWithNoRoleSelected() throws Exception {
+        enqueueLookup();
+        enqueueRoleCatalog();
+
+        mockMvc.perform(post("/roles/edit/" + relyingPartyResource.id()).with(login(true)).with(csrf()))
+            .andExpectAll(status().isOk(), view().name("roles_form_view"),
+                content().string(containsString("Brukerstedet må ha minst ei rolle")));
+    }
+
+    @Test
     @DisplayName("Should show the form with an error and keep input when the register rejects the change")
     void shouldShowFormErrorWhenRegisterRejectsRoles() throws Exception {
         enqueueLookup();
@@ -653,27 +653,17 @@ class RegistrationWorkflowTests {
     }
 
     @Test
-    @DisplayName("Should let only administrators edit roles of an inactive registration")
-    void shouldLetOnlyAdministratorsEditRolesOfInactiveRegistration() throws Exception {
+    @DisplayName("Should let self-service edit roles of an inactive registration")
+    void shouldLetSelfServiceEditRolesOfInactiveRegistration() throws Exception {
         relyingPartyResource = relyingPartyResource.withActive(false);
-        enqueueLookup();
-        mockMvc.perform(get("/roles/edit/" + relyingPartyResource.id()).with(login(false)))
-            .andExpectAll(status().isNotFound(), view().name("error/404"));
-
-        enqueueLookup();
-        mockMvc.perform(post("/roles/edit/" + relyingPartyResource.id()).with(login(false)).with(csrf())
-                .param("entitlements[0].entitlement", QEAA))
-            .andExpectAll(status().isNotFound(), view().name("error/404"));
-
-        enqueueLookup();
-        enqueueRoleCatalog();
-        mockMvc.perform(get("/roles/edit/" + relyingPartyResource.id()).with(login(true)))
-            .andExpect(status().isOk());
-
         enqueueLookup();
         String details = mockMvc.perform(get("/details/" + relyingPartyResource.id()).with(login(false)))
             .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
-        assertFalse(details.contains("/roles/edit/"), "Self-service gets no edit link for inactive registrations");
+        assertTrue(details.contains("/roles/edit/"), "Self-service gets an edit link for inactive registrations");
+
+        enqueueLookup();
+        mockMvc.perform(get("/roles/edit/" + relyingPartyResource.id()).with(login(false)))
+            .andExpect(status().isOk());
     }
 
     @ParameterizedTest
@@ -774,16 +764,15 @@ class RegistrationWorkflowTests {
     }
 
     @Test
-    @DisplayName("Should let only administrators edit the service of an inactive registration")
-    void shouldLetOnlyAdministratorsEditServiceOfInactiveRegistration() throws Exception {
-        relyingPartyResource = relyingPartyResource.withActive(false);
+    @DisplayName("Should reject a service name with unsupported characters")
+    void shouldRejectServiceNameWithUnsupportedCharacters() throws Exception {
         enqueueLookup();
-        mockMvc.perform(get("/service/edit/" + relyingPartyResource.id()).with(login(false)))
-            .andExpectAll(status().isNotFound(), view().name("error/404"));
-
-        enqueueLookup();
-        mockMvc.perform(get("/service/edit/" + relyingPartyResource.id()).with(login(true)))
-            .andExpect(status().isOk());
+        mockMvc.perform(post("/service/edit/" + relyingPartyResource.id()).with(login(false)).with(csrf())
+                .param("serviceTradeName", "<script>")
+                .param("descriptions[0].lang", "nb").param("descriptions[0].content", "Skildring")
+                .param("email", "post@example.test"))
+            .andExpectAll(status().isOk(), view().name("service_information_form_view"),
+                content().string(containsString("Ugyldig tenestenamn")));
     }
 
     private void enqueueRoleCatalog() {

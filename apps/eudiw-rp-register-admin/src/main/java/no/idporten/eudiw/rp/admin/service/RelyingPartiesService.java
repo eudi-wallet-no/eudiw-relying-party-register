@@ -38,15 +38,6 @@ public class RelyingPartiesService {
                 .getBody();
     }
 
-    public RelyingPartyResource edit(UUID id, EditRelyingPartyResource editResource) {
-        return restClient.put()
-                .uri("/rp/{id}", id)
-                .body(editResource)
-                .retrieve()
-                .toEntity(RelyingPartyResource.class)
-                .getBody();
-    }
-
     public PagedResponse<RegistrationSearchResult> search(SearchRelyingPartyResource searchResource) {
         var instances = v2RegisterClient.searchInstances(searchResource);
         if (instances.content().isEmpty()) {
