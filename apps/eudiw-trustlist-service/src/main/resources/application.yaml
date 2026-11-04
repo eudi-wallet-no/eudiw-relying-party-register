@@ -145,7 +145,7 @@ trustlist-service:
           lang-no: Tillitsliste for Wallet tilbydere i eidas2sandkasse i ${trustlist-service.environment-name}
           lang-en: Trust list for Wallet providers in eidas2sandkasse in ${trustlist-service.environment-name}
         sequence-number: 1
-        list-issue-date-time: 2026-04-15T00:00:00.00Z
+        list-issue-date-time: 2026-11-04T00:00:00.00Z
         lote-type: http://uri.etsi.org/19602/LoTEType/EUWalletProvidersList
         information-uris:
           lang-no: ${trustlist-service.digdir.information-uris.lang-no}
