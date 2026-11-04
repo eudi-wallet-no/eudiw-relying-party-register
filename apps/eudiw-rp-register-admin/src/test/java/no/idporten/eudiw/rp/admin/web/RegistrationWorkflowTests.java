@@ -708,7 +708,7 @@ class RegistrationWorkflowTests {
             .andExpectAll(status().isOk(), view().name("service_information_form_view"),
                 content().string(allOf(containsString("value=\"Service name\""),
                     containsString("name=\"descriptions[0].lang\" value=\"en\""),
-                    containsString("name=\"descriptions[1].content\" value=\"Tenesteskildring\""),
+                    matchesPattern("(?s).*<textarea[^>]*name=\"descriptions\\[1].content\"[^>]*>Tenesteskildring</textarea>.*"),
                     containsString("Tenesta er mellomledd"),
                     containsString("Skrivebeskytta"),
                     not(containsString("id=\"subEntitlements\"")),
@@ -745,7 +745,7 @@ class RegistrationWorkflowTests {
                 .param("descriptions[1].lang", "en").param("descriptions[1].content", "Text"))
             .andExpectAll(status().isOk(), view().name("service_information_form_view"),
                 content().string(allOf(containsString("Fyll ut både språk og skildring på kvar linje."),
-                    matchesPattern("(?s).*<input(?=[^>]*description-content)(?=[^>]*aria-invalid=\"true\")[^>]*>.*"))));
+                    matchesPattern("(?s).*<textarea(?=[^>]*description-content)(?=[^>]*aria-invalid=\"true\")(?=[^>]*aria-describedby=\"descriptions-error\")[^>]*>.*"))));
 
         enqueueLookup();
         mockMvc.perform(post("/service/edit/" + relyingPartyResource.id()).with(login(false)).with(csrf())
@@ -770,7 +770,7 @@ class RegistrationWorkflowTests {
                     containsString("value=\"service-1\""),
                     matchesPattern("(?s).*<input(?=[^>]*id=\"email\")(?=[^>]*aria-invalid=\"true\")[^>]*>.*"),
                     matchesPattern("(?s).*<input(?=[^>]*id=\"phone\")(?=[^>]*aria-invalid=\"true\")[^>]*>.*"),
-                    matchesPattern("(?s).*<input(?=[^>]*description-content)(?=[^>]*aria-invalid=\"true\")[^>]*>.*"))));
+                    matchesPattern("(?s).*<textarea(?=[^>]*description-content)(?=[^>]*aria-invalid=\"true\")(?=[^>]*aria-describedby=\"descriptions-error\")[^>]*>.*"))));
     }
 
     @Test

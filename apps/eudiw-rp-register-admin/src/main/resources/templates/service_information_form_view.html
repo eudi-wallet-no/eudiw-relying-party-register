@@ -39,10 +39,12 @@
                         <div class="description-row" th:each="entry, stat : *{descriptions}">
                             <input class="ds-input description-lang" type="text" aria-label="Språkkode"
                                    th:name="|descriptions[${stat.index}].lang|" th:value="${entry.lang}"
-                                   th:aria-invalid="${#fields.hasErrors('descriptions') and (entry.lang == null or languageRejected)}">
-                            <input class="ds-input description-content" type="text" aria-label="Skildring"
-                                   th:name="|descriptions[${stat.index}].content|" th:value="${entry.content}"
-                                   th:aria-invalid="${#fields.hasErrors('descriptions') and !languageRejected and entry.content == null}">
+                                   th:aria-invalid="${#fields.hasErrors('descriptions') and (entry.lang == null or languageRejected)}"
+                                   th:aria-describedby="${#fields.hasErrors('descriptions')} ? 'descriptions-error'">
+                            <textarea class="ds-input description-content" rows="2" aria-label="Skildring"
+                                      th:name="|descriptions[${stat.index}].content|" th:text="${entry.content}"
+                                      th:aria-invalid="${#fields.hasErrors('descriptions') and !languageRejected and entry.content == null}"
+                                      th:aria-describedby="${#fields.hasErrors('descriptions')} ? 'descriptions-error'"></textarea>
                             <button type="button" class="ds-button" data-variant="secondary" data-color="danger"
                                     data-remove-description aria-label="Fjern skildring">&times;</button>
                         </div>
@@ -51,8 +53,8 @@
                         <div class="description-row">
                             <input class="ds-input description-lang" type="text" aria-label="Språkkode"
                                    name="descriptions[0].lang">
-                            <input class="ds-input description-content" type="text" aria-label="Skildring"
-                                   name="descriptions[0].content">
+                            <textarea class="ds-input description-content" rows="2" aria-label="Skildring"
+                                      name="descriptions[0].content"></textarea>
                             <button type="button" class="ds-button" data-variant="secondary" data-color="danger"
                                     data-remove-description aria-label="Fjern skildring">&times;</button>
                         </div>

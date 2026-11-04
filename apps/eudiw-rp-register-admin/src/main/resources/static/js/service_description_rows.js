@@ -3,20 +3,22 @@ const rowTemplate = document.getElementById("description-row-template");
 
 function reindexRows() {
     rows.querySelectorAll(".description-row").forEach((row, index) => {
-        row.querySelectorAll("input").forEach(input => {
-            input.name = input.name.replace(/descriptions\[\d+]/, `descriptions[${index}]`);
+        row.querySelectorAll("input, textarea").forEach(field => {
+            field.name = field.name.replace(/descriptions\[\d+]/, `descriptions[${index}]`);
         });
     });
 }
 
 function removeRow(row) {
     if (rows.querySelectorAll(".description-row").length === 1) {
-        row.querySelectorAll("input").forEach(input => input.value = "");
+        row.querySelectorAll("input, textarea").forEach(field => field.value = "");
         row.querySelector(".description-lang").focus();
         return;
     }
+    const focusTarget = row.nextElementSibling ?? row.previousElementSibling;
     row.remove();
     reindexRows();
+    focusTarget.querySelector(".description-lang").focus();
 }
 
 function addRow() {

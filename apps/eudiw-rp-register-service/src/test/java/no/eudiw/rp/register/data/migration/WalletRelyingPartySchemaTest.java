@@ -105,6 +105,46 @@ class WalletRelyingPartySchemaTest {
     }
 
     @Test
+    void flattensNestedServiceDescriptionsAndKeepsNullAndFlatValues() {
+        flyway.clean();
+        Flyway.configure()
+            .configuration(flyway.getConfiguration())
+            .target("28")
+            .load()
+            .migrate();
+        jdbc.update("""
+            INSERT INTO wallet_relying_party
+                (id, trade_name, orgno, is_psb, policy, identifier, postal_address, email, phone, info_uri)
+            VALUES ('party', 'Party', '123456785', TRUE, '[]', '[]', '[]', '[]', '[]', '[]')
+            """);
+        insertService("nested", """
+            [[{"lang":"nb","content":"Norsk"},{"lang":"en","content":"English"}],[{"lang":"nn","content":"Nynorsk"}]]
+            """);
+        insertService("flat", "[{\"lang\":\"nb\",\"content\":\"Norsk\"}]");
+        insertService("none", null);
+
+        flyway.migrate();
+
+        assertEquals(List.of("Norsk", "English", "Nynorsk"), jdbc.queryForList(
+            "SELECT content FROM JSON_TABLE((SELECT srv_description FROM wallet_relying_party_service WHERE id = 'nested'),"
+                + " '$[*]' COLUMNS (position FOR ORDINALITY, content TEXT PATH '$.content')) AS d ORDER BY position",
+            String.class));
+        assertEquals("nb", jdbc.queryForObject(
+            "SELECT JSON_VALUE(srv_description, '$[0].lang') FROM wallet_relying_party_service WHERE id = 'flat'",
+            String.class));
+        assertNull(jdbc.queryForObject(
+            "SELECT srv_description FROM wallet_relying_party_service WHERE id = 'none'", String.class));
+    }
+
+    private void insertService(String id, String srvDescription) {
+        jdbc.update("""
+            INSERT INTO wallet_relying_party_service
+                (id, service_trade_name, wallet_relying_party_id, created_ms, last_updated_ms, srv_description)
+            VALUES (?, 'Service', 'party', 1, 1, ?)
+            """, id, srvDescription);
+    }
+
+    @Test
     void movesTheExistingNameToTradeNameAndSeedsTs5PartyData() {
         flyway.clean();
         Flyway.configure()

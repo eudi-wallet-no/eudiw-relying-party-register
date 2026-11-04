@@ -269,7 +269,7 @@ header {
 .description-row {
     display: flex;
     gap: var(--ds-size-2);
-    align-items: center;
+    align-items: flex-start;
     margin-block-end: var(--ds-size-2);
 }
 .description-lang { flex: 0 0 5rem; inline-size: 5rem; }
