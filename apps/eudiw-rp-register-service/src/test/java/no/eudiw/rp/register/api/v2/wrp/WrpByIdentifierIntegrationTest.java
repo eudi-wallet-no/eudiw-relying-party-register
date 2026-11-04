@@ -131,9 +131,25 @@ class WrpByIdentifierIntegrationTest {
     }
 
     @Test
-    void returnsNotFoundForUnknownIdentifier() throws Exception {
-        mockMvc.perform(get("/wrp/unknown-identifier"))
-            .andExpect(status().isNotFound());
+    void returnsSignedEmptyResultForUnknownOrInactiveIdentifier() throws Exception {
+        WalletRelyingParty inactiveParty = partyNamed("Inactive identifier match");
+        inactiveParty.setActive(false);
+        walletRelyingPartyRepository.saveAndFlush(inactiveParty);
+
+        for (String identifier : List.of("unknown-identifier", inactiveParty.getOrgno())) {
+            String token = mockMvc.perform(get("/wrp/{identifier}", identifier))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.parseMediaType("application/jwt")))
+                .andExpect(header().string("x-jku-url", JWKS_URL))
+                .andReturn().getResponse().getContentAsString();
+            JWSObject jws = JWSObject.parse(token);
+            assertTrue(jws.verify(new ECDSAVerifier((ECPublicKey) signingKeyPair.getPublic())));
+            Map<String, Object> payload = jws.getPayload().toJSONObject();
+            assertEquals("https://registry.example.test", payload.get("iss"));
+            assertTrue(((Number) payload.get("iat")).longValue() > 0);
+            assertEquals(List.of(), payload.get("data"));
+            assertFalse(payload.containsKey("pagination"));
+        }
     }
 
     @Test

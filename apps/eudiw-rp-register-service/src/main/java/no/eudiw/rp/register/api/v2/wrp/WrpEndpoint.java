@@ -205,8 +205,7 @@ public class WrpEndpoint {
             throw new BadRequestException("WRP filters must not be blank");
         }
 
-        WrpCollectionFilters filters =
-            new WrpCollectionFilters(
+        WrpCollectionFilters filters = new WrpCollectionFilters(
                 identifier, legalName, serviceIdentifier, tradeName, policy, intendedUseIdentifier, claimPath,
                 credentialMeta, credentialFormat, entitlement, providedAttestation, usesIntermediary, isIntermediary);
         WrpLookupService.CollectionPage page = lookupService.findAll(limit, cursor, filters);
@@ -221,7 +220,7 @@ public class WrpEndpoint {
         responses = {
             @ApiResponse(
                 responseCode = "200",
-                description = "Signed Wallet Relying Party",
+                description = "Signed Wallet Relying Party, or a signed empty array when no match is found",
                 headers = @Header(
                     name = JWK_URL_HEADER,
                     schema = @Schema(type = "string", format = "uri")
@@ -230,8 +229,7 @@ public class WrpEndpoint {
                     mediaType = "application/jwt",
                     schema = @Schema(type = "string", format = "JWS")
                 )
-            ),
-            @ApiResponse(responseCode = "404", description = "Wallet Relying Party not found")
+            )
         }
     )
     @GetMapping("/{identifier}")
@@ -239,11 +237,12 @@ public class WrpEndpoint {
         @Parameter(in = ParameterIn.PATH, required = true, schema = @Schema(type = "string"))
         @PathVariable("identifier") String identifier
     ) {
-        return lookupService.findByIdentifier(identifier)
-            .map(data -> ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType("application/jwt"))
-                .header(JWK_URL_HEADER, properties.jwksUrl())
-                .body(jwsSigner.sign(data)))
-            .orElseGet(() -> ResponseEntity.notFound().build());
+        String signedResult = lookupService.findByIdentifier(identifier)
+            .map(jwsSigner::sign)
+            .orElseGet(jwsSigner::signEmptyResult);
+        return ResponseEntity.ok()
+            .contentType(MediaType.parseMediaType("application/jwt"))
+            .header(JWK_URL_HEADER, properties.jwksUrl())
+            .body(signedResult);
     }
 }
