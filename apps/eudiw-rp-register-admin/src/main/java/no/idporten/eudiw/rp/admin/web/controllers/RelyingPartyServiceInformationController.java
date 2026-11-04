@@ -6,7 +6,6 @@ import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyServiceInformationForm;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.security.UserAuthorityService;
-import no.idporten.eudiw.rp.admin.web.security.exception.InsufficientAuthorityException;
 import no.idporten.logging.audit.Audit;
 import no.idporten.logging.audit.AuditIgnore;
 import org.springframework.beans.propertyeditors.StringTrimmerEditor;
@@ -94,10 +93,6 @@ public class RelyingPartyServiceInformationController {
     private RelyingPartyResource getAuthorizedRegistration(UUID id) {
         var registration = relyingPartiesService.get(id);
         userAuthorityService.assertUserHasAccessTo(registration.orgno());
-
-        if (!registration.active() && !userAuthorityService.userHasAdminAuthority()) {
-            throw new InsufficientAuthorityException("Only administrators can edit inactive registrations");
-        }
 
         return registration;
     }

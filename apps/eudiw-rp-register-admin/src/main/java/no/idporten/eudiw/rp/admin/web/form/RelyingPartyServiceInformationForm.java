@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import no.idporten.eudiw.rp.admin.integrations.registerservice.V2RegisterClient;
+import no.idporten.eudiw.rp.admin.validation.SaneStringConstraint;
+import no.idporten.eudiw.rp.admin.validation.SaneStringValidator;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 
 import java.net.URI;
@@ -22,6 +24,9 @@ public class RelyingPartyServiceInformationForm {
     private static final String DEFAULT_DESCRIPTION_LANGUAGE = "nb";
     private static final Pattern LANGUAGE_TAG = Pattern.compile("[A-Za-z]{2,3}(-[A-Za-z0-9]{1,8})*");
 
+    @SaneStringConstraint(message =
+        "Ugyldig tenestenamn. Gyldige teikn er: norske bokstavar, tal, mellemrom og symbola "
+            + SaneStringValidator.ALLOWED_SYMBOLS)
     @NotBlank(message = "Skriv inn tenestenamn.")
     private String serviceTradeName;
     private String serviceIdentifier;

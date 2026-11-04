@@ -117,7 +117,7 @@ public class CreateControllerTests {
                 .getResponse()
                 .getContentAsString();
 
-            String scriptUrl = resourceUrlProvider.getForLookupPath("/js/dynamic_edit_form_fields.js");
+            String scriptUrl = resourceUrlProvider.getForLookupPath("/js/dynamic_form_fields.js");
             assertThat(html.indexOf("id=\"eaa_prefill\""))
                 .isNotNegative()
                 .isLessThan(html.indexOf("<script src=\"" + scriptUrl + "\"></script>"));

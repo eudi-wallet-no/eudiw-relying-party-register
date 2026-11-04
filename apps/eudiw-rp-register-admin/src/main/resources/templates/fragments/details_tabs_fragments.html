@@ -231,8 +231,7 @@
             <summary><h2 class="ds-heading" data-size="sm">Teneste</h2></summary>
             <div class="registration-section-bar">
                 <h3 id="service-information-heading" class="ds-heading" data-size="sm">Opplysningar om tenesta</h3>
-                <a th:if="${relyingPartyResource.active or #authorization.expression('hasRole(''ADMIN'')')}"
-                   th:href="${'/service/edit/' + relyingPartyResource.id + '?returnUrl=' + #uris.escapeQueryParam(searchUrlAttr ?: '/search')}"
+                <a th:href="${'/service/edit/' + relyingPartyResource.id + '?returnUrl=' + #uris.escapeQueryParam(searchUrlAttr ?: '/search')}"
                    aria-label="Rediger grunnopplysningar om tenesta" class="ds-button" data-variant="secondary" data-size="sm">Rediger</a>
             </div>
             <div class="table-wrap">
@@ -326,8 +325,7 @@
             <summary><h2 class="ds-heading" data-size="sm">Roller og bevistypar</h2></summary>
             <div>
             <div class="registration-section-bar registration-section-bar--end">
-                <a th:if="${relyingPartyResource.active or #authorization.expression('hasRole(''ADMIN'')')}"
-                   th:href="${'/roles/edit/' + relyingPartyResource.id + '?returnUrl=' + #uris.escapeQueryParam(searchUrlAttr ?: '/search')}"
+                <a th:href="${'/roles/edit/' + relyingPartyResource.id + '?returnUrl=' + #uris.escapeQueryParam(searchUrlAttr ?: '/search')}"
                    class="ds-button" data-variant="secondary" data-size="sm">Rediger roller og bevistypar</a>
             </div>
 
@@ -477,12 +475,6 @@
             </form>
         </div>
     </section>
-
-    <a th:href="@{|/edit/${relyingPartyResource.id}|}"
-       class="ds-button"
-       data-variant="primary">
-        Endre brukarstad
-    </a>
 </div>
 
 

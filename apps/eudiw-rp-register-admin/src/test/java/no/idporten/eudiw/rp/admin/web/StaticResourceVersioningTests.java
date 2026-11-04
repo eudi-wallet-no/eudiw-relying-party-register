@@ -31,7 +31,7 @@ class StaticResourceVersioningTests {
     @ParameterizedTest
     @ValueSource(strings = {
         "/css/index.css", "/css/digital-lommebok.css", "/css/styles.css", "/css/simple_tabs.css",
-        "/js/simple_tabs.js", "/js/confirm_revocation.js", "/js/dynamic_edit_form_fields.js",
+        "/js/simple_tabs.js", "/js/confirm_revocation.js", "/js/dynamic_form_fields.js",
         "/inter/InterVariable.woff2", "/favicon.ico"
     })
     void servesContentHashedResourcesWithoutAuthentication(String path) throws Exception {
