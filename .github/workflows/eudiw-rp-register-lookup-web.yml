@@ -66,6 +66,7 @@ jobs:
     uses: felleslosninger/github-workflows/.github/workflows/ci-call-update-image.yml@main
     with:
       application-name: digital-lommebok-rp-register-lookup-web
+      application-path: apps/eudiw-rp-register-lookup-web/
       deployment-environment: systest
       image-digest: ${{ needs.build-image.outputs.image-digest }}
       image-name: digital-lommebok-rp-register-lookup-web
