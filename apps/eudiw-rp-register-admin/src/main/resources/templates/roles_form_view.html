@@ -10,7 +10,7 @@
     <p class="ds-paragraph">
         <a th:href="${detailsUrl}" class="ds-button" data-variant="secondary">Tilbake til registreringa</a>
     </p>
-    <h1 class="ds-heading break-word" data-size="lg">Endre roller og bevistypar</h1>
+    <h1 class="ds-heading break-word" data-size="xl">Endre roller og bevistypar</h1>
     <form th:action="@{|/roles/edit/${registration.id}|}" th:object="${editFormAttr}" method="post"
           class="form-container roles-edit-form" novalidate>
         <input type="hidden" name="returnUrl" th:value="${returnUrl}">

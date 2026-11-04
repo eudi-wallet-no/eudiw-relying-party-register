@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nn">
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title>Endre grunnopplysningar om tenesta</title>
+</head>
+<body>
+<header th:replace="~{fragments/general :: page_header_fragment}"></header>
+<main>
+    <p class="ds-paragraph">
+        <a th:href="${detailsUrl}" class="ds-button" data-variant="secondary">Tilbake til registreringa</a>
+    </p>
+    <h1 class="ds-heading break-word" data-size="xl">Endre grunnopplysningar om tenesta</h1>
+    <form th:action="@{|/service/edit/${registration.id}|}" th:object="${serviceForm}" method="post"
+          class="form-container" novalidate>
+        <input type="hidden" name="returnUrl" th:value="${returnUrl}">
+        <section class="ds-card registration-card space-bottom-1em">
+            <div class="ds-card__block">
+                <div th:replace="~{fragments/registration_fragments :: card_heading('Teneste', null)}"></div>
+                <div th:if="${#fields.hasErrors()}" class="ds-alert" data-color="danger"
+                     role="alert" tabindex="-1" autofocus aria-labelledby="service-errors-heading">
+                    <h3 id="service-errors-heading" class="ds-heading" data-size="sm">Rett feila før du lagrar</h3>
+                    <ul>
+                        <li th:each="fieldError : ${#fields.detailedErrors()}"><a th:href="|#${fieldError.fieldName}|" th:text="${fieldError.message}"></a></li>
+                    </ul>
+                </div>
+                <div class="table-wrap">
+                    <table class="ds-table relying-party-information-table relying-party-information-table--editing">
+                        <caption>Opplysningar om tenesta</caption>
+                        <tbody>
+                        <tr th:replace="~{fragments/details_tabs_fragments :: editable_text_row('serviceTradeName', 'Tenestenamn', 'Obligatorisk', 'info', ${#fields.hasErrors('serviceTradeName')})}"></tr>
+                        <tr th:replace="~{fragments/details_tabs_fragments :: editable_text_row('serviceIdentifier', 'Tenesteidentifikator', 'Valfritt', 'neutral', false)}"></tr>
+                        <tr>
+                            <th scope="row" id="descriptions-label">Tenesteskildring<span class="ds-tag relying-party-field-status" data-color="info" data-size="sm">Obligatorisk</span></th>
+                            <td>
+                                <div id="descriptions" class="description-fieldset" role="group" aria-labelledby="descriptions-label"
+                                     th:with="languageRejected=${#fields.hasErrors('descriptions') and !#lists.isEmpty(#fields.detailedErrors('descriptions').?[code == 'invalid' or code == 'duplicate'])}">
+                    <div id="description-rows">
+                        <div class="description-row" th:each="entry, stat : *{descriptions}">
+                            <input class="ds-input description-lang" type="text" aria-label="Språkkode"
+                                   th:name="|descriptions[${stat.index}].lang|" th:value="${entry.lang}"
+                                   th:aria-invalid="${#fields.hasErrors('descriptions') and (entry.lang == null or languageRejected)}">
+                            <input class="ds-input description-content" type="text" aria-label="Skildring"
+                                   th:name="|descriptions[${stat.index}].content|" th:value="${entry.content}"
+                                   th:aria-invalid="${#fields.hasErrors('descriptions') and !languageRejected and entry.content == null}">
+                            <button type="button" class="ds-button" data-variant="secondary" data-color="danger"
+                                    data-remove-description aria-label="Fjern skildring">&times;</button>
+                        </div>
+                    </div>
+                    <template id="description-row-template">
+                        <div class="description-row">
+                            <input class="ds-input description-lang" type="text" aria-label="Språkkode"
+                                   name="descriptions[0].lang">
+                            <input class="ds-input description-content" type="text" aria-label="Skildring"
+                                   name="descriptions[0].content">
+                            <button type="button" class="ds-button" data-variant="secondary" data-color="danger"
+                                    data-remove-description aria-label="Fjern skildring">&times;</button>
+                        </div>
+                    </template>
+                    <button type="button" id="add-description" class="ds-button" data-variant="secondary">Legg til språk</button>
+                    <p id="descriptions-error" th:if="${#fields.hasErrors('descriptions')}"
+                       th:errors="*{descriptions}" class="ds-validation-message"></p>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:replace="~{fragments/details_tabs_fragments :: editable_text_row('supportUri', 'Støtteadresse', 'Minst éin av tre', 'info', ${#fields.hasErrors('supportUri')})}"></tr>
+                        <tr th:replace="~{fragments/details_tabs_fragments :: editable_text_row('email', 'E-post', 'Minst éin av tre', 'info', ${#fields.hasErrors('supportUri') and !serviceForm.hasContactInformation()})}"></tr>
+                        <tr th:replace="~{fragments/details_tabs_fragments :: editable_text_row('phone', 'Telefon', 'Minst éin av tre', 'info', ${#fields.hasErrors('supportUri') and !serviceForm.hasContactInformation()})}"></tr>
+                        <th:block th:with="service=${registration.relyingPartyService}">
+                            <tr>
+                                <th scope="row">Tenesta er mellomledd<span class="ds-tag relying-party-field-status relying-party-field-status--readonly" data-color="neutral" data-size="sm">Skrivebeskytta</span></th>
+                                <td th:text="${service == null ? 'Ikkje registrert.' : (service.isIntermediary ? 'Ja' : 'Nei')}"></td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Tenesta nyttar mellomledd<span class="ds-tag relying-party-field-status relying-party-field-status--readonly" data-color="neutral" data-size="sm">Skrivebeskytta</span></th>
+                                <td th:text="${service?.usesIntermediaries == null ? 'Ikkje registrert.' : (#lists.isEmpty(service.usesIntermediaries) ? 'Nei' : #strings.listJoin(service.usesIntermediaries.![serviceTradeName + ' (' + serviceIdentifier + ')'], ', '))}"></td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Tenesta er aktiv<span class="ds-tag relying-party-field-status relying-party-field-status--readonly" data-color="neutral" data-size="sm">Skrivebeskytta</span></th>
+                                <td th:text="${service == null ? 'Ikkje registrert.' : (service.active ? 'Ja' : 'Nei')}"></td>
+                            </tr>
+                        </th:block>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="button-group">
+                    <button class="ds-button" type="submit">Lagre</button>
+                    <a th:href="${detailsUrl}" class="ds-button" data-variant="secondary">Avbryt</a>
+                </div>
+            </div>
+        </section>
+    </form>
+</main>
+<footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
+<script th:src="@{/js/service_description_rows.js}"></script>
+</body>
+</html>

@@ -120,7 +120,7 @@ public class DetailedViewControllerTests {
                     "https://registry.example.test/wrp"))
                 .withRelyingPartyService(new RelyingPartyResource.RelyingPartyServiceDetails(
                     "service-1",
-                    List.of(List.of(new RelyingPartyResource.MultiLangStringDetails("en", "Service description"))),
+                    List.of(new RelyingPartyResource.MultiLangStringDetails("en", "Service description")),
                     "https://example.test/support",
                     "service@example.test",
                     "+4798765432",
@@ -164,7 +164,7 @@ public class DetailedViewControllerTests {
                 () -> assertTrue(response.contains("Verify identity")),
                 () -> assertTrue(response.contains("<td>1 aktive</td>")),
                 () -> assertTrue(response.matches("(?s).*Generelt</h2>.*Brukarstad</h2>.*Teneste</h2>"
-                    + ".*Føremål</h2>.*Roller og bevistypar</h2>.*")),
+                    + ".*Roller og bevistypar</h2>.*Føremål</h2>.*")),
                 () -> assertTrue(response.contains("dc+sd-jwt")),
                 () -> assertTrue(response.contains("Aktiv")),
                 () -> assertTrue(response.contains("Revokert")));

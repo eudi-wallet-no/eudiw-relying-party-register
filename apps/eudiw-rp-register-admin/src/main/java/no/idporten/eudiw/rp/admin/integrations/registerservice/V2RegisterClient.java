@@ -136,6 +136,19 @@ public class V2RegisterClient {
             .toBodilessEntity();
     }
 
+    public void updateServiceInformation(UUID serviceId, ServiceInformation information) {
+        restClient.patch()
+            .uri("/services/{id}", serviceId)
+            .body(information)
+            .retrieve()
+            .toBodilessEntity();
+    }
+
+    public record ServiceInformation(String serviceTradeName, String serviceIdentifier,
+                                     List<RelyingPartyResource.MultiLangStringDetails> srvDescription,
+                                     @JsonProperty("supportURI") String supportUri, String email, String phone) {
+    }
+
     public record InstanceRolesRequest(List<RoleRequest> relyingPartyEntitlements,
                                        List<RelyingPartyEaaResource> relyingPartyEaas) {
     }

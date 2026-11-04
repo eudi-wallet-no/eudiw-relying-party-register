@@ -23,6 +23,7 @@ import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceReques
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyResponse;
+import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyServiceInformationRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyServiceRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyServiceResponse;
 import no.idporten.logging.audit.Audit;
@@ -178,6 +179,20 @@ public class V2ResourcesEndpoint {
         @Valid @RequestBody RelyingPartyServiceRequest request
     ) {
         return v2ApiService.updateRelyingPartyService(relyingPartyServiceId, request);
+    }
+
+    @Operation(
+        summary = "Update service basic information",
+        description = "Updates service name, identifier, support URI, email and phone, including for inactive services."
+    )
+    @Audit(auditId = AUDIT_SERVICE_UPDATED)
+    @PatchMapping(path = "/services/{id}", consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    public RelyingPartyServiceResponse updateRelyingPartyServiceInformation(
+        @PathVariable("id") UUID relyingPartyServiceId,
+        @Valid @RequestBody RelyingPartyServiceInformationRequest request
+    ) {
+        return v2ApiService.updateRelyingPartyServiceInformation(relyingPartyServiceId, request);
     }
 
     @Operation(summary = "Create a RelyingPartyInstance")

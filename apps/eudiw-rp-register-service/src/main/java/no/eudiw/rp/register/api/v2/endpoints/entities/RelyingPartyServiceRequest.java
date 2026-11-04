@@ -24,7 +24,7 @@ public record RelyingPartyServiceRequest(
     @JsonProperty("supportURI") String supportUri,
     String email,
     String phone,
-    @JsonProperty(required = true) @NotEmpty List<@NotEmpty List<@NotNull @Valid MultiLangStringResource>> srvDescription,
+    @JsonProperty(required = true) @NotEmpty List<@NotNull @Valid MultiLangStringResource> srvDescription,
     List<@NotBlank String> subEntitlements,
     List<@NotNull @Valid ProvidedAttestationResource> providesAttestations,
     List<@NotNull @Valid IntermediaryReferenceResource> usesIntermediaries,
@@ -79,10 +79,7 @@ public record RelyingPartyServiceRequest(
             listOrEmpty(usesIntermediaries).stream().map(item -> item.toDomain()).toList(),
             listOrEmpty(servedWRPServices)
         );
-        if (!java.util.Objects.equals(relyingPartyService.getServiceTradeName(), serviceTradeName)) {
-            relyingPartyService.getRelyingPartyInstances().forEach(RelyingPartyInstance::setUpdated);
-        }
-        relyingPartyService.setServiceTradeName(serviceTradeName);
+        relyingPartyService.rename(serviceTradeName);
         relyingPartyService.setServiceIdentifier(serviceIdentifier);
         relyingPartyService.setSupportUri(supportUri);
         relyingPartyService.setEmail(email);
@@ -94,12 +91,10 @@ public record RelyingPartyServiceRequest(
         relyingPartyService.setUpdated();
     }
 
-    private List<List<MultiLangString>> toDomainSrvDescription() {
+    private List<MultiLangString> toDomainSrvDescription() {
         return srvDescription == null
             ? null
-            : srvDescription.stream()
-                .map(values -> values.stream().map(item -> item.toDomain()).toList())
-                .toList();
+            : srvDescription.stream().map(item -> item.toDomain()).toList();
     }
 
     private static <T> List<T> listOrEmpty(List<T> values) {

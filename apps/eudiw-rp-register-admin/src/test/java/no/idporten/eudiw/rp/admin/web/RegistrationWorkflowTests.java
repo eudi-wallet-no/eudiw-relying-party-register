@@ -69,6 +69,7 @@ class RegistrationWorkflowTests {
     private int initialRequestCount;
     private String expectedRelyingPartyAlias;
     private String expectedRolesRequest;
+    private String expectedServiceInformation;
 
     @BeforeEach
     void setUp() {
@@ -117,6 +118,10 @@ class RegistrationWorkflowTests {
             }
             if (expectedRolesRequest != null && "PUT".equals(request.getMethod())) {
                 assertEquals(jsonMapper.readTree(expectedRolesRequest),
+                    jsonMapper.readTree(request.getBody().readUtf8()));
+            }
+            if (expectedServiceInformation != null && "PATCH".equals(request.getMethod())) {
+                assertEquals(jsonMapper.readTree(expectedServiceInformation),
                     jsonMapper.readTree(request.getBody().readUtf8()));
             }
             if (expectedRelyingPartyAlias != null && "PATCH".equals(request.getMethod())) {
@@ -680,6 +685,105 @@ class RegistrationWorkflowTests {
             : post("/roles/edit/" + relyingPartyResource.id()).with(csrf());
         mockMvc.perform(request.with(SecurityTestUtils.oidcLoginForOrgno("987654321")))
             .andExpectAll(status().isNotFound(), view().name("error/404"));
+    }
+
+    @Test
+    @DisplayName("Should save service name, descriptions and contact details from the edit link on the details page")
+    void shouldSaveServiceInformationFromDetailsEditLink() throws Exception {
+        enqueueLookup();
+        String html = mockMvc.perform(get("/details/" + relyingPartyResource.id()).with(login(false)))
+            .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        URI editLink = navigationLink(html, "/service/edit/" + relyingPartyResource.id(), "returnUrl=");
+
+        relyingPartyResource = relyingPartyResource.withRelyingPartyService(
+            new RelyingPartyResource.RelyingPartyServiceDetails("service-1",
+                List.of(new RelyingPartyResource.MultiLangStringDetails("en", "Service description"),
+                    new RelyingPartyResource.MultiLangStringDetails("nb", "Tenesteskildring")),
+                "https://example.test/support", null, null, List.of("urn:example:sub"),
+                List.of(new RelyingPartyResource.ProvidedAttestationDetails("jwt", "attestation")),
+                false, List.of(), List.of(), true));
+
+        enqueueLookup();
+        mockMvc.perform(get(editLink).with(login(false)))
+            .andExpectAll(status().isOk(), view().name("service_information_form_view"),
+                content().string(allOf(containsString("value=\"Service name\""),
+                    containsString("name=\"descriptions[0].lang\" value=\"en\""),
+                    containsString("name=\"descriptions[1].content\" value=\"Tenesteskildring\""),
+                    containsString("Tenesta er mellomledd"),
+                    containsString("Skrivebeskytta"),
+                    not(containsString("id=\"subEntitlements\"")),
+                    not(containsString("id=\"providesAttestations\"")))));
+
+        enqueueLookup();
+        expectedServiceInformation = """
+            {"serviceTradeName":"Changed service","serviceIdentifier":"service-1",
+             "srvDescription":[{"lang":"nb","content":"Ny skildring"},{"lang":"en","content":"Service description"}],
+             "supportURI":"https://example.test/support","email":null,"phone":null}
+            """;
+        enqueue("PATCH", "/v2/services/" + relyingPartyServiceId, "{}");
+        String redirect = mockMvc.perform(post("/service/edit/" + relyingPartyResource.id()).with(login(false)).with(csrf())
+                .param("returnUrl", "/search?searchTerm=abc")
+                .param("serviceTradeName", " Changed service ").param("serviceIdentifier", "service-1")
+                .param("descriptions[0].lang", "nb").param("descriptions[0].content", " Ny skildring ")
+                .param("descriptions[1].lang", "en").param("descriptions[1].content", "Service description")
+                .param("descriptions[2].lang", "").param("descriptions[2].content", "")
+                .param("supportUri", "https://example.test/support")
+                .param("active", "false").param("relyingPartyServiceId", UUID.randomUUID().toString()))
+            .andExpect(status().is3xxRedirection()).andReturn().getResponse().getRedirectedUrl();
+
+        assertTrue(redirect.startsWith("/details/" + relyingPartyResource.id() + "?returnUrl="));
+        assertTrue(redirect.contains("searchTerm"));
+    }
+
+    @Test
+    @DisplayName("Should reject service descriptions with a missing text or a duplicate language")
+    void shouldRejectIncompleteOrDuplicateServiceDescriptions() throws Exception {
+        enqueueLookup();
+        mockMvc.perform(post("/service/edit/" + relyingPartyResource.id()).with(login(false)).with(csrf())
+                .param("serviceTradeName", "Service").param("supportUri", "https://example.test/support")
+                .param("descriptions[0].lang", "nb").param("descriptions[0].content", "")
+                .param("descriptions[1].lang", "en").param("descriptions[1].content", "Text"))
+            .andExpectAll(status().isOk(), view().name("service_information_form_view"),
+                content().string(allOf(containsString("Fyll ut både språk og skildring på kvar linje."),
+                    matchesPattern("(?s).*<input(?=[^>]*description-content)(?=[^>]*aria-invalid=\"true\")[^>]*>.*"))));
+
+        enqueueLookup();
+        mockMvc.perform(post("/service/edit/" + relyingPartyResource.id()).with(login(false)).with(csrf())
+                .param("serviceTradeName", "Service").param("supportUri", "https://example.test/support")
+                .param("descriptions[0].lang", "nb").param("descriptions[0].content", "A")
+                .param("descriptions[1].lang", "NB").param("descriptions[1].content", "B"))
+            .andExpectAll(status().isOk(), view().name("service_information_form_view"),
+                content().string(allOf(containsString("Kvart språk kan berre ha éi skildring."),
+                    matchesPattern("(?s).*<input(?=[^>]*description-lang)(?=[^>]*aria-invalid=\"true\")[^>]*>.*"))));
+    }
+
+    @Test
+    @DisplayName("Should show errors and keep input when the service has no name or contact details")
+    void shouldShowErrorsWhenServiceHasNoNameOrContactDetails() throws Exception {
+        enqueueLookup();
+        mockMvc.perform(post("/service/edit/" + relyingPartyResource.id()).with(login(false)).with(csrf())
+                .param("serviceTradeName", " ").param("serviceIdentifier", "service-1"))
+            .andExpectAll(status().isOk(), view().name("service_information_form_view"),
+                content().string(allOf(containsString("Skriv inn tenestenamn."),
+                    containsString("Skriv inn tenesteskildring."),
+                    containsString("Skriv inn støtteadresse, e-post eller telefon."),
+                    containsString("value=\"service-1\""),
+                    matchesPattern("(?s).*<input(?=[^>]*id=\"email\")(?=[^>]*aria-invalid=\"true\")[^>]*>.*"),
+                    matchesPattern("(?s).*<input(?=[^>]*id=\"phone\")(?=[^>]*aria-invalid=\"true\")[^>]*>.*"),
+                    matchesPattern("(?s).*<input(?=[^>]*description-content)(?=[^>]*aria-invalid=\"true\")[^>]*>.*"))));
+    }
+
+    @Test
+    @DisplayName("Should let only administrators edit the service of an inactive registration")
+    void shouldLetOnlyAdministratorsEditServiceOfInactiveRegistration() throws Exception {
+        relyingPartyResource = relyingPartyResource.withActive(false);
+        enqueueLookup();
+        mockMvc.perform(get("/service/edit/" + relyingPartyResource.id()).with(login(false)))
+            .andExpectAll(status().isNotFound(), view().name("error/404"));
+
+        enqueueLookup();
+        mockMvc.perform(get("/service/edit/" + relyingPartyResource.id()).with(login(true)))
+            .andExpect(status().isOk());
     }
 
     private void enqueueRoleCatalog() {

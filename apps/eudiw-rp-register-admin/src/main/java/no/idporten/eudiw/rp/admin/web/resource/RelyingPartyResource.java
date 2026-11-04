@@ -114,7 +114,7 @@ public record RelyingPartyResource(
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record RelyingPartyServiceDetails(
         String serviceIdentifier,
-        List<List<MultiLangStringDetails>> srvDescription,
+        List<MultiLangStringDetails> srvDescription,
         @JsonProperty("supportURI") String supportUri,
         String email,
         String phone,

@@ -168,12 +168,8 @@
                         </tr>
                     </th:block>
                     <tr>
-                        <th scope="row">Tenestenamn</th>
-                        <td th:text="${relyingPartyResource.tradeName}"></td>
-                    </tr>
-                    <tr>
                         <th scope="row">Sektor</th>
-                        <td th:text="${relyingPartyResource.publicSector ? 'offentleg' : 'privat'}"></td>
+                        <td th:text="${relyingPartyResource.publicSector ? 'Offentleg' : 'Privat'}"></td>
                     </tr>
                     <tr>
                         <th scope="row">Føremål</th>
@@ -189,7 +185,7 @@
                     </tr>
                     <tr>
                         <th scope="row">Aktiv</th>
-                        <td th:text="${relyingPartyResource.active ? 'ja' : 'nei'}"></td>
+                        <td th:text="${relyingPartyResource.active ? 'Ja' : 'Nei'}"></td>
                     </tr>
                     </tbody>
                 </table>
@@ -199,10 +195,10 @@
 
     <section th:fragment="relying_party_information_content_fragment(relyingPartyResource)"
              th:with="editingRelyingParty=${editingRelyingParty == true}" class="ds-card registration-card relying-party-card space-bottom-1em">
-        <details class="ds-details" open th:unless="${editingRelyingParty}">
-            <summary><h2 class="ds-heading" data-size="md">Brukarstad</h2></summary>
+        <details class="ds-details" th:unless="${editingRelyingParty}">
+            <summary><h2 class="ds-heading" data-size="sm">Brukarstad</h2></summary>
             <div class="relying-party-card-bar">
-                <h3 class="ds-heading" data-size="xs">Opplysningar om brukarstaden</h3>
+                <h3 class="ds-heading" data-size="sm">Opplysningar om brukarstaden</h3>
                 <a th:href="${'/relying-party/edit/' + relyingPartyResource.id + '?returnUrl=' + #uris.escapeQueryParam(searchUrlAttr ?: '/search')}"
                    aria-label="Rediger brukarstad" class="ds-button" data-variant="secondary" data-size="sm">Rediger</a>
             </div>
@@ -231,12 +227,21 @@
     </section>
 
     <section class="ds-card registration-card space-bottom-1em">
-        <details class="ds-details" open>
-            <summary><h2 class="ds-heading" data-size="md">Teneste</h2></summary>
+        <details class="ds-details">
+            <summary><h2 class="ds-heading" data-size="sm">Teneste</h2></summary>
+            <div class="registration-section-bar">
+                <h3 id="service-information-heading" class="ds-heading" data-size="sm">Opplysningar om tenesta</h3>
+                <a th:if="${relyingPartyResource.active or #authorization.expression('hasRole(''ADMIN'')')}"
+                   th:href="${'/service/edit/' + relyingPartyResource.id + '?returnUrl=' + #uris.escapeQueryParam(searchUrlAttr ?: '/search')}"
+                   aria-label="Rediger grunnopplysningar om tenesta" class="ds-button" data-variant="secondary" data-size="sm">Rediger</a>
+            </div>
             <div class="table-wrap">
-                <table class="ds-table">
-                    <caption>Opplysningar om tenesta</caption>
+                <table class="ds-table" aria-labelledby="service-information-heading">
                     <tbody>
+                    <tr>
+                        <th scope="row">Tenestenamn</th>
+                        <td th:text="${relyingPartyResource.tradeName}"></td>
+                    </tr>
                     <tr>
                         <th scope="row">Tenesteidentifikator</th>
                         <td th:text="${relyingPartyResource.relyingPartyService?.serviceIdentifier == null ? 'Ikkje registrert.' : relyingPartyResource.relyingPartyService.serviceIdentifier}"></td>
@@ -245,13 +250,10 @@
                         <th scope="row">Tenesteskildring</th>
                         <td>
                             <em th:if="${#lists.isEmpty(relyingPartyResource.relyingPartyService?.srvDescription)}">Ikkje registrert.</em>
-                            <div th:unless="${#lists.isEmpty(relyingPartyResource.relyingPartyService?.srvDescription)}"
-                                 th:each="descriptionGroup : ${relyingPartyResource.relyingPartyService?.srvDescription}">
-                                <ul>
-                                    <li th:each="description : ${descriptionGroup}"
-                                        th:text="|${description.lang}: ${description.content}|"></li>
-                                </ul>
-                            </div>
+                            <ul th:unless="${#lists.isEmpty(relyingPartyResource.relyingPartyService?.srvDescription)}">
+                                <li th:each="description : ${relyingPartyResource.relyingPartyService?.srvDescription}"
+                                    th:text="|${description.lang}: ${description.content}|"></li>
+                            </ul>
                         </td>
                     </tr>
                     <tr>
@@ -275,7 +277,7 @@
                             </ul>
                         </td>
                     </tr>
-                    <tr>
+                    <tr th:if="${relyingPartyResource.hasIssuerEntitlements() or !#lists.isEmpty(relyingPartyResource.relyingPartyService?.providesAttestations)}">
                         <th scope="row">Attestasjonar</th>
                         <td>
                             <em th:if="${#lists.isEmpty(relyingPartyResource.relyingPartyService?.providesAttestations)}">Ikkje registrert.</em>
@@ -287,7 +289,7 @@
                     </tr>
                     <tr>
                         <th scope="row">Tenesta er mellomledd</th>
-                        <td th:text="${relyingPartyResource.relyingPartyService == null ? 'Ikkje registrert.' : (relyingPartyResource.relyingPartyService.isIntermediary ? 'ja' : 'nei')}"></td>
+                        <td th:text="${relyingPartyResource.relyingPartyService == null ? 'Ikkje registrert.' : (relyingPartyResource.relyingPartyService.isIntermediary ? 'Ja' : 'Nei')}"></td>
                     </tr>
                     <tr th:if="${relyingPartyResource.relyingPartyService?.isIntermediary == true}">
                         <th scope="row">Formidlar for tenestene</th>
@@ -302,7 +304,7 @@
                         <th scope="row">Tenesta nyttar mellomledd</th>
                         <td>
                             <span th:if="${#lists.isEmpty(relyingPartyResource.relyingPartyService?.usesIntermediaries)}"
-                                  th:text="${relyingPartyResource.relyingPartyService?.usesIntermediaries == null ? 'Ikkje registrert.' : 'nei'}"></span>
+                                  th:text="${relyingPartyResource.relyingPartyService?.usesIntermediaries == null ? 'Ikkje registrert.' : 'Nei'}"></span>
                             <ul th:unless="${#lists.isEmpty(relyingPartyResource.relyingPartyService?.usesIntermediaries)}">
                                 <li th:each="intermediary : ${relyingPartyResource.relyingPartyService?.usesIntermediaries}"
                                     th:text="|${intermediary.serviceTradeName} (${intermediary.serviceIdentifier}) – ${intermediary.registryUri}|"></li>
@@ -311,7 +313,7 @@
                     </tr>
                     <tr>
                         <th scope="row">Tenesta er aktiv</th>
-                        <td th:text="${relyingPartyResource.relyingPartyService == null ? 'Ikkje registrert.' : (relyingPartyResource.relyingPartyService.active ? 'ja' : 'nei')}"></td>
+                        <td th:text="${relyingPartyResource.relyingPartyService == null ? 'Ikkje registrert.' : (relyingPartyResource.relyingPartyService.active ? 'Ja' : 'Nei')}"></td>
                     </tr>
                     </tbody>
                 </table>
@@ -319,9 +321,66 @@
         </details>
     </section>
 
-    <div class="space-bottom-1em">
-        <h2 class="ds-heading">Føremål</h2>
-        <p class="ds-paragraph" th:if="${#lists.isEmpty(relyingPartyResource.intendedUses)}">Tenesta har ingen registrerte føremål.</p>
+    <section class="ds-card registration-card space-bottom-1em">
+        <details class="ds-details">
+            <summary><h2 class="ds-heading" data-size="sm">Roller og bevistypar</h2></summary>
+            <div>
+            <div class="registration-section-bar registration-section-bar--end">
+                <a th:if="${relyingPartyResource.active or #authorization.expression('hasRole(''ADMIN'')')}"
+                   th:href="${'/roles/edit/' + relyingPartyResource.id + '?returnUrl=' + #uris.escapeQueryParam(searchUrlAttr ?: '/search')}"
+                   class="ds-button" data-variant="secondary" data-size="sm">Rediger roller og bevistypar</a>
+            </div>
+
+            <h3 class="ds-heading registration-subheading" data-size="sm">Roller</h3>
+
+            <div th:if="${ #lists.isEmpty(relyingPartyResource.relyingPartyEntitlements)}">
+                <em>Ikkje registrert.</em>
+            </div>
+            <div th:unless="${ #lists.isEmpty(relyingPartyResource.relyingPartyEntitlements)}">
+                <table class="ds-table" data-sticky-header="true">
+                    <thead>
+                        <tr>
+                            <th>Rolle</th>
+                            <th>Utstedar-URL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="e : ${relyingPartyResource.relyingPartyEntitlements}">
+                            <td th:text="${e.displayName}"></td>
+                            <td th:text="${e.credentialIssuerUrl ?: 'Ikkje registrert.'}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="ds-heading registration-subheading" data-size="sm">Bevistypar (EAA)</h3>
+            <div th:if="${ #lists.isEmpty(relyingPartyResource.relyingPartyEaas)}">
+                <em>Ikkje registrert.</em>
+            </div>
+            <div th:unless="${ #lists.isEmpty(relyingPartyResource.relyingPartyEaas)}">
+                <table class="ds-table" data-sticky-header="true">
+                    <thead>
+                        <tr>
+                            <th>Bevistype</th>
+                            <th>Føremål</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="eaa : ${relyingPartyResource.relyingPartyEaas}">
+                        <td th:text="${eaa.namespace}"></td>
+                        <td th:text="${eaa.intent}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            </div>
+        </details>
+    </section>
+
+    <section class="ds-card registration-card space-bottom-1em">
+        <details class="ds-details">
+            <summary><h2 class="ds-heading" data-size="sm">Føremål</h2></summary>
+            <p class="ds-paragraph" th:if="${#lists.isEmpty(relyingPartyResource.intendedUses)}">Tenesta har ingen registrerte føremål.</p>
         <details class="ds-details"
                  th:each="intendedUse, intendedUseStatus : ${relyingPartyResource.intendedUses}">
             <summary th:text="${intendedUse.intendedUseIdentifier ?: ('Bruk ' + intendedUseStatus.count)}">Bruk</summary>
@@ -389,60 +448,6 @@
                 </table>
             </div>
         </details>
-    </div>
-
-    <section class="ds-card registration-card space-bottom-1em">
-        <details class="ds-details" open>
-            <summary><h2 class="ds-heading" data-size="md">Roller og bevistypar</h2></summary>
-            <div class="registration-section-bar">
-                <h3 class="ds-heading" data-size="xs">Roller</h3>
-                <a th:if="${relyingPartyResource.active or #authorization.expression('hasRole(''ADMIN'')')}"
-                   th:href="${'/roles/edit/' + relyingPartyResource.id + '?returnUrl=' + #uris.escapeQueryParam(searchUrlAttr ?: '/search')}"
-                   aria-label="Rediger roller og bevistypar" class="ds-button" data-variant="secondary" data-size="sm">Rediger</a>
-            </div>
-
-            <div th:if="${ #lists.isEmpty(relyingPartyResource.relyingPartyEntitlements)}">
-                <em>Ikkje registrert.</em>
-            </div>
-            <div th:unless="${ #lists.isEmpty(relyingPartyResource.relyingPartyEntitlements)}">
-                <table class="ds-table" data-sticky-header="true">
-                    <thead>
-                        <tr>
-                            <th>Rolle</th>
-                            <th>Utstedar-URL</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr th:each="e : ${relyingPartyResource.relyingPartyEntitlements}">
-                            <td th:text="${e.displayName}"></td>
-                            <td th:text="${e.credentialIssuerUrl ?: 'Ikkje registrert.'}"></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="registration-section-bar">
-                <h3 class="ds-heading" data-size="xs">Bevistypar (EAA)</h3>
-            </div>
-            <div th:if="${ #lists.isEmpty(relyingPartyResource.relyingPartyEaas)}">
-                <em>Ikkje registrert.</em>
-            </div>
-            <div th:unless="${ #lists.isEmpty(relyingPartyResource.relyingPartyEaas)}">
-                <table class="ds-table" data-sticky-header="true">
-                    <thead>
-                        <tr>
-                            <th>Bevistype</th>
-                            <th>Føremål</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="eaa : ${relyingPartyResource.relyingPartyEaas}">
-                        <td th:text="${eaa.namespace}"></td>
-                        <td th:text="${eaa.intent}"></td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
         </details>
     </section>
 
@@ -498,6 +503,17 @@
     </th:block>
 </td>
 
+<tr th:fragment="editable_text_row(field, label, status, color, invalid)">
+    <th scope="row"><label th:for="${field}" th:text="${label}"></label><span class="ds-tag relying-party-field-status" th:attr="data-color=${color}" data-size="sm" th:text="${status}"></span></th>
+    <td>
+        <input th:id="${field}" th:field="*{__${field}__}" class="ds-input" type="text"
+               th:aria-invalid="${invalid}"
+               th:aria-describedby="${invalid ? (#fields.hasErrors(field) ? field : 'supportUri') + '-error' : null}">
+        <p th:id="|${field}-error|" th:if="${#fields.hasErrors(field)}" th:errors="*{__${field}__}"
+           class="ds-validation-message"></p>
+    </td>
+</tr>
+
 <div th:fragment="relying_party_information_table(relyingPartyResource, editingRelyingParty)" class="table-wrap">
     <table class="ds-table relying-party-information-table" th:classappend="${editingRelyingParty} ? 'relying-party-information-table--editing'">
         <caption th:classappend="${!editingRelyingParty} ? 'ds-sr-only'">Opplysningar om brukarstaden</caption>
@@ -518,7 +534,7 @@
             </td>
         </tr>
         <tr>
-            <th scope="row">Land<span th:if="${editingRelyingParty}" class="ds-tag relying-party-field-status" data-color="danger" data-size="sm">Påkravd</span></th>
+            <th scope="row">Land<span th:if="${editingRelyingParty}" class="ds-tag relying-party-field-status" data-color="info" data-size="sm">Obligatorisk</span></th>
             <td th:unless="${editingRelyingParty}" th:text="${relyingPartyResource.relyingParty?.country == null ? 'Ikkje registrert.' : relyingPartyResource.relyingParty.country}"></td>
             <td th:if="${editingRelyingParty}">
                 <label for="country" class="ds-sr-only">Land</label>
