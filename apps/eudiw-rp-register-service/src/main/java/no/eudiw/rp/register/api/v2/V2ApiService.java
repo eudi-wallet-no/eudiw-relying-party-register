@@ -17,6 +17,7 @@ import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceRespon
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInformationRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyResponse;
+import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyServiceInformationRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyServiceRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyServiceResponse;
 import no.eudiw.rp.register.config.RegistryProperties;
@@ -206,6 +207,20 @@ public class V2ApiService {
     public RelyingPartyServiceResponse updateRelyingPartyService(
         UUID relyingPartyServiceId,
         RelyingPartyServiceRequest request
+    ) {
+        walletRelyingPartyRepository.findByServiceIdForUpdate(relyingPartyServiceId)
+            .orElseThrow(() -> new NotFoundException("Service not found"));
+
+        WalletRelyingPartyService relyingPartyService = findRelyingPartyService(relyingPartyServiceId);
+        request.update(relyingPartyService);
+
+        return RelyingPartyServiceResponse.from(
+            walletRelyingPartyServiceRepository.saveAndFlush(relyingPartyService));
+    }
+
+    public RelyingPartyServiceResponse updateRelyingPartyServiceInformation(
+        UUID relyingPartyServiceId,
+        RelyingPartyServiceInformationRequest request
     ) {
         walletRelyingPartyRepository.findByServiceIdForUpdate(relyingPartyServiceId)
             .orElseThrow(() -> new NotFoundException("Service not found"));

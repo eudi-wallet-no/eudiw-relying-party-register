@@ -23,7 +23,7 @@ public record RelyingPartyServiceResponse(
     @JsonProperty("supportURI") String supportUri,
     String email,
     String phone,
-    List<List<@Valid MultiLangStringResource>> srvDescription,
+    List<@Valid MultiLangStringResource> srvDescription,
     List<String> entitlements,
     List<String> subEntitlements,
     List<@Valid ProvidedAttestationResource> providesAttestations,
@@ -45,7 +45,7 @@ public record RelyingPartyServiceResponse(
             relyingPartyService.getSupportUri(),
             relyingPartyService.getEmail(),
             relyingPartyService.getPhone(),
-            toNestedMultiLangStringResource(relyingPartyService.getSrvDescription()),
+            toMultiLangStringResource(relyingPartyService.getSrvDescription()),
             relyingPartyService.getEntitlements(),
             relyingPartyService.getSubEntitlements(),
             relyingPartyService.getProvidesAttestations().stream()
@@ -65,17 +65,11 @@ public record RelyingPartyServiceResponse(
         );
     }
 
-    private static List<List<MultiLangStringResource>> toNestedMultiLangStringResource(
-        List<List<MultiLangString>> values
-    ) {
+    private static List<MultiLangStringResource> toMultiLangStringResource(List<MultiLangString> values) {
         if (values == null) {
             return null;
         }
 
-        return values.stream().map(RelyingPartyServiceResponse::toMultiLangStringResource).toList();
-    }
-
-    private static List<MultiLangStringResource> toMultiLangStringResource(List<MultiLangString> values) {
         return values.stream()
             .map(item -> new MultiLangStringResource(item.lang(), item.content()))
             .toList();

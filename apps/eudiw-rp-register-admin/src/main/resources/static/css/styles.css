@@ -31,8 +31,10 @@ div.ds-card + div.ds-card { margin-top: 8px; }
 .relying-party-information-table--editing caption { padding-block-start: var(--ds-size-6); }
 .relying-party-card-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--ds-size-4); padding: var(--ds-size-4) var(--ds-size-5); }
 .relying-party-card-bar .ds-heading { margin: 0; }
-.registration-section-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--ds-size-4); margin-block: var(--ds-size-4); }
+.registration-section-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--ds-size-4); margin-block: 0 var(--ds-size-2); }
 .registration-section-bar .ds-heading { margin: 0; }
+.registration-section-bar--end { justify-content: flex-end; }
+.registration-subheading { margin-block: var(--ds-size-2); }
 .relying-party-information-table--editing th,
 .relying-party-information-table--editing td { padding-block: var(--ds-size-4); }
 .relying-party-information-table--editing tr:has(.relying-party-field-status--readonly) { background-color: var(--ds-color-neutral-surface-tinted); }
@@ -252,4 +254,26 @@ header {
 .status-badge-warning {
     background-color: var(--ds-color-warning-surface-tinted);
     color: var(--ds-color-warning-text-default);
+}
+.description-fieldset {
+    border: 0;
+    margin: var(--ds-size-4) 0;
+    padding: 0;
+}
+.description-fieldset legend {
+    margin-block-end: var(--ds-size-2);
+}
+.description-fieldset #add-description {
+    margin-block-start: var(--ds-size-2);
+}
+.description-row {
+    display: flex;
+    gap: var(--ds-size-2);
+    align-items: flex-start;
+    margin-block-end: var(--ds-size-2);
+}
+.description-lang { flex: 0 0 5rem; inline-size: 5rem; }
+.description-content { flex: 1 1 auto; }
+.ds-input[aria-invalid=true]:not([type=checkbox], [type=radio]) {
+    box-shadow: 0 0 0 var(--ds-border-width-default) var(--dsc-input-accent-color--invalid);
 }

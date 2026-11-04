@@ -69,6 +69,10 @@ public class RelyingPartiesService {
         v2RegisterClient.updateInstanceStatus(instanceId, active);
     }
 
+    public void updateServiceInformation(UUID serviceId, V2RegisterClient.ServiceInformation information) {
+        v2RegisterClient.updateServiceInformation(serviceId, information);
+    }
+
     public void updateInstanceRoles(UUID instanceId, V2RegisterClient.InstanceRolesRequest request) {
         v2RegisterClient.updateInstanceRoles(instanceId, request);
     }

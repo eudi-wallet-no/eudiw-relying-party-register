@@ -72,7 +72,7 @@ class V2ApiIntegrationTest {
     private static final String RELYING_PARTY_SERVICE = """
         {"serviceTradeName":"Test service","serviceIdentifier":"service-1",
          "supportURI":"https://example.test/support",
-         "srvDescription":[[{"lang":"en","content":"Test service"}]],
+         "srvDescription":[{"lang":"en","content":"Test service"}],
          "isIntermediary":false}
         """;
     private static final String RELYING_PARTY_INSTANCE = """
@@ -156,6 +156,41 @@ class V2ApiIntegrationTest {
         assertEquals(1, relyingPartyRepository.count());
         assertEquals(1, relyingPartyServiceRepository.count());
         assertEquals(1, relyingPartyInstanceRepository.count());
+    }
+
+    @Test
+    @DisplayName("Should update service basic information and keep sub-roles, instances and intended uses")
+    void shouldUpdateServiceBasicInformationAndKeepOtherServiceData() throws Exception {
+        Registration registration = createRegistration();
+        read(put(registration.relyingPartyServicePath()),
+            RELYING_PARTY_SERVICE.replace("\"isIntermediary\":false", "\"subEntitlements\":[\"sub-role\"],\"isIntermediary\":false"));
+        JsonNode intendedUse = read(post(registration.intendedUsesPath()), INTENDED_USE);
+        JsonNode before = read(get(registration.relyingPartyServicePath()));
+
+        JsonNode updated = read(patch(registration.relyingPartyServicePath()), """
+            {"serviceTradeName":"Renamed service","serviceIdentifier":" ","email":"post@example.test",
+             "srvDescription":[{"lang":"nb","content":"Ny beskrivelse"}]}
+            """);
+
+        assertAll(
+            () -> assertEquals("Renamed service", updated.get("serviceTradeName").asString()),
+            () -> assertTrue(updated.get("serviceIdentifier").isNull()),
+            () -> assertTrue(updated.get("supportURI").isNull()),
+            () -> assertEquals("post@example.test", updated.get("email").asString()),
+            () -> assertEquals("Ny beskrivelse", updated.at("/srvDescription/0/content").asString()),
+            () -> assertEquals(1, updated.get("srvDescription").size()),
+            () -> assertEquals(before.get("subEntitlements"), updated.get("subEntitlements")),
+            () -> assertEquals(before.get("instanceIds"), updated.get("instanceIds")),
+            () -> assertEquals(intendedUse.get("id"), updated.at("/intendedUseIds/0")),
+            () -> assertEquals("Renamed service", read(get("/v2/registrations/"
+                + registration.relyingPartyInstanceId())).get("serviceTradeName").asString()));
+
+        request(patch(registration.relyingPartyServicePath()), "{\"serviceTradeName\":\"Renamed service\"}")
+            .andExpect(status().isBadRequest());
+        request(patch(registration.relyingPartyServicePath()),
+            "{\"serviceTradeName\":\"Renamed service\",\"srvDescription\":[{\"lang\":\"nb\",\"content\":\"x\"}],"
+                + "\"supportURI\":\"invalid URI\"}")
+            .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -611,7 +646,7 @@ class V2ApiIntegrationTest {
             "https://registry.example.test/wrp");
         var expectedRelyingPartyService = new RegistrationDetailsResponse.RelyingPartyServiceDetails(
             "service-1",
-            List.of(List.of(new MultiLangStringResource("en", "Service description"))),
+            List.of(new MultiLangStringResource("en", "Service description")),
             "https://example.test/support",
             "service@example.test",
             "+4798765432",

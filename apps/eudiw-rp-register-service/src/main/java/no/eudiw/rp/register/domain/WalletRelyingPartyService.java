@@ -13,6 +13,7 @@ import org.hibernate.type.SqlTypes;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 @Setter
@@ -37,7 +38,7 @@ public class WalletRelyingPartyService extends BaseEntity {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "srv_description", columnDefinition = "JSON")
-    private List<List<MultiLangString>> srvDescription;
+    private List<MultiLangString> srvDescription;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "sub_entitlements", columnDefinition = "JSON", nullable = false)
@@ -187,6 +188,14 @@ public class WalletRelyingPartyService extends BaseEntity {
 
     // for JPA instantiation.
     protected WalletRelyingPartyService() { }
+
+    public void rename(String newServiceTradeName) {
+        if (!Objects.equals(serviceTradeName, newServiceTradeName)) {
+            relyingPartyInstances.forEach(RelyingPartyInstance::setUpdated);
+        }
+
+        this.serviceTradeName = newServiceTradeName;
+    }
 
     public void setUpdated() {
         this.lastUpdatedMs = Instant.now().toEpochMilli();

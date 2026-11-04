@@ -137,7 +137,7 @@ public record RegistrationDetailsResponse(
     @JsonInclude(JsonInclude.Include.ALWAYS)
     public record RelyingPartyServiceDetails(
         String serviceIdentifier,
-        List<List<MultiLangStringResource>> srvDescription,
+        List<MultiLangStringResource> srvDescription,
         @JsonProperty("supportURI") String supportUri,
         String email,
         String phone,
@@ -151,7 +151,7 @@ public record RegistrationDetailsResponse(
         private static RelyingPartyServiceDetails from(WalletRelyingPartyService relyingPartyService) {
             return new RelyingPartyServiceDetails(
                 relyingPartyService.getServiceIdentifier(),
-                toNestedMultiLangStringResource(relyingPartyService.getSrvDescription()),
+                toMultiLangStringResources(relyingPartyService.getSrvDescription()),
                 relyingPartyService.getSupportUri(),
                 relyingPartyService.getEmail(),
                 relyingPartyService.getPhone(),
@@ -172,16 +172,12 @@ public record RegistrationDetailsResponse(
         return entitlement == null ? entitlementUri : entitlement.getDisplayName();
     }
 
-    private static List<List<MultiLangStringResource>> toNestedMultiLangStringResource(
-        List<List<MultiLangString>> values
-    ) {
+    private static List<MultiLangStringResource> toMultiLangStringResources(List<MultiLangString> values) {
         if (values == null) {
             return null;
         }
 
-        return values.stream()
-            .map(items -> mapOrEmpty(items, item -> new MultiLangStringResource(item.lang(), item.content())))
-            .toList();
+        return values.stream().map(item -> new MultiLangStringResource(item.lang(), item.content())).toList();
     }
 
     private static <T, R> List<R> mapOrEmpty(List<T> values, Function<T, R> mapper) {

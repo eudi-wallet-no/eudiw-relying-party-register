@@ -128,7 +128,7 @@ public record WalletRelyingPartyResource(
         String supportURI,
         String email,
         String phone,
-        List<List<MultiLangStringResource>> srvDescription,
+        List<MultiLangStringResource> srvDescription,
         List<IntendedUseResource> intendedUses,
         List<String> entitlements,
         List<String> subEntitlements,
@@ -168,16 +168,15 @@ public record WalletRelyingPartyResource(
             );
         }
 
-        private static List<List<MultiLangStringResource>> mapDescriptions(
-            List<List<no.eudiw.rp.register.domain.MultiLangString>> descriptions
+        private static List<MultiLangStringResource> mapDescriptions(
+            List<no.eudiw.rp.register.domain.MultiLangString> descriptions
         ) {
             if (descriptions == null) {
                 return null;
             }
+
             return descriptions.stream()
-                .map(group -> group.stream()
-                    .map(value -> new MultiLangStringResource(value.lang(), value.content()))
-                    .toList())
+                .map(value -> new MultiLangStringResource(value.lang(), value.content()))
                 .toList();
         }
     }
