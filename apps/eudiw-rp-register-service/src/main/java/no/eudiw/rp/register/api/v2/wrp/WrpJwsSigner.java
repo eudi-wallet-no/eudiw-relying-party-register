@@ -40,6 +40,10 @@ public class WrpJwsSigner {
         return signPayload(data, null);
     }
 
+    public String signEmptyResult() {
+        return signPayload(List.of(), null);
+    }
+
     public String signCollection(
         List<WalletRelyingPartyResource> data,
         String nextCursor,
