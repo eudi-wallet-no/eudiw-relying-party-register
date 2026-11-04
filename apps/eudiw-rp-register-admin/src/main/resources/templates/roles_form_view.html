@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="nn">
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title>Endre roller og bevistypar</title>
+</head>
+<body>
+<header th:replace="~{fragments/general :: page_header_fragment}"></header>
+<main>
+    <p class="ds-paragraph">
+        <a th:href="${detailsUrl}" class="ds-button" data-variant="secondary">Tilbake til registreringa</a>
+    </p>
+    <h1 class="ds-heading break-word" data-size="lg">Endre roller og bevistypar</h1>
+    <form th:action="@{|/roles/edit/${registration.id}|}" th:object="${editFormAttr}" method="post"
+          class="form-container roles-edit-form" novalidate>
+        <input type="hidden" name="returnUrl" th:value="${returnUrl}">
+        <section class="ds-card registration-card space-bottom-1em">
+            <div class="ds-card__block">
+                <div th:replace="~{fragments/registration_fragments :: card_heading('Roller og bevistypar', null)}"></div>
+                <p class="ds-paragraph">
+                    Rediger rollar, utstedar-URL og bevistypar for registreringa.
+                </p>
+                <div th:if="${#fields.hasErrors()}" class="ds-alert" data-color="danger"
+                     role="alert" tabindex="-1" autofocus aria-labelledby="roles-errors-heading">
+                    <h3 id="roles-errors-heading" class="ds-heading" data-size="sm">Rett feila før du lagrar</h3>
+                    <ul>
+                        <li th:each="fieldError : ${#fields.detailedErrors()}">
+                            <a th:if="${fieldError.fieldName != '*' and fieldError.fieldName != ''}"
+                               th:href="|#${fieldError.fieldName}|" th:text="${fieldError.message}"></a>
+                            <span th:unless="${fieldError.fieldName != '*' and fieldError.fieldName != ''}"
+                                  th:text="${fieldError.message}"></span>
+                        </li>
+                    </ul>
+                </div>
+
+                <h3 class="ds-heading" data-size="xs">Roller</h3>
+                <p class="ds-paragraph" sec:authorize="!hasRole('ADMIN')">
+                    Berre administrator kan leggje til eller fjerne roller. Du kan endre utstedar-URL.
+                </p>
+                <div class="table-wrap">
+                    <table class="ds-table">
+                        <caption class="ds-sr-only">Roller og utstedar-URL</caption>
+                        <thead>
+                        <tr>
+                            <th scope="col" sec:authorize="hasRole('ADMIN')">Valt</th>
+                            <th scope="col">Rolle</th>
+                            <th scope="col">Utstedar-URL</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="option, iter : ${roleOptions}"
+                            th:with="selected=${editFormAttr.entitlements[iter.index].entitlement != null},
+                                     issuer=${T(no.idporten.eudiw.rp.admin.entitlements.Entitlements).isIssuerEntitlement(option.entitlement)},
+                                     urlField=|entitlements[${iter.index}].credentialIssuerUrl|">
+                            <td data-label="Valt" sec:authorize="hasRole('ADMIN')">
+                                <input type="checkbox" class="ds-input"
+                                       th:id="|role-${iter.index}|"
+                                       th:name="|entitlements[${iter.index}].entitlement|"
+                                       th:value="${option.entitlement}"
+                                       th:checked="${selected}"
+                                       th:disabled="${option.locked}"
+                                       th:attr="aria-describedby=${option.locked} ? |role-${iter.index}-lock|">
+                                <span class="ds-tag relying-party-field-status" data-color="neutral"
+                                      th:if="${option.locked}">Låst</span>
+                                <input type="hidden" th:if="${option.locked}"
+                                       th:name="|entitlements[${iter.index}].entitlement|"
+                                       th:value="${option.entitlement}">
+                            </td>
+                            <td data-label="Rolle">
+                                <input type="hidden" sec:authorize="!hasRole('ADMIN')"
+                                       th:name="|entitlements[${iter.index}].entitlement|"
+                                       th:value="${option.entitlement}">
+                                <label sec:authorize="hasRole('ADMIN')" th:for="|role-${iter.index}|"
+                                       th:text="${option.displayName}"></label>
+                                <span sec:authorize="!hasRole('ADMIN')" th:text="${option.displayName}"></span>
+                                <p class="ds-paragraph" data-size="sm" th:if="${option.locked}"
+                                   th:id="|role-${iter.index}-lock|">Rollen er koblet til utstedarsertifikat</p>
+                            </td>
+                            <td data-label="Utstedar-URL">
+                                <th:block th:if="${issuer}">
+                                    <label th:for="${urlField}" class="ds-sr-only"
+                                           th:text="|Utstedar-URL for ${option.displayName}|"></label>
+                                    <input type="url" class="ds-input"
+                                           th:id="${urlField}"
+                                           th:name="${urlField}"
+                                           th:value="${editFormAttr.entitlements[iter.index].credentialIssuerUrl}"
+                                           th:attr="aria-invalid=${#fields.hasErrors(urlField)},aria-describedby=|${urlField}-error|">
+                                    <ul class="ds-list" th:id="|${urlField}-error|" th:if="${#fields.hasErrors(urlField)}">
+                                        <li th:each="error : ${#fields.errors(urlField)}" th:text="${error}"
+                                            class="ds-validation-message"></li>
+                                    </ul>
+                                </th:block>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 class="ds-heading" data-size="xs">Bevistypar (EAA)</h3>
+                <div th:replace="~{fragments/edit_fragments :: eaa_fields_fragment}"></div>
+
+                <div class="button-group">
+                    <button class="ds-button" type="submit">Lagre</button>
+                    <a th:href="${detailsUrl}" class="ds-button" data-variant="secondary">Avbryt</a>
+                </div>
+            </div>
+        </section>
+    </form>
+</main>
+<footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
+</body>
+</html>

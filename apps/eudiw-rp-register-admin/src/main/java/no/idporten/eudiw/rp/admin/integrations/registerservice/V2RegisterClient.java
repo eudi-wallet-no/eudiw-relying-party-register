@@ -113,6 +113,14 @@ public class V2RegisterClient {
             .toBodilessEntity();
     }
 
+    public void updateInstanceRoles(UUID instanceId, InstanceRolesRequest request) {
+        restClient.put()
+            .uri("/instances/{id}", instanceId)
+            .body(request)
+            .retrieve()
+            .toBodilessEntity();
+    }
+
     public RelyingParty getRelyingPartyInformation(UUID relyingPartyId) {
         return restClient.get()
             .uri("/relying-parties/{id}", relyingPartyId)
@@ -126,6 +134,13 @@ public class V2RegisterClient {
             .body(information)
             .retrieve()
             .toBodilessEntity();
+    }
+
+    public record InstanceRolesRequest(List<RoleRequest> relyingPartyEntitlements,
+                                       List<RelyingPartyEaaResource> relyingPartyEaas) {
+    }
+
+    public record RoleRequest(String entitlement, String credentialIssuerUrl) {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

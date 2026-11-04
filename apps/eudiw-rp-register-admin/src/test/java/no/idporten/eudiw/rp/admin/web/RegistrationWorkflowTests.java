@@ -68,6 +68,7 @@ class RegistrationWorkflowTests {
     private String expectedUpdatedServiceName;
     private int initialRequestCount;
     private String expectedRelyingPartyAlias;
+    private String expectedRolesRequest;
 
     @BeforeEach
     void setUp() {
@@ -113,6 +114,10 @@ class RegistrationWorkflowTests {
                     jsonMapper.readTree(request.getBody().readUtf8())
                         .get("name")
                         .asString());
+            }
+            if (expectedRolesRequest != null && "PUT".equals(request.getMethod())) {
+                assertEquals(jsonMapper.readTree(expectedRolesRequest),
+                    jsonMapper.readTree(request.getBody().readUtf8()));
             }
             if (expectedRelyingPartyAlias != null && "PATCH".equals(request.getMethod())) {
                 assertEquals(jsonMapper.readTree(expectedRelyingPartyAlias),
@@ -502,6 +507,186 @@ class RegistrationWorkflowTests {
             .andExpectAll(status().isNotFound(), view().name("error/404"));
     }
 
+
+    private static final String QEAA = "https://uri.etsi.org/19475/Entitlement/QEAA_Provider";
+
+    @Test
+    @DisplayName("Should show locked roles and catalog roles to an administrator who follows the edit link")
+    void shouldShowLockedRolesAndCatalogRolesToAdministrator() throws Exception {
+        enqueueLookup();
+        String html = mockMvc.perform(get("/details/" + relyingPartyResource.id()).with(login(true)))
+            .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        URI editLink = navigationLink(html, "/roles/edit/" + relyingPartyResource.id(), "returnUrl=");
+
+        enqueueLookup();
+        enqueueRoleCatalog();
+        mockMvc.perform(get(editLink).with(login(true)))
+            .andExpectAll(status().isOk(), view().name("roles_form_view"),
+                content().string(allOf(containsString("Second role"), containsString("https://issuer.test"),
+                    containsString("Rollen er koblet til utstedarsertifikat"), containsString("name=\"entitlements[1].entitlement\""),
+                    containsString("Avbryt"), containsString("Tilbake til registreringa"))));
+    }
+
+    @Test
+    @DisplayName("Should save added role, issuer URL and EAA for an administrator without changing other data")
+    void shouldSaveRolesIssuerUrlAndEaaForAdministrator() throws Exception {
+        enqueueLookup();
+        enqueueRoleCatalog();
+        expectedRolesRequest = """
+            {"relyingPartyEntitlements":[
+               {"entitlement":"%s","credentialIssuerUrl":"https://issuer.test"},
+               {"entitlement":"urn:second","credentialIssuerUrl":"https://second.test"}],
+             "relyingPartyEaas":[{"namespace":"eu.europa.ec.eudi.pid","intent":"login"}]}
+            """.formatted(QEAA);
+        enqueue("PUT", "/v2/instances/" + relyingPartyResource.id(), "{}");
+
+        String redirect = mockMvc.perform(post("/roles/edit/" + relyingPartyResource.id()).with(login(true)).with(csrf())
+                .param("returnUrl", "/search?searchTerm=abc")
+                .param("entitlements[0].entitlement", QEAA)
+                .param("entitlements[0].credentialIssuerUrl", "https://issuer.test")
+                .param("entitlements[1].entitlement", "urn:second")
+                .param("entitlements[1].credentialIssuerUrl", " https://second.test ")
+                .param("eaas[0].namespace", "eu.europa.ec.eudi.pid").param("eaas[0].intent", "login")
+                .param("name", "Changed").param("active", "false"))
+            .andExpect(status().is3xxRedirection()).andReturn().getResponse().getRedirectedUrl();
+
+        assertTrue(redirect.startsWith("/details/" + relyingPartyResource.id() + "?returnUrl="));
+        assertTrue(redirect.contains("searchTerm"));
+    }
+
+    @Test
+    @DisplayName("Should remove a certificate-free legacy role with an HTTP issuer URL")
+    void shouldRemoveCertificateFreeLegacyRoleWithHttpIssuerUrl() throws Exception {
+        relyingPartyResource = relyingPartyResource
+            .withIssuerCertificates(List.of())
+            .withRelyingPartyEntitlements(List.of(
+                new RelyingPartyEntitlementResource(QEAA, "Issuer", "http://legacy.test")));
+        enqueueLookup();
+        enqueueRoleCatalog();
+        expectedRolesRequest = """
+            {"relyingPartyEntitlements":[{"entitlement":"urn:second","credentialIssuerUrl":"https://second.test"}],
+             "relyingPartyEaas":[]}
+            """;
+        enqueue("PUT", "/v2/instances/" + relyingPartyResource.id(), "{}");
+
+        mockMvc.perform(post("/roles/edit/" + relyingPartyResource.id()).with(login(true)).with(csrf())
+                .param("entitlements[0].credentialIssuerUrl", "http://legacy.test")
+                .param("entitlements[1].entitlement", "urn:second")
+                .param("entitlements[1].credentialIssuerUrl", "https://second.test"))
+            .andExpect(status().is3xxRedirection());
+    }
+
+    @Test
+    @DisplayName("Should save issuer URL and EAA for self-service while the role set stays unchanged")
+    void shouldSaveEaaForSelfServiceAndKeepRoles() throws Exception {
+        enqueueLookup();
+        String form = mockMvc.perform(get("/roles/edit/" + relyingPartyResource.id()).with(login(false)))
+            .andExpect(status().isOk())
+            .andReturn().getResponse().getContentAsString();
+        assertFalse(form.contains("type=\"checkbox\""), "Self-service must not get role checkboxes");
+        assertFalse(form.contains("for=\"role-0\""), "Self-service role names must not label a missing checkbox");
+        assertTrue(form.contains("Berre administrator kan leggje til eller fjerne roller"));
+
+        enqueueLookup();
+        expectedRolesRequest = """
+            {"relyingPartyEntitlements":[{"entitlement":"%s","credentialIssuerUrl":"https://issuer.test"}],
+             "relyingPartyEaas":[{"namespace":"ns","intent":"purpose"}]}
+            """.formatted(QEAA);
+        enqueue("PUT", "/v2/instances/" + relyingPartyResource.id(), "{}");
+        mockMvc.perform(post("/roles/edit/" + relyingPartyResource.id()).with(login(false)).with(csrf())
+                .param("entitlements[0].entitlement", QEAA)
+                .param("entitlements[0].credentialIssuerUrl", "https://issuer.test")
+                .param("eaas[0].namespace", "ns").param("eaas[0].intent", "purpose"))
+            .andExpect(status().is3xxRedirection());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"removed", "added", "other"})
+    @DisplayName("Should deny self-service a changed role set without sending anything to the register")
+    void shouldDenySelfServiceChangedRoleSet(String manipulation) throws Exception {
+        enqueueLookup();
+        var request = post("/roles/edit/" + relyingPartyResource.id()).with(login(false)).with(csrf())
+            .param("eaas[0].namespace", "ns").param("eaas[0].intent", "purpose");
+        switch (manipulation) {
+            case "removed" -> { }
+            case "added" -> request.param("entitlements[0].entitlement", QEAA)
+                .param("entitlements[1].entitlement", "urn:second");
+            default -> request.param("entitlements[0].entitlement", "urn:other");
+        }
+        mockMvc.perform(request).andExpectAll(status().isNotFound(), view().name("error/404"));
+    }
+
+    @Test
+    @DisplayName("Should keep entered values and show field errors when an issuer URL is not https")
+    void shouldShowFieldErrorForInvalidIssuerUrl() throws Exception {
+        enqueueLookup();
+        enqueueRoleCatalog();
+        mockMvc.perform(post("/roles/edit/" + relyingPartyResource.id()).with(login(true)).with(csrf())
+                .param("entitlements[0].entitlement", QEAA)
+                .param("entitlements[0].credentialIssuerUrl", "http://insecure.test")
+                .param("eaas[0].namespace", "ns").param("eaas[0].intent", "purpose"))
+            .andExpectAll(status().isOk(), view().name("roles_form_view"),
+                content().string(allOf(containsString("http://insecure.test"), containsString("Rett feila før du lagrar"),
+                    containsString("aria-invalid=\"true\""), containsString("ikkje ein gyldig HTTPS-URL"),
+                    containsString("data-intent=\"purpose\""), containsString("autofocus"))));
+    }
+
+    @Test
+    @DisplayName("Should show the form with an error and keep input when the register rejects the change")
+    void shouldShowFormErrorWhenRegisterRejectsRoles() throws Exception {
+        enqueueLookup();
+        enqueueRoleCatalog();
+        expectedRequests.add("PUT /v2/instances/" + relyingPartyResource.id());
+        server.enqueue(new MockResponse().setResponseCode(400).setHeader("Content-Type", "application/json")
+            .setBody("{\"error\":\"bad_request\",\"error_description\":\"Cannot remove entitlement with issuer certificates\"}"));
+        mockMvc.perform(post("/roles/edit/" + relyingPartyResource.id()).with(login(true)).with(csrf())
+                .param("entitlements[1].entitlement", "urn:second")
+                .param("entitlements[1].credentialIssuerUrl", "https://second.test"))
+            .andExpectAll(status().isOk(), view().name("roles_form_view"),
+                content().string(allOf(containsString("Endringa kunne ikkje lagrast"),
+                    containsString("https://second.test"), containsString("Rett feila før du lagrar"))));
+    }
+
+    @Test
+    @DisplayName("Should let only administrators edit roles of an inactive registration")
+    void shouldLetOnlyAdministratorsEditRolesOfInactiveRegistration() throws Exception {
+        relyingPartyResource = relyingPartyResource.withActive(false);
+        enqueueLookup();
+        mockMvc.perform(get("/roles/edit/" + relyingPartyResource.id()).with(login(false)))
+            .andExpectAll(status().isNotFound(), view().name("error/404"));
+
+        enqueueLookup();
+        mockMvc.perform(post("/roles/edit/" + relyingPartyResource.id()).with(login(false)).with(csrf())
+                .param("entitlements[0].entitlement", QEAA))
+            .andExpectAll(status().isNotFound(), view().name("error/404"));
+
+        enqueueLookup();
+        enqueueRoleCatalog();
+        mockMvc.perform(get("/roles/edit/" + relyingPartyResource.id()).with(login(true)))
+            .andExpect(status().isOk());
+
+        enqueueLookup();
+        String details = mockMvc.perform(get("/details/" + relyingPartyResource.id()).with(login(false)))
+            .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        assertFalse(details.contains("/roles/edit/"), "Self-service gets no edit link for inactive registrations");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"GET", "POST"})
+    @DisplayName("Should deny editing roles for a registration that belongs to another organization")
+    void shouldDenyEditingRolesForAnotherOrganization(String method) throws Exception {
+        enqueueLookup();
+        var request = method.equals("GET") ? get("/roles/edit/" + relyingPartyResource.id())
+            : post("/roles/edit/" + relyingPartyResource.id()).with(csrf());
+        mockMvc.perform(request.with(SecurityTestUtils.oidcLoginForOrgno("987654321")))
+            .andExpectAll(status().isNotFound(), view().name("error/404"));
+    }
+
+    private void enqueueRoleCatalog() {
+        enqueue("GET", "/v2/entitlements?includeInactive=false", new V2RegisterClient.Entitlements(List.of(
+            new V2RegisterClient.Entitlement(new UUID(0, 7), QEAA, true, "Issuer"),
+            new V2RegisterClient.Entitlement(new UUID(0, 8), "urn:second", true, "Second role"))));
+    }
 
     private void enqueueRelyingParty(String alias) {
         enqueue("GET", "/v2/relying-parties/" + relyingPartyId, new V2RegisterClient.RelyingParty(

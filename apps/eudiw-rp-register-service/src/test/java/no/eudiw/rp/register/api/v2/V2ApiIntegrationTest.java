@@ -485,7 +485,7 @@ class V2ApiIntegrationTest {
     }
 
     @Test
-    void instanceUpdatesPreserveCertificatesAndRejectRemovingOrChangingTheirEntitlement() throws Exception {
+    void instanceUpdatesPreserveCertificatesAndAllowChangingIssuerUrlButNotRemovingTheirEntitlement() throws Exception {
         Registration registration = createRegistration();
         String entitlementValue = "urn:test:issuer:" + UUID.randomUUID();
         testEntitlement = entitlementRepository.saveAndFlush(new Entitlement(entitlementValue, true, "Issuer", "test-ca"));
@@ -509,9 +509,11 @@ class V2ApiIntegrationTest {
         read(put(registration.relyingPartyInstancePath()), content);
         JsonNode before = read(get(registration.relyingPartyInstancePath()));
         request(put(registration.relyingPartyInstancePath()), RELYING_PARTY_INSTANCE).andExpect(status().isBadRequest());
-        request(put(registration.relyingPartyInstancePath()), content.replace("https://issuer.example.test", "https://changed.example.test"))
-            .andExpect(status().isBadRequest());
         assertEquals(before, read(get(registration.relyingPartyInstancePath())));
+        JsonNode changed = read(put(registration.relyingPartyInstancePath()),
+            content.replace("https://issuer.example.test", "https://changed.example.test"));
+        assertEquals("https://changed.example.test",
+            changed.get("relyingPartyEntitlements").get(0).get("credentialIssuerUrl").asText());
         assertEquals(issuerCertificates, read(get(registration.relyingPartyInstancePath() + "/certificates/issuer")));
         assertEquals(accessCertificates, read(get(registration.relyingPartyInstancePath() + "/certificates/access")));
     }

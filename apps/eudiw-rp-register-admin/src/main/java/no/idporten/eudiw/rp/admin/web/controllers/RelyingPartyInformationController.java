@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Map;
 import java.util.UUID;
@@ -62,7 +61,7 @@ public class RelyingPartyInformationController {
         }
 
         relyingPartiesService.updateRelyingPartyInformation(relyingParty.id(), form.toRequest(relyingParty));
-        return new ModelAndView("redirect:" + detailsUrl(registration.id(), returnUrl));
+        return new ModelAndView("redirect:" + DetailedViewController.detailsUrl(registration.id(), returnUrl));
     }
 
     private RelyingPartyResource getAuthorizedRegistration(UUID id) {
@@ -83,14 +82,6 @@ public class RelyingPartyInformationController {
             "registration", registration,
             "relyingParty", relyingParty,
             "returnUrl", DetailedViewController.validSearchUrl(returnUrl),
-            "detailsUrl", detailsUrl(registration.id(), returnUrl)));
-    }
-
-    private String detailsUrl(UUID id, String returnUrl) {
-        return UriComponentsBuilder.fromPath("/details/{id}")
-            .queryParam("returnUrl", "{returnUrl}")
-            .encode()
-            .buildAndExpand(id, DetailedViewController.validSearchUrl(returnUrl))
-            .toUriString();
+            "detailsUrl", DetailedViewController.detailsUrl(registration.id(), returnUrl)));
     }
 }

@@ -3,6 +3,7 @@ package no.idporten.eudiw.rp.admin.web;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.admin.web.controllers.DetailedViewController;
+import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyEntitlementResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyCertificateSummaryBuilder;
 import org.junit.jupiter.api.DisplayName;
@@ -167,6 +168,19 @@ public class DetailedViewControllerTests {
                 () -> assertTrue(response.contains("dc+sd-jwt")),
                 () -> assertTrue(response.contains("Aktiv")),
                 () -> assertTrue(response.contains("Revokert")));
+        }
+
+        @Test
+        @DisplayName("Should show unregistered for an issuer without a URL")
+        void shouldShowUnregisteredForIssuerWithoutUrl() throws Exception {
+            var relyingPartyResource = ResourceGenerator.generateRelyingPartyResource();
+            var issuerWithoutUrl = new RelyingPartyEntitlementResource("urn:issuer", "Issuer", null);
+            relyingPartyResource = relyingPartyResource.withRelyingPartyEntitlements(List.of(issuerWithoutUrl));
+            when(mockRelyingPartiesService.get(relyingPartyResource.id())).thenReturn(relyingPartyResource);
+
+            mockMvc.perform(get("/details/" + relyingPartyResource.id()))
+                .andExpectAll(status().isOk(), content().string(org.hamcrest.Matchers.matchesPattern(
+                    "(?s).*<td>Issuer</td>\\s*<td>Ikkje registrert\\.</td>.*")));
         }
     }
 }
