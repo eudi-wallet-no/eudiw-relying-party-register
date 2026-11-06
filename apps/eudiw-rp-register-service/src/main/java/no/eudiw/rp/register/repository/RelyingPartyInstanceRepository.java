@@ -41,6 +41,7 @@ public interface RelyingPartyInstanceRepository
                     ILIKE CONCAT('%', :searchTerm, '%'))
           AND (:includeInactive = TRUE OR
               (instance.active = TRUE AND service.active = TRUE AND party.active = TRUE))
+          AND (:hideSyntheticOrgnos = FALSE OR party.orgno LIKE '8%' OR party.orgno LIKE '9%')
           AND (
             (SELECT COUNT(DISTINCT entitlement.entitlement)
              FROM RelyingPartyEntitlement entitlement
@@ -54,6 +55,7 @@ public interface RelyingPartyInstanceRepository
         @Param("orgno") String orgno,
         @Param("searchTerm") String searchTerm,
         @Param("includeInactive") boolean includeInactive,
+        @Param("hideSyntheticOrgnos") boolean hideSyntheticOrgnos,
         @Param("requiredEntitlements") Set<String> requiredEntitlements,
         @Param("numRequiredEntitlements") int numRequiredEntitlements,
         Pageable pageable

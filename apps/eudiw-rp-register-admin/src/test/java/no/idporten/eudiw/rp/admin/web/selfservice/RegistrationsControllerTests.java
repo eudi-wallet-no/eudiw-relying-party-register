@@ -18,6 +18,7 @@ import java.util.UUID;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -35,8 +36,8 @@ class RegistrationsControllerTests {
     private V2RegistrationsService registrationsService;
 
     @Test
-    @DisplayName("Show registrations for the signed-in organization with links to their details")
-    void shouldShowRegistrationsForAuthorizedOrganization() throws Exception {
+    @DisplayName("Should show registrations for the signed-in organization without a search field")
+    void shouldShowRegistrationsForAuthorizedOrganizationWithoutSearchField() throws Exception {
         String authorizedOrgno = "123456785";
         RegistrationSummary registration = new RegistrationSummary(new UUID(0, 42), "Test service",
             List.of(new RegistrationSummary.Role("Test role"), new RegistrationSummary.Role(null)),
@@ -55,31 +56,39 @@ class RegistrationsControllerTests {
             .andReturn().getResponse().getContentAsString();
 
         assertEquals(0, StringUtils.countOccurrencesOf(html, "Ikkje oppgitt"));
+        assertFalse(html.contains("Søk på tenestenamn"));
+        assertFalse(html.contains("name=\"searchTerm\""));
         verify(registrationsService).searchByOrgno(authorizedOrgno, "");
     }
 
     @Test
-    @DisplayName("Should search within the signed-in organization regardless of the organization in the URL")
-    void shouldSearchWithinSignedInOrganizationRegardlessOfOrganizationInUrl() throws Exception {
+    @DisplayName("Should keep saved search links within the signed-in organization")
+    void shouldKeepSavedSearchLinksWithinSignedInOrganization() throws Exception {
         when(registrationsService.searchByOrgno("123456785", "Test")).thenReturn(List.of());
 
         mockMvc.perform(get("/registrations").param("searchTerm", "  Test  ").param("orgno", "987654321")
                 .with(SecurityTestUtils.oidcLoginForOrgno("123456785")))
             .andExpect(status().isOk())
-            .andExpect(content().string(containsString("value=\"Test\"")))
+            .andExpect(content().string(containsString("Viser treff for")))
+            .andExpect(content().string(containsString("Test</strong>")))
+            .andExpect(content().string(containsString("href=\"/registrations\"")))
+            .andExpect(content().string(containsString("Vis alle registreringar")))
             .andExpect(content().string(containsString("Fann ingen registrerte brukarstader.")));
         verify(registrationsService).searchByOrgno("123456785", "Test");
         verifyNoMoreInteractions(registrationsService);
     }
 
     @Test
-    @DisplayName("Should reject an invalid registration search without calling the register service")
-    void shouldRejectInvalidRegistrationSearchWithoutCallingRegisterService() throws Exception {
+    @DisplayName("Should show a recoverable error for an invalid search link")
+    void shouldShowRecoverableErrorForInvalidSearchLink() throws Exception {
         mockMvc.perform(get("/registrations").param("searchTerm", "invalid$")
                 .with(SecurityTestUtils.oidcLoginForOrgno("123456785")))
             .andExpect(status().isOk())
             .andExpect(model().attributeHasFieldErrors("searchFormAttr", "searchTerm"))
-            .andExpect(content().string(containsString("aria-describedby=\"search_term_errors\"")));
+            .andExpect(content().string(containsString("role=\"alert\"")))
+            .andExpect(content().string(containsString("Ugyldig søk.")))
+            .andExpect(content().string(containsString("href=\"/registrations\"")))
+            .andExpect(content().string(containsString("Vis alle registreringar")));
         verifyNoInteractions(registrationsService);
     }
 }

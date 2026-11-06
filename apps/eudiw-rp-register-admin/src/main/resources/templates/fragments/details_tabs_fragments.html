@@ -1,23 +1,25 @@
 <div th:fragment="access_certificates_content_fragment(relyingPartyResource, certs)" xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
     <!--/*@thymesVar id="relyingPartyResource" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
-    <div class="space-padding-bottom-2em">
+    <div class="space-padding-block-end-8">
         <div th:if="${ #lists.isEmpty(certs)}">
             <em>
                 Ikkje registrert.
             </em>
         </div>
 
-        <div th:unless="${ #lists.isEmpty(certs)}">
-            <table class="ds-table">
+        <div th:unless="${ #lists.isEmpty(certs)}" class="table-wrap"
+             role="region" aria-label="Access-sertifikat" tabindex="0">
+            <table class="ds-table certificates-table">
+                <caption class="ds-sr-only">Access-sertifikat</caption>
                 <thead>
                     <tr>
-                        <th>Serienummer</th>
-                        <th>Subjekt</th>
-                        <th>Utstedar</th>
-                        <th>Gyldig frå</th>
-                        <th>Gyldig til</th>
-                        <th>Status</th>
-                        <th></th>
+                        <th scope="col">Serienummer</th>
+                        <th scope="col">Subjekt</th>
+                        <th scope="col">Utstedar</th>
+                        <th scope="col">Gyldig frå</th>
+                        <th scope="col">Gyldig til</th>
+                        <th scope="col">Status</th>
+                        <th scope="col"><span class="ds-sr-only">Handlingar</span></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -69,25 +71,27 @@
 
 <div th:fragment="issuer_certificates_content_fragment(relyingPartyResource, certs)"  xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
     <!--/*@thymesVar id="relyingPartyResource" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
-    <div class="space-padding-bottom-2em">
+    <div class="space-padding-block-end-8">
         <div th:if="${ #lists.isEmpty(certs)}">
             <em>
                 Ikkje registrert.
             </em>
         </div>
 
-        <div th:unless="${ #lists.isEmpty(certs)}">
-            <table class="ds-table">
+        <div th:unless="${ #lists.isEmpty(certs)}" class="table-wrap"
+             role="region" aria-label="Issuer-sertifikat" tabindex="0">
+            <table class="ds-table certificates-table">
+                <caption class="ds-sr-only">Issuer-sertifikat</caption>
                 <thead>
                 <tr>
-                    <th>Rolle</th>
-                    <th>Serienummer</th>
-                    <th>Subjekt</th>
-                    <th>Utstedar</th>
-                    <th>Gyldig frå</th>
-                    <th>Gyldig til</th>
-                    <th>Status</th>
-                    <th></th>
+                    <th scope="col">Rolle</th>
+                    <th scope="col">Serienummer</th>
+                    <th scope="col">Subjekt</th>
+                    <th scope="col">Utstedar</th>
+                    <th scope="col">Gyldig frå</th>
+                    <th scope="col">Gyldig til</th>
+                    <th scope="col">Status</th>
+                    <th scope="col"><span class="ds-sr-only">Handlingar</span></th>
                 </tr>
                 </thead>
                 <tbody>
@@ -141,8 +145,8 @@
 <div th:fragment="certificate_revocation_status_badge(status)">
     <span
         th:text="${status.text()}"
-        class="status-badge"
-        th:classappend="|status-badge-${status.style()}|" >
+        class="ds-tag"
+        th:attr="data-color=${status.style()}">
     </span>
 </div>
 
@@ -150,11 +154,11 @@
      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
 
     <!--/*@thymesVar id="relyingPartyResource" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
-    <section class="ds-card registration-card space-bottom-1em">
+    <section class="ds-card registration-card">
         <div class="ds-card__block">
             <div th:replace="~{fragments/registration_fragments :: card_heading('Generelt', null)}"></div>
             <div class="table-wrap">
-                <table class="ds-table">
+                <table class="ds-table relying-party-information-table">
                     <caption class="ds-sr-only">Generelle opplysningar om registreringa</caption>
                     <tbody>
                     <th:block sec:authorize="hasRole('ADMIN')">
@@ -194,7 +198,7 @@
     </section>
 
     <section th:fragment="relying_party_information_content_fragment(relyingPartyResource)"
-             th:with="editingRelyingParty=${editingRelyingParty == true}" class="ds-card registration-card relying-party-card space-bottom-1em">
+             th:with="editingRelyingParty=${editingRelyingParty == true}" class="ds-card registration-card relying-party-card">
         <details class="ds-details" th:unless="${editingRelyingParty}">
             <summary><h2 class="ds-heading" data-size="sm">Brukarstad</h2></summary>
             <div class="relying-party-card-bar">
@@ -226,7 +230,7 @@
         </th:block>
     </section>
 
-    <section class="ds-card registration-card space-bottom-1em">
+    <section class="ds-card registration-card">
         <details class="ds-details">
             <summary><h2 class="ds-heading" data-size="sm">Teneste</h2></summary>
             <div class="registration-section-bar">
@@ -235,7 +239,8 @@
                    aria-label="Rediger grunnopplysningar om tenesta" class="ds-button" data-variant="secondary" data-size="sm">Rediger</a>
             </div>
             <div class="table-wrap">
-                <table class="ds-table" aria-labelledby="service-information-heading">
+                <table class="ds-table relying-party-information-table" aria-labelledby="service-information-heading">
+                    <caption class="ds-sr-only">Opplysningar om tenesta</caption>
                     <tbody>
                     <tr>
                         <th scope="row">Tenestenamn</th>
@@ -320,7 +325,7 @@
         </details>
     </section>
 
-    <section class="ds-card registration-card space-bottom-1em">
+    <section class="ds-card registration-card">
         <details class="ds-details">
             <summary><h2 class="ds-heading" data-size="sm">Roller og bevistypar</h2></summary>
             <div>
@@ -334,12 +339,14 @@
             <div th:if="${ #lists.isEmpty(relyingPartyResource.relyingPartyEntitlements)}">
                 <em>Ikkje registrert.</em>
             </div>
-            <div th:unless="${ #lists.isEmpty(relyingPartyResource.relyingPartyEntitlements)}">
-                <table class="ds-table" data-sticky-header="true">
+            <div th:unless="${ #lists.isEmpty(relyingPartyResource.relyingPartyEntitlements)}" class="table-wrap"
+                 role="region" aria-label="Roller" tabindex="0">
+                <table class="ds-table fixed-break-table" data-sticky-header="true">
+                    <caption class="ds-sr-only">Roller</caption>
                     <thead>
                         <tr>
-                            <th>Rolle</th>
-                            <th>Utstedar-URL</th>
+                            <th scope="col">Rolle</th>
+                            <th scope="col">Utstedar-URL</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -355,12 +362,14 @@
             <div th:if="${ #lists.isEmpty(relyingPartyResource.relyingPartyEaas)}">
                 <em>Ikkje registrert.</em>
             </div>
-            <div th:unless="${ #lists.isEmpty(relyingPartyResource.relyingPartyEaas)}">
-                <table class="ds-table" data-sticky-header="true">
+            <div th:unless="${ #lists.isEmpty(relyingPartyResource.relyingPartyEaas)}" class="table-wrap"
+                 role="region" aria-label="Bevistypar" tabindex="0">
+                <table class="ds-table fixed-break-table" data-sticky-header="true">
+                    <caption class="ds-sr-only">Bevistypar</caption>
                     <thead>
                         <tr>
-                            <th>Bevistype</th>
-                            <th>Føremål</th>
+                            <th scope="col">Bevistype</th>
+                            <th scope="col">Føremål</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -375,7 +384,7 @@
         </details>
     </section>
 
-    <section class="ds-card registration-card space-bottom-1em">
+    <section class="ds-card registration-card">
         <details class="ds-details">
             <summary><h2 class="ds-heading" data-size="sm">Føremål</h2></summary>
             <p class="ds-paragraph" th:if="${#lists.isEmpty(relyingPartyResource.intendedUses)}">Tenesta har ingen registrerte føremål.</p>
@@ -383,7 +392,7 @@
                  th:each="intendedUse, intendedUseStatus : ${relyingPartyResource.intendedUses}">
             <summary th:text="${intendedUse.intendedUseIdentifier ?: ('Bruk ' + intendedUseStatus.count)}">Bruk</summary>
             <div class="table-wrap">
-                <table class="ds-table">
+                <table class="ds-table relying-party-information-table">
                     <caption th:text="${intendedUse.intendedUseIdentifier ?: ('Bruk ' + intendedUseStatus.count)}">Bruk</caption>
                     <tbody>
                     <tr>
@@ -450,7 +459,7 @@
     </section>
 
     <section sec:authorize="hasRole('ADMIN')" id="registration-status"
-             class="ds-card registration-card space-bottom-1em">
+             class="ds-card registration-card">
         <div class="ds-card__block">
             <div th:replace="~{fragments/registration_fragments :: card_heading('Registreringsstatus', null)}"></div>
             <p class="ds-paragraph">

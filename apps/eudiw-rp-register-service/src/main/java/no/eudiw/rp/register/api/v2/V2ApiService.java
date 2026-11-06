@@ -301,6 +301,7 @@ public class V2ApiService {
         String orgno,
         String searchTerm,
         boolean includeInactive,
+        boolean hideSyntheticOrgnos,
         List<String> requiredEntitlements,
         int page,
         int pageSize,
@@ -313,6 +314,7 @@ public class V2ApiService {
             orgno,
             searchTerm == null ? "" : searchTerm,
             includeInactive,
+            hideSyntheticOrgnos,
             uniqueRequiredEntitlements,
             uniqueRequiredEntitlements.size(),
             pageRequest(page, pageSize, sort, "createdMs", Map.of(

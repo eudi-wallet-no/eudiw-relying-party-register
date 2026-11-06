@@ -13,7 +13,7 @@
 <body th:with="showIssuerCertificatesTab=${relyingPartyResource.hasIssuerEntitlements()}">
     <header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
-    <main>
+    <main id="hovudinnhald" tabindex="-1">
 
         <p sec:authorize="hasRole('ADMIN')"
            class="ds-paragraph">
@@ -33,12 +33,12 @@
             <h1 class="ds-heading break-word" data-size="xl">
                 Detaljar for <span th:text="${relyingPartyResource.tradeName}"/>
             </h1>
-            <span class="status-badge"
-                  th:classappend="${relyingPartyResource.active ? 'status-badge-success' : 'status-badge-danger'}"
+            <span class="ds-tag"
+                  th:attr="data-color=${relyingPartyResource.active ? 'success' : 'danger'}"
                   th:text="${relyingPartyResource.active ? 'Aktiv' : 'Inaktiv'}"></span>
         </div>
 
-        <nav id="tabs_container">
+        <nav id="tabs_container" aria-label="Detaljar om registreringa">
             <a href="#about" class="tab" data-size="lg">
                 Generelt
             </a>
@@ -52,17 +52,17 @@
         </nav>
 
         <div id="panels_container">
-            <div id="#about"
+            <div id="about"
                  th:insert="~{fragments/details_tabs_fragments
                                 :: general_info_content_fragment(relyingPartyResource=${relyingPartyResource})}">
             </div>
-            <div id="#access-certificates"
+            <div id="access-certificates"
                  th:insert="~{fragments/details_tabs_fragments
                                 :: access_certificates_content_fragment(
                                     relyingPartyResource=${relyingPartyResource}, certs=${accessCertificateSummariesAttr})}">
             </div>
             <div th:if="${showIssuerCertificatesTab}"
-                 id="#issuer-certificates"
+                 id="issuer-certificates"
                  th:insert="~{fragments/details_tabs_fragments
                                 ::
                                 issuer_certificates_content_fragment(

@@ -212,6 +212,21 @@ class V2ApiIntegrationTest {
     }
 
     @Test
+    @DisplayName("Should exclude synthetic organizations from instance search only when requested")
+    void shouldExcludeSyntheticOrganizationsFromInstanceSearchOnlyWhenRequested() throws Exception {
+        Registration registration = createRegistration();
+        var relyingParty = relyingPartyRepository.findById(UUID.fromString(registration.relyingPartyId())).orElseThrow();
+        relyingParty.setOrgno("123456785");
+        relyingPartyRepository.saveAndFlush(relyingParty);
+
+        JsonNode unfilteredResults = read(get("/v2/instances"));
+        JsonNode filteredResults = read(get("/v2/instances").param("hideSyntheticOrgnos", "true"));
+
+        assertEquals(registration.relyingPartyInstanceId(), unfilteredResults.at("/content/0/id").asString());
+        assertTrue(filteredResults.get("content").isEmpty());
+    }
+
+    @Test
     void replacementsPersistOwnFieldsWithoutChangingIdentityHierarchyOrStatus() throws Exception {
         Registration registration = createRegistration();
         JsonNode intendedUse = read(post(registration.intendedUsesPath()), INTENDED_USE);

@@ -6,7 +6,7 @@
 </head>
 <body>
 <header th:replace="~{fragments/general :: page_header_fragment}"></header>
-<main>
+<main id="hovudinnhald" tabindex="-1">
     <p class="ds-paragraph">
         <a th:href="${detailsUrl}" class="ds-button" data-variant="secondary">Tilbake til registreringa</a>
     </p>
@@ -14,7 +14,7 @@
     <form th:action="@{|/service/edit/${registration.id}|}" th:object="${serviceForm}" method="post"
           class="form-container" novalidate>
         <input type="hidden" name="returnUrl" th:value="${returnUrl}">
-        <section class="ds-card registration-card space-bottom-1em">
+        <section class="ds-card registration-card">
             <div class="ds-card__block">
                 <div th:replace="~{fragments/registration_fragments :: card_heading('Teneste', null)}"></div>
                 <div th:if="${#fields.hasErrors()}" class="ds-alert" data-color="danger"

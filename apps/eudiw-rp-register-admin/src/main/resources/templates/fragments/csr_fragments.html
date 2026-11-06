@@ -2,10 +2,11 @@
 <form th:fragment="access_csr_form_fragment(id)"
       th:object="${csrFormAttr}"
       th:action="@{|/csr/access/${id}|}"
-      method="POST">
+      method="POST"
+      class="form-container">
 
-    <fieldset class="ds-fieldset space-bottom-8">
-        <div class="flex-column">
+    <fieldset class="ds-fieldset">
+        <div class="ds-field">
             <label id="csr_form_label"
                    for="csr_form"
                    class="ds-label"
@@ -18,11 +19,10 @@
                       class="ds-input csr-textarea"
                       placeholder="PEM-innkoda PKCS10 CSR">
             </textarea>
-        </div>
-
-        <div th:if="${#fields.hasErrors('csrField')}"
-             class="ds-validation-message">
-            Lagt inn CSR er ikkje et gyldig CSR.
+            <div th:if="${#fields.hasErrors('csrField')}"
+                 class="ds-validation-message">
+                Lagt inn CSR er ikkje et gyldig CSR.
+            </div>
         </div>
 
     </fieldset>
@@ -36,13 +36,14 @@
 <form th:fragment="issuer_csr_form_fragment(id)"
       th:object="${csrFormAttr}"
       th:action="@{|/csr/issuer/${id}|}"
-      method="POST">
+      method="POST"
+      class="form-container">
     <!--/*@thymesVar id="csrFormAttr" type="no.idporten.eudiw.rp.admin.web.form.CsrIssuerForm"*/-->
     <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
 
     <fieldset
             th:if="${rp.hasIssuerEntitlements()}"
-            class="ds-fieldset space-bottom-15rem"
+            class="ds-fieldset"
     >
         <legend class="ds-label"
                 data-weight="high">
@@ -63,8 +64,8 @@
         </div>
     </fieldset>
 
-    <fieldset class="ds-fieldset space-bottom-8">
-        <div class="flex-column">
+    <fieldset class="ds-fieldset">
+        <div class="ds-field">
             <label id="csr_form_label"
                    for="csr_form"
                    class="ds-label"
@@ -77,11 +78,10 @@
                       class="ds-input csr-textarea"
                       placeholder="PEM-innkoda PKCS10 CSR">
             </textarea>
-        </div>
-
-        <div th:if="${#fields.hasErrors('csrField')}"
-             class="ds-validation-message">
-            Lagt inn CSR er ikkje et gyldig CSR.
+            <div th:if="${#fields.hasErrors('csrField')}"
+                 class="ds-validation-message">
+                Lagt inn CSR er ikkje et gyldig CSR.
+            </div>
         </div>
 
     </fieldset>
@@ -92,60 +92,66 @@
     </button>
 </form>
 
-<table th:fragment="single_certificate_table_fragment(cert)"
-       class="ds-table">
+<div th:fragment="single_certificate_table_fragment(cert)"
+     class="table-wrap" role="region" aria-label="Access-sertifikat" tabindex="0">
     <!--/*@thymesVar id="cert" type="no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary"*/-->
-    <tbody>
-    <tr>
-        <th>Serienummer</th>
-        <td th:text="${cert.serialNo.toString(16).replaceAll('(?<=..)(..)', ':$1')}"></td>
-    </tr>
-    <tr>
-        <th>Subjekt</th>
-        <td th:text="${cert.subjectDn}"></td>
-    </tr>
-    <tr>
-        <th>Utstedar</th>
-        <td th:text="${cert.issuerDn}"></td>
-    </tr>
-    <tr>
-        <th>Gyldig frå</th>
-        <td th:text="${@timestampFormatter.formatEpochMillis(cert.validFromMs)}"></td>
-    </tr>
-    <tr>
-        <th>Gyldig til</th>
-        <td th:text="${@timestampFormatter.formatEpochMillis(cert.validUntilMs)}"></td>
-    </tr>
-    </tbody>
-</table>
+    <table class="ds-table">
+        <caption class="ds-sr-only">Access-sertifikat</caption>
+        <tbody>
+        <tr>
+            <th scope="row">Serienummer</th>
+            <td th:text="${cert.serialNo.toString(16).replaceAll('(?<=..)(..)', ':$1')}"></td>
+        </tr>
+        <tr>
+            <th scope="row">Subjekt</th>
+            <td th:text="${cert.subjectDn}"></td>
+        </tr>
+        <tr>
+            <th scope="row">Utstedar</th>
+            <td th:text="${cert.issuerDn}"></td>
+        </tr>
+        <tr>
+            <th scope="row">Gyldig frå</th>
+            <td th:text="${@timestampFormatter.formatEpochMillis(cert.validFromMs)}"></td>
+        </tr>
+        <tr>
+            <th scope="row">Gyldig til</th>
+            <td th:text="${@timestampFormatter.formatEpochMillis(cert.validUntilMs)}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
 
-<table th:fragment="single_issuer_certificate_table_fragment(cert)"
-       class="ds-table">
+<div th:fragment="single_issuer_certificate_table_fragment(cert)"
+     class="table-wrap" role="region" aria-label="Issuer-sertifikat" tabindex="0">
     <!--/*@thymesVar id="cert" type="no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyCertificateSummary"*/-->
-    <tbody>
-    <tr>
-        <th>Rolle</th>
-        <td th:text="${cert.entitlement}"></td>
-    </tr>
-    <tr>
-        <th>Serienummer</th>
-        <td th:text="${cert.serialNo.toString(16).replaceAll('(?<=..)(..)', ':$1')}"></td>
-    </tr>
-    <tr>
-        <th>Subjekt</th>
-        <td th:text="${cert.subjectDn}"></td>
-    </tr>
-    <tr>
-        <th>Utstedar</th>
-        <td th:text="${cert.issuerDn}"></td>
-    </tr>
-    <tr>
-        <th>Gyldig frå</th>
-        <td th:text="${@timestampFormatter.formatEpochMillis(cert.validFromMs)}"></td>
-    </tr>
-    <tr>
-        <th>Gyldig til</th>
-        <td th:text="${@timestampFormatter.formatEpochMillis(cert.validUntilMs)}"></td>
-    </tr>
-    </tbody>
-</table>
+    <table class="ds-table">
+        <caption class="ds-sr-only">Issuer-sertifikat</caption>
+        <tbody>
+        <tr>
+            <th scope="row">Rolle</th>
+            <td th:text="${cert.entitlement}"></td>
+        </tr>
+        <tr>
+            <th scope="row">Serienummer</th>
+            <td th:text="${cert.serialNo.toString(16).replaceAll('(?<=..)(..)', ':$1')}"></td>
+        </tr>
+        <tr>
+            <th scope="row">Subjekt</th>
+            <td th:text="${cert.subjectDn}"></td>
+        </tr>
+        <tr>
+            <th scope="row">Utstedar</th>
+            <td th:text="${cert.issuerDn}"></td>
+        </tr>
+        <tr>
+            <th scope="row">Gyldig frå</th>
+            <td th:text="${@timestampFormatter.formatEpochMillis(cert.validFromMs)}"></td>
+        </tr>
+        <tr>
+            <th scope="row">Gyldig til</th>
+            <td th:text="${@timestampFormatter.formatEpochMillis(cert.validUntilMs)}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>

@@ -31,24 +31,24 @@ class V2ApiServiceTest {
         "name, walletRelyingPartyService.serviceTradeName",
         "serviceTradeName, walletRelyingPartyService.serviceTradeName"
     })
-    @DisplayName("Sort instance search by the organization number or service name that admin selects")
+    @DisplayName("Should sort instance search by the organization number or service name that admin selects")
     void shouldSortInstanceSearchByAdminSortKey(String sortKey, String expectedProperty) {
         when(relyingPartyInstanceRepository.searchV2(
-            any(), any(), anyString(), anyBoolean(), anySet(), anyInt(), any(Pageable.class)
+            any(), any(), anyString(), anyBoolean(), anyBoolean(), anySet(), anyInt(), any(Pageable.class)
         )).thenReturn(Page.empty());
 
-        service.searchRelyingPartyInstances(null, null, null, false, null, 0, 25, sortKey);
+        service.searchRelyingPartyInstances(null, null, null, false, false, null, 0, 25, sortKey);
 
         ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
         verify(relyingPartyInstanceRepository).searchV2(
-            any(), any(), anyString(), anyBoolean(), anySet(), anyInt(), pageable.capture());
+            any(), any(), anyString(), anyBoolean(), anyBoolean(), anySet(), anyInt(), pageable.capture());
         assertEquals(Sort.by(expectedProperty, "id"), pageable.getValue().getSort());
     }
 
     @Test
-    @DisplayName("Reject internal entity paths as instance sort keys")
+    @DisplayName("Should reject internal entity paths as instance sort keys")
     void shouldRejectInternalEntityPathAsSortKey() {
         assertThrows(BadRequestException.class, () -> service.searchRelyingPartyInstances(
-            null, null, null, false, null, 0, 25, "walletRelyingPartyService.serviceTradeName"));
+            null, null, null, false, false, null, 0, 25, "walletRelyingPartyService.serviceTradeName"));
     }
 }

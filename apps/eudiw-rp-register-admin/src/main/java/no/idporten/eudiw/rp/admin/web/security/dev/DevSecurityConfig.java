@@ -24,6 +24,8 @@ public class DevSecurityConfig {
         "/error",
         "/access-denied",
         "/css/**",
+        "/js/header.js",
+        "/js/header-*.js",
         "/images/**",
         "/favicon.ico",
         "/favicon-*.ico",

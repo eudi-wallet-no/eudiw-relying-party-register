@@ -86,6 +86,7 @@ public class V2RegisterClient {
                 builder.path("/instances")
                     .queryParam("searchTerm", "{searchTerm}")
                     .queryParam("includeInactive", searchResource.isIncludeInactive())
+                    .queryParam("hideSyntheticOrgnos", searchResource.isHideSyntheticOrgnos())
                     .queryParam("page", searchResource.getPage())
                     .queryParam("pageSize", searchResource.getPageSize())
                     .queryParam("sort", "{sort}");

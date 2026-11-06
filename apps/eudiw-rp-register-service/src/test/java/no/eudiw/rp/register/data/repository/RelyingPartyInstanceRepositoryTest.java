@@ -11,6 +11,7 @@ import no.eudiw.rp.register.testdata.EntityGenerator;
 import no.eudiw.rp.register.testdata.TestDataGenerator;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -522,7 +523,7 @@ public class RelyingPartyInstanceRepositoryTest {
             repository.saveAndFlush(matchingInstance);
             repository.saveAndFlush(missingRole);
 
-            var results = repository.searchV2(null, null, searchTerm, false,
+            var results = repository.searchV2(null, null, searchTerm, false, false,
                 Set.of("urn:first", "urn:second"), 2, PageRequest.of(0, 25, Sort.by("createdMs", "id")));
 
             assertEquals(List.of(matchingInstance.getId()), results.getContent().stream().map(BaseEntity::getId).toList());
@@ -548,8 +549,8 @@ public class RelyingPartyInstanceRepositoryTest {
             repository.saveAndFlush(inactiveInstance);
             var page = PageRequest.of(0, 25, Sort.by("createdMs", "id"));
 
-            var activeResults = repository.searchV2(null, null, searchTerm, false, Set.of(), 0, page);
-            var allResults = repository.searchV2(null, null, searchTerm, true, Set.of(), 0, page);
+            var activeResults = repository.searchV2(null, null, searchTerm, false, false, Set.of(), 0, page);
+            var allResults = repository.searchV2(null, null, searchTerm, true, false, Set.of(), 0, page);
 
             assertEquals(List.of(activeInstance.getId()), activeResults.getContent().stream().map(BaseEntity::getId).toList());
             assertEquals(Set.of(activeInstance.getId(), inactiveInstance.getId()),
@@ -557,7 +558,7 @@ public class RelyingPartyInstanceRepositoryTest {
         }
 
         @Test
-        @DisplayName("then V2 search pages through instances in service name order")
+        @DisplayName("Should page V2 search through instances in service name order")
         void shouldPageV2SearchInServiceNameOrder() {
             String searchTerm = UUID.randomUUID().toString();
             RelyingPartyInstance bravo = EntityGenerator.generateRelyingParty();
@@ -569,11 +570,57 @@ public class RelyingPartyInstanceRepositoryTest {
 
             Sort ordering = Sort.by("walletRelyingPartyService.serviceTradeName", "id");
             UUID firstPageId = repository.searchV2(
-                null, null, searchTerm, true, Set.of(), 0, PageRequest.of(0, 1, ordering)).getContent().getFirst().getId();
+                null, null, searchTerm, true, false, Set.of(), 0, PageRequest.of(0, 1, ordering)).getContent().getFirst().getId();
             UUID secondPageId = repository.searchV2(
-                null, null, searchTerm, true, Set.of(), 0, PageRequest.of(1, 1, ordering)).getContent().getFirst().getId();
+                null, null, searchTerm, true, false, Set.of(), 0, PageRequest.of(1, 1, ordering)).getContent().getFirst().getId();
 
             assertEquals(List.of(alpha.getId(), bravo.getId()), List.of(firstPageId, secondPageId));
+        }
+
+        @ParameterizedTest
+        @CsvSource({
+            "false, false, 200000001;800000001;900000001",
+            "false, true, 800000001;900000001",
+            "true, false, 200000001;200000002;800000001;800000002;900000001",
+            "true, true, 800000001;800000002;900000001"
+        })
+        @Transactional
+        @DisplayName("Should combine synthetic, inactive and role filters before counting and paging registrations")
+        void shouldCombineSyntheticInactiveAndRoleFiltersBeforeCountingAndPaging(
+            boolean includeInactive, boolean hideSyntheticOrgnos, String expectedOrganizationNumbers) {
+            String searchTerm = UUID.randomUUID().toString();
+
+            for (String orgno : List.of("800000001", "900000001", "200000001", "800000002", "200000002", "900000002")) {
+                var instance = EntityGenerator.generateRelyingParty();
+                var service = instance.getWalletRelyingPartyService();
+                service.setServiceTradeName(searchTerm);
+                service.getWalletRelyingParty().setOrgno(orgno);
+                instance.setActive(!orgno.endsWith("2"));
+                instance.setRelyingPartyEntitlements(List.of(
+                    new RelyingPartyEntitlement("urn:first", null),
+                    new RelyingPartyEntitlement("urn:second", null)));
+
+                if (orgno.equals("900000002")) {
+                    instance.setActive(true);
+                    instance.setRelyingPartyEntitlements(List.of(new RelyingPartyEntitlement("urn:first", null)));
+                }
+
+                repository.saveAndFlush(instance);
+            }
+
+            List<String> expected = List.of(expectedOrganizationNumbers.split(";"));
+            List<String> actual = new ArrayList<>();
+            Sort ordering = Sort.by("walletRelyingPartyService.walletRelyingParty.orgno", "id");
+
+            for (int page = 0; page < expected.size(); page++) {
+                var results = repository.searchV2(
+                    null, null, searchTerm, includeInactive, hideSyntheticOrgnos,
+                    Set.of("urn:first", "urn:second"), 2, PageRequest.of(page, 1, ordering));
+                assertEquals(expected.size(), results.getTotalElements());
+                actual.add(results.getContent().getFirst().getWalletRelyingPartyService().getWalletRelyingParty().getOrgno());
+            }
+
+            assertEquals(expected, actual);
         }
 
         @Test

@@ -1,0 +1,9 @@
+/* Shows the filters inline when JavaScript cannot open the dialog. */
+.search-filter-dialog {
+    display: block;
+    position: static;
+    transform: none;
+    max-height: none;
+    box-shadow: none;
+    animation: none;
+}

@@ -30,8 +30,8 @@ class StaticResourceVersioningTests {
 
     @ParameterizedTest
     @ValueSource(strings = {
-        "/css/index.css", "/css/digital-lommebok.css", "/css/styles.css", "/css/simple_tabs.css",
-        "/js/simple_tabs.js", "/js/confirm_revocation.js", "/js/dynamic_form_fields.js",
+        "/css/index.css", "/css/digital-lommebok.css", "/css/styles.css", "/css/simple_tabs.css", "/css/search_noscript.css",
+        "/js/header.js", "/js/search.js", "/js/simple_tabs.js", "/js/confirm_revocation.js", "/js/dynamic_form_fields.js",
         "/inter/InterVariable.woff2", "/favicon.ico"
     })
     void servesContentHashedResourcesWithoutAuthentication(String path) throws Exception {
@@ -50,7 +50,7 @@ class StaticResourceVersioningTests {
     }
 
     @Test
-    void rendersVersionedStylesheetsAndFaviconWithContextPath() throws Exception {
+    void shouldRenderVersionedResourcesWithContextPath() throws Exception {
         String html = mockMvc.perform(get("/register/login").contextPath("/register"))
             .andExpect(status().isOk())
             .andReturn().getResponse().getContentAsString();
@@ -61,6 +61,10 @@ class StaticResourceVersioningTests {
             assertThat(versionedUrl).isNotNull().isNotEqualTo(path);
             assertThat(html).contains("href=\"/register" + versionedUrl + "\"");
         }
+
+        String headerScriptUrl = resourceUrlProvider.getForLookupPath("/js/header.js");
+        assertThat(headerScriptUrl).isNotNull().isNotEqualTo("/js/header.js");
+        assertThat(html).contains("src=\"/register" + headerScriptUrl + "\"");
     }
 
     @Test

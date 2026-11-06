@@ -135,12 +135,13 @@ class RegistrationWorkflowTests {
     @DisplayName("Should preserve combined search filters and sorted pages when returning from registration details")
     void shouldPreserveCombinedSearchFiltersAndSortedPagesWhenReturningFromDetails() throws Exception {
         UUID secondInstanceId = relyingPartyResource.id();
-        URI originalSearch = URI.create("/search?searchTerm=Test&includeInactive=true"
+        URI originalSearch = URI.create("/search?searchTerm=Test&includeInactive=true&hideSyntheticOrgnos=true"
             + "&requiredEntitlements=urn%3Afirst&requiredEntitlements=urn%3Asecond&page=2&sort=name");
         enqueueSearchPage(1, "name", secondInstanceId, "Second service");
         String secondPageHtml = mockMvc.perform(get(originalSearch).with(login(true)))
             .andExpectAll(status().isOk(), view().name("search_view"),
                 content().string(allOf(
+                    containsString("data-count=\"4\""), containsString("aria-label=\"4 aktive filter\""),
                     containsString("<td>123456785</td>"), containsString("<td>Legal name</td>"),
                     containsString("href=\"/details/" + secondInstanceId + "?returnUrl="),
                     containsString("<div>Second service</div>"),
@@ -175,24 +176,49 @@ class RegistrationWorkflowTests {
     }
 
     @Test
+    @DisplayName("Should show search results without dates and sort by service name by default")
+    void shouldShowSearchResultsWithoutDatesSortedByServiceNameByDefault() throws Exception {
+        enqueueSearchPage(0, "name", relyingPartyResource.id(), "First service");
+        String html = mockMvc.perform(get("/search").with(login(true))
+                .param("searchTerm", "Test").param("includeInactive", "true").param("hideSyntheticOrgnos", "true")
+                .param("requiredEntitlements", "urn:first", "urn:second"))
+            .andExpectAll(status().isOk(), content().string(allOf(
+                containsString("<div>First service</div>"),
+                containsString("<label for=\"search_term\" class=\"ds-label\">Søk på org.nr. eller namn</label>"),
+                not(containsString("Oppretta")), not(containsString("Sist endra")))))
+            .andReturn().getResponse().getContentAsString();
+
+        assertTrue(Pattern.compile("<th scope=\"col\" aria-sort=\"ascending\">\\s*<a[^>]*>\\s*Tenestenamn\\s*</a>")
+            .matcher(html).find());
+        var row = Pattern.compile("(?s)<tbody>\\s*<tr>.*?</tr>").matcher(html);
+        assertTrue(row.find());
+        assertEquals(6, Pattern.compile("<td(?:\\s|>)").matcher(row.group()).results().count());
+    }
+
+    @Test
     @DisplayName("Should preserve combined search filters when changing pages and sorting")
     void shouldPreserveCombinedSearchFiltersWhenChangingPagesAndSorting() throws Exception {
         enqueueSearchPage(1, "name", relyingPartyResource.id(), "Second service");
         String secondPageHtml = mockMvc.perform(get("/search").with(login(true))
-                .param("searchTerm", "Test").param("includeInactive", "true")
+                .param("searchTerm", "Test").param("includeInactive", "true").param("hideSyntheticOrgnos", "true")
                 .param("requiredEntitlements", "urn:first", "urn:second")
                 .param("page", "2").param("sort", "name"))
             .andExpect(status().isOk())
             .andReturn().getResponse().getContentAsString();
+        assertTrue(Pattern.compile("<th scope=\"col\" aria-sort=\"ascending\">\\s*<a[^>]*>\\s*Tenestenamn\\s*</a>")
+            .matcher(secondPageHtml).find());
 
         enqueueSearchPage(0, "name", relyingPartyResource.id(), "First service");
         String firstPageHtml = mockMvc.perform(get(navigationLink(secondPageHtml, "/search", "page=1")).with(login(true)))
             .andExpectAll(status().isOk(), content().string(containsString("<div>First service</div>")))
             .andReturn().getResponse().getContentAsString();
 
-        enqueueSearchPage(0, "createdMs", relyingPartyResource.id(), "First service");
-        mockMvc.perform(get(navigationLink(firstPageHtml, "/search", "sort=createdMs")).with(login(true)))
-            .andExpectAll(status().isOk(), content().string(containsString("<div>First service</div>")));
+        enqueueSearchPage(0, "orgno", relyingPartyResource.id(), "First service");
+        String organizationNumberSortedHtml = mockMvc.perform(get(navigationLink(firstPageHtml, "/search", "sort=orgno")).with(login(true)))
+            .andExpectAll(status().isOk(), content().string(containsString("<div>First service</div>")))
+            .andReturn().getResponse().getContentAsString();
+        assertTrue(Pattern.compile("<th scope=\"col\" aria-sort=\"ascending\">\\s*<a[^>]*>\\s*Org\\.nr\\.\\s*</a>")
+            .matcher(organizationNumberSortedHtml).find());
     }
 
     @Test
@@ -229,7 +255,7 @@ class RegistrationWorkflowTests {
         "catalog, 200, not json"})
     @DisplayName("Should show V2 search and catalog failures without falling back to V1 or displaying empty results")
     void shouldShowV2SearchAndCatalogFailuresWithoutFallback(String failedOperation, int status, String body) throws Exception {
-        String failedPath = "/v2/instances?searchTerm=&includeInactive=false&page=0&pageSize=25&sort=createdMs";
+        String failedPath = "/v2/instances?searchTerm=&includeInactive=false&hideSyntheticOrgnos=false&page=0&pageSize=25&sort=name";
         if (failedOperation.equals("catalog")) {
             enqueue("GET", failedPath, new PagedResponse<>(List.of(), new PagedResponse.PageMetadata(25, 0, 0, 0)));
             failedPath = "/v2/entitlements?includeInactive=false";
@@ -255,6 +281,24 @@ class RegistrationWorkflowTests {
 
     @ParameterizedTest
     @EnumSource(CertificateType.class)
+    @DisplayName("Should return to the selected certificate list from the certificate form")
+    void shouldReturnToSelectedCertificateListFromCertificateForm(CertificateType certificateType) throws Exception {
+        String certificateTab = certificateType.pathSegment() + "-certificates";
+        enqueueLookup();
+
+        mockMvc.perform(get("/csr/" + certificateType.pathSegment() + "/" + relyingPartyResource.id()).with(login(false)))
+            .andExpectAll(status().isOk(),
+                content().string(containsString("href=\"/details/" + relyingPartyResource.id() + "#" + certificateTab + "\"")));
+
+        enqueueLookup();
+        mockMvc.perform(get("/details/" + relyingPartyResource.id()).with(login(false)))
+            .andExpectAll(status().isOk(),
+                content().string(allOf(containsString("href=\"#" + certificateTab + "\""),
+                    containsString("id=\"" + certificateTab + "\""))));
+    }
+
+    @ParameterizedTest
+    @EnumSource(CertificateType.class)
     @DisplayName("Should submit an access or issuer certificate order for the owning organization")
     void shouldSubmitCertificateOrderForOwningOrganization(CertificateType certificateType) throws Exception {
         enqueueLookup();
@@ -269,7 +313,9 @@ class RegistrationWorkflowTests {
                 .formField("csrField", PKCS10CertificationRequestConverter.toString(certificationRequest))
                 .formField("entitlement", relyingPartyResource.issuerCertificates().getFirst().entitlement()))
             .andExpectAll(status().isOk(), view().name(certificateType == CertificateType.ISSUER
-                ? "csr_issuer_submit_success_view" : "csr_submit_success_view"));
+                    ? "csr_issuer_submit_success_view" : "csr_submit_success_view"),
+                content().string(containsString("href=\"/details/" + relyingPartyResource.id()
+                    + "#" + certificateType.pathSegment() + "-certificates\"")));
     }
 
     @ParameterizedTest
@@ -810,7 +856,7 @@ class RegistrationWorkflowTests {
                 new V2RegisterClient.RelyingPartyEntitlement("urn:second", null, null)),
             relyingPartyResource.createdMs(), relyingPartyResource.lastUpdatedMs(),
             List.of(certificate(CertificateType.ACCESS).id()), List.of(certificate(CertificateType.ISSUER).id()));
-        enqueue("GET", "/v2/instances?searchTerm=Test&includeInactive=true&page=" + page + "&pageSize=25&sort=" + sort
+        enqueue("GET", "/v2/instances?searchTerm=Test&includeInactive=true&hideSyntheticOrgnos=true&page=" + page + "&pageSize=25&sort=" + sort
                 + "&requiredEntitlements=urn%3Afirst&requiredEntitlements=urn%3Asecond",
             new PagedResponse<>(List.of(instance), new PagedResponse.PageMetadata(25, page, 26, 2)));
         enqueue("GET", "/v2/entitlements?includeInactive=true", entitlements);
