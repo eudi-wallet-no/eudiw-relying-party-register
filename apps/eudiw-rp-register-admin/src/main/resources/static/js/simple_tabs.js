@@ -16,5 +16,9 @@ function setTab(hash) {
     });
 }
 
-window.onhashchange = () => setTab(location.hash);
+window.onhashchange = () => {
+    if (location.hash !== "#hovudinnhald") {
+        setTab(location.hash);
+    }
+};
 window.onload = () => setTab(location.hash);
