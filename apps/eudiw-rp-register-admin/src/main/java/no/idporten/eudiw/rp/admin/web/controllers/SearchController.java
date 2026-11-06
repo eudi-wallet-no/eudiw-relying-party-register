@@ -45,6 +45,7 @@ public class SearchController {
         if (bindingResult.hasErrors()) {
             mav.addObject(RESULTS_PAGE_ATTR, List.of());
             mav.addObject("numPagesAttr", 0);
+            mav.addObject("totalElementsAttr", 0L);
             mav.addObject("currentPageNumAttr", 1);
             mav.addObject("paginationWindowAttr", new int[0]);
         } else {
@@ -56,6 +57,7 @@ public class SearchController {
             int numPages = Math.toIntExact(searchResult.page().totalPages());
             int currentPageNum = Math.toIntExact(searchResult.page().number()) + 1;
             mav.addObject(RESULTS_PAGE_ATTR, searchResult.content());
+            mav.addObject("totalElementsAttr", searchResult.page().totalElements());
             mav.addObject("numPagesAttr", numPages);
             mav.addObject("currentPageNumAttr", currentPageNum);
             mav.addObject("paginationWindowAttr", paginationWindow(currentPageNum, numPages));

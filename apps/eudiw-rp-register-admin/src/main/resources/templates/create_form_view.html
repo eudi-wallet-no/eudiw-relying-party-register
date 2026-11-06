@@ -8,7 +8,7 @@
 <body>
 <header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
-<main>
+<main id="hovudinnhald" tabindex="-1">
 
     <p sec:authorize="hasRole('ADMIN')"
         class="ds-paragraph">
@@ -24,13 +24,13 @@
         </a>
     </p>
 
-    <h1 class="ds-heading" data-size="lg">
+    <h1 class="ds-heading" data-size="xl">
         Legg til ny brukarstad
     </h1>
 
     <p class="ds-alert" data-color="info">
         Ved å registrera og ta i bruk ei brukarstadsregistrering godtar du
-        <span class="ds-link">Digdir sine bruksvilkår for sandkassa</span>.
+        Digdir sine bruksvilkår for sandkassa.
     </p>
 
     <div sec:authorize="hasRole('ADMIN')"

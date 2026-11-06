@@ -1,6 +1,5 @@
-<div th:fragment="eaa_fields_fragment"
-     class="ds-card">
-    <fieldset class="ds-fieldset space-bottom-2em"
+<div th:fragment="eaa_fields_fragment">
+    <fieldset class="ds-fieldset space-block-end-8"
               data-size="sm">
         <legend class="ds-label"
                 data-weight="high">
@@ -9,20 +8,23 @@
 
         <div class="flex-container">
             <div>
-                <p class="ds-paragraph space-bottom-8">
+                <p class="ds-paragraph space-block-end-2">
                     Bevistypar lagt inn
                 </p>
-                <table class="ds-table fixed-break-table"
-                       data-border="true">
-                    <thead>
-                    <tr>
-                        <th>Bevistype</th>
-                        <th>Føremål</th>
-                        <th class="narrow-cell"></th>
-                    </tr>
-                    </thead>
-                    <tbody id="eaa_container"></tbody>
-                </table>
+                <div class="table-wrap" role="region" aria-label="Bevistypar lagt inn" tabindex="0">
+                    <table class="ds-table fixed-break-table"
+                           data-border="true">
+                        <caption class="ds-sr-only">Bevistypar lagt inn</caption>
+                        <thead>
+                        <tr>
+                            <th scope="col">Bevistype</th>
+                            <th scope="col">Føremål</th>
+                            <th scope="col" class="narrow-cell"><span class="ds-sr-only">Handlingar</span></th>
+                        </tr>
+                        </thead>
+                        <tbody id="eaa_container"></tbody>
+                    </table>
+                </div>
             </div>
 
             <div>
@@ -30,8 +32,7 @@
                     <legend class="ds-legend">
                         Legg til ny bevistype
                     </legend>
-                    <div class="space-bottom-8">
-
+                    <div class="ds-field">
                         <label for="eaa_namespace_field"
                                class="ds-label">
                             Bevistype
@@ -44,7 +45,9 @@
                              th:insert="~{fragments/general ::
                                             generic_invalid_input_field_error_msg('EAA-namespace')}"
                              class="display-none"></div>
+                    </div>
 
+                    <div class="ds-field">
                         <label for="eaa_intent_field"
                                class="ds-label">
                             Føremål

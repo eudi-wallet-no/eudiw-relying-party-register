@@ -16,13 +16,16 @@ import java.util.List;
 @Getter
 public class SearchRelyingPartyResource {
     public final static int DEFAULT_PAGE_SIZE = 25;
-    public final static String DEFAULT_ORDERING = RelyingPartyOrdering.CREATED_ASC;
+    public final static String DEFAULT_ORDERING = RelyingPartyOrdering.NAME_ASC;
 
     @JsonProperty("search_term")
     private String searchTerm = "";
 
     @JsonProperty("include_inactive")
     private boolean includeInactive = false;
+
+    @JsonProperty("hide_synthetic_orgnos")
+    private boolean hideSyntheticOrgnos = false;
 
     @JsonProperty("required_entitlements")
     @NotNull

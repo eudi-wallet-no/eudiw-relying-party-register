@@ -27,6 +27,8 @@ public class SearchForm {
 
     private boolean includeInactive = false;
 
+    private boolean hideSyntheticOrgnos = false;
+
     @NotNull
     private List<String> requiredEntitlements = new ArrayList<>();
 
@@ -42,6 +44,7 @@ public class SearchForm {
         return new SearchRelyingPartyResource()
                    .withSearchTerm(searchTerm)
                    .withIncludeInactive(includeInactive)
+                   .withHideSyntheticOrgnos(hideSyntheticOrgnos)
                    .withRequiredEntitlements(requiredEntitlements);
     }
 }

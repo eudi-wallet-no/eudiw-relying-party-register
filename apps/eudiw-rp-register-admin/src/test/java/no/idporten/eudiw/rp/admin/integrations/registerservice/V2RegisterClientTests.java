@@ -59,7 +59,7 @@ class V2RegisterClientTests {
     @DisplayName("Should preserve literal search text and all role filters when requesting a sorted search page")
     void shouldPreserveLiteralSearchTextAndAllRoleFiltersOnSortedPage() {
         server.expect(requestTo("https://register.test/v2/instances?searchTerm=Navn%20%2B%20teneste"
-                + "&includeInactive=true&page=1&pageSize=25&sort=name"
+                + "&includeInactive=true&hideSyntheticOrgnos=true&page=1&pageSize=25&sort=name"
                 + "&requiredEntitlements=urn%3Aissuer%2Bone&requiredEntitlements=urn%3Asecond"))
             .andExpect(header("X-API-KEY", "test-api-key"))
             .andRespond(withSuccess("""
@@ -67,7 +67,8 @@ class V2RegisterClientTests {
                 """, MediaType.APPLICATION_JSON));
 
         var results = client.searchInstances(new SearchRelyingPartyResource()
-            .withSearchTerm("Navn + teneste").withIncludeInactive(true).withPage(1).withOrdering("name")
+            .withSearchTerm("Navn + teneste").withIncludeInactive(true).withHideSyntheticOrgnos(true)
+            .withPage(1).withOrdering("name")
             .withRequiredEntitlements(List.of("urn:issuer+one", "urn:second")));
 
         assertTrue(results.content().isEmpty());
@@ -78,7 +79,7 @@ class V2RegisterClientTests {
     @ValueSource(strings = {"", "{}", "{\"content\":[]}"})
     @DisplayName("Should fail rather than show no registrations when search data is missing")
     void shouldFailWhenSearchDataIsMissing(String response) {
-        server.expect(requestTo("https://register.test/v2/instances?searchTerm=&includeInactive=false&page=0&pageSize=25&sort=createdMs"))
+        server.expect(requestTo("https://register.test/v2/instances?searchTerm=&includeInactive=false&hideSyntheticOrgnos=false&page=0&pageSize=25&sort=name"))
             .andRespond(withSuccess(response, MediaType.APPLICATION_JSON));
 
         assertThrows(UnrecognizedErrorResponseException.class,
@@ -89,7 +90,7 @@ class V2RegisterClientTests {
     @ValueSource(strings = {"not json", "{\"content\":[],\"page\":{}}"})
     @DisplayName("Should propagate an unreadable search response rather than show no registrations")
     void shouldPropagateUnreadableSearchResponse(String response) {
-        server.expect(requestTo("https://register.test/v2/instances?searchTerm=&includeInactive=false&page=0&pageSize=25&sort=createdMs"))
+        server.expect(requestTo("https://register.test/v2/instances?searchTerm=&includeInactive=false&hideSyntheticOrgnos=false&page=0&pageSize=25&sort=name"))
             .andRespond(withSuccess(response, MediaType.APPLICATION_JSON));
 
         assertThrows(RestClientException.class, () -> client.searchInstances(new SearchRelyingPartyResource()));
@@ -99,7 +100,7 @@ class V2RegisterClientTests {
     @ValueSource(strings = {"null", "{\"createdMs\":0,\"lastUpdatedMs\":0}"})
     @DisplayName("Should reject the whole search page when a registration is missing required data")
     void shouldRejectSearchPageWithIncompleteRegistration(String incompleteRegistration) {
-        server.expect(requestTo("https://register.test/v2/instances?searchTerm=&includeInactive=false&page=0&pageSize=25&sort=createdMs"))
+        server.expect(requestTo("https://register.test/v2/instances?searchTerm=&includeInactive=false&hideSyntheticOrgnos=false&page=0&pageSize=25&sort=name"))
             .andRespond(withSuccess("""
                 {"content":[
                     {"id":"00000000-0000-0000-0000-000000000001","orgno":"123456785",

@@ -121,6 +121,18 @@ public class SearchControllerTests {
             verify(mockRpService).search(argThat(resource -> resource.isIncludeInactive() == includeInactive));
         }
 
+        @ParameterizedTest
+        @ValueSource(strings = {"hideSyntheticOrgnos", "includeInactive"})
+        @DisplayName("Should show an error when a search filter is invalid")
+        void shouldShowErrorWhenASearchFilterIsInvalid(String invalidFilter) throws Exception {
+            String html = mockMvc.perform(get("/search").param(invalidFilter, "invalid"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+            assertThat(html).contains("Søket kunne ikkje utførast. Kontroller søket og filtera, og prøv igjen.");
+            verify(mockRpService, never()).search(any());
+        }
+
         @Test
         public void testInvalidSearchFormIsRejected() throws Exception {
             String invalidSearchTerm = "foobar$";

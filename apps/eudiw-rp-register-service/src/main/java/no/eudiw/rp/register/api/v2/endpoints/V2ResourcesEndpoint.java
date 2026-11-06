@@ -240,10 +240,7 @@ public class V2ResourcesEndpoint {
 
     @Operation(
         summary = "Search RelyingPartyInstances",
-        description = "Returns instances with organization and service names and certificate identifiers. "
-            + "Search matches organization numbers, trade names, service names and the first legal name. "
-            + "All required entitlements must match. Excludes inactive parties, services and instances unless includeInactive is true. "
-            + "Results are sorted ascending with the instance ID as a stable secondary key."
+        description = "Finds registrations by organization, name, role and activity, optionally excluding synthetic organization numbers."
     )
     @GetMapping(path = "/instances", produces = MediaType.APPLICATION_JSON_VALUE)
     public PagedModel<RelyingPartyInstanceResponse> searchRelyingPartyInstances(
@@ -253,6 +250,7 @@ public class V2ResourcesEndpoint {
         @RequestParam(required = false) String orgno,
         @RequestParam(required = false) String searchTerm,
         @RequestParam(defaultValue = "false") boolean includeInactive,
+        @RequestParam(defaultValue = "false") boolean hideSyntheticOrgnos,
         @RequestParam(required = false) List<@NotBlank String> requiredEntitlements,
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "25") int pageSize,
@@ -260,7 +258,8 @@ public class V2ResourcesEndpoint {
         @RequestParam(required = false) String sort
     ) {
         return new PagedModel<>(v2ApiService.searchRelyingPartyInstances(
-            relyingPartyServiceId, orgno, searchTerm, includeInactive, requiredEntitlements, page, pageSize, sort));
+            relyingPartyServiceId, orgno, searchTerm, includeInactive, hideSyntheticOrgnos,
+            requiredEntitlements, page, pageSize, sort));
     }
 
     @Operation(
