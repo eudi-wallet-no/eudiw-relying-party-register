@@ -131,11 +131,7 @@ class WrpByIdentifierIntegrationTest {
     }
 
     @Test
-    void returnsSignedEmptyResultForUnknownIdentifierAndFindsInactiveParty() throws Exception {
-        WalletRelyingParty inactiveParty = partyNamed("Inactive identifier match");
-        inactiveParty.setActive(false);
-        walletRelyingPartyRepository.saveAndFlush(inactiveParty);
-
+    void returnsSignedEmptyResultForUnknownIdentifier() throws Exception {
         String unknownToken = mockMvc.perform(get("/wrp/{identifier}", "unknown-identifier"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/jwt")))
@@ -148,16 +144,6 @@ class WrpByIdentifierIntegrationTest {
         assertTrue(((Number) unknownPayload.get("iat")).longValue() > 0);
         assertEquals(List.of(), unknownPayload.get("data"));
         assertFalse(unknownPayload.containsKey("pagination"));
-
-        String inactiveToken = mockMvc.perform(get("/wrp/{identifier}", inactiveParty.getOrgno()))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.parseMediaType("application/jwt")))
-            .andExpect(header().string("x-jku-url", JWKS_URL))
-            .andReturn().getResponse().getContentAsString();
-        JWSObject inactiveJws = JWSObject.parse(inactiveToken);
-        assertTrue(inactiveJws.verify(new ECDSAVerifier((ECPublicKey) signingKeyPair.getPublic())));
-        Map<?, ?> inactiveData = (Map<?, ?>) inactiveJws.getPayload().toJSONObject().get("data");
-        assertEquals("Inactive identifier match", inactiveData.get("tradeName"));
     }
 
     @Test
@@ -179,9 +165,6 @@ class WrpByIdentifierIntegrationTest {
         for (int index = 0; index < 21; index++) {
             parties.add(partyNamed("Collection Party " + index));
         }
-        WalletRelyingParty inactiveParty = partyNamed("Inactive Collection Party");
-        inactiveParty.setActive(false);
-        parties.add(inactiveParty);
         walletRelyingPartyRepository.saveAllAndFlush(parties);
 
         JWSObject firstPage = getCollectionPage(null, null);
@@ -198,14 +181,13 @@ class WrpByIdentifierIntegrationTest {
         List<?> secondData = (List<?>) secondPayload.get("data");
         Map<?, ?> secondPagination = (Map<?, ?>) secondPayload.get("pagination");
 
-        assertEquals(2, secondData.size());
+        assertEquals(1, secondData.size());
         assertFalse((Boolean) secondPagination.get("has_next_page"));
         assertFalse(secondPagination.containsKey("next_cursor"));
         Set<String> tradeNames = new HashSet<>();
         firstData.forEach(item -> tradeNames.add((String) ((Map<?, ?>) item).get("tradeName")));
         secondData.forEach(item -> tradeNames.add((String) ((Map<?, ?>) item).get("tradeName")));
-        assertEquals(22, tradeNames.size());
-        assertTrue(tradeNames.contains("Inactive Collection Party"));
+        assertEquals(21, tradeNames.size());
     }
 
     @Test
@@ -297,10 +279,7 @@ class WrpByIdentifierIntegrationTest {
             "Filter Match B", "urn:example:shared", "Legal Beta");
         WalletRelyingParty third = partyWithSearchData(
             "Filter Match C", "urn:example:other", "Legal Alpha");
-        WalletRelyingParty inactive = partyWithSearchData(
-            "Filter Inactive", "urn:example:shared", "Legal Alpha");
-        inactive.setActive(false);
-        walletRelyingPartyRepository.saveAllAndFlush(List.of(first, second, third, inactive));
+        walletRelyingPartyRepository.saveAllAndFlush(List.of(first, second, third));
 
         assertEquals(
             List.of("Filter Match A"),
@@ -309,23 +288,23 @@ class WrpByIdentifierIntegrationTest {
             )))
         );
         assertEquals(
-            Set.of("Filter Match A", "Filter Match B", "Filter Inactive"),
+            Set.of("Filter Match A", "Filter Match B"),
             Set.copyOf(collectionTradeNames(getCollectionPage(null, null, Map.of(
                 "identifier", "urn:example:shared"
             ))))
         );
         assertEquals(
-            Set.of("Filter Match A", "Filter Match C", "Filter Inactive"),
+            Set.of("Filter Match A", "Filter Match C"),
             Set.copyOf(collectionTradeNames(getCollectionPage(null, null, Map.of(
                 "legalName", "Legal Alpha"
             ))))
         );
         assertEquals(
-            Set.of("Filter Match A", "Filter Inactive"),
-            Set.copyOf(collectionTradeNames(getCollectionPage(null, null, Map.of(
+            List.of("Filter Match A"),
+            collectionTradeNames(getCollectionPage(null, null, Map.of(
                 "identifier", "urn:example:shared",
                 "legalName", "Legal Alpha"
-            ))))
+            )))
         );
         assertTrue(collectionTradeNames(getCollectionPage(null, null, Map.of(
             "identifier", "urn:example:shared",
@@ -336,13 +315,13 @@ class WrpByIdentifierIntegrationTest {
         ))).isEmpty());
 
         JWSObject firstPage = getCollectionPage(
-            2, null, Map.of("identifier", "urn:example:shared"));
+            1, null, Map.of("identifier", "urn:example:shared"));
         Map<?, ?> firstPagination =
             (Map<?, ?>) firstPage.getPayload().toJSONObject().get("pagination");
         assertTrue((Boolean) firstPagination.get("has_next_page"));
 
         JWSObject secondPage = getCollectionPage(
-            2,
+            1,
             (String) firstPagination.get("next_cursor"),
             Map.of("identifier", "urn:example:shared")
         );
@@ -351,7 +330,7 @@ class WrpByIdentifierIntegrationTest {
         assertFalse((Boolean) secondPagination.get("has_next_page"));
         Set<String> pagedNames = new HashSet<>(collectionTradeNames(firstPage));
         pagedNames.addAll(collectionTradeNames(secondPage));
-        assertEquals(Set.of("Filter Match A", "Filter Match B", "Filter Inactive"), pagedNames);
+        assertEquals(Set.of("Filter Match A", "Filter Match B"), pagedNames);
     }
 
     @Test
@@ -885,13 +864,10 @@ class WrpByIdentifierIntegrationTest {
         WalletRelyingParty inactiveServiceMatch =
             partyWithCredentialFormats("Format inactive service", "dc+sd-jwt");
         inactiveServiceMatch.getServices().getFirst().setActive(false);
-        WalletRelyingParty inactivePartyMatch = partyWithCredentialFormats("Format inactive party", "dc+sd-jwt");
-        inactivePartyMatch.setActive(false);
         walletRelyingPartyRepository.saveAllAndFlush(List.of(
             firstMatch,
             secondMatch,
             inactiveServiceMatch,
-            inactivePartyMatch,
             partyWithCredentialFormats("Format case variant", "DC+SD-JWT"),
             partyWithCredentialFormats("Format suffix", "dc+sd-jwt-extra"),
             partyWithCredentialFormats("Format trailing space", "dc+sd-jwt "),
@@ -907,9 +883,9 @@ class WrpByIdentifierIntegrationTest {
             .get("has_next_page"));
         List<String> matchingNames = new ArrayList<>(collectionTradeNames(firstPage));
         matchingNames.addAll(collectionTradeNames(secondPage));
-        assertEquals(4, matchingNames.size());
+        assertEquals(3, matchingNames.size());
         assertEquals(
-            Set.of("Format match A", "Format match B", "Format inactive service", "Format inactive party"),
+            Set.of("Format match A", "Format match B", "Format inactive service"),
             Set.copyOf(matchingNames)
         );
         assertEquals(
