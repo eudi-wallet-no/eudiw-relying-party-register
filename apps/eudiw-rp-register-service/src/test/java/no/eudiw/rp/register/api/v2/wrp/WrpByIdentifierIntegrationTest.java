@@ -227,8 +227,14 @@ class WrpByIdentifierIntegrationTest {
             .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("limit", "101"))
             .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/wrp").param("limit", "10", "20"))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().string(containsString("limit must be specified at most once")));
         mockMvc.perform(get("/wrp").param("cursor", "not-a-cursor"))
             .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/wrp").param("identifier", "first", "second"))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().string(containsString("identifier must be specified at most once")));
         mockMvc.perform(get("/wrp").param("identifier", " "))
             .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp").param("legalName", " "))
@@ -1361,8 +1367,11 @@ class WrpByIdentifierIntegrationTest {
             .andExpect(content().string(containsString("intendedUseIdentifier")))
             .andExpect(content().string(containsString("claimPath")))
             .andExpect(content().string(containsString("credentialMeta")))
+            .andExpect(content().string(containsString("doctype_value")))
             .andExpect(content().string(containsString("credentialFormat")))
-            .andExpect(content().string(containsString("/wrp?credentialFormat=dc%2Bsd-jwt")));
+            .andExpect(content().string(containsString("Percent-encode '+' as '%2B'")))
+            .andExpect(content().string(containsString("next_cursor")))
+            .andExpect(content().string(containsString("has_next_page")));
     }
 
     @Test
