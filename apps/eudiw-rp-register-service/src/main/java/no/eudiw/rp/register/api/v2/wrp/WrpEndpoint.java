@@ -46,11 +46,13 @@ public class WrpEndpoint {
              Returns active relying parties matching the optional identifier, legalName,
              serviceIdentifier, tradeName, policy, intendedUseIdentifier, claimPath, credentialMeta,
              credentialFormat, entitlement,
-             providedAttestation, usesIntermediary, and isIntermediary filters.""",
+             providedAttestation, usesIntermediary, and isIntermediary filters. The signed JWT payload
+             contains a data array and a pagination object with next_cursor and has_next_page.
+             next_cursor is omitted when there is no next page.""",
         responses = {
             @ApiResponse(
                 responseCode = "200",
-                description = "Signed list of Wallet Relying Parties",
+                description = "Signed JWT containing matching parties in data and pagination metadata",
                 headers = @Header(
                     name = JWK_URL_HEADER,
                     schema = @Schema(type = "string", format = "uri")
@@ -71,14 +73,14 @@ public class WrpEndpoint {
             description = "Maximum number of parties to return (1-100)",
             schema = @Schema(type = "integer", defaultValue = "20", minimum = "1", maximum = "100")
         )
-        @RequestParam(defaultValue = "20") int limit,
+        @RequestParam(name = "limit", defaultValue = "20") int limit,
         @Parameter(
             name = "cursor",
             in = ParameterIn.QUERY,
             description = "Opaque cursor returned in the previous page",
             schema = @Schema(type = "string")
         )
-        @RequestParam(required = false) String cursor,
+        @RequestParam(name = "cursor", required = false) String cursor,
         @Parameter(
             name = "identifier",
             in = ParameterIn.QUERY,
@@ -131,7 +133,7 @@ public class WrpEndpoint {
         @Parameter(
             name = "credentialMeta",
             in = ParameterIn.QUERY,
-            description = "Exact, case-sensitive match against a value in credential meta (vct_values or doctype)",
+            description = "Exact, case-sensitive match against a value in credential meta (vct_values or doctype_value)",
             schema = @Schema(type = "string")
         )
         @RequestParam(name = "credentialMeta", required = false) String credentialMeta,
@@ -140,9 +142,8 @@ public class WrpEndpoint {
             in = ParameterIn.QUERY,
             description = """
                 Case-sensitive exact match against a registered credential format.
-                Percent-encode '+' as '%2B', e.g. /wrp?credentialFormat=dc%2Bsd-jwt;
-                an unencoded '+' is decoded as a space.""",
-            schema = @Schema(type = "string", example = "dc+sd-jwt")
+                Percent-encode '+' as '%2B'; an unencoded '+' is decoded as a space.""",
+            schema = @Schema(type = "string")
         )
         @RequestParam(name = "credentialFormat", required = false) String credentialFormat,
         @Parameter(
@@ -179,9 +180,10 @@ public class WrpEndpoint {
         if (!COLLECTION_PARAMETERS.containsAll(queryParameters.keySet())) {
             throw new BadRequestException("Unsupported WRP query parameter");
         }
-        if (queryParameters.containsKey("isIntermediary")
-            && queryParameters.get("isIntermediary").size() != 1) {
-            throw new BadRequestException("isIntermediary must be specified at most once");
+        for (var entry : queryParameters.entrySet()) {
+            if (entry.getValue().size() != 1) {
+                throw new BadRequestException(entry.getKey() + " must be specified at most once");
+            }
         }
         if (isIntermediaryString != null
             && !isIntermediaryString.equals("true")
