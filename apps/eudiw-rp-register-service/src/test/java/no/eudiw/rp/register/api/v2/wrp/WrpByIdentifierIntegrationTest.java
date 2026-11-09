@@ -131,25 +131,33 @@ class WrpByIdentifierIntegrationTest {
     }
 
     @Test
-    void returnsSignedEmptyResultForUnknownOrInactiveIdentifier() throws Exception {
+    void returnsSignedEmptyResultForUnknownIdentifierAndFindsInactiveParty() throws Exception {
         WalletRelyingParty inactiveParty = partyNamed("Inactive identifier match");
         inactiveParty.setActive(false);
         walletRelyingPartyRepository.saveAndFlush(inactiveParty);
 
-        for (String identifier : List.of("unknown-identifier", inactiveParty.getOrgno())) {
-            String token = mockMvc.perform(get("/wrp/{identifier}", identifier))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.parseMediaType("application/jwt")))
-                .andExpect(header().string("x-jku-url", JWKS_URL))
-                .andReturn().getResponse().getContentAsString();
-            JWSObject jws = JWSObject.parse(token);
-            assertTrue(jws.verify(new ECDSAVerifier((ECPublicKey) signingKeyPair.getPublic())));
-            Map<String, Object> payload = jws.getPayload().toJSONObject();
-            assertEquals("https://registry.example.test", payload.get("iss"));
-            assertTrue(((Number) payload.get("iat")).longValue() > 0);
-            assertEquals(List.of(), payload.get("data"));
-            assertFalse(payload.containsKey("pagination"));
-        }
+        String unknownToken = mockMvc.perform(get("/wrp/{identifier}", "unknown-identifier"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/jwt")))
+            .andExpect(header().string("x-jku-url", JWKS_URL))
+            .andReturn().getResponse().getContentAsString();
+        JWSObject unknownJws = JWSObject.parse(unknownToken);
+        assertTrue(unknownJws.verify(new ECDSAVerifier((ECPublicKey) signingKeyPair.getPublic())));
+        Map<String, Object> unknownPayload = unknownJws.getPayload().toJSONObject();
+        assertEquals("https://registry.example.test", unknownPayload.get("iss"));
+        assertTrue(((Number) unknownPayload.get("iat")).longValue() > 0);
+        assertEquals(List.of(), unknownPayload.get("data"));
+        assertFalse(unknownPayload.containsKey("pagination"));
+
+        String inactiveToken = mockMvc.perform(get("/wrp/{identifier}", inactiveParty.getOrgno()))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/jwt")))
+            .andExpect(header().string("x-jku-url", JWKS_URL))
+            .andReturn().getResponse().getContentAsString();
+        JWSObject inactiveJws = JWSObject.parse(inactiveToken);
+        assertTrue(inactiveJws.verify(new ECDSAVerifier((ECPublicKey) signingKeyPair.getPublic())));
+        Map<?, ?> inactiveData = (Map<?, ?>) inactiveJws.getPayload().toJSONObject().get("data");
+        assertEquals("Inactive identifier match", inactiveData.get("tradeName"));
     }
 
     @Test
@@ -166,7 +174,7 @@ class WrpByIdentifierIntegrationTest {
     }
 
     @Test
-    void paginatesTheActiveCollectionUsingTheDefaultLimit() throws Exception {
+    void paginatesTheCollectionUsingTheDefaultLimit() throws Exception {
         List<WalletRelyingParty> parties = new ArrayList<>();
         for (int index = 0; index < 21; index++) {
             parties.add(partyNamed("Collection Party " + index));
@@ -184,22 +192,20 @@ class WrpByIdentifierIntegrationTest {
         assertEquals(20, firstData.size());
         assertTrue((Boolean) firstPagination.get("has_next_page"));
         assertTrue(firstPagination.get("next_cursor") instanceof String);
-        assertFalse(firstData.stream().anyMatch(item ->
-            "Inactive Collection Party".equals(((Map<?, ?>) item).get("tradeName"))));
-
         JWSObject secondPage = getCollectionPage(
             null, (String) firstPagination.get("next_cursor"));
         Map<String, Object> secondPayload = secondPage.getPayload().toJSONObject();
         List<?> secondData = (List<?>) secondPayload.get("data");
         Map<?, ?> secondPagination = (Map<?, ?>) secondPayload.get("pagination");
 
-        assertEquals(1, secondData.size());
+        assertEquals(2, secondData.size());
         assertFalse((Boolean) secondPagination.get("has_next_page"));
         assertFalse(secondPagination.containsKey("next_cursor"));
         Set<String> tradeNames = new HashSet<>();
         firstData.forEach(item -> tradeNames.add((String) ((Map<?, ?>) item).get("tradeName")));
         secondData.forEach(item -> tradeNames.add((String) ((Map<?, ?>) item).get("tradeName")));
-        assertEquals(21, tradeNames.size());
+        assertEquals(22, tradeNames.size());
+        assertTrue(tradeNames.contains("Inactive Collection Party"));
     }
 
     @Test
@@ -303,23 +309,23 @@ class WrpByIdentifierIntegrationTest {
             )))
         );
         assertEquals(
-            Set.of("Filter Match A", "Filter Match B"),
+            Set.of("Filter Match A", "Filter Match B", "Filter Inactive"),
             Set.copyOf(collectionTradeNames(getCollectionPage(null, null, Map.of(
                 "identifier", "urn:example:shared"
             ))))
         );
         assertEquals(
-            Set.of("Filter Match A", "Filter Match C"),
+            Set.of("Filter Match A", "Filter Match C", "Filter Inactive"),
             Set.copyOf(collectionTradeNames(getCollectionPage(null, null, Map.of(
                 "legalName", "Legal Alpha"
             ))))
         );
         assertEquals(
-            List.of("Filter Match A"),
-            collectionTradeNames(getCollectionPage(null, null, Map.of(
+            Set.of("Filter Match A", "Filter Inactive"),
+            Set.copyOf(collectionTradeNames(getCollectionPage(null, null, Map.of(
                 "identifier", "urn:example:shared",
                 "legalName", "Legal Alpha"
-            )))
+            ))))
         );
         assertTrue(collectionTradeNames(getCollectionPage(null, null, Map.of(
             "identifier", "urn:example:shared",
@@ -330,13 +336,13 @@ class WrpByIdentifierIntegrationTest {
         ))).isEmpty());
 
         JWSObject firstPage = getCollectionPage(
-            1, null, Map.of("identifier", "urn:example:shared"));
+            2, null, Map.of("identifier", "urn:example:shared"));
         Map<?, ?> firstPagination =
             (Map<?, ?>) firstPage.getPayload().toJSONObject().get("pagination");
         assertTrue((Boolean) firstPagination.get("has_next_page"));
 
         JWSObject secondPage = getCollectionPage(
-            1,
+            2,
             (String) firstPagination.get("next_cursor"),
             Map.of("identifier", "urn:example:shared")
         );
@@ -345,7 +351,7 @@ class WrpByIdentifierIntegrationTest {
         assertFalse((Boolean) secondPagination.get("has_next_page"));
         Set<String> pagedNames = new HashSet<>(collectionTradeNames(firstPage));
         pagedNames.addAll(collectionTradeNames(secondPage));
-        assertEquals(Set.of("Filter Match A", "Filter Match B"), pagedNames);
+        assertEquals(Set.of("Filter Match A", "Filter Match B", "Filter Inactive"), pagedNames);
     }
 
     @Test
@@ -387,9 +393,10 @@ class WrpByIdentifierIntegrationTest {
         assertTrue(collectionTradeNames(getCollectionPage(null, null, Map.of(
             "serviceIdentifier", "service-one-extra"
         ))).isEmpty());
-        assertTrue(collectionTradeNames(getCollectionPage(null, null, Map.of(
-            "serviceIdentifier", "inactive-service"
-        ))).isEmpty());
+        assertEquals(
+            List.of("Inactive Service WRP"),
+            collectionTradeNames(getCollectionPage(null, null, Map.of("serviceIdentifier", "inactive-service")))
+        );
         assertEquals(
             List.of("WRP-only Trade Name"),
             collectionTradeNames(getCollectionPage(null, null, Map.of(
@@ -410,12 +417,12 @@ class WrpByIdentifierIntegrationTest {
         );
 
         JWSObject firstPage = getCollectionPage(
-            1, null, Map.of("tradeName", "Shared Trade Name"));
+            2, null, Map.of("tradeName", "Shared Trade Name"));
         Map<?, ?> firstPagination =
             (Map<?, ?>) firstPage.getPayload().toJSONObject().get("pagination");
         assertTrue((Boolean) firstPagination.get("has_next_page"));
         JWSObject secondPage = getCollectionPage(
-            1,
+            2,
             (String) firstPagination.get("next_cursor"),
             Map.of("tradeName", "Shared Trade Name")
         );
@@ -424,7 +431,10 @@ class WrpByIdentifierIntegrationTest {
         assertFalse((Boolean) secondPagination.get("has_next_page"));
         List<String> pagedNames = new ArrayList<>(collectionTradeNames(firstPage));
         pagedNames.addAll(collectionTradeNames(secondPage));
-        assertEquals(Set.of("Shared Trade Name", "Other WRP"), Set.copyOf(pagedNames));
+        assertEquals(
+            Set.of("Shared Trade Name", "Other WRP", "Inactive Service WRP"),
+            Set.copyOf(pagedNames)
+        );
     }
 
     @Test
@@ -444,24 +454,25 @@ class WrpByIdentifierIntegrationTest {
         inactive.getServices().getFirst().setActive(false);
         walletRelyingPartyRepository.saveAllAndFlush(List.of(first, second, inactive));
 
-        JWSObject firstPage = getCollectionPage(1, null, Map.of("serviceIdentifier", "isolated-service"));
+        JWSObject firstPage = getCollectionPage(2, null, Map.of("serviceIdentifier", "isolated-service"));
         Map<?, ?> pagination = (Map<?, ?>) firstPage.getPayload().toJSONObject().get("pagination");
         assertTrue((Boolean) pagination.get("has_next_page"));
         JWSObject secondPage = getCollectionPage(
-            1, (String) pagination.get("next_cursor"), Map.of("serviceIdentifier", "isolated-service"));
+            2, (String) pagination.get("next_cursor"), Map.of("serviceIdentifier", "isolated-service"));
         assertFalse((Boolean) ((Map<?, ?>) secondPage.getPayload().toJSONObject().get("pagination"))
             .get("has_next_page"));
         Set<String> names = new HashSet<>();
         for (JWSObject page : List.of(firstPage, secondPage)) {
             List<?> data = (List<?>) page.getPayload().toJSONObject().get("data");
-            assertEquals(1, data.size());
-            Map<?, ?> party = (Map<?, ?>) data.getFirst();
-            names.add((String) party.get("tradeName"));
-            List<?> services = (List<?>) party.get("services");
-            assertEquals(1, services.size());
-            assertEquals("isolated-service", ((Map<?, ?>) services.getFirst()).get("serviceIdentifier"));
+            for (Object item : data) {
+                Map<?, ?> party = (Map<?, ?>) item;
+                names.add((String) party.get("tradeName"));
+                List<?> services = (List<?>) party.get("services");
+                assertEquals(1, services.size());
+                assertEquals("isolated-service", ((Map<?, ?>) services.getFirst()).get("serviceIdentifier"));
+            }
         }
-        assertEquals(Set.of("Isolation A", "Isolation B"), names);
+        assertEquals(Set.of("Isolation A", "Isolation B", "Inactive isolated service"), names);
 
         JWSObject combined = getCollectionPage(null, null, Map.of(
             "serviceIdentifier", "isolated-service",
@@ -488,6 +499,13 @@ class WrpByIdentifierIntegrationTest {
         assertTrue(byIdentifier.verify(new ECDSAVerifier((ECPublicKey) signingKeyPair.getPublic())));
         Map<?, ?> byIdentifierParty = (Map<?, ?>) byIdentifier.getPayload().toJSONObject().get("data");
         assertEquals(2, ((List<?>) byIdentifierParty.get("services")).size());
+        JWSObject inactiveByIdentifier = JWSObject.parse(mockMvc.perform(
+            get("/wrp/{identifier}", inactive.getOrgno()))
+            .andExpect(status().isOk())
+            .andReturn().getResponse().getContentAsString());
+        Map<?, ?> inactiveByIdentifierParty =
+            (Map<?, ?>) inactiveByIdentifier.getPayload().toJSONObject().get("data");
+        assertEquals(1, ((List<?>) inactiveByIdentifierParty.get("services")).size());
     }
 
     @Test
@@ -599,16 +617,19 @@ class WrpByIdentifierIntegrationTest {
         walletRelyingPartyRepository.saveAllAndFlush(
             List.of(firstMatch, secondMatch, differentIdentifier, inactiveServiceMatch));
 
-        JWSObject firstPage = getCollectionPage(1, null, Map.of("intendedUseIdentifier", intendedUseIdentifier));
+        JWSObject firstPage = getCollectionPage(2, null, Map.of("intendedUseIdentifier", intendedUseIdentifier));
         Map<?, ?> firstPagination = (Map<?, ?>) firstPage.getPayload().toJSONObject().get("pagination");
         assertTrue((Boolean) firstPagination.get("has_next_page"));
         JWSObject secondPage = getCollectionPage(
-            1, (String) firstPagination.get("next_cursor"), Map.of("intendedUseIdentifier", intendedUseIdentifier));
+            2, (String) firstPagination.get("next_cursor"), Map.of("intendedUseIdentifier", intendedUseIdentifier));
         Map<?, ?> secondPagination = (Map<?, ?>) secondPage.getPayload().toJSONObject().get("pagination");
         assertFalse((Boolean) secondPagination.get("has_next_page"));
         List<String> matchingNames = new ArrayList<>(collectionTradeNames(firstPage));
         matchingNames.addAll(collectionTradeNames(secondPage));
-        assertEquals(Set.of("Intended use match A", "Intended use match B"), Set.copyOf(matchingNames));
+        assertEquals(
+            Set.of("Intended use match A", "Intended use match B", "Inactive intended use service"),
+            Set.copyOf(matchingNames)
+        );
 
         Map<?, ?> combinedFilterMatch = (Map<?, ?>) ((List<?>) getCollectionPage(null, null, Map.of(
             "intendedUseIdentifier", intendedUseIdentifier,
@@ -689,16 +710,23 @@ class WrpByIdentifierIntegrationTest {
             pidMatch, drivingLicenceMatch, substringOnly, caseOnly, wildcardCharacters, inactiveServiceMatch
         ));
 
-        JWSObject firstPage = getCollectionPage(1, null, Map.of("claimPath", "birthdate"));
+        JWSObject firstPage = getCollectionPage(2, null, Map.of("claimPath", "birthdate"));
         Map<?, ?> firstPagination = (Map<?, ?>) firstPage.getPayload().toJSONObject().get("pagination");
         assertTrue((Boolean) firstPagination.get("has_next_page"));
         JWSObject secondPage = getCollectionPage(
-            1, (String) firstPagination.get("next_cursor"), Map.of("claimPath", "birthdate"));
+            2, (String) firstPagination.get("next_cursor"), Map.of("claimPath", "birthdate"));
         Map<?, ?> secondPagination = (Map<?, ?>) secondPage.getPayload().toJSONObject().get("pagination");
         assertFalse((Boolean) secondPagination.get("has_next_page"));
         List<String> matchingNames = new ArrayList<>(collectionTradeNames(firstPage));
         matchingNames.addAll(collectionTradeNames(secondPage));
-        assertEquals(Set.of("Claim path PID match", "Claim path driving licence match"), Set.copyOf(matchingNames));
+        assertEquals(
+            Set.of(
+                "Claim path PID match",
+                "Claim path driving licence match",
+                "Claim path inactive service"
+            ),
+            Set.copyOf(matchingNames)
+        );
 
         Map<?, ?> combinedFilterMatch = (Map<?, ?>) ((List<?>) getCollectionPage(null, null, Map.of(
             "claimPath", "birthdate",
@@ -792,17 +820,21 @@ class WrpByIdentifierIntegrationTest {
             inactiveServiceMatch
         ));
 
-        JWSObject firstPage = getCollectionPage(1, null, Map.of("credentialMeta", vctValue));
+        JWSObject firstPage = getCollectionPage(2, null, Map.of("credentialMeta", vctValue));
         Map<?, ?> firstPagination = (Map<?, ?>) firstPage.getPayload().toJSONObject().get("pagination");
         assertTrue((Boolean) firstPagination.get("has_next_page"));
         JWSObject secondPage = getCollectionPage(
-            1, (String) firstPagination.get("next_cursor"), Map.of("credentialMeta", vctValue));
+            2, (String) firstPagination.get("next_cursor"), Map.of("credentialMeta", vctValue));
         Map<?, ?> secondPagination = (Map<?, ?>) secondPage.getPayload().toJSONObject().get("pagination");
         assertFalse((Boolean) secondPagination.get("has_next_page"));
         List<String> matchingNames = new ArrayList<>(collectionTradeNames(firstPage));
         matchingNames.addAll(collectionTradeNames(secondPage));
         assertEquals(
-            Set.of("Credential meta VCT match A", "Credential meta VCT match B"),
+            Set.of(
+                "Credential meta VCT match A",
+                "Credential meta VCT match B",
+                "Credential meta inactive service"
+            ),
             Set.copyOf(matchingNames)
         );
 
@@ -866,17 +898,20 @@ class WrpByIdentifierIntegrationTest {
             partyWithCredentialFormats("Format wildcard literal", "custom_100%")
         ));
 
-        JWSObject firstPage = getCollectionPage(1, null, Map.of("credentialFormat", "dc+sd-jwt"));
+        JWSObject firstPage = getCollectionPage(2, null, Map.of("credentialFormat", "dc+sd-jwt"));
         Map<?, ?> firstPagination = (Map<?, ?>) firstPage.getPayload().toJSONObject().get("pagination");
         assertTrue((Boolean) firstPagination.get("has_next_page"));
         JWSObject secondPage = getCollectionPage(
-            1, (String) firstPagination.get("next_cursor"), Map.of("credentialFormat", "dc+sd-jwt"));
+            2, (String) firstPagination.get("next_cursor"), Map.of("credentialFormat", "dc+sd-jwt"));
         assertFalse((Boolean) ((Map<?, ?>) secondPage.getPayload().toJSONObject().get("pagination"))
             .get("has_next_page"));
         List<String> matchingNames = new ArrayList<>(collectionTradeNames(firstPage));
         matchingNames.addAll(collectionTradeNames(secondPage));
-        assertEquals(2, matchingNames.size());
-        assertEquals(Set.of("Format match A", "Format match B"), Set.copyOf(matchingNames));
+        assertEquals(4, matchingNames.size());
+        assertEquals(
+            Set.of("Format match A", "Format match B", "Format inactive service", "Format inactive party"),
+            Set.copyOf(matchingNames)
+        );
         assertEquals(
             List.of("Format match A"),
             collectionTradeNames(getCollectionPage(null, null, Map.of("credentialFormat", "mso_mdoc")))
@@ -990,15 +1025,15 @@ class WrpByIdentifierIntegrationTest {
             inactiveServiceMatch
         ));
 
-        JWSObject firstPage = getCollectionPage(1, null, Map.of("entitlement", entitlement));
+        JWSObject firstPage = getCollectionPage(2, null, Map.of("entitlement", entitlement));
         Map<?, ?> firstPagination = (Map<?, ?>) firstPage.getPayload().toJSONObject().get("pagination");
         assertTrue((Boolean) firstPagination.get("has_next_page"));
         JWSObject secondPage = getCollectionPage(
-            1, (String) firstPagination.get("next_cursor"), Map.of("entitlement", entitlement));
+            2, (String) firstPagination.get("next_cursor"), Map.of("entitlement", entitlement));
         Map<?, ?> secondPagination = (Map<?, ?>) secondPage.getPayload().toJSONObject().get("pagination");
         assertTrue((Boolean) secondPagination.get("has_next_page"));
         JWSObject thirdPage = getCollectionPage(
-            1, (String) secondPagination.get("next_cursor"), Map.of("entitlement", entitlement));
+            2, (String) secondPagination.get("next_cursor"), Map.of("entitlement", entitlement));
         Map<?, ?> thirdPagination = (Map<?, ?>) thirdPage.getPayload().toJSONObject().get("pagination");
         assertFalse((Boolean) thirdPagination.get("has_next_page"));
 
@@ -1006,7 +1041,13 @@ class WrpByIdentifierIntegrationTest {
         matchingTradeNames.addAll(collectionTradeNames(secondPage));
         matchingTradeNames.addAll(collectionTradeNames(thirdPage));
         assertEquals(
-            Set.of("Entitlement match A", "Entitlement match B", "Entitlement match C"),
+            Set.of(
+                "Entitlement match A",
+                "Entitlement match B",
+                "Entitlement match C",
+                "Inactive instance entitlement",
+                "Inactive service entitlement"
+            ),
             Set.copyOf(matchingTradeNames)
         );
         JWSObject matchingWrpPage = getCollectionPage(null, null, Map.of(
@@ -1021,6 +1062,12 @@ class WrpByIdentifierIntegrationTest {
         Map<?, ?> matchingWrp = (Map<?, ?>) ((List<?>) matchingWrpPage.getPayload().toJSONObject().get("data"))
             .getFirst();
         assertEquals(3, ((List<?>) matchingWrp.get("services")).size());
+        Map<?, ?> inactiveInstanceWrp = (Map<?, ?>) ((List<?>) getCollectionPage(null, null, Map.of(
+            "entitlement", entitlement,
+            "identifier", inactiveInstanceMatch.getOrgno()
+        )).getPayload().toJSONObject().get("data")).getFirst();
+        Map<?, ?> inactiveInstanceService = (Map<?, ?>) ((List<?>) inactiveInstanceWrp.get("services")).getFirst();
+        assertEquals(List.of(entitlement), inactiveInstanceService.get("entitlements"));
     }
 
     @Test
@@ -1092,18 +1139,20 @@ class WrpByIdentifierIntegrationTest {
         ));
 
         JWSObject firstPage = getCollectionPage(
-            1, null, Map.of("usesIntermediary", intermediaryServiceIdentifier));
+            2, null, Map.of("usesIntermediary", intermediaryServiceIdentifier));
         Map<?, ?> firstPagination = (Map<?, ?>) firstPage.getPayload().toJSONObject().get("pagination");
         assertTrue((Boolean) firstPagination.get("has_next_page"));
         JWSObject secondPage = getCollectionPage(
-            1,
+            2,
             (String) firstPagination.get("next_cursor"),
             Map.of("usesIntermediary", intermediaryServiceIdentifier));
         Map<?, ?> secondPagination = (Map<?, ?>) secondPage.getPayload().toJSONObject().get("pagination");
         assertFalse((Boolean) secondPagination.get("has_next_page"));
+        Set<String> pagedNames = new HashSet<>(collectionTradeNames(firstPage));
+        pagedNames.addAll(collectionTradeNames(secondPage));
         assertEquals(
-            Set.of("Intermediary match A", "Intermediary match B"),
-            Set.of(collectionTradeNames(firstPage).getFirst(), collectionTradeNames(secondPage).getFirst())
+            Set.of("Intermediary match A", "Intermediary match B", "Inactive intermediary service"),
+            pagedNames
         );
         assertEquals(
             List.of("Intermediary match A"),
@@ -1157,16 +1206,18 @@ class WrpByIdentifierIntegrationTest {
             inactiveIntermediary
         ));
 
-        JWSObject firstPage = getCollectionPage(1, null, Map.of("isIntermediary", "true"));
+        JWSObject firstPage = getCollectionPage(2, null, Map.of("isIntermediary", "true"));
         Map<?, ?> firstPagination = (Map<?, ?>) firstPage.getPayload().toJSONObject().get("pagination");
         assertTrue((Boolean) firstPagination.get("has_next_page"));
         JWSObject secondPage = getCollectionPage(
-            1, (String) firstPagination.get("next_cursor"), Map.of("isIntermediary", "true"));
+            2, (String) firstPagination.get("next_cursor"), Map.of("isIntermediary", "true"));
         Map<?, ?> secondPagination = (Map<?, ?>) secondPage.getPayload().toJSONObject().get("pagination");
         assertFalse((Boolean) secondPagination.get("has_next_page"));
+        Set<String> intermediaryNames = new HashSet<>(collectionTradeNames(firstPage));
+        intermediaryNames.addAll(collectionTradeNames(secondPage));
         assertEquals(
-            Set.of("Intermediary true A", "Intermediary true B"),
-            Set.of(collectionTradeNames(firstPage).getFirst(), collectionTradeNames(secondPage).getFirst())
+            Set.of("Intermediary true A", "Intermediary true B", "Inactive intermediary"),
+            intermediaryNames
         );
         assertEquals(
             Set.of("Intermediary false A", "Intermediary false B", "Inactive intermediary"),
@@ -1188,7 +1239,7 @@ class WrpByIdentifierIntegrationTest {
     }
 
     @Test
-    void matchesBothIntermediaryFlagsForMixedActiveServices() throws Exception {
+    void matchesBothIntermediaryFlagsForMixedServices() throws Exception {
         WalletRelyingParty party =
             partyWithSearchData("Mixed services", "urn:example:mixed-services", "Mixed Services");
         WalletRelyingPartyService intermediary = party.getServices().getFirst();
@@ -1259,23 +1310,32 @@ class WrpByIdentifierIntegrationTest {
         ));
 
         assertEquals(
-            Set.of("Provided attestation match A", "Provided attestation match B"),
+            Set.of(
+                "Provided attestation match A",
+                "Provided attestation match B",
+                "Inactive provided attestation service"
+            ),
             Set.copyOf(collectionTradeNames(getCollectionPage(null, null, Map.of(
                 "providedAttestation", attestationType
             ))))
         );
-        JWSObject firstPage = getCollectionPage(1, null, Map.of("providedAttestation", attestationType));
+        JWSObject firstPage = getCollectionPage(2, null, Map.of("providedAttestation", attestationType));
         Map<?, ?> firstPagination = (Map<?, ?>) firstPage.getPayload().toJSONObject().get("pagination");
         assertTrue((Boolean) firstPagination.get("has_next_page"));
         JWSObject secondPage = getCollectionPage(
-            1, (String) firstPagination.get("next_cursor"), Map.of("providedAttestation", attestationType));
+            2, (String) firstPagination.get("next_cursor"), Map.of("providedAttestation", attestationType));
         Map<?, ?> secondPagination = (Map<?, ?>) secondPage.getPayload().toJSONObject().get("pagination");
         assertFalse((Boolean) secondPagination.get("has_next_page"));
         assertFalse(secondPagination.containsKey("next_cursor"));
+        Set<String> pagedNames = new HashSet<>(collectionTradeNames(firstPage));
+        pagedNames.addAll(collectionTradeNames(secondPage));
         assertEquals(
-            Set.of("Provided attestation match A", "Provided attestation match B"),
-            Set.copyOf(
-                List.of(collectionTradeNames(firstPage).getFirst(), collectionTradeNames(secondPage).getFirst()))
+            Set.of(
+                "Provided attestation match A",
+                "Provided attestation match B",
+                "Inactive provided attestation service"
+            ),
+            pagedNames
         );
         assertEquals(
             List.of("Provided attestation match A"),
@@ -1353,6 +1413,9 @@ class WrpByIdentifierIntegrationTest {
         mockMvc.perform(get("/v3/api-docs/WRP"))
             .andExpect(status().isOk())
             .andExpect(content().string(containsString("\"/wrp\"")))
+            .andExpect(content().string(containsString("Returns relying parties matching")))
+            .andExpect(content().string(containsString(
+                "identifier of a service; only that service is included in the response")))
             .andExpect(content().string(containsString("limit")))
             .andExpect(content().string(containsString("cursor")))
             .andExpect(content().string(containsString("identifier")))
@@ -1375,7 +1438,7 @@ class WrpByIdentifierIntegrationTest {
     }
 
     @Test
-    void includesDistinctEntitlementsFromActiveInstancesOnly() throws Exception {
+    void includesDistinctEntitlementsFromAllInstances() throws Exception {
         String orgno = TestDataGenerator.generateValidOrgno();
         WalletRelyingParty relyingParty = EntityGenerator.generateWalletRelyingParty(1);
         relyingParty.setOrgno(orgno);
@@ -1403,7 +1466,7 @@ class WrpByIdentifierIntegrationTest {
         Map<?, ?> serviceData = (Map<?, ?>) ((List<?>) data.get("services")).getFirst();
 
         assertEquals(
-            Set.of("urn:example:shared", "urn:example:first", "urn:example:second"),
+            Set.of("urn:example:shared", "urn:example:first", "urn:example:second", "urn:example:inactive-only"),
             Set.copyOf((List<?>) serviceData.get("entitlements"))
         );
     }

@@ -36,7 +36,7 @@ public class WrpLookupService {
             throw new IllegalStateException("Registered WRP identifier matches more than one party");
         }
         return matches.stream().findFirst()
-            .map(party -> toResource(party, activeEntitlements(List.of(party.getId()))));
+            .map(party -> toResource(party, entitlements(List.of(party.getId()))));
     }
 
     @Transactional(readOnly = true)
@@ -50,7 +50,7 @@ public class WrpLookupService {
         }
 
         Cursor cursor = decodeCursor(cursorToken);
-        List<WalletRelyingParty> candidates = repository.findActivePage(
+        List<WalletRelyingParty> candidates = repository.findPage(
             new WrpSearchCriteria(
                 filters.identifier(),
                 filters.legalName(),
@@ -75,7 +75,7 @@ public class WrpLookupService {
         List<WalletRelyingParty> parties = hasNextPage
             ? candidates.subList(0, limit)
             : candidates;
-        Map<UUID, List<String>> entitlementsByService = activeEntitlements(
+        Map<UUID, List<String>> entitlementsByService = entitlements(
             parties.stream().map(WalletRelyingParty::getId).toList()
         );
         List<WalletRelyingPartyResource> data = parties.stream()
@@ -97,11 +97,11 @@ public class WrpLookupService {
             party, entitlementsByService, supervisoryAuthorityProperties, wrpApiProperties);
     }
 
-    private Map<UUID, List<String>> activeEntitlements(List<UUID> partyIds) {
+    private Map<UUID, List<String>> entitlements(List<UUID> partyIds) {
         if (partyIds.isEmpty()) {
             return Map.of();
         }
-        return repository.findActiveInstanceEntitlementsByPartyIds(partyIds)
+        return repository.findInstanceEntitlementsByPartyIds(partyIds)
             .stream()
             .collect(Collectors.groupingBy(
                 WalletRelyingPartyRepository.ServiceEntitlementProjection::getServiceId,

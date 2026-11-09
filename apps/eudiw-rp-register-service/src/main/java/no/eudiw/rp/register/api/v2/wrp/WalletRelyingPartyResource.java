@@ -69,7 +69,6 @@ public record WalletRelyingPartyResource(
             relyingParty.getTradeName(),
             properties.registryUri(),
             relyingParty.getServices().stream()
-                .filter(WalletRelyingPartyService::isActive)
                 .filter(service -> serviceIdentifier == null || serviceIdentifier.equals(service.getServiceIdentifier()))
                 .map(service -> ServiceResource.from(
                     service, entitlementsByService.getOrDefault(service.getId(), List.of())))

@@ -45,7 +45,7 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
     private EntityManager entityManager;
 
     @Override
-    public List<WalletRelyingParty> findActivePage(
+    public List<WalletRelyingParty> findPage(
         WrpSearchCriteria criteria,
         Long cursorCreatedMs,
         UUID cursorId,
@@ -81,7 +81,6 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         UUID cursorId
     ) {
         List<Predicate> predicates = new ArrayList<>();
-        predicates.add(builder.isTrue(party.get("active")));
         if (criteria.identifier() != null) {
             predicates.add(identifierPredicate(builder, party));
         }
@@ -193,7 +192,6 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         matchingService.select(builder.literal(1))
             .where(
                 builder.equal(service.get("walletRelyingParty").get("id"), party.get("id")),
-                builder.isTrue(service.get("active")),
                 builder.equal(storedIdentifier, requestedIdentifier)
             );
         return builder.exists(matchingService);
@@ -207,7 +205,7 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         ParameterExpression<String> tradeName = builder.parameter(String.class, TRADE_NAME_PARAMETER);
         return builder.or(
             builder.equal(party.get("tradeName"), tradeName),
-            activeServicePredicate(builder, query, party, "serviceTradeName", tradeName)
+            servicePredicate(builder, query, party, "serviceTradeName", tradeName)
         );
     }
 
@@ -252,7 +250,6 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         matchingIntendedUse.select(builder.literal(1))
             .where(
                 builder.equal(service.get("walletRelyingParty").get("id"), party.get("id")),
-                builder.isTrue(service.get("active")),
                 builder.equal(containsIntendedUsePolicy, 1)
             );
         return builder.exists(matchingIntendedUse);
@@ -275,7 +272,6 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         matchingIntendedUse.select(builder.literal(1))
             .where(
                 builder.equal(service.get("walletRelyingParty").get("id"), party.get("id")),
-                builder.isTrue(service.get("active")),
                 builder.equal(storedIdentifier, requestedIdentifier)
             );
         return builder.exists(matchingIntendedUse);
@@ -297,7 +293,6 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         matchingClaimPath.select(builder.literal(1))
             .where(
                 builder.equal(service.get("walletRelyingParty").get("id"), party.get("id")),
-                builder.isTrue(service.get("active")),
                 builder.equal(containsClaimPath, 1)
             );
         return builder.exists(matchingClaimPath);
@@ -325,7 +320,6 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         matchingCredentialMeta.select(builder.literal(1))
             .where(
                 builder.equal(service.get("walletRelyingParty").get("id"), party.get("id")),
-                builder.isTrue(service.get("active")),
                 builder.or(
                     builder.equal(containsVctValue, 1),
                     builder.equal(containsDoctype, 1)
@@ -350,7 +344,6 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         matchingCredentialFormat.select(builder.literal(1))
             .where(
                 builder.equal(service.get("walletRelyingParty").get("id"), party.get("id")),
-                builder.isTrue(service.get("active")),
                 builder.equal(storedFormat, requestedFormat)
             );
         return builder.exists(matchingCredentialFormat);
@@ -365,7 +358,7 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
             builder.parameter(String.class, ENTITLEMENT_PARAMETER);
         return builder.or(
             serviceSubEntitlementPredicate(builder, query, party, entitlement),
-            activeInstanceEntitlementPredicate(builder, query, party, entitlement)
+            instanceEntitlementPredicate(builder, query, party, entitlement)
         );
     }
 
@@ -387,13 +380,12 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         matchingService.select(builder.literal(1))
             .where(
                 builder.equal(service.get("walletRelyingParty").get("id"), party.get("id")),
-                builder.isTrue(service.get("active")),
                 builder.equal(containsSubEntitlement, 1)
             );
         return builder.exists(matchingService);
     }
 
-    private static Predicate activeInstanceEntitlementPredicate(
+    private static Predicate instanceEntitlementPredicate(
         CriteriaBuilder builder,
         CriteriaQuery<?> query,
         Root<WalletRelyingParty> party,
@@ -412,8 +404,6 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         matchingInstanceEntitlement.select(builder.literal(1))
             .where(
                 builder.equal(service.get("walletRelyingParty").get("id"), party.get("id")),
-                builder.isTrue(service.get("active")),
-                builder.isTrue(instance.get("active")),
                 builder.equal(storedEntitlement, requestedEntitlement)
             );
         return builder.exists(matchingInstanceEntitlement);
@@ -440,7 +430,6 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         matchingService.select(builder.literal(1))
             .where(
                 builder.equal(service.get("walletRelyingParty").get("id"), party.get("id")),
-                builder.isTrue(service.get("active")),
                 builder.equal(containsProvidedAttestation, 1)
             );
         return builder.exists(matchingService);
@@ -467,7 +456,6 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         matchingService.select(builder.literal(1))
             .where(
                 builder.equal(service.get("walletRelyingParty").get("id"), party.get("id")),
-                builder.isTrue(service.get("active")),
                 builder.equal(containsIntermediary, 1)
             );
         return builder.exists(matchingService);
@@ -484,13 +472,12 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         matchingService.select(builder.literal(1))
             .where(
                 builder.equal(service.get("walletRelyingParty").get("id"), party.get("id")),
-                builder.isTrue(service.get("active")),
                 builder.equal(service.get("isIntermediary"), isIntermediary)
             );
         return builder.exists(matchingService);
     }
 
-    private static Predicate activeServicePredicate(
+    private static Predicate servicePredicate(
         CriteriaBuilder builder,
         CriteriaQuery<?> query,
         Root<WalletRelyingParty> party,
@@ -503,7 +490,6 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
             correlatedParty.join("services", JoinType.INNER);
         matchingService.select(builder.literal(1))
             .where(
-                builder.isTrue(service.get("active")),
                 builder.equal(service.get(serviceAttribute), value)
             );
         return builder.exists(matchingService);

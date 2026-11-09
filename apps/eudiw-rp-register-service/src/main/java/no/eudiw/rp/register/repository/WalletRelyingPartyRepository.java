@@ -25,21 +25,19 @@ public interface WalletRelyingPartyRepository
 
     @Query(value = """
         SELECT party.* FROM wallet_relying_party party
-        WHERE party.active = TRUE
-          AND (party.orgno = :identifier
-            OR JSON_CONTAINS(party.identifier, JSON_OBJECT('identifier', :identifier), '$'))
+        WHERE party.orgno = :identifier
+            OR JSON_CONTAINS(party.identifier, JSON_OBJECT('identifier', :identifier), '$')
         """, nativeQuery = true)
     List<WalletRelyingParty> findAllByRegisteredIdentifier(String identifier);
 
     @Query("""
-        SELECT DISTINCT service.id AS serviceId, activeEntitlement.entitlement AS entitlementValue
+        SELECT DISTINCT service.id AS serviceId, entitlement.entitlement AS entitlementValue
         FROM WalletRelyingPartyService service
         JOIN service.relyingPartyInstances instance
-        JOIN instance.relyingPartyEntitlements activeEntitlement
+        JOIN instance.relyingPartyEntitlements entitlement
         WHERE service.walletRelyingParty.id IN :partyIds
-          AND instance.active = TRUE
         """)
-    List<ServiceEntitlementProjection> findActiveInstanceEntitlementsByPartyIds(
+    List<ServiceEntitlementProjection> findInstanceEntitlementsByPartyIds(
         @Param("partyIds") List<UUID> partyIds
     );
 
