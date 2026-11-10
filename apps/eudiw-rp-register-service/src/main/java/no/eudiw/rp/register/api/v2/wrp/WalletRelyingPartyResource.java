@@ -2,6 +2,7 @@ package no.eudiw.rp.register.api.v2.wrp;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import no.eudiw.rp.register.api.v2.resource.ServiceReferenceResource;
 import no.eudiw.rp.register.config.SupervisoryAuthorityProperties;
 import no.eudiw.rp.register.config.WrpApiProperties;
 import no.eudiw.rp.register.domain.Credential;
@@ -132,9 +133,9 @@ public record WalletRelyingPartyResource(
         List<String> entitlements,
         List<String> subEntitlements,
         List<ProvidedAttestationResource> providesAttestations,
-        List<IntermediaryResource> usesIntermediaries,
+        List<ServiceReferenceResource> usesIntermediaries,
         boolean isIntermediary,
-        List<String> servedWRPServices
+        List<ServiceReferenceResource> servedWRPServices
     ) {
         @JsonProperty("supportURI")
         public String supportURI() {
@@ -157,13 +158,10 @@ public record WalletRelyingPartyResource(
                         attestation.format(), attestation.type()))
                     .toList(),
                 relyingPartyService.getUsesIntermediaries().stream()
-                    .map(intermediary -> new IntermediaryResource(
-                        intermediary.serviceIdentifier(),
-                        intermediary.serviceTradeName(),
-                        intermediary.registryURI()))
+                    .map(ServiceReferenceResource::from)
                     .toList(),
                 relyingPartyService.isIntermediary(),
-                relyingPartyService.getServedWRPServices()
+                relyingPartyService.getServedWRPServices().stream().map(ServiceReferenceResource::from).toList()
             );
         }
 
@@ -222,7 +220,4 @@ public record WalletRelyingPartyResource(
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record ProvidedAttestationResource(String format, String type) { }
-
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    public record IntermediaryResource(String serviceIdentifier, String serviceTradeName, String registryURI) { }
 }

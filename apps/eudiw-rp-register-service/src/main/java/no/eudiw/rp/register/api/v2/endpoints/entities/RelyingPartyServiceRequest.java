@@ -6,9 +6,9 @@ import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import no.eudiw.rp.register.api.v2.resource.IntermediaryReferenceResource;
 import no.eudiw.rp.register.api.v2.resource.MultiLangStringResource;
 import no.eudiw.rp.register.api.v2.resource.ProvidedAttestationResource;
+import no.eudiw.rp.register.api.v2.resource.ServiceReferenceResource;
 import no.eudiw.rp.register.api.v2.resource.V2ResourceValidation;
 import no.eudiw.rp.register.domain.MultiLangString;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
@@ -27,9 +27,9 @@ public record RelyingPartyServiceRequest(
     @JsonProperty(required = true) @NotEmpty List<@NotNull @Valid MultiLangStringResource> srvDescription,
     List<@NotBlank String> subEntitlements,
     List<@NotNull @Valid ProvidedAttestationResource> providesAttestations,
-    List<@NotNull @Valid IntermediaryReferenceResource> usesIntermediaries,
+    List<@NotNull @Valid ServiceReferenceResource> usesIntermediaries,
     @JsonProperty(value = "isIntermediary", required = true) @NotNull Boolean isIntermediary,
-    List<@NotBlank String> servedWRPServices
+    List<@NotNull @Valid ServiceReferenceResource> servedWRPServices
 ) {
     @AssertTrue(message = "service_contact_required")
     public boolean hasContactInformation() {
@@ -60,7 +60,7 @@ public record RelyingPartyServiceRequest(
             relyingPartyInstances,
             isIntermediary,
             listOrEmpty(usesIntermediaries).stream().map(item -> item.toDomain()).toList(),
-            listOrEmpty(servedWRPServices)
+            listOrEmpty(servedWRPServices).stream().map(ServiceReferenceResource::toDomain).toList()
         );
         relyingPartyService.setServiceIdentifier(serviceIdentifier);
         relyingPartyService.setSupportUri(supportUri);
@@ -77,7 +77,7 @@ public record RelyingPartyServiceRequest(
         relyingPartyService.setIntermediaryConfiguration(
             isIntermediary,
             listOrEmpty(usesIntermediaries).stream().map(item -> item.toDomain()).toList(),
-            listOrEmpty(servedWRPServices)
+            listOrEmpty(servedWRPServices).stream().map(ServiceReferenceResource::toDomain).toList()
         );
         relyingPartyService.rename(serviceTradeName);
         relyingPartyService.setServiceIdentifier(serviceIdentifier);

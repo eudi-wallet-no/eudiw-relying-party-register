@@ -2,11 +2,12 @@ package no.eudiw.rp.register.data.repository;
 
 import jakarta.persistence.EntityManager;
 import no.eudiw.rp.register.domain.Credential;
+import no.eudiw.rp.register.domain.Identifier;
 import no.eudiw.rp.register.domain.IntendedUse;
-import no.eudiw.rp.register.domain.IntermediaryReference;
 import no.eudiw.rp.register.domain.MultiLangString;
 import no.eudiw.rp.register.domain.Policy;
 import no.eudiw.rp.register.domain.ProvidedAttestation;
+import no.eudiw.rp.register.domain.ServiceReference;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
@@ -114,15 +115,15 @@ class WalletRelyingPartyServiceRepositoryTest {
         var relyingParty = new WalletRelyingParty("Legal Name", generateValidOrgno(), true, List.of());
         var intermediaryService = new WalletRelyingPartyService("Intermediary", relyingParty, List.of());
         intermediaryService.setServiceIdentifier("intermediary-service");
-        intermediaryService.setIntermediaryConfiguration(true, List.of(), List.of("client-service"));
+        intermediaryService.setIntermediaryConfiguration(true, List.of(), List.of(new ServiceReference(
+            List.of(new Identifier("urn:example:identifier", "client-party")),
+            "client-service", "https://registry.example/wrp")));
 
         var clientService = new WalletRelyingPartyService("Client", relyingParty, List.of());
         clientService.setServiceIdentifier("client-service");
-        clientService.setIntermediaryConfiguration(false, List.of(new IntermediaryReference(
-            "intermediary-service",
-            "Intermediary",
-            "https://registry.example/wrp"
-        )), List.of());
+        clientService.setIntermediaryConfiguration(false, List.of(new ServiceReference(
+            List.of(new Identifier("urn:example:identifier", "party-1")),
+            "intermediary-service", "https://registry.example/wrp")), List.of());
         var loginIntendedUse = new IntendedUse(
             "login",
             "2026-01-02",
@@ -166,13 +167,13 @@ class WalletRelyingPartyServiceRepositoryTest {
             .orElseThrow();
 
         assertAll(
-            () -> assertEquals(List.of(new IntermediaryReference(
-                "intermediary-service",
-                "Intermediary",
-                "https://registry.example/wrp"
-            )), actualClient.getUsesIntermediaries()),
+            () -> assertEquals(List.of(new ServiceReference(
+                List.of(new Identifier("urn:example:identifier", "party-1")),
+                "intermediary-service", "https://registry.example/wrp")), actualClient.getUsesIntermediaries()),
             () -> assertTrue(intermediaryFlag(actualIntermediary.getId())),
-            () -> assertEquals(List.of("client-service"), actualIntermediary.getServedWRPServices()),
+            () -> assertEquals(List.of(new ServiceReference(
+                List.of(new Identifier("urn:example:identifier", "client-party")),
+                "client-service", "https://registry.example/wrp")), actualIntermediary.getServedWRPServices()),
             () -> assertEquals("login", actualIntendedUse.getIntendedUseIdentifier()),
             () -> assertEquals("2026-01-02", actualIntendedUse.getCreatedAt()),
             () -> assertNull(actualIntendedUse.getRevokedAt()),
@@ -300,7 +301,8 @@ class WalletRelyingPartyServiceRepositoryTest {
         var service = new WalletRelyingPartyService("Invalid", relyingParty, List.of());
         ReflectionTestUtils.setField(service, "isIntermediary", true);
         ReflectionTestUtils.setField(service, "usesIntermediaries", List.of(
-            new IntermediaryReference("proxy", "Proxy", "https://registry.example/wrp")
+            new ServiceReference(
+                List.of(new Identifier("urn:example:identifier", "party-1")), "proxy", "https://registry.example/wrp")
         ));
         relyingParty.setServices(List.of(service));
 
@@ -322,7 +324,9 @@ class WalletRelyingPartyServiceRepositoryTest {
         entityManager.clear();
 
         WalletRelyingPartyService managedService = repository.findById(service.getId()).orElseThrow();
-        ReflectionTestUtils.setField(managedService, "servedWRPServices", List.of("client-service"));
+        ReflectionTestUtils.setField(managedService, "servedWRPServices", List.of(new ServiceReference(
+            List.of(new Identifier("urn:example:identifier", "client-party")),
+            "client-service", "https://registry.example/wrp")));
 
         RuntimeException exception = assertThrows(
             RuntimeException.class,
@@ -341,7 +345,13 @@ class WalletRelyingPartyServiceRepositoryTest {
         repository.saveAndFlush(service);
         var serviceId = service.getId();
         entityManager.createNativeQuery(
-            "UPDATE wallet_relying_party_service SET served_wrp_services = JSON_ARRAY('client-service') WHERE id = :serviceId"
+            """
+            UPDATE wallet_relying_party_service
+            SET served_wrp_services = JSON_ARRAY(JSON_OBJECT(
+                'identifier', JSON_ARRAY(JSON_OBJECT('type', 'urn:example:identifier', 'identifier', 'client-party')),
+                'serviceIdentifier', 'client-service', 'registryURI', 'https://registry.example/wrp'))
+            WHERE id = :serviceId
+            """
         ).setParameter("serviceId", serviceId.toString()).executeUpdate();
         entityManager.clear();
 

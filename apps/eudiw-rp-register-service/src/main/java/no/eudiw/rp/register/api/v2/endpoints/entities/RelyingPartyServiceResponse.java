@@ -3,9 +3,9 @@ package no.eudiw.rp.register.api.v2.endpoints.entities;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
-import no.eudiw.rp.register.api.v2.resource.IntermediaryReferenceResource;
 import no.eudiw.rp.register.api.v2.resource.MultiLangStringResource;
 import no.eudiw.rp.register.api.v2.resource.ProvidedAttestationResource;
+import no.eudiw.rp.register.api.v2.resource.ServiceReferenceResource;
 import no.eudiw.rp.register.domain.IntendedUse;
 import no.eudiw.rp.register.domain.MultiLangString;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
@@ -27,9 +27,9 @@ public record RelyingPartyServiceResponse(
     List<String> entitlements,
     List<String> subEntitlements,
     List<@Valid ProvidedAttestationResource> providesAttestations,
-    List<@Valid IntermediaryReferenceResource> usesIntermediaries,
+    List<@Valid ServiceReferenceResource> usesIntermediaries,
     @JsonProperty("isIntermediary") boolean isIntermediary,
-    List<String> servedWRPServices,
+    List<ServiceReferenceResource> servedWRPServices,
     boolean active,
     long createdMs,
     long lastUpdatedMs,
@@ -52,11 +52,10 @@ public record RelyingPartyServiceResponse(
                 .map(item -> new ProvidedAttestationResource(item.format(), item.type()))
                 .toList(),
             relyingPartyService.getUsesIntermediaries().stream()
-                .map(item -> new IntermediaryReferenceResource(
-                    item.serviceIdentifier(), item.serviceTradeName(), item.registryURI()))
+                .map(ServiceReferenceResource::from)
                 .toList(),
             relyingPartyService.isIntermediary(),
-            relyingPartyService.getServedWRPServices(),
+            relyingPartyService.getServedWRPServices().stream().map(ServiceReferenceResource::from).toList(),
             relyingPartyService.isActive(),
             relyingPartyService.getCreatedMs(),
             relyingPartyService.getLastUpdatedMs(),

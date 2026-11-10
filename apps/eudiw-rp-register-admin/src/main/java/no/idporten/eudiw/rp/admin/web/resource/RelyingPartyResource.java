@@ -121,8 +121,8 @@ public record RelyingPartyResource(
         List<String> subEntitlements,
         List<ProvidedAttestationDetails> providesAttestations,
         @JsonProperty("isIntermediary") boolean isIntermediary,
-        List<IntermediaryReferenceDetails> usesIntermediaries,
-        List<String> servedWRPServices,
+        List<ServiceReferenceDetails> usesIntermediaries,
+        List<ServiceReferenceDetails> servedWRPServices,
         boolean active
     ) { }
 
@@ -133,9 +133,9 @@ public record RelyingPartyResource(
     public record ProvidedAttestationDetails(String format, String type) { }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public record IntermediaryReferenceDetails(
+    public record ServiceReferenceDetails(
+        List<IdentifierDetails> identifier,
         String serviceIdentifier,
-        String serviceTradeName,
         @JsonProperty("registryURI") String registryUri
     ) { }
 

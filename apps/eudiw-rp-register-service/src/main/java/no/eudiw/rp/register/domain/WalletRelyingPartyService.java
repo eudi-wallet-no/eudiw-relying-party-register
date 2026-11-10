@@ -52,7 +52,7 @@ public class WalletRelyingPartyService extends BaseEntity {
     @Setter(AccessLevel.NONE)
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "uses_intermediaries", columnDefinition = "JSON", nullable = false)
-    private List<IntermediaryReference> usesIntermediaries = new ArrayList<>();
+    private List<ServiceReference> usesIntermediaries = new ArrayList<>();
 
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
@@ -63,7 +63,7 @@ public class WalletRelyingPartyService extends BaseEntity {
     @Setter(AccessLevel.NONE)
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "served_wrp_services", columnDefinition = "JSON", nullable = false)
-    private List<String> servedWRPServices = new ArrayList<>();
+    private List<ServiceReference> servedWRPServices = new ArrayList<>();
 
     @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "wallet_relying_party_id", columnDefinition = "UUID", nullable = false)
@@ -111,8 +111,8 @@ public class WalletRelyingPartyService extends BaseEntity {
         WalletRelyingParty walletRelyingParty,
         List<RelyingPartyInstance> relyingPartyInstances,
         boolean isIntermediary,
-        List<IntermediaryReference> usesIntermediaries,
-        List<String> servedWRPServices
+        List<ServiceReference> usesIntermediaries,
+        List<ServiceReference> servedWRPServices
     ) {
         this.serviceTradeName = serviceTradeName;
         this.walletRelyingParty = walletRelyingParty;
@@ -122,12 +122,12 @@ public class WalletRelyingPartyService extends BaseEntity {
 
     public void setIntermediaryConfiguration(
         boolean isIntermediary,
-        List<IntermediaryReference> usesIntermediaries,
-        List<String> servedWRPServices
+        List<ServiceReference> usesIntermediaries,
+        List<ServiceReference> servedWRPServices
     ) {
-        List<IntermediaryReference> usesIntermediariesCopy =
+        List<ServiceReference> usesIntermediariesCopy =
             usesIntermediaries == null ? new ArrayList<>() : new ArrayList<>(usesIntermediaries);
-        List<String> servedWRPServicesCopy =
+        List<ServiceReference> servedWRPServicesCopy =
             servedWRPServices == null ? new ArrayList<>() : new ArrayList<>(servedWRPServices);
 
         validateIntermediaryConfiguration(isIntermediary, usesIntermediariesCopy, servedWRPServicesCopy);
@@ -139,8 +139,8 @@ public class WalletRelyingPartyService extends BaseEntity {
 
     private static void validateIntermediaryConfiguration(
         boolean isIntermediary,
-        List<IntermediaryReference> usesIntermediaries,
-        List<String> servedWRPServices
+        List<ServiceReference> usesIntermediaries,
+        List<ServiceReference> servedWRPServices
     ) {
         if (isIntermediary && !usesIntermediaries.isEmpty()) {
             throw new IllegalArgumentException("An intermediary service cannot use intermediaries");
@@ -150,7 +150,7 @@ public class WalletRelyingPartyService extends BaseEntity {
         }
     }
 
-    public List<IntermediaryReference> getUsesIntermediaries() {
+    public List<ServiceReference> getUsesIntermediaries() {
         return List.copyOf(usesIntermediaries);
     }
 
@@ -158,7 +158,7 @@ public class WalletRelyingPartyService extends BaseEntity {
         return isIntermediary;
     }
 
-    public List<String> getServedWRPServices() {
+    public List<ServiceReference> getServedWRPServices() {
         return List.copyOf(servedWRPServices);
     }
 
