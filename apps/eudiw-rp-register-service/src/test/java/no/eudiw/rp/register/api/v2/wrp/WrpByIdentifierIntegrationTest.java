@@ -489,6 +489,82 @@ class WrpByIdentifierIntegrationTest {
     }
 
     @Test
+    void returnsSignedWrpIsolatedToTheRequestedService() throws Exception {
+        WalletRelyingParty party = partyNamed("Service route party");
+        WalletRelyingPartyService matchingService = party.getServices().getFirst();
+        matchingService.setServiceIdentifier("service-one");
+        matchingService.setServiceTradeName("Requested service");
+        matchingService.setActive(false);
+        WalletRelyingPartyService otherService =
+            new WalletRelyingPartyService("Other service", party, List.of());
+        otherService.setServiceIdentifier("service-two");
+        party.setServices(List.of(matchingService, otherService));
+        walletRelyingPartyRepository.saveAndFlush(party);
+
+        String token = mockMvc.perform(get(
+                "/wrp/{identifier}/services/{serviceIdentifier}", party.getOrgno(), "service-one"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.parseMediaType("application/jwt")))
+            .andExpect(header().string("x-jku-url", JWKS_URL))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        JWSObject jws = JWSObject.parse(token);
+        assertTrue(jws.verify(new ECDSAVerifier((ECPublicKey) signingKeyPair.getPublic())));
+        Map<String, Object> payload = jws.getPayload().toJSONObject();
+        Map<?, ?> data = (Map<?, ?>) payload.get("data");
+        assertEquals("Service route party", data.get("tradeName"));
+        assertFalse(payload.containsKey("pagination"));
+        List<?> services = (List<?>) data.get("services");
+        assertEquals(1, services.size());
+        Map<?, ?> service = (Map<?, ?>) services.getFirst();
+        assertEquals("service-one", service.get("serviceIdentifier"));
+        assertEquals("Requested service", service.get("serviceTradeName"));
+    }
+
+    @Test
+    void returnsSignedEmptyResultWhenPartyOrServiceDoesNotMatch() throws Exception {
+        WalletRelyingParty party = partyNamed("Known service route party");
+        party.getServices().getFirst().setServiceIdentifier("known-service");
+        walletRelyingPartyRepository.saveAndFlush(party);
+
+        for (String[] path : List.of(
+            new String[] {"unknown-party", "known-service"},
+            new String[] {party.getOrgno(), "unknown-service"},
+            new String[] {party.getOrgno(), "KNOWN-SERVICE"}
+        )) {
+            String token = mockMvc.perform(get(
+                    "/wrp/{identifier}/services/{serviceIdentifier}", path[0], path[1]))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.parseMediaType("application/jwt")))
+                .andExpect(header().string("x-jku-url", JWKS_URL))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+            JWSObject jws = JWSObject.parse(token);
+            assertTrue(jws.verify(new ECDSAVerifier((ECPublicKey) signingKeyPair.getPublic())));
+            assertEquals(List.of(), jws.getPayload().toJSONObject().get("data"));
+            assertFalse(jws.getPayload().toJSONObject().containsKey("pagination"));
+        }
+    }
+
+    @Test
+    void returnsAnExplicitServerErrorForDuplicateServiceIdentifiers() throws Exception {
+        WalletRelyingParty party = partyNamed("Duplicate service route party");
+        party.getServices().getFirst().setServiceIdentifier("duplicate-service");
+        WalletRelyingPartyService duplicate =
+            new WalletRelyingPartyService("Duplicate service", party, List.of());
+        duplicate.setServiceIdentifier("duplicate-service");
+        party.setServices(List.of(party.getServices().getFirst(), duplicate));
+        walletRelyingPartyRepository.saveAndFlush(party);
+
+        mockMvc.perform(get(
+                "/wrp/{identifier}/services/{serviceIdentifier}", party.getOrgno(), "duplicate-service"))
+            .andExpect(status().isInternalServerError());
+    }
+
+    @Test
     void filtersCollectionByExactPolicyUriAtWrpAndIntendedUseLevels() throws Exception {
         String wrpPolicyUri = "https://example.test/policies/wrp";
         String intendedUsePolicyUri = "https://example.test/policies/intended-use";
