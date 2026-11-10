@@ -3,13 +3,13 @@ package no.eudiw.rp.register.api.v2.endpoints.entities;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import no.eudiw.rp.register.api.v2.resource.IdentifierResource;
-import no.eudiw.rp.register.api.v2.resource.IntermediaryReferenceResource;
 import no.eudiw.rp.register.api.v2.resource.LegalPersonResource;
 import no.eudiw.rp.register.api.v2.resource.LawResource;
 import no.eudiw.rp.register.api.v2.resource.MultiLangStringResource;
 import no.eudiw.rp.register.api.v2.resource.PolicyResource;
 import no.eudiw.rp.register.api.v2.resource.ProvidedAttestationResource;
 import no.eudiw.rp.register.api.v2.resource.RelyingPartyEaaResource;
+import no.eudiw.rp.register.api.v2.resource.ServiceReferenceResource;
 import no.eudiw.rp.register.api.v2.resource.SupervisoryAuthorityResource;
 import no.eudiw.rp.register.config.RegistryProperties;
 import no.eudiw.rp.register.config.SupervisoryAuthorityProperties;
@@ -144,8 +144,8 @@ public record RegistrationDetailsResponse(
         List<String> subEntitlements,
         List<ProvidedAttestationResource> providesAttestations,
         @JsonProperty("isIntermediary") boolean isIntermediary,
-        List<IntermediaryReferenceResource> usesIntermediaries,
-        List<String> servedWRPServices,
+        List<ServiceReferenceResource> usesIntermediaries,
+        List<ServiceReferenceResource> servedWRPServices,
         boolean active
     ) {
         private static RelyingPartyServiceDetails from(WalletRelyingPartyService relyingPartyService) {
@@ -159,10 +159,8 @@ public record RegistrationDetailsResponse(
                 mapOrEmpty(relyingPartyService.getProvidesAttestations(), item ->
                     new ProvidedAttestationResource(item.format(), item.type())),
                 relyingPartyService.isIntermediary(),
-                mapOrEmpty(relyingPartyService.getUsesIntermediaries(), item ->
-                    new IntermediaryReferenceResource(
-                        item.serviceIdentifier(), item.serviceTradeName(), item.registryURI())),
-                listOrEmpty(relyingPartyService.getServedWRPServices()),
+                mapOrEmpty(relyingPartyService.getUsesIntermediaries(), ServiceReferenceResource::from),
+                mapOrEmpty(relyingPartyService.getServedWRPServices(), ServiceReferenceResource::from),
                 relyingPartyService.isActive());
         }
     }

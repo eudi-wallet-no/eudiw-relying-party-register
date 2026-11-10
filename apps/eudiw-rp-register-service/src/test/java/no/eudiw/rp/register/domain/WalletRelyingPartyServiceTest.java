@@ -13,6 +13,13 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("WalletRelyingPartyService intermediary configuration")
 class WalletRelyingPartyServiceTest {
 
+    private static final ServiceReference CLIENT_REFERENCE = new ServiceReference(
+        List.of(new Identifier("urn:example:identifier", "client-party")),
+        "client-service", "https://registry.example/wrp");
+    private static final ServiceReference INTERMEDIARY_REFERENCE = new ServiceReference(
+        List.of(new Identifier("urn:example:identifier", "party-1")),
+        "proxy", "https://registry.example/wrp");
+
     @Test
     void legacyConstructorDefaultsToNonIntermediaryWithEmptyLists() {
         var service = new WalletRelyingPartyService("Service", null, List.of());
@@ -40,7 +47,7 @@ class WalletRelyingPartyServiceTest {
             null,
             List.of(),
             false,
-            List.of(new IntermediaryReference("proxy", "Proxy", "https://registry.example/wrp")),
+            List.of(INTERMEDIARY_REFERENCE),
             List.of()
         );
 
@@ -51,15 +58,15 @@ class WalletRelyingPartyServiceTest {
     @Test
     void allowsServedServicesOnlyForIntermediaryServices() {
         var service = new WalletRelyingPartyService(
-            "Proxy", null, List.of(), true, List.of(), List.of("client-service"));
+            "Proxy", null, List.of(), true, List.of(), List.of(CLIENT_REFERENCE));
 
         assertTrue(isIntermediary(service));
-        assertEquals(List.of("client-service"), service.getServedWRPServices());
+        assertEquals(List.of(CLIENT_REFERENCE), service.getServedWRPServices());
     }
 
     @Test
     void rejectsIntermediaryThatUsesAnotherIntermediaryAtConstruction() {
-        var intermediaryReference = new IntermediaryReference("proxy", "Proxy", "https://registry.example/wrp");
+        var intermediaryReference = INTERMEDIARY_REFERENCE;
 
         assertThrows(IllegalArgumentException.class, () -> new WalletRelyingPartyService(
             "Invalid",
@@ -74,35 +81,49 @@ class WalletRelyingPartyServiceTest {
     @Test
     void rejectsServedServicesForNonIntermediaryAtConstruction() {
         assertThrows(IllegalArgumentException.class, () -> new WalletRelyingPartyService(
-            "Invalid", null, List.of(), false, List.of(), List.of("client-service")));
+            "Invalid", null, List.of(), false, List.of(), List.of(CLIENT_REFERENCE)));
     }
 
     @Test
     void rejectedReconfigurationLeavesPreviousStateUnchanged() {
         var service = new WalletRelyingPartyService(
-            "Proxy", null, List.of(), true, List.of(), List.of("client-service"));
+            "Proxy", null, List.of(), true, List.of(), List.of(CLIENT_REFERENCE));
 
         assertThrows(IllegalArgumentException.class, () ->
-            service.setIntermediaryConfiguration(false, List.of(), List.of("client-service")));
+            service.setIntermediaryConfiguration(false, List.of(), List.of(CLIENT_REFERENCE)));
 
         assertTrue(isIntermediary(service));
-        assertEquals(List.of("client-service"), service.getServedWRPServices());
+        assertEquals(List.of(CLIENT_REFERENCE), service.getServedWRPServices());
         assertTrue(service.getUsesIntermediaries().isEmpty());
     }
 
     @Test
     void copiesIncomingListsAndDoesNotExposeMutableState() {
-        var servedServices = new ArrayList<>(List.of("client-service"));
+        var servedServices = new ArrayList<>(List.of(CLIENT_REFERENCE));
         var service = new WalletRelyingPartyService(
             "Proxy", null, List.of(), true, List.of(), servedServices);
         servedServices.clear();
 
-        assertEquals(List.of("client-service"), service.getServedWRPServices());
+        assertEquals(List.of(CLIENT_REFERENCE), service.getServedWRPServices());
         assertThrows(UnsupportedOperationException.class,
-            () -> service.getServedWRPServices().add("another-service"));
+            () -> service.getServedWRPServices().add(new ServiceReference(
+                List.of(new Identifier("urn:example:identifier", "other-party")),
+                "another-service", "https://registry.example/wrp")));
         assertThrows(UnsupportedOperationException.class,
             () -> service.getUsesIntermediaries().add(
-                new IntermediaryReference("proxy", "Proxy", "https://registry.example/wrp")));
+                INTERMEDIARY_REFERENCE));
+    }
+
+    @Test
+    @DisplayName("Should keep party identifiers the same in a service reference")
+    void shouldPreserveServiceReferenceIdentifiersAndPreventChangesThroughTheReference() {
+        var partyIdentifier = new Identifier("urn:example:identifier", "client-party");
+        var identifiers = new ArrayList<>(List.of(partyIdentifier));
+        var reference = new ServiceReference(identifiers, "client-service", "https://registry.example/wrp");
+        identifiers.clear();
+
+        assertEquals(List.of(partyIdentifier), reference.identifier());
+        assertThrows(UnsupportedOperationException.class, () -> reference.identifier().clear());
     }
 
     private boolean isIntermediary(WalletRelyingPartyService service) {
