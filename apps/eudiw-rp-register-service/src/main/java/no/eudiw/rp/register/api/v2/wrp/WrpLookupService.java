@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import no.eudiw.rp.register.config.SupervisoryAuthorityProperties;
 import no.eudiw.rp.register.config.WrpApiProperties;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
+import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 import no.eudiw.rp.register.exception.BadRequestException;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.repository.WrpSearchCriteria;
@@ -37,6 +38,40 @@ public class WrpLookupService {
         }
         return matches.stream().findFirst()
             .map(party -> toResource(party, entitlements(List.of(party.getId()))));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<WalletRelyingPartyResource> findByIdentifierAndServiceIdentifier(
+        String identifier,
+        String serviceIdentifier
+    ) {
+        List<WalletRelyingParty> parties = repository.findAllByRegisteredIdentifier(identifier);
+        if (parties.size() > 1) {
+            throw new IllegalStateException("Registered WRP identifier matches more than one party");
+        }
+        if (parties.isEmpty()) {
+            return Optional.empty();
+        }
+
+        WalletRelyingParty party = parties.getFirst();
+        List<WalletRelyingPartyService> matchingServices = party.getServices().stream()
+            .filter(service -> serviceIdentifier.equals(service.getServiceIdentifier()))
+            .toList();
+        if (matchingServices.size() > 1) {
+            throw new IllegalStateException(
+                "Registered serviceIdentifier matches more than one service within the WRP");
+        }
+        if (matchingServices.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(WalletRelyingPartyResource.from(
+            party,
+            entitlements(List.of(party.getId())),
+            supervisoryAuthorityProperties,
+            wrpApiProperties,
+            serviceIdentifier
+        ));
     }
 
     @Transactional(readOnly = true)

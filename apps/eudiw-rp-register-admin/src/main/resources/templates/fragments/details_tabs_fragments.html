@@ -300,7 +300,8 @@
                         <td>
                             <em th:if="${#lists.isEmpty(relyingPartyResource.relyingPartyService.servedWRPServices)}">Ikkje registrert.</em>
                             <ul th:unless="${#lists.isEmpty(relyingPartyResource.relyingPartyService.servedWRPServices)}">
-                                <li th:each="servedService : ${relyingPartyResource.relyingPartyService.servedWRPServices}" th:text="${servedService}"></li>
+                                <li th:each="servedService : ${relyingPartyResource.relyingPartyService.servedWRPServices}"
+                                    th:text="|${servedService.serviceIdentifier} (${#strings.listJoin(servedService.identifier.![type + ': ' + identifier], ', ')}) – ${servedService.registryUri}|"></li>
                             </ul>
                         </td>
                     </tr>
@@ -311,7 +312,7 @@
                                   th:text="${relyingPartyResource.relyingPartyService?.usesIntermediaries == null ? 'Ikkje registrert.' : 'Nei'}"></span>
                             <ul th:unless="${#lists.isEmpty(relyingPartyResource.relyingPartyService?.usesIntermediaries)}">
                                 <li th:each="intermediary : ${relyingPartyResource.relyingPartyService?.usesIntermediaries}"
-                                    th:text="|${intermediary.serviceTradeName} (${intermediary.serviceIdentifier}) – ${intermediary.registryUri}|"></li>
+                                    th:text="|${intermediary.serviceIdentifier} (${#strings.listJoin(intermediary.identifier.![type + ': ' + identifier], ', ')}) – ${intermediary.registryUri}|"></li>
                             </ul>
                         </td>
                     </tr>
