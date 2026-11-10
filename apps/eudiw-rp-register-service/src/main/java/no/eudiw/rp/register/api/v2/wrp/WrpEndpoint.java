@@ -247,4 +247,45 @@ public class WrpEndpoint {
             .header(JWK_URL_HEADER, properties.jwksUrl())
             .body(signedResult);
     }
+
+    @Operation(
+        summary = "Get a Wallet Relying Party service by identifiers",
+        description = """
+            Returns the parent Wallet Relying Party with its services array isolated to the exact
+            serviceIdentifier. No active-status filtering is applied. If the WRP or service is not found,
+            the signed payload contains an empty data array.""",
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "Signed isolated Wallet Relying Party, or a signed empty array when no match is found",
+                headers = @Header(
+                    name = JWK_URL_HEADER,
+                    schema = @Schema(type = "string", format = "uri")
+                ),
+                content = @Content(
+                    mediaType = "application/jwt",
+                    schema = @Schema(type = "string", format = "JWS")
+                )
+            ),
+            @ApiResponse(
+                responseCode = "500",
+                description = "Registry contains duplicate service identifiers within the WRP"
+            )
+        }
+    )
+    @GetMapping("/{identifier}/services/{serviceIdentifier}")
+    public ResponseEntity<String> getByIdentifierAndServiceIdentifier(
+        @Parameter(in = ParameterIn.PATH, required = true, schema = @Schema(type = "string"))
+        @PathVariable("identifier") String identifier,
+        @Parameter(in = ParameterIn.PATH, required = true, schema = @Schema(type = "string"))
+        @PathVariable("serviceIdentifier") String serviceIdentifier
+    ) {
+        String signedResult = lookupService.findByIdentifierAndServiceIdentifier(identifier, serviceIdentifier)
+            .map(jwsSigner::sign)
+            .orElseGet(jwsSigner::signEmptyResult);
+        return ResponseEntity.ok()
+            .contentType(MediaType.parseMediaType("application/jwt"))
+            .header(JWK_URL_HEADER, properties.jwksUrl())
+            .body(signedResult);
+    }
 }
