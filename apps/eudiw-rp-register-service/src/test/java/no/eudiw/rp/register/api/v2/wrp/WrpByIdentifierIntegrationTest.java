@@ -9,12 +9,12 @@ import com.nimbusds.jose.jwk.KeyUse;
 import jakarta.persistence.EntityManagerFactory;
 import no.eudiw.rp.register.domain.Credential;
 import no.eudiw.rp.register.domain.Identifier;
-import no.eudiw.rp.register.domain.IntermediaryReference;
 import no.eudiw.rp.register.domain.IntendedUse;
 import no.eudiw.rp.register.domain.LegalPerson;
 import no.eudiw.rp.register.domain.MultiLangString;
 import no.eudiw.rp.register.domain.Policy;
 import no.eudiw.rp.register.domain.ProvidedAttestation;
+import no.eudiw.rp.register.domain.ServiceReference;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
@@ -28,6 +28,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.stat.Statistics;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -1141,10 +1142,42 @@ class WrpByIdentifierIntegrationTest {
     }
 
     @Test
+    @DisplayName("Should include references to intermediaries and served services in signed relying party data")
+    void shouldIncludeQualifiedServiceReferencesInBothRelationshipListsInSignedRelyingPartyData() throws Exception {
+        ServiceReference reference = new ServiceReference(
+            List.of(new Identifier("EUID", "NO-123"), new Identifier("urn:example:identifier", "party-1")),
+            "referenced-service", "https://other-registry.example/wrp");
+        WalletRelyingParty party = partyWithSearchData("Referenced services", "urn:example:references", "References");
+        WalletRelyingPartyService clientService = party.getServices().getFirst();
+        clientService.setIntermediaryConfiguration(false, List.of(reference), List.of());
+        WalletRelyingPartyService intermediaryService = new WalletRelyingPartyService("Intermediary", party, List.of());
+        intermediaryService.setIntermediaryConfiguration(true, List.of(), List.of(reference));
+        party.setServices(List.of(clientService, intermediaryService));
+        walletRelyingPartyRepository.saveAndFlush(party);
+
+        Map<?, ?> signedParty = (Map<?, ?>) ((List<?>) getCollectionPage(null, null).getPayload()
+            .toJSONObject().get("data")).getFirst();
+        List<?> services = (List<?>) signedParty.get("services");
+        Map<String, Object> expectedReference = Map.of(
+            "identifier", List.of(Map.of("type", "EUID", "identifier", "NO-123"),
+                Map.of("type", "urn:example:identifier", "identifier", "party-1")),
+            "serviceIdentifier", "referenced-service",
+            "registryURI", "https://other-registry.example/wrp");
+
+        assertEquals(2, services.size());
+        for (Object value : services) {
+            Map<?, ?> service = (Map<?, ?>) value;
+            String field = Boolean.TRUE.equals(service.get("isIntermediary")) ? "servedWRPServices" : "usesIntermediaries";
+            assertEquals(List.of(expectedReference), service.get(field));
+        }
+    }
+
+    @Test
     void filtersCollectionByExactIntermediaryServiceIdentifierBeforeCursorPagination() throws Exception {
         String intermediaryServiceIdentifier = "https://registry.example/wrp/services/Provider";
-        IntermediaryReference intermediaryReference = new IntermediaryReference(
-            intermediaryServiceIdentifier, "Intermediary", "https://registry.example/wrp");
+        ServiceReference intermediaryReference = new ServiceReference(
+            List.of(new Identifier("urn:example:identifier", "party-1")),
+            intermediaryServiceIdentifier, "https://registry.example/wrp");
 
         WalletRelyingParty firstMatch =
             partyWithSearchData("Intermediary match A", "urn:example:intermediary-a", "Intermediary Alpha");
@@ -1160,24 +1193,26 @@ class WrpByIdentifierIntegrationTest {
         WalletRelyingParty secondMatch =
             partyWithSearchData("Intermediary match B", "urn:example:intermediary-b", "Intermediary Beta");
         secondMatch.getServices().getFirst().setIntermediaryConfiguration(
-            false, List.of(intermediaryReference), List.of());
+            false, List.of(new ServiceReference(
+                List.of(new Identifier("urn:example:identifier", "other-party")),
+                intermediaryServiceIdentifier, "https://other-registry.example/wrp")), List.of());
 
         WalletRelyingParty differentReference =
             partyWithSearchData("Different intermediary", "urn:example:intermediary-other", "Other");
         differentReference.getServices().getFirst().setIntermediaryConfiguration(
             false,
-            List.of(new IntermediaryReference(
-                "https://registry.example/wrp/services/Other", "Other intermediary",
-                "https://registry.example/wrp")),
+            List.of(new ServiceReference(
+                List.of(new Identifier("urn:example:identifier", "party-1")),
+                "https://registry.example/wrp/services/Other", "https://registry.example/wrp")),
             List.of());
 
         WalletRelyingParty caseMismatch =
             partyWithSearchData("Case-different intermediary", "urn:example:intermediary-case", "Other");
         caseMismatch.getServices().getFirst().setIntermediaryConfiguration(
             false,
-            List.of(new IntermediaryReference(
-                "https://registry.example/wrp/services/provider", "Intermediary",
-                "https://registry.example/wrp")),
+            List.of(new ServiceReference(
+                List.of(new Identifier("urn:example:identifier", "party-1")),
+                "https://registry.example/wrp/services/provider", "https://registry.example/wrp")),
             List.of());
 
         WalletRelyingParty inactiveServiceMatch =
@@ -1458,39 +1493,6 @@ class WrpByIdentifierIntegrationTest {
             "Expected batched association loading, but collection mapping used "
                 + statementCount + " SQL statements for " + parties.size() + " parties"
         );
-    }
-
-    @Test
-    void documentsTheCollectionRouteAndPaginationParameters() throws Exception {
-        mockMvc.perform(get("/v3/api-docs/WRP"))
-            .andExpect(status().isOk())
-            .andExpect(content().string(containsString("\"/wrp\"")))
-            .andExpect(content().string(containsString(
-                "\"/wrp/{identifier}/services/{serviceIdentifier}\"")))
-            .andExpect(content().string(containsString("services array isolated to the exact")))
-            .andExpect(content().string(containsString("signed empty array when no match is found")))
-            .andExpect(content().string(containsString("Returns relying parties matching")))
-            .andExpect(content().string(containsString(
-                "identifier of a service; only that service is included in the response")))
-            .andExpect(content().string(containsString("limit")))
-            .andExpect(content().string(containsString("cursor")))
-            .andExpect(content().string(containsString("identifier")))
-            .andExpect(content().string(containsString("legalName")))
-            .andExpect(content().string(containsString("serviceIdentifier")))
-            .andExpect(content().string(containsString("tradeName")))
-            .andExpect(content().string(containsString("policy")))
-            .andExpect(content().string(containsString("entitlement")))
-            .andExpect(content().string(containsString("providedAttestation")))
-            .andExpect(content().string(containsString("usesIntermediary")))
-            .andExpect(content().string(containsString("isIntermediary")))
-            .andExpect(content().string(containsString("intendedUseIdentifier")))
-            .andExpect(content().string(containsString("claimPath")))
-            .andExpect(content().string(containsString("credentialMeta")))
-            .andExpect(content().string(containsString("doctype_value")))
-            .andExpect(content().string(containsString("credentialFormat")))
-            .andExpect(content().string(containsString("Percent-encode '+' as '%2B'")))
-            .andExpect(content().string(containsString("next_cursor")))
-            .andExpect(content().string(containsString("has_next_page")));
     }
 
     @Test

@@ -75,7 +75,7 @@
                             </tr>
                             <tr>
                                 <th scope="row">Tenesta nyttar mellomledd<span class="ds-tag relying-party-field-status relying-party-field-status--readonly" data-color="neutral" data-size="sm">Skrivebeskytta</span></th>
-                                <td th:text="${service?.usesIntermediaries == null ? 'Ikkje registrert.' : (#lists.isEmpty(service.usesIntermediaries) ? 'Nei' : #strings.listJoin(service.usesIntermediaries.![serviceTradeName + ' (' + serviceIdentifier + ')'], ', '))}"></td>
+                                <td th:text="${service?.usesIntermediaries == null ? 'Ikkje registrert.' : (#lists.isEmpty(service.usesIntermediaries) ? 'Nei' : #strings.listJoin(service.usesIntermediaries.![serviceIdentifier + ' (' + #strings.listJoin(identifier.![type + ': ' + identifier], ', ') + ') – ' + registryUri], ', '))}"></td>
                             </tr>
                             <tr>
                                 <th scope="row">Tenesta er aktiv<span class="ds-tag relying-party-field-status relying-party-field-status--readonly" data-color="neutral" data-size="sm">Skrivebeskytta</span></th>

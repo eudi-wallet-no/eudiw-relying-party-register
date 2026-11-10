@@ -128,7 +128,9 @@ public class DetailedViewControllerTests {
                     List.of(new RelyingPartyResource.ProvidedAttestationDetails("jwt", "attestation")),
                     true,
                     List.of(),
-                    List.of("service-2"),
+                    List.of(new RelyingPartyResource.ServiceReferenceDetails(
+                        List.of(new RelyingPartyResource.IdentifierDetails("EUID", "NO-456")),
+                        "service-2", "https://registry.example.test/wrp")),
                     true))
                 .withIntendedUses(List.of(
                     new RelyingPartyResource.IntendedUseDetails(

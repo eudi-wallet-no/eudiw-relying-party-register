@@ -7,6 +7,7 @@ import no.eudiw.rp.register.api.v2.resource.LegalPersonResource;
 import no.eudiw.rp.register.api.v2.resource.MultiLangStringResource;
 import no.eudiw.rp.register.api.v2.resource.PolicyResource;
 import no.eudiw.rp.register.api.v2.resource.ProvidedAttestationResource;
+import no.eudiw.rp.register.api.v2.resource.ServiceReferenceResource;
 import no.eudiw.rp.register.api.v2.resource.SupervisoryAuthorityResource;
 import no.eudiw.rp.register.domain.Entitlement;
 import no.eudiw.rp.register.domain.certificates.AccessCertificate;
@@ -669,7 +670,9 @@ class V2ApiIntegrationTest {
             List.of(new ProvidedAttestationResource("jwt", "attestation")),
             true,
             List.of(),
-            List.of("service-2"),
+            List.of(new ServiceReferenceResource(
+                List.of(new IdentifierResource("EUID", "NO-456")),
+                "service-2", "https://other-registry.example/wrp")),
             true);
         ObjectNode relyingPartyRequest = objectMapper.valueToTree(expectedRelyingParty);
         relyingPartyRequest.remove(List.of("providerType", "supervisoryAuthority", "registryURI"));
@@ -765,6 +768,78 @@ class V2ApiIntegrationTest {
     void shouldReturnNotFoundForNonexistentRegistration() throws Exception {
         request(get("/v2/registrations/" + new UUID(0, 999)))
             .andExpect(status().isNotFound());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"usesIntermediaries", "servedWRPServices"})
+    @DisplayName("Should keep service references for new and changed services")
+    void shouldPreserveServiceReferencesWhenCreatingAndUpdating(String field) throws Exception {
+        String reference = """
+            {"identifier":[{"type":"EUID","identifier":"NO-123"},
+                           {"type":"urn:example:identifier","identifier":"party-1"}],
+             "serviceIdentifier":"referenced-service","registryURI":"https://other-registry.example/wrp"}
+            """;
+        String partyId = read(post("/v2/relying-parties"),
+            "{\"orgno\":\"" + TestDataGenerator.generateValidOrgno() + "\"}").get("id").asString();
+        String serviceId = read(post("/v2/relying-parties/" + partyId + "/services"),
+            serviceRequestWithReference(field, reference)).get("id").asString();
+        String instanceId = read(post("/v2/services/" + serviceId + "/instances"), RELYING_PARTY_INSTANCE)
+            .get("id").asString();
+
+        assertEquals(objectMapper.readTree(reference), read(get("/v2/services/" + serviceId)).at("/" + field + "/0"));
+
+        String updatedReference = reference.replace("referenced-service", "updated-service")
+            .replace("other-registry.example", "updated-registry.example");
+        request(put("/v2/services/" + serviceId), serviceRequestWithReference(field, updatedReference))
+            .andExpect(status().isOk());
+
+        assertEquals(objectMapper.readTree(updatedReference),
+            read(get("/v2/services/" + serviceId)).at("/" + field + "/0"));
+        assertEquals(objectMapper.readTree(updatedReference),
+            read(get("/v2/registrations/" + instanceId)).at("/relyingPartyService/" + field + "/0"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "null",
+        "{\"serviceIdentifier\":\"service\",\"registryURI\":\"https://registry.example/wrp\"}",
+        "{\"identifier\":[],\"serviceIdentifier\":\"service\",\"registryURI\":\"https://registry.example/wrp\"}",
+        "{\"identifier\":[null],\"serviceIdentifier\":\"service\",\"registryURI\":\"https://registry.example/wrp\"}",
+        "{\"identifier\":[{\"type\":\"EUID\",\"identifier\":\" \"}],\"serviceIdentifier\":\"service\",\"registryURI\":\"https://registry.example/wrp\"}",
+        "{\"identifier\":[{\"type\":\" \",\"identifier\":\"party\"}],\"serviceIdentifier\":\"service\",\"registryURI\":\"https://registry.example/wrp\"}",
+        "{\"identifier\":[{\"type\":\"EUID\",\"identifier\":\"party\"}],\"registryURI\":\"https://registry.example/wrp\"}",
+        "{\"identifier\":[{\"type\":\"EUID\",\"identifier\":\"party\"}],\"serviceIdentifier\":\"service\"}",
+        "{\"identifier\":[{\"type\":\"EUID\",\"identifier\":\"party\"}],\"serviceIdentifier\":\"service\",\"registryURI\":\"/relative\"}",
+        "{\"identifier\":[{\"type\":\"EUID\",\"identifier\":\"party\"}],\"serviceIdentifier\":\"service\",\"registryURI\":\"https://invalid uri\"}"
+    })
+    @DisplayName("Should reject intermediary references without necessary data or with incorrect data")
+    void shouldRejectInvalidIntermediaryServiceReferences(String reference) throws Exception {
+        Registration registration = createRegistration();
+
+        request(put(registration.relyingPartyServicePath()), serviceRequestWithReference("usesIntermediaries", reference))
+            .andExpect(status().isBadRequest());
+        assertTrue(read(get(registration.relyingPartyServicePath())).get("usesIntermediaries").isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should reject served service references without party identifiers")
+    void shouldValidateServedServiceReferences() throws Exception {
+        Registration registration = createRegistration();
+        String reference = """
+            {"identifier":[],"serviceIdentifier":"service","registryURI":"https://registry.example/wrp"}
+            """;
+
+        request(put(registration.relyingPartyServicePath()), serviceRequestWithReference("servedWRPServices", reference))
+            .andExpect(status().isBadRequest());
+        assertFalse(read(get(registration.relyingPartyServicePath())).get("isIntermediary").asBoolean());
+    }
+
+    private String serviceRequestWithReference(String field, String reference) {
+        ObjectNode request = (ObjectNode) objectMapper.readTree(RELYING_PARTY_SERVICE);
+        request.put("isIntermediary", "servedWRPServices".equals(field));
+        request.set(field, objectMapper.readTree("[" + reference + "]"));
+
+        return request.toString();
     }
 
     private Registration createRegistration() throws Exception {
