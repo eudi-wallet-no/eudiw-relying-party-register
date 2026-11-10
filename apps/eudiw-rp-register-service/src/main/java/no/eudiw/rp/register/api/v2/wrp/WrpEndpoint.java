@@ -28,6 +28,13 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class WrpEndpoint {
     private static final String JWK_URL_HEADER = "x-jku-url";
+    private static final Set<String> CHECK_INTENDED_USE_PARAMETERS = Set.of(
+        "identifier", "serviceIdentifier", "intendedUseIdentifier", "credentialFormat",
+        "claimPath", "credentialMeta", "policy"
+    );
+    private static final Set<String> SUPPORTED_CHECK_INTENDED_USE_PARAMETERS = Set.of(
+        "intendedUseIdentifier"
+    );
     private static final Set<String> COLLECTION_PARAMETERS =
         Set.of(
             "limit", "cursor", "identifier", "legalName", "serviceIdentifier", "tradeName", "policy",
@@ -283,6 +290,67 @@ public class WrpEndpoint {
         String signedResult = lookupService.findByIdentifierAndServiceIdentifier(identifier, serviceIdentifier)
             .map(jwsSigner::sign)
             .orElseGet(jwsSigner::signEmptyResult);
+        return ResponseEntity.ok()
+            .contentType(MediaType.parseMediaType("application/jwt"))
+            .header(JWK_URL_HEADER, properties.jwksUrl())
+            .body(signedResult);
+    }
+
+    @Operation(
+        summary = "Check whether an intended use is currently valid",
+        description = "Returns a signed boolean in the data.isRegistered claim.",
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "Signed result with data.isRegistered indicating whether a matching intended use is valid",
+                headers = @Header(
+                    name = JWK_URL_HEADER,
+                    schema = @Schema(type = "string", format = "uri")
+                ),
+                content = @Content(
+                    mediaType = "application/jwt",
+                    schema = @Schema(type = "string", format = "JWS")
+                )
+            ),
+            @ApiResponse(
+                responseCode = "400",
+                description = "Missing, invalid, repeated, or unsupported query parameter"
+            ),
+            @ApiResponse(responseCode = "404", description = "No registered intended use matches the query")
+        }
+    )
+    @GetMapping("/check-intended-use")
+    public ResponseEntity<String> checkIntendedUse(
+        @Parameter(
+            name = "intendedUseIdentifier",
+            in = ParameterIn.QUERY,
+            description = "Exact, case-sensitive identifier of a registered intended use",
+            schema = @Schema(type = "string")
+        )
+        @RequestParam(name = "intendedUseIdentifier", required = false) String intendedUseIdentifier,
+        @Parameter(hidden = true)
+        @RequestParam MultiValueMap<String, String> queryParameters
+    ) {
+        if (!CHECK_INTENDED_USE_PARAMETERS.containsAll(queryParameters.keySet())) {
+            throw new BadRequestException("Unsupported WRP check query parameter");
+        }
+        for (var entry : queryParameters.entrySet()) {
+            if (entry.getValue().size() != 1) {
+                throw new BadRequestException(entry.getKey() + " must be specified at most once");
+            }
+        }
+        if (queryParameters.isEmpty()) {
+            throw new BadRequestException("At least one WRP check filter must be provided");
+        }
+        if (!SUPPORTED_CHECK_INTENDED_USE_PARAMETERS.containsAll(queryParameters.keySet())) {
+            throw new BadRequestException("This WRP check filter is not supported yet");
+        }
+        if (intendedUseIdentifier == null || intendedUseIdentifier.isBlank()) {
+            throw new BadRequestException("intendedUseIdentifier must not be blank");
+        }
+
+        String signedResult =
+            jwsSigner.signIntendedUseCheck(lookupService.isIntendedUseValid(intendedUseIdentifier));
         return ResponseEntity.ok()
             .contentType(MediaType.parseMediaType("application/jwt"))
             .header(JWK_URL_HEADER, properties.jwksUrl())
