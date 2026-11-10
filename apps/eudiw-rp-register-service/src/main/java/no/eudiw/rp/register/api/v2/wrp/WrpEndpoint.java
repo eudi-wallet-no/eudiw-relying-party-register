@@ -298,11 +298,11 @@ public class WrpEndpoint {
 
     @Operation(
         summary = "Check whether an intended use is currently valid",
-        description = "Returns a signed boolean in the data claim.",
+        description = "Returns a signed boolean in the data.isRegistered claim.",
         responses = {
             @ApiResponse(
                 responseCode = "200",
-                description = "Signed boolean indicating whether a matching intended use is valid",
+                description = "Signed result with data.isRegistered indicating whether a matching intended use is valid",
                 headers = @Header(
                     name = JWK_URL_HEADER,
                     schema = @Schema(type = "string", format = "uri")
@@ -349,7 +349,8 @@ public class WrpEndpoint {
             throw new BadRequestException("intendedUseIdentifier must not be blank");
         }
 
-        String signedResult = jwsSigner.signBoolean(lookupService.isIntendedUseValid(intendedUseIdentifier));
+        String signedResult =
+            jwsSigner.signIntendedUseCheck(lookupService.isIntendedUseValid(intendedUseIdentifier));
         return ResponseEntity.ok()
             .contentType(MediaType.parseMediaType("application/jwt"))
             .header(JWK_URL_HEADER, properties.jwksUrl())

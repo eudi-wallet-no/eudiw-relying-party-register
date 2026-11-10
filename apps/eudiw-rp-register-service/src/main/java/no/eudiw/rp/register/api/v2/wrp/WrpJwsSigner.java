@@ -40,8 +40,8 @@ public class WrpJwsSigner {
         return signPayload(data, null);
     }
 
-    public String signBoolean(boolean data) {
-        return signPayload(data, null);
+    public String signIntendedUseCheck(boolean isRegistered) {
+        return signPayload(new IntendedUseCheckData(isRegistered), null);
     }
 
     public String signEmptyResult() {
@@ -91,6 +91,8 @@ public class WrpJwsSigner {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private record SignedWrpPayload(String iss, long iat, Object data, WrpPagination pagination) { }
+
+    private record IntendedUseCheckData(boolean isRegistered) { }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private record WrpPagination(
