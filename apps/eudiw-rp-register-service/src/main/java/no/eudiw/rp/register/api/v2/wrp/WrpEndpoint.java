@@ -252,7 +252,7 @@ public class WrpEndpoint {
         summary = "Get a Wallet Relying Party service by identifiers",
         description = """
             Returns the parent Wallet Relying Party with its services array isolated to the exact
-            serviceIdentifier. No active-status filtering is applied. If the WRP or service is not found,
+            serviceIdentifier. If the WRP or service is not found,
             the signed payload contains an empty data array.""",
         responses = {
             @ApiResponse(
