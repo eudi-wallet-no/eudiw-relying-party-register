@@ -43,7 +43,7 @@ public class WrpEndpoint {
     @Operation(
         summary = "Get a paginated list of Wallet Relying Parties",
         description = """
-             Returns active relying parties matching the optional identifier, legalName,
+             Returns relying parties matching the optional identifier, legalName,
              serviceIdentifier, tradeName, policy, intendedUseIdentifier, claimPath, credentialMeta,
              credentialFormat, entitlement,
              providedAttestation, usesIntermediary, and isIntermediary filters. The signed JWT payload
@@ -98,14 +98,14 @@ public class WrpEndpoint {
         @Parameter(
             name = "serviceIdentifier",
             in = ParameterIn.QUERY,
-            description = "Exact, case-sensitive identifier of an active service; only that service is included in the response",
+            description = "Exact, case-sensitive identifier of a service; only that service is included in the response",
             schema = @Schema(type = "string")
         )
         @RequestParam(name = "serviceIdentifier", required = false) String serviceIdentifier,
         @Parameter(
             name = "tradeName",
             in = ParameterIn.QUERY,
-            description = "Exact trade name of the WRP or an active service",
+            description = "Exact trade name of the WRP or a service",
             schema = @Schema(type = "string")
         )
         @RequestParam(name = "tradeName", required = false) String tradeName,
@@ -119,7 +119,7 @@ public class WrpEndpoint {
         @Parameter(
             name = "intendedUseIdentifier",
             in = ParameterIn.QUERY,
-            description = "Exact identifier of an intended use registered by an active service",
+            description = "Exact identifier of an intended use registered by a service",
             schema = @Schema(type = "string")
         )
         @RequestParam(name = "intendedUseIdentifier", required = false) String intendedUseIdentifier,
@@ -149,28 +149,28 @@ public class WrpEndpoint {
         @Parameter(
             name = "entitlement",
             in = ParameterIn.QUERY,
-            description = "Exact URI of an active service entitlement or sub-entitlement",
+            description = "Exact URI of a service entitlement or sub-entitlement",
             schema = @Schema(type = "string", format = "uri")
         )
         @RequestParam(name = "entitlement", required = false) String entitlement,
         @Parameter(
             name = "providedAttestation",
             in = ParameterIn.QUERY,
-            description = "Exact type of an attestation provided by an active service",
+            description = "Exact type of an attestation provided by a service",
             schema = @Schema(type = "string")
         )
         @RequestParam(name = "providedAttestation", required = false) String providedAttestation,
         @Parameter(
             name = "usesIntermediary",
             in = ParameterIn.QUERY,
-            description = "Exact serviceIdentifier of an intermediary referenced by an active service",
+            description = "Exact serviceIdentifier of an intermediary referenced by a service",
             schema = @Schema(type = "string")
         )
         @RequestParam(name = "usesIntermediary", required = false) String usesIntermediary,
         @Parameter(
             name = "isIntermediary",
             in = ParameterIn.QUERY,
-            description = "Whether an active service is registered as an intermediary",
+            description = "Whether a service is registered as an intermediary",
             schema = @Schema(type = "boolean")
         )
         @RequestParam(name = "isIntermediary", required = false) String isIntermediaryString,
