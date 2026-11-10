@@ -40,6 +40,10 @@ public class WrpJwsSigner {
         return signPayload(data, null);
     }
 
+    public String signBoolean(boolean data) {
+        return signPayload(data, null);
+    }
+
     public String signEmptyResult() {
         return signPayload(List.of(), null);
     }

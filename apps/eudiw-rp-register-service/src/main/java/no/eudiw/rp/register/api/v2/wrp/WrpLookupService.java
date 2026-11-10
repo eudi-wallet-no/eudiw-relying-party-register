@@ -3,15 +3,21 @@ package no.eudiw.rp.register.api.v2.wrp;
 import lombok.RequiredArgsConstructor;
 import no.eudiw.rp.register.config.SupervisoryAuthorityProperties;
 import no.eudiw.rp.register.config.WrpApiProperties;
+import no.eudiw.rp.register.domain.IntendedUse;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 import no.eudiw.rp.register.exception.BadRequestException;
+import no.eudiw.rp.register.exception.NotFoundException;
+import no.eudiw.rp.register.repository.IntendedUseRepository;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.repository.WrpSearchCriteria;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeParseException;
 import java.util.Base64;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -27,6 +33,7 @@ public class WrpLookupService {
     private static final int CURSOR_FETCH_SIZE = 128;
 
     private final WalletRelyingPartyRepository repository;
+    private final IntendedUseRepository intendedUseRepository;
     private final SupervisoryAuthorityProperties supervisoryAuthorityProperties;
     private final WrpApiProperties wrpApiProperties;
 
@@ -38,6 +45,18 @@ public class WrpLookupService {
         }
         return matches.stream().findFirst()
             .map(party -> toResource(party, entitlements(List.of(party.getId()))));
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isIntendedUseValid(String intendedUseIdentifier) {
+        List<IntendedUse> matches =
+            intendedUseRepository.findAllExactByIntendedUseIdentifier(intendedUseIdentifier);
+        if (matches.isEmpty()) {
+            throw new NotFoundException("IntendedUse not found");
+        }
+
+        LocalDate today = LocalDate.now(ZoneOffset.UTC);
+        return matches.stream().anyMatch(intendedUse -> isValidAt(intendedUse, today));
     }
 
     @Transactional(readOnly = true)
@@ -130,6 +149,26 @@ public class WrpLookupService {
     ) {
         return WalletRelyingPartyResource.from(
             party, entitlementsByService, supervisoryAuthorityProperties, wrpApiProperties);
+    }
+
+    private static boolean isValidAt(IntendedUse intendedUse, LocalDate date) {
+        LocalDate createdAt = parseLifecycleDate(intendedUse.getCreatedAt(), "createdAt");
+        String revokedAtValue = intendedUse.getRevokedAt();
+        LocalDate revokedAt = revokedAtValue == null
+            ? null
+            : parseLifecycleDate(revokedAtValue, "revokedAt");
+        return !createdAt.isAfter(date) && (revokedAt == null || date.isBefore(revokedAt));
+    }
+
+    private static LocalDate parseLifecycleDate(String value, String field) {
+        if (value == null) {
+            throw new IllegalStateException("Stored IntendedUse is missing " + field);
+        }
+        try {
+            return LocalDate.parse(value);
+        } catch (DateTimeParseException exception) {
+            throw new IllegalStateException("Stored IntendedUse has an invalid " + field, exception);
+        }
     }
 
     private Map<UUID, List<String>> entitlements(List<UUID> partyIds) {
