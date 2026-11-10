@@ -30,7 +30,7 @@ public class CertificateServiceClient {
         String csrPemStr = PKCS10CertificationRequestConverter.convert(csr);
         String certificatePemStr =
             caRestClient.post()
-                .uri(uriBuilder -> uriBuilder.path("/{caId}").build(caId))
+                .uri(uriBuilder -> uriBuilder.path("/issue/{caId}").build(caId))
                 .body(RelyingPartyCertificateRequest
                     .builder()
                     .orgno(orgno)
@@ -51,7 +51,7 @@ public class CertificateServiceClient {
 
     public HttpStatusCode revokeCertificate(String serialNumber, int reason, String caId) {
         return caRestClient.put()
-            .uri(uriBuilder -> uriBuilder.path("/{caId}").build(caId))
+            .uri(uriBuilder -> uriBuilder.path("/revoke/{caId}").build(caId))
             .body(RevocationRequest
                 .builder()
                 .serialNumber(serialNumber)

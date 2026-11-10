@@ -188,11 +188,12 @@ public class CertificateAuthorityApiController {
     @Operation(
             summary = "Issue certificate",
             description = "Sign certificate with intermediate CA",
-            tags = {API_TAG})
+            tags = {API_TAG},
+            hidden = true)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "PEM-encoded certificate", content = @Content(mediaType = APPLICATION_X_PEM_FILE_VALUE))
     })
-    @PostMapping(path = "/v1/certs/{intermediate}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = APPLICATION_X_PEM_FILE_VALUE)
+    @PostMapping(path = "/v1/internal/issue/{intermediate}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = APPLICATION_X_PEM_FILE_VALUE)
     public ResponseEntity<String> signLeafCertificate(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Certificate issue request",
@@ -224,11 +225,12 @@ public class CertificateAuthorityApiController {
     @Operation(
             summary = "Revoke certificate",
             description = "Revoke certificate from intermediate CA",
-            tags = {API_TAG})
+            tags = {API_TAG},
+            hidden = true)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Certificate revoked")
     })
-    @PutMapping(path = "/v1/certs/{intermediate}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(path = "/v1/internal/revoke/{intermediate}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> revokeLeafCertificate(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Certificate revoke request",
