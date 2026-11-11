@@ -33,7 +33,7 @@ public class WrpEndpoint {
         "claimPath", "credentialMeta", "policy"
     );
     private static final Set<String> SUPPORTED_CHECK_INTENDED_USE_PARAMETERS = Set.of(
-        "intendedUseIdentifier"
+        "identifier", "serviceIdentifier", "intendedUseIdentifier"
     );
     private static final Set<String> COLLECTION_PARAMETERS =
         Set.of(
@@ -322,6 +322,20 @@ public class WrpEndpoint {
     @GetMapping("/check-intended-use")
     public ResponseEntity<String> checkIntendedUse(
         @Parameter(
+            name = "identifier",
+            in = ParameterIn.QUERY,
+            description = "Exact WRP identifier matching orgno or an additional Identifier.identifier",
+            schema = @Schema(type = "string")
+        )
+        @RequestParam(name = "identifier", required = false) String identifier,
+        @Parameter(
+            name = "serviceIdentifier",
+            in = ParameterIn.QUERY,
+            description = "Exact, case-sensitive service identifier",
+            schema = @Schema(type = "string")
+        )
+        @RequestParam(name = "serviceIdentifier", required = false) String serviceIdentifier,
+        @Parameter(
             name = "intendedUseIdentifier",
             in = ParameterIn.QUERY,
             description = "Exact, case-sensitive identifier of a registered intended use",
@@ -345,12 +359,18 @@ public class WrpEndpoint {
         if (!SUPPORTED_CHECK_INTENDED_USE_PARAMETERS.containsAll(queryParameters.keySet())) {
             throw new BadRequestException("This WRP check filter is not supported yet");
         }
-        if (intendedUseIdentifier == null || intendedUseIdentifier.isBlank()) {
+        if (identifier != null && identifier.isBlank()) {
+            throw new BadRequestException("identifier must not be blank");
+        }
+        if (serviceIdentifier != null && serviceIdentifier.isBlank()) {
+            throw new BadRequestException("serviceIdentifier must not be blank");
+        }
+        if (intendedUseIdentifier != null && intendedUseIdentifier.isBlank()) {
             throw new BadRequestException("intendedUseIdentifier must not be blank");
         }
 
-        String signedResult =
-            jwsSigner.signIntendedUseCheck(lookupService.isIntendedUseValid(intendedUseIdentifier));
+        String signedResult = jwsSigner.signIntendedUseCheck(
+            lookupService.isIntendedUseValid(identifier, serviceIdentifier, intendedUseIdentifier));
         return ResponseEntity.ok()
             .contentType(MediaType.parseMediaType("application/jwt"))
             .header(JWK_URL_HEADER, properties.jwksUrl())
