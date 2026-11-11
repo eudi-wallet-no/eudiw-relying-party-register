@@ -114,6 +114,33 @@ public class CertificateAuthorityApiControllerTest {
         assertTrue(crl.getRevokedCertificates().isEmpty());
     }
 
+    @DisplayName("then internal certificate operations require an API key")
+    @Test
+    void testInternalCertificateOperationsRequireApiKey() throws Exception {
+        mockMvc.perform(post("/v1/internal/issue/access2")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(put("/v1/internal/revoke/access2")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @DisplayName("then internal certificate operations are hidden from OpenAPI")
+    @Test
+    void testInternalCertificateOperationsAreHiddenFromOpenApi() throws Exception {
+        String apiDocs = mockMvc.perform(get("/v3/api-docs"))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        assertFalse(apiDocs.contains("/v1/internal/issue/{intermediate}"));
+        assertFalse(apiDocs.contains("/v1/internal/revoke/{intermediate}"));
+        assertTrue(apiDocs.contains("/v1/certs/{root}.cer"));
+    }
+
     @DisplayName("then RP access certificates can be signed")
     @Test
     void testSignRPAccessCertificate() throws Exception {
@@ -124,7 +151,7 @@ public class CertificateAuthorityApiControllerTest {
                   "trade_name": "Junit",
                   "csr": "-----BEGIN NEW CERTIFICATE REQUEST-----\\nMIIBbTCCARQCAQAwXzELMAkGA1UEBhMCbm8xDTALBgNVBAgTBFNvZ24xEjAQBgNV\\nBAcTCUxlaWthbmdlcjEPMA0GA1UEChMGRGlnZGlyMQ4wDAYDVQQLEwVFVURJVzEM\\nMAoGA1UEAxMDcnAyMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAELKyeEr6OlEgW\\nE0cRI3aCgzRnPu9IjoYCsPuV53/QwBe0pymYVafMPssBqiLEyuylH/AQ3Teltq66\\nL96/KVs1bqBTMFEGCSqGSIb3DQEJDjFEMEIwHQYDVR0OBBYEFFLDKogDLA5GDhgY\\noiRDkMpjeQDNMCEGA1UdEQQaMBiCFmp1bml0LnJwMS5pZHBvcnRlbi5kZXYwCgYI\\nKoZIzj0EAwMDRwAwRAIgVIhOFcOMK0KR9MvK3a76Hgma6susPfXDJ+HfZZe50N8C\\nIF5nyI5eYXYbBBQvdAZFJStX4YgEc+7j/QV3BlIGz2HE\\n-----END NEW CERTIFICATE REQUEST-----"
                 }""";
-        MvcResult result = mockMvc.perform(post("/v1/certs/access2")
+        MvcResult result = mockMvc.perform(post("/v1/internal/issue/access2")
                         .header("X-API-KEY", "junit-api-key")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(certificateRequest))
@@ -147,7 +174,7 @@ public class CertificateAuthorityApiControllerTest {
                   "trade_name": "Junit",
                   "csr": "-----BEGIN NEW CERTIFICATE REQUEST-----\\nMIIBbTCCARQCAQAwXzELMAkGA1UEBhMCbm8xDTALBgNVBAgTBFNvZ24xEjAQBgNV\\nBAcTCUxlaWthbmdlcjEPMA0GA1UEChMGRGlnZGlyMQ4wDAYDVQQLEwVFVURJVzEM\\nMAoGA1UEAxMDcnAyMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAELKyeEr6OlEgW\\nE0cRI3aCgzRnPu9IjoYCsPuV53/QwBe0pymYVafMPssBqiLEyuylH/AQ3Teltq66\\nL96/KVs1bqBTMFEGCSqGSIb3DQEJDjFEMEIwHQYDVR0OBBYEFFLDKogDLA5GDhgY\\noiRDkMpjeQDNMCEGA1UdEQQaMBiCFmp1bml0LnJwMS5pZHBvcnRlbi5kZXYwCgYI\\nKoZIzj0EAwMDRwAwRAIgVIhOFcOMK0KR9MvK3a76Hgma6susPfXDJ+HfZZe50N8C\\nIF5nyI5eYXYbBBQvdAZFJStX4YgEc+7j/QV3BlIGz2HE\\n-----END NEW CERTIFICATE REQUEST-----"
                 }""";
-        MvcResult result = mockMvc.perform(post("/v1/certs/eaa_provider2")
+        MvcResult result = mockMvc.perform(post("/v1/internal/issue/eaa_provider2")
                         .header("X-API-KEY", "junit-api-key")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(certificateRequest))
@@ -170,7 +197,7 @@ public class CertificateAuthorityApiControllerTest {
                   "trade_name": "Junit",
                   "csr": "-----BEGIN NEW CERTIFICATE REQUEST-----\\nMIIBbTCCARQCAQAwXzELMAkGA1UEBhMCbm8xDTALBgNVBAgTBFNvZ24xEjAQBgNV\\nBAcTCUxlaWthbmdlcjEPMA0GA1UEChMGRGlnZGlyMQ4wDAYDVQQLEwVFVURJVzEM\\nMAoGA1UEAxMDcnAyMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAELKyeEr6OlEgW\\nE0cRI3aCgzRnPu9IjoYCsPuV53/QwBe0pymYVafMPssBqiLEyuylH/AQ3Teltq66\\nL96/KVs1bqBTMFEGCSqGSIb3DQEJDjFEMEIwHQYDVR0OBBYEFFLDKogDLA5GDhgY\\noiRDkMpjeQDNMCEGA1UdEQQaMBiCFmp1bml0LnJwMS5pZHBvcnRlbi5kZXYwCgYI\\nKoZIzj0EAwMDRwAwRAIgVIhOFcOMK0KR9MvK3a76Hgma6susPfXDJ+HfZZe50N8C\\nIF5nyI5eYXYbBBQvdAZFJStX4YgEc+7j/QV3BlIGz2HE\\n-----END NEW CERTIFICATE REQUEST-----"
                 }""";
-        MvcResult result = mockMvc.perform(post("/v1/certs/access2")
+        MvcResult result = mockMvc.perform(post("/v1/internal/issue/access2")
                         .header("X-API-KEY", "junit-api-key")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(certificateRequest))
@@ -185,7 +212,7 @@ public class CertificateAuthorityApiControllerTest {
                   "serial_number": "%s",
                   "reason": 9
                 }""".formatted(issuedCertificate.getSerialNumber().toString(10));
-        result = mockMvc.perform(put("/v1/certs/access2")
+        result = mockMvc.perform(put("/v1/internal/revoke/access2")
                         .header("X-API-KEY", "junit-api-key")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(certificateRevokeRequest))

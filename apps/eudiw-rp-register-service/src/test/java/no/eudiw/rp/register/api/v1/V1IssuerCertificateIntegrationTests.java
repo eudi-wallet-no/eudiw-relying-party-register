@@ -131,7 +131,7 @@ public class V1IssuerCertificateIntegrationTests {
             RecordedRequest recordedRequest = mockCaServer.takeRequest();
             assertAll(
                     () -> assertEquals("POST", recordedRequest.getMethod()),
-                    () -> assertEquals("/v1/certs/eaa_provider2", recordedRequest.getPath())
+                    () -> assertEquals("/v1/internal/issue/eaa_provider2", recordedRequest.getPath())
             );
 
             assertTrue(instanceRepository.findById(EntityGenerator.instances(walletRelyingParty).getFirst().getId()).isPresent(), "legal entity with at least one RelyingPartyInstances should be present in repository");
@@ -163,7 +163,7 @@ public class V1IssuerCertificateIntegrationTests {
             RecordedRequest recordedRequest = mockCaServer.takeRequest();
             assertAll(
                     () -> assertEquals(certificateExpected, certificateActual),
-                    () -> assertEquals("/v1/certs/%2Fattacker.example", recordedRequest.getPath())
+                    () -> assertEquals("/v1/internal/issue/%2Fattacker.example", recordedRequest.getPath())
             );
         }
 
@@ -190,7 +190,7 @@ public class V1IssuerCertificateIntegrationTests {
             RecordedRequest recordedRequest = mockCaServer.takeRequest();
             assertAll(
                     () -> assertEquals("POST", recordedRequest.getMethod()),
-                    () -> assertEquals("/v1/certs/eaa_provider2", recordedRequest.getPath())
+                    () -> assertEquals("/v1/internal/issue/eaa_provider2", recordedRequest.getPath())
             );
 
             assertTrue(instanceRepository.findById(EntityGenerator.instances(walletRelyingParty).getFirst().getId()).isPresent(), "legal entity with at least one RelyingPartyInstances should be present in repository");
@@ -225,7 +225,7 @@ public class V1IssuerCertificateIntegrationTests {
             RecordedRequest recordedRequest = mockCaServer.takeRequest();
             assertAll(
                     () -> assertEquals("POST", recordedRequest.getMethod()),
-                    () -> assertEquals("/v1/certs/eaa_provider2", recordedRequest.getPath())
+                    () -> assertEquals("/v1/internal/issue/eaa_provider2", recordedRequest.getPath())
             );
 
             assertTrue(instanceRepository.findById(EntityGenerator.instances(walletRelyingParty).getFirst().getId()).isPresent(), "legal entity with at least one RelyingPartyInstances should be present in repository");
@@ -259,7 +259,7 @@ public class V1IssuerCertificateIntegrationTests {
             RecordedRequest recordedRequest = mockCaServer.takeRequest();
             assertAll(
                     () -> assertEquals("POST", recordedRequest.getMethod()),
-                    () -> assertEquals("/v1/certs/pid_provider2", recordedRequest.getPath())
+                    () -> assertEquals("/v1/internal/issue/pid_provider2", recordedRequest.getPath())
             );
 
             assertTrue(instanceRepository.findById(EntityGenerator.instances(walletRelyingParty).getFirst().getId()).isPresent(), "legal entity with at least one RelyingPartyInstances should be present in repository");
@@ -348,7 +348,7 @@ public class V1IssuerCertificateIntegrationTests {
 
 
             assertEquals("POST", recordedRequest1.getMethod());
-            assertEquals("/v1/certs/pid_provider2", recordedRequest2.getPath());
+            assertEquals("/v1/internal/revoke/pid_provider2", recordedRequest2.getPath());
 
             assertEquals("PUT", recordedRequest2.getMethod());
             assertEquals(0, relyingPartyFinished.getIssuerCertificates().getFirst().getRevocationStatus());
@@ -382,7 +382,7 @@ public class V1IssuerCertificateIntegrationTests {
 
             assertAll(
                     () -> assertEquals("PUT", recordedRequest.getMethod()),
-                    () -> assertEquals("/v1/certs/%2Fattacker.example", recordedRequest.getPath())
+                    () -> assertEquals("/v1/internal/revoke/%2Fattacker.example", recordedRequest.getPath())
             );
         }
 
