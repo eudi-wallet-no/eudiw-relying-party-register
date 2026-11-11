@@ -16,22 +16,22 @@ public class RelyingPartyCertificateServiceConfig {
 
     private final RelyingPartyCertificateServiceProperties certServiceProperties;
 
-    private static final String caServiceApiCertsEndpoint = "/v1/certs";
+    private static final String caServiceApiEndpoint = "/v1/internal";
 
     @Bean("caRestClient")
     public RestClient caRestClient() {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout((int) certServiceProperties.restClient().connectTimeoutMillis());
         requestFactory.setReadTimeout((int) certServiceProperties.restClient().readTimeoutMillis());
-        URI caServiceCertsApiBaseUrl = URI.create(
-            certServiceProperties.caServiceApi().caServiceBaseUri() + caServiceApiCertsEndpoint);
+        URI caServiceApiBaseUrl = URI.create(
+            certServiceProperties.caServiceApi().caServiceBaseUri() + caServiceApiEndpoint);
         return
             RestClient.builder()
                       .defaultHeader("accept", "application/x-pem-file", MediaType.APPLICATION_JSON_VALUE)
                       .defaultHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                       .defaultHeader(certServiceProperties.caServiceApi().apiKeyHeaderId(),
                                      certServiceProperties.caServiceApi().apiKeyValue())
-                      .baseUrl(caServiceCertsApiBaseUrl)
+                      .baseUrl(caServiceApiBaseUrl)
                       .defaultStatusHandler(new RelyingPartyCertificateServiceResponseErrorHandler())
                       .requestFactory(requestFactory)
                       .build();

@@ -59,7 +59,7 @@ class CertificateServiceClientTest {
         assertNotNull(request);
         assertEquals(HttpStatus.NO_CONTENT, status);
         assertEquals("PUT", request.getMethod());
-        assertEquals("/v1/certs/issuer-ca", request.getPath());
+        assertEquals("/v1/internal/revoke/issuer-ca", request.getPath());
         assertEquals("test-key", request.getHeader("X-API-KEY"));
         JsonNode body = new ObjectMapper().readTree(request.getBody().readUtf8());
         assertEquals("12345", body.get("serial_number").asText());

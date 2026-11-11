@@ -12,7 +12,8 @@ spring:
   security:
     api-key: ${API_KEY}
     include-paths:
-      - /v1/certs/access
+      - /v1/internal/issue/**
+      - /v1/internal/revoke/**
     exclude-paths:
       - /
       - /swagger-ui.html
