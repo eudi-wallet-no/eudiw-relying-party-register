@@ -1,6 +1,6 @@
 # Bidra
 
-Vi set pris på forslag, feilrapportar og kodebidrag! Opprett gjerne ei
+Vi set stor pris på forslag, feilrapportar og kodebidrag! Opprett gjerne eit
 GitHub-issue eller ta kontakt med prosjektgruppa før du byrjar. Då kan vi
 saman avklare behov, omfang og løysing.
 
@@ -12,7 +12,7 @@ til Jira for å bidra.
 - Hald endringa avgrensa til eitt tema.
 - Følg eksisterande kodestil og mønster i den aktuelle applikasjonen.
 - Les README-fila for applikasjonen, og oppdater dokumentasjon ved behov.
-- Skriv eller oppdater testar som dekker endringa, og køyr relevante testar.
+- Skriv eller oppdater testar som dekker endringa, og køyr relevante testar. ( Avhengheiter frå github.com/felleslosninger er ikkje tilgjengeleg endå, men vil snart bli open source også, slik at testane kan køyrast frå alle).
 - Signer alle commits kryptografisk. GitHub skal vise dei som `Verified`.
 - Ikkje legg løyndomar eller personopplysningar i kode, loggar eller skjermbilete.
 
@@ -31,9 +31,8 @@ Du kan sende inn PR-en med ein beskrivande norsk tittel. Digdir følgjer opp
 Jira-ID og tittelformatet `<JIRA-ID>: <kort norsk tittel>`.
 
 Alle PR-ar må gjennomgåast og godkjennast av utviklarar i Digdir før dei blir
-slått saman. Vi samarbeider gjerne om justeringar og kan òg tilpasse løysinga
-sjølve. Vi vurderer kvart bidrag, men kan ikkje love at alle endringar blir
-tekne inn.
+tekne inn eller ikkje. Vi samarbeider gjerne om justeringar og kan òg tilpasse løysinga
+sjølve. 
 
 ## Sikkerheit
 
