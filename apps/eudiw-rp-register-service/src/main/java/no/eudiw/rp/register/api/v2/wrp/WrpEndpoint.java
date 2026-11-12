@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import no.eudiw.rp.register.config.WrpApiProperties;
 import no.eudiw.rp.register.exception.BadRequestException;
+import no.eudiw.rp.register.exception.NotFoundException;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
@@ -229,7 +230,7 @@ public class WrpEndpoint {
         responses = {
             @ApiResponse(
                 responseCode = "200",
-                description = "Signed Wallet Relying Party, or a signed empty array when no match is found",
+                description = "Signed Wallet Relying Party",
                 headers = @Header(
                     name = JWK_URL_HEADER,
                     schema = @Schema(type = "string", format = "uri")
@@ -238,7 +239,8 @@ public class WrpEndpoint {
                     mediaType = "application/jwt",
                     schema = @Schema(type = "string", format = "JWS")
                 )
-            )
+            ),
+            @ApiResponse(responseCode = "404", description = "The Wallet Relying Party does not exist")
         }
     )
     @GetMapping("/{identifier}")
@@ -248,7 +250,7 @@ public class WrpEndpoint {
     ) {
         String signedResult = lookupService.findByIdentifier(identifier)
             .map(jwsSigner::sign)
-            .orElseGet(jwsSigner::signEmptyResult);
+            .orElseThrow(() -> new NotFoundException("Wallet Relying Party not found"));
         return ResponseEntity.ok()
             .contentType(MediaType.parseMediaType("application/jwt"))
             .header(JWK_URL_HEADER, properties.jwksUrl())
@@ -259,12 +261,11 @@ public class WrpEndpoint {
         summary = "Get a Wallet Relying Party service by identifiers",
         description = """
             Returns the parent Wallet Relying Party with its services array isolated to the exact
-            serviceIdentifier. If the WRP or service is not found,
-            the signed payload contains an empty data array.""",
+            serviceIdentifier.""",
         responses = {
             @ApiResponse(
                 responseCode = "200",
-                description = "Signed isolated Wallet Relying Party, or a signed empty array when no match is found",
+                description = "Signed isolated Wallet Relying Party",
                 headers = @Header(
                     name = JWK_URL_HEADER,
                     schema = @Schema(type = "string", format = "uri")
@@ -273,6 +274,10 @@ public class WrpEndpoint {
                     mediaType = "application/jwt",
                     schema = @Schema(type = "string", format = "JWS")
                 )
+            ),
+            @ApiResponse(
+                responseCode = "404",
+                description = "The Wallet Relying Party or service does not exist"
             ),
             @ApiResponse(
                 responseCode = "500",
@@ -289,7 +294,7 @@ public class WrpEndpoint {
     ) {
         String signedResult = lookupService.findByIdentifierAndServiceIdentifier(identifier, serviceIdentifier)
             .map(jwsSigner::sign)
-            .orElseGet(jwsSigner::signEmptyResult);
+            .orElseThrow(() -> new NotFoundException("Wallet Relying Party service not found"));
         return ResponseEntity.ok()
             .contentType(MediaType.parseMediaType("application/jwt"))
             .header(JWK_URL_HEADER, properties.jwksUrl())
@@ -302,7 +307,7 @@ public class WrpEndpoint {
         responses = {
             @ApiResponse(
                 responseCode = "200",
-                description = "Signed result with data.isRegistered indicating whether a matching intended use is valid",
+                description = "Signed result; no matching IntendedUse returns data.isRegistered=false, while a matching currently valid IntendedUse returns true",
                 headers = @Header(
                     name = JWK_URL_HEADER,
                     schema = @Schema(type = "string", format = "uri")
@@ -316,7 +321,10 @@ public class WrpEndpoint {
                 responseCode = "400",
                 description = "Missing, invalid, repeated, or unsupported query parameter"
             ),
-            @ApiResponse(responseCode = "404", description = "No registered intended use matches the query")
+            @ApiResponse(
+                responseCode = "404",
+                description = "The supplied WRP identifier does not exist"
+            )
         }
     )
     @GetMapping("/check-intended-use")

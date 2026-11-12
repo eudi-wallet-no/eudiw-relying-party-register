@@ -132,19 +132,9 @@ class WrpByIdentifierIntegrationTest {
     }
 
     @Test
-    void returnsSignedEmptyResultForUnknownIdentifier() throws Exception {
-        String unknownToken = mockMvc.perform(get("/wrp/{identifier}", "unknown-identifier"))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.parseMediaType("application/jwt")))
-            .andExpect(header().string("x-jku-url", JWKS_URL))
-            .andReturn().getResponse().getContentAsString();
-        JWSObject unknownJws = JWSObject.parse(unknownToken);
-        assertTrue(unknownJws.verify(new ECDSAVerifier((ECPublicKey) signingKeyPair.getPublic())));
-        Map<String, Object> unknownPayload = unknownJws.getPayload().toJSONObject();
-        assertEquals("https://registry.example.test", unknownPayload.get("iss"));
-        assertTrue(((Number) unknownPayload.get("iat")).longValue() > 0);
-        assertEquals(List.of(), unknownPayload.get("data"));
-        assertFalse(unknownPayload.containsKey("pagination"));
+    void returnsNotFoundForUnknownIdentifier() throws Exception {
+        mockMvc.perform(get("/wrp/{identifier}", "unknown-identifier"))
+            .andExpect(status().isNotFound());
     }
 
     @Test
@@ -524,7 +514,7 @@ class WrpByIdentifierIntegrationTest {
     }
 
     @Test
-    void returnsSignedEmptyResultWhenPartyOrServiceDoesNotMatch() throws Exception {
+    void returnsNotFoundWhenPartyOrServiceDoesNotMatch() throws Exception {
         WalletRelyingParty party = partyNamed("Known service route party");
         party.getServices().getFirst().setServiceIdentifier("known-service");
         walletRelyingPartyRepository.saveAndFlush(party);
@@ -534,19 +524,18 @@ class WrpByIdentifierIntegrationTest {
             new String[] {party.getOrgno(), "unknown-service"},
             new String[] {party.getOrgno(), "KNOWN-SERVICE"}
         )) {
-            String token = mockMvc.perform(get(
+            mockMvc.perform(get(
                     "/wrp/{identifier}/services/{serviceIdentifier}", path[0], path[1]))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.parseMediaType("application/jwt")))
-                .andExpect(header().string("x-jku-url", JWKS_URL))
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-            JWSObject jws = JWSObject.parse(token);
-            assertTrue(jws.verify(new ECDSAVerifier((ECPublicKey) signingKeyPair.getPublic())));
-            assertEquals(List.of(), jws.getPayload().toJSONObject().get("data"));
-            assertFalse(jws.getPayload().toJSONObject().containsKey("pagination"));
+                .andExpect(status().isNotFound());
         }
+    }
+
+    @Test
+    void documentsNotFoundResponsesForSingleResourceRoutes() throws Exception {
+        mockMvc.perform(get("/v3/api-docs/WRP"))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("The Wallet Relying Party does not exist")))
+            .andExpect(content().string(containsString("The Wallet Relying Party or service does not exist")));
     }
 
     @Test
