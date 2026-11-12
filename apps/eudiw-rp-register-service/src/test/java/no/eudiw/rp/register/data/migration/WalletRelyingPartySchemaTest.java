@@ -353,6 +353,55 @@ class WalletRelyingPartySchemaTest {
     }
 
     @Test
+    @DisplayName("Should keep existing certificate links after the instance ownership upgrade")
+    void shouldKeepExistingCertificateLinksAfterInstanceOwnershipUpgrade() {
+        flyway.clean();
+        Flyway.configure()
+            .configuration(flyway.getConfiguration())
+            .target("31")
+            .load()
+            .migrate();
+        jdbc.update("""
+            INSERT INTO wallet_relying_party
+                (id, trade_name, orgno, is_psb, policy, identifier, postal_address, email, phone, info_uri)
+            VALUES ('party', 'Party', '123456785', TRUE, '[]', '[]', '[]', '[]', '[]', '[]')
+            """);
+        insertService("service", null);
+        jdbc.update("""
+            INSERT INTO relying_party_instance
+                (id, wallet_relying_party_service_id, created_ms, last_updated_ms)
+            VALUES ('instance', 'service', 1, 2), ('other-instance', 'service', 3, 4)
+            """);
+        jdbc.update("""
+            INSERT INTO relying_party_entitlement (id, relying_party_instance_id, entitlement)
+            VALUES ('role', 'instance', 'urn:test:issuer'), ('other-role', 'other-instance', 'urn:test:issuer')
+            """);
+        String insertCertificate = """
+            INSERT INTO relying_party_certificates
+                (id, type, relying_party_instance_id, entitlement_id, issuer, ca_id,
+                 certificate_pem, subject_dn, serial_no, valid_from_ms, valid_until_ms, revocation_status)
+            VALUES (?, ?, ?, ?, 'issuer', 'ca', 'pem', 'subject', ?, 10, 20, ?)
+            """;
+        jdbc.update(insertCertificate, "access", "ACCESS", "instance", null, "same-serial", -1);
+        jdbc.update(insertCertificate, "issuer", "ISSUER", null, "role", "same-serial", 0);
+        jdbc.update(insertCertificate, "rotated-issuer", "ISSUER", null, "role", "rotated-serial", -1);
+        jdbc.update(insertCertificate, "other-issuer", "ISSUER", null, "other-role", "other-serial", -1);
+        var historyBefore = jdbc.queryForList("SELECT * FROM relying_party_certificates ORDER BY id");
+        historyBefore.forEach(row -> {
+            if (row.get("type").equals("ISSUER")) {
+                row.put("relying_party_instance_id", row.get("entitlement_id").equals("role")
+                    ? "instance" : "other-instance");
+            }
+        });
+
+        flyway.migrate();
+
+        assertThrows(DataIntegrityViolationException.class, () ->
+            jdbc.update("DELETE FROM relying_party_entitlement WHERE id = 'role'"));
+        assertEquals(historyBefore, jdbc.queryForList("SELECT * FROM relying_party_certificates ORDER BY id"));
+    }
+
+    @Test
     void enforcesCertificateOwnershipUniquenessAndCascadingDeletion() {
         jdbc.update("""
             INSERT INTO wallet_relying_party
@@ -387,7 +436,7 @@ class WalletRelyingPartySchemaTest {
             ) VALUES
                 ('access-1', 'ACCESS', 'instance-1', NULL, 'issuer', 'ca', 'pem',
                     'subject', 'same-serial', 10, 20, -1),
-                ('issuer-1', 'ISSUER', NULL, 'entitlement-1', 'issuer', 'ca', 'pem',
+                ('issuer-1', 'ISSUER', 'instance-1', 'entitlement-1', 'issuer', 'ca', 'pem',
                     'subject', 'same-serial', 30, 40, 0)
             """);
 
@@ -402,6 +451,12 @@ class WalletRelyingPartySchemaTest {
             UPDATE relying_party_certificates SET entitlement_id = 'missing' WHERE id = 'issuer-1'
             """));
         assertThrows(DataIntegrityViolationException.class, () -> jdbc.update("""
+            UPDATE relying_party_certificates SET relying_party_instance_id = NULL WHERE id = 'issuer-1'
+            """));
+        assertThrows(DataIntegrityViolationException.class, () -> jdbc.update("""
+            UPDATE relying_party_certificates SET relying_party_instance_id = 'missing' WHERE id = 'issuer-1'
+            """));
+        assertThrows(DataIntegrityViolationException.class, () -> jdbc.update("""
             UPDATE relying_party_certificates SET type = 'OTHER' WHERE id = 'issuer-1'
             """));
         assertThrows(DataIntegrityViolationException.class, () -> jdbc.update("""
@@ -410,9 +465,12 @@ class WalletRelyingPartySchemaTest {
             WHERE id = 'issuer-1'
             """));
 
-        jdbc.update("DELETE FROM relying_party_entitlement WHERE id = 'entitlement-1'");
-        assertEquals(1, jdbc.queryForObject(
+        assertThrows(DataIntegrityViolationException.class, () ->
+            jdbc.update("DELETE FROM relying_party_instance WHERE id = 'instance-1'"));
+        assertEquals(2, jdbc.queryForObject(
             "SELECT COUNT(*) FROM relying_party_certificates", Integer.class));
+        jdbc.update("DELETE FROM relying_party_certificates WHERE id = 'issuer-1'");
+        jdbc.update("DELETE FROM relying_party_entitlement WHERE id = 'entitlement-1'");
         jdbc.update("DELETE FROM relying_party_instance WHERE id = 'instance-1'");
         assertEquals(0, jdbc.queryForObject(
             "SELECT COUNT(*) FROM relying_party_certificates", Integer.class));

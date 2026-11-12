@@ -1,6 +1,7 @@
 package no.eudiw.rp.register.domain.relyingparty;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import no.eudiw.rp.register.domain.BaseEntity;
@@ -30,24 +31,18 @@ public class RelyingPartyEntitlement extends BaseEntity {
     @JdbcTypeCode(SqlTypes.UUID)
     private RelyingPartyInstance relyingPartyInstance;
 
+    @Setter(AccessLevel.NONE)
     @OneToMany(
         mappedBy = "entitlement",
         fetch = FetchType.EAGER,
-        cascade = CascadeType.ALL,
-        orphanRemoval = true)
+        cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<IssuerCertificate> issuerCertificates =
         new ArrayList<>();
 
     public void addIssuerCertificate(IssuerCertificate certificate) {
         certificate.setEntitlement(this);
         issuerCertificates.add(certificate);
-    }
-
-    public void setIssuerCertificates(List<IssuerCertificate> issuerCertificates) {
-        this.issuerCertificates.clear();
-        if (issuerCertificates != null) {
-            issuerCertificates.forEach(this::addIssuerCertificate);
-        }
+        certificate.getRelyingPartyInstance().getIssuerCertificates().add(certificate);
     }
 
     public RelyingPartyEntitlement(String entitlement) {
