@@ -2,6 +2,7 @@ package no.eudiw.rp.register.api.v2.wrp;
 
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
+import no.eudiw.rp.register.domain.Identifier;
 import no.eudiw.rp.register.domain.IntendedUse;
 import no.eudiw.rp.register.domain.MultiLangString;
 import no.eudiw.rp.register.domain.Policy;
@@ -125,15 +126,64 @@ class WrpCheckIntendedUseIntegrationTest {
     }
 
     @Test
+    void filtersValidIntendedUsesByPartyAndServiceIdentifiers() throws Exception {
+        LocalDate today = LocalDate.now(ZoneOffset.UTC);
+        WalletRelyingParty party = storeIntendedUses(
+            List.of(
+                intendedUse("scoped-use", today.minusDays(1), null),
+                intendedUse("revoked-scoped-use", today.minusDays(2), today)
+            ),
+            List.of(new Identifier("urn:example:euid", "EXAMPLE-EUID-123")),
+            "service-one");
+        storeIntendedUses(
+            List.of(intendedUse("other-use", today.minusDays(1), null)),
+            List.of(new Identifier("urn:example:euid", "OTHER-EUID-456")),
+            "other-service");
+
+        assertEquals(Boolean.TRUE, signedResult(Map.of("identifier", party.getOrgno())).get("isRegistered"));
+        assertEquals(
+            Boolean.TRUE, signedResult(Map.of("identifier", "EXAMPLE-EUID-123")).get("isRegistered"));
+        assertEquals(Boolean.TRUE, signedResult(Map.of("serviceIdentifier", "service-one")).get("isRegistered"));
+        assertEquals(Boolean.TRUE, signedResult(Map.of(
+            "identifier", "EXAMPLE-EUID-123",
+            "serviceIdentifier", "service-one",
+            "intendedUseIdentifier", "scoped-use"
+        )).get("isRegistered"));
+        assertEquals(Boolean.FALSE, signedResult(Map.of(
+            "identifier", "EXAMPLE-EUID-123",
+            "serviceIdentifier", "service-one",
+            "intendedUseIdentifier", "revoked-scoped-use"
+        )).get("isRegistered"));
+
+        for (Map<String, String> filters : List.of(
+            Map.of("identifier", "NO-SUCH-ORG"),
+            Map.of("identifier", "example-euid-123"),
+            Map.of("serviceIdentifier", "SERVICE-ONE"),
+            Map.of("identifier", "EXAMPLE-EUID-123", "serviceIdentifier", "other-service"),
+            Map.of("serviceIdentifier", "service-one", "intendedUseIdentifier", "other-use"),
+            Map.of(
+                "identifier", "EXAMPLE-EUID-123",
+                "serviceIdentifier", "other-service",
+                "intendedUseIdentifier", "other-use")
+        )) {
+            var request = get("/wrp/check-intended-use");
+            filters.forEach((name, value) -> request.param(name, value));
+            mockMvc.perform(request).andExpect(status().isNotFound());
+        }
+    }
+
+    @Test
     void rejectsEmptyBlankRepeatedAndNotYetSupportedFilters() throws Exception {
         mockMvc.perform(get("/wrp/check-intended-use"))
             .andExpect(status().isBadRequest());
-        mockMvc.perform(get("/wrp/check-intended-use").param("intendedUseIdentifier", " "))
-            .andExpect(status().isBadRequest());
+        for (String parameter : List.of("identifier", "serviceIdentifier", "intendedUseIdentifier")) {
+            mockMvc.perform(get("/wrp/check-intended-use").param(parameter, " "))
+                .andExpect(status().isBadRequest());
+            mockMvc.perform(get("/wrp/check-intended-use").param(parameter, "one", "two"))
+                .andExpect(status().isBadRequest());
+        }
         mockMvc.perform(get("/wrp/check-intended-use")
                 .param("intendedUseIdentifier", "one", "two"))
-            .andExpect(status().isBadRequest());
-        mockMvc.perform(get("/wrp/check-intended-use").param("identifier", "org-123"))
             .andExpect(status().isBadRequest());
         mockMvc.perform(get("/wrp/check-intended-use").param("unknownFilter", "value"))
             .andExpect(status().isBadRequest());
@@ -144,13 +194,21 @@ class WrpCheckIntendedUseIntegrationTest {
         mockMvc.perform(get("/v3/api-docs/WRP"))
             .andExpect(status().isOk())
             .andExpect(content().string(containsString("\"/wrp/check-intended-use\"")))
+            .andExpect(content().string(containsString("\"name\":\"identifier\"")))
+            .andExpect(content().string(containsString("\"name\":\"serviceIdentifier\"")))
+            .andExpect(content().string(containsString("serviceIdentifier")))
             .andExpect(content().string(containsString("intendedUseIdentifier")))
             .andExpect(content().string(containsString("No registered intended use matches the query")));
     }
 
     private Map<?, ?> signedResult(String identifier) throws Exception {
-        MvcResult result = mockMvc.perform(get("/wrp/check-intended-use")
-                .param("intendedUseIdentifier", identifier))
+        return signedResult(Map.of("intendedUseIdentifier", identifier));
+    }
+
+    private Map<?, ?> signedResult(Map<String, String> filters) throws Exception {
+        var request = get("/wrp/check-intended-use");
+        filters.forEach((name, value) -> request.param(name, value));
+        MvcResult result = mockMvc.perform(request)
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.parseMediaType("application/jwt")))
             .andExpect(header().string("x-jku-url", JWKS_URL))
@@ -171,10 +229,22 @@ class WrpCheckIntendedUseIntegrationTest {
     }
 
     private void storeIntendedUses(List<IntendedUse> intendedUses) {
+        storeIntendedUses(intendedUses, List.of(), "test-service");
+    }
+
+    private WalletRelyingParty storeIntendedUses(
+        List<IntendedUse> intendedUses,
+        List<Identifier> identifiers,
+        String serviceIdentifier
+    ) {
         WalletRelyingParty party = EntityGenerator.generateWalletRelyingParty(1);
         party.setOrgno(TestDataGenerator.generateValidOrgno());
-        party.getServices().getFirst().setIntendedUses(intendedUses);
+        party.setIdentifier(identifiers);
+        var service = party.getServices().getFirst();
+        service.setServiceIdentifier(serviceIdentifier);
+        service.setIntendedUses(intendedUses);
         walletRelyingPartyRepository.saveAndFlush(party);
+        return party;
     }
 
     private IntendedUse intendedUse(String identifier, LocalDate createdAt, LocalDate revokedAt) {

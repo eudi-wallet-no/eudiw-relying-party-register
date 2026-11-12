@@ -48,9 +48,13 @@ public class WrpLookupService {
     }
 
     @Transactional(readOnly = true)
-    public boolean isIntendedUseValid(String intendedUseIdentifier) {
-        List<IntendedUse> matches =
-            intendedUseRepository.findAllExactByIntendedUseIdentifier(intendedUseIdentifier);
+    public boolean isIntendedUseValid(
+        String identifier,
+        String serviceIdentifier,
+        String intendedUseIdentifier
+    ) {
+        List<IntendedUse> matches = intendedUseRepository.findAllMatchingCheckFilters(
+            identifier, serviceIdentifier, intendedUseIdentifier);
         if (matches.isEmpty()) {
             throw new NotFoundException("IntendedUse not found");
         }
