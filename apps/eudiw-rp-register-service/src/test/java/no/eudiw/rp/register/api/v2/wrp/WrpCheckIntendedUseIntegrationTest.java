@@ -114,15 +114,33 @@ class WrpCheckIntendedUseIntegrationTest {
     }
 
     @Test
-    void returnsNotFoundWhenNoExactIntendedUseIdentifierMatches() throws Exception {
+    void returnsSignedFalseWhenNoExactIntendedUseIdentifierMatches() throws Exception {
         storeIntendedUses(List.of(intendedUse(
             "case-sensitive-use", LocalDate.now(ZoneOffset.UTC).minusDays(1), null)));
 
         for (String identifier : List.of("unknown-use", "CASE-SENSITIVE-USE")) {
-            mockMvc.perform(get("/wrp/check-intended-use")
-                    .param("intendedUseIdentifier", identifier))
-                .andExpect(status().isNotFound());
+            assertEquals(
+                Boolean.FALSE,
+                signedResult(Map.of("intendedUseIdentifier", identifier)).get("isRegistered"));
         }
+    }
+
+    @Test
+    void returnsNotFoundOnlyWhenTheSuppliedWrpIdentifierIsUnknown() throws Exception {
+        WalletRelyingParty party = storeIntendedUses(
+            List.of(intendedUse("registered-use", LocalDate.now(ZoneOffset.UTC).minusDays(1), null)),
+            List.of(),
+            "test-service");
+
+        mockMvc.perform(get("/wrp/check-intended-use")
+                .param("identifier", "unknown-identifier")
+                .param("intendedUseIdentifier", "registered-use"))
+            .andExpect(status().isNotFound());
+
+        assertEquals(Boolean.FALSE, signedResult(Map.of(
+            "identifier", party.getOrgno(),
+            "intendedUseIdentifier", "unknown-use"
+        )).get("isRegistered"));
     }
 
     @Test
@@ -156,8 +174,6 @@ class WrpCheckIntendedUseIntegrationTest {
         )).get("isRegistered"));
 
         for (Map<String, String> filters : List.of(
-            Map.of("identifier", "NO-SUCH-ORG"),
-            Map.of("identifier", "example-euid-123"),
             Map.of("serviceIdentifier", "SERVICE-ONE"),
             Map.of("identifier", "EXAMPLE-EUID-123", "serviceIdentifier", "other-service"),
             Map.of("serviceIdentifier", "service-one", "intendedUseIdentifier", "other-use"),
@@ -166,9 +182,12 @@ class WrpCheckIntendedUseIntegrationTest {
                 "serviceIdentifier", "other-service",
                 "intendedUseIdentifier", "other-use")
         )) {
-            var request = get("/wrp/check-intended-use");
-            filters.forEach((name, value) -> request.param(name, value));
-            mockMvc.perform(request).andExpect(status().isNotFound());
+            assertEquals(Boolean.FALSE, signedResult(filters).get("isRegistered"));
+        }
+        for (String unknownIdentifier : List.of("NO-SUCH-ORG", "example-euid-123")) {
+            mockMvc.perform(get("/wrp/check-intended-use")
+                    .param("identifier", unknownIdentifier))
+                .andExpect(status().isNotFound());
         }
     }
 
@@ -198,7 +217,8 @@ class WrpCheckIntendedUseIntegrationTest {
             .andExpect(content().string(containsString("\"name\":\"serviceIdentifier\"")))
             .andExpect(content().string(containsString("serviceIdentifier")))
             .andExpect(content().string(containsString("intendedUseIdentifier")))
-            .andExpect(content().string(containsString("No registered intended use matches the query")));
+            .andExpect(content().string(containsString("no matching IntendedUse returns data.isRegistered=false")))
+            .andExpect(content().string(containsString("The supplied WRP identifier does not exist")));
     }
 
     private Map<?, ?> signedResult(String identifier) throws Exception {

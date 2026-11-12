@@ -53,11 +53,12 @@ public class WrpLookupService {
         String serviceIdentifier,
         String intendedUseIdentifier
     ) {
+        if (identifier != null && repository.findAllByRegisteredIdentifier(identifier).isEmpty()) {
+            throw new NotFoundException("Wallet Relying Party not found");
+        }
+
         List<IntendedUse> matches = intendedUseRepository.findAllMatchingCheckFilters(
             identifier, serviceIdentifier, intendedUseIdentifier);
-        if (matches.isEmpty()) {
-            throw new NotFoundException("IntendedUse not found");
-        }
 
         LocalDate today = LocalDate.now(ZoneOffset.UTC);
         return matches.stream().anyMatch(intendedUse -> isValidAt(intendedUse, today));
