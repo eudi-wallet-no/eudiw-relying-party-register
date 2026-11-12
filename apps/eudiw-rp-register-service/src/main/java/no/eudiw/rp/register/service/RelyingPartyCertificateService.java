@@ -63,24 +63,17 @@ public class RelyingPartyCertificateService {
 
     @Transactional(readOnly = true)
     public IssuerCertificate getIssuerCertificate(UUID certificateId, UUID relyingPartyId) {
-        RelyingPartyInstance rp = relyingPartyRepository.findById(relyingPartyId)
+        relyingPartyRepository.findById(relyingPartyId)
                 .orElseThrow(() -> new NotFoundException(
                         "Issuer certificate holder does not exist",
                         "Failed to find relying party with uuid=%s for certificateId uuid=%s "
                                 .formatted(relyingPartyId, certificateId)));
         IssuerCertificate issuerCert = issuerCertificateRepository
-            .findByIdAndEntitlementRelyingPartyInstanceId(certificateId, relyingPartyId)
+            .findByIdAndRelyingPartyInstanceId(certificateId, relyingPartyId)
             .orElseThrow(() -> new NotFoundException(
                 "Certificate does not exist",
                 "Certificate with uuid %s does not exist in database".formatted(certificateId)));
-        List<RelyingPartyEntitlement> relyingPartyEntitlements = rp.getRelyingPartyEntitlements();
-        if (relyingPartyEntitlements == null || issuerCert.getEntitlement() == null) {
-            throw new NotFoundException("No entitlements found for relying party for issuer certificate or in certificate", "No entitlements found for relying party with uuid %s for certificate uuid %s".formatted(relyingPartyId, certificateId));
-        }
-        boolean sameEntitlement = relyingPartyEntitlements.stream().anyMatch(e -> e.getEntitlement().equals(issuerCert.getEntitlement().getEntitlement()));
-        if (!sameEntitlement) {
-            throw new NotFoundException("Requested certificate does not belong to the specified relying party", "CertificateId uuid=%s with entitlement %s does not match entitlement in relying party with uuid=%s for ".formatted(certificateId, issuerCert.getEntitlement().getEntitlement(), relyingPartyId));
-        }
+
         return issuerCert;
     }
 
@@ -182,7 +175,7 @@ public class RelyingPartyCertificateService {
             throw new NotFoundException("Certificate holder with id " + relyingPartyId + " does not exist");
         }
         IssuerCertificate certificate = issuerCertificateRepository
-                .findByIdAndEntitlementRelyingPartyInstanceId(certificateId, relyingPartyId)
+                .findByIdAndRelyingPartyInstanceId(certificateId, relyingPartyId)
                 .orElseThrow(() -> new NotFoundException(
                         "Certificate id and certificate holder does not match, or one of them does not exist"));
 

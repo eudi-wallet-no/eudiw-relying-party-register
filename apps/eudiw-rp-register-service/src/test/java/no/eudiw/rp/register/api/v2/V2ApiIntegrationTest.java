@@ -542,9 +542,9 @@ class V2ApiIntegrationTest {
         testEntitlement = entitlementRepository.saveAndFlush(new Entitlement(entitlementValue, true, "Issuer", "test-ca"));
         var instance = relyingPartyInstanceRepository.findById(UUID.fromString(registration.relyingPartyInstanceId())).orElseThrow();
         var entitlement = new RelyingPartyEntitlement(entitlementValue, "https://issuer.example.test");
+        instance.setRelyingPartyEntitlements(List.of(entitlement));
         var issuerCertificate = new IssuerCertificate(CertificatesGenerator.generateX509Certificate(), "test-ca", entitlement);
         entitlement.addIssuerCertificate(issuerCertificate);
-        instance.setRelyingPartyEntitlements(List.of(entitlement));
         var accessCertificate = new AccessCertificate("test-ca", CertificatesGenerator.generateX509Certificate(), instance);
         instance.setAccessCertificates(List.of(accessCertificate));
         relyingPartyInstanceRepository.saveAndFlush(instance);
@@ -731,16 +731,21 @@ class V2ApiIntegrationTest {
         var relyingPartyInstance = relyingPartyInstanceRepository.findById(UUID.fromString(registration.relyingPartyInstanceId()))
             .orElseThrow();
         var relyingPartyEntitlement = new RelyingPartyEntitlement(entitlementUri, "https://issuer.example.test");
+        relyingPartyInstance.setRelyingPartyEntitlements(List.of(relyingPartyEntitlement));
         var issuerCertificate = new IssuerCertificate(
             CertificatesGenerator.generateX509Certificate(), "test-ca", relyingPartyEntitlement);
         relyingPartyEntitlement.addIssuerCertificate(issuerCertificate);
-        relyingPartyInstance.setRelyingPartyEntitlements(List.of(relyingPartyEntitlement));
         var accessCertificate = new AccessCertificate(
             "test-ca", CertificatesGenerator.generateX509Certificate(), relyingPartyInstance);
         relyingPartyInstance.setAccessCertificates(List.of(accessCertificate));
         var savedRelyingPartyInstance = relyingPartyInstanceRepository.saveAndFlush(relyingPartyInstance);
         UUID accessCertificateId = savedRelyingPartyInstance.getAccessCertificates().getFirst().getId();
         UUID issuerCertificateId = savedRelyingPartyInstance.getIssuerCertificates().getFirst().getId();
+        var otherRegistration = createRegistration();
+        String otherCertificatePath = otherRegistration.relyingPartyInstancePath()
+            + "/certificates/issuer/" + issuerCertificateId;
+        request(get(otherCertificatePath)).andExpect(status().isNotFound());
+        request(patch(otherCertificatePath + "/revoke")).andExpect(status().isNotFound());
 
         request(patch(registration.relyingPartyPath() + "/deactivate"))
             .andExpect(status().isNoContent());
