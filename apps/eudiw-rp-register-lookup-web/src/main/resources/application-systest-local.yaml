@@ -5,3 +5,16 @@ spring:
   thymeleaf:
     cache: false
 
+eudiw-rp-register-lookup-web:
+  relying-parties-service:
+    register-service-api:
+      register-service-base-uri: http://digital-lommebok-rp-register-service-service:8080
+  credentials-service:
+    credentials-registry-api:
+      credentials-registry-base-uri: http://digital-lommebok-credential-registry-service:8080
+
+external-dependency-health-checks:
+  health-endpoints:
+    eudiw-rp-service:
+      base-uri: http://digital-lommebok-rp-register-service-service-actuator:8090
+
