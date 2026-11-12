@@ -2,15 +2,17 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
 <head>
     <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <script th:src="@{/js/search.js}" defer></script>
+    <noscript><link rel="stylesheet" th:href="@{/css/search_noscript.css}"></noscript>
     <title>Søk etter brukarstader</title>
 </head>
 
 <body>
     <header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
-    <main>
+    <main id="hovudinnhald" tabindex="-1">
         <div class="search-heading">
-            <h1 class="ds-heading" data-size="lg">
+            <h1 class="ds-heading" data-size="xl">
                 Søk etter brukarstader
             </h1>
 

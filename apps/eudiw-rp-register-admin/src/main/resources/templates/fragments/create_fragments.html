@@ -8,20 +8,23 @@
 
         <div class="flex-container">
             <div>
-                <p class="ds-paragraph space-bottom-8">
+                <p class="ds-paragraph space-block-end-2">
                     Bevistypar lagt inn
                 </p>
-                <table class="ds-table fixed-break-table"
-                       data-border="true">
-                    <thead>
-                    <tr>
-                        <th>Bevistype</th>
-                        <th>Føremål</th>
-                        <th class="narrow-cell"></th>
-                    </tr>
-                    </thead>
-                    <tbody id="eaa_container"></tbody>
-                </table>
+                <div class="table-wrap" role="region" aria-label="Bevistypar lagt inn" tabindex="0">
+                    <table class="ds-table fixed-break-table"
+                           data-border="true">
+                        <caption class="ds-sr-only">Bevistypar lagt inn</caption>
+                        <thead>
+                        <tr>
+                            <th scope="col">Bevistype</th>
+                            <th scope="col">Føremål</th>
+                            <th scope="col" class="narrow-cell"><span class="ds-sr-only">Handlingar</span></th>
+                        </tr>
+                        </thead>
+                        <tbody id="eaa_container"></tbody>
+                    </table>
+                </div>
             </div>
 
             <div>
@@ -29,7 +32,7 @@
                     <legend class="ds-legend">
                         Legg til ny bevistype
                     </legend>
-                    <div class="space-bottom-8">
+                    <div class="ds-field">
                         <label for="eaa_namespace_field"
                                class="ds-label">
                             Bevistype
@@ -42,7 +45,9 @@
                              th:insert="~{fragments/general ::
                                                     generic_invalid_input_field_error_msg('EAA-namespace')}"
                              class="display-none"></div>
+                    </div>
 
+                    <div class="ds-field">
                         <label for="eaa_intent_field"
                                class="ds-label">
                             Føremål
@@ -72,7 +77,7 @@
              id="eaa_prefill"
              th:each="eaa : ${createFormAttr.getEaas()}"
              th:attr="data-namespace=${eaa.namespace},data-intent=${eaa.intent}"></div>
-        <script th:src="@{/js/dynamic_edit_form_fields.js}"></script>
+        <script th:src="@{/js/dynamic_form_fields.js}"></script>
     </fieldset>
 </div>
 
@@ -80,9 +85,10 @@
       id="admin_create_form"
       th:object="${createFormAttr}"
       th:action="@{/admin/create}"
-      method="POST">
+      method="POST"
+      class="form-container">
     <!--/*@thymesVar id="createFormAttr" type="no.idporten.eudiw.rp.admin.web.form.admin.AdminCreateRelyingPartyForm"*/-->
-    <div class="space-bottom-8">
+    <div class="form-sections">
         <div class="ds-card">
             <fieldset class="ds-fieldset"
                       data-size="sm">
@@ -91,7 +97,7 @@
                     Generelt
                 </legend>
 
-                <p class="ds-paragraph">
+                <div class="ds-field">
                     <label for="orgno_field"
                            data-weight="medium"
                            class="ds-label">
@@ -103,14 +109,14 @@
                            placeholder="Org.nr."
                            class="ds-input"
                     >
-                </p>
-                <ul th:if="${#fields.hasErrors('orgno')}">
-                    <li th:each="error : ${#fields.errors('orgno')}"
-                        th:text="${error}"
-                        class="ds-validation-message"></li>
-                </ul>
+                    <ul th:if="${#fields.hasErrors('orgno')}">
+                        <li th:each="error : ${#fields.errors('orgno')}"
+                            th:text="${error}"
+                            class="ds-validation-message"></li>
+                    </ul>
+                </div>
 
-                <p class="ds-paragraph">
+                <div class="ds-field">
                     <label for="trade_name_field"
                            class="ds-label">
                         Tenestenamn
@@ -121,12 +127,12 @@
                            placeholder="Tenestenamn"
                            class="ds-input"
                     >
-                </p>
-                <ul th:if="${#fields.hasErrors('tradeName')}">
-                    <li th:each="error : ${#fields.errors('tradeName')}"
-                        th:text="${error}"
-                        class="ds-validation-message"></li>
-                </ul>
+                    <ul th:if="${#fields.hasErrors('tradeName')}">
+                        <li th:each="error : ${#fields.errors('tradeName')}"
+                            th:text="${error}"
+                            class="ds-validation-message"></li>
+                    </ul>
+                </div>
             </fieldset>
         </div>
 
@@ -136,49 +142,53 @@
                         data-weight="high">
                     Vel roller
                 </legend>
-                <table class="ds-table">
-                    <thead>
-                    <tr>
-                        <th>Valt</th>
-                        <th>Rolle</th>
-                        <th>Utstedar-URL</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <!--/*@thymesVar id="entitlementOptionsAttr" type="java.util.List<no.idporten.eudiw.rp.admin.web.form.RelyingPartyEntitlementFormField>"*/-->
-                    <tr th:each="e, iter : ${@relyingPartiesService.getValidEntitlementOptions()}">
-                        <!--/*@thymesVar id="e" type="no.idporten.eudiw.rp.admin.web.form.RelyingPartyEntitlementFormField"*/-->
-                        <td>
-                            <input th:id="|id-${e.getEntitlement()}|"
-                                   type="checkbox"
-                                   class="ds-input"
-                                   th:name="|entitlements[${iter.index}].entitlement|"
-                                   th:value="${e.getEntitlement()}"
-                                   th:checked="${#lists.contains(createFormAttr.getEntitlementValues(), e.getEntitlement())}">
-                        </td>
-                        <td>
-                            <label th:for="|id-${e.getEntitlement()}|" th:text="${e.getDisplayName()}"></label>
-                        </td>
-                        <td>
-                            <input type="text"
-                                   class="ds-input"
-                                   th:name="|entitlements[${iter.index}].credentialIssuerUrl|"
-                                   th:value="${e.getCredentialIssuerUrl()}"
-                                   th:disabled="${! T(no.idporten.eudiw.rp.admin.entitlements.Entitlements)
-                                                            .isIssuerEntitlement(e.getEntitlement())}"
-                            >
-                            <ul th:if="${iter.index < createFormAttr.getEntitlements().size() &&
-                                           #fields.hasErrors('entitlements[__${iter.index}__].credentialIssuerUrl')}"
-                                class="ds-list">
-                                <li th:each="error : ${#fields.errors('entitlements[__${iter.index}__].credentialIssuerUrl')}"
-                                    th:text="${error}"
-                                    class="ds-validation-message">
-                                </li>
-                            </ul>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
+                <div class="table-wrap table-wrap--roles" role="region" aria-label="Roller og utstedar-URL" tabindex="0">
+                    <table class="ds-table">
+                        <caption class="ds-sr-only">Roller og utstedar-URL</caption>
+                        <thead>
+                        <tr>
+                            <th scope="col">Valt</th>
+                            <th scope="col">Rolle</th>
+                            <th scope="col">Utstedar-URL</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <!--/*@thymesVar id="entitlementOptionsAttr" type="java.util.List<no.idporten.eudiw.rp.admin.web.form.RelyingPartyEntitlementFormField>"*/-->
+                        <tr th:each="e, iter : ${@relyingPartiesService.getValidEntitlementOptions()}">
+                            <!--/*@thymesVar id="e" type="no.idporten.eudiw.rp.admin.web.form.RelyingPartyEntitlementFormField"*/-->
+                            <td>
+                                <input th:id="|id-${e.getEntitlement()}|"
+                                       type="checkbox"
+                                       class="ds-input"
+                                       th:name="|entitlements[${iter.index}].entitlement|"
+                                       th:value="${e.getEntitlement()}"
+                                       th:checked="${#lists.contains(createFormAttr.getEntitlementValues(), e.getEntitlement())}">
+                            </td>
+                            <td>
+                                <label th:for="|id-${e.getEntitlement()}|" th:text="${e.getDisplayName()}"></label>
+                            </td>
+                            <td>
+                                <input type="text"
+                                       class="ds-input"
+                                       th:aria-label="|Utstedar-URL for ${e.getDisplayName()}|"
+                                       th:name="|entitlements[${iter.index}].credentialIssuerUrl|"
+                                       th:value="${e.getCredentialIssuerUrl()}"
+                                       th:disabled="${! T(no.idporten.eudiw.rp.admin.entitlements.Entitlements)
+                                                                .isIssuerEntitlement(e.getEntitlement())}"
+                                >
+                                <ul th:if="${iter.index < createFormAttr.getEntitlements().size() &&
+                                               #fields.hasErrors('entitlements[__${iter.index}__].credentialIssuerUrl')}"
+                                    class="ds-list">
+                                    <li th:each="error : ${#fields.errors('entitlements[__${iter.index}__].credentialIssuerUrl')}"
+                                        th:text="${error}"
+                                        class="ds-validation-message">
+                                    </li>
+                                </ul>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
 
             </fieldset>
             <ul th:if="${#fields.hasErrors('entitlements')}">
@@ -192,7 +202,7 @@
 
     </div>
 
-    <div class="flex-container">
+    <div class="button-group">
         <button type="submit"
                 class="ds-button"
                 data-variant="primary">
@@ -200,7 +210,7 @@
         </button>
 
         <a th:href="@{/}"
-           class="ds-button display-flex"
+           class="ds-button"
            type="button"
            data-variant="secondary"
            data-color="danger">
@@ -213,9 +223,10 @@
       id="create_form"
       th:object="${createFormAttr}"
       th:action="@{/create}"
-      method="POST">
+      method="POST"
+      class="form-container">
     <!--/*@thymesVar id="createFormAttr" type="no.idporten.eudiw.rp.admin.web.form.BaseCreateRelyingPartyForm"*/-->
-    <div class="space-bottom-8">
+    <div class="form-sections">
         <div class="ds-card">
             <fieldset class="ds-fieldset"
                       data-size="sm">
@@ -224,7 +235,7 @@
                     Generelt
                 </legend>
 
-                <p class="ds-paragraph">
+                <div class="ds-field">
                     <label for="orgno_field"
                            data-weight="medium"
                            class="ds-label">
@@ -238,9 +249,9 @@
                            class="ds-input"
                            th:value="${reporteeAuthorityAttr.orgno()}"
                     >
-                </p>
+                </div>
 
-                <p class="ds-paragraph">
+                <div class="ds-field">
                     <label for="trade_name_field"
                            class="ds-label">
                         Tenestenamn
@@ -251,12 +262,12 @@
                            placeholder="Tenestenamn"
                            class="ds-input"
                     >
-                </p>
-                <ul th:if="${#fields.hasErrors('tradeName')}">
-                    <li th:each="error : ${#fields.errors('tradeName')}"
-                        th:text="${error}"
-                        class="ds-validation-message"></li>
-                </ul>
+                    <ul th:if="${#fields.hasErrors('tradeName')}">
+                        <li th:each="error : ${#fields.errors('tradeName')}"
+                            th:text="${error}"
+                            class="ds-validation-message"></li>
+                    </ul>
+                </div>
             </fieldset>
         </div>
 
@@ -264,7 +275,7 @@
 
     </div>
 
-    <div class="flex-container">
+    <div class="button-group">
         <button type="submit"
                 class="ds-button"
                 data-variant="primary">
@@ -272,7 +283,7 @@
         </button>
 
         <a th:href="@{/}"
-           class="ds-button display-flex"
+           class="ds-button"
            type="button"
            data-variant="secondary"
            data-color="danger">

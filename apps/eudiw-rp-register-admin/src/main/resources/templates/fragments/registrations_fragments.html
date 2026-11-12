@@ -1,38 +1,54 @@
 <div th:fragment="registrations_table_fragment">
-    <!--/*@thymesVar id="registrationsAttr" type="java.util.List<no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource>"*/-->
-    <div th:with="registrations=${registrationsAttr}">
-        <div th:if="${#lists.isEmpty(registrations)}">
-            Fann ingen registrerte brukarstader.
+    <!--/*@thymesVar id="registrationsAttr" type="java.util.List<no.idporten.eudiw.rp.admin.web.resource.RegistrationSummary>"*/-->
+    <div th:with="registrations=${registrationsAttr}" th:object="${searchFormAttr}">
+        <p th:if="${!#fields.hasErrors() and !#strings.isEmpty(searchFormAttr.searchTerm)}"
+           class="ds-paragraph space-block-end-4">
+            Viser treff for <strong th:text="*{searchTerm}"></strong>.
+            <a th:href="@{/registrations}" class="ds-link">Vis alle registreringar</a>
+        </p>
+
+        <div th:if="${#fields.hasErrors('searchTerm')}"
+             class="ds-alert space-block-end-4" data-color="danger" role="alert">
+            <p th:each="error : ${#fields.errors('searchTerm')}"
+               th:text="${error}" class="ds-paragraph"></p>
+            <a th:href="@{/registrations}" class="ds-link">Vis alle registreringar</a>
         </div>
 
-        <table th:unless="${#lists.isEmpty(registrations)}"
-               class="ds-table"
-               data-border="true">
-            <thead>
-            <tr>
-                <th>Tenestenamn</th>
-                <th>Roller</th>
-                <th>Oppretta</th>
-                <th>Sist endra</th>
-            </tr>
-            </thead>
-            <tbody>
+        <div th:if="${#lists.isEmpty(registrations)}">
+            <span th:unless="${#fields.hasErrors()}">Fann ingen registrerte brukarstader.</span>
+        </div>
 
-            <tr th:each="rp : ${registrations}">
-                <td>
-                    <a th:href="@{|/details/${rp.id}|}" class="clickable-link">
-                        <div th:text="${rp.tradeName}"></div>
-                    </a>
-                </td>
-                <td>
-                    <div th:each="e : ${rp.relyingPartyEntitlements()}"
-                         th:text="${e.displayName()}"
-                         class="display-block"></div>
-                </td>
-                <td th:text="${@timestampFormatter.formatEpochMillis(rp.createdMs)}"></td>
-                <td th:text="${@timestampFormatter.formatEpochMillis(rp.lastUpdatedMs)}"></td>
-            </tr>
-            </tbody>
-        </table>
+        <div th:unless="${#lists.isEmpty(registrations)}" class="table-wrap"
+             role="region" aria-label="Mine registreringar" tabindex="0">
+            <table class="ds-table" data-border="true">
+                <caption class="ds-sr-only">Mine registrerte brukarstader</caption>
+                <thead>
+                <tr>
+                    <th scope="col">Tenestenamn</th>
+                    <th scope="col">Roller</th>
+                    <th scope="col">Oppretta</th>
+                    <th scope="col">Sist endra</th>
+                </tr>
+                </thead>
+                <tbody>
+
+                <tr th:each="rp : ${registrations}">
+                    <td>
+                        <a th:href="@{|/details/${rp.id}|}" class="ds-link"
+                           th:attr="aria-label=${#strings.isEmpty(rp.tradeName) ? 'Vis registrering ' + rp.id : null}">
+                            <div th:text="${rp.tradeName}"></div>
+                        </a>
+                    </td>
+                    <td>
+                        <div th:each="e : ${rp.relyingPartyEntitlements()}"
+                             th:text="${e.displayName()}"
+                             class="display-block"></div>
+                    </td>
+                    <td th:text="${rp.createdMs == null ? '' : @timestampFormatter.formatEpochMillis(rp.createdMs)}"></td>
+                    <td th:text="${rp.lastUpdatedMs == null ? '' : @timestampFormatter.formatEpochMillis(rp.lastUpdatedMs)}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>

@@ -1,11 +1,9 @@
 package no.idporten.eudiw.rp.admin.web.utils;
 
 import no.idporten.eudiw.rp.admin.web.form.BaseCreateRelyingPartyForm;
-import no.idporten.eudiw.rp.admin.web.form.BaseEditRelyingPartyForm;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEaaFormField;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEntitlementFormField;
 import no.idporten.eudiw.rp.admin.web.form.admin.AdminCreateRelyingPartyForm;
-import no.idporten.eudiw.rp.admin.web.form.admin.AdminEditRelyingPartyForm;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import java.util.List;
@@ -35,29 +33,6 @@ public class WebTestUtils {
                              .param("eaas[%s].intent".formatted(index), eaa.getIntent());
             index++;
         }
-        return builder;
-    }
-
-    public static MockHttpServletRequestBuilder withEditForm(
-        MockHttpServletRequestBuilder builder,
-        BaseEditRelyingPartyForm editForm) {
-
-        builder = builder.param("tradeName", editForm.getTradeName());
-        builder = withEaaFormFields(builder, editForm.getEaas());
-        builder = withEntitlementFormFields(builder, editForm.getEntitlements());
-
-        return builder;
-    }
-
-    public static MockHttpServletRequestBuilder withEditForm(
-        MockHttpServletRequestBuilder builder,
-        AdminEditRelyingPartyForm editForm) {
-
-        builder = builder.param("tradeName", editForm.getTradeName());
-        builder = builder.param("active", Boolean.toString(editForm.isActive()));
-        builder = withEaaFormFields(builder, editForm.getEaas());
-        builder = withEntitlementFormFields(builder, editForm.getEntitlements());
-
         return builder;
     }
 

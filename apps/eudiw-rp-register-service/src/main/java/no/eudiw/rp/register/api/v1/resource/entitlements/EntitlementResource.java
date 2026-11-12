@@ -13,7 +13,6 @@ import java.util.UUID;
 public record EntitlementResource(
 
     @NotNull(message = "null_id")
-    @JsonProperty("id")
     UUID id,
 
     @SaneStringConstraint

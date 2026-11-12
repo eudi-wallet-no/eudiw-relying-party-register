@@ -77,6 +77,15 @@ public class RelyingPartyInstance extends BaseEntity {
                 .findFirst();
     }
 
+    public boolean hasActiveRelyingPartyAndService() {
+        if (walletRelyingPartyService == null || walletRelyingPartyService.getWalletRelyingParty() == null) {
+            return false;
+        }
+
+        return walletRelyingPartyService.isActive()
+            && walletRelyingPartyService.getWalletRelyingParty().isActive();
+    }
+
     private void addOrUpdateRelyingPartyEntitlement(RelyingPartyEntitlement newEntitlement) {
         Optional<RelyingPartyEntitlement> existingEntitlement =
             this.getRelyingPartyEntitlement(newEntitlement.getEntitlement());
@@ -100,6 +109,13 @@ public class RelyingPartyInstance extends BaseEntity {
         this.relyingPartyEntitlements.removeIf(doRemoveEntitlement);
 
         relyingPartyEntitlements.forEach(this::addOrUpdateRelyingPartyEntitlement);
+    }
+
+    public boolean keepsEntitlementsWithIssuerCertificates(List<RelyingPartyEntitlement> requestedEntitlements) {
+        return relyingPartyEntitlements.stream()
+            .filter(existing -> !existing.getIssuerCertificates().isEmpty())
+            .allMatch(existing -> requestedEntitlements.stream().anyMatch(requested ->
+                Objects.equals(requested.getEntitlement(), existing.getEntitlement())));
     }
 
     public void setRelyingPartyEaas(List<RelyingPartyEaa> relyingPartyEaas) {
@@ -130,7 +146,7 @@ public class RelyingPartyInstance extends BaseEntity {
     // for JPA instantiation.
     protected RelyingPartyInstance() { }
 
-    public void markUpdated() {
+    public void setUpdated() {
         this.lastUpdatedMs = Instant.now().toEpochMilli();
     }
 
@@ -141,6 +157,6 @@ public class RelyingPartyInstance extends BaseEntity {
 
     @PreUpdate
     protected void onPreUpdate() {
-        this.lastUpdatedMs = Instant.now().toEpochMilli();
+        setUpdated();
     }
 }

@@ -1,23 +1,25 @@
-<div th:fragment="access_certificates_content_fragment(rp, certs)" xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
-    <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
-    <div class="space-padding-bottom-2em">
+<div th:fragment="access_certificates_content_fragment(relyingPartyResource, certs)" xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+    <!--/*@thymesVar id="relyingPartyResource" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
+    <div class="space-padding-block-end-8">
         <div th:if="${ #lists.isEmpty(certs)}">
             <em>
-                Ingen registrert.
+                Ikkje registrert.
             </em>
         </div>
 
-        <div th:unless="${ #lists.isEmpty(certs)}">
-            <table class="ds-table">
+        <div th:unless="${ #lists.isEmpty(certs)}" class="table-wrap"
+             role="region" aria-label="Access-sertifikat" tabindex="0">
+            <table class="ds-table certificates-table">
+                <caption class="ds-sr-only">Access-sertifikat</caption>
                 <thead>
                     <tr>
-                        <th>Serienummer</th>
-                        <th>Subjekt</th>
-                        <th>Utstedar</th>
-                        <th>Gyldig frå</th>
-                        <th>Gyldig til</th>
-                        <th>Status</th>
-                        <th></th>
+                        <th scope="col">Serienummer</th>
+                        <th scope="col">Subjekt</th>
+                        <th scope="col">Utstedar</th>
+                        <th scope="col">Gyldig frå</th>
+                        <th scope="col">Gyldig til</th>
+                        <th scope="col">Status</th>
+                        <th scope="col"><span class="ds-sr-only">Handlingar</span></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -33,14 +35,14 @@
                         </td>
                         <td>
                             <div class="certificate-actions">
-                                <a th:href="@{|/get-certificate/${rp.id}/${cert.id}|}"
+                                <a th:href="@{|/get-certificate/${relyingPartyResource.id}/${cert.id}|}"
                                    class="ds-button certificate-download"
                                    download>
                                     Last ned
                                 </a>
                                 <th:block>
                                     <form th:if="${cert.status().valid()}"
-                                          th:action="@{|/revoke-certificate/${rp.id}/access/${cert.id}|}"
+                                          th:action="@{|/revoke-certificate/${relyingPartyResource.id}/access/${cert.id}|}"
                                           method="post"
                                           class="confirm-revocation certificate-revoke">
                                         <button type="submit"
@@ -58,8 +60,8 @@
             </table>
         </div>
     </div>
-    <div th:if="${rp.active}">
-        <a th:href="@{|/csr/access/${rp.id}|}"
+    <div th:if="${relyingPartyResource.active}">
+        <a th:href="@{|/csr/access/${relyingPartyResource.id}|}"
            class="ds-button"
            data-variant="primary">
             Legg til nytt access-sertifikat
@@ -67,27 +69,29 @@
     </div>
 </div>
 
-<div th:fragment="issuer_certificates_content_fragment(rp, certs)"  xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
-    <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
-    <div class="space-padding-bottom-2em">
+<div th:fragment="issuer_certificates_content_fragment(relyingPartyResource, certs)"  xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+    <!--/*@thymesVar id="relyingPartyResource" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
+    <div class="space-padding-block-end-8">
         <div th:if="${ #lists.isEmpty(certs)}">
             <em>
-                Ingen registrert.
+                Ikkje registrert.
             </em>
         </div>
 
-        <div th:unless="${ #lists.isEmpty(certs)}">
-            <table class="ds-table">
+        <div th:unless="${ #lists.isEmpty(certs)}" class="table-wrap"
+             role="region" aria-label="Issuer-sertifikat" tabindex="0">
+            <table class="ds-table certificates-table">
+                <caption class="ds-sr-only">Issuer-sertifikat</caption>
                 <thead>
                 <tr>
-                    <th>Rolle</th>
-                    <th>Serienummer</th>
-                    <th>Subjekt</th>
-                    <th>Utstedar</th>
-                    <th>Gyldig frå</th>
-                    <th>Gyldig til</th>
-                    <th>Status</th>
-                    <th></th>
+                    <th scope="col">Rolle</th>
+                    <th scope="col">Serienummer</th>
+                    <th scope="col">Subjekt</th>
+                    <th scope="col">Utstedar</th>
+                    <th scope="col">Gyldig frå</th>
+                    <th scope="col">Gyldig til</th>
+                    <th scope="col">Status</th>
+                    <th scope="col"><span class="ds-sr-only">Handlingar</span></th>
                 </tr>
                 </thead>
                 <tbody>
@@ -104,14 +108,14 @@
                     </td>
                     <td>
                         <div class="certificate-actions">
-                            <a th:href="@{|/get-certificate/${rp.id}/issuer/${cert.id}|}"
+                            <a th:href="@{|/get-certificate/${relyingPartyResource.id}/issuer/${cert.id}|}"
                                class="ds-button certificate-download"
                                download>
                                 Last ned
                             </a>
                             <th:block>
                                 <form th:if="${cert.status().valid()} "
-                                      th:action="@{|/revoke-certificate/${rp.id}/issuer/${cert.id}|}"
+                                      th:action="@{|/revoke-certificate/${relyingPartyResource.id}/issuer/${cert.id}|}"
                                       method="post"
                                       class="confirm-revocation certificate-revoke">
                                     <button type="submit"
@@ -129,8 +133,8 @@
             </table>
         </div>
     </div>
-    <div th:if="${rp.active}">
-        <a th:href="@{|/csr/issuer/${rp.id}|}"
+    <div th:if="${relyingPartyResource.active}">
+        <a th:href="@{|/csr/issuer/${relyingPartyResource.id}|}"
            class="ds-button"
            data-variant="primary">
             Legg til nytt issuer-sertifikat
@@ -141,106 +145,521 @@
 <div th:fragment="certificate_revocation_status_badge(status)">
     <span
         th:text="${status.text()}"
-        class="status-badge"
-        th:classappend="|status-badge-${status.style()}|" >
+        class="ds-tag"
+        th:attr="data-color=${status.style()}">
     </span>
 </div>
 
-<div th:fragment="general_info_content_fragment(rp)"
+<div th:fragment="general_info_content_fragment(relyingPartyResource)"
      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
 
-    <!--/*@thymesVar id="rp" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
-    <div class="space-padding-bottom-2em">
-        <table class="ds-table">
-            <tbody>
-            <th:block sec:authorize="hasRole('ADMIN')">
-                <tr>
-                    <th>Org.nr.</th>
-                    <td th:text="${rp.orgno}"></td>
-                </tr>
-                <tr>
-                    <th>Organisasjon</th>
-                    <td th:text="${rp.orgName}"></td>
-                </tr>
-            </th:block>
-            <tr>
-                <th>Tenestenamn</th>
-                <td th:text="${rp.tradeName}"></td>
-            </tr>
-            <tr>
-                <th>Sektor</th>
-                <td th:text="${rp.publicSector ? 'offentleg' : 'privat'}"></td>
-            </tr>
-            <tr>
-                <th>Oppretta</th>
-                <td th:text="${@timestampFormatter.formatEpochMillis(rp.createdMs)}"></td>
-            </tr>
-            <tr>
-                <th>Sist endra</th>
-                <td th:text="${@timestampFormatter.formatEpochMillis(rp.lastUpdatedMs)}"></td>
-            </tr>
-            <tr>
-                <th>Aktiv</th>
-                <td th:text="${rp.active ? 'ja' : 'nei'}"></td>
-            </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <div class="space-bottom-1em">
-        <h2 class="ds-heading">Roller og bevistypar</h2>
-
-        <details class="ds-details" data-variant="default">
-            <summary>Roller</summary>
-
-            <div th:if="${ #lists.isEmpty(rp.relyingPartyEntitlements)}">
-                <em>Ingen registrert.</em>
-            </div>
-            <div th:unless="${ #lists.isEmpty(rp.relyingPartyEntitlements)}">
-                <table class="ds-table" data-sticky-header="true">
-                    <thead>
-                        <tr>
-                            <th>Rolle</th>
-                            <th>Utstedar-URL</th>
-                        </tr>
-                    </thead>
+    <!--/*@thymesVar id="relyingPartyResource" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
+    <section class="ds-card registration-card">
+        <div class="ds-card__block">
+            <div th:replace="~{fragments/registration_fragments :: card_heading('Generelt', null)}"></div>
+            <div class="table-wrap">
+                <table class="ds-table relying-party-information-table">
+                    <caption class="ds-sr-only">Generelle opplysningar om registreringa</caption>
                     <tbody>
-                        <tr th:each="e : ${rp.relyingPartyEntitlements}">
-                            <td th:text="${e.displayName}"></td>
-                            <td th:text="${e.credentialIssuerUrl}"></td>
+                    <th:block sec:authorize="hasRole('ADMIN')">
+                        <tr>
+                            <th scope="row">Org.nr.</th>
+                            <td th:text="${relyingPartyResource.orgno}"></td>
                         </tr>
+                        <tr>
+                            <th scope="row">Organisasjon</th>
+                            <td th:text="${relyingPartyResource.orgName}"></td>
+                        </tr>
+                    </th:block>
+                    <tr>
+                        <th scope="row">Sektor</th>
+                        <td th:text="${relyingPartyResource.publicSector ? 'Offentleg' : 'Privat'}"></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Føremål</th>
+                        <td th:text="|${#lists.size(relyingPartyResource.intendedUses.?[revokedAt == null])} aktive|"></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Oppretta</th>
+                        <td th:text="${@timestampFormatter.formatEpochMillis(relyingPartyResource.createdMs)}"></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Sist endra</th>
+                        <td th:text="${@timestampFormatter.formatEpochMillis(relyingPartyResource.lastUpdatedMs)}"></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Aktiv</th>
+                        <td th:text="${relyingPartyResource.active ? 'Ja' : 'Nei'}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section th:fragment="relying_party_information_content_fragment(relyingPartyResource)"
+             th:with="editingRelyingParty=${editingRelyingParty == true}" class="ds-card registration-card relying-party-card">
+        <details class="ds-details" th:unless="${editingRelyingParty}">
+            <summary><h2 class="ds-heading" data-size="sm">Brukarstad</h2></summary>
+            <div class="relying-party-card-bar">
+                <h3 class="ds-heading" data-size="sm">Opplysningar om brukarstaden</h3>
+                <a th:href="${'/relying-party/edit/' + relyingPartyResource.id + '?returnUrl=' + #uris.escapeQueryParam(searchUrlAttr ?: '/search')}"
+                   aria-label="Rediger brukarstad" class="ds-button" data-variant="secondary" data-size="sm">Rediger</a>
+            </div>
+            <div th:replace="~{fragments/details_tabs_fragments :: relying_party_information_table(${relyingPartyResource}, false)}"></div>
+        </details>
+        <th:block th:if="${editingRelyingParty}">
+            <div class="ds-card__block">
+                <div th:replace="~{fragments/registration_fragments :: card_heading('Brukarstad', null)}"></div>
+                <p class="ds-paragraph">
+                    Endringar blir synlege for alle tenestene til brukarstaden.
+                </p>
+                <div th:if="${#fields.hasErrors()}" class="ds-alert" data-color="danger"
+                     role="alert" tabindex="-1" autofocus aria-labelledby="relying-party-errors-heading">
+                    <h3 id="relying-party-errors-heading" class="ds-heading" data-size="sm">Rett feila før du lagrar</h3>
+                    <ul>
+                        <li th:each="fieldError : ${#fields.detailedErrors()}"><a th:href="|#${fieldError.fieldName}|" th:text="${fieldError.message}"></a></li>
+                    </ul>
+                </div>
+                <div th:replace="~{fragments/details_tabs_fragments :: relying_party_information_table(${relyingPartyResource}, true)}"></div>
+                <div class="button-group">
+                    <button class="ds-button" type="submit">Lagre</button>
+                    <a th:href="${detailsUrl}" class="ds-button" data-variant="secondary">Avbryt</a>
+                </div>
+            </div>
+        </th:block>
+    </section>
+
+    <section class="ds-card registration-card">
+        <details class="ds-details">
+            <summary><h2 class="ds-heading" data-size="sm">Teneste</h2></summary>
+            <div class="registration-section-bar">
+                <h3 id="service-information-heading" class="ds-heading" data-size="sm">Opplysningar om tenesta</h3>
+                <a th:href="${'/service/edit/' + relyingPartyResource.id + '?returnUrl=' + #uris.escapeQueryParam(searchUrlAttr ?: '/search')}"
+                   aria-label="Rediger grunnopplysningar om tenesta" class="ds-button" data-variant="secondary" data-size="sm">Rediger</a>
+            </div>
+            <div class="table-wrap">
+                <table class="ds-table relying-party-information-table" aria-labelledby="service-information-heading">
+                    <caption class="ds-sr-only">Opplysningar om tenesta</caption>
+                    <tbody>
+                    <tr>
+                        <th scope="row">Tenestenamn</th>
+                        <td th:text="${relyingPartyResource.tradeName}"></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Tenesteidentifikator</th>
+                        <td th:text="${relyingPartyResource.relyingPartyService?.serviceIdentifier == null ? 'Ikkje registrert.' : relyingPartyResource.relyingPartyService.serviceIdentifier}"></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Tenesteskildring</th>
+                        <td>
+                            <em th:if="${#lists.isEmpty(relyingPartyResource.relyingPartyService?.srvDescription)}">Ikkje registrert.</em>
+                            <ul th:unless="${#lists.isEmpty(relyingPartyResource.relyingPartyService?.srvDescription)}">
+                                <li th:each="description : ${relyingPartyResource.relyingPartyService?.srvDescription}"
+                                    th:text="|${description.lang}: ${description.content}|"></li>
+                            </ul>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Støtteadresse</th>
+                        <td class="break-word" th:text="${relyingPartyResource.relyingPartyService?.supportUri == null ? 'Ikkje registrert.' : relyingPartyResource.relyingPartyService.supportUri}"></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">E-post</th>
+                        <td th:text="${relyingPartyResource.relyingPartyService?.email == null ? 'Ikkje registrert.' : relyingPartyResource.relyingPartyService.email}"></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Telefon</th>
+                        <td th:text="${relyingPartyResource.relyingPartyService?.phone == null ? 'Ikkje registrert.' : relyingPartyResource.relyingPartyService.phone}"></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Underroller</th>
+                        <td>
+                            <em th:if="${#lists.isEmpty(relyingPartyResource.relyingPartyService?.subEntitlements)}">Ikkje registrert.</em>
+                            <ul th:unless="${#lists.isEmpty(relyingPartyResource.relyingPartyService?.subEntitlements)}">
+                                <li th:each="entitlement : ${relyingPartyResource.relyingPartyService?.subEntitlements}" th:text="${entitlement}"></li>
+                            </ul>
+                        </td>
+                    </tr>
+                    <tr th:if="${relyingPartyResource.hasIssuerEntitlements() or !#lists.isEmpty(relyingPartyResource.relyingPartyService?.providesAttestations)}">
+                        <th scope="row">Attestasjonar</th>
+                        <td>
+                            <em th:if="${#lists.isEmpty(relyingPartyResource.relyingPartyService?.providesAttestations)}">Ikkje registrert.</em>
+                            <ul th:unless="${#lists.isEmpty(relyingPartyResource.relyingPartyService?.providesAttestations)}">
+                                <li th:each="attestation : ${relyingPartyResource.relyingPartyService?.providesAttestations}"
+                                    th:text="|${attestation.format}: ${attestation.type}|"></li>
+                            </ul>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Tenesta er mellomledd</th>
+                        <td th:text="${relyingPartyResource.relyingPartyService == null ? 'Ikkje registrert.' : (relyingPartyResource.relyingPartyService.isIntermediary ? 'Ja' : 'Nei')}"></td>
+                    </tr>
+                    <tr th:if="${relyingPartyResource.relyingPartyService?.isIntermediary == true}">
+                        <th scope="row">Formidlar for tenestene</th>
+                        <td>
+                            <em th:if="${#lists.isEmpty(relyingPartyResource.relyingPartyService.servedWRPServices)}">Ikkje registrert.</em>
+                            <ul th:unless="${#lists.isEmpty(relyingPartyResource.relyingPartyService.servedWRPServices)}">
+                                <li th:each="servedService : ${relyingPartyResource.relyingPartyService.servedWRPServices}"
+                                    th:text="|${servedService.serviceIdentifier} (${#strings.listJoin(servedService.identifier.![type + ': ' + identifier], ', ')}) – ${servedService.registryUri}|"></li>
+                            </ul>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Tenesta nyttar mellomledd</th>
+                        <td>
+                            <span th:if="${#lists.isEmpty(relyingPartyResource.relyingPartyService?.usesIntermediaries)}"
+                                  th:text="${relyingPartyResource.relyingPartyService?.usesIntermediaries == null ? 'Ikkje registrert.' : 'Nei'}"></span>
+                            <ul th:unless="${#lists.isEmpty(relyingPartyResource.relyingPartyService?.usesIntermediaries)}">
+                                <li th:each="intermediary : ${relyingPartyResource.relyingPartyService?.usesIntermediaries}"
+                                    th:text="|${intermediary.serviceIdentifier} (${#strings.listJoin(intermediary.identifier.![type + ': ' + identifier], ', ')}) – ${intermediary.registryUri}|"></li>
+                            </ul>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Tenesta er aktiv</th>
+                        <td th:text="${relyingPartyResource.relyingPartyService == null ? 'Ikkje registrert.' : (relyingPartyResource.relyingPartyService.active ? 'Ja' : 'Nei')}"></td>
+                    </tr>
                     </tbody>
                 </table>
             </div>
         </details>
+    </section>
 
+    <section class="ds-card registration-card">
         <details class="ds-details">
-            <summary>Bevistypar (EAA)</summary>
-            <div th:if="${ #lists.isEmpty(rp.relyingPartyEaas)}">
-                <em>Ingen registrert.</em>
+            <summary><h2 class="ds-heading" data-size="sm">Roller og bevistypar</h2></summary>
+            <div>
+            <div class="registration-section-bar registration-section-bar--end">
+                <a th:href="${'/roles/edit/' + relyingPartyResource.id + '?returnUrl=' + #uris.escapeQueryParam(searchUrlAttr ?: '/search')}"
+                   class="ds-button" data-variant="secondary" data-size="sm">Rediger roller og bevistypar</a>
             </div>
-            <div th:unless="${ #lists.isEmpty(rp.relyingPartyEaas)}">
-                <table class="ds-table" data-sticky-header="true">
+
+            <h3 class="ds-heading registration-subheading" data-size="sm">Roller</h3>
+
+            <div th:if="${ #lists.isEmpty(relyingPartyResource.relyingPartyEntitlements)}">
+                <em>Ikkje registrert.</em>
+            </div>
+            <div th:unless="${ #lists.isEmpty(relyingPartyResource.relyingPartyEntitlements)}" class="table-wrap"
+                 role="region" aria-label="Roller" tabindex="0">
+                <table class="ds-table fixed-break-table" data-sticky-header="true">
+                    <caption class="ds-sr-only">Roller</caption>
                     <thead>
                         <tr>
-                            <th>Bevistype</th>
-                            <th>Føremål</th>
+                            <th scope="col">Rolle</th>
+                            <th scope="col">Utstedar-URL</th>
                         </tr>
                     </thead>
                     <tbody>
-                    <tr th:each="eaa : ${rp.relyingPartyEaas}">
+                        <tr th:each="e : ${relyingPartyResource.relyingPartyEntitlements}">
+                            <td th:text="${e.displayName}"></td>
+                            <td th:text="${e.credentialIssuerUrl ?: 'Ikkje registrert.'}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 class="ds-heading registration-subheading" data-size="sm">Bevistypar (EAA)</h3>
+            <div th:if="${ #lists.isEmpty(relyingPartyResource.relyingPartyEaas)}">
+                <em>Ikkje registrert.</em>
+            </div>
+            <div th:unless="${ #lists.isEmpty(relyingPartyResource.relyingPartyEaas)}" class="table-wrap"
+                 role="region" aria-label="Bevistypar" tabindex="0">
+                <table class="ds-table fixed-break-table" data-sticky-header="true">
+                    <caption class="ds-sr-only">Bevistypar</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Bevistype</th>
+                            <th scope="col">Føremål</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="eaa : ${relyingPartyResource.relyingPartyEaas}">
                         <td th:text="${eaa.namespace}"></td>
                         <td th:text="${eaa.intent}"></td>
                     </tr>
                     </tbody>
                 </table>
             </div>
+            </div>
         </details>
-    </div>
+    </section>
 
-    <a th:href="@{|/edit/${rp.id}|}"
-       class="ds-button"
-       data-variant="primary">
-        Endre brukarstad
-    </a>
+    <section class="ds-card registration-card">
+        <details class="ds-details">
+            <summary><h2 class="ds-heading" data-size="sm">Føremål</h2></summary>
+            <p class="ds-paragraph" th:if="${#lists.isEmpty(relyingPartyResource.intendedUses)}">Tenesta har ingen registrerte føremål.</p>
+        <details class="ds-details"
+                 th:each="intendedUse, intendedUseStatus : ${relyingPartyResource.intendedUses}">
+            <summary th:text="${intendedUse.intendedUseIdentifier ?: ('Bruk ' + intendedUseStatus.count)}">Bruk</summary>
+            <div class="table-wrap">
+                <table class="ds-table relying-party-information-table">
+                    <caption th:text="${intendedUse.intendedUseIdentifier ?: ('Bruk ' + intendedUseStatus.count)}">Bruk</caption>
+                    <tbody>
+                    <tr>
+                        <th scope="row">Identifikator</th>
+                        <td th:text="${intendedUse.intendedUseIdentifier ?: 'Ikkje registrert.'}"></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Status</th>
+                        <td th:text="${intendedUse.revokedAt == null ? 'Aktiv' : 'Revokert'}"></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Oppretta</th>
+                        <td th:text="${intendedUse.createdAt ?: 'Ikkje registrert.'}"></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Revokert</th>
+                        <td th:text="${intendedUse.revokedAt ?: 'Ikkje revokert.'}"></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Føremål</th>
+                        <td>
+                            <em th:if="${#lists.isEmpty(intendedUse.purpose)}">Ikkje registrert.</em>
+                            <ul th:unless="${#lists.isEmpty(intendedUse.purpose)}">
+                                <li th:each="purpose : ${intendedUse.purpose}"
+                                    th:text="|${purpose.lang}: ${purpose.content}|"></li>
+                            </ul>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Personvernreglar</th>
+                        <td>
+                            <em th:if="${#lists.isEmpty(intendedUse.privacyPolicy)}">Ikkje registrert.</em>
+                            <ul th:unless="${#lists.isEmpty(intendedUse.privacyPolicy)}">
+                                <li th:each="policy : ${intendedUse.privacyPolicy}"
+                                    th:text="|${policy.type}: ${policy.policyUri}|"></li>
+                            </ul>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Etterspurde bevis</th>
+                        <td>
+                            <em th:if="${#lists.isEmpty(intendedUse.credentials)}">Ikkje registrert.</em>
+                            <div th:unless="${#lists.isEmpty(intendedUse.credentials)}"
+                                 th:each="credential : ${intendedUse.credentials}">
+                                <p><strong>Format:</strong>
+                                    <span th:text="${credential.format == null ? 'Ikkje registrert.' : credential.format}"></span>
+                                </p>
+                                <p><strong>Metadata:</strong>
+                                    <code class="break-word"
+                                          th:text="${#maps.isEmpty(credential.meta) ? 'Ikkje registrert.' : credential.meta}"></code>
+                                </p>
+                                <p><strong>Attributt:</strong>
+                                    <code class="break-word"
+                                          th:text="${#lists.isEmpty(credential.claims) ? 'Ikkje registrert.' : credential.claims}"></code>
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </details>
+        </details>
+    </section>
+
+    <section sec:authorize="hasRole('ADMIN')" id="registration-status"
+             class="ds-card registration-card">
+        <div class="ds-card__block">
+            <div th:replace="~{fragments/registration_fragments :: card_heading('Registreringsstatus', null)}"></div>
+            <p class="ds-paragraph">
+                Rollene til ein deaktivert registrering blir ikkje publiserte, og det kan ikkje utferdast nye sertifikat. Brukarstaden og tenesta blir framleis publiserte.
+                Eksisterande sertifikat må tilbakekallast separat. Gjeld berre denne registreringa.
+            </p>
+            <p class="ds-paragraph" id="registration-status-blocked"
+               th:if="${!relyingPartyResource.active and relyingPartyResource.relyingPartyService != null and !relyingPartyResource.relyingPartyService.active}">
+                Tenesta er deaktivert. Aktiver tenesta før du aktiverer registreringa.
+            </p>
+            <form th:action="@{|/admin/status/${relyingPartyResource.id}|}" method="post"
+                  th:classappend="${relyingPartyResource.active ? 'confirm-deactivation' : ''}">
+                <input type="hidden" name="active" th:value="${!relyingPartyResource.active}">
+                <input type="hidden" name="returnUrl" th:value="${searchUrlAttr}">
+                <button type="submit" class="ds-button"
+                        th:with="activationBlocked=${!relyingPartyResource.active and relyingPartyResource.relyingPartyService != null and !relyingPartyResource.relyingPartyService.active}"
+                        th:disabled="${activationBlocked}"
+                        th:attr="aria-describedby=${activationBlocked ? 'registration-status-blocked' : null},
+                                 data-variant=${relyingPartyResource.active ? 'secondary' : 'primary'},
+                                 data-color=${relyingPartyResource.active ? 'danger' : null}"
+                        th:text="${relyingPartyResource.active ? 'Deaktiver registrering' : 'Aktiver registrering'}"></button>
+            </form>
+        </div>
+    </section>
+</div>
+
+
+<td th:fragment="relying_party_list_editor(field, label, values)">
+    <th:block th:if="${values != null and values.size() > 1}">
+        <ul>
+            <li th:each="value : ${values}" th:text="${value}"></li>
+        </ul>
+        <!--/* TODO: Legg til støtte for å endre fleire verdiar. */-->
+    </th:block>
+    <th:block th:unless="${values != null and values.size() > 1}">
+        <label th:for="${field}" class="ds-sr-only" th:text="|${label} (valfritt)|"></label>
+        <input th:id="${field}" th:field="*{__${field}__}" class="ds-input" type="text"
+               th:aria-invalid="${#fields.hasErrors(field)}"
+               th:aria-describedby="${#fields.hasErrors(field) ? field + '-error' : null}">
+        <p th:id="|${field}-error|" th:if="${#fields.hasErrors(field)}" th:errors="*{__${field}__}"
+           class="ds-validation-message"></p>
+    </th:block>
+</td>
+
+<tr th:fragment="editable_text_row(field, label, status, color, invalid)">
+    <th scope="row"><label th:for="${field}" th:text="${label}"></label><span class="ds-tag relying-party-field-status" th:attr="data-color=${color}" data-size="sm" th:text="${status}"></span></th>
+    <td>
+        <input th:id="${field}" th:field="*{__${field}__}" class="ds-input" type="text"
+               th:aria-invalid="${invalid}"
+               th:aria-describedby="${invalid ? (#fields.hasErrors(field) ? field : 'supportUri') + '-error' : null}">
+        <p th:id="|${field}-error|" th:if="${#fields.hasErrors(field)}" th:errors="*{__${field}__}"
+           class="ds-validation-message"></p>
+    </td>
+</tr>
+
+<div th:fragment="relying_party_information_table(relyingPartyResource, editingRelyingParty)" class="table-wrap">
+    <table class="ds-table relying-party-information-table" th:classappend="${editingRelyingParty} ? 'relying-party-information-table--editing'">
+        <caption th:classappend="${!editingRelyingParty} ? 'ds-sr-only'">Opplysningar om brukarstaden</caption>
+        <tbody>
+        <tr>
+            <th scope="row">Handelsnamn<span th:if="${editingRelyingParty}" class="ds-tag relying-party-field-status" data-color="neutral" data-size="sm">Valfritt</span></th>
+            <td th:unless="${editingRelyingParty}">
+                <span th:if="${relyingPartyResource.relyingParty?.tradeName != null}" th:text="${relyingPartyResource.relyingParty.tradeName}"></span>
+                <th:block th:if="${relyingPartyResource.relyingParty?.tradeName == null}">
+                    <em>Ikkje registrert.</em>
+                    <a th:href="${'/relying-party/edit/' + relyingPartyResource.id + '?returnUrl=' + #uris.escapeQueryParam(searchUrlAttr ?: '/search')}"
+                       class="ds-link relying-party-add-value">Legg til handelsnamn</a>
+                </th:block>
+            </td>
+            <td th:if="${editingRelyingParty}">
+                <label for="tradeName" class="ds-sr-only">Handelsnamn (valfritt)</label>
+                <input id="tradeName" th:field="*{tradeName}" class="ds-input" type="text">
+            </td>
+        </tr>
+        <tr>
+            <th scope="row">Land<span th:if="${editingRelyingParty}" class="ds-tag relying-party-field-status" data-color="info" data-size="sm">Obligatorisk</span></th>
+            <td th:unless="${editingRelyingParty}" th:text="${relyingPartyResource.relyingParty?.country == null ? 'Ikkje registrert.' : relyingPartyResource.relyingParty.country}"></td>
+            <td th:if="${editingRelyingParty}">
+                <label for="country" class="ds-sr-only">Land</label>
+                <input id="country" th:field="*{country}" class="ds-input" type="text" required maxlength="2"
+                       pattern="[A-Z]{2}" title="Skriv inn ein landskode med to store bokstavar."
+                       th:aria-invalid="${#fields.hasErrors('country')}"
+                       th:aria-describedby="${#fields.hasErrors('country') ? 'country-error' : null}">
+                <p id="country-error" th:if="${#fields.hasErrors('country')}" th:errors="*{country}"
+                   class="ds-validation-message"></p>
+            </td>
+        </tr>
+        <tr>
+            <th scope="row">Sektor<span th:if="${editingRelyingParty}" class="ds-tag relying-party-field-status relying-party-field-status--readonly" data-color="neutral" data-size="sm">Skrivebeskytta</span></th>
+            <td th:text="${relyingPartyResource.publicSector ? 'Offentleg' : 'Privat'}"></td>
+        </tr>
+        <tr>
+            <th scope="row">Leverandørtype<span th:if="${editingRelyingParty}" class="ds-tag relying-party-field-status relying-party-field-status--readonly" data-color="neutral" data-size="sm">Skrivebeskytta</span></th>
+            <td th:text="${relyingPartyResource.relyingParty?.providerType == null ? 'Ikkje registrert.' : relyingPartyResource.relyingParty.providerType}"></td>
+        </tr>
+        <tr>
+            <th scope="row">Juridisk namn<span th:if="${editingRelyingParty}" class="ds-tag relying-party-field-status relying-party-field-status--readonly" data-color="neutral" data-size="sm">Skrivebeskytta</span></th>
+            <td>
+                <em th:if="${#lists.isEmpty(relyingPartyResource.relyingParty?.legalPerson?.legalName)}">Ikkje registrert.</em>
+                <ul th:unless="${#lists.isEmpty(relyingPartyResource.relyingParty?.legalPerson?.legalName)}">
+                    <li th:each="name : ${relyingPartyResource.relyingParty?.legalPerson?.legalName}" th:text="${name}"></li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <th scope="row">Etablert ved lov</th>
+            <td>
+                <em th:if="${#lists.isEmpty(relyingPartyResource.relyingParty?.legalPerson?.establishedByLaw)}">Ikkje registrert.</em>
+                <ul th:unless="${#lists.isEmpty(relyingPartyResource.relyingParty?.legalPerson?.establishedByLaw)}">
+                    <li th:each="law : ${relyingPartyResource.relyingParty?.legalPerson?.establishedByLaw}"
+                        th:text="|${law.legislativeIdentifier}: ${law.legalBasis}|"></li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <th scope="row">Identifikatorar<span th:if="${editingRelyingParty}" class="ds-tag relying-party-field-status relying-party-field-status--readonly" data-color="neutral" data-size="sm">Skrivebeskytta</span></th>
+            <td>
+                <em th:if="${#lists.isEmpty(relyingPartyResource.relyingParty?.identifier)}">Ikkje registrert.</em>
+                <ul th:unless="${#lists.isEmpty(relyingPartyResource.relyingParty?.identifier)}">
+                    <li th:each="identifier : ${relyingPartyResource.relyingParty?.identifier}"
+                        th:text="|${identifier.type}: ${identifier.identifier}|"></li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <th scope="row">Retningslinjer</th>
+            <td>
+                <em th:if="${#lists.isEmpty(relyingPartyResource.relyingParty?.policy)}">Ikkje registrert.</em>
+                <ul th:unless="${#lists.isEmpty(relyingPartyResource.relyingParty?.policy)}">
+                    <li th:each="policy : ${relyingPartyResource.relyingParty?.policy}"
+                        th:text="|${policy.type}: ${policy.policyUri}|"></li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <th scope="row">Postadresser<span th:if="${editingRelyingParty}" class="ds-tag relying-party-field-status" data-color="neutral" data-size="sm">Valfritt</span></th>
+            <th:block th:if="${editingRelyingParty}"><td th:replace="~{fragments/details_tabs_fragments :: relying_party_list_editor('postalAddress', 'Postadresser', ${relyingParty?.postalAddress})}"></td></th:block>
+            <td th:unless="${editingRelyingParty}">
+                <em th:if="${#lists.isEmpty(relyingPartyResource.relyingParty?.postalAddress)}">Ikkje registrert.</em>
+                <ul th:unless="${#lists.isEmpty(relyingPartyResource.relyingParty?.postalAddress)}">
+                    <li th:each="address : ${relyingPartyResource.relyingParty?.postalAddress}" th:text="${address}"></li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <th scope="row">E-postadresser<span th:if="${editingRelyingParty}" class="ds-tag relying-party-field-status" data-color="neutral" data-size="sm">Valfritt</span></th>
+            <th:block th:if="${editingRelyingParty}"><td th:replace="~{fragments/details_tabs_fragments :: relying_party_list_editor('email', 'E-postadresser', ${relyingParty?.email})}"></td></th:block>
+            <td th:unless="${editingRelyingParty}">
+                <em th:if="${#lists.isEmpty(relyingPartyResource.relyingParty?.email)}">Ikkje registrert.</em>
+                <ul th:unless="${#lists.isEmpty(relyingPartyResource.relyingParty?.email)}">
+                    <li th:each="email : ${relyingPartyResource.relyingParty?.email}" th:text="${email}"></li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <th scope="row">Telefonnummer<span th:if="${editingRelyingParty}" class="ds-tag relying-party-field-status" data-color="neutral" data-size="sm">Valfritt</span></th>
+            <th:block th:if="${editingRelyingParty}"><td th:replace="~{fragments/details_tabs_fragments :: relying_party_list_editor('phone', 'Telefonnummer', ${relyingParty?.phone})}"></td></th:block>
+            <td th:unless="${editingRelyingParty}">
+                <em th:if="${#lists.isEmpty(relyingPartyResource.relyingParty?.phone)}">Ikkje registrert.</em>
+                <ul th:unless="${#lists.isEmpty(relyingPartyResource.relyingParty?.phone)}">
+                    <li th:each="phone : ${relyingPartyResource.relyingParty?.phone}" th:text="${phone}"></li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <th scope="row">Informasjonsadresser<span th:if="${editingRelyingParty}" class="ds-tag relying-party-field-status" data-color="neutral" data-size="sm">Valfritt</span></th>
+            <th:block th:if="${editingRelyingParty}"><td th:replace="~{fragments/details_tabs_fragments :: relying_party_list_editor('informationUri', 'Informasjonsadresser', ${relyingParty?.informationUri})}"></td></th:block>
+            <td th:unless="${editingRelyingParty}">
+                <em th:if="${#lists.isEmpty(relyingPartyResource.relyingParty?.infoUri)}">Ikkje registrert.</em>
+                <ul th:unless="${#lists.isEmpty(relyingPartyResource.relyingParty?.infoUri)}">
+                    <li th:each="infoUri : ${relyingPartyResource.relyingParty?.infoUri}" class="break-word" th:text="${infoUri}"></li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <th scope="row">Sertifikatkjeder (x5c)</th>
+            <td>
+                <em th:if="${#lists.isEmpty(relyingPartyResource.relyingParty?.x5c)}">Ikkje registrert.</em>
+                <ul th:unless="${#lists.isEmpty(relyingPartyResource.relyingParty?.x5c)}">
+                    <li th:each="certificate : ${relyingPartyResource.relyingParty?.x5c}" class="break-word" th:text="${certificate}"></li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <th scope="row">Registeradresse<span th:if="${editingRelyingParty}" class="ds-tag relying-party-field-status relying-party-field-status--readonly" data-color="neutral" data-size="sm">Skrivebeskytta</span></th>
+            <td class="break-word" th:text="${relyingPartyResource.relyingParty?.registryUri ?: 'Ikkje registrert.'}"></td>
+        </tr>
+        <tr>
+            <th scope="row">Tilsynsmyndigheit<span th:if="${editingRelyingParty}" class="ds-tag relying-party-field-status relying-party-field-status--readonly" data-color="neutral" data-size="sm">Skrivebeskytta</span></th>
+            <td th:with="supervisoryAuthority=${relyingPartyResource.relyingParty?.supervisoryAuthority}">
+                <em th:if="${supervisoryAuthority == null}">Ikkje registrert.</em>
+                <ul th:unless="${supervisoryAuthority == null}">
+                    <li th:text="|${supervisoryAuthority.name} (${supervisoryAuthority.country})|"></li>
+                    <li th:each="phone : ${supervisoryAuthority.phone}" th:text="|Telefon: ${phone}|"></li>
+                    <li th:each="email : ${supervisoryAuthority.email}" th:text="|E-post: ${email}|"></li>
+                    <li th:each="formUri : ${supervisoryAuthority.formUri}" class="break-word" th:text="|Skjema: ${formUri}|"></li>
+                </ul>
+            </td>
+        </tr>
+        </tbody>
+    </table>
 </div>

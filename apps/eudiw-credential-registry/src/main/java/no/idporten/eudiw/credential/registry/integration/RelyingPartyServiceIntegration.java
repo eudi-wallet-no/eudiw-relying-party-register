@@ -16,7 +16,6 @@ import org.springframework.web.client.RestClient;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static no.idporten.eudiw.credential.registry.exception.CredentialRegisterException.ERROR;
@@ -56,16 +55,29 @@ public class RelyingPartyServiceIntegration {
 
 
     private @NotNull List<URI> getValidUris(CredentialIssuerUrls uris) {
-        if(uris == null || uris.credentialIssuerUrls() == null) {
-            log.warn("No issuer urls found in response from rp-service");
-            return Collections.emptyList();
-
+        if (uris == null || uris.credentialIssuerUrls() == null) {
+            throw new CredentialRegisterException(ERROR, "Missing issuer URL list in response from rp-service",
+                HttpStatus.SERVICE_UNAVAILABLE);
         }
         List<URI> listOfURI = new ArrayList<>();
-        for (URI issuer : uris.credentialIssuerUrls()) {
-            if (issuer != null && isHttps(issuer) && !emptyHost(issuer)) {
-                listOfURI.add(URI.create(issuer.toString()));
+        for (String issuerUrl : uris.credentialIssuerUrls()) {
+            if (issuerUrl == null) {
+                continue;
             }
+            URI issuer;
+            try {
+                issuer = URI.create(issuerUrl);
+            } catch (IllegalArgumentException exception) {
+                log.warn("Skipping issuer URL with invalid URI syntax: {}", issuerUrl);
+                continue;
+            }
+            if (isHttps(issuer) && !emptyHost(issuer)) {
+                listOfURI.add(issuer);
+            }
+        }
+        if (!uris.credentialIssuerUrls().isEmpty() && listOfURI.isEmpty()) {
+            throw new CredentialRegisterException(ERROR, "No usable issuer URLs in non-empty response from rp-service",
+                HttpStatus.SERVICE_UNAVAILABLE);
         }
         if (log.isDebugEnabled()) {
             log.debug("Found urls in list of issuers: {}", listOfURI);

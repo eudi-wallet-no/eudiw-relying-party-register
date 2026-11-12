@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.1.1</version>
+        <version>4.1.2</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>no.idporten.eudiw</groupId>
@@ -17,16 +17,18 @@
     <properties>
         <java.version>25</java.version>
         <idporten-actuator.version>3.1.2</idporten-actuator.version>
-        <idporten-validators.version>1.6.4</idporten-validators.version>
-        <idporten-access-log.version>4.0.6</idporten-access-log.version>
-        <opentelemetry-api.version>1.66.0</opentelemetry-api.version>
-        <mariadb-java-client.version>3.5.10</mariadb-java-client.version>
-        <springdoc.version>3.1.1</springdoc.version>
+        <idporten-validators.version>1.6.5</idporten-validators.version>
+        <idporten-access-log.version>4.0.8</idporten-access-log.version>
+        <opentelemetry-api.version>1.67.0</opentelemetry-api.version>
+        <mariadb-java-client.version>4.0.0</mariadb-java-client.version>
+        <springdoc.version>3.2.0</springdoc.version>
         <lombok.version>1.18.48</lombok.version>
         <idporten-audit-log.version>4.0.6</idporten-audit-log.version>
-        <mockwebserver.version>5.5.0</mockwebserver.version>
+        <mockwebserver.version>5.5.1</mockwebserver.version>
         <bcpkix.version>1.86</bcpkix.version>
         <tomcat.version>11.0.25</tomcat.version>
+        <idporten.keystore.version>3.0.0</idporten.keystore.version>
+        <nimbus-jose-jwt.version>10.10</nimbus-jose-jwt.version>
     </properties>
     <dependencies>
         <dependency>
@@ -91,6 +93,11 @@
             <version>${idporten-validators.version}</version>
         </dependency>
         <dependency>
+            <groupId>no.idporten</groupId>
+            <artifactId>idporten-lib-keystore-spring-boot-4</artifactId>
+            <version>${idporten.keystore.version}</version>
+        </dependency>
+        <dependency>
             <groupId>no.idporten.logging</groupId>
             <artifactId>idporten-access-log-spring-boot-4-starter</artifactId>
             <version>${idporten-access-log.version}</version>
@@ -131,6 +138,11 @@
             <artifactId>mockwebserver</artifactId>
             <version>${mockwebserver.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>${nimbus-jose-jwt.version}</version>
         </dependency>
     </dependencies>
 

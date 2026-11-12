@@ -1,5 +1,6 @@
 package no.idporten.eudiw.credential.registry.response;
 
+import no.idporten.eudiw.credential.registry.exception.CredentialRegisterException;
 import no.idporten.eudiw.credential.registry.integration.DummyMetadataRetriever;
 import no.idporten.eudiw.credential.registry.integration.MockData;
 import no.idporten.eudiw.credential.registry.response.model.Credentials;
@@ -8,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
@@ -53,5 +55,22 @@ public class CredentialRegisterServiceSchedulerTest {
                 () -> assertEquals("mdoc", credentials2.credentials().get(1).format()),
                 () -> assertEquals("jwt_vc_json", credentials2.credentials().get(2).format())
         );
+    }
+
+    @Test
+    @DisplayName("When refresh fails, the previous cache is retained")
+    void refreshFailureRetainsPreviousCache() {
+        Mockito.when(dummyMetadataRetriever.getListOfIssuer())
+            .thenReturn(MockData.mockCredentialIssuersListOne());
+        credentialRegisterService.updateCredentialMetadataRetriever();
+        Credentials cachedCredentials = credentialRegisterService.getCredentials();
+
+        Mockito.doThrow(new CredentialRegisterException(
+                "error", "Failed to connect to rp-service", HttpStatus.SERVICE_UNAVAILABLE))
+            .when(dummyMetadataRetriever).updateListOfIssuer();
+
+        assertThrows(CredentialRegisterException.class, credentialRegisterService::updateCredentialMetadataRetriever);
+
+        assertSame(cachedCredentials, credentialRegisterService.getCredentials());
     }
 }

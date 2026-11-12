@@ -4,17 +4,22 @@ import no.eudiw.rp.register.domain.BaseEntity;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
+import no.eudiw.rp.register.repository.RegistrationSummaryRow;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.testdata.EntityGenerator;
 import no.eudiw.rp.register.testdata.TestDataGenerator;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -70,6 +75,96 @@ public class RelyingPartyInstanceRepositoryTest {
         walletRelyingPartyRepository.saveAllAndFlush(testWalletRelyingParties);
 
         assertTrue(relyingPartyInstanceRepository.count() >= numTestWalletRelyingParties);
+    }
+
+    @Test
+    @DisplayName("issuer URL query returns distinct URLs from active registrations only")
+    void findActiveCredentialIssuerUrls() {
+        String activeIssuerUrl = "https://issuer-" + UUID.randomUUID() + ".example.com";
+        String inactiveIssuerUrl = "https://issuer-" + UUID.randomUUID() + ".example.com";
+        String inactiveServiceIssuerUrl = "https://issuer-" + UUID.randomUUID() + ".example.com";
+        String inactivePartyIssuerUrl = "https://issuer-" + UUID.randomUUID() + ".example.com";
+        RelyingPartyInstance activeInstance = EntityGenerator.generateRelyingParty();
+        activeInstance.setRelyingPartyEntitlements(List.of(
+            new RelyingPartyEntitlement("first", activeIssuerUrl),
+            new RelyingPartyEntitlement("second", activeIssuerUrl)
+        ));
+        RelyingPartyInstance inactiveInstance = EntityGenerator.generateRelyingParty();
+        inactiveInstance.setActive(false);
+        inactiveInstance.setRelyingPartyEntitlements(List.of(
+            new RelyingPartyEntitlement("inactive", inactiveIssuerUrl)
+        ));
+        RelyingPartyInstance inactiveServiceInstance = EntityGenerator.generateRelyingParty();
+        inactiveServiceInstance.getWalletRelyingPartyService().setActive(false);
+        inactiveServiceInstance.setRelyingPartyEntitlements(List.of(
+            new RelyingPartyEntitlement("inactive-service", inactiveServiceIssuerUrl)
+        ));
+        RelyingPartyInstance inactivePartyInstance = EntityGenerator.generateRelyingParty();
+        inactivePartyInstance.getWalletRelyingPartyService().getWalletRelyingParty().setActive(false);
+        inactivePartyInstance.setRelyingPartyEntitlements(List.of(
+            new RelyingPartyEntitlement("inactive-party", inactivePartyIssuerUrl)
+        ));
+
+        repository.saveAndFlush(activeInstance);
+        repository.saveAndFlush(inactiveInstance);
+        repository.saveAndFlush(inactiveServiceInstance);
+        repository.saveAndFlush(inactivePartyInstance);
+
+        Set<String> issuerUrls = repository.findActiveCredentialIssuerUrls();
+
+        assertTrue(issuerUrls.contains(activeIssuerUrl));
+        assertTrue(Collections.disjoint(
+            issuerUrls, Set.of(inactiveIssuerUrl, inactiveServiceIssuerUrl, inactivePartyIssuerUrl)));
+    }
+
+    @Test
+    @DisplayName("issuer URL query preserves case-sensitive issuer paths")
+    void findActiveCredentialIssuerUrls_preservesPathCase() {
+        String issuerUrl = "https://issuer-" + UUID.randomUUID() + ".example.com";
+        String uppercasePathUrl = issuerUrl + "/Issuer";
+        String lowercasePathUrl = issuerUrl + "/issuer";
+        RelyingPartyInstance instance = EntityGenerator.generateRelyingParty();
+        instance.setRelyingPartyEntitlements(List.of(
+            new RelyingPartyEntitlement("first", uppercasePathUrl),
+            new RelyingPartyEntitlement("second", lowercasePathUrl)
+        ));
+        repository.saveAndFlush(instance);
+
+        Set<String> issuerUrls = repository.findActiveCredentialIssuerUrls();
+
+        assertTrue(issuerUrls.containsAll(Set.of(uppercasePathUrl, lowercasePathUrl)));
+    }
+
+    @Test
+    @DisplayName("issuer URL query excludes null URLs")
+    void findActiveCredentialIssuerUrls_excludesNullUrls() {
+        RelyingPartyInstance instance = EntityGenerator.generateRelyingParty();
+        instance.setRelyingPartyEntitlements(List.of(
+            new RelyingPartyEntitlement("without-url", null)
+        ));
+        repository.saveAndFlush(instance);
+
+        Set<String> issuerUrls = repository.findActiveCredentialIssuerUrls();
+
+        assertFalse(issuerUrls.contains(null));
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("Retrieve all registrations belonging to the selected organization")
+    void shouldRetrieveAllRegistrationsForOrganization() {
+        RelyingPartyInstance first = EntityGenerator.generateRelyingPartyInstance("Kontrollteneste", List.of(), List.of(), List.of());
+        RelyingPartyInstance second = EntityGenerator.generateRelyingPartyInstance("Innsynsteneste", List.of(), List.of(), List.of());
+        walletRelyingPartyRepository.saveAndFlush(new WalletRelyingParty("Testverksemd", "123456785", true,
+            List.of(first.getWalletRelyingPartyService(), second.getWalletRelyingPartyService())));
+        RelyingPartyInstance otherOrganization = EntityGenerator.generateRelyingPartyInstance("Anna teneste", List.of(), List.of(), List.of());
+        walletRelyingPartyRepository.saveAndFlush(new WalletRelyingParty("Anna verksemd", "223456782", true,
+            List.of(otherOrganization.getWalletRelyingPartyService())));
+
+        List<RegistrationSummaryRow> result = repository.findRegistrationSummariesByOrgno("123456785");
+
+        assertEquals(Set.of(first.getId(), second.getId()), result.stream()
+            .map(RegistrationSummaryRow::instanceId).collect(Collectors.toSet()));
     }
 
     @Nested
@@ -215,6 +310,7 @@ public class RelyingPartyInstanceRepositoryTest {
         }
 
         @Test
+        @Transactional
         @DisplayName("using a search term which exists in both trade names, orgnos, and legal entity names")
         void testSearchTermInMultipleDifferentFields() {
 
@@ -408,6 +504,123 @@ public class RelyingPartyInstanceRepositoryTest {
 
             assertTrue(isSortedBy(searchResultByLastUpdatedMs,
                                   Comparator.comparing(RelyingPartyInstance::getLastUpdatedMs)));
+        }
+
+        @Test
+        @Transactional
+        @DisplayName("Should match the legal name despite a trade name and require every selected role")
+        void shouldMatchLegalNameAndRequireEverySelectedRole() {
+            String searchTerm = UUID.randomUUID().toString();
+            RelyingPartyInstance matchingInstance = EntityGenerator.generateRelyingParty();
+            var relyingParty = matchingInstance.getWalletRelyingPartyService().getWalletRelyingParty();
+            relyingParty.setName("Legal " + searchTerm);
+            relyingParty.setTradeName("Unrelated trade name");
+            matchingInstance.setRelyingPartyEntitlements(List.of(
+                new RelyingPartyEntitlement("urn:first", null), new RelyingPartyEntitlement("urn:second", null)));
+            RelyingPartyInstance missingRole = EntityGenerator.generateRelyingParty();
+            missingRole.getWalletRelyingPartyService().getWalletRelyingParty().setName("Legal " + searchTerm);
+            missingRole.setRelyingPartyEntitlements(List.of(new RelyingPartyEntitlement("urn:first", null)));
+            repository.saveAndFlush(matchingInstance);
+            repository.saveAndFlush(missingRole);
+
+            var results = repository.searchV2(null, null, searchTerm, false, false,
+                Set.of("urn:first", "urn:second"), 2, PageRequest.of(0, 25, Sort.by("createdMs", "id")));
+
+            assertEquals(List.of(matchingInstance.getId()), results.getContent().stream().map(BaseEntity::getId).toList());
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"RelyingPartyInstance", "WalletRelyingPartyService", "WalletRelyingParty"})
+        @Transactional
+        @DisplayName("Should include an inactive registration hierarchy only when requested")
+        void shouldIncludeInactiveHierarchyOnlyWhenRequested(String inactiveResource) {
+            String searchTerm = UUID.randomUUID().toString();
+            RelyingPartyInstance activeInstance = EntityGenerator.generateRelyingParty();
+            activeInstance.getWalletRelyingPartyService().setServiceTradeName("Active " + searchTerm);
+            RelyingPartyInstance inactiveInstance = EntityGenerator.generateRelyingParty();
+            var relyingPartyService = inactiveInstance.getWalletRelyingPartyService();
+            relyingPartyService.setServiceTradeName("Inactive " + searchTerm);
+            switch (inactiveResource) {
+                case "RelyingPartyInstance" -> inactiveInstance.setActive(false);
+                case "WalletRelyingPartyService" -> relyingPartyService.setActive(false);
+                case "WalletRelyingParty" -> relyingPartyService.getWalletRelyingParty().setActive(false);
+            }
+            repository.saveAndFlush(activeInstance);
+            repository.saveAndFlush(inactiveInstance);
+            var page = PageRequest.of(0, 25, Sort.by("createdMs", "id"));
+
+            var activeResults = repository.searchV2(null, null, searchTerm, false, false, Set.of(), 0, page);
+            var allResults = repository.searchV2(null, null, searchTerm, true, false, Set.of(), 0, page);
+
+            assertEquals(List.of(activeInstance.getId()), activeResults.getContent().stream().map(BaseEntity::getId).toList());
+            assertEquals(Set.of(activeInstance.getId(), inactiveInstance.getId()),
+                allResults.getContent().stream().map(BaseEntity::getId).collect(Collectors.toSet()));
+        }
+
+        @Test
+        @DisplayName("Should page V2 search through instances in service name order")
+        void shouldPageV2SearchInServiceNameOrder() {
+            String searchTerm = UUID.randomUUID().toString();
+            RelyingPartyInstance bravo = EntityGenerator.generateRelyingParty();
+            bravo.getWalletRelyingPartyService().setServiceTradeName("bravo " + searchTerm);
+            RelyingPartyInstance alpha = EntityGenerator.generateRelyingParty();
+            alpha.getWalletRelyingPartyService().setServiceTradeName("alpha " + searchTerm);
+            repository.saveAndFlush(bravo);
+            repository.saveAndFlush(alpha);
+
+            Sort ordering = Sort.by("walletRelyingPartyService.serviceTradeName", "id");
+            UUID firstPageId = repository.searchV2(
+                null, null, searchTerm, true, false, Set.of(), 0, PageRequest.of(0, 1, ordering)).getContent().getFirst().getId();
+            UUID secondPageId = repository.searchV2(
+                null, null, searchTerm, true, false, Set.of(), 0, PageRequest.of(1, 1, ordering)).getContent().getFirst().getId();
+
+            assertEquals(List.of(alpha.getId(), bravo.getId()), List.of(firstPageId, secondPageId));
+        }
+
+        @ParameterizedTest
+        @CsvSource({
+            "false, false, 200000001;800000001;900000001",
+            "false, true, 800000001;900000001",
+            "true, false, 200000001;200000002;800000001;800000002;900000001",
+            "true, true, 800000001;800000002;900000001"
+        })
+        @Transactional
+        @DisplayName("Should combine synthetic, inactive and role filters before counting and paging registrations")
+        void shouldCombineSyntheticInactiveAndRoleFiltersBeforeCountingAndPaging(
+            boolean includeInactive, boolean hideSyntheticOrgnos, String expectedOrganizationNumbers) {
+            String searchTerm = UUID.randomUUID().toString();
+
+            for (String orgno : List.of("800000001", "900000001", "200000001", "800000002", "200000002", "900000002")) {
+                var instance = EntityGenerator.generateRelyingParty();
+                var service = instance.getWalletRelyingPartyService();
+                service.setServiceTradeName(searchTerm);
+                service.getWalletRelyingParty().setOrgno(orgno);
+                instance.setActive(!orgno.endsWith("2"));
+                instance.setRelyingPartyEntitlements(List.of(
+                    new RelyingPartyEntitlement("urn:first", null),
+                    new RelyingPartyEntitlement("urn:second", null)));
+
+                if (orgno.equals("900000002")) {
+                    instance.setActive(true);
+                    instance.setRelyingPartyEntitlements(List.of(new RelyingPartyEntitlement("urn:first", null)));
+                }
+
+                repository.saveAndFlush(instance);
+            }
+
+            List<String> expected = List.of(expectedOrganizationNumbers.split(";"));
+            List<String> actual = new ArrayList<>();
+            Sort ordering = Sort.by("walletRelyingPartyService.walletRelyingParty.orgno", "id");
+
+            for (int page = 0; page < expected.size(); page++) {
+                var results = repository.searchV2(
+                    null, null, searchTerm, includeInactive, hideSyntheticOrgnos,
+                    Set.of("urn:first", "urn:second"), 2, PageRequest.of(page, 1, ordering));
+                assertEquals(expected.size(), results.getTotalElements());
+                actual.add(results.getContent().getFirst().getWalletRelyingPartyService().getWalletRelyingParty().getOrgno());
+            }
+
+            assertEquals(expected, actual);
         }
 
         @Test

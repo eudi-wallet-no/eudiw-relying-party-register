@@ -1,5 +1,6 @@
 package no.eudiw.rp.register;
 
+import no.idporten.lib.keystore.KeystoreManager;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,8 +9,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
 import javax.sql.DataSource;
+import java.security.interfaces.ECPublicKey;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 @ActiveProfiles("junit")
 @SpringBootTest
@@ -21,9 +24,20 @@ class RpRegisterServiceTests {
 	@Autowired
 	private Flyway flyway;
 
+	@Autowired
+	private KeystoreManager keystoreManager;
+
 	@Test
 	void contextLoads() {
 
+	}
+
+	@Test
+	void loadsTestOnlyWrpSigningKey() {
+		assertInstanceOf(
+			ECPublicKey.class,
+			keystoreManager.getKeyProvider("wrp-signing").publicKey()
+		);
 	}
 
 	@Test

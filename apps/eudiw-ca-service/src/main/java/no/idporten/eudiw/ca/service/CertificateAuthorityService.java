@@ -168,10 +168,28 @@ public class CertificateAuthorityService {
         if (certificateProfile == null) {
             return;
         }
+        if (!certificateProfile.getCertificatePolicies().isEmpty()) {
+            PolicyInformation[] policies = certificateProfile.getCertificatePolicies().stream()
+                    .map(oid -> new PolicyInformation(new ASN1ObjectIdentifier(oid)))
+                    .toArray(PolicyInformation[]::new);
+            extensions.add(Extension.create(
+                    Extension.certificatePolicies,
+                    certificateProfile.isCertificatePoliciesCritical(),
+                    new CertificatePolicies(policies)));
+        }
+        if (!certificateProfile.getSubjectAltNames().isEmpty()) {
+            GeneralName[] subjectAltNames = certificateProfile.getSubjectAltNames().stream()
+                    .map(uri -> new GeneralName(GeneralName.uniformResourceIdentifier, uri.toString()))
+                    .toArray(GeneralName[]::new);
+            extensions.add(Extension.create(
+                    Extension.subjectAlternativeName,
+                    false,
+                    new GeneralNames(subjectAltNames)));
+        }
         for (String oid : certificateProfile.getExtendedKeyUsage()) {
             extensions.add(Extension.create(
                     Extension.extendedKeyUsage,
-                    true,
+                    certificateProfile.isExtendedKeyUsageCritical(),
                     new ExtendedKeyUsage(KeyPurposeId.getInstance(new ASN1ObjectIdentifier(oid)))));
         }
         if (certificateProfile.getQcStatements() != null) {

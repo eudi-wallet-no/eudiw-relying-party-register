@@ -9,16 +9,16 @@
 <!--/*@thymesVar id="detailedViewDataAttr" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
     <header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
-    <main>
+    <main id="hovudinnhald" tabindex="-1">
         <p class="ds-paragraph">
-            <a th:href="@{|/details/${rp.id}#certificates|}"
+            <a th:href="@{|/details/${rp.id}#access-certificates|}"
                class="ds-button"
                data-variant="secondary">
                 Tilbake til <span th:text="${rp.tradeName}"/>
             </a>
         </p>
 
-        <h1 class="ds-heading" data-size="lg">
+        <h1 class="ds-heading" data-size="xl">
             Lag nytt access-sertifikat for <span th:text="${rp.tradeName}"></span>
         </h1>
 

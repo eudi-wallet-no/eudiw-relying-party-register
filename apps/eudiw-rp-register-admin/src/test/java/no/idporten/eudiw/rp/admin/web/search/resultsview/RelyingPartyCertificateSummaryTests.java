@@ -1,6 +1,6 @@
 package no.idporten.eudiw.rp.admin.web.search.resultsview;
 
-import no.idporten.eudiw.rp.admin.service.config.RelyingPartiesServiceProperties;
+import no.idporten.eudiw.rp.admin.integrations.registerservice.config.RelyingPartiesServiceProperties;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificateResource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

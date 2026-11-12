@@ -7,3 +7,5 @@ management:
 spring:
   application:
     environment: systest
+  flyway:
+    locations: classpath:/db/migration,classpath:/mariadb/db/migration,classpath:/db/systest

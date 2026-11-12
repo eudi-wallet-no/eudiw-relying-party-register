@@ -1,7 +1,6 @@
 package no.eudiw.rp.register.api.v1.resource.relyingparty;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
@@ -12,7 +11,6 @@ public record RelyingPartyEntitlementsResource(
 
     @Valid
     @NotNull(message = "null_entitlements")
-    @JsonProperty("entitlements")
     List<RelyingPartyEntitlementResource> entitlements
 ) {
 }

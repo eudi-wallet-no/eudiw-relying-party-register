@@ -1,23 +1,23 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/extras/spring-security" lang="nb-no"
-      th:with="rp=${detailedViewDataAttr}">
+      th:with="relyingPartyResource=${detailedViewDataAttr}">
 <head>
     <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
-    <title th:text="|Detaljar for ${rp.tradeName}|"></title>
+    <title th:text="|Detaljar for ${relyingPartyResource.tradeName}|"></title>
     <link rel="stylesheet" th:href="@{/css/simple_tabs.css}">
 </head>
 
 <!--/*@thymesVar id="detailedViewDataAttr" type="no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource"*/-->
 <!--/*@thymesVar id="accessCertificateSummariesAttr" type="java.util.List<no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyAccessCertificateSummary>"*/-->
 <!--/*@thymesVar id="issuerCertificateSummariesAttr" type="java.util.List<no.idporten.eudiw.rp.admin.web.search.resultsview.RelyingPartyCertificateSummary>"*/-->
-<body th:with="showIssuerCertificatesTab=${rp.hasIssuerEntitlements()}">
+<body th:with="showIssuerCertificatesTab=${relyingPartyResource.hasIssuerEntitlements()}">
     <header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
-    <main>
+    <main id="hovudinnhald" tabindex="-1">
 
         <p sec:authorize="hasRole('ADMIN')"
            class="ds-paragraph">
-            <a th:href="@{/search}" class="ds-button" data-variant="secondary">
+            <a th:href="@{${searchUrlAttr}}" class="ds-button" data-variant="secondary">
                 Tilbake til søk
             </a>
         </p>
@@ -29,11 +29,16 @@
             </a>
         </p>
 
-        <h1 class="ds-heading" data-size="lg">
-            Detaljar for brukarstad: <span th:text="${rp.tradeName}"/>
-        </h1>
+        <div class="registration-title">
+            <h1 class="ds-heading break-word" data-size="xl">
+                Detaljar for <span th:text="${relyingPartyResource.tradeName}"/>
+            </h1>
+            <span class="ds-tag"
+                  th:attr="data-color=${relyingPartyResource.active ? 'success' : 'danger'}"
+                  th:text="${relyingPartyResource.active ? 'Aktiv' : 'Inaktiv'}"></span>
+        </div>
 
-        <nav id="tabs_container">
+        <nav id="tabs_container" aria-label="Detaljar om registreringa">
             <a href="#about" class="tab" data-size="lg">
                 Generelt
             </a>
@@ -47,20 +52,21 @@
         </nav>
 
         <div id="panels_container">
-            <div id="#about"
+            <div id="about"
                  th:insert="~{fragments/details_tabs_fragments
-                                :: general_info_content_fragment(rp=${rp})}">
+                                :: general_info_content_fragment(relyingPartyResource=${relyingPartyResource})}">
             </div>
-            <div id="#access-certificates"
+            <div id="access-certificates"
                  th:insert="~{fragments/details_tabs_fragments
                                 :: access_certificates_content_fragment(
-                                    rp=${rp}, certs=${accessCertificateSummariesAttr})}">
+                                    relyingPartyResource=${relyingPartyResource}, certs=${accessCertificateSummariesAttr})}">
             </div>
             <div th:if="${showIssuerCertificatesTab}"
-                 id="#issuer-certificates"
+                 id="issuer-certificates"
                  th:insert="~{fragments/details_tabs_fragments
                                 ::
-                                issuer_certificates_content_fragment(rp=${rp}, certs=${issuerCertificateSummariesAttr})}">
+                                issuer_certificates_content_fragment(
+                                    relyingPartyResource=${relyingPartyResource}, certs=${issuerCertificateSummariesAttr})}">
             </div>
         </div>
 
@@ -71,5 +77,6 @@
 
 <script th:src="@{/js/simple_tabs.js}"></script>
 <script th:src="@{/js/confirm_revocation.js}"></script>
+<script th:src="@{/js/confirm_deactivation.js}"></script>
 </body>
 </html>

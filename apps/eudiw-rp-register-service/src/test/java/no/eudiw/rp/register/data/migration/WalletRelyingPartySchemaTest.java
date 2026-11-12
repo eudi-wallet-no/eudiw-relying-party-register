@@ -1,16 +1,24 @@
 package no.eudiw.rp.register.data.migration;
 
+import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.mariadb.MariaDBContainer;
 
+import java.util.List;
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -42,6 +50,190 @@ class WalletRelyingPartySchemaTest {
         flyway.validate();
 
         assertEquals(0, flyway.migrate().migrationsExecuted);
+        assertEquals("1", jdbc.queryForObject("""
+            SELECT COLUMN_DEFAULT FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'wallet_relying_party_service'
+              AND COLUMN_NAME = 'active'
+            """, String.class));
+        assertEquals("NO", jdbc.queryForObject("""
+            SELECT IS_NULLABLE FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'wallet_relying_party_service'
+              AND COLUMN_NAME = 'active'
+            """, String.class));
+    }
+
+    @Test
+    void addsCompositeIndexForWrpCollectionPagination() {
+        List<String> columns = jdbc.queryForList("""
+            SELECT COLUMN_NAME FROM information_schema.STATISTICS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'wallet_relying_party'
+              AND INDEX_NAME = 'idx_wrp_active_created_id'
+            ORDER BY SEQ_IN_INDEX
+            """, String.class);
+
+        assertEquals(List.of("active", "created_ms", "id"), columns);
+    }
+
+    @Test
+    void deactivatesExistingDescendantsOfInactivePartiesWhenAddingServiceStatus() {
+        flyway.clean();
+        Flyway.configure()
+            .configuration(flyway.getConfiguration())
+            .target("26")
+            .load()
+            .migrate();
+        jdbc.update("""
+            INSERT INTO wallet_relying_party
+                (id, trade_name, orgno, is_psb, policy, identifier, postal_address, email, phone, info_uri, active)
+            VALUES ('inactive-party', 'Party', '123456785', TRUE, '[]', '[]', '[]', '[]', '[]', '[]', FALSE)
+            """);
+        jdbc.update("""
+            INSERT INTO wallet_relying_party_service
+                (id, service_trade_name, wallet_relying_party_id, created_ms, last_updated_ms)
+            VALUES ('inactive-service', 'Service', 'inactive-party', 1, 1)
+            """);
+        jdbc.update("""
+            INSERT INTO relying_party_instance
+                (id, wallet_relying_party_service_id, created_ms, last_updated_ms, active)
+            VALUES ('inactive-instance', 'inactive-service', 1, 1, TRUE)
+            """);
+
+        flyway.migrate();
+
+        assertFalse(jdbc.queryForObject(
+            "SELECT active FROM wallet_relying_party_service WHERE id = 'inactive-service'", Boolean.class));
+        assertFalse(jdbc.queryForObject(
+            "SELECT active FROM relying_party_instance WHERE id = 'inactive-instance'", Boolean.class));
+    }
+
+    @Test
+    void flattensNestedServiceDescriptionsAndKeepsNullAndFlatValues() {
+        flyway.clean();
+        Flyway.configure()
+            .configuration(flyway.getConfiguration())
+            .target("28")
+            .load()
+            .migrate();
+        jdbc.update("""
+            INSERT INTO wallet_relying_party
+                (id, trade_name, orgno, is_psb, policy, identifier, postal_address, email, phone, info_uri)
+            VALUES ('party', 'Party', '123456785', TRUE, '[]', '[]', '[]', '[]', '[]', '[]')
+            """);
+        insertService("nested", """
+            [[{"lang":"nb","content":"Norsk"},{"lang":"en","content":"English"}],[{"lang":"nn","content":"Nynorsk"}]]
+            """);
+        insertService("flat", "[{\"lang\":\"nb\",\"content\":\"Norsk\"}]");
+        insertService("none", null);
+
+        flyway.migrate();
+
+        assertEquals(List.of("Norsk", "English", "Nynorsk"), jdbc.queryForList(
+            "SELECT content FROM JSON_TABLE((SELECT srv_description FROM wallet_relying_party_service WHERE id = 'nested'),"
+                + " '$[*]' COLUMNS (position FOR ORDINALITY, content TEXT PATH '$.content')) AS d ORDER BY position",
+            String.class));
+        assertEquals("nb", jdbc.queryForObject(
+            "SELECT JSON_VALUE(srv_description, '$[0].lang') FROM wallet_relying_party_service WHERE id = 'flat'",
+            String.class));
+        assertNull(jdbc.queryForObject(
+            "SELECT srv_description FROM wallet_relying_party_service WHERE id = 'none'", String.class));
+    }
+
+    @Test
+    @DisplayName("Should read services with empty relationship lists after the upgrade")
+    void shouldReadServicesWithEmptyRelationshipListsAfterTheUpgrade() {
+        flyway.clean();
+        Flyway.configure()
+            .configuration(flyway.getConfiguration())
+            .target("29")
+            .load()
+            .migrate();
+        var partyId = UUID.randomUUID();
+        jdbc.update("""
+            INSERT INTO wallet_relying_party
+                (id, trade_name, orgno, is_psb, policy, identifier, postal_address, email, phone, info_uri)
+            VALUES (?, 'Party', '123456785', TRUE, '[]', '[]', '[]', '[]', '[]', '[]')
+            """, partyId.toString());
+
+        var legacyId = UUID.randomUUID();
+        var serviceIds = List.of(legacyId, UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
+        String currentReference = """
+            [{"identifier":[{"type":"urn:example:identifier","identifier":"party"}],"service":"service","register":"https://registry.example"}]
+            """;
+        var relationshipLists = List.of(
+            List.of("[{\"service\":\"old-service\",\"register\":\"https://registry.example\"}]", "[]"),
+            List.of("[]", "[\"old-service\"]"),
+            List.of(currentReference, "[]"),
+            List.of("[]", currentReference),
+            List.of("[]", "[]"));
+        for (int index = 0; index < serviceIds.size(); index++) {
+            String uses = relationshipLists.get(index).getFirst();
+            String served = relationshipLists.get(index).getLast();
+            jdbc.update("""
+                INSERT INTO wallet_relying_party_service
+                    (id, service_trade_name, wallet_relying_party_id, created_ms, last_updated_ms,
+                     service_identifier, srv_description, sub_entitlements, uses_intermediaries, served_wrp_services,
+                     is_intermediary, active)
+                VALUES (?, 'Service', ?, 1, 2, 'service', '[{"lang":"en","content":"Description"}]',
+                        '["urn:test:payment"]', ?, ?, ?, FALSE)
+                """, serviceIds.get(index).toString(), partyId.toString(), uses, served, uses.equals("[]"));
+        }
+        var instanceId = UUID.randomUUID();
+        jdbc.update("""
+            INSERT INTO relying_party_instance
+                (id, wallet_relying_party_service_id, created_ms, last_updated_ms)
+            VALUES (?, ?, 3, 4)
+            """, instanceId.toString(), legacyId.toString());
+        var intendedUseId = UUID.randomUUID();
+        jdbc.update("""
+            INSERT INTO wallet_relying_party_service_intended_use
+                (id, wallet_relying_party_service_id, intended_use_identifier, purpose, privacy_policy)
+            VALUES (?, ?, 'login', '[]', '[]')
+            """, intendedUseId.toString(), legacyId.toString());
+        var servicesBefore = jdbc.queryForList("SELECT * FROM wallet_relying_party_service ORDER BY id");
+        servicesBefore.forEach(row -> {
+            row.put("uses_intermediaries", "[]");
+            row.put("served_wrp_services", "[]");
+        });
+        var partiesBefore = jdbc.queryForList("SELECT * FROM wallet_relying_party");
+        var instancesBefore = jdbc.queryForList("SELECT * FROM relying_party_instance");
+        var intendedUsesBefore = jdbc.queryForList("SELECT * FROM wallet_relying_party_service_intended_use");
+
+        flyway.migrate();
+
+        assertEquals(servicesBefore, jdbc.queryForList("SELECT * FROM wallet_relying_party_service ORDER BY id"));
+        assertEquals(partiesBefore, jdbc.queryForList("SELECT * FROM wallet_relying_party"));
+        assertEquals(instancesBefore, jdbc.queryForList("SELECT * FROM relying_party_instance"));
+        assertEquals(intendedUsesBefore, jdbc.queryForList("SELECT * FROM wallet_relying_party_service_intended_use"));
+
+        var factory = new LocalContainerEntityManagerFactoryBean();
+        factory.setDataSource(flyway.getConfiguration().getDataSource());
+        factory.setPackagesToScan("no.eudiw.rp.register.domain");
+        factory.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
+        factory.afterPropertiesSet();
+        try (var entityManager = factory.getObject().createEntityManager()) {
+            for (var serviceId : serviceIds) {
+                var service = entityManager.find(WalletRelyingPartyService.class, serviceId);
+                assertEquals(List.of(), service.getUsesIntermediaries());
+                assertEquals(List.of(), service.getServedWRPServices());
+                assertEquals(partyId, service.getWalletRelyingParty().getId());
+            }
+            var service = entityManager.find(WalletRelyingPartyService.class, legacyId);
+            assertEquals(instanceId, service.getRelyingPartyInstances().getFirst().getId());
+            assertEquals(intendedUseId, service.getIntendedUses().getFirst().getId());
+        } finally {
+            factory.destroy();
+        }
+    }
+
+    private void insertService(String id, String srvDescription) {
+        jdbc.update("""
+            INSERT INTO wallet_relying_party_service
+                (id, service_trade_name, wallet_relying_party_id, created_ms, last_updated_ms, srv_description)
+            VALUES (?, 'Service', 'party', 1, 1, ?)
+            """, id, srvDescription);
     }
 
     @Test

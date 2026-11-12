@@ -5,8 +5,13 @@ spring:
 
 trustlist-service:
   tsl612:
+    scheme-information:
+      list-issue-date-time: 2026-11-04T00:00:00.00Z
     service-providers:
       digdir:
+        trade-name:
+          lang-no: NTRNO-NOFOR.991825827
+          lang-en: NTRNO-NOFOR.991825827
         services:
           - name:
               lang-no: Bevisporten EAA utsteder fra Digdir
@@ -26,13 +31,37 @@ trustlist-service:
             starting-time: 2026-04-28T12:00:00.00Z
             service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
             cert: MIIDMDCCAtegAwIBAgIJAPI3m5oCvEhjMAoGCCqGSM49BAMCMIGEMR4wHAYDVQRhExVOVFJOTy1OT0ZPUi45OTE4MjU4MjcxCzAJBgNVBAYTAk5PMSQwIgYDVQQKExtESUdJVEFMSVNFUklOR1NESVJFS1RPUkFURVQxLzAtBgNVBAMTJmVpZGFzMnNhbmRrYXNzZSBFQUEgUHJvdmlkZXIgQ0EgMiB0ZXN0MB4XDTI2MDQyODExMTgyNVoXDTI3MDQyODExMTgyNVowgYcxCzAJBgNVBAYTAk5PMSQwIgYDVQQKDBtESUdJVEFMSVNFUklOR1NESVJFS1RPUkFURVQxMjAwBgNVBAMMKURpZ2l0YWxpc2VyaW5nc2RpcmVrdG9yYXRldCAtIEJldmlzcG9ydGVuMR4wHAYDVQRhDBVOVFJOTy1OT0ZPUi45OTE4MjU4MjcwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAT75gsqtKk/PiMvU2i2jTEMz4hGnBHOtpRCbEL0EzIaHPVE/pteSjWm/W3CphOXb1uyRKvcPrhgmk1KE7ZWs2hpo4IBKzCCAScwHwYDVR0jBBgwFoAUMRTEpsi8YuNwYTlMWGrhBR+Ej+8wHQYDVR0OBBYEFLvg9+9QiU75jFowJzq0W9TW0P9iMAwGA1UdEwEB/wQCMAAwXQYDVR0fBFYwVDBSoFCgToZMaHR0cHM6Ly9jYS50ZXN0LmVpZGFzMnNhbmRrYXNzZS5uZXQvdjEvY2VydHMvaW50ZXJtZWRpYXRlcy9lYWFfcHJvdmlkZXIyLmNybDBoBggrBgEFBQcBAQRcMFowWAYIKwYBBQUHMAKGTGh0dHBzOi8vY2EudGVzdC5laWRhczJzYW5ka2Fzc2UubmV0L3YxL2NlcnRzL2ludGVybWVkaWF0ZXMvZWFhX3Byb3ZpZGVyMi5jZXIwDgYDVR0PAQH/BAQDAgWgMAoGCCqGSM49BAMCA0cAMEQCID4fKWA4I3mHxDgtaJksvi7IRAHqOmjc92z8UyVwPlgoAiBij6YHMupxAt5yvki5fs6bWI/4sLwkfYIXgvSXUG/Fow==
+      brreg:
+        name:
+          lang-no: Registerenheten i Brønnøysund
+          lang-en: The Brønnøysund Register Centre
+        trade-name:
+          lang-no: NTRNO-NOFOR.974760673
+          lang-en: NTRNO-NOFOR.974760673
+        information-uris:
+          lang-no: https://forenkling.brreg.no/digitale-virksomhetslommeboker-trygg-deling-av-bevis-og-data/
+          lang-en: https://forenkling.brreg.no/digitale-virksomhetslommeboker-trygg-deling-av-bevis-og-data/
+        website: https://www.brreg.no/
+        email: mailto:firmapost@brreg.no
+        postal-address:
+          street-address: Postboks 900
+          postal-code: "8910"
+          locality: Brønnøysund
+          country: "NO"
+        services:
+          - name:
+              lang-no: BR x Symfoni
+              lang-en: BR x Symfoni
+            starting-time: 2026-10-15T00:00:00.00Z
+            service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
+            cert: MIIDNTCCAtqgAwIBAgIJANERlesIJQm9MAoGCCqGSM49BAMCMIGEMR4wHAYDVQRhExVOVFJOTy1OT0ZPUi45OTE4MjU4MjcxCzAJBgNVBAYTAk5PMSQwIgYDVQQKExtESUdJVEFMSVNFUklOR1NESVJFS1RPUkFURVQxLzAtBgNVBAMTJmVpZGFzMnNhbmRrYXNzZSBFQUEgUHJvdmlkZXIgQ0EgMiB0ZXN0MB4XDTI2MDMxMTA5MDk1MFoXDTI3MDMxMTA5MDk1MFowbjELMAkGA1UEBhMCTk8xKDAmBgNVBAoMH1JFR0lTVEVSRU5IRVRFTiBJIEJSw5hOTsOYWVNVTkQxFTATBgNVBAMMDEJSIHggU3ltZm9uaTEeMBwGA1UEYQwVTlRSTk8tTk9GT1IuOTc0NzYwNjczMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE3AkZN2SaaSBlbba8TFaoE3oE5WeZdeZSwQRH1sIly5n6co2sPiMUKnRYcsrMyt6t9hEcQG2qBsUvheP/wbwgOqOCAUgwggFEMB8GA1UdIwQYMBaAFDEUxKbIvGLjcGE5TFhq4QUfhI/vMB0GA1UdDgQWBBTPePmOcew3iDw+r9W5aHBTYUYa6TAMBgNVHRMBAf8EAjAAMF0GA1UdHwRWMFQwUqBQoE6GTGh0dHBzOi8vY2EudGVzdC5laWRhczJzYW5ka2Fzc2UubmV0L3YxL2NlcnRzL2ludGVybWVkaWF0ZXMvZWFhX3Byb3ZpZGVyMi5jcmwwaAYIKwYBBQUHAQEEXDBaMFgGCCsGAQUFBzAChkxodHRwczovL2NhLnRlc3QuZWlkYXMyc2FuZGthc3NlLm5ldC92MS9jZXJ0cy9pbnRlcm1lZGlhdGVzL2VhYV9wcm92aWRlcjIuY2VyMA4GA1UdDwEB/wQEAwIFoDAbBgNVHREEFDASghBhZ2VudC5wYXJhZHltLmlkMAoGCCqGSM49BAMCA0kAMEYCIQDl+seb+Yjk3CVNOc3qaerFu8eYwFTZ2YrZwH3vvnYXuwIhAJKi+LZM8rDHMgh/zUc9E/kshJR7VRkxW7TPoOrzNXGp
       symfoni:
         name:
           lang-no: Symfoni AS
           lang-en: Symfoni AS
         trade-name:
-          lang-no: NTRNO-915772137
-          lang-en: NTRNO-915772137
+          lang-no: NTRNO-NOFOR.915772137
+          lang-en: NTRNO-NOFOR.915772137
         information-uris:
           lang-no: https://www.symfoni.dev/docs/virksomhetslommebok/issuer/kom-i-gang
           lang-en: https://www.symfoni.dev/docs/virksomhetslommebok/issuer/kom-i-gang
@@ -55,8 +84,8 @@ trustlist-service:
           lang-no: Kantega AS
           lang-en: Kantega AS
         trade-name:
-          lang-no: NTRNO-985815534
-          lang-en: NTRNO-985815534
+          lang-no: NTRNO-NOFOR.985815534
+          lang-en: NTRNO-NOFOR.985815534
         information-uris:
           lang-no: https://kantega.id/
           lang-en: https://kantega.id/
@@ -80,8 +109,8 @@ trustlist-service:
           lang-no: KS Digital
           lang-en: KS Digital
         trade-name:
-          lang-no: NTRNO-931796003
-          lang-en: NTRNO-931796003
+          lang-no: NTRNO-NOFOR.931796003
+          lang-en: NTRNO-NOFOR.931796003
         information-uris:
           lang-no: https://ksdigital.no/tjenester-2/
           lang-en: https://ksdigital.no/tjenester-2/
@@ -106,8 +135,8 @@ trustlist-service:
           lang-no: Posten Bring AS
           lang-en: Posten Bring AS
         trade-name:
-          lang-no: NTRNO-984661185
-          lang-en: NTRNO-984661185
+          lang-no: NTRNO-NOFOR.984661185
+          lang-en: NTRNO-NOFOR.984661185
         information-uris:
           lang-no: https://www.digipost.no/bedrift/lommebok-og-digitale-bevis
           lang-en: https://www.digipost.no/bedrift/lommebok-og-digitale-bevis
@@ -131,8 +160,8 @@ trustlist-service:
           lang-no: Oslo Kommune
           lang-en: Oslo Municipality
         trade-name:
-          lang-no: NTRNO-958935420
-          lang-en: NTRNO-958935420
+          lang-no: NTRNO-NOFOR.958935420
+          lang-en: NTRNO-NOFOR.958935420
         information-uris:
           lang-no: https://www.oslo.kommune.no/
           lang-en: https://www.oslo.kommune.no/
@@ -155,8 +184,8 @@ trustlist-service:
           lang-no: Equinor ASA
           lang-en: Equinor ASA
         trade-name:
-          lang-no: NTRNO-923609016
-          lang-en: NTRNO-923609016
+          lang-no: NTRNO-NOFOR.923609016
+          lang-en: NTRNO-NOFOR.923609016
         information-uris:
           lang-no: https://eudi-wallet-sandbox.equinor.com/
           lang-en: https://eudi-wallet-sandbox.equinor.com/
@@ -179,8 +208,8 @@ trustlist-service:
           lang-no: Sikt - Kunnskapssektorens tjenesteleverandør
           lang-en: Sikt - Norwegian Agency for Shared Services in Education and Research
         trade-name:
-          lang-no: NTRNO-919477822
-          lang-en: NTRNO-919477822
+          lang-no: NTRNO-NOFOR.919477822
+          lang-en: NTRNO-NOFOR.919477822
         information-uris:
           lang-no: https://www.sikt.no
           lang-en: https://www.sikt.no
@@ -198,6 +227,30 @@ trustlist-service:
             starting-time: 2026-10-02T00:00:00.00Z
             service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
             cert: MIIDLTCCAtKgAwIBAgIJALcE2Mp63VbAMAoGCCqGSM49BAMCMIGEMR4wHAYDVQRhExVOVFJOTy1OT0ZPUi45OTE4MjU4MjcxCzAJBgNVBAYTAk5PMSQwIgYDVQQKExtESUdJVEFMSVNFUklOR1NESVJFS1RPUkFURVQxLzAtBgNVBAMTJmVpZGFzMnNhbmRrYXNzZSBFQUEgUHJvdmlkZXIgQ0EgMiB0ZXN0MB4XDTI2MDkzMDEzMDM0OFoXDTI3MDkzMDEzMDM0OFowgYIxCzAJBgNVBAYTAk5PMTYwNAYDVQQKDC1TSUtUIC0gS1VOTlNLQVBTU0VLVE9SRU5TIFRKRU5FU1RFTEVWRVJBTkTDmFIxGzAZBgNVBAMMElNpa3QgYmV2aXN1dHN0ZWRlcjEeMBwGA1UEYQwVTlRSTk8tTk9GT1IuOTE5NDc3ODIyMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEmuRmKXgGk8OpmdXHksENoOcQgPgvHBj/USYcF/dMgzZpgRdB01FYUkiClwjuV3cPHtuob7DER1v/tpjXZkTvxKOCASswggEnMB8GA1UdIwQYMBaAFDEUxKbIvGLjcGE5TFhq4QUfhI/vMB0GA1UdDgQWBBRU6g8ClNOldUI6XvJpyphkrY2neDAMBgNVHRMBAf8EAjAAMF0GA1UdHwRWMFQwUqBQoE6GTGh0dHBzOi8vY2EudGVzdC5laWRhczJzYW5ka2Fzc2UubmV0L3YxL2NlcnRzL2ludGVybWVkaWF0ZXMvZWFhX3Byb3ZpZGVyMi5jcmwwaAYIKwYBBQUHAQEEXDBaMFgGCCsGAQUFBzAChkxodHRwczovL2NhLnRlc3QuZWlkYXMyc2FuZGthc3NlLm5ldC92MS9jZXJ0cy9pbnRlcm1lZGlhdGVzL2VhYV9wcm92aWRlcjIuY2VyMA4GA1UdDwEB/wQEAwIFoDAKBggqhkjOPQQDAgNJADBGAiEA7hIbzG8dgJPYQiFBi6RIpTI28ySv4MVyNLxW7cvJ8wACIQDcsfUl8/aHKkli2oBZqVWwZn/koa4ywz4LZKmLPKG+dg==
+      skatteetaten:
+        name:
+          lang-no: Skatteetaten
+          lang-en: The Norwegian Tax Administration
+        trade-name:
+          lang-no: NTRNO-NOFOR.974761076
+          lang-en: NTRNO-NOFOR.974761076
+        information-uris:
+          lang-no: https://wallid-poc-web-nginx-ekom-internett-uinnlogget.nebula-skatt-synt.nebula.skatteetaten-it.no/web/
+          lang-en: https://wallid-poc-web-nginx-ekom-internett-uinnlogget.nebula-skatt-synt.nebula.skatteetaten-it.no/web/
+        website: https://wallid-poc-web-nginx-ekom-internett-uinnlogget.nebula-skatt-synt.nebula.skatteetaten-it.no/web/
+        email: mailto:HansKristian.Granli@skatteetaten.no
+        postal-address:
+          street-address: Fredrik Selmers vei 4
+          postal-code: "0663"
+          locality: Oslo
+          country: "NO"
+        services:
+          - name:
+              lang-no: Skatteetaten Bevisutsteder
+              lang-en: Skatteetaten Bevisutsteder
+            starting-time: 2026-05-11T12:24:57.00Z
+            service-type-identifier: http://uri.etsi.org/TrstSvc/Svctype/EAA
+            cert: MIIDETCCArigAwIBAgIJANcPWsVF1+DHMAoGCCqGSM49BAMCMIGEMR4wHAYDVQRhExVOVFJOTy1OT0ZPUi45OTE4MjU4MjcxCzAJBgNVBAYTAk5PMSQwIgYDVQQKExtESUdJVEFMSVNFUklOR1NESVJFS1RPUkFURVQxLzAtBgNVBAMTJmVpZGFzMnNhbmRrYXNzZSBFQUEgUHJvdmlkZXIgQ0EgMiB0ZXN0MB4XDTI2MDUxMTEyMjQ1N1oXDTI3MDUxMTEyMjQ1N1owaTELMAkGA1UEBhMCTk8xFTATBgNVBAoMDFNLQVRURUVUQVRFTjEjMCEGA1UEAwwaU2thdHRlZXRhdGVuIEJldmlzdXRzdGVkZXIxHjAcBgNVBGEMFU5UUk5PLU5PRk9SLjk3NDc2MTA3NjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABIQToYvovusE77bUvPA9xEc0+ihe1NO9/Mx1Ep7eI+e5dkRnhy7LV7aKBM9LU23CB82Z7PB15FRKacfc1h0m9bajggErMIIBJzAfBgNVHSMEGDAWgBQxFMSmyLxi43BhOUxYauEFH4SP7zAdBgNVHQ4EFgQUvaGZ1yvptmkZXCSa8FjqESNb4C8wDAYDVR0TAQH/BAIwADBdBgNVHR8EVjBUMFKgUKBOhkxodHRwczovL2NhLnRlc3QuZWlkYXMyc2FuZGthc3NlLm5ldC92MS9jZXJ0cy9pbnRlcm1lZGlhdGVzL2VhYV9wcm92aWRlcjIuY3JsMGgGCCsGAQUFBwEBBFwwWjBYBggrBgEFBQcwAoZMaHR0cHM6Ly9jYS50ZXN0LmVpZGFzMnNhbmRrYXNzZS5uZXQvdjEvY2VydHMvaW50ZXJtZWRpYXRlcy9lYWFfcHJvdmlkZXIyLmNlcjAOBgNVHQ8BAf8EBAMCBaAwCgYIKoZIzj0EAwIDRwAwRAIgFbQ5gHaUw4zOZxuqfHp5DV9TjhjS5we4vLsjuHdIVIoCIDbYroUSPeSQTCgiT7FHqJxp1pVpi9HA3U2E3t8ayby3
 
   tsl602:
     tsl-aca:

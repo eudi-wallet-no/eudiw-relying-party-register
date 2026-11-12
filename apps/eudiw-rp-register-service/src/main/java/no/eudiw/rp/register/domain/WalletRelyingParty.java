@@ -4,8 +4,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -25,7 +24,7 @@ public class WalletRelyingParty extends BaseEntity {
     private String orgno;
 
     @Column(name = "is_psb", nullable = false)
-    private boolean isPsb;
+    private boolean isPSB;
 
     @Column(name = "trade_name")
     private String tradeName;
@@ -50,8 +49,8 @@ public class WalletRelyingParty extends BaseEntity {
     @Column(name = "policy", columnDefinition = "json", nullable = false)
     private List<Policy> policy = new ArrayList<>();
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @Fetch(FetchMode.SUBSELECT)
+    @ElementCollection(fetch = FetchType.LAZY)
+    @BatchSize(size = 50)
     @CollectionTable(name = "wallet_relying_party_x5c",
         joinColumns = @JoinColumn(name = "wallet_relying_party_id"))
     @Column(name = "certificate_chain", nullable = false)
@@ -88,9 +87,10 @@ public class WalletRelyingParty extends BaseEntity {
     @Setter(AccessLevel.NONE)
     @OneToMany(
         mappedBy = "walletRelyingParty",
-        fetch = FetchType.EAGER,
+        fetch = FetchType.LAZY,
         cascade = CascadeType.ALL,
         orphanRemoval = true)
+    @BatchSize(size = 50)
     private List<WalletRelyingPartyService> services = new ArrayList<>();
 
     public void setServices(List<WalletRelyingPartyService> services) {
@@ -117,12 +117,12 @@ public class WalletRelyingParty extends BaseEntity {
     public WalletRelyingParty(
         String name,
         String orgno,
-        boolean isPsb,
+        boolean isPSB,
         List<WalletRelyingPartyService> services
     ) {
         this.tradeName = name;
         this.orgno = orgno;
-        this.isPsb = isPsb;
+        this.isPSB = isPSB;
         this.setServices(services);
         this.setLegalPerson(new LegalPerson(List.of(name), List.of()));
     }
@@ -151,6 +151,10 @@ public class WalletRelyingParty extends BaseEntity {
     // for JPA instantiation.
     protected WalletRelyingParty() { }
 
+    public void setUpdated() {
+        this.lastUpdatedMs = Instant.now().toEpochMilli();
+    }
+
     @PrePersist
     protected void onPrePersist() {
         this.lastUpdatedMs = this.createdMs = Instant.now().toEpochMilli();
@@ -158,6 +162,6 @@ public class WalletRelyingParty extends BaseEntity {
 
     @PreUpdate
     protected void onPreUpdate() {
-        this.lastUpdatedMs = Instant.now().toEpochMilli();
+        setUpdated();
     }
 }

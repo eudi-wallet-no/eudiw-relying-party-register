@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -39,6 +40,7 @@ class WalletRelyingPartyRepositoryTest {
     }
 
     @Test
+    @Transactional
     @DisplayName("persists the relying party and its related services and instances")
     void persistsRelyingPartyGraph() {
         WalletRelyingParty relyingParty = EntityGenerator.generateWalletRelyingParty(2);
@@ -52,7 +54,7 @@ class WalletRelyingPartyRepositoryTest {
             () -> assertEquals(relyingParty.getTradeName(), actual.getTradeName()),
             () -> assertEquals(List.of(relyingParty.getTradeName()), actual.getLegalPerson().getLegalName()),
             () -> assertEquals(relyingParty.getOrgno(), actual.getOrgno()),
-            () -> assertEquals(relyingParty.isPsb(), actual.isPsb()),
+            () -> assertEquals(relyingParty.isPSB(), actual.isPSB()),
             () -> assertEquals(2, actual.getServices().size()),
             () -> assertTrue(actual.getCreatedMs() > 0),
             () -> assertTrue(actual.getLastUpdatedMs() > 0)
@@ -75,6 +77,7 @@ class WalletRelyingPartyRepositoryTest {
     }
 
     @Test
+    @Transactional
     @DisplayName("persists TS5 WalletRelyingParty data")
     void persistsTs5Data() {
         WalletRelyingParty relyingParty = EntityGenerator.generateWalletRelyingParty(0);

@@ -6,12 +6,14 @@ import lombok.Getter;
 import lombok.Setter;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 @Setter
@@ -36,7 +38,7 @@ public class WalletRelyingPartyService extends BaseEntity {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "srv_description", columnDefinition = "JSON")
-    private List<List<MultiLangString>> srvDescription;
+    private List<MultiLangString> srvDescription;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "sub_entitlements", columnDefinition = "JSON", nullable = false)
@@ -50,7 +52,7 @@ public class WalletRelyingPartyService extends BaseEntity {
     @Setter(AccessLevel.NONE)
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "uses_intermediaries", columnDefinition = "JSON", nullable = false)
-    private List<IntermediaryReference> usesIntermediaries = new ArrayList<>();
+    private List<ServiceReference> usesIntermediaries = new ArrayList<>();
 
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
@@ -61,7 +63,7 @@ public class WalletRelyingPartyService extends BaseEntity {
     @Setter(AccessLevel.NONE)
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "served_wrp_services", columnDefinition = "JSON", nullable = false)
-    private List<String> servedWRPServices = new ArrayList<>();
+    private List<ServiceReference> servedWRPServices = new ArrayList<>();
 
     @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "wallet_relying_party_id", columnDefinition = "UUID", nullable = false)
@@ -71,15 +73,16 @@ public class WalletRelyingPartyService extends BaseEntity {
     @Setter(AccessLevel.NONE)
     @OneToMany(
         mappedBy = "walletRelyingPartyService",
-        fetch = FetchType.EAGER,
+        fetch = FetchType.LAZY,
         cascade = CascadeType.ALL,
         orphanRemoval = true)
+    @BatchSize(size = 50)
     private List<IntendedUse> intendedUses = new ArrayList<>();
 
     @Setter(AccessLevel.NONE)
     @OneToMany(
         mappedBy = "walletRelyingPartyService",
-        fetch = FetchType.EAGER,
+        fetch = FetchType.LAZY,
         cascade = CascadeType.ALL,
         orphanRemoval = true)
     private List<RelyingPartyInstance> relyingPartyInstances = new ArrayList<>();
@@ -91,6 +94,9 @@ public class WalletRelyingPartyService extends BaseEntity {
     @Column(name = "last_updated_ms", nullable = false)
     @Setter(AccessLevel.NONE)
     private long lastUpdatedMs;
+
+    @Column(name = "active", nullable = false)
+    private boolean active = true;
 
     public WalletRelyingPartyService(
         String serviceTradeName,
@@ -105,8 +111,8 @@ public class WalletRelyingPartyService extends BaseEntity {
         WalletRelyingParty walletRelyingParty,
         List<RelyingPartyInstance> relyingPartyInstances,
         boolean isIntermediary,
-        List<IntermediaryReference> usesIntermediaries,
-        List<String> servedWRPServices
+        List<ServiceReference> usesIntermediaries,
+        List<ServiceReference> servedWRPServices
     ) {
         this.serviceTradeName = serviceTradeName;
         this.walletRelyingParty = walletRelyingParty;
@@ -116,12 +122,12 @@ public class WalletRelyingPartyService extends BaseEntity {
 
     public void setIntermediaryConfiguration(
         boolean isIntermediary,
-        List<IntermediaryReference> usesIntermediaries,
-        List<String> servedWRPServices
+        List<ServiceReference> usesIntermediaries,
+        List<ServiceReference> servedWRPServices
     ) {
-        List<IntermediaryReference> usesIntermediariesCopy =
+        List<ServiceReference> usesIntermediariesCopy =
             usesIntermediaries == null ? new ArrayList<>() : new ArrayList<>(usesIntermediaries);
-        List<String> servedWRPServicesCopy =
+        List<ServiceReference> servedWRPServicesCopy =
             servedWRPServices == null ? new ArrayList<>() : new ArrayList<>(servedWRPServices);
 
         validateIntermediaryConfiguration(isIntermediary, usesIntermediariesCopy, servedWRPServicesCopy);
@@ -133,8 +139,8 @@ public class WalletRelyingPartyService extends BaseEntity {
 
     private static void validateIntermediaryConfiguration(
         boolean isIntermediary,
-        List<IntermediaryReference> usesIntermediaries,
-        List<String> servedWRPServices
+        List<ServiceReference> usesIntermediaries,
+        List<ServiceReference> servedWRPServices
     ) {
         if (isIntermediary && !usesIntermediaries.isEmpty()) {
             throw new IllegalArgumentException("An intermediary service cannot use intermediaries");
@@ -144,11 +150,15 @@ public class WalletRelyingPartyService extends BaseEntity {
         }
     }
 
-    public List<IntermediaryReference> getUsesIntermediaries() {
+    public List<ServiceReference> getUsesIntermediaries() {
         return List.copyOf(usesIntermediaries);
     }
 
-    public List<String> getServedWRPServices() {
+    public boolean isIntermediary() {
+        return isIntermediary;
+    }
+
+    public List<ServiceReference> getServedWRPServices() {
         return List.copyOf(servedWRPServices);
     }
 
@@ -166,10 +176,10 @@ public class WalletRelyingPartyService extends BaseEntity {
         this.relyingPartyInstances.addAll(relyingPartyInstancesCopy);
     }
 
-    // Reuse the existing per-instance relation in the service-level TS5 view.
     @Transient
     public List<String> getEntitlements() {
         return relyingPartyInstances.stream()
+            .filter(RelyingPartyInstance::isActive)
             .flatMap(instance -> instance.getRelyingPartyEntitlements().stream())
             .map(RelyingPartyEntitlement::getEntitlement)
             .distinct()
@@ -178,6 +188,18 @@ public class WalletRelyingPartyService extends BaseEntity {
 
     // for JPA instantiation.
     protected WalletRelyingPartyService() { }
+
+    public void rename(String newServiceTradeName) {
+        if (!Objects.equals(serviceTradeName, newServiceTradeName)) {
+            relyingPartyInstances.forEach(RelyingPartyInstance::setUpdated);
+        }
+
+        this.serviceTradeName = newServiceTradeName;
+    }
+
+    public void setUpdated() {
+        this.lastUpdatedMs = Instant.now().toEpochMilli();
+    }
 
     @PrePersist
     protected void onPrePersist() {
@@ -188,7 +210,7 @@ public class WalletRelyingPartyService extends BaseEntity {
     @PreUpdate
     protected void onPreUpdate() {
         validateIntermediaryConfiguration(isIntermediary, usesIntermediaries, servedWRPServices);
-        this.lastUpdatedMs = Instant.now().toEpochMilli();
+        setUpdated();
     }
 
     @PostLoad

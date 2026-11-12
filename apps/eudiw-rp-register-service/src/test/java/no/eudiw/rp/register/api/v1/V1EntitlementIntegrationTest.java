@@ -44,12 +44,12 @@ class V1EntitlementIntegrationTest {
             );
             EntitlementsResource expected = new EntitlementsResource(List.of());
             when(repository.findAllByActive(true)).thenReturn(activeEntitlements);
-            when(v1ContractMapper.toV1EntitlementsResource(activeEntitlements)).thenReturn(expected);
+            when(v1ContractMapper.toV1EntitlementsResponse(activeEntitlements)).thenReturn(expected);
 
             EntitlementsResource result = service.findAllEntitlements(false);
 
             verify(repository).findAllByActive(true);
-            verify(v1ContractMapper).toV1EntitlementsResource(activeEntitlements);
+            verify(v1ContractMapper).toV1EntitlementsResponse(activeEntitlements);
             assertThat(result).isSameAs(expected);
         }
 
@@ -62,12 +62,12 @@ class V1EntitlementIntegrationTest {
             );
             EntitlementsResource expected = new EntitlementsResource(List.of());
             when(repository.findAll()).thenReturn(entitlements);
-            when(v1ContractMapper.toV1EntitlementsResource(entitlements)).thenReturn(expected);
+            when(v1ContractMapper.toV1EntitlementsResponse(entitlements)).thenReturn(expected);
 
             EntitlementsResource result = service.findAllEntitlements(true);
 
             verify(repository).findAll();
-            verify(v1ContractMapper).toV1EntitlementsResource(entitlements);
+            verify(v1ContractMapper).toV1EntitlementsResponse(entitlements);
             assertThat(result).isSameAs(expected);
         }
     }

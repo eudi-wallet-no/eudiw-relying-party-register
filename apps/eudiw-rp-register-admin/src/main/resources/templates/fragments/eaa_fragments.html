@@ -1,0 +1,81 @@
+<div th:fragment="eaa_fields_fragment">
+    <fieldset class="ds-fieldset space-block-end-8"
+              data-size="sm">
+        <legend class="ds-label"
+                data-weight="high">
+            Endre bevistypar
+        </legend>
+
+        <div class="flex-container">
+            <div>
+                <p class="ds-paragraph space-block-end-2">
+                    Bevistypar lagt inn
+                </p>
+                <div class="table-wrap" role="region" aria-label="Bevistypar lagt inn" tabindex="0">
+                    <table class="ds-table fixed-break-table"
+                           data-border="true">
+                        <caption class="ds-sr-only">Bevistypar lagt inn</caption>
+                        <thead>
+                        <tr>
+                            <th scope="col">Bevistype</th>
+                            <th scope="col">Føremål</th>
+                            <th scope="col" class="narrow-cell"><span class="ds-sr-only">Handlingar</span></th>
+                        </tr>
+                        </thead>
+                        <tbody id="eaa_container"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div>
+                <fieldset class="ds-fieldset">
+                    <legend class="ds-legend">
+                        Legg til ny bevistype
+                    </legend>
+                    <div class="ds-field">
+                        <label for="eaa_namespace_field"
+                               class="ds-label">
+                            Bevistype
+                        </label>
+                        <input id="eaa_namespace_field"
+                               type="text"
+                               placeholder="Bevistype ..."
+                               class="ds-input">
+                        <div id="eaa_namespace_error_msg"
+                             th:insert="~{fragments/general ::
+                                            generic_invalid_input_field_error_msg('EAA-namespace')}"
+                             class="display-none"></div>
+                    </div>
+
+                    <div class="ds-field">
+                        <label for="eaa_intent_field"
+                               class="ds-label">
+                            Føremål
+                        </label>
+                        <input id="eaa_intent_field"
+                               type="text"
+                               placeholder="Føremål ..."
+                               class="ds-input">
+                        <div id="eaa_intent_error_msg"
+                             th:insert="~{fragments/general ::
+                                            generic_invalid_input_field_error_msg('EAA-intent')}"
+                             class="display-none"></div>
+                    </div>
+                    <button type="button"
+                            class="ds-button"
+                            data-variant="secondary"
+                            id="eaa-add">
+                        Legg til
+                    </button>
+                </fieldset>
+            </div>
+
+        </div>
+    </fieldset>
+    <!--/* pre-fill EAA list with values from the RP to be edited */-->
+    <div hidden
+         id="eaa_prefill"
+         th:each="eaa : ${editFormAttr.getEaas()}"
+         th:attr="data-namespace=${eaa.namespace},data-intent=${eaa.intent}"></div>
+    <script th:src="@{/js/dynamic_form_fields.js}"></script>
+</div>

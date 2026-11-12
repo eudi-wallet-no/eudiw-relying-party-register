@@ -8,5 +8,6 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties(prefix = "spring.security")
 public record ApiKeySecurityProperties(@NotEmpty String apiKey,
                                        @NotEmpty String[] includePaths,
-                                       @NotEmpty String[] excludePaths) {
+                                       @NotEmpty String[] excludePaths,
+                                       @NotEmpty String[] publicGetPaths) {
 }

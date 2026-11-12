@@ -1,6 +1,5 @@
 package no.eudiw.rp.register.integrations.certificateservice;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import tools.jackson.databind.ObjectMapper;
 import no.eudiw.rp.register.exception.ErrorResponseException;
 import no.eudiw.rp.register.exception.UnauthorizedRequestException;
@@ -47,5 +46,5 @@ public class RelyingPartyCertificateServiceResponseErrorHandler
         }
     }
 
-    record CaServiceErrorResponse(@JsonProperty("error") String error) { }
+    record CaServiceErrorResponse(String error) { }
 }
