@@ -413,6 +413,8 @@ public class V1IssuerCertificateIntegrationTests {
             var ownerCertificateId = ownerRelyingParty.getIssuerCertificates().getFirst().getId();
 
             assertThrows(NotFoundException.class,
+                    () -> certService.getIssuerCertificate(ownerCertificateId, otherRelyingParty.getId()));
+            assertThrows(NotFoundException.class,
                     () -> certService.revokeIssuerCertificate(ownerCertificateId, otherRelyingParty.getId()));
 
             RelyingPartyInstance ownerRelyingPartyAfter =

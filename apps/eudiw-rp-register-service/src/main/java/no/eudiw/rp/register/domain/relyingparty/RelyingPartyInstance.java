@@ -64,12 +64,9 @@ public class RelyingPartyInstance extends BaseEntity {
     @Column(name = "active", nullable = false)
     private boolean active = true;
 
-    public List<IssuerCertificate> getIssuerCertificates() {
-        return this.getRelyingPartyEntitlements()
-                   .stream()
-                   .flatMap(entitlement -> entitlement.getIssuerCertificates().stream())
-                   .toList();
-    }
+    @Setter(AccessLevel.NONE)
+    @OneToMany(mappedBy = "relyingPartyInstance", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    private List<IssuerCertificate> issuerCertificates = new ArrayList<>();
 
     public Optional<RelyingPartyEntitlement> getRelyingPartyEntitlement(String entitlementType) {
         return relyingPartyEntitlements.stream()

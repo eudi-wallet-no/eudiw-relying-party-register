@@ -10,6 +10,6 @@ import java.util.UUID;
 @Repository
 public interface IssuerCertificateRepository extends JpaRepository<IssuerCertificate, UUID> {
 
-    Optional<IssuerCertificate> findByIdAndEntitlementRelyingPartyInstanceId(
+    Optional<IssuerCertificate> findByIdAndRelyingPartyInstanceId(
         UUID id, UUID relyingPartyInstanceId);
 }
