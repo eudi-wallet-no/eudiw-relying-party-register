@@ -67,6 +67,7 @@ class RegistrationWorkflowTests {
     private int initialRequestCount;
     private String expectedRelyingPartyAlias;
     private String expectedRolesRequest;
+    private String expectedEaasRequest;
     private String expectedServiceInformation;
 
     @BeforeEach
@@ -114,8 +115,12 @@ class RegistrationWorkflowTests {
                         .get("name")
                         .asString());
             }
-            if (expectedRolesRequest != null && "PUT".equals(request.getMethod())) {
+            if (expectedRolesRequest != null && "PATCH".equals(request.getMethod())) {
                 assertEquals(jsonMapper.readTree(expectedRolesRequest),
+                    jsonMapper.readTree(request.getBody().readUtf8()));
+            }
+            if (expectedEaasRequest != null && "PATCH".equals(request.getMethod())) {
+                assertEquals(jsonMapper.readTree(expectedEaasRequest),
                     jsonMapper.readTree(request.getBody().readUtf8()));
             }
             if (expectedServiceInformation != null && "PATCH".equals(request.getMethod())) {
@@ -555,17 +560,16 @@ class RegistrationWorkflowTests {
     }
 
     @Test
-    @DisplayName("Should save added role, issuer URL and EAA for an administrator without changing other data")
-    void shouldSaveRolesIssuerUrlAndEaaForAdministrator() throws Exception {
+    @DisplayName("Should save roles and issuer URLs for an administrator without sending submitted EAA values")
+    void shouldSaveRolesAndIssuerUrlsWithoutSendingSubmittedEaas() throws Exception {
         enqueueLookup();
         enqueueRoleCatalog();
         expectedRolesRequest = """
             {"relyingPartyEntitlements":[
                {"entitlement":"%s","credentialIssuerUrl":"https://issuer.test"},
-               {"entitlement":"urn:second","credentialIssuerUrl":"https://second.test"}],
-             "relyingPartyEaas":[{"namespace":"eu.europa.ec.eudi.pid","intent":"login"}]}
+               {"entitlement":"urn:second","credentialIssuerUrl":"https://second.test"}]}
             """.formatted(QEAA);
-        enqueue("PUT", "/v2/instances/" + relyingPartyResource.id(), "{}");
+        enqueue("PATCH", "/v2/instances/" + relyingPartyResource.id() + "/entitlements", "{}");
 
         String redirect = mockMvc.perform(post("/roles/edit/" + relyingPartyResource.id()).with(login(true)).with(csrf())
                 .param("returnUrl", "/search?searchTerm=abc")
@@ -591,10 +595,9 @@ class RegistrationWorkflowTests {
         enqueueLookup();
         enqueueRoleCatalog();
         expectedRolesRequest = """
-            {"relyingPartyEntitlements":[{"entitlement":"urn:second","credentialIssuerUrl":"https://second.test"}],
-             "relyingPartyEaas":[]}
+            {"relyingPartyEntitlements":[{"entitlement":"urn:second","credentialIssuerUrl":"https://second.test"}]}
             """;
-        enqueue("PUT", "/v2/instances/" + relyingPartyResource.id(), "{}");
+        enqueue("PATCH", "/v2/instances/" + relyingPartyResource.id() + "/entitlements", "{}");
 
         mockMvc.perform(post("/roles/edit/" + relyingPartyResource.id()).with(login(true)).with(csrf())
                 .param("entitlements[0].credentialIssuerUrl", "http://legacy.test")
@@ -604,8 +607,8 @@ class RegistrationWorkflowTests {
     }
 
     @Test
-    @DisplayName("Should save issuer URL and EAA for self-service while the role set stays unchanged")
-    void shouldSaveEaaForSelfServiceAndKeepRoles() throws Exception {
+    @DisplayName("Should save issuer URLs for self-service without sending submitted EAA values")
+    void shouldSaveIssuerUrlsForSelfServiceWithoutSendingSubmittedEaas() throws Exception {
         enqueueLookup();
         String form = mockMvc.perform(get("/roles/edit/" + relyingPartyResource.id()).with(login(false)))
             .andExpect(status().isOk())
@@ -616,10 +619,9 @@ class RegistrationWorkflowTests {
 
         enqueueLookup();
         expectedRolesRequest = """
-            {"relyingPartyEntitlements":[{"entitlement":"%s","credentialIssuerUrl":"https://issuer.test"}],
-             "relyingPartyEaas":[{"namespace":"ns","intent":"purpose"}]}
+            {"relyingPartyEntitlements":[{"entitlement":"%s","credentialIssuerUrl":"https://issuer.test"}]}
             """.formatted(QEAA);
-        enqueue("PUT", "/v2/instances/" + relyingPartyResource.id(), "{}");
+        enqueue("PATCH", "/v2/instances/" + relyingPartyResource.id() + "/entitlements", "{}");
         mockMvc.perform(post("/roles/edit/" + relyingPartyResource.id()).with(login(false)).with(csrf())
                 .param("entitlements[0].entitlement", QEAA)
                 .param("entitlements[0].credentialIssuerUrl", "https://issuer.test")
@@ -655,19 +657,18 @@ class RegistrationWorkflowTests {
             .andExpectAll(status().isOk(), view().name("roles_form_view"),
                 content().string(allOf(containsString("http://insecure.test"), containsString("Rett feila før du lagrar"),
                     containsString("aria-invalid=\"true\""), containsString("ikkje ein gyldig HTTPS-URL"),
-                    containsString("data-intent=\"purpose\""), containsString("autofocus"))));
+                    containsString("autofocus"))));
     }
 
     @Test
     @DisplayName("Should reject an EAA namespace containing a double quote")
     void shouldRejectEaaNamespaceWithDoubleQuote() throws Exception {
         enqueueLookup();
-        enqueueRoleCatalog();
 
-        mockMvc.perform(post("/roles/edit/" + relyingPartyResource.id()).with(login(true)).with(csrf())
+        mockMvc.perform(post("/eaas/edit/" + relyingPartyResource.id()).with(login(true)).with(csrf())
                 .param("entitlements[0].entitlement", QEAA)
                 .param("eaas[0].namespace", "\"onerror").param("eaas[0].intent", "test"))
-            .andExpectAll(status().isOk(), view().name("roles_form_view"),
+            .andExpectAll(status().isOk(), view().name("eaas_form_view"),
                 model().attributeHasFieldErrors("editFormAttr", "eaas[0].namespace"));
     }
 
@@ -687,7 +688,7 @@ class RegistrationWorkflowTests {
     void shouldShowFormErrorWhenRegisterRejectsRoles() throws Exception {
         enqueueLookup();
         enqueueRoleCatalog();
-        expectedRequests.add("PUT /v2/instances/" + relyingPartyResource.id());
+        expectedRequests.add("PATCH /v2/instances/" + relyingPartyResource.id() + "/entitlements");
         server.enqueue(new MockResponse().setResponseCode(400).setHeader("Content-Type", "application/json")
             .setBody("{\"error\":\"bad_request\",\"error_description\":\"Cannot remove entitlement with issuer certificates\"}"));
         mockMvc.perform(post("/roles/edit/" + relyingPartyResource.id()).with(login(true)).with(csrf())
@@ -721,6 +722,62 @@ class RegistrationWorkflowTests {
             : post("/roles/edit/" + relyingPartyResource.id()).with(csrf());
         mockMvc.perform(request.with(SecurityTestUtils.oidcLoginForOrgno("987654321")))
             .andExpectAll(status().isNotFound(), view().name("error/404"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    @DisplayName("Should save EAA types without sending submitted roles or issuer URLs")
+    void shouldSaveEaaTypesWithoutSendingSubmittedRolesOrIssuerUrls(boolean administrator) throws Exception {
+        enqueueLookup();
+        expectedEaasRequest = """
+            {"relyingPartyEaas":[{"namespace":"eu.europa.ec.eudi.pid","intent":"login"}]}
+            """;
+        enqueue("PATCH", "/v2/instances/" + relyingPartyResource.id() + "/eaas", "{}");
+
+        mockMvc.perform(post("/eaas/edit/" + relyingPartyResource.id()).with(login(administrator)).with(csrf())
+                .param("eaas[0].namespace", " eu.europa.ec.eudi.pid ").param("eaas[0].intent", " login ")
+                .param("entitlements[0].entitlement", "urn:other")
+                .param("entitlements[0].credentialIssuerUrl", "http://stale.test")
+                .param("name", "Changed").param("active", "false"))
+            .andExpectAll(status().is3xxRedirection(),
+                redirectedUrlPattern("/details/" + relyingPartyResource.id() + "?returnUrl=*"));
+    }
+
+    @Test
+    @DisplayName("Should remove all EAA types without sending role values")
+    void shouldRemoveAllEaaTypesWithoutSendingRoleValues() throws Exception {
+        enqueueLookup();
+        expectedEaasRequest = "{\"relyingPartyEaas\":[]}";
+        enqueue("PATCH", "/v2/instances/" + relyingPartyResource.id() + "/eaas", "{}");
+
+        mockMvc.perform(post("/eaas/edit/" + relyingPartyResource.id()).with(login(false)).with(csrf()))
+            .andExpect(status().is3xxRedirection());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"GET", "POST"})
+    @DisplayName("Should deny editing EAA types for another organization")
+    void shouldDenyEditingEaaTypesForAnotherOrganization(String method) throws Exception {
+        enqueueLookup();
+        var request = method.equals("GET") ? get("/eaas/edit/" + relyingPartyResource.id())
+            : post("/eaas/edit/" + relyingPartyResource.id()).with(csrf());
+
+        mockMvc.perform(request.with(SecurityTestUtils.oidcLoginForOrgno("987654321")))
+            .andExpectAll(status().isNotFound(), view().name("error/404"));
+    }
+
+    @Test
+    @DisplayName("Should keep EAA input when the register rejects the change")
+    void shouldKeepEaaInputWhenRegisterRejectsChange() throws Exception {
+        enqueueLookup();
+        expectedRequests.add("PATCH /v2/instances/" + relyingPartyResource.id() + "/eaas");
+        server.enqueue(new MockResponse().setResponseCode(400).setHeader("Content-Type", "application/json")
+            .setBody("{\"error\":\"bad_request\",\"error_description\":\"Invalid EAA\"}"));
+
+        mockMvc.perform(post("/eaas/edit/" + relyingPartyResource.id()).with(login(false)).with(csrf())
+                .param("eaas[0].namespace", "ns").param("eaas[0].intent", "purpose"))
+            .andExpectAll(status().isOk(), view().name("eaas_form_view"),
+                model().attributeHasErrors("editFormAttr"));
     }
 
     @Test

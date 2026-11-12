@@ -6,6 +6,9 @@ import no.idporten.eudiw.rp.admin.service.exception.NotFoundException;
 import no.idporten.eudiw.rp.admin.service.exception.RelyingPartyNotFoundException;
 import no.idporten.eudiw.rp.admin.service.exception.UnrecognizedErrorResponseException;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyEntitlementResource;
+import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyEaaResource;
+import org.springframework.http.HttpMethod;
+import org.springframework.test.json.JsonCompareMode;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,6 +29,8 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withException;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
@@ -54,6 +59,36 @@ class V2RegisterClientTests {
 
     private static final UUID RELYING_PARTY_INSTANCE_ID = new UUID(0, 1);
     private static final String REGISTRATION_URL = "https://register.test/v2/registrations/" + RELYING_PARTY_INSTANCE_ID;
+
+    @Test
+    @DisplayName("Should change instance roles and issuer URLs without sending EAA values")
+    void shouldChangeInstanceRolesAndIssuerUrlsWithoutSendingEaaValues() {
+        server.expect(requestTo("https://register.test/v2/instances/" + RELYING_PARTY_INSTANCE_ID + "/entitlements"))
+            .andExpect(method(HttpMethod.PATCH))
+            .andExpect(header("X-API-KEY", "test-api-key"))
+            .andExpect(content().json("""
+                {"relyingPartyEntitlements":[{"entitlement":"urn:issuer","credentialIssuerUrl":"https://issuer.test"}]}
+                """, JsonCompareMode.STRICT))
+            .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
+
+        client.updateInstanceRoles(RELYING_PARTY_INSTANCE_ID, new V2RegisterClient.InstanceRolesRequest(
+            List.of(new V2RegisterClient.RoleRequest("urn:issuer", "https://issuer.test"))));
+    }
+
+    @Test
+    @DisplayName("Should change instance EAA types without sending roles or issuer URLs")
+    void shouldChangeInstanceEaaTypesWithoutSendingRolesOrIssuerUrls() {
+        server.expect(requestTo("https://register.test/v2/instances/" + RELYING_PARTY_INSTANCE_ID + "/eaas"))
+            .andExpect(method(HttpMethod.PATCH))
+            .andExpect(header("X-API-KEY", "test-api-key"))
+            .andExpect(content().json("""
+                {"relyingPartyEaas":[{"namespace":"eu.europa.ec.eudi.pid","intent":"login"}]}
+                """, JsonCompareMode.STRICT))
+            .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
+
+        client.updateInstanceEaas(RELYING_PARTY_INSTANCE_ID, new V2RegisterClient.InstanceEaasRequest(
+            List.of(new RelyingPartyEaaResource("eu.europa.ec.eudi.pid", "login"))));
+    }
 
     @Test
     @DisplayName("Should preserve literal search text and all role filters when requesting a sorted search page")

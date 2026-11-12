@@ -330,12 +330,12 @@
         <details class="ds-details">
             <summary><h2 class="ds-heading" data-size="sm">Roller og bevistypar</h2></summary>
             <div>
-            <div class="registration-section-bar registration-section-bar--end">
+            <div class="registration-data-section">
+            <div class="registration-section-bar">
+                <h3 class="ds-heading" data-size="sm">Roller</h3>
                 <a th:href="${'/roles/edit/' + relyingPartyResource.id + '?returnUrl=' + #uris.escapeQueryParam(searchUrlAttr ?: '/search')}"
-                   class="ds-button" data-variant="secondary" data-size="sm">Rediger roller og bevistypar</a>
+                   class="ds-button fit-width" data-variant="secondary" data-size="sm">Rediger roller og utstedar-URL</a>
             </div>
-
-            <h3 class="ds-heading registration-subheading" data-size="sm">Roller</h3>
 
             <div th:if="${ #lists.isEmpty(relyingPartyResource.relyingPartyEntitlements)}">
                 <em>Ikkje registrert.</em>
@@ -359,7 +359,14 @@
                 </table>
             </div>
 
-            <h3 class="ds-heading registration-subheading" data-size="sm">Bevistypar (EAA)</h3>
+            </div>
+
+            <div class="registration-data-section">
+            <div class="registration-section-bar">
+                <h3 class="ds-heading" data-size="sm">Bevistypar (EAA)</h3>
+                <a th:href="${'/eaas/edit/' + relyingPartyResource.id + '?returnUrl=' + #uris.escapeQueryParam(searchUrlAttr ?: '/search')}"
+                   class="ds-button fit-width" data-variant="secondary" data-size="sm">Rediger bevistypar</a>
+            </div>
             <div th:if="${ #lists.isEmpty(relyingPartyResource.relyingPartyEaas)}">
                 <em>Ikkje registrert.</em>
             </div>
@@ -380,6 +387,7 @@
                     </tr>
                     </tbody>
                 </table>
+            </div>
             </div>
             </div>
         </details>
