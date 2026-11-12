@@ -5,15 +5,3 @@ spring:
   thymeleaf:
     cache: false
 
-eudiw-rp-register-lookup-web:
-  relying-parties-service:
-    register-service-api:
-      register-service-base-uri: https://register.eidas2sandkasse.dev
-  credentials-service:
-    credentials-registry-api:
-      credentials-registry-base-uri: https://bevisregister.eidas2sandkasse.dev
-
-external-dependency-health-checks:
-  health-endpoints:
-    eudiw-rp-service:
-      base-uri: https://register.eidas2sandkasse.dev
