@@ -4,8 +4,6 @@ Vi set stor pris på forslag, feilrapportar og kodebidrag! Opprett gjerne eit
 GitHub-issue eller ta kontakt med prosjektgruppa før du byrjar. Då kan vi
 saman avklare behov, omfang og løysing.
 
-Digdir opprettar Jira-saka når endringa er avklart. Du treng ikkje tilgang
-til Jira for å bidra.
 
 ## Kode og testar
 
