@@ -28,7 +28,7 @@ køyrt. Lenk til ei eksisterande GitHub-issue, opprett gjerne ei for å drøfte
 endringa, eller vis til avklaringa med prosjektgruppa.
 
 Du kan sende inn PR-en med ein beskrivande norsk tittel. Digdir følgjer opp
-Jira-ID og tittelformatet `<JIRA-ID>: <kort norsk tittel>`.
+intern-ID og tittelformatet `<Intern-ID>: <kort norsk tittel>`.
 
 Alle PR-ar må gjennomgåast og godkjennast av utviklarar i Digdir før dei blir
 tekne inn eller ikkje. Vi samarbeider gjerne om justeringar og kan òg tilpasse løysinga
