@@ -10,6 +10,8 @@ public interface IntendedUseCheckQuery {
         String serviceIdentifier,
         String intendedUseIdentifier,
         String credentialFormat,
-        String claimPath
+        String claimPath,
+        String credentialMeta,
+        String policy
     );
 }
