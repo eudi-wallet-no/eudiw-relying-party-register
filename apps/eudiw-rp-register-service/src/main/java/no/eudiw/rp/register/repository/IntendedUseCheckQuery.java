@@ -8,6 +8,8 @@ public interface IntendedUseCheckQuery {
     List<IntendedUse> findAllMatchingCheckFilters(
         String identifier,
         String serviceIdentifier,
-        String intendedUseIdentifier
+        String intendedUseIdentifier,
+        String credentialFormat,
+        String claimPath
     );
 }

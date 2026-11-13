@@ -2,6 +2,7 @@ package no.eudiw.rp.register.api.v2.wrp;
 
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
+import no.eudiw.rp.register.domain.Credential;
 import no.eudiw.rp.register.domain.Identifier;
 import no.eudiw.rp.register.domain.IntendedUse;
 import no.eudiw.rp.register.domain.MultiLangString;
@@ -30,6 +31,7 @@ import java.security.interfaces.ECPublicKey;
 import java.security.spec.ECGenParameterSpec;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -192,10 +194,51 @@ class WrpCheckIntendedUseIntegrationTest {
     }
 
     @Test
+    void filtersIntendedUsesByCredentialFormatAndClaimPath() throws Exception {
+        LocalDate today = LocalDate.now(ZoneOffset.UTC);
+        IntendedUse formatOnly = intendedUse("format-only", today.minusDays(1), null);
+        formatOnly.setCredentials(List.of(credential("dc+sd-jwt", "urn:pid", "birthdate")));
+        IntendedUse pathOnly = intendedUse("path-only", today.minusDays(1), null);
+        pathOnly.setCredentials(List.of(credential("mso_mdoc", "org.iso.18013.5.1", "license")));
+        IntendedUse sameUseDifferentCredentials =
+            intendedUse("same-use-different-credentials", today.minusDays(1), null);
+        sameUseDifferentCredentials.setCredentials(List.of(
+            credential("dc+sd-jwt", "urn:pid", "birthdate"),
+            credential("mso_mdoc", "org.iso.18013.5.1", "license")
+        ));
+        storeIntendedUses(List.of(formatOnly, pathOnly, sameUseDifferentCredentials));
+
+        assertEquals(Boolean.TRUE, signedResult(Map.of(
+            "credentialFormat", "dc+sd-jwt",
+            "claimPath", "birthdate"
+        )).get("isRegistered"));
+        assertEquals(Boolean.TRUE, signedResult(Map.of(
+            "credentialFormat", "dc+sd-jwt",
+            "claimPath", "license",
+            "intendedUseIdentifier", "same-use-different-credentials"
+        )).get("isRegistered"));
+        assertEquals(Boolean.TRUE, signedResult(Map.of("claimPath", "birthdate")).get("isRegistered"));
+        assertEquals(Boolean.FALSE, signedResult(Map.of(
+            "credentialFormat", "dc+sd-jwt",
+            "claimPath", "license",
+            "intendedUseIdentifier", "format-only"
+        )).get("isRegistered"));
+        assertEquals(Boolean.FALSE, signedResult(Map.of(
+            "credentialFormat", "dc+sd-jwt",
+            "claimPath", "license",
+            "intendedUseIdentifier", "path-only"
+        )).get("isRegistered"));
+        assertEquals(Boolean.FALSE, signedResult(Map.of("credentialFormat", "DC+SD-JWT")).get("isRegistered"));
+        assertEquals(Boolean.FALSE, signedResult(Map.of("claimPath", "Birthdate")).get("isRegistered"));
+        assertEquals(Boolean.FALSE, signedResult(Map.of("claimPath", "birth")).get("isRegistered"));
+    }
+
+    @Test
     void rejectsEmptyBlankRepeatedAndNotYetSupportedFilters() throws Exception {
         mockMvc.perform(get("/wrp/check-intended-use"))
             .andExpect(status().isBadRequest());
-        for (String parameter : List.of("identifier", "serviceIdentifier", "intendedUseIdentifier")) {
+        for (String parameter : List.of(
+            "identifier", "serviceIdentifier", "intendedUseIdentifier", "credentialFormat", "claimPath")) {
             mockMvc.perform(get("/wrp/check-intended-use").param(parameter, " "))
                 .andExpect(status().isBadRequest());
             mockMvc.perform(get("/wrp/check-intended-use").param(parameter, "one", "two"))
@@ -217,6 +260,10 @@ class WrpCheckIntendedUseIntegrationTest {
             .andExpect(content().string(containsString("\"name\":\"serviceIdentifier\"")))
             .andExpect(content().string(containsString("serviceIdentifier")))
             .andExpect(content().string(containsString("intendedUseIdentifier")))
+            .andExpect(content().string(containsString("\"name\":\"credentialFormat\"")))
+            .andExpect(content().string(containsString("\"name\":\"claimPath\"")))
+            .andExpect(content().string(containsString(
+                "Exact, case-sensitive match against any string element of a credential claim path")))
             .andExpect(content().string(containsString("no matching IntendedUse returns data.isRegistered=false")))
             .andExpect(content().string(containsString("The supplied WRP identifier does not exist")));
     }
@@ -274,6 +321,14 @@ class WrpCheckIntendedUseIntegrationTest {
             revokedAt == null ? null : revokedAt.toString(),
             List.of(new MultiLangString("en", "Age verification")),
             List.of(new Policy("PrivacyStatement", "https://example.test/privacy"))
+        );
+    }
+
+    private Credential credential(String format, String... claimPath) {
+        return new Credential(
+            format,
+            Map.of("vct_values", List.of("urn:example:pid")),
+            List.of(Map.of("path", Arrays.asList(claimPath)))
         );
     }
 }

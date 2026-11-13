@@ -34,7 +34,7 @@ public class WrpEndpoint {
         "claimPath", "credentialMeta", "policy"
     );
     private static final Set<String> SUPPORTED_CHECK_INTENDED_USE_PARAMETERS = Set.of(
-        "identifier", "serviceIdentifier", "intendedUseIdentifier"
+        "identifier", "serviceIdentifier", "intendedUseIdentifier", "credentialFormat", "claimPath"
     );
     private static final Set<String> COLLECTION_PARAMETERS =
         Set.of(
@@ -303,7 +303,10 @@ public class WrpEndpoint {
 
     @Operation(
         summary = "Check whether an intended use is currently valid",
-        description = "Returns a signed boolean in the data.isRegistered claim.",
+        description = """
+            Returns a signed boolean in the data.isRegistered claim. Optional credentialFormat and claimPath
+            filters use exact matches and apply to the same IntendedUse whose validity is checked.
+            """,
         responses = {
             @ApiResponse(
                 responseCode = "200",
@@ -350,6 +353,20 @@ public class WrpEndpoint {
             schema = @Schema(type = "string")
         )
         @RequestParam(name = "intendedUseIdentifier", required = false) String intendedUseIdentifier,
+        @Parameter(
+            name = "credentialFormat",
+            in = ParameterIn.QUERY,
+            description = "Exact, case-sensitive credential format registered for the IntendedUse",
+            schema = @Schema(type = "string")
+        )
+        @RequestParam(name = "credentialFormat", required = false) String credentialFormat,
+        @Parameter(
+            name = "claimPath",
+            in = ParameterIn.QUERY,
+            description = "Exact, case-sensitive match against any string element of a credential claim path for the IntendedUse",
+            schema = @Schema(type = "string")
+        )
+        @RequestParam(name = "claimPath", required = false) String claimPath,
         @Parameter(hidden = true)
         @RequestParam MultiValueMap<String, String> queryParameters
     ) {
@@ -376,9 +393,16 @@ public class WrpEndpoint {
         if (intendedUseIdentifier != null && intendedUseIdentifier.isBlank()) {
             throw new BadRequestException("intendedUseIdentifier must not be blank");
         }
+        if (credentialFormat != null && credentialFormat.isBlank()) {
+            throw new BadRequestException("credentialFormat must not be blank");
+        }
+        if (claimPath != null && claimPath.isBlank()) {
+            throw new BadRequestException("claimPath must not be blank");
+        }
 
         String signedResult = jwsSigner.signIntendedUseCheck(
-            lookupService.isIntendedUseValid(identifier, serviceIdentifier, intendedUseIdentifier));
+            lookupService.isIntendedUseValid(
+                identifier, serviceIdentifier, intendedUseIdentifier, credentialFormat, claimPath));
         return ResponseEntity.ok()
             .contentType(MediaType.parseMediaType("application/jwt"))
             .header(JWK_URL_HEADER, properties.jwksUrl())
