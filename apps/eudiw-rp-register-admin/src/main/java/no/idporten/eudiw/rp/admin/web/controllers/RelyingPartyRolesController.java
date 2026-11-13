@@ -49,8 +49,7 @@ public class RelyingPartyRolesController {
     @InitBinder(FORM_ATTR)
     public void initBinder(WebDataBinder binder) {
         binder.registerCustomEditor(String.class, new StringTrimmerEditor(true));
-        binder.setAllowedFields("entitlements[*].entitlement", "entitlements[*].credentialIssuerUrl",
-            "eaas[*].namespace", "eaas[*].intent");
+        binder.setAllowedFields("entitlements[*].entitlement", "entitlements[*].credentialIssuerUrl");
     }
 
     @GetMapping("/roles/edit/{id}")
