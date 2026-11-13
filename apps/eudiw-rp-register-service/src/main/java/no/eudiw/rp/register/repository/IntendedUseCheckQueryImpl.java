@@ -28,6 +28,8 @@ class IntendedUseCheckQueryImpl implements IntendedUseCheckQuery {
     private static final String INTENDED_USE_IDENTIFIER_PARAMETER = "intendedUseIdentifier";
     private static final String CREDENTIAL_FORMAT_PARAMETER = "credentialFormat";
     private static final String CLAIM_PATH_PARAMETER = "claimPath";
+    private static final String CREDENTIAL_META_PARAMETER = "credentialMeta";
+    private static final String POLICY_PARAMETER = "policy";
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -38,7 +40,9 @@ class IntendedUseCheckQueryImpl implements IntendedUseCheckQuery {
         String serviceIdentifier,
         String intendedUseIdentifier,
         String credentialFormat,
-        String claimPath
+        String claimPath,
+        String credentialMeta,
+        String policy
     ) {
         CriteriaBuilder builder = entityManager.getCriteriaBuilder();
         CriteriaQuery<IntendedUse> query = builder.createQuery(IntendedUse.class);
@@ -64,6 +68,12 @@ class IntendedUseCheckQueryImpl implements IntendedUseCheckQuery {
         if (claimPath != null) {
             predicates.add(claimPathPredicate(builder, query, intendedUse));
         }
+        if (credentialMeta != null) {
+            predicates.add(credentialMetaPredicate(builder, query, intendedUse));
+        }
+        if (policy != null) {
+            predicates.add(policyPredicate(builder, intendedUse));
+        }
 
         query.select(intendedUse).where(predicates.toArray(Predicate[]::new));
         TypedQuery<IntendedUse> typedQuery = entityManager.createQuery(query);
@@ -81,6 +91,12 @@ class IntendedUseCheckQueryImpl implements IntendedUseCheckQuery {
         }
         if (claimPath != null) {
             typedQuery.setParameter(CLAIM_PATH_PARAMETER, claimPath);
+        }
+        if (credentialMeta != null) {
+            typedQuery.setParameter(CREDENTIAL_META_PARAMETER, credentialMeta);
+        }
+        if (policy != null) {
+            typedQuery.setParameter(POLICY_PARAMETER, policy);
         }
         return typedQuery.getResultList();
     }
@@ -167,5 +183,54 @@ class IntendedUseCheckQueryImpl implements IntendedUseCheckQuery {
                 builder.equal(containsClaimPath, 1)
             );
         return builder.exists(matchingClaimPath);
+    }
+
+    private static Predicate credentialMetaPredicate(
+        CriteriaBuilder builder,
+        CriteriaQuery<?> query,
+        Root<IntendedUse> intendedUse
+    ) {
+        ParameterExpression<String> credentialMeta =
+            builder.parameter(String.class, CREDENTIAL_META_PARAMETER);
+        var vctValuesCandidate = builder.function(
+            "JSON_OBJECT",
+            String.class,
+            builder.literal("vct_values"),
+            builder.function("JSON_ARRAY", String.class, credentialMeta)
+        );
+        var doctypeCandidate = builder.function(
+            "JSON_OBJECT", String.class, builder.literal("doctype"), credentialMeta);
+        Subquery<Integer> matchingCredential = query.subquery(Integer.class);
+        Root<Credential> credential = matchingCredential.from(Credential.class);
+        var containsVctValue = builder.function(
+            "JSON_CONTAINS", Integer.class, credential.get("meta"), vctValuesCandidate);
+        var containsDoctype = builder.function(
+            "JSON_CONTAINS", Integer.class, credential.get("meta"), doctypeCandidate);
+        matchingCredential.select(builder.literal(1))
+            .where(
+                builder.equal(credential.get("intendedUse").get("id"), intendedUse.get("id")),
+                builder.or(
+                    builder.equal(containsVctValue, 1),
+                    builder.equal(containsDoctype, 1)
+                )
+            );
+        return builder.exists(matchingCredential);
+    }
+
+    private static Predicate policyPredicate(
+        CriteriaBuilder builder,
+        Root<IntendedUse> intendedUse
+    ) {
+        ParameterExpression<String> policy = builder.parameter(String.class, POLICY_PARAMETER);
+        var policyObject = builder.function(
+            "JSON_OBJECT", String.class, builder.literal("policyURI"), policy);
+        var containsPolicy = builder.function(
+            "JSON_CONTAINS",
+            Integer.class,
+            intendedUse.get("privacyPolicy"),
+            policyObject,
+            builder.literal("$")
+        );
+        return builder.equal(containsPolicy, 1);
     }
 }

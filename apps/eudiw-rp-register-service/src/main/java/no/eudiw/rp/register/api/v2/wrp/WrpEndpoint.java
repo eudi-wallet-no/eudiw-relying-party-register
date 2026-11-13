@@ -30,11 +30,12 @@ import java.util.Set;
 public class WrpEndpoint {
     private static final String JWK_URL_HEADER = "x-jku-url";
     private static final Set<String> CHECK_INTENDED_USE_PARAMETERS = Set.of(
-        "identifier", "serviceIdentifier", "intendedUseIdentifier", "credentialFormat",
-        "claimPath", "credentialMeta", "policy"
+        "identifier", "serviceIdentifier", "intendedUseIdentifier",
+        "credentialFormat", "claimPath", "credentialMeta", "policy"
     );
     private static final Set<String> SUPPORTED_CHECK_INTENDED_USE_PARAMETERS = Set.of(
-        "identifier", "serviceIdentifier", "intendedUseIdentifier", "credentialFormat", "claimPath"
+        "identifier", "serviceIdentifier", "intendedUseIdentifier",
+        "credentialFormat", "claimPath", "credentialMeta", "policy"
     );
     private static final Set<String> COLLECTION_PARAMETERS =
         Set.of(
@@ -304,8 +305,9 @@ public class WrpEndpoint {
     @Operation(
         summary = "Check whether an intended use is currently valid",
         description = """
-            Returns a signed boolean in the data.isRegistered claim. Optional credentialFormat and claimPath
-            filters use exact matches and apply to the same IntendedUse whose validity is checked.
+            Returns a signed boolean in the data.isRegistered claim. The credentialFormat, claimPath,
+            credentialMeta, and policy filters apply to the same IntendedUse whose validity is checked.
+            policy matches only the IntendedUse privacy-policy list, not the parent WRP policy list.
             """,
         responses = {
             @ApiResponse(
@@ -367,6 +369,20 @@ public class WrpEndpoint {
             schema = @Schema(type = "string")
         )
         @RequestParam(name = "claimPath", required = false) String claimPath,
+        @Parameter(
+            name = "credentialMeta",
+            in = ParameterIn.QUERY,
+            description = "Exact, case-sensitive match against a vct_values or doctype value in credential metadata for the IntendedUse",
+            schema = @Schema(type = "string")
+        )
+        @RequestParam(name = "credentialMeta", required = false) String credentialMeta,
+        @Parameter(
+            name = "policy",
+            in = ParameterIn.QUERY,
+            description = "Exact URI in the privacy-policy list of the IntendedUse; parent WRP policies do not match",
+            schema = @Schema(type = "string", format = "uri")
+        )
+        @RequestParam(name = "policy", required = false) String policy,
         @Parameter(hidden = true)
         @RequestParam MultiValueMap<String, String> queryParameters
     ) {
@@ -399,10 +415,23 @@ public class WrpEndpoint {
         if (claimPath != null && claimPath.isBlank()) {
             throw new BadRequestException("claimPath must not be blank");
         }
+        if (credentialMeta != null && credentialMeta.isBlank()) {
+            throw new BadRequestException("credentialMeta must not be blank");
+        }
+        if (policy != null && policy.isBlank()) {
+            throw new BadRequestException("policy must not be blank");
+        }
 
         String signedResult = jwsSigner.signIntendedUseCheck(
             lookupService.isIntendedUseValid(
-                identifier, serviceIdentifier, intendedUseIdentifier, credentialFormat, claimPath));
+                identifier,
+                serviceIdentifier,
+                intendedUseIdentifier,
+                credentialFormat,
+                claimPath,
+                credentialMeta,
+                policy
+            ));
         return ResponseEntity.ok()
             .contentType(MediaType.parseMediaType("application/jwt"))
             .header(JWK_URL_HEADER, properties.jwksUrl())

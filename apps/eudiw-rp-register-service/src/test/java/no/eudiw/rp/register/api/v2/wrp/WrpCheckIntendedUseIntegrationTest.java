@@ -234,11 +234,88 @@ class WrpCheckIntendedUseIntegrationTest {
     }
 
     @Test
+    void filtersIntendedUsesByCredentialMetaAndPolicy() throws Exception {
+        LocalDate today = LocalDate.now(ZoneOffset.UTC);
+        String matchingPolicy = "https://example.test/privacy/matching";
+        String wrpOnlyPolicy = "https://example.test/privacy/wrp-only";
+
+        IntendedUse vctUse = intendedUse("vct-use", today.minusDays(1), null);
+        vctUse.setCredentials(List.of(credentialWithMeta(
+            Map.of("vct_values", List.of("urn:example:pid", "urn:example:mdl")))));
+        IntendedUse doctypeUse = intendedUse("doctype-use", today.minusDays(1), null);
+        doctypeUse.setCredentials(List.of(credentialWithMeta(
+            Map.of("doctype", "org.iso.18013.5.1"))));
+        IntendedUse matchingUse = intendedUse("matching-use", today.minusDays(1), null);
+        matchingUse.setCredentials(List.of(credentialWithMeta(
+            Map.of("vct_values", List.of("urn:example:pid")))));
+        matchingUse.setPrivacyPolicy(List.of(new Policy("PrivacyStatement", matchingPolicy)));
+        IntendedUse metadataOnlyUse = intendedUse("metadata-only-use", today.minusDays(1), null);
+        metadataOnlyUse.setCredentials(List.of(credentialWithMeta(
+            Map.of("vct_values", List.of("urn:example:pid")))));
+        IntendedUse policyOnlyUse = intendedUse("policy-only-use", today.minusDays(1), null);
+        policyOnlyUse.setCredentials(List.of(credentialWithMeta(
+            Map.of("vct_values", List.of("urn:example:other")))));
+        policyOnlyUse.setPrivacyPolicy(List.of(new Policy("PrivacyStatement", matchingPolicy)));
+
+        WalletRelyingParty party = storeIntendedUses(
+            List.of(vctUse, doctypeUse, matchingUse, metadataOnlyUse, policyOnlyUse),
+            List.of(),
+            "test-service");
+        party.setPolicy(List.of(new Policy("DataProtection", wrpOnlyPolicy)));
+        walletRelyingPartyRepository.saveAndFlush(party);
+
+        assertEquals(Boolean.TRUE, signedResult(Map.of(
+            "credentialMeta", "urn:example:pid",
+            "intendedUseIdentifier", "vct-use"
+        )).get("isRegistered"));
+        assertEquals(Boolean.TRUE, signedResult(Map.of(
+            "credentialMeta", "org.iso.18013.5.1",
+            "intendedUseIdentifier", "doctype-use"
+        )).get("isRegistered"));
+        assertEquals(Boolean.FALSE, signedResult(Map.of(
+            "credentialMeta", "URN:EXAMPLE:PID",
+            "intendedUseIdentifier", "vct-use"
+        )).get("isRegistered"));
+        assertEquals(Boolean.FALSE, signedResult(Map.of(
+            "credentialMeta", "urn:example:pi",
+            "intendedUseIdentifier", "vct-use"
+        )).get("isRegistered"));
+        assertEquals(Boolean.TRUE, signedResult(Map.of(
+            "policy", matchingPolicy,
+            "intendedUseIdentifier", "matching-use"
+        )).get("isRegistered"));
+        assertEquals(Boolean.FALSE, signedResult(Map.of(
+            "policy", "https://example.test/privacy/other",
+            "intendedUseIdentifier", "matching-use"
+        )).get("isRegistered"));
+        assertEquals(Boolean.TRUE, signedResult(Map.of(
+            "credentialMeta", "urn:example:pid",
+            "policy", matchingPolicy,
+            "intendedUseIdentifier", "matching-use"
+        )).get("isRegistered"));
+        assertEquals(Boolean.FALSE, signedResult(Map.of(
+            "credentialMeta", "urn:example:pid",
+            "policy", matchingPolicy,
+            "intendedUseIdentifier", "metadata-only-use"
+        )).get("isRegistered"));
+        assertEquals(Boolean.FALSE, signedResult(Map.of(
+            "credentialMeta", "urn:example:pid",
+            "policy", matchingPolicy,
+            "intendedUseIdentifier", "policy-only-use"
+        )).get("isRegistered"));
+        assertEquals(Boolean.FALSE, signedResult(Map.of(
+            "identifier", party.getOrgno(),
+            "policy", wrpOnlyPolicy
+        )).get("isRegistered"));
+    }
+
+    @Test
     void rejectsEmptyBlankRepeatedAndNotYetSupportedFilters() throws Exception {
         mockMvc.perform(get("/wrp/check-intended-use"))
             .andExpect(status().isBadRequest());
         for (String parameter : List.of(
-            "identifier", "serviceIdentifier", "intendedUseIdentifier", "credentialFormat", "claimPath")) {
+            "identifier", "serviceIdentifier", "intendedUseIdentifier",
+            "credentialFormat", "claimPath", "credentialMeta", "policy")) {
             mockMvc.perform(get("/wrp/check-intended-use").param(parameter, " "))
                 .andExpect(status().isBadRequest());
             mockMvc.perform(get("/wrp/check-intended-use").param(parameter, "one", "two"))
@@ -264,6 +341,9 @@ class WrpCheckIntendedUseIntegrationTest {
             .andExpect(content().string(containsString("\"name\":\"claimPath\"")))
             .andExpect(content().string(containsString(
                 "Exact, case-sensitive match against any string element of a credential claim path")))
+            .andExpect(content().string(containsString("\"name\":\"credentialMeta\"")))
+            .andExpect(content().string(containsString("\"name\":\"policy\"")))
+            .andExpect(content().string(containsString("policy matches only the")))
             .andExpect(content().string(containsString("no matching IntendedUse returns data.isRegistered=false")))
             .andExpect(content().string(containsString("The supplied WRP identifier does not exist")));
     }
@@ -330,5 +410,9 @@ class WrpCheckIntendedUseIntegrationTest {
             Map.of("vct_values", List.of("urn:example:pid")),
             List.of(Map.of("path", Arrays.asList(claimPath)))
         );
+    }
+
+    private Credential credentialWithMeta(Map<String, Object> meta) {
+        return new Credential("dc+sd-jwt", meta, List.of(Map.of("path", List.of("claim"))));
     }
 }
