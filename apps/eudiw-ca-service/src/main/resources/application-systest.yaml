@@ -18,8 +18,8 @@ eudiw-ca:
           - "1.3.6.1.5.7.3"
       root: root2
       lifetime-days: 365
-      crl-distribution-point: ${eudiw-ca.base-uri}/v1/certs/intermediates/status_provider2.crl
-      certificate-uri: ${eudiw-ca.base-uri}/v1/certs/intermediates/status_provider2.cer
+      crl-distribution-point: ${eudiw-ca.base-uri}/v1/certs/intermediates/eaa_provider2.crl
+      certificate-uri: ${eudiw-ca.base-uri}/v1/certs/intermediates/eaa_provider2.cer
       keystore:
         type: pkcs12
         location: ${INTERMEDIATE_EAA_PROVIDER_2_KEYSTORE_LOCATION}
