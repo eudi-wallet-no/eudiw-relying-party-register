@@ -5,10 +5,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
+import lombok.EqualsAndHashCode;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
 
 import java.net.URI;
 
+@EqualsAndHashCode(exclude = "credentialIssuerUrlPresent")
 public class RelyingPartyEntitlementResource {
     @JsonProperty
     @NotBlank
