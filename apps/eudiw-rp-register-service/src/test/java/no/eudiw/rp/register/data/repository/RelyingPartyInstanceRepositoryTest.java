@@ -86,28 +86,33 @@ public class RelyingPartyInstanceRepositoryTest {
         String inactivePartyIssuerUrl = "https://issuer-" + UUID.randomUUID() + ".example.com";
         RelyingPartyInstance activeInstance = EntityGenerator.generateRelyingParty();
         activeInstance.setRelyingPartyEntitlements(List.of(
-            new RelyingPartyEntitlement("first", activeIssuerUrl),
-            new RelyingPartyEntitlement("second", activeIssuerUrl)
+            new RelyingPartyEntitlement("first"),
+            new RelyingPartyEntitlement("second")
         ));
         RelyingPartyInstance inactiveInstance = EntityGenerator.generateRelyingParty();
         inactiveInstance.setActive(false);
         inactiveInstance.setRelyingPartyEntitlements(List.of(
-            new RelyingPartyEntitlement("inactive", inactiveIssuerUrl)
+            new RelyingPartyEntitlement("inactive")
         ));
         RelyingPartyInstance inactiveServiceInstance = EntityGenerator.generateRelyingParty();
         inactiveServiceInstance.getWalletRelyingPartyService().setActive(false);
         inactiveServiceInstance.setRelyingPartyEntitlements(List.of(
-            new RelyingPartyEntitlement("inactive-service", inactiveServiceIssuerUrl)
+            new RelyingPartyEntitlement("inactive-service")
         ));
         RelyingPartyInstance inactivePartyInstance = EntityGenerator.generateRelyingParty();
         inactivePartyInstance.getWalletRelyingPartyService().getWalletRelyingParty().setActive(false);
         inactivePartyInstance.setRelyingPartyEntitlements(List.of(
-            new RelyingPartyEntitlement("inactive-party", inactivePartyIssuerUrl)
+            new RelyingPartyEntitlement("inactive-party")
         ));
 
+        activeInstance.getWalletRelyingPartyService().setCredentialIssuerUrl("first", activeIssuerUrl);
+        activeInstance.getWalletRelyingPartyService().setCredentialIssuerUrl("second", activeIssuerUrl);
         repository.saveAndFlush(activeInstance);
+        inactiveInstance.getWalletRelyingPartyService().setCredentialIssuerUrl("inactive", inactiveIssuerUrl);
         repository.saveAndFlush(inactiveInstance);
+        inactiveServiceInstance.getWalletRelyingPartyService().setCredentialIssuerUrl("inactive-service", inactiveServiceIssuerUrl);
         repository.saveAndFlush(inactiveServiceInstance);
+        inactivePartyInstance.getWalletRelyingPartyService().setCredentialIssuerUrl("inactive-party", inactivePartyIssuerUrl);
         repository.saveAndFlush(inactivePartyInstance);
 
         Set<String> issuerUrls = repository.findActiveCredentialIssuerUrls();
@@ -125,9 +130,11 @@ public class RelyingPartyInstanceRepositoryTest {
         String lowercasePathUrl = issuerUrl + "/issuer";
         RelyingPartyInstance instance = EntityGenerator.generateRelyingParty();
         instance.setRelyingPartyEntitlements(List.of(
-            new RelyingPartyEntitlement("first", uppercasePathUrl),
-            new RelyingPartyEntitlement("second", lowercasePathUrl)
+            new RelyingPartyEntitlement("first"),
+            new RelyingPartyEntitlement("second")
         ));
+        instance.getWalletRelyingPartyService().setCredentialIssuerUrl("first", uppercasePathUrl);
+        instance.getWalletRelyingPartyService().setCredentialIssuerUrl("second", lowercasePathUrl);
         repository.saveAndFlush(instance);
 
         Set<String> issuerUrls = repository.findActiveCredentialIssuerUrls();
@@ -140,8 +147,9 @@ public class RelyingPartyInstanceRepositoryTest {
     void findActiveCredentialIssuerUrls_excludesNullUrls() {
         RelyingPartyInstance instance = EntityGenerator.generateRelyingParty();
         instance.setRelyingPartyEntitlements(List.of(
-            new RelyingPartyEntitlement("without-url", null)
+            new RelyingPartyEntitlement("without-url")
         ));
+        instance.getWalletRelyingPartyService().setCredentialIssuerUrl("without-url", null);
         repository.saveAndFlush(instance);
 
         Set<String> issuerUrls = repository.findActiveCredentialIssuerUrls();
@@ -516,10 +524,10 @@ public class RelyingPartyInstanceRepositoryTest {
             relyingParty.setName("Legal " + searchTerm);
             relyingParty.setTradeName("Unrelated trade name");
             matchingInstance.setRelyingPartyEntitlements(List.of(
-                new RelyingPartyEntitlement("urn:first", null), new RelyingPartyEntitlement("urn:second", null)));
+                new RelyingPartyEntitlement("urn:first"), new RelyingPartyEntitlement("urn:second")));
             RelyingPartyInstance missingRole = EntityGenerator.generateRelyingParty();
             missingRole.getWalletRelyingPartyService().getWalletRelyingParty().setName("Legal " + searchTerm);
-            missingRole.setRelyingPartyEntitlements(List.of(new RelyingPartyEntitlement("urn:first", null)));
+            missingRole.setRelyingPartyEntitlements(List.of(new RelyingPartyEntitlement("urn:first")));
             repository.saveAndFlush(matchingInstance);
             repository.saveAndFlush(missingRole);
 
@@ -597,12 +605,12 @@ public class RelyingPartyInstanceRepositoryTest {
                 service.getWalletRelyingParty().setOrgno(orgno);
                 instance.setActive(!orgno.endsWith("2"));
                 instance.setRelyingPartyEntitlements(List.of(
-                    new RelyingPartyEntitlement("urn:first", null),
-                    new RelyingPartyEntitlement("urn:second", null)));
+                    new RelyingPartyEntitlement("urn:first"),
+                    new RelyingPartyEntitlement("urn:second")));
 
                 if (orgno.equals("900000002")) {
                     instance.setActive(true);
-                    instance.setRelyingPartyEntitlements(List.of(new RelyingPartyEntitlement("urn:first", null)));
+                    instance.setRelyingPartyEntitlements(List.of(new RelyingPartyEntitlement("urn:first")));
                 }
 
                 repository.saveAndFlush(instance);

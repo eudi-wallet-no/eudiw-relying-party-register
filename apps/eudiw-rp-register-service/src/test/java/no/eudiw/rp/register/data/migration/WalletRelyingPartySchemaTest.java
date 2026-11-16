@@ -1,6 +1,8 @@
 package no.eudiw.rp.register.data.migration;
 
+import no.eudiw.rp.register.domain.ServiceCredentialIssuerUrl;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
+import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -226,6 +228,141 @@ class WalletRelyingPartySchemaTest {
         } finally {
             factory.destroy();
         }
+    }
+
+    @Test
+    @DisplayName("Should keep service URL text and certificate links after migration")
+    void shouldKeepServiceUrlTextAndCertificateLinksAfterMigration() {
+        prepareCredentialIssuerUrlHistory();
+        jdbc.update("""
+            INSERT INTO relying_party_entitlement
+                (id, relying_party_instance_id, entitlement, credential_issuer_url)
+            VALUES ('issuer-role', 'instance-1', 'urn:test:Issuer', 'https://issuer.example/Path'),
+                   ('null-role', 'instance-2', 'urn:test:Issuer', NULL),
+                   ('duplicate-role', 'instance-3', 'urn:test:Issuer', 'https://issuer.example/Path'),
+                   ('lowercase-role', 'instance-4', 'urn:test:issuer', 'https://issuer.example/path'),
+                   ('padded-role', 'instance-5', 'urn:test:Issuer ', 'https://issuer.example/Path '),
+                   ('no-url', 'instance-1', 'urn:test:no-url', NULL),
+                   ('other-no-url', 'instance-2', 'urn:test:no-url', NULL),
+                   ('other-service-role', 'other-instance', 'urn:test:Issuer', 'https://other.example/Path')
+            """);
+        jdbc.update("""
+            INSERT INTO relying_party_certificates
+                (id, type, relying_party_instance_id, entitlement_id, issuer, ca_id,
+                 certificate_pem, subject_dn, serial_no, valid_from_ms, valid_until_ms, revocation_status)
+            VALUES ('certificate', 'ISSUER', 'instance-1', 'issuer-role', 'issuer', 'ca',
+                    'pem', 'subject', 'serial', 10, 20, 0)
+            """);
+        var entitlementsBefore = jdbc.queryForList("SELECT id, relying_party_instance_id, entitlement FROM relying_party_entitlement ORDER BY id");
+        var certificatesBefore = jdbc.queryForList("SELECT * FROM relying_party_certificates");
+        var instancesBefore = jdbc.queryForList("SELECT * FROM relying_party_instance ORDER BY id");
+
+        flyway.migrate();
+
+        assertEquals(List.of(
+            List.of("other-service", "urn:test:Issuer", "https://other.example/Path"),
+            List.of("service", "urn:test:Issuer", "https://issuer.example/Path"),
+            List.of("service", "urn:test:Issuer ", "https://issuer.example/Path "),
+            List.of("service", "urn:test:issuer", "https://issuer.example/path")), jdbc.query("""
+                SELECT wallet_relying_party_service_id, entitlement, credential_issuer_url
+                FROM wallet_relying_party_service_credential_issuer_url
+                ORDER BY wallet_relying_party_service_id, BINARY entitlement
+                """, (row, index) -> List.of(row.getString(1), row.getString(2), row.getString(3))));
+        assertEquals(entitlementsBefore, jdbc.queryForList("SELECT id, relying_party_instance_id, entitlement FROM relying_party_entitlement ORDER BY id"));
+        assertEquals(0, jdbc.queryForObject("""
+            SELECT COUNT(*) FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'relying_party_entitlement'
+              AND COLUMN_NAME = 'credential_issuer_url'
+            """, Integer.class));
+        assertEquals(certificatesBefore, jdbc.queryForList("SELECT * FROM relying_party_certificates"));
+        assertEquals(instancesBefore, jdbc.queryForList("SELECT * FROM relying_party_instance ORDER BY id"));
+        assertThrows(DataIntegrityViolationException.class, () -> jdbc.update("""
+            INSERT INTO wallet_relying_party_service_credential_issuer_url
+                (id, wallet_relying_party_service_id, entitlement, credential_issuer_url)
+            VALUES ('duplicate', 'service', 'urn:test:Issuer', 'https://different.example')
+            """));
+    }
+
+    @Test
+    @DisplayName("Should keep service URLs without instances and remove URLs with the service")
+    void shouldKeepServiceUrlsWithoutInstancesAndRemoveUrlsWithService() {
+        var partyId = UUID.randomUUID();
+        var serviceId = UUID.randomUUID();
+        var instanceId = UUID.randomUUID();
+        jdbc.update("""
+            INSERT INTO wallet_relying_party
+                (id, trade_name, orgno, is_psb, policy, identifier, postal_address, email, phone, info_uri)
+            VALUES (?, 'Party', '123456785', TRUE, '[]', '[]', '[]', '[]', '[]', '[]')
+            """, partyId.toString());
+        jdbc.update("""
+            INSERT INTO wallet_relying_party_service
+                (id, service_trade_name, wallet_relying_party_id, created_ms, last_updated_ms)
+            VALUES (?, 'Service', ?, 1, 1)
+            """, serviceId.toString(), partyId.toString());
+        jdbc.update("""
+            INSERT INTO relying_party_instance
+                (id, wallet_relying_party_service_id, created_ms, last_updated_ms)
+            VALUES (?, ?, 1, 1)
+            """, instanceId.toString(), serviceId.toString());
+        var factory = new LocalContainerEntityManagerFactoryBean();
+        factory.setDataSource(flyway.getConfiguration().getDataSource());
+        factory.setPackagesToScan("no.eudiw.rp.register.domain");
+        factory.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
+        factory.afterPropertiesSet();
+        try (var entityManager = factory.getObject().createEntityManager()) {
+            entityManager.getTransaction().begin();
+            var service = entityManager.find(WalletRelyingPartyService.class, serviceId);
+            service.setCredentialIssuerUrls(List.of(
+                new ServiceCredentialIssuerUrl("urn:test:Issuer", "https://issuer.example/Path"),
+                new ServiceCredentialIssuerUrl("urn:test:issuer", "https://issuer.example/path"),
+                new ServiceCredentialIssuerUrl("urn:test:no-url", null)));
+            var instance = service.getRelyingPartyInstances().getFirst();
+            instance.setRelyingPartyEntitlements(List.of(new RelyingPartyEntitlement("urn:test:Issuer")));
+            entityManager.getTransaction().commit();
+            entityManager.clear();
+
+            entityManager.getTransaction().begin();
+            service = entityManager.find(WalletRelyingPartyService.class, serviceId);
+            assertEquals(3, service.getCredentialIssuerUrls().size());
+            assertNull(service.getCredentialIssuerUrls().stream()
+                .filter(config -> config.getEntitlement().equals("urn:test:no-url"))
+                .findFirst().orElseThrow().getCredentialIssuerUrl());
+            var url = service.getCredentialIssuerUrls().stream()
+                .filter(config -> config.getEntitlement().equals("urn:test:Issuer")).findFirst().orElseThrow();
+            assertEquals("https://issuer.example/Path", url.getCredentialIssuerUrl());
+            assertEquals(serviceId, url.getWalletRelyingPartyService().getId());
+
+            service.setRelyingPartyInstances(List.of());
+            entityManager.getTransaction().commit();
+            entityManager.clear();
+
+            service = entityManager.find(WalletRelyingPartyService.class, serviceId);
+            assertEquals(3, service.getCredentialIssuerUrls().size());
+        } finally {
+            factory.destroy();
+        }
+        jdbc.update("DELETE FROM wallet_relying_party_service WHERE id = ?", serviceId.toString());
+        assertEquals(0, jdbc.queryForObject(
+            "SELECT COUNT(*) FROM wallet_relying_party_service_credential_issuer_url", Integer.class));
+    }
+
+    private void prepareCredentialIssuerUrlHistory() {
+        flyway.clean();
+        Flyway.configure().configuration(flyway.getConfiguration()).target("33").load().migrate();
+        jdbc.update("""
+            INSERT INTO wallet_relying_party
+                (id, trade_name, orgno, is_psb, policy, identifier, postal_address, email, phone, info_uri)
+            VALUES ('party', 'Party', '123456785', TRUE, '[]', '[]', '[]', '[]', '[]', '[]')
+            """);
+        insertService("service", null);
+        insertService("other-service", null);
+        jdbc.update("""
+            INSERT INTO relying_party_instance
+                (id, wallet_relying_party_service_id, created_ms, last_updated_ms, active)
+            VALUES ('instance-1', 'service', 1, 1, TRUE), ('instance-2', 'service', 1, 1, FALSE),
+                   ('instance-3', 'service', 1, 1, TRUE), ('instance-4', 'service', 1, 1, TRUE),
+                   ('instance-5', 'service', 1, 1, TRUE), ('other-instance', 'other-service', 1, 1, TRUE)
+            """);
     }
 
     private void insertService(String id, String srvDescription) {

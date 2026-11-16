@@ -156,7 +156,31 @@ public class V2RegisterClient {
     public record InstanceEaasRequest(List<RelyingPartyEaaResource> relyingPartyEaas) {
     }
 
-    public record RoleRequest(String entitlement, String credentialIssuerUrl) {
+    public record RoleRequest(String entitlement) {
+    }
+
+    public List<ServiceCredentialIssuerUrl> getServiceCredentialIssuerUrls(UUID serviceId) {
+        List<ServiceCredentialIssuerUrl> credentialIssuerUrls = restClient.get()
+            .uri("/services/{id}/credential-issuer-urls", serviceId)
+            .retrieve()
+            .body(new ParameterizedTypeReference<>() {});
+
+        if (credentialIssuerUrls == null) {
+            throw new UnrecognizedErrorResponseException("The service URL response body is empty");
+        }
+
+        return credentialIssuerUrls;
+    }
+
+    public void updateServiceCredentialIssuerUrls(UUID serviceId, List<ServiceCredentialIssuerUrl> credentialIssuerUrls) {
+        restClient.patch()
+            .uri("/services/{id}/credential-issuer-urls", serviceId)
+            .body(credentialIssuerUrls)
+            .retrieve()
+            .toBodilessEntity();
+    }
+
+    public record ServiceCredentialIssuerUrl(String entitlement, String credentialIssuerUrl) {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

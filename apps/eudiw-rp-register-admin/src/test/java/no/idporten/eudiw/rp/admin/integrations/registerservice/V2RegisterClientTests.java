@@ -61,18 +61,44 @@ class V2RegisterClientTests {
     private static final String REGISTRATION_URL = "https://register.test/v2/registrations/" + RELYING_PARTY_INSTANCE_ID;
 
     @Test
-    @DisplayName("Should change instance roles and issuer URLs without sending EAA values")
-    void shouldChangeInstanceRolesAndIssuerUrlsWithoutSendingEaaValues() {
+    @DisplayName("Should change instance roles without URLs or EAA values")
+    void shouldChangeInstanceRolesWithoutUrlsOrEaaValues() {
         server.expect(requestTo("https://register.test/v2/instances/" + RELYING_PARTY_INSTANCE_ID + "/entitlements"))
             .andExpect(method(HttpMethod.PATCH))
             .andExpect(header("X-API-KEY", "test-api-key"))
             .andExpect(content().json("""
-                {"relyingPartyEntitlements":[{"entitlement":"urn:issuer","credentialIssuerUrl":"https://issuer.test"}]}
+                {"relyingPartyEntitlements":[{"entitlement":"urn:issuer"}]}
                 """, JsonCompareMode.STRICT))
             .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
 
         client.updateInstanceRoles(RELYING_PARTY_INSTANCE_ID, new V2RegisterClient.InstanceRolesRequest(
-            List.of(new V2RegisterClient.RoleRequest("urn:issuer", "https://issuer.test"))));
+            List.of(new V2RegisterClient.RoleRequest("urn:issuer"))));
+    }
+
+    @Test
+    @DisplayName("Should get service URLs for all stored roles")
+    void shouldGetServiceUrlsForAllStoredRoles() {
+        server.expect(requestTo("https://register.test/v2/services/" + RELYING_PARTY_INSTANCE_ID + "/credential-issuer-urls"))
+            .andExpect(method(HttpMethod.GET))
+            .andExpect(header("X-API-KEY", "test-api-key"))
+            .andRespond(withSuccess("""
+                [{"entitlement":"urn:issuer","credentialIssuerUrl":null},
+                 {"entitlement":" urn:Retained/Role ","credentialIssuerUrl":"https://issuer.test/Case+Path"}]
+                """, MediaType.APPLICATION_JSON));
+
+        assertEquals(List.of(new V2RegisterClient.ServiceCredentialIssuerUrl("urn:issuer", null),
+            new V2RegisterClient.ServiceCredentialIssuerUrl(" urn:Retained/Role ", "https://issuer.test/Case+Path")),
+            client.getServiceCredentialIssuerUrls(RELYING_PARTY_INSTANCE_ID));
+    }
+
+    @Test
+    @DisplayName("Should reject a service URL result with no response body")
+    void shouldRejectServiceUrlResultWithNoResponseBody() {
+        server.expect(requestTo("https://register.test/v2/services/" + RELYING_PARTY_INSTANCE_ID + "/credential-issuer-urls"))
+            .andRespond(withSuccess());
+
+        assertThrows(UnrecognizedErrorResponseException.class,
+            () -> client.getServiceCredentialIssuerUrls(RELYING_PARTY_INSTANCE_ID));
     }
 
     @Test

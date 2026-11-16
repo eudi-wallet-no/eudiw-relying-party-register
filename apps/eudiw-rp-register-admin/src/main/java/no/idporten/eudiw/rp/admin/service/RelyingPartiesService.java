@@ -68,6 +68,21 @@ public class RelyingPartiesService {
         v2RegisterClient.updateInstanceRoles(instanceId, request);
     }
 
+    public List<V2RegisterClient.ServiceCredentialIssuerUrl> getServiceCredentialIssuerUrls(UUID serviceId) {
+        return v2RegisterClient.getServiceCredentialIssuerUrls(serviceId);
+    }
+
+    public void updateServiceCredentialIssuerUrls(UUID serviceId,
+                                                  List<V2RegisterClient.ServiceCredentialIssuerUrl> credentialIssuerUrls) {
+        v2RegisterClient.updateServiceCredentialIssuerUrls(serviceId, credentialIssuerUrls);
+    }
+
+    public Map<String, String> getEntitlementDisplayNames() {
+        return v2RegisterClient.getEntitlements(true).stream()
+            .filter(entitlement -> entitlement.displayName() != null)
+            .collect(Collectors.toMap(V2RegisterClient.Entitlement::entitlement, V2RegisterClient.Entitlement::displayName));
+    }
+
     public void updateInstanceEaas(UUID instanceId, V2RegisterClient.InstanceEaasRequest request) {
         v2RegisterClient.updateInstanceEaas(instanceId, request);
     }

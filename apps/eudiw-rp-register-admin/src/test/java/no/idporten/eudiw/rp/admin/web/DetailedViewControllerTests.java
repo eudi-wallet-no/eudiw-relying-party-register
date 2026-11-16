@@ -166,7 +166,7 @@ public class DetailedViewControllerTests {
                 () -> assertTrue(response.contains("Verify identity")),
                 () -> assertTrue(response.contains("<td>1 aktive</td>")),
                 () -> assertTrue(response.matches("(?s).*Generelt</h2>.*Brukarstad</h2>.*Teneste</h2>"
-                    + ".*Roller og bevistypar</h2>.*Føremål</h2>.*")),
+                    + ".*Roller og bevistypar for instansen</h2>.*Føremål</h2>.*")),
                 () -> assertTrue(response.contains("dc+sd-jwt")),
                 () -> assertTrue(response.contains("Aktiv")),
                 () -> assertTrue(response.contains("Revokert")));

@@ -86,9 +86,7 @@ public class RelyingPartyInstance extends BaseEntity {
     private void addOrUpdateRelyingPartyEntitlement(RelyingPartyEntitlement newEntitlement) {
         Optional<RelyingPartyEntitlement> existingEntitlement =
             this.getRelyingPartyEntitlement(newEntitlement.getEntitlement());
-        if (existingEntitlement.isPresent()) {
-            existingEntitlement.get().setCredentialIssuerUrl(newEntitlement.getCredentialIssuerUrl());
-        } else {
+        if (existingEntitlement.isEmpty()) {
             this.relyingPartyEntitlements.add(newEntitlement);
             newEntitlement.setRelyingPartyInstance(this);
         }

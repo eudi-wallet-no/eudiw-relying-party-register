@@ -1,13 +1,12 @@
 package no.idporten.eudiw.rp.admin.web.controllers;
 
 import jakarta.validation.Valid;
-import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.service.exception.BadRequestException;
 import no.idporten.eudiw.rp.admin.web.form.InstanceRoleOption;
 import no.idporten.eudiw.rp.admin.web.form.InstanceRolesForm;
-import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEntitlementFormField;
+import no.idporten.eudiw.rp.admin.web.form.InstanceRoleFormField;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyEntitlementResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificateResource;
@@ -15,7 +14,6 @@ import no.idporten.eudiw.rp.admin.web.security.UserAuthorityService;
 import no.idporten.eudiw.rp.admin.web.security.exception.InsufficientAuthorityException;
 import no.idporten.logging.audit.Audit;
 import no.idporten.logging.audit.AuditIgnore;
-import org.springframework.beans.propertyeditors.StringTrimmerEditor;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
@@ -44,12 +42,10 @@ public class RelyingPartyRolesController {
 
     private final RelyingPartiesService relyingPartiesService;
     private final UserAuthorityService userAuthorityService;
-    private final Validator validator;
 
     @InitBinder(FORM_ATTR)
     public void initBinder(WebDataBinder binder) {
-        binder.registerCustomEditor(String.class, new StringTrimmerEditor(true));
-        binder.setAllowedFields("entitlements[*].entitlement", "entitlements[*].credentialIssuerUrl");
+        binder.setAllowedFields("entitlements[*].entitlement");
     }
 
     @GetMapping("/roles/edit/{id}")
@@ -57,6 +53,7 @@ public class RelyingPartyRolesController {
                              @RequestParam(defaultValue = "/search") String returnUrl) {
         var registration = getAuthorizedRegistration(id);
         var options = roleOptions(registration);
+
         return formView(registration, options, returnUrl)
             .addObject(FORM_ATTR, InstanceRolesForm.from(registration, options));
     }
@@ -69,20 +66,22 @@ public class RelyingPartyRolesController {
                                @RequestParam(defaultValue = "/search") String returnUrl) {
         var registration = getAuthorizedRegistration(id);
         var options = roleOptions(registration);
+
         assertPostedRolesAllowed(registration, options, form);
         form.addMissingRoleRows(options);
-        validateSelectedEntitlements(form, bindingResult);
         validateAdministratorSelectedRole(form, bindingResult);
 
         if (!bindingResult.hasErrors()) {
             try {
                 relyingPartiesService.updateInstanceRoles(registration.id(), form.toRequest());
+
                 return new ModelAndView("redirect:" + DetailedViewController.detailsUrl(registration.id(), returnUrl));
             } catch (BadRequestException e) {
                 bindingResult.reject("rejected",
-                    "Endringa kunne ikkje lagrast. Sjekk at rollene er gyldige, og at roller med utstedarsertifikat ikkje er fjerna eller fått ny URL.");
+                    "Endringen kunne ikke lagres. Kontroller rollene. Roller med utstedersertifikat kan ikke fjernes.");
             }
         }
+
         return formView(registration, options, returnUrl);
     }
 
@@ -115,32 +114,22 @@ public class RelyingPartyRolesController {
     private void assertPostedRolesAllowed(RelyingPartyResource registration, List<InstanceRoleOption> options,
                                           InstanceRolesForm form) {
         Set<String> selected = form.selectedEntitlements().stream()
-            .map(RelyingPartyEntitlementFormField::getEntitlement)
+            .map(InstanceRoleFormField::getEntitlement)
             .collect(Collectors.toSet());
         Set<String> allowed = options.stream().map(InstanceRoleOption::entitlement).collect(Collectors.toSet());
+
         if (!allowed.containsAll(selected)) {
             throw new InsufficientAuthorityException("Posted roles are not among the allowed roles");
         }
+
         if (!userAuthorityService.userHasAdminAuthority()) {
             Set<String> existing = registration.relyingPartyEntitlements().stream()
                 .map(RelyingPartyEntitlementResource::entitlement)
                 .collect(Collectors.toSet());
+
             if (!existing.equals(selected)) {
                 throw new InsufficientAuthorityException("Only administrators can change the role set");
             }
-        }
-    }
-
-    private void validateSelectedEntitlements(InstanceRolesForm form, BindingResult bindingResult) {
-        var selected = form.selectedEntitlements();
-        for (int i = 0; i < form.getEntitlements().size(); i++) {
-            var role = form.getEntitlements().get(i);
-            if (!selected.contains(role)) {
-                continue;
-            }
-            String fieldPrefix = "entitlements[" + i + "].";
-            validator.validate(role).forEach(violation -> bindingResult.rejectValue(
-                fieldPrefix + violation.getPropertyPath(), "invalid", violation.getMessage()));
         }
     }
 

@@ -1,6 +1,7 @@
 package no.eudiw.rp.register.service;
 
 import lombok.RequiredArgsConstructor;
+import no.eudiw.rp.register.domain.ServiceCredentialIssuerUrl;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEaa;
@@ -40,6 +41,16 @@ public class RelyingPartyService {
         List<RelyingPartyEntitlement> entitlements,
         List<RelyingPartyEaa> eaas
     ) {
+        return createRelyingParty(orgno, serviceTradeName, entitlements, eaas, List.of());
+    }
+
+    public RelyingPartyInstance createRelyingParty(
+        String orgno,
+        String serviceTradeName,
+        List<RelyingPartyEntitlement> entitlements,
+        List<RelyingPartyEaa> eaas,
+        List<ServiceCredentialIssuerUrl> credentialIssuerUrls
+    ) {
         if (entitlements == null || eaas == null) {
             throw new BadRequestException("Entitlements and EAAs should be empty if none exists");
         }
@@ -58,6 +69,7 @@ public class RelyingPartyService {
         WalletRelyingPartyService walletService =
             new WalletRelyingPartyService(serviceTradeName, walletRelyingParty, List.of(relyingPartyInstance));
 
+        walletService.setCredentialIssuerUrls(credentialIssuerUrls);
         walletRelyingParty.getServices().add(walletService);
         walletRelyingPartyServiceRepository.save(walletService);
 
@@ -94,6 +106,17 @@ public class RelyingPartyService {
         List<RelyingPartyEntitlement> entitlements,
         List<RelyingPartyEaa> eaas
     ) {
+        return updateRelyingParty(id, serviceTradeName, active, entitlements, eaas, List.of());
+    }
+
+    public RelyingPartyInstance updateRelyingParty(
+        UUID id,
+        String serviceTradeName,
+        boolean active,
+        List<RelyingPartyEntitlement> entitlements,
+        List<RelyingPartyEaa> eaas,
+        List<ServiceCredentialIssuerUrl> submittedCredentialIssuerUrls
+    ) {
         if (id == null) {
             throw new BadRequestException("ID should not be null");
         }
@@ -114,6 +137,9 @@ public class RelyingPartyService {
         }
 
         WalletRelyingPartyService walletService = relyingPartyInstance.getWalletRelyingPartyService();
+        submittedCredentialIssuerUrls.forEach(url -> validateCredentialIssuerUrl(
+            walletService, url.getEntitlement(), url.getCredentialIssuerUrl()));
+
         if (!Objects.equals(walletService.getServiceTradeName(), serviceTradeName)) {
             walletService.setServiceTradeName(serviceTradeName);
             for (RelyingPartyInstance serviceInstance : walletService.getRelyingPartyInstances()) {
@@ -229,10 +255,17 @@ public class RelyingPartyService {
 
         List<RelyingPartyEntitlement> changedEntitlements = requestedEntitlements.stream()
             .filter(requested -> existingEntitlements.stream().noneMatch(existing ->
-                Objects.equals(existing.getEntitlement(), requested.getEntitlement())
-                    && Objects.equals(existing.getCredentialIssuerUrl(), requested.getCredentialIssuerUrl())))
+                Objects.equals(existing.getEntitlement(), requested.getEntitlement())))
             .toList();
         entitlementCheck(changedEntitlements);
+    }
+
+    public void validateCredentialIssuerUrl(
+        WalletRelyingPartyService service, String entitlement, String credentialIssuerUrl
+    ) {
+        if (!Objects.equals(service.getCredentialIssuerUrl(entitlement), credentialIssuerUrl)) {
+            throw new BadRequestException("Use the service API to change a credential issuer URL");
+        }
     }
 
     private void entitlementCheck(List<RelyingPartyEntitlement> entitlements) {

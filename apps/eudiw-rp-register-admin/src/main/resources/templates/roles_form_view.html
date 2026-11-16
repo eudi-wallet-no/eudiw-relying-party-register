@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="nn">
 <head>
     <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
-    <title>Endre roller og utstedar-URL</title>
+    <title>Endre roller for instansen</title>
 </head>
 <body>
 <header th:replace="~{fragments/general :: page_header_fragment}"></header>
@@ -10,15 +10,15 @@
     <p class="ds-paragraph">
         <a th:href="${detailsUrl}" class="ds-button" data-variant="secondary">Tilbake til registreringa</a>
     </p>
-    <h1 class="ds-heading break-word" data-size="xl">Endre roller og utstedar-URL</h1>
+    <h1 class="ds-heading break-word" data-size="xl">Endre roller for instansen</h1>
     <form th:action="@{|/roles/edit/${registration.id}|}" th:object="${editFormAttr}" method="post"
           class="form-container roles-edit-form" novalidate>
         <input type="hidden" name="returnUrl" th:value="${returnUrl}">
         <section class="ds-card registration-card">
             <div class="ds-card__block">
-                <div th:replace="~{fragments/registration_fragments :: card_heading('Roller og utstedar-URL', null)}"></div>
+                <div th:replace="~{fragments/registration_fragments :: card_heading('Roller', null)}"></div>
                 <p class="ds-paragraph">
-                    Rediger rollar og utstedar-URL for registreringa.
+                    Endringane gjeld berre denne instansen.
                 </p>
                 <div th:if="${#fields.hasErrors()}" class="ds-alert" data-color="danger"
                      role="alert" tabindex="-1" autofocus aria-labelledby="roles-errors-heading">
@@ -33,25 +33,21 @@
                     </ul>
                 </div>
 
-                <h3 class="ds-heading" data-size="xs">Roller</h3>
                 <p class="ds-paragraph" sec:authorize="!hasRole('ADMIN')">
-                    Berre administrator kan leggje til eller fjerne roller. Du kan endre utstedar-URL.
+                    Bare administratoren kan legge til eller fjerne roller.
                 </p>
-                <div class="table-wrap table-wrap--roles" role="region" aria-label="Roller og utstedar-URL" tabindex="0">
+                <div class="table-wrap table-wrap--roles" role="region" aria-label="Roller" tabindex="0">
                     <table class="ds-table">
-                        <caption class="ds-sr-only">Roller og utstedar-URL</caption>
+                        <caption class="ds-sr-only">Roller</caption>
                         <thead>
                         <tr>
                             <th scope="col" sec:authorize="hasRole('ADMIN')">Valt</th>
                             <th scope="col">Rolle</th>
-                            <th scope="col">Utstedar-URL</th>
                         </tr>
                         </thead>
                         <tbody>
                         <tr th:each="option, iter : ${roleOptions}"
-                            th:with="selected=${editFormAttr.entitlements[iter.index].entitlement != null},
-                                     issuer=${T(no.idporten.eudiw.rp.admin.entitlements.Entitlements).isIssuerEntitlement(option.entitlement)},
-                                     urlField=|entitlements[${iter.index}].credentialIssuerUrl|">
+                            th:with="selected=${editFormAttr.entitlements[iter.index].entitlement != null}">
                             <td data-label="Valt" sec:authorize="hasRole('ADMIN')">
                                 <input type="checkbox" class="ds-input"
                                        th:id="|role-${iter.index}|"
@@ -75,21 +71,6 @@
                                 <span sec:authorize="!hasRole('ADMIN')" th:text="${option.displayName}"></span>
                                 <p class="ds-paragraph" data-size="sm" th:if="${option.locked}"
                                    th:id="|role-${iter.index}-lock|">Rollen er koblet til utstedarsertifikat</p>
-                            </td>
-                            <td data-label="Utstedar-URL">
-                                <th:block th:if="${issuer}">
-                                    <label th:for="${urlField}" class="ds-sr-only"
-                                           th:text="|Utstedar-URL for ${option.displayName}|"></label>
-                                    <input type="url" class="ds-input"
-                                           th:id="${urlField}"
-                                           th:name="${urlField}"
-                                           th:value="${editFormAttr.entitlements[iter.index].credentialIssuerUrl}"
-                                           th:attr="aria-invalid=${#fields.hasErrors(urlField)},aria-describedby=|${urlField}-error|">
-                                    <ul class="ds-list" th:id="|${urlField}-error|" th:if="${#fields.hasErrors(urlField)}">
-                                        <li th:each="error : ${#fields.errors(urlField)}" th:text="${error}"
-                                            class="ds-validation-message"></li>
-                                    </ul>
-                                </th:block>
                             </td>
                         </tr>
                         </tbody>

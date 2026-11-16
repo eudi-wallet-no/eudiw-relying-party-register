@@ -87,6 +87,14 @@ public class WalletRelyingPartyService extends BaseEntity {
         orphanRemoval = true)
     private List<RelyingPartyInstance> relyingPartyInstances = new ArrayList<>();
 
+    @Setter(AccessLevel.NONE)
+    @OneToMany(
+        mappedBy = "walletRelyingPartyService",
+        fetch = FetchType.LAZY,
+        cascade = CascadeType.ALL,
+        orphanRemoval = true)
+    private List<ServiceCredentialIssuerUrl> credentialIssuerUrls = new ArrayList<>();
+
     @Column(name = "created_ms", nullable = false)
     @Setter(AccessLevel.NONE)
     private long createdMs;
@@ -174,6 +182,36 @@ public class WalletRelyingPartyService extends BaseEntity {
         this.relyingPartyInstances.clear();
         relyingPartyInstancesCopy.forEach(instance -> instance.setWalletRelyingPartyService(this));
         this.relyingPartyInstances.addAll(relyingPartyInstancesCopy);
+    }
+
+    public String getCredentialIssuerUrl(String entitlement) {
+        return credentialIssuerUrls.stream()
+            .filter(url -> url.getEntitlement().equals(entitlement))
+            .findFirst()
+            .map(ServiceCredentialIssuerUrl::getCredentialIssuerUrl)
+            .orElse(null);
+    }
+
+    public void setCredentialIssuerUrl(String entitlement, String credentialIssuerUrl) {
+        ServiceCredentialIssuerUrl configuration = credentialIssuerUrls.stream()
+            .filter(url -> url.getEntitlement().equals(entitlement))
+            .findFirst().orElse(null);
+
+        if (configuration == null) {
+            configuration = new ServiceCredentialIssuerUrl(entitlement, credentialIssuerUrl);
+            configuration.setWalletRelyingPartyService(this);
+            credentialIssuerUrls.add(configuration);
+        } else {
+            configuration.setCredentialIssuerUrl(credentialIssuerUrl);
+        }
+    }
+
+    public void setCredentialIssuerUrls(List<ServiceCredentialIssuerUrl> credentialIssuerUrls) {
+        List<ServiceCredentialIssuerUrl> credentialIssuerUrlsCopy =
+            credentialIssuerUrls == null ? List.of() : new ArrayList<>(credentialIssuerUrls);
+        this.credentialIssuerUrls.clear();
+        credentialIssuerUrlsCopy.forEach(url -> url.setWalletRelyingPartyService(this));
+        this.credentialIssuerUrls.addAll(credentialIssuerUrlsCopy);
     }
 
     @Transient

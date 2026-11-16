@@ -4,9 +4,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import no.eudiw.rp.register.api.v2.V2ApiService;
+import no.eudiw.rp.register.api.v2.resource.RelyingPartyEntitlementResource;
 import no.eudiw.rp.register.api.v2.endpoints.entities.AccessCertificateRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.CertificateResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.CertificatesResponse;
@@ -154,6 +156,25 @@ public class V2ResourcesEndpoint {
         @PathVariable("id") UUID relyingPartyServiceId
     ) {
         return v2ApiService.getRelyingPartyService(relyingPartyServiceId);
+    }
+
+    @Operation(summary = "Get credential issuer URLs for a service.")
+    @GetMapping(path = "/services/{id}/credential-issuer-urls", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<RelyingPartyEntitlementResource> getCredentialIssuerUrls(
+        @PathVariable("id") UUID serviceId
+    ) {
+        return v2ApiService.getCredentialIssuerUrls(serviceId);
+    }
+
+    @Operation(summary = "Update credential issuer URLs for a service.")
+    @Audit(auditId = AUDIT_SERVICE_UPDATED)
+    @PatchMapping(path = "/services/{id}/credential-issuer-urls", consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<RelyingPartyEntitlementResource> patchCredentialIssuerUrls(
+        @PathVariable("id") UUID serviceId,
+        @Valid @RequestBody List<@NotNull @Valid RelyingPartyEntitlementResource> request
+    ) {
+        return v2ApiService.patchCredentialIssuerUrls(serviceId, request);
     }
 
     @Operation(summary = "List services")

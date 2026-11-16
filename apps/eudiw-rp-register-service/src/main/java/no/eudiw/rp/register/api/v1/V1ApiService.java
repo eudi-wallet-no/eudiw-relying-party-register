@@ -11,6 +11,7 @@ import no.eudiw.rp.register.api.v1.resource.relyingparty.CreateRelyingPartyResou
 import no.eudiw.rp.register.api.v1.resource.relyingparty.EditRelyingPartyResource;
 import no.eudiw.rp.register.api.v1.resource.relyingparty.RelyingPartyResource;
 import no.eudiw.rp.register.api.v1.resource.relyingparty.SearchRelyingPartyResource;
+import no.eudiw.rp.register.domain.ServiceCredentialIssuerUrl;
 import no.eudiw.rp.register.domain.Entitlement;
 import no.eudiw.rp.register.domain.certificates.AccessCertificate;
 import no.eudiw.rp.register.domain.certificates.IssuerCertificate;
@@ -49,7 +50,12 @@ public class V1ApiService {
             v1ContractMapper.toDomainRelyingPartyEntitlements(request.relyingPartyEntitlements());
         List<RelyingPartyEaa> eaas = v1ContractMapper.toDomainRelyingPartyEaas(request.relyingPartyEaas());
         RelyingPartyInstance createdInstance = relyingPartyService.createRelyingParty(
-            orgno, serviceTradeName, entitlements, eaas);
+            orgno, serviceTradeName, entitlements, eaas,
+            request.relyingPartyEntitlements() == null ? List.of() : request.relyingPartyEntitlements().stream()
+                .filter(item -> item.credentialIssuerUrl() != null)
+                .map(item -> new ServiceCredentialIssuerUrl(
+                    item.entitlement(), item.credentialIssuerUrl()))
+                .toList());
         return v1ContractMapper.toV1RelyingPartyResponse(createdInstance);
     }
 
@@ -64,7 +70,12 @@ public class V1ApiService {
             serviceTradeName,
             request.active(),
             entitlements,
-            eaas
+            eaas,
+            request.relyingPartyEntitlements() == null ? List.of() : request.relyingPartyEntitlements().stream()
+                .filter(item -> item.credentialIssuerUrlPresent())
+                .map(item -> new ServiceCredentialIssuerUrl(
+                    item.entitlement(), item.credentialIssuerUrl()))
+                .toList()
         );
         return v1ContractMapper.toV1RelyingPartyResponse(updatedInstance);
     }
