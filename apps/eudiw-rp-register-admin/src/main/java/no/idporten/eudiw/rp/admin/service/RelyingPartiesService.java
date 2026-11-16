@@ -68,6 +68,10 @@ public class RelyingPartiesService {
         v2RegisterClient.updateInstanceRoles(instanceId, request);
     }
 
+    public void updateInstanceEaas(UUID instanceId, V2RegisterClient.InstanceEaasRequest request) {
+        v2RegisterClient.updateInstanceEaas(instanceId, request);
+    }
+
     public V2RegisterClient.RelyingParty getRelyingPartyInformation(UUID relyingPartyId) {
         return v2RegisterClient.getRelyingPartyInformation(relyingPartyId);
     }

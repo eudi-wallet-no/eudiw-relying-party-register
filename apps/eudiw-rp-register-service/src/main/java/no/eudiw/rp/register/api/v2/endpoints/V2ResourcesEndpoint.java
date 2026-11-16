@@ -19,6 +19,8 @@ import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInformationReq
 import no.eudiw.rp.register.api.v2.endpoints.entities.IssuerCertificateRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationDetailsResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationSummaryResponse;
+import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyEaasRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyEntitlementsRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyRequest;
@@ -274,6 +276,34 @@ public class V2ResourcesEndpoint {
         @Valid @RequestBody RelyingPartyInstanceRequest request
     ) {
         return v2ApiService.updateRelyingPartyInstance(relyingPartyInstanceId, request);
+    }
+
+    @Operation(
+        summary = "Change instance EAA data",
+        description = "Changes the instance's EAA data."
+    )
+    @Audit(auditId = AUDIT_RELYING_PARTY_INSTANCE_UPDATED)
+    @PatchMapping(path = "/instances/{id}/eaas", consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    public RelyingPartyInstanceResponse updateRelyingPartyInstanceEaas(
+        @PathVariable("id") UUID relyingPartyInstanceId,
+        @Valid @RequestBody RelyingPartyEaasRequest request
+    ) {
+        return v2ApiService.updateRelyingPartyInstanceEaas(relyingPartyInstanceId, request);
+    }
+
+    @Operation(
+        summary = "Change instance roles",
+        description = "Changes the instance's roles and credential issuer URLs."
+    )
+    @Audit(auditId = AUDIT_RELYING_PARTY_INSTANCE_UPDATED)
+    @PatchMapping(path = "/instances/{id}/entitlements", consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    public RelyingPartyInstanceResponse updateRelyingPartyInstanceEntitlements(
+        @PathVariable("id") UUID relyingPartyInstanceId,
+        @Valid @RequestBody RelyingPartyEntitlementsRequest request
+    ) {
+        return v2ApiService.updateRelyingPartyInstanceEntitlements(relyingPartyInstanceId, request);
     }
 
     @Operation(summary = "List IntendedUse snapshots")

@@ -1,6 +1,5 @@
 package no.idporten.eudiw.rp.admin.web.form;
 
-import jakarta.validation.Valid;
 import lombok.Getter;
 import lombok.Setter;
 import no.idporten.eudiw.rp.admin.integrations.registerservice.V2RegisterClient;
@@ -17,9 +16,6 @@ public class InstanceRolesForm {
 
     private List<RelyingPartyEntitlementFormField> entitlements = new ArrayList<>();
 
-    @Valid
-    private List<RelyingPartyEaaFormField> eaas = new ArrayList<>();
-
     public static InstanceRolesForm from(RelyingPartyResource registration, List<InstanceRoleOption> options) {
         Map<String, String> issuerUrls = registration.relyingPartyEntitlements().stream()
             .filter(role -> role.credentialIssuerUrl() != null)
@@ -34,7 +30,6 @@ public class InstanceRolesForm {
             existing.contains(option.entitlement()) ? option.entitlement() : null,
             issuerUrls.get(option.entitlement()),
             option.displayName())));
-        registration.relyingPartyEaas().forEach(eaa -> form.eaas.add(RelyingPartyEaaFormField.fromResource(eaa)));
         return form;
     }
 
@@ -60,10 +55,6 @@ public class InstanceRolesForm {
         return new V2RegisterClient.InstanceRolesRequest(
             selectedEntitlements().stream()
                 .map(role -> new V2RegisterClient.RoleRequest(role.getEntitlement(), blankToNull(role.getCredentialIssuerUrl())))
-                .toList(),
-            eaas.stream()
-                .filter(eaa -> eaa != null && eaa.isSet() && !eaa.getNamespace().isBlank() && !eaa.getIntent().isBlank())
-                .map(RelyingPartyEaaFormField::toResource)
                 .toList());
     }
 

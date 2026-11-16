@@ -12,6 +12,8 @@ import no.eudiw.rp.register.api.v2.endpoints.entities.IntendedUseResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.IssuerCertificateRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationDetailsResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationSummaryResponse;
+import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyEaasRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyEntitlementsRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyRequest;
@@ -331,18 +333,36 @@ public class V2ApiService {
         UUID relyingPartyInstanceId,
         RelyingPartyInstanceRequest request
     ) {
-        walletRelyingPartyRepository.findByInstanceIdForUpdate(relyingPartyInstanceId)
-            .orElseThrow(() -> new NotFoundException("RelyingPartyInstance not found"));
-
-        RelyingPartyInstance relyingPartyInstance = findRelyingPartyInstance(relyingPartyInstanceId);
+        RelyingPartyInstance relyingPartyInstance = findRelyingPartyInstanceForUpdate(relyingPartyInstanceId);
         List<RelyingPartyEntitlement> requestedEntitlements = request.toDomainRelyingPartyEntitlements();
-        relyingPartyService.validateEntitlementsForUpdate(
-            relyingPartyInstance.getRelyingPartyEntitlements(), requestedEntitlements);
-        if (!relyingPartyInstance.keepsEntitlementsWithIssuerCertificates(requestedEntitlements)) {
-            throw new BadRequestException(
-                "An entitlement with issuer certificates cannot be removed");
-        }
+        validateInstanceEntitlements(relyingPartyInstance, requestedEntitlements);
         request.update(relyingPartyInstance, requestedEntitlements);
+
+        return RelyingPartyInstanceResponse.from(
+            relyingPartyInstanceRepository.saveAndFlush(relyingPartyInstance));
+    }
+
+    public RelyingPartyInstanceResponse updateRelyingPartyInstanceEaas(
+        UUID relyingPartyInstanceId,
+        RelyingPartyEaasRequest request
+    ) {
+        RelyingPartyInstance relyingPartyInstance = findRelyingPartyInstanceForUpdate(relyingPartyInstanceId);
+        relyingPartyInstance.setRelyingPartyEaas(request.toDomain());
+        relyingPartyInstance.setUpdated();
+
+        return RelyingPartyInstanceResponse.from(
+            relyingPartyInstanceRepository.saveAndFlush(relyingPartyInstance));
+    }
+
+    public RelyingPartyInstanceResponse updateRelyingPartyInstanceEntitlements(
+        UUID relyingPartyInstanceId,
+        RelyingPartyEntitlementsRequest request
+    ) {
+        RelyingPartyInstance relyingPartyInstance = findRelyingPartyInstanceForUpdate(relyingPartyInstanceId);
+        List<RelyingPartyEntitlement> requestedEntitlements = request.toDomain();
+        validateInstanceEntitlements(relyingPartyInstance, requestedEntitlements);
+        relyingPartyInstance.setRelyingPartyEntitlements(requestedEntitlements);
+        relyingPartyInstance.setUpdated();
 
         return RelyingPartyInstanceResponse.from(
             relyingPartyInstanceRepository.saveAndFlush(relyingPartyInstance));
@@ -470,6 +490,25 @@ public class V2ApiService {
 
     public void revokeIssuerCertificate(UUID relyingPartyInstanceId, UUID certificateId) {
         certificateService.revokeIssuerCertificate(certificateId, relyingPartyInstanceId);
+    }
+
+    private RelyingPartyInstance findRelyingPartyInstanceForUpdate(UUID relyingPartyInstanceId) {
+        walletRelyingPartyRepository.findByInstanceIdForUpdate(relyingPartyInstanceId)
+            .orElseThrow(() -> new NotFoundException("RelyingPartyInstance not found"));
+
+        return findRelyingPartyInstance(relyingPartyInstanceId);
+    }
+
+    private void validateInstanceEntitlements(
+        RelyingPartyInstance relyingPartyInstance,
+        List<RelyingPartyEntitlement> requestedEntitlements
+    ) {
+        relyingPartyService.validateEntitlementsForUpdate(
+            relyingPartyInstance.getRelyingPartyEntitlements(), requestedEntitlements);
+
+        if (!relyingPartyInstance.keepsEntitlementsWithIssuerCertificates(requestedEntitlements)) {
+            throw new BadRequestException("An entitlement with issuer certificates cannot be removed");
+        }
     }
 
     private WalletRelyingParty findRelyingParty(UUID relyingPartyId) {

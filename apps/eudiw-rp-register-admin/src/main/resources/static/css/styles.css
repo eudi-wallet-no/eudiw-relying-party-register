@@ -51,9 +51,11 @@ html {
 .registration-section-bar .ds-heading { margin: 0; }
 .relying-party-card-bar .ds-button,
 .registration-section-bar .ds-button { flex-shrink: 0; }
-.registration-section-bar--end { justify-content: flex-end; }
-.registration-subheading { margin-block: var(--ds-size-8) var(--ds-size-3); }
-.registration-section-bar + .registration-subheading { margin-block-start: var(--ds-size-4); }
+.registration-data-section + .registration-data-section {
+    margin-block-start: var(--ds-size-8);
+    padding-block-start: var(--ds-size-6);
+    border-block-start: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
+}
 .relying-party-information-table--editing th,
 .relying-party-information-table--editing td { padding-block: var(--ds-size-4); }
 .relying-party-information-table--editing tr:has(.relying-party-field-status--readonly) > :is(th, td) { background-color: var(--ds-color-neutral-surface-tinted); }

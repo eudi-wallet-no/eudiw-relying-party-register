@@ -115,8 +115,8 @@ public class V2RegisterClient {
     }
 
     public void updateInstanceRoles(UUID instanceId, InstanceRolesRequest request) {
-        restClient.put()
-            .uri("/instances/{id}", instanceId)
+        restClient.patch()
+            .uri("/instances/{id}/entitlements", instanceId)
             .body(request)
             .retrieve()
             .toBodilessEntity();
@@ -150,8 +150,10 @@ public class V2RegisterClient {
                                      @JsonProperty("supportURI") String supportUri, String email, String phone) {
     }
 
-    public record InstanceRolesRequest(List<RoleRequest> relyingPartyEntitlements,
-                                       List<RelyingPartyEaaResource> relyingPartyEaas) {
+    public record InstanceRolesRequest(List<RoleRequest> relyingPartyEntitlements) {
+    }
+
+    public record InstanceEaasRequest(List<RelyingPartyEaaResource> relyingPartyEaas) {
     }
 
     public record RoleRequest(String entitlement, String credentialIssuerUrl) {
@@ -167,6 +169,14 @@ public class V2RegisterClient {
     public record RelyingPartyInformation(String tradeName, String country, List<String> postalAddress,
                                         List<String> email, List<String> phone,
                                         @JsonProperty("infoURI") List<String> informationUri) {
+    }
+
+    public void updateInstanceEaas(UUID instanceId, InstanceEaasRequest request) {
+        restClient.patch()
+            .uri("/instances/{id}/eaas", instanceId)
+            .body(request)
+            .retrieve()
+            .toBodilessEntity();
     }
 
     public List<Entitlement> getEntitlements(boolean includeInactive) {

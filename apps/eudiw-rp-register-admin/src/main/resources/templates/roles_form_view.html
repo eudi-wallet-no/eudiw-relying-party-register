@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="nn">
 <head>
     <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
-    <title>Endre roller og bevistypar</title>
+    <title>Endre roller og utstedar-URL</title>
 </head>
 <body>
 <header th:replace="~{fragments/general :: page_header_fragment}"></header>
@@ -10,15 +10,15 @@
     <p class="ds-paragraph">
         <a th:href="${detailsUrl}" class="ds-button" data-variant="secondary">Tilbake til registreringa</a>
     </p>
-    <h1 class="ds-heading break-word" data-size="xl">Endre roller og bevistypar</h1>
+    <h1 class="ds-heading break-word" data-size="xl">Endre roller og utstedar-URL</h1>
     <form th:action="@{|/roles/edit/${registration.id}|}" th:object="${editFormAttr}" method="post"
           class="form-container roles-edit-form" novalidate>
         <input type="hidden" name="returnUrl" th:value="${returnUrl}">
         <section class="ds-card registration-card">
             <div class="ds-card__block">
-                <div th:replace="~{fragments/registration_fragments :: card_heading('Roller og bevistypar', null)}"></div>
+                <div th:replace="~{fragments/registration_fragments :: card_heading('Roller og utstedar-URL', null)}"></div>
                 <p class="ds-paragraph">
-                    Rediger rollar, utstedar-URL og bevistypar for registreringa.
+                    Rediger rollar og utstedar-URL for registreringa.
                 </p>
                 <div th:if="${#fields.hasErrors()}" class="ds-alert" data-color="danger"
                      role="alert" tabindex="-1" autofocus aria-labelledby="roles-errors-heading">
@@ -95,9 +95,6 @@
                         </tbody>
                     </table>
                 </div>
-
-                <h3 class="ds-heading" data-size="xs">Bevistypar (EAA)</h3>
-                <div th:replace="~{fragments/eaa_fragments :: eaa_fields_fragment}"></div>
 
                 <div class="button-group">
                     <button class="ds-button" type="submit">Lagre</button>
