@@ -29,7 +29,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -49,12 +51,16 @@ public class V1ApiService {
         List<RelyingPartyEntitlement> entitlements =
             v1ContractMapper.toDomainRelyingPartyEntitlements(request.relyingPartyEntitlements());
         List<RelyingPartyEaa> eaas = v1ContractMapper.toDomainRelyingPartyEaas(request.relyingPartyEaas());
+        Map<String, ServiceCredentialIssuerUrl> credentialIssuerUrls = new LinkedHashMap<>();
+        if (request.relyingPartyEntitlements() != null) {
+            request.relyingPartyEntitlements().forEach(item -> credentialIssuerUrls.put(
+                item.entitlement(), new ServiceCredentialIssuerUrl(item.entitlement(), item.credentialIssuerUrl())));
+        }
+
         RelyingPartyInstance createdInstance = relyingPartyService.createRelyingParty(
             orgno, serviceTradeName, entitlements, eaas,
-            request.relyingPartyEntitlements() == null ? List.of() : request.relyingPartyEntitlements().stream()
-                .filter(item -> item.credentialIssuerUrl() != null)
-                .map(item -> new ServiceCredentialIssuerUrl(
-                    item.entitlement(), item.credentialIssuerUrl()))
+            credentialIssuerUrls.values().stream()
+                .filter(item -> item.getCredentialIssuerUrl() != null)
                 .toList());
         return v1ContractMapper.toV1RelyingPartyResponse(createdInstance);
     }

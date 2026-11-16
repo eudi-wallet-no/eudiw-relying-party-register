@@ -10,6 +10,9 @@ import no.eudiw.rp.register.repository.WalletRelyingPartyServiceRepository;
 import no.eudiw.rp.register.exception.NotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.web.PagedModel;
@@ -66,6 +69,39 @@ public class V1RelyingPartyIntegrationTest {
         assertNotNull(instance);
         assertNotEquals(result.id(), instance.getWalletRelyingPartyService().getWalletRelyingParty().getId());
         assertEquals(result.publicSector(), instance.getWalletRelyingPartyService().getWalletRelyingParty().isPSB());
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(strings = "https://issuer.example/last")
+    @DisplayName("Should use the last URL for the same role URI without changes to a different service")
+    void shouldUseLastUrlForSameRoleUriWithoutChangesToDifferentService(String lastUrl) {
+        String role = "https://uri.etsi.org/19475/Entitlement/QEAA_Provider";
+        String orgno = generateValidOrgno();
+        RelyingPartyResource otherService = relyingPartyService.createRelyingParty(
+            new CreateRelyingPartyResource(orgno, generateName(), List.of(
+                new RelyingPartyEntitlementResource(role, "QEAA Provider", "https://issuer.example/other")
+            ), List.of())
+        );
+
+        RelyingPartyResource result = relyingPartyService.createRelyingParty(
+            new CreateRelyingPartyResource(orgno, generateName(), List.of(
+                new RelyingPartyEntitlementResource(role, "QEAA Provider", "https://issuer.example/first"),
+                new RelyingPartyEntitlementResource(role, "QEAA Provider", lastUrl)
+            ), List.of())
+        );
+        RelyingPartyResource stored = relyingPartyService.findRelyingParty(result.id());
+        var storedUrls = new TransactionTemplate(transactionManager).execute(status ->
+            relyingPartyInstanceRepository.findById(result.id()).orElseThrow()
+                .getWalletRelyingPartyService().getCredentialIssuerUrls().stream()
+                .map(url -> url.getCredentialIssuerUrl()).toList()
+        );
+
+        assertEquals(1, stored.relyingPartyEntitlements().size());
+        assertEquals(role, stored.relyingPartyEntitlements().getFirst().entitlement());
+        assertEquals(lastUrl, stored.relyingPartyEntitlements().getFirst().credentialIssuerUrl());
+        assertEquals(lastUrl == null ? List.of() : List.of(lastUrl), storedUrls);
+        assertEquals(otherService, relyingPartyService.findRelyingParty(otherService.id()));
     }
 
     @Test
