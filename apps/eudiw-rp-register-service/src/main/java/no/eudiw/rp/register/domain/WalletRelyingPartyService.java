@@ -93,6 +93,7 @@ public class WalletRelyingPartyService extends BaseEntity {
         fetch = FetchType.LAZY,
         cascade = CascadeType.ALL,
         orphanRemoval = true)
+    @BatchSize(size = 50)
     private List<ServiceCredentialIssuerUrl> credentialIssuerUrls = new ArrayList<>();
 
     @Column(name = "created_ms", nullable = false)

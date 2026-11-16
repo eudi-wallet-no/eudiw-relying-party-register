@@ -1,5 +1,6 @@
 package no.eudiw.rp.register.api.v2;
 
+import jakarta.persistence.EntityManagerFactory;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationDetailsResponse;
 import no.eudiw.rp.register.api.v2.resource.IdentifierResource;
 import no.eudiw.rp.register.api.v2.resource.LawResource;
@@ -10,6 +11,8 @@ import no.eudiw.rp.register.api.v2.resource.ProvidedAttestationResource;
 import no.eudiw.rp.register.api.v2.resource.ServiceReferenceResource;
 import no.eudiw.rp.register.api.v2.resource.SupervisoryAuthorityResource;
 import no.eudiw.rp.register.domain.Entitlement;
+import no.eudiw.rp.register.domain.WalletRelyingParty;
+import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 import no.eudiw.rp.register.domain.certificates.AccessCertificate;
 import no.eudiw.rp.register.domain.certificates.IssuerCertificate;
 import no.eudiw.rp.register.domain.certificates.PKCS10CertificationRequestConverter;
@@ -20,7 +23,9 @@ import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.repository.WalletRelyingPartyServiceRepository;
 import no.eudiw.rp.register.testdata.CertificatesGenerator;
+import no.eudiw.rp.register.testdata.EntityGenerator;
 import no.eudiw.rp.register.testdata.TestDataGenerator;
+import org.hibernate.SessionFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -43,6 +48,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ObjectNode;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -100,6 +106,8 @@ class V2ApiIntegrationTest {
     private EntitlementRepository entitlementRepository;
     @Autowired
     private PlatformTransactionManager transactionManager;
+    @Autowired
+    private EntityManagerFactory entityManagerFactory;
     @MockitoBean
     private CertificateServiceClient certificateServiceClient;
 
@@ -117,6 +125,66 @@ class V2ApiIntegrationTest {
             relyingPartyInstanceRepository.deleteAll();
             relyingPartyRepository.deleteAll();
             entitlementRepository.delete(testEntitlement);
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"v1", "v2"})
+    @DisplayName("Should return issuer URLs with batched queries for instance search")
+    void shouldReturnIssuerUrlsWithBatchedQueriesForInstanceSearch(String apiVersion) throws Exception {
+        String role = " urn:example:Issuer ";
+        List<WalletRelyingPartyService> services = new ArrayList<>();
+        for (int index = 0; index < 100; index++) {
+            var instance = EntityGenerator.generateRelyingPartyInstance(
+                "Batch service " + index, List.of(new RelyingPartyEntitlement(role)), List.of(), List.of());
+            var service = instance.getWalletRelyingPartyService();
+
+            if (index % 2 == 0) {
+                service.setCredentialIssuerUrl(role, "https://issuer.example/Issuer/" + index + " ");
+            }
+
+            services.add(service);
+        }
+
+        relyingPartyRepository.saveAndFlush(new WalletRelyingParty(
+            "Batch party", TestDataGenerator.generateValidOrgno(), true, services));
+
+        var statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
+        boolean statisticsWereEnabled = statistics.isStatisticsEnabled();
+        statistics.setStatisticsEnabled(true);
+        statistics.clear();
+        try {
+            JsonNode response = apiVersion.equals("v1")
+                ? read(post("/v1/rp/search"), "{\"search_term\":\"\",\"page_size\":100}")
+                : read(get("/v2/instances").param("pageSize", "100"));
+            JsonNode content = response.get("content");
+            assertEquals(100, content.size());
+
+            for (JsonNode instance : content) {
+                String serviceName = instance.get(apiVersion.equals("v1") ? "name" : "serviceTradeName").asString();
+                int index = Integer.parseInt(serviceName.substring("Batch service ".length()));
+                JsonNode roles = instance.get(apiVersion.equals("v1")
+                    ? "relying_party_entitlements" : "relyingPartyEntitlements");
+
+                assertEquals(1, roles.size());
+                assertEquals(role, roles.get(0).get("entitlement").asString());
+
+                JsonNode issuerUrl = roles.get(0).path(apiVersion.equals("v1")
+                    ? "credential_issuer_url" : "credentialIssuerUrl");
+
+                if (index % 2 == 0) {
+                    assertEquals("https://issuer.example/Issuer/" + index + " ", issuerUrl.asString());
+                } else {
+                    assertTrue(issuerUrl.isMissingNode() || issuerUrl.isNull());
+                }
+            }
+
+            var urlStatistics = statistics.getCollectionStatistics(
+                WalletRelyingPartyService.class.getName() + ".credentialIssuerUrls");
+            assertEquals(100, urlStatistics.getLoadCount());
+            assertEquals(2, urlStatistics.getFetchCount());
+        } finally {
+            statistics.setStatisticsEnabled(statisticsWereEnabled);
         }
     }
 
