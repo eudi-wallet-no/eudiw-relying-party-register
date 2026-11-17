@@ -61,6 +61,24 @@ class V2RegisterClientTests {
     private static final String REGISTRATION_URL = "https://register.test/v2/registrations/" + RELYING_PARTY_INSTANCE_ID;
 
     @Test
+    @DisplayName("Should create an instance and return its ID")
+    void shouldCreateInstanceAndReturnItsId() {
+        server.expect(requestTo("https://register.test/v2/instances"))
+            .andExpect(method(HttpMethod.POST))
+            .andExpect(header("X-API-KEY", "test-api-key"))
+            .andExpect(content().json("""
+                {"orgno":"123456785","serviceTradeName":"Test service",
+                 "relyingPartyEntitlements":[{"entitlement":"urn:test"}]}
+                """, JsonCompareMode.STRICT))
+            .andRespond(withSuccess("{\"id\":\"" + RELYING_PARTY_INSTANCE_ID + "\"}", MediaType.APPLICATION_JSON));
+
+        UUID instanceId = client.createInstance(new V2RegisterClient.CreateInstanceRequest(
+            "123456785", "Test service", List.of(new V2RegisterClient.RoleRequest("urn:test"))));
+
+        assertEquals(RELYING_PARTY_INSTANCE_ID, instanceId);
+    }
+
+    @Test
     @DisplayName("Should change instance roles without URLs or EAA values")
     void shouldChangeInstanceRolesWithoutUrlsOrEaaValues() {
         server.expect(requestTo("https://register.test/v2/instances/" + RELYING_PARTY_INSTANCE_ID + "/entitlements"))

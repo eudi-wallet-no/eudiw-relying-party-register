@@ -1,14 +1,11 @@
 package no.idporten.eudiw.rp.admin.web.selfservice;
 
+import no.idporten.eudiw.rp.admin.integrations.registerservice.V2RegisterClient;
 import no.idporten.eudiw.rp.admin.security.SecurityTestUtils;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.admin.testdata.TestDataGenerator;
-import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEaaFormField;
-import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEntitlementFormField;
-import no.idporten.eudiw.rp.admin.web.form.admin.AdminCreateRelyingPartyForm;
-import no.idporten.eudiw.rp.admin.web.resource.CreateRelyingPartyResource;
-import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyEntitlementResource;
+import no.idporten.eudiw.rp.admin.web.form.BaseCreateRelyingPartyForm;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.utils.WebTestUtils;
 import org.junit.jupiter.api.DisplayName;
@@ -64,28 +61,25 @@ public class CreateControllerTests {
             RelyingPartyResource rpResource =
                 ResourceGenerator.generateRelyingPartyResource();
 
-            when(mockRpService.create(any())).thenReturn(rpResource);
-
-            AdminCreateRelyingPartyForm createForm = new AdminCreateRelyingPartyForm(
+            BaseCreateRelyingPartyForm createForm = new BaseCreateRelyingPartyForm();
+            createForm.setTradeName(rpResource.tradeName());
+            var expectedRequest = new V2RegisterClient.CreateInstanceRequest(
                 rpResource.orgno(),
                 rpResource.tradeName(),
-                rpResource.relyingPartyEntitlements().stream().map(RelyingPartyEntitlementFormField::fromResource).toList(),
-                rpResource.relyingPartyEaas().stream().map(RelyingPartyEaaFormField::fromResource).toList()
-            );
-            CreateRelyingPartyResource createResource = createForm.toResource();
+                List.of(new V2RegisterClient.RoleRequest(
+                    "https://uri.etsi.org/19475/Entitlement/Service_Provider")));
 
-            when(mockRpService.create(createResource)).thenReturn(rpResource);
-            var request = post("/create").with(SecurityTestUtils.oidcLoginForOrgno(rpResource.orgno())).with(csrf());
+            when(mockRpService.createInstance(expectedRequest)).thenReturn(rpResource.id());
+            var request = post("/create")
+                .with(SecurityTestUtils.oidcLoginForOrgno(rpResource.orgno()))
+                .with(csrf())
+                .param("entitlements[0].entitlement", "urn:unexpected");
             mockMvc.perform(WebTestUtils.withCreateForm(request, createForm))
                    .andExpectAll(
                        status().is3xxRedirection(),
                        redirectedUrl("/details/" + rpResource.id()));
 
-            CreateRelyingPartyResource expectedCreateResource =
-                createResource.withRelyingPartyEntitlements(List.of(
-                    new RelyingPartyEntitlementResource("https://uri.etsi.org/19475/Entitlement/Service_Provider", null, null)));
-
-            verify(mockRpService, times(1)).create(eq(expectedCreateResource));
+            verify(mockRpService).createInstance(expectedRequest);
         }
     }
 }

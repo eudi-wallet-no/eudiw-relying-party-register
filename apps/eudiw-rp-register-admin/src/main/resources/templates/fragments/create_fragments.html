@@ -1,86 +1,3 @@
-<div th:fragment="eaa_fields_fragment"
-     class="ds-card">
-    <fieldset class="ds-fieldset" data-size="sm">
-        <legend class="ds-label"
-                data-weight="high">
-            Vel bevistypar
-        </legend>
-
-        <div class="flex-container">
-            <div>
-                <p class="ds-paragraph space-block-end-2">
-                    Bevistypar lagt inn
-                </p>
-                <div class="table-wrap" role="region" aria-label="Bevistypar lagt inn" tabindex="0">
-                    <table class="ds-table fixed-break-table"
-                           data-border="true">
-                        <caption class="ds-sr-only">Bevistypar lagt inn</caption>
-                        <thead>
-                        <tr>
-                            <th scope="col">Bevistype</th>
-                            <th scope="col">Føremål</th>
-                            <th scope="col" class="narrow-cell"><span class="ds-sr-only">Handlingar</span></th>
-                        </tr>
-                        </thead>
-                        <tbody id="eaa_container"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div>
-                <fieldset class="ds-fieldset">
-                    <legend class="ds-legend">
-                        Legg til ny bevistype
-                    </legend>
-                    <div class="ds-field">
-                        <label for="eaa_namespace_field"
-                               class="ds-label">
-                            Bevistype
-                        </label>
-                        <input id="eaa_namespace_field"
-                               type="text"
-                               placeholder="Bevistype ..."
-                               class="ds-input">
-                        <div id="eaa_namespace_error_msg"
-                             th:insert="~{fragments/general ::
-                                                    generic_invalid_input_field_error_msg('EAA-namespace')}"
-                             class="display-none"></div>
-                    </div>
-
-                    <div class="ds-field">
-                        <label for="eaa_intent_field"
-                               class="ds-label">
-                            Føremål
-                        </label>
-                        <input id="eaa_intent_field"
-                               type="text"
-                               placeholder="Føremål ..."
-                               class="ds-input">
-                        <div id="eaa_intent_error_msg"
-                             th:insert="~{fragments/general ::
-                                                    generic_invalid_input_field_error_msg('EAA-intent')}"
-                             class="display-none"></div>
-                    </div>
-                    <button type="button"
-                            class="ds-button"
-                            id="eaa-add"
-                            data-variant="secondary">
-                        Legg til
-                    </button>
-                </fieldset>
-            </div>
-
-        </div>
-        <!--/* pre-fill EAA list with values from create form. this can be
-               non-empty if e.g. page is reloaded after form validation errors. */-->
-        <div hidden
-             id="eaa_prefill"
-             th:each="eaa : ${createFormAttr.getEaas()}"
-             th:attr="data-namespace=${eaa.namespace},data-intent=${eaa.intent}"></div>
-        <script th:src="@{/js/dynamic_form_fields.js}"></script>
-    </fieldset>
-</div>
-
 <form th:fragment="make_admin_create_form_fragment"
       id="admin_create_form"
       th:object="${createFormAttr}"
@@ -142,14 +59,13 @@
                         data-weight="high">
                     Vel roller
                 </legend>
-                <div class="table-wrap table-wrap--roles" role="region" aria-label="Roller og utstedar-URL" tabindex="0">
+                <div class="table-wrap table-wrap--roles" role="region" aria-label="Roller" tabindex="0">
                     <table class="ds-table">
-                        <caption class="ds-sr-only">Roller og utstedar-URL</caption>
+                        <caption class="ds-sr-only">Roller</caption>
                         <thead>
                         <tr>
                             <th scope="col">Valt</th>
                             <th scope="col">Rolle</th>
-                            <th scope="col">Utstedar-URL</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -167,24 +83,6 @@
                             <td>
                                 <label th:for="|id-${e.getEntitlement()}|" th:text="${e.getDisplayName()}"></label>
                             </td>
-                            <td>
-                                <input type="text"
-                                       class="ds-input"
-                                       th:aria-label="|Utstedar-URL for ${e.getDisplayName()}|"
-                                       th:name="|entitlements[${iter.index}].credentialIssuerUrl|"
-                                       th:value="${e.getCredentialIssuerUrl()}"
-                                       th:disabled="${! T(no.idporten.eudiw.rp.admin.entitlements.Entitlements)
-                                                                .isIssuerEntitlement(e.getEntitlement())}"
-                                >
-                                <ul th:if="${iter.index < createFormAttr.getEntitlements().size() &&
-                                               #fields.hasErrors('entitlements[__${iter.index}__].credentialIssuerUrl')}"
-                                    class="ds-list">
-                                    <li th:each="error : ${#fields.errors('entitlements[__${iter.index}__].credentialIssuerUrl')}"
-                                        th:text="${error}"
-                                        class="ds-validation-message">
-                                    </li>
-                                </ul>
-                            </td>
                         </tr>
                         </tbody>
                     </table>
@@ -197,8 +95,6 @@
                     class="ds-validation-message"></li>
             </ul>
         </div>
-
-        <div th:replace="~{:: eaa_fields_fragment}"></div>
 
     </div>
 
@@ -270,8 +166,6 @@
                 </div>
             </fieldset>
         </div>
-
-        <div th:replace="~{:: eaa_fields_fragment}"></div>
 
     </div>
 

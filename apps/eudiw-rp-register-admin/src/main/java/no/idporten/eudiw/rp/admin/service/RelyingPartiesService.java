@@ -13,7 +13,6 @@ import no.idporten.eudiw.rp.admin.web.resource.entitlement.EntitlementResource;
 import no.idporten.eudiw.rp.admin.web.resource.entitlement.EntitlementsResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.client.RestClient;
 
 import java.util.List;
 import java.util.Map;
@@ -25,17 +24,11 @@ import java.util.stream.Collectors;
 @Service
 public class RelyingPartiesService {
 
-    private final RestClient restClient;
     private final V2RegisterClient v2RegisterClient;
     private final V2CertificateClient v2CertificateClient;
 
-    public RelyingPartyResource create(CreateRelyingPartyResource createResource) {
-        return restClient.post()
-                .uri("/rp")
-                .body(createResource)
-                .retrieve()
-                .toEntity(RelyingPartyResource.class)
-                .getBody();
+    public UUID createInstance(V2RegisterClient.CreateInstanceRequest request) {
+        return v2RegisterClient.createInstance(request);
     }
 
     public PagedResponse<RegistrationSearchResult> search(SearchRelyingPartyResource searchResource) {

@@ -5,6 +5,7 @@ import no.eudiw.rp.register.api.v2.endpoints.entities.AccessCertificateRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.CertificateResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.CertificatesResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.CreateIntendedUseRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.CreateInstanceRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.CreateRelyingPartyRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.EntitlementsResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.IntendedUseReplacementResponse;
@@ -80,6 +81,16 @@ public class V2ApiService {
     private final EntitlementService entitlementService;
     private final RelyingPartyCertificateService certificateService;
     private final RelyingPartyService relyingPartyService;
+
+    public RelyingPartyInstanceResponse createInstance(CreateInstanceRequest request) {
+        List<RelyingPartyEntitlement> entitlements = request.relyingPartyEntitlements().stream()
+            .map(item -> item.toDomain())
+            .toList();
+        RelyingPartyInstance relyingPartyInstance = relyingPartyService.createRelyingParty(
+            request.orgno(), request.serviceTradeName(), entitlements, List.of());
+
+        return RelyingPartyInstanceResponse.from(relyingPartyInstance);
+    }
 
     public RelyingPartyResponse createRelyingParty(
         CreateRelyingPartyRequest request

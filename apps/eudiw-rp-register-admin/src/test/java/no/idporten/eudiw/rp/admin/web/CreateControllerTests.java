@@ -1,12 +1,11 @@
 package no.idporten.eudiw.rp.admin.web;
 
+import no.idporten.eudiw.rp.admin.integrations.registerservice.V2RegisterClient;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.admin.web.controllers.CreateController;
-import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEaaFormField;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEntitlementFormField;
 import no.idporten.eudiw.rp.admin.web.form.admin.AdminCreateRelyingPartyForm;
-import no.idporten.eudiw.rp.admin.web.resource.CreateRelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.utils.WebTestUtils;
 import org.junit.jupiter.api.DisplayName;
@@ -19,13 +18,9 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.servlet.resource.ResourceUrlProvider;
 
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -42,9 +37,6 @@ public class CreateControllerTests {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private ResourceUrlProvider resourceUrlProvider;
 
     @SuppressWarnings("unused")
     @MockitoBean
@@ -78,51 +70,22 @@ public class CreateControllerTests {
             AdminCreateRelyingPartyForm createForm = new AdminCreateRelyingPartyForm(
                 rpResource.orgno(),
                 rpResource.tradeName(),
-                rpResource.relyingPartyEntitlements().stream().map(RelyingPartyEntitlementFormField::fromResource).toList(),
-                rpResource.relyingPartyEaas().stream().map(RelyingPartyEaaFormField::fromResource).toList()
+                List.of(new RelyingPartyEntitlementFormField(
+                    "urn:test:selected-role", null, "Selected role"))
             );
-            CreateRelyingPartyResource createResource = createForm.toResource();
+            var expectedRequest = new V2RegisterClient.CreateInstanceRequest(
+                rpResource.orgno(),
+                rpResource.tradeName(),
+                List.of(new V2RegisterClient.RoleRequest("urn:test:selected-role")));
 
-            when(mockRpService.create(createResource)).thenReturn(rpResource);
+            when(mockRpService.createInstance(expectedRequest)).thenReturn(rpResource.id());
             var request = post("/admin/create").with(csrf());
             mockMvc.perform(WebTestUtils.withCreateForm(request, createForm))
                 .andExpectAll(
                     status().is3xxRedirection(),
                     redirectedUrl("/details/" + rpResource.id()));
 
-            verify(mockRpService).create(createResource);
-        }
-
-        @Test
-        @DisplayName("then form rejected when EAA namespace contains a double quote")
-        void testCreateFormRejectedOnDoubleQuoteInEaaNamespace() throws Exception {
-            RelyingPartyResource rpResource =
-                ResourceGenerator.generateRelyingPartyResource();
-
-            AdminCreateRelyingPartyForm createForm = new AdminCreateRelyingPartyForm(
-                rpResource.orgno(),
-                rpResource.tradeName(),
-                rpResource.relyingPartyEntitlements().stream().map(RelyingPartyEntitlementFormField::fromResource).toList(),
-                List.of(new RelyingPartyEaaFormField("\"onerror", "test"))
-            );
-
-            var request = post("/admin/create").with(csrf());
-            String html = mockMvc.perform(WebTestUtils.withCreateForm(request, createForm))
-                .andExpectAll(
-                    model().attributeHasFieldErrors(
-                        CreateController.CREATE_FORM_ATTR, "eaas[0].namespace"),
-                    status().isOk(),
-                    view().name("create_form_view"))
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-            String scriptUrl = resourceUrlProvider.getForLookupPath("/js/dynamic_form_fields.js");
-            assertThat(html.indexOf("id=\"eaa_prefill\""))
-                .isNotNegative()
-                .isLessThan(html.indexOf("<script src=\"" + scriptUrl + "\"></script>"));
-
-            verify(mockRpService, never()).create(any());
+            verify(mockRpService).createInstance(expectedRequest);
         }
     }
 }

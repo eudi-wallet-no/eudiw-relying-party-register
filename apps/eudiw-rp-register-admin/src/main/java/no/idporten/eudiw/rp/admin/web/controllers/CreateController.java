@@ -6,8 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.web.form.BaseCreateRelyingPartyForm;
 import no.idporten.eudiw.rp.admin.web.form.admin.AdminCreateRelyingPartyForm;
-import no.idporten.eudiw.rp.admin.web.resource.CreateRelyingPartyResource;
-import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
 import no.idporten.eudiw.rp.admin.web.security.UserAuthorityService;
 import no.idporten.eudiw.rp.admin.web.security.oidcusers.AuthorizedPartyAuthority;
 import no.idporten.logging.audit.Audit;
@@ -21,6 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @Controller
@@ -61,9 +60,8 @@ public class CreateController {
                 REPORTEE_AUTHORITY_ATTR, reportee));
         }
 
-        CreateRelyingPartyResource createResource = createForm.toResource(reportee.orgno());
-        RelyingPartyResource result = relyingPartiesService.create(createResource);
-        return new ModelAndView("redirect:/details/" + result.id());
+        UUID instanceId = relyingPartiesService.createInstance(createForm.toRequest(reportee.orgno()));
+        return new ModelAndView("redirect:/details/" + instanceId);
     }
 
     @Audit(auditId = LOMMEBOK_10_CREATE_RP_REQUEST, includeResult = false, includeParameters = false)
@@ -76,8 +74,7 @@ public class CreateController {
             return new ModelAndView("create_form_view", CREATE_FORM_ATTR, createForm);
         }
 
-        CreateRelyingPartyResource createResource = createForm.toResource();
-        RelyingPartyResource result = relyingPartiesService.create(createResource);
-        return new ModelAndView("redirect:/details/" + result.id());
+        UUID instanceId = relyingPartiesService.createInstance(createForm.toRequest());
+        return new ModelAndView("redirect:/details/" + instanceId);
     }
 }

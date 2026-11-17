@@ -29,26 +29,20 @@ public class ResourceGenerator extends TestDataGenerator {
         );
     }
 
-    public static CreateRelyingPartyResource generateCreateRelyingPartyResource() {
-        return new CreateRelyingPartyResource(
-            generateValidOrgno(),
-            generateName(),
-            sampleRelyingPartyEntitlementResources(),
-            generateListBy(ResourceGenerator::generateRelyingPartyEaaResource)
-        );
-    }
-
     public static RelyingPartyResource generateRelyingPartyResource() {
-        CreateRelyingPartyResource createResource = generateCreateRelyingPartyResource();
+        String orgno = generateValidOrgno();
+        String tradeName = generateName();
+        List<RelyingPartyEntitlementResource> entitlements = sampleRelyingPartyEntitlementResources();
+        List<RelyingPartyEaaResource> eaas = generateListBy(ResourceGenerator::generateRelyingPartyEaaResource);
         long timeNow = Instant.now().toEpochMilli();
         return new RelyingPartyResource(
             UUID.randomUUID(),
-            createResource.orgno(),
-            createResource.tradeName(),
-            "Legal-entity-" + createResource.orgno(),
+            orgno,
+            tradeName,
+            "Legal-entity-" + orgno,
             rng.nextBoolean(),
-            createResource.relyingPartyEntitlements(),
-            createResource.relyingPartyEaas(),
+            entitlements,
+            eaas,
             List.of(),
             List.of(),
             timeNow,

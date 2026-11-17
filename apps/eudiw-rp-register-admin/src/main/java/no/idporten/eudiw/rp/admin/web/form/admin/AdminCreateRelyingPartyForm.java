@@ -7,9 +7,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import no.idporten.eudiw.rp.admin.validation.SaneStringConstraint;
 import no.idporten.eudiw.rp.admin.validation.SaneStringValidator;
-import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEaaFormField;
+import no.idporten.eudiw.rp.admin.integrations.registerservice.V2RegisterClient;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEntitlementFormField;
-import no.idporten.eudiw.rp.admin.web.resource.CreateRelyingPartyResource;
 import no.idporten.validators.orgnr.Orgnr;
 
 import java.util.ArrayList;
@@ -36,22 +35,15 @@ public class AdminCreateRelyingPartyForm {
     @Valid
     @NotEmpty(message = "Brukarstaden må ha minst ein rolle valt")
     private List<RelyingPartyEntitlementFormField> entitlements = new ArrayList<>();
-    @Valid
-    private List<RelyingPartyEaaFormField> eaas = new ArrayList<>();
 
-    public CreateRelyingPartyResource toResource() {
-        return new CreateRelyingPartyResource(
+    public V2RegisterClient.CreateInstanceRequest toRequest() {
+        return new V2RegisterClient.CreateInstanceRequest(
             this.orgno,
             this.tradeName,
             this.getEntitlements()
                 .stream()
                 .filter(RelyingPartyEntitlementFormField::isSet)
-                .map(RelyingPartyEntitlementFormField::toResource)
-                .toList(),
-            this.getEaas()
-                .stream()
-                .filter(RelyingPartyEaaFormField::isSet)
-                .map(RelyingPartyEaaFormField::toResource)
+                .map(entitlement -> new V2RegisterClient.RoleRequest(entitlement.getEntitlement()))
                 .toList()
         );
     }

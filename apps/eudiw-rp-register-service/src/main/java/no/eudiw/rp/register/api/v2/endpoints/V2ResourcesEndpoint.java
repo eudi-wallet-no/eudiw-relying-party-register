@@ -13,6 +13,7 @@ import no.eudiw.rp.register.api.v2.endpoints.entities.AccessCertificateRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.CertificateResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.CertificatesResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.CreateIntendedUseRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.CreateInstanceRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.CreateRelyingPartyRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.EntitlementsResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.IntendedUseReplacementResponse;
@@ -60,6 +61,7 @@ import java.util.UUID;
 public class V2ResourcesEndpoint {
 
     private static final String AUDIT_PARTY_CREATED = "V2-WALLET-RELYING-PARTY-CREATED";
+    private static final String AUDIT_INSTANCE_CREATED = "V2-INSTANCE-CREATED";
     private static final String AUDIT_PARTY_UPDATED = "V2-WALLET-RELYING-PARTY-UPDATED";
     private static final String AUDIT_SERVICE_CREATED =
         "V2-WALLET-RELYING-PARTY-SERVICE-CREATED";
@@ -76,6 +78,16 @@ public class V2ResourcesEndpoint {
     private static final String AUDIT_ISSUER_CERTIFICATE_REVOKED = "V2-ISSUER-CERTIFICATE-REVOKED";
 
     private final V2ApiService v2ApiService;
+
+    @Operation(description = "Creates a service and an instance for an organization.")
+    @Audit(auditId = AUDIT_INSTANCE_CREATED)
+    @PostMapping(path = "/instances", consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<RelyingPartyInstanceResponse> createInstance(
+        @Valid @RequestBody CreateInstanceRequest request
+    ) {
+        return ResponseEntity.ok(v2ApiService.createInstance(request));
+    }
 
     @Operation(
         summary = "Create a RelyingParty",
