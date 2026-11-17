@@ -16,7 +16,7 @@ import java.net.URI;
 public class RelyingPartiesServiceConfig {
 
     private final RelyingPartiesServiceProperties rpServiceProperties;
-    private static final String registerServiceApiEndpoint = "/v1";
+    private static final String registerServiceApiEndpoint = "/v2";
 
     private RestClient relyingPartiesServiceRestClient () {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
