@@ -23,7 +23,7 @@ public record EntitlementResource(
 
     @SaneStringConstraint
     @NotBlank(message = "blank_display_name")
-    @JsonProperty(value = "display_name", required = true)
+    @JsonProperty(value = "displayName", required = true)
     String displayName,
 
     @JsonProperty(value = "active", required = true)

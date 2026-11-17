@@ -62,7 +62,7 @@ public class SearchController {
 
         int pageIdx = Math.max(oneIndexedPageNum - 1, 0);
         PagedResponse<RelyingPartyResource> searchResult =
-            relyingPartiesService.search(
+            relyingPartiesService.searchWithEntitlementDisplayNames(
                 searchForm.toResource()
                     .withPage(pageIdx)
                     .withPageSize(SearchRelyingPartyResource.DEFAULT_PAGE_SIZE)

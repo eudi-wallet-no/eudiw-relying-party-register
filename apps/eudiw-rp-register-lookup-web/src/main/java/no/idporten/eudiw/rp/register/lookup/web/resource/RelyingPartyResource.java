@@ -14,27 +14,27 @@ public record RelyingPartyResource(
     @JsonProperty(value = "id", required = true)
     UUID id,
 
-    @JsonProperty(value = "org_nr", required = true)
+    @JsonProperty(value = "orgno", required = true)
     String orgno,
 
-    @JsonProperty(value = "org_name", required = true)
+    @JsonProperty(value = "organizationName", required = true)
     String orgName,
 
-    @JsonProperty(value = "name", required = true)
+    @JsonProperty(value = "serviceTradeName", required = true)
     String tradeName,
 
-    @JsonProperty(value = "public_sector", required = true)
-    boolean publicSector,
+    @JsonProperty("isPSB")
+    Boolean publicSector,
 
-    @JsonProperty(value = "relying_party_entitlements", required = true)
+    @JsonProperty(value = "relyingPartyEntitlements", required = true)
     List<RelyingPartyEntitlementResource> relyingPartyEntitlements,
 
-    @JsonProperty(value = "relying_party_eaas", required = true)
+    @JsonProperty(value = "relyingPartyEaas", required = true)
     List<RelyingPartyEaaResource> relyingPartyEaas,
 
-    @JsonProperty(value = "created_ms", required = true)
+    @JsonProperty(value = "createdMs", required = true)
     long createdMs,
 
-    @JsonProperty(value = "last_updated_ms", required = true)
+    @JsonProperty(value = "lastUpdatedMs", required = true)
     long lastUpdatedMs
 ) { }

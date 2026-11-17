@@ -49,7 +49,7 @@ public class LookupControllerTests {
     class SearchEndpointGetTests {
         @BeforeEach
         void setupMockRelyingPartiesService() {
-            when(lookupService.search(any()))
+            when(lookupService.searchWithEntitlementDisplayNames(any()))
                 .thenAnswer(invocationOnMock -> {
                     SearchRelyingPartyResource searchResource = invocationOnMock.getArgument(0, SearchRelyingPartyResource.class);
 
@@ -70,7 +70,7 @@ public class LookupControllerTests {
 
             SearchRelyingPartyResource expectedSearchResource =
                 SearchForm.empty().toResource();
-            verify(lookupService).search(eq(expectedSearchResource));
+            verify(lookupService).searchWithEntitlementDisplayNames(eq(expectedSearchResource));
         }
 
         @Test
@@ -83,7 +83,7 @@ public class LookupControllerTests {
                    .andExpect(model().attribute(SearchController.searchFormAttrId, testSearchForm));
             SearchRelyingPartyResource expectedSearchResource =
                 testSearchForm.toResource();
-            verify(lookupService).search(eq(expectedSearchResource));
+            verify(lookupService).searchWithEntitlementDisplayNames(eq(expectedSearchResource));
         }
 
         @Test
@@ -94,7 +94,7 @@ public class LookupControllerTests {
                    .andExpect(view().name("search_view"))
                    .andExpect(model().attributeHasFieldErrors(SearchController.searchFormAttrId, "searchTerm"));
 
-            verify(lookupService, never()).search(any());
+            verify(lookupService, never()).searchWithEntitlementDisplayNames(any());
         }
 
         @Test
@@ -104,7 +104,7 @@ public class LookupControllerTests {
                    .andExpect(view().name("search_view"))
                    .andExpect(model().attributeHasFieldErrors(SearchController.searchFormAttrId, "searchTerm"));
 
-            verify(lookupService, never()).search(any());
+            verify(lookupService, never()).searchWithEntitlementDisplayNames(any());
         }
     }
 }

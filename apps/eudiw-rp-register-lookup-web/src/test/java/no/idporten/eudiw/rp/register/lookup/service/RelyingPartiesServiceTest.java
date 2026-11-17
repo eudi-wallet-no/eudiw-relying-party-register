@@ -5,9 +5,13 @@ import no.idporten.eudiw.rp.register.lookup.service.exception.UnrecognizedErrorR
 import no.idporten.eudiw.rp.register.lookup.testdata.ResourceGenerator;
 import no.idporten.eudiw.rp.register.lookup.web.form.SearchForm;
 import no.idporten.eudiw.rp.register.lookup.web.resource.PagedResponse;
+import no.idporten.eudiw.rp.register.lookup.web.resource.RelyingPartyEntitlementResource;
 import no.idporten.eudiw.rp.register.lookup.web.resource.RelyingPartyResource;
+import no.idporten.eudiw.rp.register.lookup.web.resource.entitlement.EntitlementResource;
+import no.idporten.eudiw.rp.register.lookup.web.resource.entitlement.EntitlementsResource;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -22,10 +26,15 @@ import org.springframework.test.context.ActiveProfiles;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
 @SpringBootTest
@@ -55,12 +64,35 @@ public class RelyingPartiesServiceTest {
     @Test
     @DisplayName("then valid search result responses are properly deserialized")
     void testCorrectDeserializationOfValidSearchResponse() throws Exception {
-        List<RelyingPartyResource> expectedContent = ResourceGenerator.generateRelyingPartiesResource();
+        List<RelyingPartyResource> generatedContent = ResourceGenerator.generateRelyingPartiesResource();
+        Map<String, String> entitlementDisplayNames = generatedContent.stream()
+            .flatMap(relyingParty -> relyingParty.relyingPartyEntitlements().stream())
+            .map(RelyingPartyEntitlementResource::entitlement)
+            .distinct()
+            .collect(Collectors.toMap(
+                Function.identity(), entitlement -> "Role " + entitlement));
+        List<RelyingPartyResource> expectedContent = generatedContent.stream()
+            .map(relyingParty -> relyingParty.withPublicSector(null).withRelyingPartyEntitlements(
+                relyingParty.relyingPartyEntitlements().stream()
+                    .map(entitlement -> new RelyingPartyEntitlementResource(
+                        entitlement.entitlement(), entitlementDisplayNames.get(entitlement.entitlement())))
+                    .toList()))
+            .toList();
+        List<RelyingPartyResource> v2Content = expectedContent.stream()
+            .map(relyingParty -> relyingParty.withPublicSector(null).withRelyingPartyEntitlements(
+                relyingParty.relyingPartyEntitlements().stream()
+                    .map(entitlement -> new RelyingPartyEntitlementResource(entitlement.entitlement(), null))
+                    .toList()))
+            .toList();
         PagedResponse<RelyingPartyResource> expectedSearchResultResource = new PagedResponse<>(
             expectedContent,
             new PagedResponse.PageMetadata(expectedContent.size(), 0, expectedContent.size(), 1)
         );
-        String responseBody = new ObjectMapper().writer().writeValueAsString(expectedSearchResultResource);
+        PagedResponse<RelyingPartyResource> v2SearchResultResource = new PagedResponse<>(
+            v2Content,
+            new PagedResponse.PageMetadata(v2Content.size(), 0, v2Content.size(), 1)
+        );
+        String responseBody = new ObjectMapper().writer().writeValueAsString(v2SearchResultResource);
 
         MockResponse mockValidResponse =
             new MockResponse()
@@ -69,9 +101,51 @@ public class RelyingPartiesServiceTest {
                 .setBody(responseBody);
         mockWebServer.enqueue(mockValidResponse);
 
+        EntitlementsResource entitlementCatalog = new EntitlementsResource(entitlementDisplayNames.entrySet().stream()
+            .map(entry -> new EntitlementResource(UUID.randomUUID(), entry.getKey(), entry.getValue(), false))
+            .toList());
+        mockWebServer.enqueue(new MockResponse()
+            .setResponseCode(200)
+            .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .setBody(new ObjectMapper().writer().writeValueAsString(entitlementCatalog)));
+
         PagedResponse<RelyingPartyResource> actualSearchResultResource =
-            lookupService.search(SearchForm.empty().toResource());
+            lookupService.searchWithEntitlementDisplayNames(SearchForm.empty().toResource()
+                .withSearchTerm("register")
+                .withHideSyntheticOrgnos(true)
+                .withRequiredEntitlements(List.of("role-one", "role-two"))
+                .withPage(2)
+                .withPageSize(10)
+                .withOrdering("orgno"));
         assertEquals(expectedSearchResultResource, actualSearchResultResource);
+
+        var searchRequest = takeRequest("/v2/instances", "searchTerm", "register");
+        assertEquals("GET", searchRequest.getMethod());
+        assertEquals("/v2/instances", searchRequest.getRequestUrl().encodedPath());
+        assertEquals("register", searchRequest.getRequestUrl().queryParameter("searchTerm"));
+        assertEquals("true", searchRequest.getRequestUrl().queryParameter("hideSyntheticOrgnos"));
+        assertEquals(List.of("role-one", "role-two"),
+            searchRequest.getRequestUrl().queryParameterValues("requiredEntitlements"));
+        assertEquals("2", searchRequest.getRequestUrl().queryParameter("page"));
+        assertEquals("10", searchRequest.getRequestUrl().queryParameter("pageSize"));
+        assertEquals("orgno", searchRequest.getRequestUrl().queryParameter("sort"));
+
+        var entitlementRequest = takeRequest("/v2/entitlements", "includeInactive", "true");
+        assertEquals("/v2/entitlements", entitlementRequest.getRequestUrl().encodedPath());
+        assertEquals("true", entitlementRequest.getRequestUrl().queryParameter("includeInactive"));
+    }
+
+    private RecordedRequest takeRequest(String path, String queryParameter, String queryValue)
+        throws InterruptedException {
+        RecordedRequest request;
+        do {
+            request = mockWebServer.takeRequest(5, TimeUnit.SECONDS);
+        } while (request != null &&
+            (!path.equals(request.getRequestUrl().encodedPath()) ||
+             !queryValue.equals(request.getRequestUrl().queryParameter(queryParameter))));
+
+        assertNotNull(request, "Expected request to " + path + " with " + queryParameter + "=" + queryValue);
+        return request;
     }
 
     @Nested

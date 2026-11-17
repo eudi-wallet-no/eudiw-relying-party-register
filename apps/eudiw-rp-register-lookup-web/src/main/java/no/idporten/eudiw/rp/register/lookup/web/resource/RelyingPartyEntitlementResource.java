@@ -8,7 +8,7 @@ public record RelyingPartyEntitlementResource(
     @JsonProperty("entitlement")
     String entitlement,
 
-    @JsonProperty("display_name")
+    @JsonProperty("displayName")
     String displayName
 ) {
     public RelyingPartyEntitlementResource(String entitlement) {
