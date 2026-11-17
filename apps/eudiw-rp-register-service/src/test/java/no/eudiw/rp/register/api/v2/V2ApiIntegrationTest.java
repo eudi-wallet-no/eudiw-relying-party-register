@@ -256,6 +256,33 @@ class V2ApiIntegrationTest {
     }
 
     @Test
+    @DisplayName("Should reject invalid instance creation requests without persisting data")
+    void shouldRejectInvalidInstanceCreationRequestsWithoutPersistingData() throws Exception {
+        String orgno = TestDataGenerator.generateValidOrgno();
+        String validRequest = """
+            {"orgno":"%s","serviceTradeName":"Test service",
+             "relyingPartyEntitlements":[{"entitlement":"urn:test"}]}
+            """.formatted(orgno);
+
+        List<String> invalidRequests = List.of(
+            validRequest.replace("\"orgno\":\"" + orgno + "\"", "\"orgno\":\"invalid\""),
+            validRequest.replace("\"serviceTradeName\":\"Test service\"", "\"serviceTradeName\":\" \""),
+            validRequest.replace("\"relyingPartyEntitlements\":[{\"entitlement\":\"urn:test\"}]",
+                "\"relyingPartyEntitlements\":[]"),
+            validRequest.replace("\"entitlement\":\"urn:test\"", "\"entitlement\":\" \"")
+        );
+
+        for (String invalidRequest : invalidRequests) {
+            request(post("/v2/instances"), invalidRequest).andExpect(status().isBadRequest());
+        }
+
+        assertAll(
+            () -> assertEquals(0, relyingPartyRepository.count()),
+            () -> assertEquals(0, relyingPartyServiceRepository.count()),
+            () -> assertEquals(0, relyingPartyInstanceRepository.count()));
+    }
+
+    @Test
     @DisplayName("Should update service basic information and keep sub-roles, instances and intended uses")
     void shouldUpdateServiceBasicInformationAndKeepOtherServiceData() throws Exception {
         Registration registration = createRegistration();
@@ -501,7 +528,7 @@ class V2ApiIntegrationTest {
         for (MockHttpServletRequestBuilder builder : List.of(
             get(registration.relyingPartyPath()), get("/v2/services"), get("/v2/instances"), get("/v2/entitlements"),
             get("/v2/registrations/" + registration.relyingPartyInstanceId()),
-            post("/v2/relying-parties"), post(registration.relyingPartyPath() + "/services"),
+            post("/v2/relying-parties"), post("/v2/instances"), post(registration.relyingPartyPath() + "/services"),
             post(registration.relyingPartyServicePath() + "/instances"),
             put(registration.relyingPartyPath()), put(registration.relyingPartyServicePath()),
             put(registration.relyingPartyInstancePath()), patch(registration.relyingPartyPath() + "/deactivate"),

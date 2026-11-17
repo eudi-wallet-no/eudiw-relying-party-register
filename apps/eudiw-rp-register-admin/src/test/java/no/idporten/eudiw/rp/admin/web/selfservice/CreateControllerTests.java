@@ -1,5 +1,6 @@
 package no.idporten.eudiw.rp.admin.web.selfservice;
 
+import no.idporten.eudiw.rp.admin.integrations.registerservice.V2RegisterClient;
 import no.idporten.eudiw.rp.admin.security.SecurityTestUtils;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
@@ -16,6 +17,8 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.List;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -60,9 +63,13 @@ public class CreateControllerTests {
 
             BaseCreateRelyingPartyForm createForm = new BaseCreateRelyingPartyForm();
             createForm.setTradeName(rpResource.tradeName());
-            var createRequest = createForm.toRequest(rpResource.orgno());
+            var expectedRequest = new V2RegisterClient.CreateInstanceRequest(
+                rpResource.orgno(),
+                rpResource.tradeName(),
+                List.of(new V2RegisterClient.RoleRequest(
+                    "https://uri.etsi.org/19475/Entitlement/Service_Provider")));
 
-            when(mockRpService.createInstance(createRequest)).thenReturn(rpResource.id());
+            when(mockRpService.createInstance(expectedRequest)).thenReturn(rpResource.id());
             var request = post("/create")
                 .with(SecurityTestUtils.oidcLoginForOrgno(rpResource.orgno()))
                 .with(csrf())
@@ -72,7 +79,7 @@ public class CreateControllerTests {
                        status().is3xxRedirection(),
                        redirectedUrl("/details/" + rpResource.id()));
 
-            verify(mockRpService).createInstance(createRequest);
+            verify(mockRpService).createInstance(expectedRequest);
         }
     }
 }
