@@ -22,9 +22,9 @@ Blocked writes and certificate issuance return `404` for a missing or inactive t
 
 ### Instance data
 
-`PATCH /v2/instances/{id}/entitlements` changes only roles and issuer URLs. `PATCH /v2/instances/{id}/eaas` changes only EAA data. Each operation keeps the other list.
+`PATCH /v2/instances/{id}/entitlements` changes only roles. `PATCH /v2/instances/{id}/eaas` changes only EAA data. Each operation keeps the other list.
 
-`PUT /v2/instances/{id}` changes roles, issuer URLs and EAA data in the same request. `X-API-KEY` is necessary for these operations.
+`PUT /v2/instances/{id}` changes roles and EAA data in the same request. `X-API-KEY` is necessary for these operations.
 
 ## V1
 

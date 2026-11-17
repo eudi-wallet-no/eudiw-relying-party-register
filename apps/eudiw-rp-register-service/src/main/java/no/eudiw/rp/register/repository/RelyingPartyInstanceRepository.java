@@ -74,17 +74,22 @@ public interface RelyingPartyInstanceRepository
         """)
     List<RegistrationSummaryRow> findRegistrationSummariesByOrgno(@Param("orgno") String orgno);
 
-    @Query("""
-        SELECT entitlement.credentialIssuerUrl
-        FROM RelyingPartyEntitlement entitlement
-        JOIN entitlement.relyingPartyInstance instance
-        JOIN instance.walletRelyingPartyService service
-        JOIN service.walletRelyingParty party
-        WHERE instance.active = TRUE
-          AND service.active = TRUE
+    @Query(value = """
+        SELECT DISTINCT configuration.credential_issuer_url
+        FROM wallet_relying_party_service_credential_issuer_url configuration
+        JOIN wallet_relying_party_service service ON service.id = configuration.wallet_relying_party_service_id
+        JOIN wallet_relying_party party ON party.id = service.wallet_relying_party_id
+        WHERE service.active = TRUE
           AND party.active = TRUE
-          AND entitlement.credentialIssuerUrl IS NOT NULL
-        """)
+          AND configuration.credential_issuer_url IS NOT NULL
+          AND EXISTS (
+              SELECT 1 FROM relying_party_instance instance
+              JOIN relying_party_entitlement entitlement ON entitlement.relying_party_instance_id = instance.id
+              WHERE instance.wallet_relying_party_service_id = service.id
+                AND instance.active = TRUE
+                AND BINARY entitlement.entitlement = BINARY configuration.entitlement
+          )
+        """, nativeQuery = true)
     Set<String> findActiveCredentialIssuerUrls();
 
     @Query("""

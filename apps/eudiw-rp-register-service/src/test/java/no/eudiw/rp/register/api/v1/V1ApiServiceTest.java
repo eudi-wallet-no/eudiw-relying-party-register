@@ -1,6 +1,11 @@
 package no.eudiw.rp.register.api.v1;
 
 import no.eudiw.rp.register.api.v1.resource.relyingparty.SearchRelyingPartyResource;
+import no.eudiw.rp.register.api.v1.resource.relyingparty.CreateRelyingPartyResource;
+import no.eudiw.rp.register.api.v1.resource.relyingparty.RelyingPartyEntitlementResource;
+import no.eudiw.rp.register.domain.ServiceCredentialIssuerUrl;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import no.eudiw.rp.register.service.CredentialIssuersService;
 import no.eudiw.rp.register.service.EntitlementService;
 import no.eudiw.rp.register.service.RelyingPartyService;
@@ -48,6 +53,39 @@ class V1ApiServiceTest {
             anyString(), anyList(), anyBoolean(), anyBoolean(), pageRequest.capture()
         );
         assertEquals(expectedSort, pageRequest.getValue().getSort());
+    }
+
+    @Test
+    @DisplayName("Should keep different URLs for role URIs with different letter case or space characters")
+    void shouldKeepDifferentUrlsForRoleUrisWithDifferentLetterCaseOrSpaceCharacters() {
+        RelyingPartyService relyingPartyService = mock(RelyingPartyService.class);
+        V1ContractMapper mapper = mock(V1ContractMapper.class);
+        V1ApiService service = new V1ApiService(
+            relyingPartyService,
+            mock(RelyingPartyCertificateService.class),
+            mock(EntitlementService.class),
+            mock(CredentialIssuersService.class),
+            mapper
+        );
+        List<String> roles = List.of("https://roles.example/issuer", "https://roles.example/Issuer",
+            "https://roles.example/issuer ");
+        List<RelyingPartyEntitlementResource> entitlements = List.of(
+            new RelyingPartyEntitlementResource(roles.get(0), "Issuer", "https://issuer.example/first"),
+            new RelyingPartyEntitlementResource(roles.get(1), "Issuer", "https://issuer.example/second"),
+            new RelyingPartyEntitlementResource(roles.get(2), "Issuer", "https://issuer.example/third")
+        );
+        when(mapper.toDomainRelyingPartyEntitlements(entitlements)).thenReturn(List.of());
+        when(mapper.toDomainRelyingPartyEaas(List.of())).thenReturn(List.of());
+
+        service.createRelyingParty(new CreateRelyingPartyResource("123456789", "Service", entitlements, List.of()));
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<ServiceCredentialIssuerUrl>> urls = ArgumentCaptor.forClass(List.class);
+        verify(relyingPartyService).createRelyingParty(
+            eq("123456789"), eq("Service"), eq(List.of()), eq(List.of()), urls.capture());
+        assertEquals(roles, urls.getValue().stream().map(ServiceCredentialIssuerUrl::getEntitlement).toList());
+        assertEquals(entitlements.stream().map(RelyingPartyEntitlementResource::credentialIssuerUrl).toList(),
+            urls.getValue().stream().map(ServiceCredentialIssuerUrl::getCredentialIssuerUrl).toList());
     }
 
     private static Stream<Arguments> sortKeys() {

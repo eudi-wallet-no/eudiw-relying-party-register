@@ -1,5 +1,6 @@
 package no.eudiw.rp.register.api.v2;
 
+import jakarta.persistence.EntityManagerFactory;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RegistrationDetailsResponse;
 import no.eudiw.rp.register.api.v2.resource.IdentifierResource;
 import no.eudiw.rp.register.api.v2.resource.LawResource;
@@ -10,6 +11,8 @@ import no.eudiw.rp.register.api.v2.resource.ProvidedAttestationResource;
 import no.eudiw.rp.register.api.v2.resource.ServiceReferenceResource;
 import no.eudiw.rp.register.api.v2.resource.SupervisoryAuthorityResource;
 import no.eudiw.rp.register.domain.Entitlement;
+import no.eudiw.rp.register.domain.WalletRelyingParty;
+import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 import no.eudiw.rp.register.domain.certificates.AccessCertificate;
 import no.eudiw.rp.register.domain.certificates.IssuerCertificate;
 import no.eudiw.rp.register.domain.certificates.PKCS10CertificationRequestConverter;
@@ -20,7 +23,9 @@ import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.repository.WalletRelyingPartyServiceRepository;
 import no.eudiw.rp.register.testdata.CertificatesGenerator;
+import no.eudiw.rp.register.testdata.EntityGenerator;
 import no.eudiw.rp.register.testdata.TestDataGenerator;
+import org.hibernate.SessionFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -43,6 +48,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ObjectNode;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -100,6 +106,8 @@ class V2ApiIntegrationTest {
     private EntitlementRepository entitlementRepository;
     @Autowired
     private PlatformTransactionManager transactionManager;
+    @Autowired
+    private EntityManagerFactory entityManagerFactory;
     @MockitoBean
     private CertificateServiceClient certificateServiceClient;
 
@@ -117,6 +125,66 @@ class V2ApiIntegrationTest {
             relyingPartyInstanceRepository.deleteAll();
             relyingPartyRepository.deleteAll();
             entitlementRepository.delete(testEntitlement);
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"v1", "v2"})
+    @DisplayName("Should return issuer URLs with batched queries for instance search")
+    void shouldReturnIssuerUrlsWithBatchedQueriesForInstanceSearch(String apiVersion) throws Exception {
+        String role = " urn:example:Issuer ";
+        List<WalletRelyingPartyService> services = new ArrayList<>();
+        for (int index = 0; index < 100; index++) {
+            var instance = EntityGenerator.generateRelyingPartyInstance(
+                "Batch service " + index, List.of(new RelyingPartyEntitlement(role)), List.of(), List.of());
+            var service = instance.getWalletRelyingPartyService();
+
+            if (index % 2 == 0) {
+                service.setCredentialIssuerUrl(role, "https://issuer.example/Issuer/" + index + " ");
+            }
+
+            services.add(service);
+        }
+
+        relyingPartyRepository.saveAndFlush(new WalletRelyingParty(
+            "Batch party", TestDataGenerator.generateValidOrgno(), true, services));
+
+        var statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
+        boolean statisticsWereEnabled = statistics.isStatisticsEnabled();
+        statistics.setStatisticsEnabled(true);
+        statistics.clear();
+        try {
+            JsonNode response = apiVersion.equals("v1")
+                ? read(post("/v1/rp/search"), "{\"search_term\":\"\",\"page_size\":100}")
+                : read(get("/v2/instances").param("pageSize", "100"));
+            JsonNode content = response.get("content");
+            assertEquals(100, content.size());
+
+            for (JsonNode instance : content) {
+                String serviceName = instance.get(apiVersion.equals("v1") ? "name" : "serviceTradeName").asString();
+                int index = Integer.parseInt(serviceName.substring("Batch service ".length()));
+                JsonNode roles = instance.get(apiVersion.equals("v1")
+                    ? "relying_party_entitlements" : "relyingPartyEntitlements");
+
+                assertEquals(1, roles.size());
+                assertEquals(role, roles.get(0).get("entitlement").asString());
+
+                JsonNode issuerUrl = roles.get(0).path(apiVersion.equals("v1")
+                    ? "credential_issuer_url" : "credentialIssuerUrl");
+
+                if (index % 2 == 0) {
+                    assertEquals("https://issuer.example/Issuer/" + index + " ", issuerUrl.asString());
+                } else {
+                    assertTrue(issuerUrl.isMissingNode() || issuerUrl.isNull());
+                }
+            }
+
+            var urlStatistics = statistics.getCollectionStatistics(
+                WalletRelyingPartyService.class.getName() + ".credentialIssuerUrls");
+            assertEquals(100, urlStatistics.getLoadCount());
+            assertEquals(2, urlStatistics.getFetchCount());
+        } finally {
+            statistics.setStatisticsEnabled(statisticsWereEnabled);
         }
     }
 
@@ -486,6 +554,7 @@ class V2ApiIntegrationTest {
             {"relyingPartyEaas":[{"namespace":"example","intent":"read"}]}
             """;
         String instancePath = registration.relyingPartyInstancePath();
+        setServiceIssuerUrl(registration, entitlementValue, "https://issuer.example.test/Issuer");
         JsonNode registered = read(patch(instancePath + "/entitlements"), roles);
 
         JsonNode updatedEaas = read(patch(instancePath + "/eaas"), eaas);
@@ -493,6 +562,7 @@ class V2ApiIntegrationTest {
         assertEquals("example", updatedEaas.at("/relyingPartyEaas/0/namespace").asString());
         assertEquals("read", updatedEaas.at("/relyingPartyEaas/0/intent").asString());
 
+        setServiceIssuerUrl(registration, entitlementValue, "https://changed.example.test/Issuer");
         JsonNode updatedRoles = read(patch(instancePath + "/entitlements"),
             roles.replace("https://issuer.example.test/Issuer", "https://changed.example.test/Issuer"));
         assertEquals(updatedEaas.get("relyingPartyEaas"), updatedRoles.get("relyingPartyEaas"));
@@ -524,6 +594,7 @@ class V2ApiIntegrationTest {
             {"relyingPartyEntitlements":[{"entitlement":"%s","credentialIssuerUrl":"https://issuer.example.test"}]}
             """.formatted(entitlementValue);
         String instancePath = registration.relyingPartyInstancePath();
+        setServiceIssuerUrl(registration, entitlementValue, "https://issuer.example.test");
         read(patch(instancePath + "/entitlements"), roles);
         testEntitlement.setActive(false);
         entitlementRepository.saveAndFlush(testEntitlement);
@@ -631,6 +702,10 @@ class V2ApiIntegrationTest {
                 List.of(Map.of("entitlement", entitlementValue, "credentialIssuerUrl", issuerUrl)))))
             .andExpect(status().isBadRequest());
 
+        request(patch(registration.relyingPartyServicePath() + "/credential-issuer-urls"),
+            objectMapper.writeValueAsString(List.of(Map.of("entitlement", entitlementValue, "credentialIssuerUrl", issuerUrl))))
+            .andExpect(status().isBadRequest());
+
         assertEquals(1, relyingPartyInstanceRepository.count());
         assertEquals(before, read(get(registration.relyingPartyInstancePath())));
     }
@@ -646,12 +721,16 @@ class V2ApiIntegrationTest {
              "relyingPartyEaas":[]}
             """.formatted(entitlementValue);
 
+        setServiceIssuerUrl(registration, entitlementValue, "https://issuer.example.test/Issuer");
         JsonNode issuer = read(post(registration.relyingPartyServicePath() + "/instances"), content);
         String issuerPath = "/v2/instances/" + issuer.get("id").asString();
         assertEquals("https://issuer.example.test/Issuer", read(get(issuerPath))
             .at("/relyingPartyEntitlements/0/credentialIssuerUrl").asString());
 
-        read(put(issuerPath), content.replace("\"https://issuer.example.test/Issuer\"", "null"));
+        request(put(issuerPath), content.replace("\"https://issuer.example.test/Issuer\"", "null"))
+            .andExpect(status().isBadRequest());
+        setServiceIssuerUrl(registration, entitlementValue, null);
+        read(put(issuerPath), content.replace(",\"credentialIssuerUrl\":\"https://issuer.example.test/Issuer\"", ""));
 
         assertTrue(read(get(issuerPath)).at("/relyingPartyEntitlements/0/credentialIssuerUrl").isNull());
     }
@@ -684,8 +763,9 @@ class V2ApiIntegrationTest {
         String entitlementValue = "urn:test:issuer:" + UUID.randomUUID();
         testEntitlement = entitlementRepository.saveAndFlush(new Entitlement(entitlementValue, true, "Issuer", "test-ca"));
         var instance = relyingPartyInstanceRepository.findById(UUID.fromString(registration.relyingPartyInstanceId())).orElseThrow();
-        var entitlement = new RelyingPartyEntitlement(entitlementValue, "https://issuer.example.test");
+        var entitlement = new RelyingPartyEntitlement(entitlementValue);
         instance.setRelyingPartyEntitlements(List.of(entitlement));
+        setServiceIssuerUrl(registration, entitlementValue, "https://issuer.example.test");
         var issuerCertificate = new IssuerCertificate(CertificatesGenerator.generateX509Certificate(), "test-ca", entitlement);
 
         if (revoked) {
@@ -710,6 +790,7 @@ class V2ApiIntegrationTest {
         JsonNode before = read(get(registration.relyingPartyInstancePath()));
         request(put(registration.relyingPartyInstancePath()), RELYING_PARTY_INSTANCE).andExpect(status().isBadRequest());
         assertEquals(before, read(get(registration.relyingPartyInstancePath())));
+        setServiceIssuerUrl(registration, entitlementValue, "https://changed.example.test");
         JsonNode changed = read(put(registration.relyingPartyInstancePath()),
             content.replace("https://issuer.example.test", "https://changed.example.test"));
         assertEquals("https://changed.example.test",
@@ -719,9 +800,11 @@ class V2ApiIntegrationTest {
         String roles = """
             {"relyingPartyEntitlements":[{"entitlement":"%s","credentialIssuerUrl":"https://separate.example.test"}]}
             """.formatted(entitlementValue);
+        setServiceIssuerUrl(registration, entitlementValue, "https://separate.example.test");
         read(patch(registration.relyingPartyInstancePath() + "/entitlements"), roles);
         request(patch(registration.relyingPartyInstancePath() + "/entitlements"), "{\"relyingPartyEntitlements\":[]}")
             .andExpect(status().isBadRequest());
+        setServiceIssuerUrl(registration, entitlementValue, null);
         read(patch(registration.relyingPartyInstancePath() + "/entitlements"),
             roles.replace("\"https://separate.example.test\"", "null"));
 
@@ -899,8 +982,9 @@ class V2ApiIntegrationTest {
         testEntitlement = entitlementRepository.saveAndFlush(new Entitlement(entitlementUri, false, "Issuer", "test-ca"));
         var relyingPartyInstance = relyingPartyInstanceRepository.findById(UUID.fromString(registration.relyingPartyInstanceId()))
             .orElseThrow();
-        var relyingPartyEntitlement = new RelyingPartyEntitlement(entitlementUri, "https://issuer.example.test");
+        var relyingPartyEntitlement = new RelyingPartyEntitlement(entitlementUri);
         relyingPartyInstance.setRelyingPartyEntitlements(List.of(relyingPartyEntitlement));
+        setServiceIssuerUrl(registration, entitlementUri, "https://issuer.example.test");
         var issuerCertificate = new IssuerCertificate(
             CertificatesGenerator.generateX509Certificate(), "test-ca", relyingPartyEntitlement);
         relyingPartyEntitlement.addIssuerCertificate(issuerCertificate);
@@ -1014,6 +1098,148 @@ class V2ApiIntegrationTest {
         request.set(field, objectMapper.readTree("[" + reference + "]"));
 
         return request.toString();
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    @DisplayName("Should keep service URLs on instance updates and reject URL changes without other registration changes")
+    void shouldKeepServiceUrlsAndRejectInstanceUrlChangesWithoutStoringOtherChanges(boolean legacy) throws Exception {
+        String entitlement = "urn:test:issuer:" + UUID.randomUUID();
+        testEntitlement = entitlementRepository.saveAndFlush(new Entitlement(entitlement, true, "Issuer", "test-ca"));
+        String create = """
+            {"org_nr":"%s","name":"Original service",
+             "relying_party_entitlements":[{"entitlement":"%s","credential_issuer_url":"https://issuer.example.test"}],
+             "relying_party_eaas":[{"namespace":"original","intent":"read"}]}
+            """.formatted(TestDataGenerator.generateValidOrgno(), entitlement);
+        String id = read(post("/v1/rp"), create).get("id").asString();
+        String instancePath = "/v2/instances/" + id;
+        String path = legacy ? "/v1/rp/" + id : instancePath;
+        String rolesField = legacy ? "relying_party_entitlements" : "relyingPartyEntitlements";
+        String eaasField = legacy ? "relying_party_eaas" : "relyingPartyEaas";
+        String urlField = legacy ? "credential_issuer_url" : "credentialIssuerUrl";
+        String update = """
+            {%s"%s":[{"entitlement":"%s"%s}],"%s":[{"namespace":"changed","intent":"verify"}]}
+            """;
+        String metadata = legacy ? "\"name\":\"Changed service\",\"active\":false," : "";
+        JsonNode before = read(get(instancePath));
+        String addedRole = entitlement + ":added";
+        Entitlement addedEntitlement = entitlementRepository.saveAndFlush(
+            new Entitlement(addedRole, true, "Reader", "test-ca"));
+
+        for (String value : List.of("null", "\"https://stale.example.test\"")) {
+            String rejected = update.formatted(metadata, rolesField, entitlement, ",\"" + urlField + "\":" + value, eaasField)
+                .replace("}],\"" + eaasField, "},{\"entitlement\":\"" + addedRole + "\"}],\"" + eaasField);
+            request(put(path), rejected).andExpect(status().isBadRequest());
+            if (!legacy) {
+                request(patch(path + "/entitlements"),
+                    "{\"" + rolesField + "\":[{\"entitlement\":\"" + entitlement + "\",\"" + urlField + "\":" + value + "}]}")
+                    .andExpect(status().isBadRequest());
+            }
+            assertEquals(before, read(get(instancePath)));
+        }
+
+        read(put(path), update.formatted(metadata, rolesField, entitlement,
+            ",\"" + urlField + "\":\"https://issuer.example.test\"", eaasField));
+        read(put(path), update.formatted(metadata, rolesField, entitlement, "", eaasField));
+        assertEquals("https://issuer.example.test", read(get(instancePath))
+            .at("/relyingPartyEntitlements/0/credentialIssuerUrl").asString());
+        String serviceId = read(get(instancePath)).get("serviceId").asString();
+        read(patch("/v2/services/" + serviceId + "/credential-issuer-urls"),
+            "[{\"entitlement\":\"" + entitlement + "\",\"credentialIssuerUrl\":null}]");
+        read(put(path), update.formatted(metadata, rolesField, entitlement, ",\"" + urlField + "\":null", eaasField));
+        assertTrue(read(get(instancePath)).at("/relyingPartyEntitlements/0/credentialIssuerUrl").isNull());
+        entitlementRepository.delete(addedEntitlement);
+    }
+
+    @Test
+    @DisplayName("Should share service URLs by exact role and keep URLs when all instances remove the role")
+    void shouldShareServiceUrlsByExactRoleAndKeepUrlsWhenAllInstancesRemoveTheRole() throws Exception {
+        Registration registration = createRegistration();
+        String entitlement = "urn:test:issuer:" + UUID.randomUUID();
+        testEntitlement = entitlementRepository.saveAndFlush(new Entitlement(entitlement, true, "Issuer", "test-ca"));
+        String roles = "{\"relyingPartyEntitlements\":[{\"entitlement\":\"" + entitlement + "\"}]}";
+        String issuerUrl = "https://shared.example.test/Issuer";
+        setServiceIssuerUrl(registration, entitlement, issuerUrl);
+        setServiceIssuerUrl(registration, entitlement.toUpperCase(), "https://case.example.test/Issuer");
+        setServiceIssuerUrl(registration, entitlement + " ", "https://space.example.test/Issuer");
+        read(patch(registration.relyingPartyInstancePath() + "/entitlements"), roles);
+        JsonNode second = read(post(registration.relyingPartyServicePath() + "/instances"),
+            roles.replace("}]}", "}],\"relyingPartyEaas\":[{\"namespace\":\"separate\",\"intent\":\"read\"}]}"));
+        String secondPath = "/v2/instances/" + second.get("id").asString();
+        assertEquals(issuerUrl, second.at("/relyingPartyEntitlements/0/credentialIssuerUrl").asString());
+        JsonNode registry = read(get("/v2/credential-issuers"));
+        assertTrue(registry.get("credential_issuer_urls").toString().contains(issuerUrl));
+        assertFalse(registry.toString().contains("case.example.test"));
+        assertFalse(registry.toString().contains("space.example.test"));
+        request(post(registration.relyingPartyServicePath() + "/instances"),
+            "{\"relyingPartyEntitlements\":[{\"entitlement\":\"" + entitlement
+                + "\",\"credentialIssuerUrl\":\"https://stale.example.test\"}],\"relyingPartyEaas\":[]}")
+            .andExpect(status().isBadRequest());
+        assertEquals(2, read(get(registration.relyingPartyServicePath())).get("instanceIds").size());
+        request(patch(registration.relyingPartyInstancePath() + "/deactivate")).andExpect(status().isNoContent());
+        assertTrue(read(get("/v2/credential-issuers")).toString().contains(issuerUrl));
+        request(patch(secondPath + "/deactivate")).andExpect(status().isNoContent());
+        assertFalse(read(get("/v2/credential-issuers")).toString().contains(issuerUrl));
+        request(patch(registration.relyingPartyInstancePath() + "/activate")).andExpect(status().isNoContent());
+        request(patch(secondPath + "/activate")).andExpect(status().isNoContent());
+        setServiceIssuerUrl(registration, entitlement, "https://changed.example.test/Issuer");
+        assertEquals("https://changed.example.test/Issuer", read(get(secondPath))
+            .at("/relyingPartyEntitlements/0/credentialIssuerUrl").asString());
+        assertEquals("separate", read(get(secondPath)).at("/relyingPartyEaas/0/namespace").asString());
+
+        Registration otherService = createRegistration();
+        read(patch(otherService.relyingPartyInstancePath() + "/entitlements"), roles);
+        assertTrue(read(get(otherService.relyingPartyInstancePath())).at("/relyingPartyEntitlements/0/credentialIssuerUrl").isNull());
+
+        JsonNode otherServiceUrls = read(get(otherService.relyingPartyServicePath() + "/credential-issuer-urls"));
+        assertEquals(entitlement, otherServiceUrls.get(0).get("entitlement").asString());
+        assertTrue(otherServiceUrls.get(0).get("credentialIssuerUrl").isNull());
+
+        read(patch(registration.relyingPartyInstancePath() + "/entitlements"), "{\"relyingPartyEntitlements\":[]}");
+        read(patch(secondPath + "/entitlements"), "{\"relyingPartyEntitlements\":[]}");
+        assertFalse(read(get("/v2/credential-issuers")).toString().contains("changed.example.test"));
+        assertTrue(read(get(registration.relyingPartyServicePath() + "/credential-issuer-urls"))
+            .toString().contains("changed.example.test"));
+        read(patch(secondPath + "/entitlements"), roles);
+        assertEquals("https://changed.example.test/Issuer", read(get(secondPath))
+            .at("/relyingPartyEntitlements/0/credentialIssuerUrl").asString());
+        setServiceIssuerUrl(registration, entitlement, null);
+        assertTrue(read(get(secondPath)).at("/relyingPartyEntitlements/0/credentialIssuerUrl").isNull());
+        assertEquals(3, read(get(registration.relyingPartyServicePath() + "/credential-issuer-urls")).size());
+    }
+
+    @Test
+    @DisplayName("Should reject service URL access without authentication and reject invalid URL lists without configuration changes")
+    void shouldRejectUnauthenticatedServiceUrlAccessAndInvalidListsWithoutStoringChanges() throws Exception {
+        Registration registration = createRegistration();
+        String path = registration.relyingPartyServicePath() + "/credential-issuer-urls";
+        mockMvc.perform(get(path)).andExpect(status().isUnauthorized());
+        mockMvc.perform(patch(path).contentType(MediaType.APPLICATION_JSON).content("[]"))
+            .andExpect(status().isUnauthorized());
+        request(get("/v2/services/" + UUID.randomUUID() + "/credential-issuer-urls"))
+            .andExpect(status().isNotFound());
+        request(patch("/v2/services/" + UUID.randomUUID() + "/credential-issuer-urls"), "[]")
+            .andExpect(status().isNotFound());
+        setServiceIssuerUrl(registration, "urn:test:retained", "https://original.example.test");
+        JsonNode before = read(get(path));
+        read(patch(path), "[{\"entitlement\":\"urn:test:retained\"}]");
+        assertEquals(before, read(get(path)));
+        for (String body : List.of("[null]", "[{\"entitlement\":\" \"}]",
+            "[{\"entitlement\":\"urn:test:retained\",\"credentialIssuerUrl\":null},{\"entitlement\":\"urn:test:retained\"}]",
+            "[{\"entitlement\":\"urn:test:retained\",\"credentialIssuerUrl\":null},"
+                + "{\"entitlement\":\"urn:test:invalid\",\"credentialIssuerUrl\":\"HTTPS://issuer.example.test\"}]")) {
+            request(patch(path), body).andExpect(status().isBadRequest());
+            assertEquals(before, read(get(path)));
+        }
+        request(patch(registration.relyingPartyPath() + "/deactivate")).andExpect(status().isNoContent());
+        setServiceIssuerUrl(registration, "urn:test:retained", null);
+        assertTrue(read(get(path)).get(0).get("credentialIssuerUrl").isNull());
+    }
+
+    private void setServiceIssuerUrl(Registration registration, String entitlement, String credentialIssuerUrl) throws Exception {
+        read(patch(registration.relyingPartyServicePath() + "/credential-issuer-urls"),
+            "[{\"entitlement\":\"" + entitlement + "\",\"credentialIssuerUrl\":"
+                + (credentialIssuerUrl == null ? "null" : "\"" + credentialIssuerUrl + "\"") + "}]");
     }
 
     private Registration createRegistration() throws Exception {

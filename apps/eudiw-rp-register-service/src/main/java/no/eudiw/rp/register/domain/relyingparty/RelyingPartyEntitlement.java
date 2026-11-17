@@ -21,9 +21,6 @@ public class RelyingPartyEntitlement extends BaseEntity {
     @Column(name = "entitlement", nullable = false)
     private String entitlement;
 
-    @Column(name = "credential_issuer_url")
-    private String credentialIssuerUrl;
-
     @ManyToOne
     @JoinColumn(name = "relying_party_instance_id",
         columnDefinition = "UUID",
@@ -46,11 +43,13 @@ public class RelyingPartyEntitlement extends BaseEntity {
     }
 
     public RelyingPartyEntitlement(String entitlement) {
-        this(entitlement, null);
-    }
-    public RelyingPartyEntitlement(String entitlement, String credentialIssuerUrl) {
         this.entitlement = entitlement;
-        this.credentialIssuerUrl = credentialIssuerUrl;
+    }
+
+    public String getCredentialIssuerUrl() {
+        return relyingPartyInstance == null || relyingPartyInstance.getWalletRelyingPartyService() == null
+            ? null
+            : relyingPartyInstance.getWalletRelyingPartyService().getCredentialIssuerUrl(entitlement);
     }
 
     // for JPA instantiation.

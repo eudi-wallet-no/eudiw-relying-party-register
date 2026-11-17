@@ -7,6 +7,7 @@ import no.idporten.eudiw.rp.admin.service.MockWebServerConfiguration;
 import no.idporten.eudiw.rp.admin.service.accesscertificates.PKCS10CertificationRequestConverter;
 import no.idporten.eudiw.rp.admin.testdata.CertificatesGenerator;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
+import no.idporten.eudiw.rp.admin.web.form.ServiceCredentialIssuerUrlsForm;
 import no.idporten.eudiw.rp.admin.web.resource.PagedResponse;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyEntitlementResource;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyResource;
@@ -53,6 +54,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(MockWebServerConfiguration.class)
 class RegistrationWorkflowTests {
 
+    private static final String SERVICE_CREDENTIAL_ISSUER_URLS_PATH = "/service/credential-issuer-urls/edit/";
+    private static final String RETAINED_ROLE = " urn:Retained/Role+Case ";
+
+
     @Autowired
     private MockMvc mockMvc;
     @Autowired
@@ -69,6 +74,7 @@ class RegistrationWorkflowTests {
     private String expectedRolesRequest;
     private String expectedEaasRequest;
     private String expectedServiceInformation;
+    private String expectedCredentialIssuerUrls;
 
     @BeforeEach
     void setUp() {
@@ -119,6 +125,12 @@ class RegistrationWorkflowTests {
                 assertEquals(jsonMapper.readTree(expectedRolesRequest),
                     jsonMapper.readTree(request.getBody().readUtf8()));
             }
+
+            if (expectedCredentialIssuerUrls != null && "PATCH".equals(request.getMethod())) {
+                assertEquals(jsonMapper.readTree(expectedCredentialIssuerUrls),
+                    jsonMapper.readTree(request.getBody().readUtf8()));
+            }
+
             if (expectedEaasRequest != null && "PATCH".equals(request.getMethod())) {
                 assertEquals(jsonMapper.readTree(expectedEaasRequest),
                     jsonMapper.readTree(request.getBody().readUtf8()));
@@ -554,27 +566,27 @@ class RegistrationWorkflowTests {
         enqueueRoleCatalog();
         mockMvc.perform(get(editLink).with(login(true)))
             .andExpectAll(status().isOk(), view().name("roles_form_view"),
-                content().string(allOf(containsString("Second role"), containsString("https://issuer.test"),
+                content().string(allOf(containsString("Second role"), not(containsString("credentialIssuerUrl")),
                     containsString("Rollen er koblet til utstedarsertifikat"), containsString("name=\"entitlements[1].entitlement\""),
                     containsString("Avbryt"), containsString("Tilbake til registreringa"))));
     }
 
     @Test
-    @DisplayName("Should save roles and issuer URLs for an administrator without sending submitted EAA values")
-    void shouldSaveRolesAndIssuerUrlsWithoutSendingSubmittedEaas() throws Exception {
+    @DisplayName("Should save instance roles without URLs or EAA values")
+    void shouldSaveInstanceRolesWithoutUrlsOrEaaValues() throws Exception {
         enqueueLookup();
         enqueueRoleCatalog();
         expectedRolesRequest = """
             {"relyingPartyEntitlements":[
-               {"entitlement":"%s","credentialIssuerUrl":"https://issuer.test"},
-               {"entitlement":"urn:second","credentialIssuerUrl":"https://second.test"}]}
+               {"entitlement":"%s"},
+               {"entitlement":"urn:second"}]}
             """.formatted(QEAA);
         enqueue("PATCH", "/v2/instances/" + relyingPartyResource.id() + "/entitlements", "{}");
 
         String redirect = mockMvc.perform(post("/roles/edit/" + relyingPartyResource.id()).with(login(true)).with(csrf())
                 .param("returnUrl", "/search?searchTerm=abc")
                 .param("entitlements[0].entitlement", QEAA)
-                .param("entitlements[0].credentialIssuerUrl", "https://issuer.test")
+                .param("entitlements[0].credentialIssuerUrl", "http://stale.test")
                 .param("entitlements[1].entitlement", "urn:second")
                 .param("entitlements[1].credentialIssuerUrl", " https://second.test ")
                 .param("eaas[0].namespace", "eu.europa.ec.eudi.pid").param("eaas[0].intent", "login")
@@ -595,7 +607,7 @@ class RegistrationWorkflowTests {
         enqueueLookup();
         enqueueRoleCatalog();
         expectedRolesRequest = """
-            {"relyingPartyEntitlements":[{"entitlement":"urn:second","credentialIssuerUrl":"https://second.test"}]}
+            {"relyingPartyEntitlements":[{"entitlement":"urn:second"}]}
             """;
         enqueue("PATCH", "/v2/instances/" + relyingPartyResource.id() + "/entitlements", "{}");
 
@@ -607,19 +619,19 @@ class RegistrationWorkflowTests {
     }
 
     @Test
-    @DisplayName("Should save issuer URLs for self-service without sending submitted EAA values")
-    void shouldSaveIssuerUrlsForSelfServiceWithoutSendingSubmittedEaas() throws Exception {
+    @DisplayName("Should keep self-service roles without URLs or EAA values")
+    void shouldKeepSelfServiceRolesWithoutUrlsOrEaaValues() throws Exception {
         enqueueLookup();
         String form = mockMvc.perform(get("/roles/edit/" + relyingPartyResource.id()).with(login(false)))
             .andExpect(status().isOk())
             .andReturn().getResponse().getContentAsString();
         assertFalse(form.contains("type=\"checkbox\""), "Self-service must not get role checkboxes");
         assertFalse(form.contains("for=\"role-0\""), "Self-service role names must not label a missing checkbox");
-        assertTrue(form.contains("Berre administrator kan leggje til eller fjerne roller"));
+        assertTrue(form.contains("Bare administratoren kan legge til eller fjerne roller"));
 
         enqueueLookup();
         expectedRolesRequest = """
-            {"relyingPartyEntitlements":[{"entitlement":"%s","credentialIssuerUrl":"https://issuer.test"}]}
+            {"relyingPartyEntitlements":[{"entitlement":"%s"}]}
             """.formatted(QEAA);
         enqueue("PATCH", "/v2/instances/" + relyingPartyResource.id() + "/entitlements", "{}");
         mockMvc.perform(post("/roles/edit/" + relyingPartyResource.id()).with(login(false)).with(csrf())
@@ -643,21 +655,6 @@ class RegistrationWorkflowTests {
             default -> request.param("entitlements[0].entitlement", "urn:other");
         }
         mockMvc.perform(request).andExpectAll(status().isNotFound(), view().name("error/404"));
-    }
-
-    @Test
-    @DisplayName("Should keep entered values and show field errors when an issuer URL is not https")
-    void shouldShowFieldErrorForInvalidIssuerUrl() throws Exception {
-        enqueueLookup();
-        enqueueRoleCatalog();
-        mockMvc.perform(post("/roles/edit/" + relyingPartyResource.id()).with(login(true)).with(csrf())
-                .param("entitlements[0].entitlement", QEAA)
-                .param("entitlements[0].credentialIssuerUrl", "http://insecure.test")
-                .param("eaas[0].namespace", "ns").param("eaas[0].intent", "purpose"))
-            .andExpectAll(status().isOk(), view().name("roles_form_view"),
-                content().string(allOf(containsString("http://insecure.test"), containsString("Rett feila før du lagrar"),
-                    containsString("aria-invalid=\"true\""), containsString("ikkje ein gyldig HTTPS-URL"),
-                    containsString("autofocus"))));
     }
 
     @Test
@@ -695,8 +692,8 @@ class RegistrationWorkflowTests {
                 .param("entitlements[1].entitlement", "urn:second")
                 .param("entitlements[1].credentialIssuerUrl", "https://second.test"))
             .andExpectAll(status().isOk(), view().name("roles_form_view"),
-                content().string(allOf(containsString("Endringa kunne ikkje lagrast"),
-                    containsString("https://second.test"), containsString("Rett feila før du lagrar"))));
+                content().string(allOf(containsString("Endringen kunne ikke lagres"),
+                    containsString("Second role"), containsString("Rett feila før du lagrar"))));
     }
 
     @Test
@@ -878,6 +875,174 @@ class RegistrationWorkflowTests {
                 content().string(containsString("Ugyldig tenestenamn")));
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    @DisplayName("Should show service URLs to owners and administrators when registrations are not active")
+    void shouldShowServiceUrlsToOwnersAndAdministratorsWhenRegistrationsAreNotActive(boolean administrator) throws Exception {
+        relyingPartyResource = relyingPartyResource.withActive(false);
+        enqueueLookup();
+        var credentialIssuerUrls = List.of(
+            new V2RegisterClient.ServiceCredentialIssuerUrl(QEAA, null),
+            new V2RegisterClient.ServiceCredentialIssuerUrl(RETAINED_ROLE, "https://issuer.test/Case+Path"),
+            new V2RegisterClient.ServiceCredentialIssuerUrl(
+                "https://uri.etsi.org/19475/Entitlement/Service_Provider", "https://provider.test"));
+        enqueue("GET", "/v2/services/" + relyingPartyServiceId + "/credential-issuer-urls", credentialIssuerUrls);
+        enqueueCredentialIssuerUrlRoleCatalog();
+
+        mockMvc.perform(get(SERVICE_CREDENTIAL_ISSUER_URLS_PATH + relyingPartyResource.id()).with(login(administrator)))
+            .andExpectAll(status().isOk(), model().attribute("credentialIssuerUrls", credentialIssuerUrls));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    @DisplayName("Should save changed service URLs together")
+    void shouldSaveChangedServiceUrlsTogether(boolean administrator) throws Exception {
+        enqueueLookup();
+        enqueue("GET", "/v2/services/" + relyingPartyServiceId + "/credential-issuer-urls", List.of(
+            new V2RegisterClient.ServiceCredentialIssuerUrl(QEAA, "https://issuer.test"),
+            new V2RegisterClient.ServiceCredentialIssuerUrl(RETAINED_ROLE, "https://retained.test"),
+            new V2RegisterClient.ServiceCredentialIssuerUrl("urn:test:legacy", "http://old.test")));
+        expectedCredentialIssuerUrls = jsonMapper.writeValueAsString(List.of(
+            new V2RegisterClient.ServiceCredentialIssuerUrl(RETAINED_ROLE, "https://issuer.test/NewPath"),
+            new V2RegisterClient.ServiceCredentialIssuerUrl(QEAA, null)));
+        enqueue("PATCH", "/v2/services/" + relyingPartyServiceId + "/credential-issuer-urls", "[]");
+
+        mockMvc.perform(post(SERVICE_CREDENTIAL_ISSUER_URLS_PATH + relyingPartyResource.id())
+                .with(login(administrator)).with(csrf())
+                .param("credentialIssuerUrls[0].entitlement", RETAINED_ROLE)
+                .param("credentialIssuerUrls[0].originalCredentialIssuerUrl", "https://retained.test")
+                .param("credentialIssuerUrls[0].credentialIssuerUrl", "https://issuer.test/NewPath")
+                .param("credentialIssuerUrls[1].entitlement", QEAA)
+                .param("credentialIssuerUrls[1].originalCredentialIssuerUrl", "https://issuer.test")
+                .param("credentialIssuerUrls[1].credentialIssuerUrl", "")
+                .param("credentialIssuerUrls[2].entitlement", "urn:test:legacy")
+                .param("credentialIssuerUrls[2].originalCredentialIssuerUrl", "http://old.test")
+                .param("credentialIssuerUrls[2].credentialIssuerUrl", "http://old.test")
+                .param("serviceId", UUID.randomUUID().toString()).param("active", "false")
+                .param("returnUrl", "/search?searchTerm=abc"))
+            .andExpectAll(status().is3xxRedirection(), redirectedUrlPattern("/details/" + relyingPartyResource.id() + "?returnUrl=*"));
+    }
+
+    @Test
+    @DisplayName("Should keep service URLs when no field changes")
+    void shouldKeepServiceUrlsWhenNoFieldChanges() throws Exception {
+        enqueueLookup();
+        enqueueCredentialIssuerUrls();
+
+        mockMvc.perform(post(SERVICE_CREDENTIAL_ISSUER_URLS_PATH + relyingPartyResource.id()).with(login(false)).with(csrf())
+                .param("credentialIssuerUrls[0].entitlement", QEAA)
+                .param("credentialIssuerUrls[0].originalCredentialIssuerUrl", "")
+                .param("credentialIssuerUrls[0].credentialIssuerUrl", " ")
+                .param("credentialIssuerUrls[1].entitlement", RETAINED_ROLE)
+                .param("credentialIssuerUrls[1].originalCredentialIssuerUrl", "http://old.test")
+                .param("credentialIssuerUrls[1].credentialIssuerUrl", "http://old.test"))
+            .andExpect(status().is3xxRedirection());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"http://issuer.test", "https:/missing-host", "HTTPS://issuer.test", " https://issuer.test "})
+    @DisplayName("Should reject all service URL changes when one URL is invalid")
+    void shouldRejectAllServiceUrlChangesWhenOneUrlIsInvalid(String url) throws Exception {
+        enqueueLookup();
+        enqueueCredentialIssuerUrls();
+        enqueueCredentialIssuerUrlRoleCatalog();
+
+        var result = mockMvc.perform(post(SERVICE_CREDENTIAL_ISSUER_URLS_PATH + relyingPartyResource.id())
+                .with(login(false)).with(csrf())
+                .param("credentialIssuerUrls[0].entitlement", QEAA)
+                .param("credentialIssuerUrls[0].originalCredentialIssuerUrl", "https://issuer.test")
+                .param("credentialIssuerUrls[0].credentialIssuerUrl", "https://issuer.test/NewPath")
+                .param("credentialIssuerUrls[1].entitlement", RETAINED_ROLE)
+                .param("credentialIssuerUrls[1].originalCredentialIssuerUrl", "https://retained.test")
+                .param("credentialIssuerUrls[1].credentialIssuerUrl", url))
+            .andExpectAll(status().isOk(), model().attributeHasFieldErrors("credentialIssuerUrlsForm", "credentialIssuerUrls[1].credentialIssuerUrl"))
+            .andReturn();
+        var form = (ServiceCredentialIssuerUrlsForm) result.getModelAndView().getModel().get("credentialIssuerUrlsForm");
+
+        assertEquals("https://issuer.test/NewPath", form.getCredentialIssuerUrls().get(0).getCredentialIssuerUrl());
+        assertEquals(RETAINED_ROLE, form.getCredentialIssuerUrls().get(1).getEntitlement());
+        assertEquals(url, form.getCredentialIssuerUrls().get(1).getCredentialIssuerUrl());
+        assertEquals("https://retained.test", form.getCredentialIssuerUrls().get(1).getOriginalCredentialIssuerUrl());
+    }
+
+    @Test
+    @DisplayName("Should keep all service URL values when the register rejects changes")
+    void shouldKeepAllServiceUrlValuesWhenRegisterRejectsChanges() throws Exception {
+        enqueueLookup();
+        enqueueCredentialIssuerUrls();
+        expectedRequests.add("PATCH /v2/services/" + relyingPartyServiceId + "/credential-issuer-urls");
+        server.enqueue(new MockResponse().setResponseCode(400).setHeader("Content-Type", "application/json")
+            .setBody("{\"error\":\"bad_request\",\"error_description\":\"Invalid URL\"}"));
+        enqueueCredentialIssuerUrlRoleCatalog();
+
+        var result = mockMvc.perform(post(SERVICE_CREDENTIAL_ISSUER_URLS_PATH + relyingPartyResource.id())
+                .with(login(false)).with(csrf())
+                .param("credentialIssuerUrls[0].entitlement", RETAINED_ROLE)
+                .param("credentialIssuerUrls[0].originalCredentialIssuerUrl", "https://retained.test")
+                .param("credentialIssuerUrls[0].credentialIssuerUrl", "https://issuer.test/NewPath")
+                .param("credentialIssuerUrls[1].entitlement", QEAA)
+                .param("credentialIssuerUrls[1].originalCredentialIssuerUrl", "https://issuer.test")
+                .param("credentialIssuerUrls[1].credentialIssuerUrl", ""))
+            .andExpectAll(status().isOk(), model().attributeHasErrors("credentialIssuerUrlsForm"))
+            .andReturn();
+        var form = (ServiceCredentialIssuerUrlsForm) result.getModelAndView().getModel().get("credentialIssuerUrlsForm");
+
+        assertEquals("https://issuer.test/NewPath", form.getCredentialIssuerUrls().get(0).getCredentialIssuerUrl());
+        assertEquals("", form.getCredentialIssuerUrls().get(1).getCredentialIssuerUrl());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    @DisplayName("Should reject a submitted role that is not in the service")
+    void shouldRejectSubmittedRoleNotInService(boolean changed) throws Exception {
+        enqueueLookup();
+        enqueueCredentialIssuerUrls();
+
+        mockMvc.perform(post(SERVICE_CREDENTIAL_ISSUER_URLS_PATH + relyingPartyResource.id())
+                .with(login(true)).with(csrf())
+                .param("credentialIssuerUrls[0].entitlement", QEAA)
+                .param("credentialIssuerUrls[0].originalCredentialIssuerUrl", "https://issuer.test")
+                .param("credentialIssuerUrls[0].credentialIssuerUrl", "https://issuer.test/NewPath")
+                .param("credentialIssuerUrls[1].entitlement", RETAINED_ROLE.strip())
+                .param("credentialIssuerUrls[1].originalCredentialIssuerUrl", "https://original.test")
+                .param("credentialIssuerUrls[1].credentialIssuerUrl", changed ? "https://issuer.test" : "https://original.test"))
+            .andExpectAll(status().isNotFound(), view().name("error/404"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"GET", "POST"})
+    @DisplayName("Should prevent service URL access for another organization")
+    void shouldPreventServiceUrlAccessForAnotherOrganization(String method) throws Exception {
+        enqueueLookup();
+        var request = method.equals("GET") ? get(SERVICE_CREDENTIAL_ISSUER_URLS_PATH + relyingPartyResource.id())
+            : post(SERVICE_CREDENTIAL_ISSUER_URLS_PATH + relyingPartyResource.id()).with(csrf());
+
+        mockMvc.perform(request.with(SecurityTestUtils.oidcLoginForOrgno("987654321")))
+            .andExpectAll(status().isNotFound(), view().name("error/404"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    @DisplayName("Should save instance roles without changing the role URI")
+    void shouldSaveInstanceRolesWithoutChangingRoleUri(boolean administrator) throws Exception {
+        relyingPartyResource = relyingPartyResource.withIssuerCertificates(List.of())
+            .withRelyingPartyEntitlements(List.of(new RelyingPartyEntitlementResource(RETAINED_ROLE, RETAINED_ROLE, null)));
+        enqueueLookup();
+
+        if (administrator) {
+            enqueueRoleCatalog();
+        }
+
+        expectedRolesRequest = """
+            {"relyingPartyEntitlements":[{"entitlement":"%s"}]}
+            """.formatted(RETAINED_ROLE);
+        enqueue("PATCH", "/v2/instances/" + relyingPartyResource.id() + "/entitlements", "{}");
+
+        mockMvc.perform(post("/roles/edit/" + relyingPartyResource.id()).with(login(administrator)).with(csrf())
+                .param("entitlements[0].entitlement", RETAINED_ROLE))
+            .andExpect(status().is3xxRedirection());
+    }
+
     private void enqueueRoleCatalog() {
         enqueue("GET", "/v2/entitlements?includeInactive=false", new V2RegisterClient.Entitlements(List.of(
             new V2RegisterClient.Entitlement(new UUID(0, 7), QEAA, true, "Issuer"),
@@ -897,6 +1062,18 @@ class RegistrationWorkflowTests {
 
     private RelyingPartyCertificateResource certificate(CertificateType certificateType) {
         return (certificateType == CertificateType.ISSUER ? relyingPartyResource.issuerCertificates() : relyingPartyResource.accessCertificates()).getFirst();
+    }
+
+    private void enqueueCredentialIssuerUrls() {
+        enqueue("GET", "/v2/services/" + relyingPartyServiceId + "/credential-issuer-urls", List.of(
+            new V2RegisterClient.ServiceCredentialIssuerUrl(QEAA, "https://issuer.test"),
+            new V2RegisterClient.ServiceCredentialIssuerUrl(RETAINED_ROLE, "https://retained.test")));
+    }
+
+    private void enqueueCredentialIssuerUrlRoleCatalog() {
+        enqueue("GET", "/v2/entitlements?includeInactive=true", new V2RegisterClient.Entitlements(List.of(
+            new V2RegisterClient.Entitlement(new UUID(0, 7), QEAA, true, "Issuer"),
+            new V2RegisterClient.Entitlement(new UUID(0, 8), "urn:second", false, "Second role"))));
     }
 
     private RelyingPartyCertificateResource activeCertificate(CertificateType certificateType) {

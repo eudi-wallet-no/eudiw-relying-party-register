@@ -22,6 +22,7 @@ import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyServiceInformationRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyServiceRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyServiceResponse;
+import no.eudiw.rp.register.api.v2.resource.RelyingPartyEntitlementResource;
 import no.eudiw.rp.register.config.RegistryProperties;
 import no.eudiw.rp.register.config.SupervisoryAuthorityProperties;
 import no.eudiw.rp.register.domain.Entitlement;
@@ -54,6 +55,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -185,6 +187,40 @@ public class V2ApiService {
         return RelyingPartyServiceResponse.from(findRelyingPartyService(relyingPartyServiceId));
     }
 
+    @Transactional(readOnly = true)
+    public List<RelyingPartyEntitlementResource> getCredentialIssuerUrls(UUID serviceId) {
+        WalletRelyingPartyService service = findRelyingPartyService(serviceId);
+        Set<String> entitlements = new LinkedHashSet<>();
+        service.getCredentialIssuerUrls().forEach(url -> entitlements.add(url.getEntitlement()));
+        service.getRelyingPartyInstances().forEach(instance -> instance.getRelyingPartyEntitlements()
+            .forEach(role -> entitlements.add(role.getEntitlement())));
+
+        return entitlements.stream()
+            .map(role -> new RelyingPartyEntitlementResource(
+                role, service.getCredentialIssuerUrl(role)))
+            .toList();
+    }
+
+    public List<RelyingPartyEntitlementResource> patchCredentialIssuerUrls(
+        UUID serviceId, List<RelyingPartyEntitlementResource> request
+    ) {
+        walletRelyingPartyRepository.findByServiceIdForUpdate(serviceId)
+            .orElseThrow(() -> new NotFoundException("Service not found"));
+        WalletRelyingPartyService service = findRelyingPartyService(serviceId);
+
+        long distinctRoles = request.stream().map(RelyingPartyEntitlementResource::entitlement).distinct().count();
+
+        if (distinctRoles != request.size()) {
+            throw new BadRequestException("Service roles must be unique");
+        }
+
+        request.stream().filter(item -> item.credentialIssuerUrlPresent())
+            .forEach(item -> service.setCredentialIssuerUrl(item.entitlement(), item.credentialIssuerUrl()));
+        walletRelyingPartyServiceRepository.saveAndFlush(service);
+
+        return getCredentialIssuerUrls(serviceId);
+    }
+
     public Page<RelyingPartyServiceResponse> searchRelyingPartyServices(
         UUID relyingPartyId,
         int page,
@@ -248,6 +284,7 @@ public class V2ApiService {
 
         var relyingPartyEntitlements = request.toDomainRelyingPartyEntitlements();
         relyingPartyService.validateEntitlements(relyingPartyEntitlements);
+        validateCredentialIssuerUrls(relyingPartyServiceEntity, request.relyingPartyEntitlements());
 
         RelyingPartyInstance relyingPartyInstance = new RelyingPartyInstance(
             relyingPartyEntitlements,
@@ -335,6 +372,8 @@ public class V2ApiService {
     ) {
         RelyingPartyInstance relyingPartyInstance = findRelyingPartyInstanceForUpdate(relyingPartyInstanceId);
         List<RelyingPartyEntitlement> requestedEntitlements = request.toDomainRelyingPartyEntitlements();
+        validateCredentialIssuerUrls(
+            relyingPartyInstance.getWalletRelyingPartyService(), request.relyingPartyEntitlements());
         validateInstanceEntitlements(relyingPartyInstance, requestedEntitlements);
         request.update(relyingPartyInstance, requestedEntitlements);
 
@@ -360,6 +399,8 @@ public class V2ApiService {
     ) {
         RelyingPartyInstance relyingPartyInstance = findRelyingPartyInstanceForUpdate(relyingPartyInstanceId);
         List<RelyingPartyEntitlement> requestedEntitlements = request.toDomain();
+        validateCredentialIssuerUrls(
+            relyingPartyInstance.getWalletRelyingPartyService(), request.relyingPartyEntitlements());
         validateInstanceEntitlements(relyingPartyInstance, requestedEntitlements);
         relyingPartyInstance.setRelyingPartyEntitlements(requestedEntitlements);
         relyingPartyInstance.setUpdated();
@@ -497,6 +538,15 @@ public class V2ApiService {
             .orElseThrow(() -> new NotFoundException("RelyingPartyInstance not found"));
 
         return findRelyingPartyInstance(relyingPartyInstanceId);
+    }
+
+    private void validateCredentialIssuerUrls(
+        WalletRelyingPartyService service,
+        List<RelyingPartyEntitlementResource> request
+    ) {
+        request.stream().filter(item -> item.credentialIssuerUrlPresent())
+            .forEach(item -> relyingPartyService.validateCredentialIssuerUrl(
+                service, item.entitlement(), item.credentialIssuerUrl()));
     }
 
     private void validateInstanceEntitlements(

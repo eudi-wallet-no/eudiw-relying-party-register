@@ -11,6 +11,7 @@ import no.eudiw.rp.register.api.v1.resource.relyingparty.CreateRelyingPartyResou
 import no.eudiw.rp.register.api.v1.resource.relyingparty.EditRelyingPartyResource;
 import no.eudiw.rp.register.api.v1.resource.relyingparty.RelyingPartyResource;
 import no.eudiw.rp.register.api.v1.resource.relyingparty.SearchRelyingPartyResource;
+import no.eudiw.rp.register.domain.ServiceCredentialIssuerUrl;
 import no.eudiw.rp.register.domain.Entitlement;
 import no.eudiw.rp.register.domain.certificates.AccessCertificate;
 import no.eudiw.rp.register.domain.certificates.IssuerCertificate;
@@ -28,7 +29,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -48,8 +51,17 @@ public class V1ApiService {
         List<RelyingPartyEntitlement> entitlements =
             v1ContractMapper.toDomainRelyingPartyEntitlements(request.relyingPartyEntitlements());
         List<RelyingPartyEaa> eaas = v1ContractMapper.toDomainRelyingPartyEaas(request.relyingPartyEaas());
+        Map<String, ServiceCredentialIssuerUrl> credentialIssuerUrls = new LinkedHashMap<>();
+        if (request.relyingPartyEntitlements() != null) {
+            request.relyingPartyEntitlements().forEach(item -> credentialIssuerUrls.put(
+                item.entitlement(), new ServiceCredentialIssuerUrl(item.entitlement(), item.credentialIssuerUrl())));
+        }
+
         RelyingPartyInstance createdInstance = relyingPartyService.createRelyingParty(
-            orgno, serviceTradeName, entitlements, eaas);
+            orgno, serviceTradeName, entitlements, eaas,
+            credentialIssuerUrls.values().stream()
+                .filter(item -> item.getCredentialIssuerUrl() != null)
+                .toList());
         return v1ContractMapper.toV1RelyingPartyResponse(createdInstance);
     }
 
@@ -64,7 +76,12 @@ public class V1ApiService {
             serviceTradeName,
             request.active(),
             entitlements,
-            eaas
+            eaas,
+            request.relyingPartyEntitlements() == null ? List.of() : request.relyingPartyEntitlements().stream()
+                .filter(item -> item.credentialIssuerUrlPresent())
+                .map(item -> new ServiceCredentialIssuerUrl(
+                    item.entitlement(), item.credentialIssuerUrl()))
+                .toList()
         );
         return v1ContractMapper.toV1RelyingPartyResponse(updatedInstance);
     }

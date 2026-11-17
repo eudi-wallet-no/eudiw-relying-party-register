@@ -101,7 +101,7 @@ public class V1ContractMapper {
         }
         return v1EntitlementResources.stream()
             .map(v1Entitlement -> new RelyingPartyEntitlement(
-                v1Entitlement.entitlement(), v1Entitlement.credentialIssuerUrl()))
+                v1Entitlement.entitlement()))
             .toList();
     }
 

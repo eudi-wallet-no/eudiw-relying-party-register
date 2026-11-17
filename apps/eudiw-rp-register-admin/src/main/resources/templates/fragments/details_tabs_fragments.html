@@ -233,6 +233,7 @@
     <section class="ds-card registration-card">
         <details class="ds-details">
             <summary><h2 class="ds-heading" data-size="sm">Teneste</h2></summary>
+            <div class="registration-data-section">
             <div class="registration-section-bar">
                 <h3 id="service-information-heading" class="ds-heading" data-size="sm">Opplysningar om tenesta</h3>
                 <a th:href="${'/service/edit/' + relyingPartyResource.id + '?returnUrl=' + #uris.escapeQueryParam(searchUrlAttr ?: '/search')}"
@@ -323,18 +324,28 @@
                     </tbody>
                 </table>
             </div>
+            </div>
+
+            <div class="registration-data-section">
+                <div class="registration-section-bar">
+                    <h3 class="ds-heading" data-size="sm">Utstedar-URL-ar for tenesta</h3>
+                    <a th:href="${'/service/credential-issuer-urls/edit/' + relyingPartyResource.id + '?returnUrl=' + #uris.escapeQueryParam(searchUrlAttr ?: '/search')}"
+                       class="ds-button fit-width" data-variant="secondary" data-size="sm">Rediger utstedar-URL-ar</a>
+                </div>
+                <p class="ds-paragraph">Utstedar-URL-en er felles for instansane som har same rolle i tenesta.</p>
+            </div>
         </details>
     </section>
 
     <section class="ds-card registration-card">
         <details class="ds-details">
-            <summary><h2 class="ds-heading" data-size="sm">Roller og bevistypar</h2></summary>
+            <summary><h2 class="ds-heading" data-size="sm">Roller og bevistypar for instansen</h2></summary>
             <div>
             <div class="registration-data-section">
             <div class="registration-section-bar">
                 <h3 class="ds-heading" data-size="sm">Roller</h3>
                 <a th:href="${'/roles/edit/' + relyingPartyResource.id + '?returnUrl=' + #uris.escapeQueryParam(searchUrlAttr ?: '/search')}"
-                   class="ds-button fit-width" data-variant="secondary" data-size="sm">Rediger roller og utstedar-URL</a>
+                   class="ds-button fit-width" data-variant="secondary" data-size="sm">Rediger roller</a>
             </div>
 
             <div th:if="${ #lists.isEmpty(relyingPartyResource.relyingPartyEntitlements)}">
@@ -347,7 +358,7 @@
                     <thead>
                         <tr>
                             <th scope="col">Rolle</th>
-                            <th scope="col">Utstedar-URL</th>
+                            <th scope="col">Utstedar-URL frå tenesta</th>
                         </tr>
                     </thead>
                     <tbody>
