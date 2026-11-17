@@ -11,6 +11,7 @@ import no.idporten.eudiw.rp.register.lookup.web.resource.entitlement.Entitlement
 import no.idporten.eudiw.rp.register.lookup.web.resource.entitlement.EntitlementsResource;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
+import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -27,11 +28,13 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
 @SpringBootTest
@@ -116,7 +119,7 @@ public class RelyingPartiesServiceTest {
                 .withOrdering("orgno"));
         assertEquals(expectedSearchResultResource, actualSearchResultResource);
 
-        var searchRequest = mockWebServer.takeRequest();
+        var searchRequest = takeRequest("/v2/instances", "searchTerm", "register");
         assertEquals("GET", searchRequest.getMethod());
         assertEquals("/v2/instances", searchRequest.getRequestUrl().encodedPath());
         assertEquals("register", searchRequest.getRequestUrl().queryParameter("searchTerm"));
@@ -127,9 +130,22 @@ public class RelyingPartiesServiceTest {
         assertEquals("10", searchRequest.getRequestUrl().queryParameter("pageSize"));
         assertEquals("orgno", searchRequest.getRequestUrl().queryParameter("sort"));
 
-        var entitlementRequest = mockWebServer.takeRequest();
+        var entitlementRequest = takeRequest("/v2/entitlements", "includeInactive", "true");
         assertEquals("/v2/entitlements", entitlementRequest.getRequestUrl().encodedPath());
         assertEquals("true", entitlementRequest.getRequestUrl().queryParameter("includeInactive"));
+    }
+
+    private RecordedRequest takeRequest(String path, String queryParameter, String queryValue)
+        throws InterruptedException {
+        RecordedRequest request;
+        do {
+            request = mockWebServer.takeRequest(5, TimeUnit.SECONDS);
+        } while (request != null &&
+            (!path.equals(request.getRequestUrl().encodedPath()) ||
+             !queryValue.equals(request.getRequestUrl().queryParameter(queryParameter))));
+
+        assertNotNull(request, "Expected request to " + path + " with " + queryParameter + "=" + queryValue);
+        return request;
     }
 
     @Nested
