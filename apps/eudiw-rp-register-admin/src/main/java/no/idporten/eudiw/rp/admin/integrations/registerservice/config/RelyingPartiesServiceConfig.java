@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.rp.admin.integrations.registerservice.V2RegisterClientErrorHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
@@ -16,12 +15,6 @@ import java.net.URI;
 public class RelyingPartiesServiceConfig {
 
     private final RelyingPartiesServiceProperties rpServiceProperties;
-
-    @Bean
-    @Primary
-    public RestClient restClient(RestClient.Builder builder) {
-        return createRestClient(builder, "/v1");
-    }
 
     @Bean
     public RestClient v2RestClient(RestClient.Builder builder) {

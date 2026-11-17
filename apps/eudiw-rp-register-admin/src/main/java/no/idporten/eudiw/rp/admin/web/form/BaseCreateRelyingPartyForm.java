@@ -1,17 +1,14 @@
 package no.idporten.eudiw.rp.admin.web.form;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import no.idporten.eudiw.rp.admin.integrations.registerservice.V2RegisterClient;
 import no.idporten.eudiw.rp.admin.validation.SaneStringConstraint;
 import no.idporten.eudiw.rp.admin.validation.SaneStringValidator;
-import no.idporten.eudiw.rp.admin.web.resource.CreateRelyingPartyResource;
-import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyEntitlementResource;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @NoArgsConstructor
@@ -26,23 +23,15 @@ public class BaseCreateRelyingPartyForm {
     @NotBlank(message = "Tenestenamn må fyllast ut")
     private String tradeName = "";
 
-    @Valid
-    private List<@Valid RelyingPartyEaaFormField> eaas = new ArrayList<>();
+    public static final List<V2RegisterClient.RoleRequest> DEFAULT_NON_ADMIN_ENTITLEMENTS =
+        List.of(new V2RegisterClient.RoleRequest(
+            "https://uri.etsi.org/19475/Entitlement/Service_Provider"));
 
-    public static final List<RelyingPartyEntitlementResource> DEFAULT_NON_ADMIN_ENTITLEMENTS =
-        List.of(new RelyingPartyEntitlementResource(
-            "https://uri.etsi.org/19475/Entitlement/Service_Provider", null, null));
-
-    public CreateRelyingPartyResource toResource(String orgno) {
-        return new CreateRelyingPartyResource(
+    public V2RegisterClient.CreateInstanceRequest toRequest(String orgno) {
+        return new V2RegisterClient.CreateInstanceRequest(
             orgno,
             this.tradeName,
-            DEFAULT_NON_ADMIN_ENTITLEMENTS,
-            this.getEaas()
-                .stream()
-                .filter(RelyingPartyEaaFormField::isSet)
-                .map(RelyingPartyEaaFormField::toResource)
-                .toList()
+            DEFAULT_NON_ADMIN_ENTITLEMENTS
         );
     }
 }

@@ -1,7 +1,6 @@
 package no.idporten.eudiw.rp.admin.web.utils;
 
 import no.idporten.eudiw.rp.admin.web.form.BaseCreateRelyingPartyForm;
-import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEaaFormField;
 import no.idporten.eudiw.rp.admin.web.form.RelyingPartyEntitlementFormField;
 import no.idporten.eudiw.rp.admin.web.form.admin.AdminCreateRelyingPartyForm;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -24,24 +23,11 @@ public class WebTestUtils {
         return builder;
     }
 
-    public static MockHttpServletRequestBuilder withEaaFormFields(
-        MockHttpServletRequestBuilder builder,
-        List<RelyingPartyEaaFormField> eaaFormFields) {
-        int index = 0;
-        for (var eaa : eaaFormFields) {
-            builder = builder.param("eaas[%s].namespace".formatted(index), eaa.getNamespace())
-                             .param("eaas[%s].intent".formatted(index), eaa.getIntent());
-            index++;
-        }
-        return builder;
-    }
-
     public static MockHttpServletRequestBuilder withCreateForm(
         MockHttpServletRequestBuilder builder,
         BaseCreateRelyingPartyForm createForm) {
 
         builder = builder.param("tradeName", createForm.getTradeName());
-        builder = withEaaFormFields(builder, createForm.getEaas());
 
         return builder;
     }
@@ -52,7 +38,6 @@ public class WebTestUtils {
 
         builder = builder.param("tradeName", createForm.getTradeName());
         builder = builder.param("orgno", createForm.getOrgno());
-        builder = withEaaFormFields(builder, createForm.getEaas());
         builder = withEntitlementFormFields(builder, createForm.getEntitlements());
 
         return builder;

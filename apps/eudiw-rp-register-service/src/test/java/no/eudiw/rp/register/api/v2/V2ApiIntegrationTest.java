@@ -228,6 +228,34 @@ class V2ApiIntegrationTest {
     }
 
     @Test
+    @DisplayName("Should create instances for a new or existing organization")
+    void shouldCreateInstancesForNewOrExistingOrganization() throws Exception {
+        String orgno = TestDataGenerator.generateValidOrgno();
+        String entitlement = "urn:test:registration";
+        testEntitlement = entitlementRepository.saveAndFlush(
+            new Entitlement(entitlement, true, "Registration", "test-ca"));
+        String request = """
+            {"orgno":"%s","serviceTradeName":"Test service",
+             "relyingPartyEntitlements":[{"entitlement":"%s"}]}
+            """.formatted(orgno, entitlement);
+
+        JsonNode firstInstance = read(post("/v2/instances"), request);
+        JsonNode secondInstance = read(post("/v2/instances"),
+            request.replace("Test service", "Second service"));
+
+        assertAll(
+            () -> assertEquals(orgno, firstInstance.get("orgno").asString()),
+            () -> assertEquals("Test service", firstInstance.get("serviceTradeName").asString()),
+            () -> assertEquals(entitlement,
+                firstInstance.at("/relyingPartyEntitlements/0/entitlement").asString()),
+            () -> assertTrue(firstInstance.get("relyingPartyEaas").isEmpty()),
+            () -> assertNotEquals(firstInstance.get("id"), secondInstance.get("id")),
+            () -> assertEquals(1, relyingPartyRepository.count()),
+            () -> assertEquals(2, relyingPartyServiceRepository.count()),
+            () -> assertEquals(2, relyingPartyInstanceRepository.count()));
+    }
+
+    @Test
     @DisplayName("Should update service basic information and keep sub-roles, instances and intended uses")
     void shouldUpdateServiceBasicInformationAndKeepOtherServiceData() throws Exception {
         Registration registration = createRegistration();

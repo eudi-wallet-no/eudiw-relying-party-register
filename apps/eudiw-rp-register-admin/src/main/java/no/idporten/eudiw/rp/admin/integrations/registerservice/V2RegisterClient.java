@@ -29,6 +29,20 @@ public class V2RegisterClient {
         this.restClient = restClient;
     }
 
+    public UUID createInstance(CreateInstanceRequest request) {
+        InstanceCreation response = restClient.post()
+            .uri("/instances")
+            .body(request)
+            .retrieve()
+            .body(InstanceCreation.class);
+        if (response == null || response.id() == null) {
+            throw new UnrecognizedErrorResponseException(
+                "Unable to create instance: response is missing the instance ID");
+        }
+
+        return response.id();
+    }
+
     public List<Registration> getRegistrations(String orgno) {
         List<Registration> registrations = restClient.get()
             .uri(builder -> builder.path("/registrations").queryParam("orgno", orgno).build())
@@ -182,6 +196,15 @@ public class V2RegisterClient {
 
     public record ServiceCredentialIssuerUrl(String entitlement, String credentialIssuerUrl) {
     }
+
+    public record CreateInstanceRequest(
+        String orgno,
+        String serviceTradeName,
+        List<RoleRequest> relyingPartyEntitlements
+    ) { }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record InstanceCreation(UUID id) { }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record RelyingParty(UUID id, String orgno, String tradeName, String country,

@@ -70,6 +70,7 @@ services:
       - ${EUDIW_RP_REGISTER_SERVICE_ENV}
     environment:
       spring_profiles_active: docker
+      SPRING_FLYWAY_LOCATIONS: classpath:/db/migration,classpath:/mariadb/db/migration,classpath:/db/systest
     ports:
       - "127.0.0.1:9200:9200"
       - "127.0.0.1:9201:9201"

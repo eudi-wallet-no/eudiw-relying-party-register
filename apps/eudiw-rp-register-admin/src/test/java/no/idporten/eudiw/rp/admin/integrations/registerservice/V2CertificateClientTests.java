@@ -54,7 +54,7 @@ class V2CertificateClientTests {
         var config = new V2CertificateClientConfig(properties);
         httpClient = config.v2CertificateHttpClient();
         var client = new V2CertificateClient(config.v2CertificateRestClient(RestClient.builder(), httpClient));
-        service = new RelyingPartiesService(RestClient.builder().build(), null, client);
+        service = new RelyingPartiesService(null, client);
     }
 
     @AfterEach
