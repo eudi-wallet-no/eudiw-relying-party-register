@@ -80,6 +80,17 @@ public class EntityGenerator extends TestDataGenerator {
         return instance;
     }
 
+    public static void setRelyingPartyEntitlements(
+        RelyingPartyInstance instance, List<RelyingPartyEntitlement> entitlements
+    ) {
+        WalletRelyingPartyService service = instance.getWalletRelyingPartyService();
+        List<String> registeredEntitlements = new ArrayList<>(service.getEntitlements());
+        registeredEntitlements.addAll(entitlements.stream().map(RelyingPartyEntitlement::getEntitlement).toList());
+        service.setEntitlements(registeredEntitlements.stream().distinct().toList());
+
+        instance.setRelyingPartyEntitlements(entitlements);
+    }
+
     public static List<RelyingPartyInstance> instances(WalletRelyingParty walletRelyingParty) {
         return walletRelyingParty.getServices().stream()
             .flatMap(service -> service.getRelyingPartyInstances().stream())

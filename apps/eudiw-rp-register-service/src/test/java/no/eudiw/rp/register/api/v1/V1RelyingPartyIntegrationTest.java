@@ -3,11 +3,14 @@ package no.eudiw.rp.register.api.v1;
 import jakarta.persistence.EntityManager;
 import no.eudiw.rp.register.api.v1.resource.relyingparty.*;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
+import no.eudiw.rp.register.domain.certificates.AccessCertificate;
+import no.eudiw.rp.register.domain.certificates.IssuerCertificate;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.repository.WalletRelyingPartyServiceRepository;
 import no.eudiw.rp.register.exception.NotFoundException;
+import no.eudiw.rp.register.testdata.CertificatesGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -93,8 +96,8 @@ public class V1RelyingPartyIntegrationTest {
         RelyingPartyResource stored = relyingPartyService.findRelyingParty(result.id());
         var storedUrls = new TransactionTemplate(transactionManager).execute(status ->
             relyingPartyInstanceRepository.findById(result.id()).orElseThrow()
-                .getWalletRelyingPartyService().getCredentialIssuerUrls().stream()
-                .map(url -> url.getCredentialIssuerUrl()).toList()
+                .getWalletRelyingPartyService().getServiceEntitlements().stream()
+                .map(url -> url.getCredentialIssuerUrl()).filter(java.util.Objects::nonNull).toList()
         );
 
         assertEquals(1, stored.relyingPartyEntitlements().size());
@@ -121,15 +124,27 @@ public class V1RelyingPartyIntegrationTest {
     }
 
     @Test
-    void testDeleteRelyingParty() {
+    @DisplayName("Should delete the last instance with its certificates and service roles")
+    void shouldDeleteTheLastInstanceWithItsCertificatesAndServiceRoles() {
+        String role = "https://uri.etsi.org/19475/Entitlement/QEAA_Provider";
         CreateRelyingPartyResource createRelyingPartyResource = new CreateRelyingPartyResource(
             generateValidOrgno(),
             generateName(),
-            List.of(),
+            List.of(new RelyingPartyEntitlementResource(role, "QEAA Provider", "https://issuer.example.test")),
             List.of()
         );
 
         RelyingPartyResource result = relyingPartyService.createRelyingParty(createRelyingPartyResource);
+        new TransactionTemplate(transactionManager).executeWithoutResult(state -> {
+            var persisted = relyingPartyInstanceRepository.findById(result.id()).orElseThrow();
+            var selection = persisted.getRelyingPartyEntitlement(role).orElseThrow();
+            var issuerCertificate = new IssuerCertificate(CertificatesGenerator.generateX509Certificate(), "test-ca", selection);
+            issuerCertificate.revoke();
+            selection.addIssuerCertificate(issuerCertificate);
+            persisted.setAccessCertificates(List.of(
+                new AccessCertificate("test-ca", CertificatesGenerator.generateX509Certificate(), persisted)));
+            relyingPartyInstanceRepository.saveAndFlush(persisted);
+        });
         RelyingPartyInstance instance = relyingPartyInstanceRepository.findById(result.id()).orElseThrow();
         WalletRelyingParty walletRelyingParty = instance.getWalletRelyingPartyService().getWalletRelyingParty();
         var serviceId = instance.getWalletRelyingPartyService().getId();
@@ -139,6 +154,9 @@ public class V1RelyingPartyIntegrationTest {
 
         assertTrue(relyingPartyInstanceRepository.findById(result.id()).isEmpty());
         assertFalse(walletRelyingPartyServiceRepository.existsById(serviceId));
+        assertEquals(0L, ((Number) entityManager.createNativeQuery(
+            "SELECT COUNT(*) FROM relying_party_certificates WHERE relying_party_instance_id = :id")
+            .setParameter("id", result.id().toString()).getSingleResult()).longValue());
         assertTrue(walletRelyingPartyRepository.findById(walletRelyingParty.getId()).isPresent());
         assertThrows(
             NotFoundException.class,

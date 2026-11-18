@@ -114,7 +114,7 @@ public class IssuerCertificateRepositoryTest {
         var owner = EntityGenerator.instances(ownerParty).getFirst();
         var other = EntityGenerator.instances(otherParty).getFirst();
         var entitlement = new RelyingPartyEntitlement("urn:test:certificate-owner");
-        owner.setRelyingPartyEntitlements(List.of(entitlement));
+        EntityGenerator.setRelyingPartyEntitlements(owner, List.of(entitlement));
         var first = new IssuerCertificate(CertificatesGenerator.generateX509Certificate(), "ca", entitlement);
         var rotated = new IssuerCertificate(CertificatesGenerator.generateX509Certificate(), "ca", entitlement);
         entitlement.addIssuerCertificate(first);

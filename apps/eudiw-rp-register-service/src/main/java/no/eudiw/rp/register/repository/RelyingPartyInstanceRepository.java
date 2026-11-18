@@ -43,10 +43,10 @@ public interface RelyingPartyInstanceRepository
               (instance.active = TRUE AND service.active = TRUE AND party.active = TRUE))
           AND (:hideSyntheticOrgnos = FALSE OR party.orgno LIKE '8%' OR party.orgno LIKE '9%')
           AND (
-            (SELECT COUNT(DISTINCT entitlement.entitlement)
+            (SELECT COUNT(DISTINCT entitlement.serviceEntitlement.entitlement)
              FROM RelyingPartyEntitlement entitlement
              WHERE entitlement.relyingPartyInstance = instance
-               AND entitlement.entitlement IN :requiredEntitlements
+               AND entitlement.serviceEntitlement.entitlement IN :requiredEntitlements
             ) = :numRequiredEntitlements
           )
         """)
@@ -64,11 +64,12 @@ public interface RelyingPartyInstanceRepository
     @Query("""
         SELECT new no.eudiw.rp.register.repository.RegistrationSummaryRow(
             instance.id, service.serviceTradeName, instance.createdMs, instance.lastUpdatedMs,
-            role.id, role.entitlement)
+            role.id, serviceRole.entitlement)
         FROM RelyingPartyInstance instance
         JOIN instance.walletRelyingPartyService service
         JOIN service.walletRelyingParty party
         LEFT JOIN instance.relyingPartyEntitlements role
+        LEFT JOIN role.serviceEntitlement serviceRole
         WHERE party.orgno = :orgno
         ORDER BY instance.createdMs ASC, instance.id ASC
         """)
@@ -76,7 +77,7 @@ public interface RelyingPartyInstanceRepository
 
     @Query(value = """
         SELECT DISTINCT configuration.credential_issuer_url
-        FROM wallet_relying_party_service_credential_issuer_url configuration
+        FROM wallet_relying_party_service_entitlement configuration
         JOIN wallet_relying_party_service service ON service.id = configuration.wallet_relying_party_service_id
         JOIN wallet_relying_party party ON party.id = service.wallet_relying_party_id
         WHERE service.active = TRUE
@@ -87,7 +88,7 @@ public interface RelyingPartyInstanceRepository
               JOIN relying_party_entitlement entitlement ON entitlement.relying_party_instance_id = instance.id
               WHERE instance.wallet_relying_party_service_id = service.id
                 AND instance.active = TRUE
-                AND BINARY entitlement.entitlement = BINARY configuration.entitlement
+                AND entitlement.service_entitlement_id = configuration.id
           )
         """, nativeQuery = true)
     Set<String> findActiveCredentialIssuerUrls();
@@ -108,10 +109,10 @@ public interface RelyingPartyInstanceRepository
               OR rpi.walletRelyingPartyService.walletRelyingParty.orgno LIKE '8%'
               OR rpi.walletRelyingPartyService.walletRelyingParty.orgno LIKE '9%')
       AND (
-        (SELECT COUNT(DISTINCT e.entitlement)
+        (SELECT COUNT(DISTINCT e.serviceEntitlement.entitlement)
          FROM RelyingPartyEntitlement e
          WHERE e.relyingPartyInstance = rpi
-           AND e.entitlement IN :requiredEntitlements
+           AND e.serviceEntitlement.entitlement IN :requiredEntitlements
         ) = :numRequiredEntitlements
       )
     """)

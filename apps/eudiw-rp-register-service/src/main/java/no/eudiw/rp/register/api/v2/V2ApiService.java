@@ -188,6 +188,11 @@ public class V2ApiService {
             .orElseThrow(() -> new NotFoundException("RelyingParty not found or inactive"));
 
         WalletRelyingPartyService relyingPartyService = request.toDomain(relyingParty, List.of());
+        if (request.entitlements() != null) {
+            this.relyingPartyService.validateServiceEntitlements(relyingPartyService, request.entitlements());
+            relyingPartyService.setEntitlements(request.entitlements());
+        }
+
         relyingParty.getServices().add(relyingPartyService);
 
         return RelyingPartyServiceResponse.from(
@@ -203,8 +208,7 @@ public class V2ApiService {
         WalletRelyingPartyService service = findRelyingPartyService(serviceId);
         Set<String> entitlements = new LinkedHashSet<>();
         service.getCredentialIssuerUrls().forEach(url -> entitlements.add(url.getEntitlement()));
-        service.getRelyingPartyInstances().forEach(instance -> instance.getRelyingPartyEntitlements()
-            .forEach(role -> entitlements.add(role.getEntitlement())));
+        entitlements.addAll(service.getEntitlements());
 
         return entitlements.stream()
             .map(role -> new RelyingPartyEntitlementResource(
@@ -261,6 +265,12 @@ public class V2ApiService {
             .orElseThrow(() -> new NotFoundException("Service not found"));
 
         WalletRelyingPartyService relyingPartyService = findRelyingPartyService(relyingPartyServiceId);
+
+        if (request.entitlements() != null) {
+            this.relyingPartyService.validateServiceEntitlements(relyingPartyService, request.entitlements());
+            relyingPartyService.setEntitlements(request.entitlements());
+        }
+
         request.update(relyingPartyService);
 
         return RelyingPartyServiceResponse.from(
@@ -294,6 +304,8 @@ public class V2ApiService {
             .orElseThrow(() -> new NotFoundException("Service not found or inactive"));
 
         var relyingPartyEntitlements = request.toDomainRelyingPartyEntitlements();
+        relyingPartyEntitlements.forEach(selection ->
+            relyingPartyServiceEntity.requireServiceEntitlement(selection.getEntitlement()));
         relyingPartyService.validateEntitlements(relyingPartyEntitlements);
         validateCredentialIssuerUrls(relyingPartyServiceEntity, request.relyingPartyEntitlements());
 
@@ -564,6 +576,8 @@ public class V2ApiService {
         RelyingPartyInstance relyingPartyInstance,
         List<RelyingPartyEntitlement> requestedEntitlements
     ) {
+        requestedEntitlements.forEach(selection -> relyingPartyInstance.getWalletRelyingPartyService()
+            .requireServiceEntitlement(selection.getEntitlement()));
         relyingPartyService.validateEntitlementsForUpdate(
             relyingPartyInstance.getRelyingPartyEntitlements(), requestedEntitlements);
 

@@ -8,12 +8,15 @@ import no.eudiw.rp.register.api.v1.resource.relyingparty.*;
 import no.eudiw.rp.register.api.v2.V2ApiService;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
+import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.testdata.EntityGenerator;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,6 +31,12 @@ public class V1RelyingPartyEditingTest {
 
     @Autowired
     private WalletRelyingPartyRepository rpRepository;
+
+    @Autowired
+    private RelyingPartyInstanceRepository instanceRepository;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
 
     @Autowired
     private V1ContractMapper v1ContractMapper;
@@ -75,6 +84,7 @@ public class V1RelyingPartyEditingTest {
 
             EditRelyingPartyResource editResource =
                 generateEditRelyingPartyResource().withTradeName(response.tradeName());
+            registerServiceEntitlements(response.id(), editResource);
 
             RelyingPartyResource editResponse1 =
                 relyingPartyService.updateRelyingParty(response.id(), editResource);
@@ -109,6 +119,7 @@ public class V1RelyingPartyEditingTest {
 
             EditRelyingPartyResource editResource =
                 generateEditRelyingPartyResource().withTradeName(response.tradeName() + "new");
+            registerServiceEntitlements(response.id(), editResource);
             RelyingPartyResource editResponse = relyingPartyService.updateRelyingParty(
                     response.id(),
                     editResource
@@ -135,6 +146,7 @@ public class V1RelyingPartyEditingTest {
 
             EditRelyingPartyResource editResource =
                 generateEditRelyingPartyResource().withTradeName(response.tradeName());
+            registerServiceEntitlements(response.id(), editResource);
 
             RelyingPartyResource editResponse1 =
                 relyingPartyService.updateRelyingParty(response.id(), editResource);
@@ -156,6 +168,7 @@ public class V1RelyingPartyEditingTest {
 
             EditRelyingPartyResource emptyEaasEditResource =
                 generateEditRelyingPartyResource().withRelyingPartyEaas(List.of());
+            registerServiceEntitlements(response.id(), emptyEaasEditResource);
             RelyingPartyResource editResponse3 =
                 relyingPartyService.updateRelyingParty(response.id(), emptyEaasEditResource);
             assertNotNull(editResponse3);
@@ -184,6 +197,7 @@ public class V1RelyingPartyEditingTest {
 
             EditRelyingPartyResource editResource =
                 generateEditRelyingPartyResource().withTradeName(response.tradeName());
+            registerServiceEntitlements(response.id(), editResource);
             RelyingPartyResource editResponse1 =
                 relyingPartyService.updateRelyingParty(response.id(), editResource);
             assertNotNull(editResponse1);
@@ -196,6 +210,7 @@ public class V1RelyingPartyEditingTest {
 
             EditRelyingPartyResource editResource2 =
                 generateEditRelyingPartyResource().withTradeName(response.tradeName());
+            registerServiceEntitlements(response.id(), editResource2);
 
             RelyingPartyResource editResponse2 =
                 relyingPartyService.updateRelyingParty(response.id(), editResource2);
@@ -218,6 +233,7 @@ public class V1RelyingPartyEditingTest {
             assertNotNull(response);
             EditRelyingPartyResource editResource =
                 generateEditRelyingPartyResource().withTradeName(response.tradeName());
+            registerServiceEntitlements(response.id(), editResource);
 
             RelyingPartyResource editResponse1 =
                 relyingPartyService.updateRelyingParty(response.id(), editResource);
@@ -282,7 +298,7 @@ public class V1RelyingPartyEditingTest {
         @DisplayName("then each entitlement has a non-null display name")
         public void testAllEntitlementsHaveNonNullDisplayNames() {
             WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
-            EntityGenerator.instances(walletRelyingParty).getFirst().setRelyingPartyEntitlements(
+            EntityGenerator.setRelyingPartyEntitlements(EntityGenerator.instances(walletRelyingParty).getFirst(),
                 List.of(new RelyingPartyEntitlement("https://uri.etsi.org/19475/Entitlement/QEAA_Provider")));
 
             assertTrue(EntityGenerator.instances(walletRelyingParty).getFirst().getAccessCertificates().isEmpty());
@@ -294,5 +310,16 @@ public class V1RelyingPartyEditingTest {
                 .map(RelyingPartyEntitlementResource::displayName)
                 .noneMatch(Objects::isNull));
         }
+    }
+
+    private void registerServiceEntitlements(UUID instanceId, EditRelyingPartyResource resource) {
+        new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+            var service = instanceRepository.findById(instanceId).orElseThrow().getWalletRelyingPartyService();
+            List<String> entitlements = new ArrayList<>(service.getEntitlements());
+            entitlements.addAll(resource.relyingPartyEntitlements().stream()
+                .map(RelyingPartyEntitlementResource::entitlement).toList());
+
+            service.setEntitlements(entitlements.stream().distinct().toList());
+        });
     }
 }

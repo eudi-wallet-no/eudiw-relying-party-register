@@ -191,7 +191,7 @@ public class WrpLookupService {
         if (partyIds.isEmpty()) {
             return Map.of();
         }
-        return repository.findInstanceEntitlementsByPartyIds(partyIds)
+        return repository.findServiceEntitlementsByRelyingPartyIds(partyIds)
             .stream()
             .collect(Collectors.groupingBy(
                 WalletRelyingPartyRepository.ServiceEntitlementProjection::getServiceId,

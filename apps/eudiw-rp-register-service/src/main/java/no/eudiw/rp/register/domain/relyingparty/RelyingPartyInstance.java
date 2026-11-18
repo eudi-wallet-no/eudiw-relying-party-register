@@ -13,6 +13,7 @@ import no.eudiw.rp.register.domain.BaseEntity;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 import no.eudiw.rp.register.domain.certificates.AccessCertificate;
 import no.eudiw.rp.register.domain.certificates.IssuerCertificate;
+import no.eudiw.rp.register.exception.BadRequestException;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -92,7 +93,27 @@ public class RelyingPartyInstance extends BaseEntity {
         }
     }
 
+    public void setWalletRelyingPartyService(WalletRelyingPartyService service) {
+        relyingPartyEntitlements.forEach(selection -> service.requireServiceEntitlement(selection.getEntitlement()));
+
+        relyingPartyEntitlements.forEach(selection ->
+            selection.setServiceEntitlement(service.requireServiceEntitlement(selection.getEntitlement())));
+        this.walletRelyingPartyService = service;
+    }
+
     public void setRelyingPartyEntitlements(List<RelyingPartyEntitlement> relyingPartyEntitlements) {
+        if (!keepsEntitlementsWithIssuerCertificates(relyingPartyEntitlements)) {
+            throw new BadRequestException("An instance role with issuer certificates cannot be removed");
+        }
+
+        if (walletRelyingPartyService != null) {
+            relyingPartyEntitlements.forEach(selection ->
+                walletRelyingPartyService.requireServiceEntitlement(selection.getEntitlement()));
+
+            relyingPartyEntitlements.forEach(selection -> selection.setServiceEntitlement(
+                walletRelyingPartyService.requireServiceEntitlement(selection.getEntitlement())));
+        }
+
         List<String> incomingEntitlementValues =
             relyingPartyEntitlements.stream()
                                     .map(RelyingPartyEntitlement::getEntitlement)

@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
+import no.eudiw.rp.register.exception.BadRequestException;
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -96,6 +97,15 @@ public class WalletRelyingPartyService extends BaseEntity {
     @BatchSize(size = 50)
     private List<ServiceCredentialIssuerUrl> credentialIssuerUrls = new ArrayList<>();
 
+    @Setter(AccessLevel.NONE)
+    @OneToMany(
+        mappedBy = "walletRelyingPartyService",
+        fetch = FetchType.LAZY,
+        cascade = CascadeType.ALL,
+        orphanRemoval = true)
+    @BatchSize(size = 50)
+    private List<ServiceEntitlement> serviceEntitlements = new ArrayList<>();
+
     @Column(name = "created_ms", nullable = false)
     @Setter(AccessLevel.NONE)
     private long createdMs;
@@ -125,6 +135,13 @@ public class WalletRelyingPartyService extends BaseEntity {
     ) {
         this.serviceTradeName = serviceTradeName;
         this.walletRelyingParty = walletRelyingParty;
+
+        if (relyingPartyInstances != null) {
+            setEntitlements(relyingPartyInstances.stream()
+                .flatMap(instance -> instance.getRelyingPartyEntitlements().stream())
+                .map(RelyingPartyEntitlement::getEntitlement).distinct().toList());
+        }
+
         setRelyingPartyInstances(relyingPartyInstances);
         setIntermediaryConfiguration(isIntermediary, usesIntermediaries, servedWRPServices);
     }
@@ -180,12 +197,23 @@ public class WalletRelyingPartyService extends BaseEntity {
 
     public void setRelyingPartyInstances(List<RelyingPartyInstance> relyingPartyInstances) {
         List<RelyingPartyInstance> relyingPartyInstancesCopy = relyingPartyInstances == null ? List.of() : new ArrayList<>(relyingPartyInstances);
+        relyingPartyInstancesCopy.forEach(instance -> instance.getRelyingPartyEntitlements()
+            .forEach(selection -> requireServiceEntitlement(selection.getEntitlement())));
+
         this.relyingPartyInstances.clear();
         relyingPartyInstancesCopy.forEach(instance -> instance.setWalletRelyingPartyService(this));
         this.relyingPartyInstances.addAll(relyingPartyInstancesCopy);
     }
 
     public String getCredentialIssuerUrl(String entitlement) {
+        ServiceEntitlement role = serviceEntitlements.stream()
+            .filter(item -> item.getEntitlement().equals(entitlement))
+            .findFirst().orElse(null);
+
+        if (role != null) {
+            return role.getCredentialIssuerUrl();
+        }
+
         return credentialIssuerUrls.stream()
             .filter(url -> url.getEntitlement().equals(entitlement))
             .findFirst()
@@ -194,6 +222,15 @@ public class WalletRelyingPartyService extends BaseEntity {
     }
 
     public void setCredentialIssuerUrl(String entitlement, String credentialIssuerUrl) {
+        ServiceEntitlement role = serviceEntitlements.stream()
+            .filter(item -> item.getEntitlement().equals(entitlement))
+            .findFirst().orElse(null);
+
+        if (role != null) {
+            role.setCredentialIssuerUrl(credentialIssuerUrl);
+            return;
+        }
+
         ServiceCredentialIssuerUrl configuration = credentialIssuerUrls.stream()
             .filter(url -> url.getEntitlement().equals(entitlement))
             .findFirst().orElse(null);
@@ -211,18 +248,48 @@ public class WalletRelyingPartyService extends BaseEntity {
         List<ServiceCredentialIssuerUrl> credentialIssuerUrlsCopy =
             credentialIssuerUrls == null ? List.of() : new ArrayList<>(credentialIssuerUrls);
         this.credentialIssuerUrls.clear();
-        credentialIssuerUrlsCopy.forEach(url -> url.setWalletRelyingPartyService(this));
-        this.credentialIssuerUrls.addAll(credentialIssuerUrlsCopy);
+        serviceEntitlements.forEach(role -> role.setCredentialIssuerUrl(null));
+        credentialIssuerUrlsCopy.forEach(url ->
+            setCredentialIssuerUrl(url.getEntitlement(), url.getCredentialIssuerUrl()));
     }
 
     @Transient
     public List<String> getEntitlements() {
-        return relyingPartyInstances.stream()
-            .filter(RelyingPartyInstance::isActive)
+        return serviceEntitlements.stream().map(ServiceEntitlement::getEntitlement).toList();
+    }
+
+    public ServiceEntitlement requireServiceEntitlement(String entitlement) {
+        return serviceEntitlements.stream()
+            .filter(role -> role.getEntitlement().equals(entitlement))
+            .findFirst()
+            .orElseThrow(() -> new BadRequestException("The role is not on the service: " + entitlement));
+    }
+
+    public void setEntitlements(List<String> entitlements) {
+        if (entitlements.stream().distinct().count() != entitlements.size()) {
+            throw new BadRequestException("The service cannot contain the same role more than once");
+        }
+
+        boolean removesSelectedRole = relyingPartyInstances.stream()
             .flatMap(instance -> instance.getRelyingPartyEntitlements().stream())
-            .map(RelyingPartyEntitlement::getEntitlement)
-            .distinct()
-            .toList();
+            .anyMatch(selection -> !entitlements.contains(selection.getEntitlement()));
+
+        if (removesSelectedRole) {
+            throw new BadRequestException("A service role with instance references cannot be removed");
+        }
+
+        serviceEntitlements.removeIf(role -> !entitlements.contains(role.getEntitlement()));
+
+        for (String entitlement : entitlements) {
+            if (getEntitlements().contains(entitlement)) {
+                continue;
+            }
+
+            ServiceEntitlement role = new ServiceEntitlement(entitlement, getCredentialIssuerUrl(entitlement));
+            role.setWalletRelyingPartyService(this);
+            credentialIssuerUrls.removeIf(url -> url.getEntitlement().equals(entitlement));
+            serviceEntitlements.add(role);
+        }
     }
 
     // for JPA instantiation.
