@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.AccessLevel;
 import no.eudiw.rp.register.domain.BaseEntity;
+import no.eudiw.rp.register.domain.ServiceEntitlement;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 import no.eudiw.rp.register.domain.certificates.AccessCertificate;
 import no.eudiw.rp.register.domain.certificates.IssuerCertificate;
@@ -94,10 +95,13 @@ public class RelyingPartyInstance extends BaseEntity {
     }
 
     public void setWalletRelyingPartyService(WalletRelyingPartyService service) {
-        relyingPartyEntitlements.forEach(selection -> service.requireServiceEntitlement(selection.getEntitlement()));
+        List<ServiceEntitlement> serviceEntitlements = relyingPartyEntitlements.stream()
+            .map(selection -> service.requireServiceEntitlement(selection.getEntitlement()))
+            .toList();
 
-        relyingPartyEntitlements.forEach(selection ->
-            selection.setServiceEntitlement(service.requireServiceEntitlement(selection.getEntitlement())));
+        for (int index = 0; index < relyingPartyEntitlements.size(); index++) {
+            relyingPartyEntitlements.get(index).setServiceEntitlement(serviceEntitlements.get(index));
+        }
         this.walletRelyingPartyService = service;
     }
 
@@ -107,11 +111,13 @@ public class RelyingPartyInstance extends BaseEntity {
         }
 
         if (walletRelyingPartyService != null) {
-            relyingPartyEntitlements.forEach(selection ->
-                walletRelyingPartyService.requireServiceEntitlement(selection.getEntitlement()));
+            List<ServiceEntitlement> serviceEntitlements = relyingPartyEntitlements.stream()
+                .map(selection -> walletRelyingPartyService.requireServiceEntitlement(selection.getEntitlement()))
+                .toList();
 
-            relyingPartyEntitlements.forEach(selection -> selection.setServiceEntitlement(
-                walletRelyingPartyService.requireServiceEntitlement(selection.getEntitlement())));
+            for (int index = 0; index < relyingPartyEntitlements.size(); index++) {
+                relyingPartyEntitlements.get(index).setServiceEntitlement(serviceEntitlements.get(index));
+            }
         }
 
         List<String> incomingEntitlementValues =
