@@ -83,9 +83,9 @@ class V1ApiServiceTest {
         ArgumentCaptor<List<ServiceCredentialIssuerUrl>> urls = ArgumentCaptor.forClass(List.class);
         verify(relyingPartyService).createRelyingParty(
             eq("123456789"), eq("Service"), eq(List.of()), eq(List.of()), urls.capture());
-        assertEquals(roles, urls.getValue().stream().map(ServiceCredentialIssuerUrl::getEntitlement).toList());
+        assertEquals(roles, urls.getValue().stream().map(ServiceCredentialIssuerUrl::entitlement).toList());
         assertEquals(entitlements.stream().map(RelyingPartyEntitlementResource::credentialIssuerUrl).toList(),
-            urls.getValue().stream().map(ServiceCredentialIssuerUrl::getCredentialIssuerUrl).toList());
+            urls.getValue().stream().map(ServiceCredentialIssuerUrl::credentialIssuerUrl).toList());
     }
 
     private static Stream<Arguments> sortKeys() {

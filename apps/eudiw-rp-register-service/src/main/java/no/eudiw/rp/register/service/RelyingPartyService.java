@@ -69,7 +69,8 @@ public class RelyingPartyService {
         WalletRelyingPartyService walletService =
             new WalletRelyingPartyService(serviceTradeName, walletRelyingParty, List.of(relyingPartyInstance));
 
-        walletService.setCredentialIssuerUrls(credentialIssuerUrls);
+        credentialIssuerUrls.forEach(url ->
+            walletService.setCredentialIssuerUrl(url.entitlement(), url.credentialIssuerUrl()));
         walletRelyingParty.getServices().add(walletService);
         walletRelyingPartyServiceRepository.save(walletService);
 
@@ -143,7 +144,7 @@ public class RelyingPartyService {
         }
 
         submittedCredentialIssuerUrls.forEach(url -> validateCredentialIssuerUrl(
-            walletService, url.getEntitlement(), url.getCredentialIssuerUrl()));
+            walletService, url.entitlement(), url.credentialIssuerUrl()));
 
         if (!Objects.equals(walletService.getServiceTradeName(), serviceTradeName)) {
             walletService.setServiceTradeName(serviceTradeName);

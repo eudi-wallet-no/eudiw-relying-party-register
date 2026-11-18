@@ -745,6 +745,8 @@ class V2ApiIntegrationTest {
         Registration registration = createRegistration();
         String entitlementValue = "urn:test:issuer:" + UUID.randomUUID();
         testEntitlement = entitlementRepository.saveAndFlush(new Entitlement(entitlementValue, true, "Issuer", "test-ca"));
+        registerServiceEntitlements(registration, entitlementValue);
+        setServiceIssuerUrl(registration, entitlementValue, "https://issuer.example.test/original");
         String content = objectMapper.writeValueAsString(Map.of(
             "relyingPartyEntitlements", List.of(Map.of("entitlement", entitlementValue, "credentialIssuerUrl", issuerUrl)),
             "relyingPartyEaas", List.of()));
@@ -1230,8 +1232,12 @@ class V2ApiIntegrationTest {
         String issuerUrl = "https://shared.example.test/Issuer";
         registerServiceEntitlements(registration, entitlement);
         setServiceIssuerUrl(registration, entitlement, issuerUrl);
-        setServiceIssuerUrl(registration, entitlement.toUpperCase(), "https://case.example.test/Issuer");
-        setServiceIssuerUrl(registration, entitlement + " ", "https://space.example.test/Issuer");
+        request(patch(registration.relyingPartyServicePath() + "/credential-issuer-urls"),
+            "[{\"entitlement\":\"" + entitlement.toUpperCase() + "\",\"credentialIssuerUrl\":\"https://case.example.test/Issuer\"}]")
+            .andExpect(status().isBadRequest());
+        request(patch(registration.relyingPartyServicePath() + "/credential-issuer-urls"),
+            "[{\"entitlement\":\"" + entitlement + " \",\"credentialIssuerUrl\":\"https://space.example.test/Issuer\"}]")
+            .andExpect(status().isBadRequest());
         read(patch(registration.relyingPartyInstancePath() + "/entitlements"), roles);
         JsonNode second = read(post(registration.relyingPartyServicePath() + "/instances"),
             roles.replace("}]}", "}],\"relyingPartyEaas\":[{\"namespace\":\"separate\",\"intent\":\"read\"}]}"));
@@ -1276,7 +1282,7 @@ class V2ApiIntegrationTest {
             .at("/relyingPartyEntitlements/0/credentialIssuerUrl").asString());
         setServiceIssuerUrl(registration, entitlement, null);
         assertTrue(read(get(secondPath)).at("/relyingPartyEntitlements/0/credentialIssuerUrl").isNull());
-        assertEquals(3, read(get(registration.relyingPartyServicePath() + "/credential-issuer-urls")).size());
+        assertEquals(1, read(get(registration.relyingPartyServicePath() + "/credential-issuer-urls")).size());
     }
 
     @Test
@@ -1291,6 +1297,9 @@ class V2ApiIntegrationTest {
             .andExpect(status().isNotFound());
         request(patch("/v2/services/" + UUID.randomUUID() + "/credential-issuer-urls"), "[]")
             .andExpect(status().isNotFound());
+        testEntitlement = entitlementRepository.saveAndFlush(
+            new Entitlement("urn:test:retained", true, "Issuer", "test-ca"));
+        registerServiceEntitlements(registration, "urn:test:retained");
         setServiceIssuerUrl(registration, "urn:test:retained", "https://original.example.test");
         JsonNode before = read(get(path));
         read(patch(path), "[{\"entitlement\":\"urn:test:retained\"}]");
@@ -1298,7 +1307,8 @@ class V2ApiIntegrationTest {
         for (String body : List.of("[null]", "[{\"entitlement\":\" \"}]",
             "[{\"entitlement\":\"urn:test:retained\",\"credentialIssuerUrl\":null},{\"entitlement\":\"urn:test:retained\"}]",
             "[{\"entitlement\":\"urn:test:retained\",\"credentialIssuerUrl\":null},"
-                + "{\"entitlement\":\"urn:test:invalid\",\"credentialIssuerUrl\":\"HTTPS://issuer.example.test\"}]")) {
+                + "{\"entitlement\":\"urn:test:retained\",\"credentialIssuerUrl\":\"HTTPS://issuer.example.test\"}]",
+            "[{\"entitlement\":\"urn:test:unknown\",\"credentialIssuerUrl\":\"https://unknown.example.test\"}]")) {
             request(patch(path), body).andExpect(status().isBadRequest());
             assertEquals(before, read(get(path)));
         }
@@ -1313,7 +1323,9 @@ class V2ApiIntegrationTest {
         Registration registration = createRegistration();
         String role = "urn:test:service-role:" + UUID.randomUUID();
         testEntitlement = entitlementRepository.saveAndFlush(new Entitlement(role, true, "Issuer", "test-ca"));
-        setServiceIssuerUrl(registration, role, "https://issuer.example.test");
+        request(patch(registration.relyingPartyServicePath() + "/credential-issuer-urls"),
+            "[{\"entitlement\":\"" + role + "\",\"credentialIssuerUrl\":\"https://issuer.example.test\"}]")
+            .andExpect(status().isBadRequest());
         JsonNode serviceBefore = read(get(registration.relyingPartyServicePath()));
         JsonNode instanceBefore = read(get(registration.relyingPartyInstancePath()));
         assertTrue(serviceBefore.get("entitlements").isEmpty());
@@ -1346,21 +1358,132 @@ class V2ApiIntegrationTest {
         assertEquals(instanceBefore, read(get(registration.relyingPartyInstancePath())));
         read(put(registration.relyingPartyServicePath()), RELYING_PARTY_SERVICE);
         assertEquals(role, read(get(registration.relyingPartyServicePath())).at("/entitlements/0").asString());
-        assertEquals("https://issuer.example.test", read(get(registration.relyingPartyServicePath()
-            + "/credential-issuer-urls")).at("/0/credentialIssuerUrl").asString());
-        new TransactionTemplate(transactionManager).executeWithoutResult(state -> {
-            var service = relyingPartyServiceRepository.findById(UUID.fromString(registration.relyingPartyServiceId())).orElseThrow();
-            assertTrue(service.getCredentialIssuerUrls().isEmpty());
-        });
+        String urls = registration.relyingPartyServicePath() + "/credential-issuer-urls";
+        assertEquals(role, read(get(urls)).at("/0/entitlement").asString());
+        setServiceIssuerUrl(registration, role, "https://issuer.example.test");
 
         read(patch(registration.relyingPartyInstancePath() + "/entitlements"), roles);
         request(patch(registration.relyingPartyInstancePath() + "/deactivate")).andExpect(status().isNoContent());
         definition.set("entitlements", objectMapper.valueToTree(List.of()));
         request(put(registration.relyingPartyServicePath()), definition.toString()).andExpect(status().isBadRequest());
+        request(patch(registration.relyingPartyServicePath() + "/entitlements"), "{\"entitlements\":[]}")
+            .andExpect(status().isBadRequest());
+        assertEquals("https://issuer.example.test", read(get(urls)).at("/0/credentialIssuerUrl").asString());
         assertEquals(role, read(get(registration.relyingPartyServicePath())).at("/entitlements/0").asString());
+        assertEquals(role, read(get(registration.relyingPartyInstancePath())).at("/relyingPartyEntitlements/0/entitlement").asString());
         read(patch(registration.relyingPartyInstancePath() + "/entitlements"), "{\"relyingPartyEntitlements\":[]}");
         read(put(registration.relyingPartyServicePath()), definition.toString());
         assertTrue(read(get(registration.relyingPartyServicePath())).get("entitlements").isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should deny service role changes without authentication")
+    void shouldDenyServiceRoleChangesWithoutAuthentication() throws Exception {
+        Registration registration = createRegistration();
+
+        mockMvc.perform(patch(registration.relyingPartyServicePath() + "/entitlements")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"entitlements\":[\"https://uri.etsi.org/19475/Entitlement/QEAA_Provider\"]}"))
+            .andExpect(status().isUnauthorized());
+
+        assertTrue(read(get(registration.relyingPartyServicePath())).get("entitlements").isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should reject role changes for a missing service")
+    void shouldRejectRoleChangesForMissingService() throws Exception {
+        request(patch("/v2/services/" + UUID.randomUUID() + "/entitlements"), "{\"entitlements\":[]}")
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("Should update service roles and URLs together without changing existing URLs or instance choices")
+    void shouldUpdateServiceRolesAndUrlsTogetherWithoutChangingExistingUrlsOrInstanceChoices() throws Exception {
+        Registration registration = createRegistration();
+        String role = "https://uri.etsi.org/19475/Entitlement/QEAA_Provider";
+        String existingRole = "https://uri.etsi.org/19475/Entitlement/PID_Provider";
+        registerServiceEntitlements(registration, existingRole);
+        setServiceIssuerUrl(registration, existingRole, "https://existing.example.test/old");
+        read(patch(registration.relyingPartyInstancePath() + "/entitlements"), """
+            {"relyingPartyEntitlements":[{"entitlement":"%s"}]}
+            """.formatted(existingRole));
+
+        read(patch(registration.relyingPartyServicePath() + "/entitlements"), """
+            {"entitlements":["%s","%s"],
+             "credentialIssuerUrls":[{"entitlement":"%s","credentialIssuerUrl":"https://issuer.example.test"}]}
+            """.formatted(existingRole, role, role));
+
+        request(get(registration.relyingPartyServicePath()))
+            .andExpect(jsonPath("$.entitlements", org.hamcrest.Matchers.containsInAnyOrder(existingRole, role)));
+        request(get(registration.relyingPartyServicePath() + "/credential-issuer-urls"))
+            .andExpect(jsonPath("$[?(@.entitlement == '%s')].credentialIssuerUrl".formatted(role),
+                org.hamcrest.Matchers.contains("https://issuer.example.test")))
+            .andExpect(jsonPath("$[?(@.entitlement == '%s')].credentialIssuerUrl".formatted(existingRole),
+                org.hamcrest.Matchers.contains("https://existing.example.test/old")));
+        request(get(registration.relyingPartyInstancePath()))
+            .andExpect(jsonPath("$.relyingPartyEntitlements[*].entitlement", org.hamcrest.Matchers.contains(existingRole)));
+    }
+
+    @Test
+    @DisplayName("Should keep the stored role and URL when a replacement includes a URL outside its role list")
+    void shouldKeepStoredRoleAndUrlWhenReplacementIncludesUrlOutsideItsRoleList() throws Exception {
+        Registration registration = createRegistration();
+        String service = registration.relyingPartyServicePath();
+        String existing = "https://uri.etsi.org/19475/Entitlement/PID_Provider";
+        String replacement = "https://uri.etsi.org/19475/Entitlement/QEAA_Provider";
+        registerServiceEntitlements(registration, existing);
+        setServiceIssuerUrl(registration, existing, "https://original.example.test");
+
+        request(patch(service + "/entitlements"), """
+            {"entitlements":["%s"],"credentialIssuerUrls":[
+              {"entitlement":"%s","credentialIssuerUrl":"https://new.example.test"},
+              {"entitlement":"%s","credentialIssuerUrl":null}]}
+            """.formatted(replacement, replacement, existing)).andExpect(status().isBadRequest());
+
+        request(get(service)).andExpect(jsonPath("$.entitlements", org.hamcrest.Matchers.contains(existing)));
+        request(get(service + "/credential-issuer-urls"))
+            .andExpect(jsonPath("$[*].entitlement", org.hamcrest.Matchers.contains(existing)))
+            .andExpect(jsonPath("$[0].credentialIssuerUrl").value("https://original.example.test"));
+    }
+
+    @Test
+    @DisplayName("Should reject an HTTP URL for a service role")
+    void shouldRejectHttpUrlForServiceRole() throws Exception {
+        assertRejectedServiceEntitlementsChange("""
+            {"entitlements":["urn:test:issuer"],
+             "credentialIssuerUrls":[{"entitlement":"urn:test:issuer","credentialIssuerUrl":"http://issuer.example.test"}]}
+            """);
+    }
+
+    @Test
+    @DisplayName("Should reject a service role that is not in the role catalog")
+    void shouldRejectServiceRoleOutsideRoleCatalog() throws Exception {
+        assertRejectedServiceEntitlementsChange("{\"entitlements\":[\"urn:test:unknown\"]}");
+    }
+
+    @Test
+    @DisplayName("Should reject duplicate service roles")
+    void shouldRejectDuplicateServiceRoles() throws Exception {
+        assertRejectedServiceEntitlementsChange("{\"entitlements\":[\"urn:test:issuer\",\"urn:test:issuer\"]}");
+    }
+
+    @Test
+    @DisplayName("Should reject duplicate URL entries for a service role")
+    void shouldRejectDuplicateIssuerUrlEntriesForServiceRole() throws Exception {
+        assertRejectedServiceEntitlementsChange("""
+            {"entitlements":["urn:test:issuer"],"credentialIssuerUrls":[
+              {"entitlement":"urn:test:issuer","credentialIssuerUrl":null},
+              {"entitlement":"urn:test:issuer","credentialIssuerUrl":"https://issuer.example.test"}]}
+            """);
+    }
+
+    private void assertRejectedServiceEntitlementsChange(String body) throws Exception {
+        Registration registration = createRegistration();
+        testEntitlement = entitlementRepository.saveAndFlush(
+            new Entitlement("urn:test:issuer", true, "Issuer", "test-ca"));
+
+        request(patch(registration.relyingPartyServicePath() + "/entitlements"), body)
+            .andExpect(status().isBadRequest());
     }
 
     private void registerServiceEntitlements(Registration registration, String... entitlements) throws Exception {

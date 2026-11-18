@@ -186,6 +186,19 @@ public class V2RegisterClient {
         return credentialIssuerUrls;
     }
 
+    public List<String> getServiceEntitlements(UUID serviceId) {
+        ServiceEntitlements serviceEntitlements = restClient.get()
+            .uri("/services/{id}", serviceId)
+            .retrieve()
+            .body(ServiceEntitlements.class);
+
+        if (serviceEntitlements == null || serviceEntitlements.entitlements() == null) {
+            throw new UnrecognizedErrorResponseException("The service role response is empty");
+        }
+
+        return serviceEntitlements.entitlements();
+    }
+
     public void updateServiceCredentialIssuerUrls(UUID serviceId, List<ServiceCredentialIssuerUrl> credentialIssuerUrls) {
         restClient.patch()
             .uri("/services/{id}/credential-issuer-urls", serviceId)
@@ -194,8 +207,24 @@ public class V2RegisterClient {
             .toBodilessEntity();
     }
 
+    public void updateServiceEntitlements(UUID serviceId, ServiceEntitlementsRequest request) {
+        restClient.patch()
+            .uri("/services/{id}/entitlements", serviceId)
+            .body(request)
+            .retrieve()
+            .toBodilessEntity();
+    }
+
     public record ServiceCredentialIssuerUrl(String entitlement, String credentialIssuerUrl) {
     }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record ServiceEntitlements(List<String> entitlements) { }
+
+    public record ServiceEntitlementsRequest(
+        List<String> entitlements,
+        List<ServiceCredentialIssuerUrl> credentialIssuerUrls
+    ) { }
 
     public record CreateInstanceRequest(
         String orgno,

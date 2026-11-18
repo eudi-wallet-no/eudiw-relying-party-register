@@ -2,6 +2,7 @@ package no.idporten.eudiw.rp.admin.web.controllers;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import no.idporten.eudiw.rp.admin.integrations.registerservice.V2RegisterClient;
 import no.idporten.eudiw.rp.admin.service.RelyingPartiesService;
 import no.idporten.eudiw.rp.admin.service.exception.BadRequestException;
 import no.idporten.eudiw.rp.admin.web.form.InstanceRoleOption;
@@ -25,8 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -96,19 +96,24 @@ public class RelyingPartyRolesController {
             .map(RelyingPartyCertificateResource::entitlement)
             .filter(Objects::nonNull)
             .collect(Collectors.toSet());
-        List<InstanceRoleOption> options = new ArrayList<>();
-        Set<String> existing = new HashSet<>();
-        for (RelyingPartyEntitlementResource role : registration.relyingPartyEntitlements()) {
-            existing.add(role.entitlement());
-            options.add(new InstanceRoleOption(role.entitlement(), role.displayName(), locked.contains(role.entitlement())));
-        }
-        if (userAuthorityService.userHasAdminAuthority()) {
-            relyingPartiesService.getValidEntitlementOptions().stream()
-                .filter(option -> !existing.contains(option.getEntitlement()))
-                .forEach(option -> options.add(
-                    new InstanceRoleOption(option.getEntitlement(), option.getDisplayName(), false)));
-        }
-        return options;
+        Set<String> existing = registration.relyingPartyEntitlements().stream()
+            .map(RelyingPartyEntitlementResource::entitlement)
+            .collect(Collectors.toSet());
+        Map<String, String> displayNames = relyingPartiesService.getEntitlementDisplayNames();
+        Map<String, String> credentialIssuerUrls = new HashMap<>();
+        relyingPartiesService.getServiceCredentialIssuerUrls(registration.relyingPartyServiceId())
+            .forEach(url -> credentialIssuerUrls.put(url.entitlement(), url.credentialIssuerUrl()));
+        List<String> serviceEntitlements = relyingPartiesService.getServiceEntitlements(
+            registration.relyingPartyServiceId());
+
+        return serviceEntitlements.stream()
+            .filter(entitlement -> userAuthorityService.userHasAdminAuthority() || existing.contains(entitlement))
+            .map(entitlement -> new InstanceRoleOption(
+                entitlement,
+                displayNames.getOrDefault(entitlement, entitlement),
+                credentialIssuerUrls.get(entitlement),
+                locked.contains(entitlement)))
+            .toList();
     }
 
     private void assertPostedRolesAllowed(RelyingPartyResource registration, List<InstanceRoleOption> options,

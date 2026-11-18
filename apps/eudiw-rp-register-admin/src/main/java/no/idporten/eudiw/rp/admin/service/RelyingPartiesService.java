@@ -65,9 +65,17 @@ public class RelyingPartiesService {
         return v2RegisterClient.getServiceCredentialIssuerUrls(serviceId);
     }
 
+    public List<String> getServiceEntitlements(UUID serviceId) {
+        return v2RegisterClient.getServiceEntitlements(serviceId);
+    }
+
     public void updateServiceCredentialIssuerUrls(UUID serviceId,
                                                   List<V2RegisterClient.ServiceCredentialIssuerUrl> credentialIssuerUrls) {
         v2RegisterClient.updateServiceCredentialIssuerUrls(serviceId, credentialIssuerUrls);
+    }
+
+    public void updateServiceEntitlements(UUID serviceId, V2RegisterClient.ServiceEntitlementsRequest request) {
+        v2RegisterClient.updateServiceEntitlements(serviceId, request);
     }
 
     public Map<String, String> getEntitlementDisplayNames() {

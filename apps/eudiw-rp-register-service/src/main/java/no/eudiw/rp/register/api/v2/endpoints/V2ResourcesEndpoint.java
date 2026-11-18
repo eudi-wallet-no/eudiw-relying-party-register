@@ -29,6 +29,7 @@ import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInstanceRespon
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyServiceInformationRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyServiceEntitlementsRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyServiceRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyServiceResponse;
 import no.idporten.logging.audit.Audit;
@@ -187,6 +188,17 @@ public class V2ResourcesEndpoint {
         @Valid @RequestBody List<@NotNull @Valid RelyingPartyEntitlementResource> request
     ) {
         return v2ApiService.patchCredentialIssuerUrls(serviceId, request);
+    }
+
+    @Operation(summary = "Change service roles and credential issuer URLs in one transaction.")
+    @Audit(auditId = AUDIT_SERVICE_UPDATED)
+    @PatchMapping(path = "/services/{id}/entitlements", consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    public RelyingPartyServiceResponse patchServiceEntitlements(
+        @PathVariable("id") UUID serviceId,
+        @Valid @RequestBody RelyingPartyServiceEntitlementsRequest request
+    ) {
+        return v2ApiService.patchServiceEntitlements(serviceId, request);
     }
 
     @Operation(summary = "List services")

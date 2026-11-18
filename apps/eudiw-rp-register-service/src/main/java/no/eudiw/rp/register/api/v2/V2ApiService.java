@@ -21,6 +21,7 @@ import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyInformationRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyResponse;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyServiceInformationRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyServiceEntitlementsRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyServiceRequest;
 import no.eudiw.rp.register.api.v2.endpoints.entities.RelyingPartyServiceResponse;
 import no.eudiw.rp.register.api.v2.resource.RelyingPartyEntitlementResource;
@@ -56,7 +57,6 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -206,11 +206,7 @@ public class V2ApiService {
     @Transactional(readOnly = true)
     public List<RelyingPartyEntitlementResource> getCredentialIssuerUrls(UUID serviceId) {
         WalletRelyingPartyService service = findRelyingPartyService(serviceId);
-        Set<String> entitlements = new LinkedHashSet<>();
-        service.getCredentialIssuerUrls().forEach(url -> entitlements.add(url.getEntitlement()));
-        entitlements.addAll(service.getEntitlements());
-
-        return entitlements.stream()
+        return service.getEntitlements().stream()
             .map(role -> new RelyingPartyEntitlementResource(
                 role, service.getCredentialIssuerUrl(role)))
             .toList();
@@ -229,11 +225,48 @@ public class V2ApiService {
             throw new BadRequestException("Service roles must be unique");
         }
 
+        request.forEach(item -> service.requireServiceEntitlement(item.entitlement()));
         request.stream().filter(item -> item.credentialIssuerUrlPresent())
             .forEach(item -> service.setCredentialIssuerUrl(item.entitlement(), item.credentialIssuerUrl()));
         walletRelyingPartyServiceRepository.saveAndFlush(service);
 
         return getCredentialIssuerUrls(serviceId);
+    }
+
+    public RelyingPartyServiceResponse patchServiceEntitlements(
+        UUID serviceId, RelyingPartyServiceEntitlementsRequest request
+    ) {
+        walletRelyingPartyRepository.findByServiceIdForUpdate(serviceId)
+            .orElseThrow(() -> new NotFoundException("Service not found"));
+        WalletRelyingPartyService service = findRelyingPartyService(serviceId);
+        Set<String> requestedEntitlements = new HashSet<>(request.entitlements());
+
+        if (requestedEntitlements.size() != request.entitlements().size()) {
+            throw new BadRequestException("Service roles must be unique");
+        }
+
+        List<RelyingPartyEntitlementResource> credentialIssuerUrls = request.credentialIssuerUrls() == null
+            ? List.of()
+            : request.credentialIssuerUrls();
+        long distinctUrlEntitlements = credentialIssuerUrls.stream()
+            .map(RelyingPartyEntitlementResource::entitlement).distinct().count();
+
+        if (distinctUrlEntitlements != credentialIssuerUrls.size()) {
+            throw new BadRequestException("Service URL roles must be unique");
+        }
+
+        for (RelyingPartyEntitlementResource credentialIssuerUrl : credentialIssuerUrls) {
+            if (!requestedEntitlements.contains(credentialIssuerUrl.entitlement())) {
+                throw new BadRequestException("The role is not in the service role list");
+            }
+        }
+
+        relyingPartyService.validateServiceEntitlements(service, request.entitlements());
+        service.setEntitlements(request.entitlements());
+        credentialIssuerUrls.stream().filter(RelyingPartyEntitlementResource::credentialIssuerUrlPresent)
+            .forEach(item -> service.setCredentialIssuerUrl(item.entitlement(), item.credentialIssuerUrl()));
+
+        return RelyingPartyServiceResponse.from(walletRelyingPartyServiceRepository.saveAndFlush(service));
     }
 
     public Page<RelyingPartyServiceResponse> searchRelyingPartyServices(

@@ -1,6 +1,5 @@
 package no.eudiw.rp.register.data.migration;
 
-import no.eudiw.rp.register.domain.ServiceCredentialIssuerUrl;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
 import org.flywaydb.core.Flyway;
@@ -313,11 +312,9 @@ class WalletRelyingPartySchemaTest {
         try (var entityManager = factory.getObject().createEntityManager()) {
             entityManager.getTransaction().begin();
             var service = entityManager.find(WalletRelyingPartyService.class, serviceId);
-            service.setEntitlements(List.of("urn:test:Issuer"));
-            service.setCredentialIssuerUrls(List.of(
-                new ServiceCredentialIssuerUrl("urn:test:Issuer", "https://issuer.example/Path"),
-                new ServiceCredentialIssuerUrl("urn:test:issuer", "https://issuer.example/path"),
-                new ServiceCredentialIssuerUrl("urn:test:no-url", null)));
+            service.setEntitlements(List.of("urn:test:Issuer", "urn:test:issuer", "urn:test:no-url"));
+            service.setCredentialIssuerUrl("urn:test:Issuer", "https://issuer.example/Path");
+            service.setCredentialIssuerUrl("urn:test:issuer", "https://issuer.example/path");
             var instance = service.getRelyingPartyInstances().getFirst();
             instance.setRelyingPartyEntitlements(List.of(new RelyingPartyEntitlement("urn:test:Issuer")));
             entityManager.getTransaction().commit();
@@ -325,13 +322,13 @@ class WalletRelyingPartySchemaTest {
 
             entityManager.getTransaction().begin();
             service = entityManager.find(WalletRelyingPartyService.class, serviceId);
-            assertEquals(2, service.getCredentialIssuerUrls().size());
-            assertNull(service.getCredentialIssuerUrls().stream()
-                .filter(config -> config.getEntitlement().equals("urn:test:no-url"))
-                .findFirst().orElseThrow().getCredentialIssuerUrl());
+            assertEquals(3, service.getServiceEntitlements().size());
             var role = service.requireServiceEntitlement("urn:test:Issuer");
             assertEquals("https://issuer.example/Path", role.getCredentialIssuerUrl());
             assertEquals(serviceId, role.getWalletRelyingPartyService().getId());
+            assertEquals("https://issuer.example/path",
+                service.requireServiceEntitlement("urn:test:issuer").getCredentialIssuerUrl());
+            assertNull(service.getCredentialIssuerUrl("urn:test:no-url"));
             assertEquals(role.getId(), service.getRelyingPartyInstances().getFirst()
                 .getRelyingPartyEntitlements().getFirst().getServiceEntitlement().getId());
 
@@ -340,14 +337,11 @@ class WalletRelyingPartySchemaTest {
             entityManager.clear();
 
             service = entityManager.find(WalletRelyingPartyService.class, serviceId);
-            assertEquals(2, service.getCredentialIssuerUrls().size());
             assertEquals("https://issuer.example/Path", service.getCredentialIssuerUrl("urn:test:Issuer"));
         } finally {
             factory.destroy();
         }
         jdbc.update("DELETE FROM wallet_relying_party_service WHERE id = ?", serviceId.toString());
-        assertEquals(0, jdbc.queryForObject(
-            "SELECT COUNT(*) FROM wallet_relying_party_service_credential_issuer_url", Integer.class));
         assertEquals(0, jdbc.queryForObject(
             "SELECT COUNT(*) FROM wallet_relying_party_service_entitlement", Integer.class));
     }
@@ -408,7 +402,6 @@ class WalletRelyingPartySchemaTest {
         var servicesBefore = jdbc.queryForList("SELECT * FROM wallet_relying_party_service ORDER BY id");
         var certificatesBefore = jdbc.queryForList("SELECT * FROM relying_party_certificates ORDER BY id");
         var configurationsBefore = jdbc.queryForList("SELECT * FROM wallet_relying_party_service_credential_issuer_url ORDER BY id");
-        var urlOnlyBefore = jdbc.queryForList("SELECT * FROM wallet_relying_party_service_credential_issuer_url WHERE id = 'url-only'");
 
         Flyway.configure().configuration(flyway.getConfiguration()).target("35").load().migrate();
 
@@ -428,7 +421,6 @@ class WalletRelyingPartySchemaTest {
         assertEquals(instancesBefore, jdbc.queryForList("SELECT * FROM relying_party_instance ORDER BY id"));
         assertEquals(servicesBefore, jdbc.queryForList("SELECT * FROM wallet_relying_party_service ORDER BY id"));
         assertEquals(certificatesBefore, jdbc.queryForList("SELECT * FROM relying_party_certificates ORDER BY id"));
-        assertEquals(urlOnlyBefore, jdbc.queryForList("SELECT * FROM wallet_relying_party_service_credential_issuer_url"));
         assertEquals(List.of(
             Arrays.asList("inactive-service", "urn:test:Issuer", "https://inactive.example/Path"),
             Arrays.asList("inactive-service", "urn:test:inactive", null),
@@ -479,38 +471,6 @@ class WalletRelyingPartySchemaTest {
             INSERT INTO relying_party_entitlement (id, relying_party_instance_id, service_entitlement_id)
             VALUES ('duplicate-selection', 'instance-1', 'config-issuer')
             """));
-    }
-
-    @Test
-    @DisplayName("Should keep URL-only configurations without instance roles")
-    void shouldKeepUrlOnlyConfigurationsWithoutInstanceRoles() {
-        flyway.clean();
-        Flyway.configure().configuration(flyway.getConfiguration()).target("34").load().migrate();
-        jdbc.update("""
-            INSERT INTO wallet_relying_party
-                (id, trade_name, orgno, is_psb, policy, identifier, postal_address, email, phone, info_uri)
-            VALUES ('party', 'Party', '123456785', TRUE, '[]', '[]', '[]', '[]', '[]', '[]')
-            """);
-        insertService("service", null);
-        jdbc.update("""
-            INSERT INTO wallet_relying_party_service_credential_issuer_url
-                (id, wallet_relying_party_service_id, entitlement, credential_issuer_url)
-            VALUES ('url-only', 'service', 'urn:test:Issuer', NULL)
-            """);
-        var configurationsBefore = jdbc.queryForList("SELECT * FROM wallet_relying_party_service_credential_issuer_url");
-
-        flyway.migrate();
-
-        assertEquals(configurationsBefore, jdbc.queryForList("SELECT * FROM wallet_relying_party_service_credential_issuer_url"));
-        assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM wallet_relying_party_service_entitlement", Integer.class));
-        jdbc.update("""
-            INSERT INTO wallet_relying_party_service_entitlement
-                (id, wallet_relying_party_service_id, entitlement)
-            VALUES ('unselected-role', 'service', 'urn:test:Issuer')
-            """);
-        jdbc.update("DELETE FROM wallet_relying_party_service WHERE id = 'service'");
-        assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM wallet_relying_party_service_entitlement", Integer.class));
-        assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM wallet_relying_party_service_credential_issuer_url", Integer.class));
     }
 
     @Test
