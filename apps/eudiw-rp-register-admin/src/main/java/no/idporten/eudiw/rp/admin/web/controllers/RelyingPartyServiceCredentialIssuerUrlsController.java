@@ -69,7 +69,7 @@ public class RelyingPartyServiceCredentialIssuerUrlsController {
         var serviceEntitlements = relyingPartiesService.getServiceEntitlements(registration.relyingPartyServiceId());
         var credentialIssuerUrls = relyingPartiesService.getServiceCredentialIssuerUrls(registration.relyingPartyServiceId());
         var expectedForm = createForm(serviceEntitlements, credentialIssuerUrls);
-        attachAvailableRoles(form, expectedForm);
+        addAvailableRoles(form, expectedForm);
         Set<String> selectedEntitlements = new LinkedHashSet<>(form.selectedEntitlements());
         Set<String> currentEntitlements = new HashSet<>(serviceEntitlements);
 
@@ -158,18 +158,20 @@ public class RelyingPartyServiceCredentialIssuerUrlsController {
         return form;
     }
 
-    private void attachAvailableRoles(ServiceCredentialIssuerUrlsForm form, ServiceCredentialIssuerUrlsForm expectedForm) {
-        if (form.getCredentialIssuerUrls() == null
-            || form.getCredentialIssuerUrls().size() != expectedForm.getCredentialIssuerUrls().size()) {
-            throw new InsufficientAuthorityException("The submitted service roles do not match the available roles");
+    private void addAvailableRoles(ServiceCredentialIssuerUrlsForm form, ServiceCredentialIssuerUrlsForm expectedForm) {
+        var submittedRoles = form.getCredentialIssuerUrls();
+        var availableRoles = expectedForm.getCredentialIssuerUrls();
+
+        if (submittedRoles == null || submittedRoles.size() != availableRoles.size()) {
+            throw new InsufficientAuthorityException("Expected one submitted row per available service role");
         }
 
-        for (int i = 0; i < form.getCredentialIssuerUrls().size(); i++) {
-            var field = form.getCredentialIssuerUrls().get(i);
-            var expected = expectedForm.getCredentialIssuerUrls().get(i);
+        for (int i = 0; i < availableRoles.size(); i++) {
+            var field = submittedRoles.get(i);
+            var expected = availableRoles.get(i);
 
             if (field == null || !Objects.equals(field.getEntitlement(), expected.getEntitlement())) {
-                throw new InsufficientAuthorityException("The submitted service roles do not match the available roles");
+                throw new InsufficientAuthorityException("The submitted row does not match the expected service role");
             }
 
             field.setDisplayName(expected.getDisplayName());
