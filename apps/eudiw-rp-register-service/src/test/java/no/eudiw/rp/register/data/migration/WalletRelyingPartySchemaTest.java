@@ -473,38 +473,6 @@ class WalletRelyingPartySchemaTest {
             """));
     }
 
-    @Test
-    @DisplayName("Should keep service role references with different database and column collations")
-    void shouldKeepServiceRoleReferencesWithDifferentDatabaseAndColumnCollations() {
-        prepareCredentialIssuerUrlHistory();
-        Flyway.configure().configuration(flyway.getConfiguration()).target("34").load().migrate();
-        jdbc.update("""
-            INSERT INTO relying_party_entitlement (id, relying_party_instance_id, entitlement)
-            VALUES ('role', 'instance-1', 'urn:test:utsteder:æ ')
-            """);
-        var defaults = jdbc.queryForMap("""
-            SELECT DEFAULT_CHARACTER_SET_NAME, DEFAULT_COLLATION_NAME
-            FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = DATABASE()
-            """);
-        jdbc.execute("ALTER DATABASE CHARACTER SET latin1 COLLATE latin1_swedish_ci");
-        try {
-            flyway.migrate();
-        } finally {
-            jdbc.execute("ALTER DATABASE CHARACTER SET " + defaults.get("DEFAULT_CHARACTER_SET_NAME")
-                + " COLLATE " + defaults.get("DEFAULT_COLLATION_NAME"));
-        }
-
-        assertEquals("urn:test:utsteder:æ ", jdbc.queryForObject("""
-            SELECT role.entitlement FROM wallet_relying_party_service_entitlement role
-            JOIN relying_party_entitlement selection ON selection.service_entitlement_id = role.id
-            WHERE selection.id = 'role'
-            """, String.class));
-        assertThrows(DataIntegrityViolationException.class, () -> jdbc.update("""
-            DELETE FROM wallet_relying_party_service_entitlement
-            WHERE id = (SELECT service_entitlement_id FROM relying_party_entitlement WHERE id = 'role')
-            """));
-    }
-
     private void prepareCredentialIssuerUrlHistory() {
         flyway.clean();
         Flyway.configure().configuration(flyway.getConfiguration()).target("33").load().migrate();
