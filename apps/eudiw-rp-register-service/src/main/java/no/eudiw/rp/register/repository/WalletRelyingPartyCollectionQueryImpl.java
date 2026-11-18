@@ -17,8 +17,6 @@ import no.eudiw.rp.register.domain.IntendedUse;
 import no.eudiw.rp.register.domain.LegalPerson;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
-import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
-import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -358,7 +356,7 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
             builder.parameter(String.class, ENTITLEMENT_PARAMETER);
         return builder.or(
             serviceSubEntitlementPredicate(builder, query, party, entitlement),
-            instanceEntitlementPredicate(builder, query, party, entitlement)
+            serviceEntitlementPredicate(builder, query, party, entitlement)
         );
     }
 
@@ -385,28 +383,25 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         return builder.exists(matchingService);
     }
 
-    private static Predicate instanceEntitlementPredicate(
+    private static Predicate serviceEntitlementPredicate(
         CriteriaBuilder builder,
         CriteriaQuery<?> query,
         Root<WalletRelyingParty> party,
         ParameterExpression<String> entitlementValue
     ) {
-        Subquery<Integer> matchingInstanceEntitlement = query.subquery(Integer.class);
+        Subquery<Integer> matchingServiceEntitlement = query.subquery(Integer.class);
         Root<WalletRelyingPartyService> service =
-            matchingInstanceEntitlement.from(WalletRelyingPartyService.class);
-        Join<WalletRelyingPartyService, RelyingPartyInstance> instance =
-            service.join("relyingPartyInstances", JoinType.INNER);
-        Join<RelyingPartyInstance, RelyingPartyEntitlement> registeredEntitlement =
-            instance.join("relyingPartyEntitlements", JoinType.INNER);
+            matchingServiceEntitlement.from(WalletRelyingPartyService.class);
+        var registeredEntitlement = service.join("serviceEntitlements", JoinType.INNER);
         var storedEntitlement = builder.function(
             "BINARY", String.class, registeredEntitlement.get("entitlement"));
         var requestedEntitlement = builder.function("BINARY", String.class, entitlementValue);
-        matchingInstanceEntitlement.select(builder.literal(1))
+        matchingServiceEntitlement.select(builder.literal(1))
             .where(
                 builder.equal(service.get("walletRelyingParty").get("id"), party.get("id")),
                 builder.equal(storedEntitlement, requestedEntitlement)
             );
-        return builder.exists(matchingInstanceEntitlement);
+        return builder.exists(matchingServiceEntitlement);
     }
 
     private static Predicate providedAttestationPredicate(

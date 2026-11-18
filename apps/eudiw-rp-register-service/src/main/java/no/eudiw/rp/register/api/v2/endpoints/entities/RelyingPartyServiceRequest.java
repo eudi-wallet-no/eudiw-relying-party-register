@@ -29,7 +29,8 @@ public record RelyingPartyServiceRequest(
     List<@NotNull @Valid ProvidedAttestationResource> providesAttestations,
     List<@NotNull @Valid ServiceReferenceResource> usesIntermediaries,
     @JsonProperty(value = "isIntermediary", required = true) @NotNull Boolean isIntermediary,
-    List<@NotNull @Valid ServiceReferenceResource> servedWRPServices
+    List<@NotNull @Valid ServiceReferenceResource> servedWRPServices,
+    List<@NotBlank String> entitlements
 ) {
     @AssertTrue(message = "service_contact_required")
     public boolean hasContactInformation() {

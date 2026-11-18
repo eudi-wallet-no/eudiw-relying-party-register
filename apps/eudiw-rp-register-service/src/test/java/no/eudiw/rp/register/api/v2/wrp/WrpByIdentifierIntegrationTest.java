@@ -1022,6 +1022,8 @@ class WrpByIdentifierIntegrationTest {
         WalletRelyingParty multipleEntitlementMatches =
             partyWithSearchData("Entitlement match A", "urn:example:entitlement-a", "Entitlement Alpha");
         WalletRelyingPartyService firstService = multipleEntitlementMatches.getServices().getFirst();
+        firstService.setRelyingPartyInstances(List.of());
+        firstService.setEntitlements(List.of(entitlement));
         firstService.setRelyingPartyInstances(List.of(
             instanceWithEntitlements(entitlement),
             instanceWithEntitlements(entitlement)
@@ -1039,6 +1041,8 @@ class WrpByIdentifierIntegrationTest {
 
         WalletRelyingParty secondInstanceMatch =
             partyWithSearchData("Entitlement match C", "urn:example:entitlement-c", "Entitlement Gamma");
+        secondInstanceMatch.getServices().getFirst().setRelyingPartyInstances(List.of());
+        secondInstanceMatch.getServices().getFirst().setEntitlements(List.of(entitlement));
         secondInstanceMatch.getServices().getFirst().setRelyingPartyInstances(
             List.of(instanceWithEntitlements(entitlement)));
 
@@ -1050,6 +1054,8 @@ class WrpByIdentifierIntegrationTest {
             partyWithSearchData("Inactive instance entitlement", "urn:example:entitlement-inactive-instance", "Other");
         RelyingPartyInstance inactiveInstance = instanceWithEntitlements(entitlement);
         inactiveInstance.setActive(false);
+        inactiveInstanceMatch.getServices().getFirst().setRelyingPartyInstances(List.of());
+        inactiveInstanceMatch.getServices().getFirst().setEntitlements(List.of(entitlement));
         inactiveInstanceMatch.getServices().getFirst().setRelyingPartyInstances(List.of(inactiveInstance));
 
         WalletRelyingParty inactiveServiceMatch =
@@ -1117,6 +1123,8 @@ class WrpByIdentifierIntegrationTest {
         String storedEntitlement = "https://example.test/entitlements/Provider";
         WalletRelyingParty relyingParty =
             partyWithSearchData("Case-sensitive entitlement", "urn:example:case-sensitive", "Case Sensitive");
+        relyingParty.getServices().getFirst().setRelyingPartyInstances(List.of());
+        relyingParty.getServices().getFirst().setEntitlements(List.of(storedEntitlement));
         relyingParty.getServices().getFirst().setRelyingPartyInstances(
             List.of(instanceWithEntitlements(storedEntitlement)));
         walletRelyingPartyRepository.saveAndFlush(relyingParty);
@@ -1485,16 +1493,18 @@ class WrpByIdentifierIntegrationTest {
     }
 
     @Test
-    void includesDistinctEntitlementsFromAllInstances() throws Exception {
+    @DisplayName("Should return all service roles without an instance selection")
+    void shouldReturnAllServiceRolesWithoutAnInstanceSelection() throws Exception {
         String orgno = TestDataGenerator.generateValidOrgno();
-        WalletRelyingParty relyingParty = EntityGenerator.generateWalletRelyingParty(1);
-        relyingParty.setOrgno(orgno);
-        WalletRelyingPartyService service = relyingParty.getServices().getFirst();
-        RelyingPartyInstance firstActiveInstance = service.getRelyingPartyInstances().getFirst();
-        firstActiveInstance.setRelyingPartyEntitlements(List.of(
+        WalletRelyingParty relyingParty = new WalletRelyingParty("Party", orgno, true, List.of());
+        RelyingPartyInstance firstActiveInstance = new RelyingPartyInstance(List.of(
             new RelyingPartyEntitlement("urn:example:shared"),
             new RelyingPartyEntitlement("urn:example:first")
-        ));
+        ), List.of(), List.of());
+        WalletRelyingPartyService service = new WalletRelyingPartyService("Service", relyingParty, List.of(firstActiveInstance));
+        relyingParty.getServices().add(service);
+        service.setEntitlements(List.of("urn:example:shared", "urn:example:first", "urn:example:second",
+            "urn:example:inactive-only", "urn:example:unselected"));
 
         RelyingPartyInstance secondActiveInstance = instanceWithEntitlements(
             "urn:example:shared", "urn:example:second");
@@ -1513,9 +1523,12 @@ class WrpByIdentifierIntegrationTest {
         Map<?, ?> serviceData = (Map<?, ?>) ((List<?>) data.get("services")).getFirst();
 
         assertEquals(
-            Set.of("urn:example:shared", "urn:example:first", "urn:example:second", "urn:example:inactive-only"),
+            Set.of("urn:example:shared", "urn:example:first", "urn:example:second", "urn:example:inactive-only",
+                "urn:example:unselected"),
             Set.copyOf((List<?>) serviceData.get("entitlements"))
         );
+        assertEquals(List.of("Party"), collectionTradeNames(
+            getCollectionPage(10, null, Map.of("entitlement", "urn:example:unselected"))));
     }
 
     @Test

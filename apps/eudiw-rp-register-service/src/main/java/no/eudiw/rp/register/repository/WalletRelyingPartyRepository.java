@@ -33,11 +33,10 @@ public interface WalletRelyingPartyRepository
     @Query("""
         SELECT DISTINCT service.id AS serviceId, entitlement.entitlement AS entitlementValue
         FROM WalletRelyingPartyService service
-        JOIN service.relyingPartyInstances instance
-        JOIN instance.relyingPartyEntitlements entitlement
+        JOIN service.serviceEntitlements entitlement
         WHERE service.walletRelyingParty.id IN :partyIds
         """)
-    List<ServiceEntitlementProjection> findInstanceEntitlementsByPartyIds(
+    List<ServiceEntitlementProjection> findServiceEntitlementsByRelyingPartyIds(
         @Param("partyIds") List<UUID> partyIds
     );
 

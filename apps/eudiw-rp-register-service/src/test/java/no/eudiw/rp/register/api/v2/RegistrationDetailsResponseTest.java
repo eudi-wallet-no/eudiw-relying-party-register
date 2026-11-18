@@ -36,13 +36,16 @@ class RegistrationDetailsResponseTest {
     @Test
     @DisplayName("Should receive every registered role in order, including repeats and names from inactive catalog entries")
     void shouldReturnEveryRegisteredRoleInOrderWithCatalogNames() {
+        var service = relyingPartyInstance.getWalletRelyingPartyService();
+        service.setEntitlements(List.of("urn:issuer", "urn:reader"));
+
         relyingPartyInstance.getRelyingPartyEntitlements()
             .addAll(List.of(
-                new RelyingPartyEntitlement("urn:issuer"),
-                new RelyingPartyEntitlement("urn:reader"),
-                new RelyingPartyEntitlement("urn:issuer")));
+                new RelyingPartyEntitlement(service.requireServiceEntitlement("urn:issuer")),
+                new RelyingPartyEntitlement(service.requireServiceEntitlement("urn:reader")),
+                new RelyingPartyEntitlement(service.requireServiceEntitlement("urn:issuer"))));
         relyingPartyInstance.getRelyingPartyEntitlements().forEach(role -> role.setRelyingPartyInstance(relyingPartyInstance));
-        relyingPartyInstance.getWalletRelyingPartyService().setCredentialIssuerUrl("urn:issuer", "https://issuer.test");
+        service.setCredentialIssuerUrl("urn:issuer", "https://issuer.test");
         Map<String, Entitlement> entitlementCatalog = Map.of(
             "urn:issuer", new Entitlement("urn:issuer", false, "Issuer", "test-ca"),
             "urn:reader", new Entitlement("urn:reader", true, "Reader", "test-ca"));
@@ -61,11 +64,14 @@ class RegistrationDetailsResponseTest {
     @Test
     @DisplayName("Should identify a registered role by its URI when the role is absent from the catalog")
     void shouldIdentifyUncataloguedRoleByItsRegisteredUri() {
+        var service = relyingPartyInstance.getWalletRelyingPartyService();
+        service.setEntitlements(List.of("urn:unknown"));
+
         relyingPartyInstance.getRelyingPartyEntitlements()
-            .add(new RelyingPartyEntitlement("urn:unknown"));
+            .add(new RelyingPartyEntitlement(service.requireServiceEntitlement("urn:unknown")));
 
         relyingPartyInstance.getRelyingPartyEntitlements().forEach(role -> role.setRelyingPartyInstance(relyingPartyInstance));
-        relyingPartyInstance.getWalletRelyingPartyService().setCredentialIssuerUrl("urn:unknown", "https://issuer.test");
+        service.setCredentialIssuerUrl("urn:unknown", "https://issuer.test");
 
         assertEquals(
             List.of(new RelyingPartyEntitlementResponse("urn:unknown", "urn:unknown", "https://issuer.test")),

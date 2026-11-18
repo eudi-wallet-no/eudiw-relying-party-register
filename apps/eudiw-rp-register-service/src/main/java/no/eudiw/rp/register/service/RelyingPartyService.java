@@ -125,8 +125,6 @@ public class RelyingPartyService {
             throw new BadRequestException("Entitlements and EAAs should be emtpy if none exists");
         }
 
-        entitlementCheck(entitlements);
-
         walletRelyingPartyRepository.findByInstanceIdForUpdate(id)
             .orElseThrow(() -> new BadRequestException("Relying party instance not found"));
         RelyingPartyInstance relyingPartyInstance = relyingPartyInstanceRepository.findById(id)
@@ -137,6 +135,13 @@ public class RelyingPartyService {
         }
 
         WalletRelyingPartyService walletService = relyingPartyInstance.getWalletRelyingPartyService();
+        entitlements.forEach(selection -> walletService.requireServiceEntitlement(selection.getEntitlement()));
+        entitlementCheck(entitlements);
+
+        if (!relyingPartyInstance.keepsEntitlementsWithIssuerCertificates(entitlements)) {
+            throw new BadRequestException("An instance role with issuer certificates cannot be removed");
+        }
+
         submittedCredentialIssuerUrls.forEach(url -> validateCredentialIssuerUrl(
             walletService, url.getEntitlement(), url.getCredentialIssuerUrl()));
 
@@ -258,6 +263,12 @@ public class RelyingPartyService {
                 Objects.equals(existing.getEntitlement(), requested.getEntitlement())))
             .toList();
         entitlementCheck(changedEntitlements);
+    }
+
+    public void validateServiceEntitlements(WalletRelyingPartyService service, List<String> entitlements) {
+        validateEntitlementsForUpdate(
+            service.getServiceEntitlements().stream().map(RelyingPartyEntitlement::new).toList(),
+            entitlements.stream().map(RelyingPartyEntitlement::new).toList());
     }
 
     public void validateCredentialIssuerUrl(
