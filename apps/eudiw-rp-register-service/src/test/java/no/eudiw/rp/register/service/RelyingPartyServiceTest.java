@@ -92,15 +92,28 @@ class RelyingPartyServiceTest {
             List.of(new RelyingPartyEntitlement("invalid-entitlement"));
 
         if (update) {
+            UUID id = UUID.randomUUID();
+            var instance = EntityGenerator.generateRelyingPartyInstance("Name", List.of(), List.of(), List.of());
+            var walletService = instance.getWalletRelyingPartyService();
+            walletService.setWalletRelyingParty(new WalletRelyingParty("Entity", "123456789", false, List.of()));
+            walletService.setEntitlements(List.of("invalid-entitlement"));
+
+            when(walletRelyingPartyRepository.findByInstanceIdForUpdate(id))
+                .thenReturn(Optional.of(walletService.getWalletRelyingParty()));
+            when(repository.findById(id)).thenReturn(Optional.of(instance));
+
             assertThrows(BadRequestException.class,
-                () -> service.updateRelyingParty(UUID.randomUUID(), "Name", true, entitlements, List.of()));
+                () -> service.updateRelyingParty(id, "Name", true, entitlements, List.of()));
+
+            assertTrue(instance.getRelyingPartyEntitlements().isEmpty());
         } else {
             assertThrows(BadRequestException.class,
                 () -> service.createRelyingParty("123456789", "Name", entitlements, List.of()));
         }
 
         verify(entitlementRepository).existsByEntitlementAndActive("invalid-entitlement", true);
-        verifyNoInteractions(repository, walletRelyingPartyLookupService, walletRelyingPartyServiceRepository);
+        verify(repository, never()).saveAndFlush(any());
+        verifyNoInteractions(walletRelyingPartyLookupService, walletRelyingPartyServiceRepository);
     }
 
     @Test

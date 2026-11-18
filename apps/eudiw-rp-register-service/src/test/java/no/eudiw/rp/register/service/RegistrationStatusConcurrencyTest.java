@@ -152,6 +152,7 @@ class RegistrationStatusConcurrencyTest {
         var instance = new RelyingPartyInstance(List.of(), List.of(), List.of());
         instance.setActive(false);
         var service = new WalletRelyingPartyService("Service", null, List.of(instance));
+        service.setEntitlements(List.of(ENTITLEMENT));
         service.setActive(write != HierarchyWrite.SERVICE_ACTIVATION);
         var party = new WalletRelyingParty("Party", "123456789", false, List.of(service));
         partyRepository.saveAndFlush(party);
