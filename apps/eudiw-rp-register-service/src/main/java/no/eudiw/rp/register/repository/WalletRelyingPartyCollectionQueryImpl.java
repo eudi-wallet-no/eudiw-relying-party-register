@@ -225,8 +225,32 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
         );
         return builder.or(
             builder.equal(containsWrpPolicy, 1),
+            servicePolicyPredicate(builder, query, party, policyObject),
             intendedUsePolicyPredicate(builder, query, party, policyObject)
         );
+    }
+
+    private static Predicate servicePolicyPredicate(
+        CriteriaBuilder builder,
+        CriteriaQuery<?> query,
+        Root<WalletRelyingParty> party,
+        Expression<String> policyObject
+    ) {
+        Subquery<Integer> matchingService = query.subquery(Integer.class);
+        Root<WalletRelyingPartyService> service = matchingService.from(WalletRelyingPartyService.class);
+        var containsServicePolicy = builder.function(
+            "JSON_CONTAINS",
+            Integer.class,
+            service.get("issuerPolicies"),
+            policyObject,
+            builder.literal("$")
+        );
+        matchingService.select(builder.literal(1))
+            .where(
+                builder.equal(service.get("walletRelyingParty").get("id"), party.get("id")),
+                builder.equal(containsServicePolicy, 1)
+            );
+        return builder.exists(matchingService);
     }
 
     private static Predicate intendedUsePolicyPredicate(
