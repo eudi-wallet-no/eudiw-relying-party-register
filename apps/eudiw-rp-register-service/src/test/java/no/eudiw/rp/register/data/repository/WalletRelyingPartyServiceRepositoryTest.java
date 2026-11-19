@@ -70,6 +70,9 @@ class WalletRelyingPartyServiceRepositoryTest {
         service.setSrvDescription(List.of(
             new MultiLangString("en", "Payment service"),
             new MultiLangString("nb", "Betalingstjeneste")));
+        service.setIssuerPolicies(List.of(
+            new Policy("PrivacyPolicy", "https://service.example/privacy"),
+            new Policy("TermsAndConditions", "https://service.example/terms")));
         service.setSubEntitlements(List.of("urn:test:payment"));
         service.setProvidesAttestations(List.of(
             new ProvidedAttestation("dc+sd-jwt", "https://schemas.example/payment")));
@@ -90,6 +93,9 @@ class WalletRelyingPartyServiceRepositoryTest {
             () -> assertEquals(List.of(
                 new MultiLangString("en", "Payment service"),
                 new MultiLangString("nb", "Betalingstjeneste")), actual.getSrvDescription()),
+            () -> assertEquals(List.of(
+                new Policy("PrivacyPolicy", "https://service.example/privacy"),
+                new Policy("TermsAndConditions", "https://service.example/terms")), actual.getIssuerPolicies()),
             () -> assertEquals(List.of("urn:test:payment"), actual.getSubEntitlements()),
             () -> assertEquals(List.of(
                 new ProvidedAttestation("dc+sd-jwt", "https://schemas.example/payment")),

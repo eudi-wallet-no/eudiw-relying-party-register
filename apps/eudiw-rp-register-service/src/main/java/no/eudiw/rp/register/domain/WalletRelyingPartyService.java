@@ -42,6 +42,10 @@ public class WalletRelyingPartyService extends BaseEntity {
     private List<MultiLangString> srvDescription;
 
     @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "issuer_policies", columnDefinition = "JSON", nullable = false)
+    private List<Policy> issuerPolicies = new ArrayList<>();
+
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "sub_entitlements", columnDefinition = "JSON", nullable = false)
     private List<String> subEntitlements = new ArrayList<>();
 
