@@ -121,7 +121,7 @@ public class WrpEndpoint {
         @Parameter(
             name = "policy",
             in = ParameterIn.QUERY,
-            description = "Exact URI of a WRP policy or intended-use privacy policy",
+            description = "Exact URI of a WRP policy, service policy, or intended-use privacy policy",
             schema = @Schema(type = "string", format = "uri")
         )
         @RequestParam(name = "policy", required = false) String policy,

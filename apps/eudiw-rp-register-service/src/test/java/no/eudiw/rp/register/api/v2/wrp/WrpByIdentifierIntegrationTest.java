@@ -554,7 +554,7 @@ class WrpByIdentifierIntegrationTest {
     }
 
     @Test
-    void filtersCollectionByExactPolicyUriAtWrpAndIntendedUseLevels() throws Exception {
+    void filtersCollectionByExactPolicyUriAtWrpServiceAndIntendedUseLevels() throws Exception {
         String wrpPolicyUri = "https://example.test/policies/wrp";
         String intendedUsePolicyUri = "https://example.test/policies/intended-use";
         WalletRelyingParty wrpPolicyMatch =
@@ -563,6 +563,11 @@ class WrpByIdentifierIntegrationTest {
         WalletRelyingParty secondWrpPolicyMatch =
             partyWithSearchData("Second WRP policy match", "urn:example:wrp-policy-second", "Policy Alpha");
         secondWrpPolicyMatch.setPolicy(List.of(new Policy("PrivacyStatement", wrpPolicyUri)));
+
+        WalletRelyingParty servicePolicyMatch =
+            partyWithSearchData("Service policy match", "urn:example:service-policy", "Policy Alpha");
+        servicePolicyMatch.getServices().getFirst().setIssuerPolicies(
+            List.of(new Policy("TermsAndConditions", wrpPolicyUri)));
 
         WalletRelyingParty intendedUsePolicyMatch =
             partyWithSearchData("Intended use policy match", "urn:example:intended-policy", "Policy Beta");
@@ -578,8 +583,16 @@ class WrpByIdentifierIntegrationTest {
         WalletRelyingParty partialPolicyMatch =
             partyWithSearchData("Partial policy mismatch", "urn:example:partial-policy", "Policy Beta");
         partialPolicyMatch.setPolicy(List.of(new Policy("PrivacyStatement", wrpPolicyUri + "/extended")));
+        partialPolicyMatch.getServices().getFirst().setIssuerPolicies(
+            List.of(new Policy("TermsAndConditions", wrpPolicyUri + "/extended")));
         walletRelyingPartyRepository.saveAllAndFlush(
-            List.of(wrpPolicyMatch, secondWrpPolicyMatch, intendedUsePolicyMatch, partialPolicyMatch));
+            List.of(
+                wrpPolicyMatch,
+                secondWrpPolicyMatch,
+                servicePolicyMatch,
+                intendedUsePolicyMatch,
+                partialPolicyMatch
+            ));
 
         JWSObject firstPolicyPage = getCollectionPage(1, null, Map.of("policy", wrpPolicyUri));
         Map<?, ?> pagination =
@@ -589,11 +602,17 @@ class WrpByIdentifierIntegrationTest {
             1, (String) pagination.get("next_cursor"), Map.of("policy", wrpPolicyUri));
         Map<?, ?> secondPagination =
             (Map<?, ?>) secondPolicyPage.getPayload().toJSONObject().get("pagination");
-        assertFalse((Boolean) secondPagination.get("has_next_page"));
+        assertTrue((Boolean) secondPagination.get("has_next_page"));
+        JWSObject thirdPolicyPage = getCollectionPage(
+            1, (String) secondPagination.get("next_cursor"), Map.of("policy", wrpPolicyUri));
+        Map<?, ?> thirdPagination =
+            (Map<?, ?>) thirdPolicyPage.getPayload().toJSONObject().get("pagination");
+        assertFalse((Boolean) thirdPagination.get("has_next_page"));
         List<String> policyMatches = new ArrayList<>(collectionTradeNames(firstPolicyPage));
         policyMatches.addAll(collectionTradeNames(secondPolicyPage));
+        policyMatches.addAll(collectionTradeNames(thirdPolicyPage));
         assertEquals(
-            Set.of("WRP policy match", "Second WRP policy match"),
+            Set.of("WRP policy match", "Second WRP policy match", "Service policy match"),
             Set.copyOf(policyMatches)
         );
         assertEquals(
