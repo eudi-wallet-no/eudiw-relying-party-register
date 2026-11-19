@@ -15,6 +15,7 @@ import jakarta.persistence.criteria.Subquery;
 import no.eudiw.rp.register.domain.Credential;
 import no.eudiw.rp.register.domain.IntendedUse;
 import no.eudiw.rp.register.domain.LegalPerson;
+import no.eudiw.rp.register.domain.ProvidedAttestation;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 import org.springframework.stereotype.Repository;
@@ -411,21 +412,14 @@ class WalletRelyingPartyCollectionQueryImpl implements WalletRelyingPartyCollect
     ) {
         ParameterExpression<String> providedAttestation =
             builder.parameter(String.class, PROVIDED_ATTESTATION_PARAMETER);
-        var providedAttestationObject = builder.function(
-            "JSON_OBJECT", String.class, builder.literal("type"), providedAttestation);
         Subquery<Integer> matchingService = query.subquery(Integer.class);
         Root<WalletRelyingPartyService> service = matchingService.from(WalletRelyingPartyService.class);
-        var containsProvidedAttestation = builder.function(
-            "JSON_CONTAINS",
-            Integer.class,
-            service.get("providesAttestations"),
-            providedAttestationObject,
-            builder.literal("$")
-        );
+        Join<WalletRelyingPartyService, ProvidedAttestation> attestation =
+            service.join("providesAttestations", JoinType.INNER);
         matchingService.select(builder.literal(1))
             .where(
                 builder.equal(service.get("walletRelyingParty").get("id"), party.get("id")),
-                builder.equal(containsProvidedAttestation, 1)
+                builder.equal(attestation.get("type"), providedAttestation)
             );
         return builder.exists(matchingService);
     }
