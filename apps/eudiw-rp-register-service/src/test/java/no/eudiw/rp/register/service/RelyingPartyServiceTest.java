@@ -1,5 +1,6 @@
 package no.eudiw.rp.register.service;
 
+import no.eudiw.rp.register.domain.Entitlement;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEaa;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
@@ -9,6 +10,8 @@ import no.eudiw.rp.register.repository.EntitlementRepository;
 import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.repository.WalletRelyingPartyServiceRepository;
+import no.eudiw.rp.register.testdata.EntityGenerator;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -40,7 +43,8 @@ class RelyingPartyServiceTest {
         WalletRelyingParty walletRelyingParty = new WalletRelyingParty("Entity", "123456789", false, List.of());
         RelyingPartyEntitlement entitlement = new RelyingPartyEntitlement("active-entitlement");
         RelyingPartyEaa eaa = new RelyingPartyEaa("namespace", "intent");
-        when(entitlementRepository.existsByEntitlementAndActive("active-entitlement", true)).thenReturn(true);
+        when(entitlementRepository.findAllByActive(true)).thenReturn(
+            List.of(new Entitlement("active-entitlement", true, "Active", "test-ca")));
         when(walletRelyingPartyLookupService.findWalletRelyingPartyForOrgno("123456789"))
             .thenReturn(Optional.of(walletRelyingParty));
         when(repository.saveAndFlush(any(RelyingPartyInstance.class))).thenAnswer(call -> call.getArgument(0));
@@ -87,9 +91,25 @@ class RelyingPartyServiceTest {
         assertThrows(BadRequestException.class,
             () -> service.createRelyingParty("123456789", "Name", entitlements, List.of()));
 
-        verify(entitlementRepository).existsByEntitlementAndActive("invalid-entitlement", true);
+        verify(entitlementRepository).findAllByActive(true);
         verify(repository, never()).saveAndFlush(any());
         verifyNoInteractions(walletRelyingPartyLookupService, walletRelyingPartyServiceRepository);
+    }
+
+    @Test
+    @DisplayName("Should reject a case variant of an active catalog entitlement")
+    void shouldRejectCaseVariantOfActiveCatalogEntitlement() {
+        String canonicalEntitlement = "https://uri.etsi.org/19475/Entitlement/Service_Provider";
+        String submittedEntitlement = "https://uri.etsi.org/19475/Entitlement/service_provider";
+        when(entitlementRepository.existsByEntitlementAndActive(submittedEntitlement, true)).thenReturn(true);
+        when(entitlementRepository.findAllByActive(true)).thenReturn(
+            List.of(new Entitlement(canonicalEntitlement, true, "Service provider", "test-ca")));
+
+        assertThrows(BadRequestException.class,
+            () -> service.validateEntitlements(List.of(new RelyingPartyEntitlement(submittedEntitlement))));
+
+        verify(entitlementRepository).findAllByActive(true);
+        verify(entitlementRepository, never()).existsByEntitlementAndActive(any(), anyBoolean());
     }
 
     @Test

@@ -1,6 +1,7 @@
 package no.eudiw.rp.register.service;
 
 import lombok.RequiredArgsConstructor;
+import no.eudiw.rp.register.domain.Entitlement;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEaa;
@@ -19,7 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -170,8 +173,16 @@ public class RelyingPartyService {
     }
 
     private void entitlementCheck(List<RelyingPartyEntitlement> entitlements) {
+        if (entitlements.isEmpty()) {
+            return;
+        }
+
+        Set<String> activeEntitlementUris = entitlementRepository.findAllByActive(true).stream()
+            .map(Entitlement::getEntitlement)
+            .collect(Collectors.toSet());
+
         for (RelyingPartyEntitlement entitlement : entitlements) {
-            if (!entitlementRepository.existsByEntitlementAndActive(entitlement.getEntitlement(), true)) {
+            if (!activeEntitlementUris.contains(entitlement.getEntitlement())) {
                 throw new BadRequestException(entitlement.getEntitlement() + " is not a valid active entitlement");
             }
         }

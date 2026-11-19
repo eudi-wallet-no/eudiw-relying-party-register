@@ -51,6 +51,12 @@ public record RelyingPartyServiceRequest(
         return supportUri == null || V2ResourceValidation.isAbsoluteUri(supportUri);
     }
 
+    @AssertTrue(message = "invalid_sub_entitlements")
+    public boolean hasValidSubEntitlements() {
+        return subEntitlements == null || subEntitlements.stream()
+            .allMatch(V2ResourceValidation::isAbsoluteUri);
+    }
+
     public WalletRelyingPartyService toDomain(
         WalletRelyingParty relyingParty,
         List<RelyingPartyInstance> relyingPartyInstances
