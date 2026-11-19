@@ -60,7 +60,7 @@ public class V1ApiService {
         RelyingPartyInstance createdInstance = relyingPartyService.createRelyingParty(
             orgno, serviceTradeName, entitlements, eaas,
             credentialIssuerUrls.values().stream()
-                .filter(item -> item.getCredentialIssuerUrl() != null)
+                .filter(item -> item.credentialIssuerUrl() != null)
                 .toList());
         return v1ContractMapper.toV1RelyingPartyResponse(createdInstance);
     }

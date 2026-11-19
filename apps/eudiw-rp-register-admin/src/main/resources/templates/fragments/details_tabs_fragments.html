@@ -232,7 +232,7 @@
 
     <section class="ds-card registration-card">
         <details class="ds-details">
-            <summary><h2 class="ds-heading" data-size="sm">Teneste</h2></summary>
+            <summary><h2 class="ds-heading" data-size="sm">Tenester</h2></summary>
             <div class="registration-data-section">
             <div class="registration-section-bar">
                 <h3 id="service-information-heading" class="ds-heading" data-size="sm">Opplysningar om tenesta</h3>
@@ -328,18 +328,18 @@
 
             <div class="registration-data-section">
                 <div class="registration-section-bar">
-                    <h3 class="ds-heading" data-size="sm">Utstedar-URL-ar for tenesta</h3>
+                    <h3 class="ds-heading" data-size="sm">Roller og utstedar-URL-ar for tenesta</h3>
                     <a th:href="${'/service/credential-issuer-urls/edit/' + relyingPartyResource.id + '?returnUrl=' + #uris.escapeQueryParam(searchUrlAttr ?: '/search')}"
-                       class="ds-button fit-width" data-variant="secondary" data-size="sm">Rediger utstedar-URL-ar</a>
+                       class="ds-button fit-width" data-variant="secondary" data-size="sm">Rediger roller og utstedar-URL-ar</a>
                 </div>
-                <p class="ds-paragraph">Utstedar-URL-en er felles for instansane som har same rolle i tenesta.</p>
+                <p class="ds-paragraph">Instansane vel mellom rollene til tenesta. Utstedar-URL-en er felles for instansane som har same rolle.</p>
             </div>
         </details>
     </section>
 
     <section class="ds-card registration-card">
         <details class="ds-details">
-            <summary><h2 class="ds-heading" data-size="sm">Roller og bevistypar for instansen</h2></summary>
+            <summary><h2 class="ds-heading" data-size="sm">Instanser</h2></summary>
             <div>
             <div class="registration-data-section">
             <div class="registration-section-bar">

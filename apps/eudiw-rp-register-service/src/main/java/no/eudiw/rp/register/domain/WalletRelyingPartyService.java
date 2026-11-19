@@ -95,15 +95,6 @@ public class WalletRelyingPartyService extends BaseEntity {
         cascade = CascadeType.ALL,
         orphanRemoval = true)
     @BatchSize(size = 50)
-    private List<ServiceCredentialIssuerUrl> credentialIssuerUrls = new ArrayList<>();
-
-    @Setter(AccessLevel.NONE)
-    @OneToMany(
-        mappedBy = "walletRelyingPartyService",
-        fetch = FetchType.LAZY,
-        cascade = CascadeType.ALL,
-        orphanRemoval = true)
-    @BatchSize(size = 50)
     private List<ServiceEntitlement> serviceEntitlements = new ArrayList<>();
 
     @Column(name = "created_ms", nullable = false)
@@ -206,51 +197,11 @@ public class WalletRelyingPartyService extends BaseEntity {
     }
 
     public String getCredentialIssuerUrl(String entitlement) {
-        ServiceEntitlement role = serviceEntitlements.stream()
-            .filter(item -> item.getEntitlement().equals(entitlement))
-            .findFirst().orElse(null);
-
-        if (role != null) {
-            return role.getCredentialIssuerUrl();
-        }
-
-        return credentialIssuerUrls.stream()
-            .filter(url -> url.getEntitlement().equals(entitlement))
-            .findFirst()
-            .map(ServiceCredentialIssuerUrl::getCredentialIssuerUrl)
-            .orElse(null);
+        return requireServiceEntitlement(entitlement).getCredentialIssuerUrl();
     }
 
     public void setCredentialIssuerUrl(String entitlement, String credentialIssuerUrl) {
-        ServiceEntitlement role = serviceEntitlements.stream()
-            .filter(item -> item.getEntitlement().equals(entitlement))
-            .findFirst().orElse(null);
-
-        if (role != null) {
-            role.setCredentialIssuerUrl(credentialIssuerUrl);
-            return;
-        }
-
-        ServiceCredentialIssuerUrl configuration = credentialIssuerUrls.stream()
-            .filter(url -> url.getEntitlement().equals(entitlement))
-            .findFirst().orElse(null);
-
-        if (configuration == null) {
-            configuration = new ServiceCredentialIssuerUrl(entitlement, credentialIssuerUrl);
-            configuration.setWalletRelyingPartyService(this);
-            credentialIssuerUrls.add(configuration);
-        } else {
-            configuration.setCredentialIssuerUrl(credentialIssuerUrl);
-        }
-    }
-
-    public void setCredentialIssuerUrls(List<ServiceCredentialIssuerUrl> credentialIssuerUrls) {
-        List<ServiceCredentialIssuerUrl> credentialIssuerUrlsCopy =
-            credentialIssuerUrls == null ? List.of() : new ArrayList<>(credentialIssuerUrls);
-        this.credentialIssuerUrls.clear();
-        serviceEntitlements.forEach(role -> role.setCredentialIssuerUrl(null));
-        credentialIssuerUrlsCopy.forEach(url ->
-            setCredentialIssuerUrl(url.getEntitlement(), url.getCredentialIssuerUrl()));
+        requireServiceEntitlement(entitlement).setCredentialIssuerUrl(credentialIssuerUrl);
     }
 
     @Transient
@@ -285,9 +236,8 @@ public class WalletRelyingPartyService extends BaseEntity {
                 continue;
             }
 
-            ServiceEntitlement role = new ServiceEntitlement(entitlement, getCredentialIssuerUrl(entitlement));
+            ServiceEntitlement role = new ServiceEntitlement(entitlement, null);
             role.setWalletRelyingPartyService(this);
-            credentialIssuerUrls.removeIf(url -> url.getEntitlement().equals(entitlement));
             serviceEntitlements.add(role);
         }
     }

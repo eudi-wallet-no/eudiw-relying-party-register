@@ -7,6 +7,8 @@ import no.idporten.eudiw.rp.admin.service.MockWebServerConfiguration;
 import no.idporten.eudiw.rp.admin.service.accesscertificates.PKCS10CertificationRequestConverter;
 import no.idporten.eudiw.rp.admin.testdata.CertificatesGenerator;
 import no.idporten.eudiw.rp.admin.testdata.ResourceGenerator;
+import no.idporten.eudiw.rp.admin.web.form.InstanceRoleOption;
+import no.idporten.eudiw.rp.admin.web.form.InstanceRolesForm;
 import no.idporten.eudiw.rp.admin.web.form.ServiceCredentialIssuerUrlsForm;
 import no.idporten.eudiw.rp.admin.web.resource.PagedResponse;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyEntitlementResource;
@@ -555,8 +557,8 @@ class RegistrationWorkflowTests {
     private static final String QEAA = "https://uri.etsi.org/19475/Entitlement/QEAA_Provider";
 
     @Test
-    @DisplayName("Should show locked roles and catalog roles to an administrator who follows the edit link")
-    void shouldShowLockedRolesAndCatalogRolesToAdministrator() throws Exception {
+    @DisplayName("Should offer only service roles and keep the instance selection")
+    void shouldOfferOnlyServiceRolesAndKeepInstanceSelection() throws Exception {
         enqueueLookup();
         String html = mockMvc.perform(get("/details/" + relyingPartyResource.id()).with(login(true)))
             .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
@@ -564,11 +566,16 @@ class RegistrationWorkflowTests {
 
         enqueueLookup();
         enqueueRoleCatalog();
-        mockMvc.perform(get(editLink).with(login(true)))
-            .andExpectAll(status().isOk(), view().name("roles_form_view"),
-                content().string(allOf(containsString("Second role"), not(containsString("credentialIssuerUrl")),
-                    containsString("Rollen er koblet til utstedarsertifikat"), containsString("name=\"entitlements[1].entitlement\""),
-                    containsString("Avbryt"), containsString("Tilbake til registreringa"))));
+        var result = mockMvc.perform(get(editLink).with(login(true)))
+            .andExpectAll(status().isOk(), view().name("roles_form_view"))
+            .andReturn();
+        var form = (InstanceRolesForm) result.getModelAndView().getModel().get("editFormAttr");
+
+        assertEquals(List.of(
+            new InstanceRoleOption(QEAA, "Issuer", "https://issuer.test", true),
+            new InstanceRoleOption("urn:second", "Second role", "https://second.test", false)),
+            result.getModelAndView().getModel().get("roleOptions"));
+        assertEquals(List.of(QEAA), form.selectedEntitlements().stream().map(role -> role.getEntitlement()).toList());
     }
 
     @Test
@@ -622,6 +629,7 @@ class RegistrationWorkflowTests {
     @DisplayName("Should keep self-service roles without URLs or EAA values")
     void shouldKeepSelfServiceRolesWithoutUrlsOrEaaValues() throws Exception {
         enqueueLookup();
+        enqueueRoleCatalog();
         String form = mockMvc.perform(get("/roles/edit/" + relyingPartyResource.id()).with(login(false)))
             .andExpect(status().isOk())
             .andReturn().getResponse().getContentAsString();
@@ -630,6 +638,7 @@ class RegistrationWorkflowTests {
         assertTrue(form.contains("Bare administratoren kan legge til eller fjerne roller"));
 
         enqueueLookup();
+        enqueueRoleCatalog();
         expectedRolesRequest = """
             {"relyingPartyEntitlements":[{"entitlement":"%s"}]}
             """.formatted(QEAA);
@@ -646,6 +655,7 @@ class RegistrationWorkflowTests {
     @DisplayName("Should deny self-service a changed role set without sending anything to the register")
     void shouldDenySelfServiceChangedRoleSet(String manipulation) throws Exception {
         enqueueLookup();
+        enqueueRoleCatalog();
         var request = post("/roles/edit/" + relyingPartyResource.id()).with(login(false)).with(csrf())
             .param("eaas[0].namespace", "ns").param("eaas[0].intent", "purpose");
         switch (manipulation) {
@@ -706,6 +716,7 @@ class RegistrationWorkflowTests {
         assertTrue(details.contains("/roles/edit/"), "Self-service gets an edit link for inactive registrations");
 
         enqueueLookup();
+        enqueueRoleCatalog();
         mockMvc.perform(get("/roles/edit/" + relyingPartyResource.id()).with(login(false)))
             .andExpect(status().isOk());
     }
@@ -877,65 +888,99 @@ class RegistrationWorkflowTests {
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
-    @DisplayName("Should show service URLs to owners and administrators when registrations are not active")
-    void shouldShowServiceUrlsToOwnersAndAdministratorsWhenRegistrationsAreNotActive(boolean administrator) throws Exception {
+    @DisplayName("Should show service roles and URLs to owners and administrators for inactive registrations")
+    void shouldShowServiceRolesAndUrlsToOwnersAndAdministratorsWhenRegistrationsAreNotActive(boolean administrator) throws Exception {
         relyingPartyResource = relyingPartyResource.withActive(false);
         enqueueLookup();
-        var credentialIssuerUrls = List.of(
+        enqueueServiceConfiguration(administrator, List.of(
             new V2RegisterClient.ServiceCredentialIssuerUrl(QEAA, null),
-            new V2RegisterClient.ServiceCredentialIssuerUrl(RETAINED_ROLE, "https://issuer.test/Case+Path"),
-            new V2RegisterClient.ServiceCredentialIssuerUrl(
-                "https://uri.etsi.org/19475/Entitlement/Service_Provider", "https://provider.test"));
-        enqueue("GET", "/v2/services/" + relyingPartyServiceId + "/credential-issuer-urls", credentialIssuerUrls);
-        enqueueCredentialIssuerUrlRoleCatalog();
+            new V2RegisterClient.ServiceCredentialIssuerUrl(RETAINED_ROLE, "https://issuer.test/Case+Path")));
 
-        mockMvc.perform(get(SERVICE_CREDENTIAL_ISSUER_URLS_PATH + relyingPartyResource.id()).with(login(administrator)))
-            .andExpectAll(status().isOk(), model().attribute("credentialIssuerUrls", credentialIssuerUrls));
+        var result = mockMvc.perform(get(SERVICE_CREDENTIAL_ISSUER_URLS_PATH + relyingPartyResource.id())
+                .with(login(administrator)))
+            .andExpectAll(status().isOk(), view().name("service_credential_issuer_urls_form_view"))
+            .andReturn();
+        var form = (ServiceCredentialIssuerUrlsForm) result.getModelAndView().getModel()
+            .get("credentialIssuerUrlsForm");
+        assertTrue(form.getCredentialIssuerUrls().stream()
+            .anyMatch(role -> role.getEntitlement().equals(QEAA) && role.isServiceRole()));
+        assertTrue(form.getCredentialIssuerUrls().stream()
+            .anyMatch(role -> role.getEntitlement().equals(RETAINED_ROLE)
+                && role.getCredentialIssuerUrl().equals("https://issuer.test/Case+Path")));
     }
 
-    @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    @DisplayName("Should save changed service URLs together")
-    void shouldSaveChangedServiceUrlsTogether(boolean administrator) throws Exception {
+    @Test
+    @DisplayName("Should add a service role and its URL in one save")
+    void shouldAddServiceRoleAndItsUrlTogether() throws Exception {
         enqueueLookup();
-        enqueue("GET", "/v2/services/" + relyingPartyServiceId + "/credential-issuer-urls", List.of(
-            new V2RegisterClient.ServiceCredentialIssuerUrl(QEAA, "https://issuer.test"),
-            new V2RegisterClient.ServiceCredentialIssuerUrl(RETAINED_ROLE, "https://retained.test"),
-            new V2RegisterClient.ServiceCredentialIssuerUrl("urn:test:legacy", "http://old.test")));
-        expectedCredentialIssuerUrls = jsonMapper.writeValueAsString(List.of(
-            new V2RegisterClient.ServiceCredentialIssuerUrl(RETAINED_ROLE, "https://issuer.test/NewPath"),
-            new V2RegisterClient.ServiceCredentialIssuerUrl(QEAA, null)));
-        enqueue("PATCH", "/v2/services/" + relyingPartyServiceId + "/credential-issuer-urls", "[]");
+        enqueueServiceConfiguration(true, List.of(
+            new V2RegisterClient.ServiceCredentialIssuerUrl(QEAA, "https://issuer.test")));
+        expectedCredentialIssuerUrls = """
+            {"entitlements":["%s","urn:second"],
+             "credentialIssuerUrls":[{"entitlement":"urn:second","credentialIssuerUrl":"https://second.test"}]}
+            """.formatted(QEAA);
+        enqueue("PATCH", "/v2/services/" + relyingPartyServiceId + "/entitlements", "{}");
 
         mockMvc.perform(post(SERVICE_CREDENTIAL_ISSUER_URLS_PATH + relyingPartyResource.id())
-                .with(login(administrator)).with(csrf())
-                .param("credentialIssuerUrls[0].entitlement", RETAINED_ROLE)
-                .param("credentialIssuerUrls[0].originalCredentialIssuerUrl", "https://retained.test")
-                .param("credentialIssuerUrls[0].credentialIssuerUrl", "https://issuer.test/NewPath")
-                .param("credentialIssuerUrls[1].entitlement", QEAA)
-                .param("credentialIssuerUrls[1].originalCredentialIssuerUrl", "https://issuer.test")
-                .param("credentialIssuerUrls[1].credentialIssuerUrl", "")
-                .param("credentialIssuerUrls[2].entitlement", "urn:test:legacy")
-                .param("credentialIssuerUrls[2].originalCredentialIssuerUrl", "http://old.test")
-                .param("credentialIssuerUrls[2].credentialIssuerUrl", "http://old.test")
-                .param("serviceId", UUID.randomUUID().toString()).param("active", "false")
+                .with(login(true)).with(csrf())
+                .param("credentialIssuerUrls[0].entitlement", QEAA)
+                .param("credentialIssuerUrls[0].selected", "true")
+                .param("credentialIssuerUrls[0].credentialIssuerUrl", "https://issuer.test")
+                .param("credentialIssuerUrls[1].entitlement", "urn:second")
+                .param("credentialIssuerUrls[1].selected", "true")
+                .param("credentialIssuerUrls[1].credentialIssuerUrl", "https://second.test")
                 .param("returnUrl", "/search?searchTerm=abc"))
             .andExpectAll(status().is3xxRedirection(), redirectedUrlPattern("/details/" + relyingPartyResource.id() + "?returnUrl=*"));
     }
 
     @Test
-    @DisplayName("Should keep service URLs when no field changes")
-    void shouldKeepServiceUrlsWhenNoFieldChanges() throws Exception {
+    @DisplayName("Should let organization users change service URLs without changing service roles")
+    void shouldLetOrganizationUsersChangeServiceUrlsWithoutChangingRoles() throws Exception {
         enqueueLookup();
-        enqueueCredentialIssuerUrls();
+        enqueueServiceConfiguration(false, List.of(
+            new V2RegisterClient.ServiceCredentialIssuerUrl(QEAA, "https://issuer.test")));
+        expectedCredentialIssuerUrls = """
+            [{"entitlement":"%s","credentialIssuerUrl":"https://issuer.test/NewPath"}]
+            """.formatted(QEAA);
+        enqueue("PATCH", "/v2/services/" + relyingPartyServiceId + "/credential-issuer-urls", "[]");
+
+        mockMvc.perform(post(SERVICE_CREDENTIAL_ISSUER_URLS_PATH + relyingPartyResource.id())
+                .with(login(false)).with(csrf())
+                .param("credentialIssuerUrls[0].entitlement", QEAA)
+                .param("credentialIssuerUrls[0].selected", "true")
+                .param("credentialIssuerUrls[0].credentialIssuerUrl", "https://issuer.test/NewPath"))
+            .andExpect(status().is3xxRedirection());
+    }
+
+    @Test
+    @DisplayName("Should deny organization users a change to the service role set")
+    void shouldDenyOrganizationUsersAChangeToTheServiceRoleSet() throws Exception {
+        enqueueLookup();
+        enqueueServiceConfiguration(false, List.of(
+            new V2RegisterClient.ServiceCredentialIssuerUrl(QEAA, "https://issuer.test")));
+
+        mockMvc.perform(post(SERVICE_CREDENTIAL_ISSUER_URLS_PATH + relyingPartyResource.id())
+                .with(login(false)).with(csrf())
+                .param("credentialIssuerUrls[0].entitlement", QEAA)
+                .param("credentialIssuerUrls[0].credentialIssuerUrl", "https://issuer.test"))
+            .andExpectAll(status().isNotFound(), view().name("error/404"));
+    }
+
+    @Test
+    @DisplayName("Should skip saving service roles and URLs when no value changes")
+    void shouldSkipSavingServiceRolesAndUrlsWhenNoValueChanges() throws Exception {
+        enqueueLookup();
+        enqueueServiceConfiguration(false, List.of(
+            new V2RegisterClient.ServiceCredentialIssuerUrl(QEAA, "https://issuer.test"),
+            new V2RegisterClient.ServiceCredentialIssuerUrl("urn:second", "https://second.test")));
 
         mockMvc.perform(post(SERVICE_CREDENTIAL_ISSUER_URLS_PATH + relyingPartyResource.id()).with(login(false)).with(csrf())
                 .param("credentialIssuerUrls[0].entitlement", QEAA)
-                .param("credentialIssuerUrls[0].originalCredentialIssuerUrl", "")
-                .param("credentialIssuerUrls[0].credentialIssuerUrl", " ")
-                .param("credentialIssuerUrls[1].entitlement", RETAINED_ROLE)
-                .param("credentialIssuerUrls[1].originalCredentialIssuerUrl", "http://old.test")
-                .param("credentialIssuerUrls[1].credentialIssuerUrl", "http://old.test"))
+                .param("credentialIssuerUrls[0].selected", "true")
+                .param("credentialIssuerUrls[0].credentialIssuerUrl", "https://issuer.test")
+                .param("credentialIssuerUrls[1].entitlement", "urn:second")
+                .param("credentialIssuerUrls[1].selected", "true")
+                .param("credentialIssuerUrls[1].credentialIssuerUrl", "https://second.test"))
             .andExpect(status().is3xxRedirection());
     }
 
@@ -944,68 +989,75 @@ class RegistrationWorkflowTests {
     @DisplayName("Should reject all service URL changes when one URL is invalid")
     void shouldRejectAllServiceUrlChangesWhenOneUrlIsInvalid(String url) throws Exception {
         enqueueLookup();
-        enqueueCredentialIssuerUrls();
-        enqueueCredentialIssuerUrlRoleCatalog();
+        enqueueServiceConfiguration(false, List.of(
+            new V2RegisterClient.ServiceCredentialIssuerUrl(QEAA, "https://issuer.test"),
+            new V2RegisterClient.ServiceCredentialIssuerUrl("urn:second", "https://second.test")));
 
         var result = mockMvc.perform(post(SERVICE_CREDENTIAL_ISSUER_URLS_PATH + relyingPartyResource.id())
                 .with(login(false)).with(csrf())
                 .param("credentialIssuerUrls[0].entitlement", QEAA)
-                .param("credentialIssuerUrls[0].originalCredentialIssuerUrl", "https://issuer.test")
+                .param("credentialIssuerUrls[0].selected", "true")
                 .param("credentialIssuerUrls[0].credentialIssuerUrl", "https://issuer.test/NewPath")
-                .param("credentialIssuerUrls[1].entitlement", RETAINED_ROLE)
-                .param("credentialIssuerUrls[1].originalCredentialIssuerUrl", "https://retained.test")
+                .param("credentialIssuerUrls[1].entitlement", "urn:second")
+                .param("credentialIssuerUrls[1].selected", "true")
                 .param("credentialIssuerUrls[1].credentialIssuerUrl", url))
             .andExpectAll(status().isOk(), model().attributeHasFieldErrors("credentialIssuerUrlsForm", "credentialIssuerUrls[1].credentialIssuerUrl"))
             .andReturn();
         var form = (ServiceCredentialIssuerUrlsForm) result.getModelAndView().getModel().get("credentialIssuerUrlsForm");
 
         assertEquals("https://issuer.test/NewPath", form.getCredentialIssuerUrls().get(0).getCredentialIssuerUrl());
-        assertEquals(RETAINED_ROLE, form.getCredentialIssuerUrls().get(1).getEntitlement());
+        assertEquals("urn:second", form.getCredentialIssuerUrls().get(1).getEntitlement());
         assertEquals(url, form.getCredentialIssuerUrls().get(1).getCredentialIssuerUrl());
-        assertEquals("https://retained.test", form.getCredentialIssuerUrls().get(1).getOriginalCredentialIssuerUrl());
+        assertEquals("https://second.test", form.getCredentialIssuerUrls().get(1).getOriginalCredentialIssuerUrl());
     }
 
     @Test
-    @DisplayName("Should keep all service URL values when the register rejects changes")
-    void shouldKeepAllServiceUrlValuesWhenRegisterRejectsChanges() throws Exception {
+    @DisplayName("Should keep the submitted roles and URLs when the register rejects the save")
+    void shouldKeepSubmittedRolesAndUrlsWhenRegisterRejectsSave() throws Exception {
         enqueueLookup();
-        enqueueCredentialIssuerUrls();
-        expectedRequests.add("PATCH /v2/services/" + relyingPartyServiceId + "/credential-issuer-urls");
+        enqueueServiceConfiguration(true, List.of(
+            new V2RegisterClient.ServiceCredentialIssuerUrl(QEAA, "https://issuer.test"),
+            new V2RegisterClient.ServiceCredentialIssuerUrl("urn:second", "https://second.test")));
+        expectedRequests.add("PATCH /v2/services/" + relyingPartyServiceId + "/entitlements");
         server.enqueue(new MockResponse().setResponseCode(400).setHeader("Content-Type", "application/json")
-            .setBody("{\"error\":\"bad_request\",\"error_description\":\"Invalid URL\"}"));
-        enqueueCredentialIssuerUrlRoleCatalog();
+            .setBody("{\"error\":\"bad_request\",\"error_description\":\"Role is in use\"}"));
 
         var result = mockMvc.perform(post(SERVICE_CREDENTIAL_ISSUER_URLS_PATH + relyingPartyResource.id())
-                .with(login(false)).with(csrf())
-                .param("credentialIssuerUrls[0].entitlement", RETAINED_ROLE)
-                .param("credentialIssuerUrls[0].originalCredentialIssuerUrl", "https://retained.test")
+                .with(login(true)).with(csrf())
+                .param("credentialIssuerUrls[0].entitlement", QEAA)
+                .param("credentialIssuerUrls[0].selected", "true")
                 .param("credentialIssuerUrls[0].credentialIssuerUrl", "https://issuer.test/NewPath")
-                .param("credentialIssuerUrls[1].entitlement", QEAA)
-                .param("credentialIssuerUrls[1].originalCredentialIssuerUrl", "https://issuer.test")
+                .param("credentialIssuerUrls[1].entitlement", "urn:second")
                 .param("credentialIssuerUrls[1].credentialIssuerUrl", ""))
             .andExpectAll(status().isOk(), model().attributeHasErrors("credentialIssuerUrlsForm"))
             .andReturn();
-        var form = (ServiceCredentialIssuerUrlsForm) result.getModelAndView().getModel().get("credentialIssuerUrlsForm");
+        var bindingResult = (org.springframework.validation.BindingResult) result.getModelAndView().getModel()
+            .get(org.springframework.validation.BindingResult.MODEL_KEY_PREFIX + "credentialIssuerUrlsForm");
+        var form = (ServiceCredentialIssuerUrlsForm) bindingResult.getTarget();
 
+        assertEquals(1, bindingResult.getGlobalErrorCount());
+        assertEquals("Rollene eller URL-ane kunne ikkje lagrast. Kontroller verdiane og prøv igjen.",
+            bindingResult.getGlobalError().getDefaultMessage());
+        assertFalse(bindingResult.hasFieldErrors());
+        assertEquals(List.of(QEAA), form.selectedEntitlements());
         assertEquals("https://issuer.test/NewPath", form.getCredentialIssuerUrls().get(0).getCredentialIssuerUrl());
         assertEquals("", form.getCredentialIssuerUrls().get(1).getCredentialIssuerUrl());
     }
 
-    @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    @DisplayName("Should reject a submitted role that is not in the service")
-    void shouldRejectSubmittedRoleNotInService(boolean changed) throws Exception {
+    @Test
+    @DisplayName("Should reject a submitted service role outside the available options")
+    void shouldRejectSubmittedServiceRoleOutsideAvailableOptions() throws Exception {
         enqueueLookup();
-        enqueueCredentialIssuerUrls();
+        enqueueServiceConfiguration(true, List.of(
+            new V2RegisterClient.ServiceCredentialIssuerUrl(QEAA, "https://issuer.test")));
 
         mockMvc.perform(post(SERVICE_CREDENTIAL_ISSUER_URLS_PATH + relyingPartyResource.id())
                 .with(login(true)).with(csrf())
                 .param("credentialIssuerUrls[0].entitlement", QEAA)
-                .param("credentialIssuerUrls[0].originalCredentialIssuerUrl", "https://issuer.test")
                 .param("credentialIssuerUrls[0].credentialIssuerUrl", "https://issuer.test/NewPath")
-                .param("credentialIssuerUrls[1].entitlement", RETAINED_ROLE.strip())
-                .param("credentialIssuerUrls[1].originalCredentialIssuerUrl", "https://original.test")
-                .param("credentialIssuerUrls[1].credentialIssuerUrl", changed ? "https://issuer.test" : "https://original.test"))
+                .param("credentialIssuerUrls[1].entitlement", "urn:unknown")
+                .param("credentialIssuerUrls[1].selected", "true")
+                .param("credentialIssuerUrls[1].credentialIssuerUrl", "https://issuer.test"))
             .andExpectAll(status().isNotFound(), view().name("error/404"));
     }
 
@@ -1029,9 +1081,7 @@ class RegistrationWorkflowTests {
             .withRelyingPartyEntitlements(List.of(new RelyingPartyEntitlementResource(RETAINED_ROLE, RETAINED_ROLE, null)));
         enqueueLookup();
 
-        if (administrator) {
-            enqueueRoleCatalog();
-        }
+        enqueueInstanceRoleOptions(List.of(RETAINED_ROLE), List.of());
 
         expectedRolesRequest = """
             {"relyingPartyEntitlements":[{"entitlement":"%s"}]}
@@ -1044,9 +1094,22 @@ class RegistrationWorkflowTests {
     }
 
     private void enqueueRoleCatalog() {
-        enqueue("GET", "/v2/entitlements?includeInactive=false", new V2RegisterClient.Entitlements(List.of(
+        enqueueInstanceRoleOptions(List.of(QEAA, "urn:second"), List.of(
+            new V2RegisterClient.ServiceCredentialIssuerUrl(QEAA, "https://issuer.test"),
+            new V2RegisterClient.ServiceCredentialIssuerUrl("urn:second", "https://second.test")));
+    }
+
+    private void enqueueInstanceRoleOptions(
+        List<String> serviceEntitlements,
+        List<V2RegisterClient.ServiceCredentialIssuerUrl> credentialIssuerUrls
+    ) {
+        enqueue("GET", "/v2/entitlements?includeInactive=true", new V2RegisterClient.Entitlements(List.of(
             new V2RegisterClient.Entitlement(new UUID(0, 7), QEAA, true, "Issuer"),
-            new V2RegisterClient.Entitlement(new UUID(0, 8), "urn:second", true, "Second role"))));
+            new V2RegisterClient.Entitlement(new UUID(0, 8), "urn:second", true, "Second role"),
+            new V2RegisterClient.Entitlement(new UUID(0, 9), "urn:catalog-only", true, "Catalog only"))));
+        enqueue("GET", "/v2/services/" + relyingPartyServiceId + "/credential-issuer-urls", credentialIssuerUrls);
+        enqueue("GET", "/v2/services/" + relyingPartyServiceId,
+            new V2RegisterClient.ServiceEntitlements(serviceEntitlements));
     }
 
     private void enqueueRelyingParty(String alias) {
@@ -1064,10 +1127,24 @@ class RegistrationWorkflowTests {
         return (certificateType == CertificateType.ISSUER ? relyingPartyResource.issuerCertificates() : relyingPartyResource.accessCertificates()).getFirst();
     }
 
-    private void enqueueCredentialIssuerUrls() {
-        enqueue("GET", "/v2/services/" + relyingPartyServiceId + "/credential-issuer-urls", List.of(
-            new V2RegisterClient.ServiceCredentialIssuerUrl(QEAA, "https://issuer.test"),
-            new V2RegisterClient.ServiceCredentialIssuerUrl(RETAINED_ROLE, "https://retained.test")));
+    private void enqueueServiceConfiguration(
+        boolean administrator,
+        List<V2RegisterClient.ServiceCredentialIssuerUrl> credentialIssuerUrls
+    ) {
+        enqueue("GET", "/v2/services/" + relyingPartyServiceId,
+            new V2RegisterClient.ServiceEntitlements(credentialIssuerUrls.stream()
+                .map(V2RegisterClient.ServiceCredentialIssuerUrl::entitlement).toList()));
+        enqueue("GET", "/v2/services/" + relyingPartyServiceId + "/credential-issuer-urls", credentialIssuerUrls);
+        enqueueCredentialIssuerUrlRoleCatalog();
+        if (administrator) {
+            enqueueActiveRoleCatalog();
+        }
+    }
+
+    private void enqueueActiveRoleCatalog() {
+        enqueue("GET", "/v2/entitlements?includeInactive=false", new V2RegisterClient.Entitlements(List.of(
+            new V2RegisterClient.Entitlement(new UUID(0, 7), QEAA, true, "Issuer"),
+            new V2RegisterClient.Entitlement(new UUID(0, 8), "urn:second", true, "Second role"))));
     }
 
     private void enqueueCredentialIssuerUrlRoleCatalog() {

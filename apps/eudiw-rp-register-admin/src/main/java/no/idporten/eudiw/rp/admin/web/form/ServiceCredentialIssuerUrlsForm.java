@@ -13,16 +13,16 @@ public class ServiceCredentialIssuerUrlsForm {
 
     private List<ServiceCredentialIssuerUrlForm> credentialIssuerUrls = new ArrayList<>();
 
-    public static ServiceCredentialIssuerUrlsForm from(List<V2RegisterClient.ServiceCredentialIssuerUrl> credentialIssuerUrls) {
-        var form = new ServiceCredentialIssuerUrlsForm();
-        credentialIssuerUrls.forEach(url -> form.credentialIssuerUrls.add(new ServiceCredentialIssuerUrlForm(
-            url.entitlement(), url.credentialIssuerUrl(), url.credentialIssuerUrl())));
-
-        return form;
+    public List<String> selectedEntitlements() {
+        return credentialIssuerUrls.stream()
+            .filter(ServiceCredentialIssuerUrlForm::isSelected)
+            .map(ServiceCredentialIssuerUrlForm::getEntitlement)
+            .toList();
     }
 
-    public List<V2RegisterClient.ServiceCredentialIssuerUrl> toRequest() {
+    public List<V2RegisterClient.ServiceCredentialIssuerUrl> changedCredentialIssuerUrls() {
         return credentialIssuerUrls.stream()
+            .filter(role -> role.isSelected() && role.isHasCredentialIssuerUrl())
             .filter(ServiceCredentialIssuerUrlForm::hasChangedCredentialIssuerUrl)
             .map(ServiceCredentialIssuerUrlForm::toRequest)
             .toList();

@@ -43,6 +43,7 @@
                         <tr>
                             <th scope="col" sec:authorize="hasRole('ADMIN')">Valt</th>
                             <th scope="col">Rolle</th>
+                            <th scope="col">Utstedar-URL frå tenesta</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -56,8 +57,6 @@
                                        th:checked="${selected}"
                                        th:disabled="${option.locked}"
                                        th:attr="aria-describedby=${option.locked} ? |role-${iter.index}-lock|">
-                                <span class="ds-tag relying-party-field-status" data-color="neutral"
-                                      th:if="${option.locked}">Låst</span>
                                 <input type="hidden" th:if="${option.locked}"
                                        th:name="|entitlements[${iter.index}].entitlement|"
                                        th:value="${option.entitlement}">
@@ -71,6 +70,13 @@
                                 <span sec:authorize="!hasRole('ADMIN')" th:text="${option.displayName}"></span>
                                 <p class="ds-paragraph" data-size="sm" th:if="${option.locked}"
                                    th:id="|role-${iter.index}-lock|">Rollen er koblet til utstedarsertifikat</p>
+                            </td>
+                            <td data-label="Utstedar-URL frå tenesta">
+                                <label class="ds-sr-only" th:for="|role-url-${iter.index}|"
+                                       th:text="|Utstedar-URL for ${option.displayName}|"></label>
+                                <input class="ds-input" type="text" disabled
+                                       th:id="|role-url-${iter.index}|"
+                                       th:value="${option.credentialIssuerUrl}">
                             </td>
                         </tr>
                         </tbody>

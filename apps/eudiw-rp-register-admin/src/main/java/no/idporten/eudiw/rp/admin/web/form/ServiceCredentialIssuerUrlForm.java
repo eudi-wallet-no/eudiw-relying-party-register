@@ -1,6 +1,5 @@
 package no.idporten.eudiw.rp.admin.web.form;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,12 +11,15 @@ import java.util.Objects;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class ServiceCredentialIssuerUrlForm {
 
     private String entitlement;
     private String credentialIssuerUrl;
     private String originalCredentialIssuerUrl;
+    private String displayName;
+    private boolean serviceRole;
+    private boolean hasCredentialIssuerUrl;
+    private boolean selected;
 
     public boolean hasChangedCredentialIssuerUrl() {
         return !Objects.equals(credentialIssuerUrlOrNull(credentialIssuerUrl),
