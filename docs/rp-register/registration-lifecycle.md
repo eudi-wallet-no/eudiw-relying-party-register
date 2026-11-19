@@ -26,8 +26,4 @@ Blocked writes and certificate issuance return `404` for a missing or inactive t
 
 `PUT /v2/instances/{id}` changes roles and EAA data in the same request. `X-API-KEY` is necessary for these operations.
 
-## V1
-
-V1 permits physical deletion but not instance reactivation under inactive parents.
-
 See [Certificate ownership](certificate-ownership.md) for certificate deletion rules.

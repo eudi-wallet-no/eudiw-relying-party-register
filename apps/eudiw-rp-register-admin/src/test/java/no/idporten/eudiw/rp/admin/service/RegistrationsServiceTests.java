@@ -19,13 +19,13 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class V2RegistrationsServiceTests {
+class RegistrationsServiceTests {
 
     private static final String ORGNO = "123456785";
     @Mock
     private V2RegisterClient client;
     @InjectMocks
-    private V2RegistrationsService service;
+    private RegistrationsService service;
 
     @Test
     @DisplayName("Prepare registrations for display as received, including duplicates and missing fields")

@@ -8,7 +8,6 @@ import no.eudiw.rp.register.repository.RegistrationSummaryRow;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.repository.RelyingPartyInstanceRepository;
 import no.eudiw.rp.register.testdata.EntityGenerator;
-import no.eudiw.rp.register.testdata.TestDataGenerator;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -16,13 +15,11 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -194,487 +191,120 @@ public class RelyingPartyInstanceRepositoryTest {
             .map(RegistrationSummaryRow::instanceId).collect(Collectors.toSet()));
     }
 
-    @Nested
-    @DisplayName("when using the custom RP instance search query")
-    class SearchQueryTests {
+    @Test
+    @Transactional
+    @DisplayName("Should match the legal name despite a trade name and require every selected role")
+    void shouldMatchLegalNameAndRequireEverySelectedRole() {
+        String searchTerm = UUID.randomUUID().toString();
+        RelyingPartyInstance matchingInstance = EntityGenerator.generateRelyingParty();
+        var relyingParty = matchingInstance.getWalletRelyingPartyService().getWalletRelyingParty();
+        relyingParty.setName("Legal " + searchTerm);
+        relyingParty.setTradeName("Unrelated trade name");
+        EntityGenerator.setRelyingPartyEntitlements(matchingInstance, List.of(
+            new RelyingPartyEntitlement("urn:first"), new RelyingPartyEntitlement("urn:second")));
+        RelyingPartyInstance missingRole = EntityGenerator.generateRelyingParty();
+        missingRole.getWalletRelyingPartyService().getWalletRelyingParty().setName("Legal " + searchTerm);
+        EntityGenerator.setRelyingPartyEntitlements(missingRole, List.of(new RelyingPartyEntitlement("urn:first")));
+        repository.saveAndFlush(matchingInstance);
+        repository.saveAndFlush(missingRole);
 
-        @Test
-        @DisplayName("then search by trade name uses substring matching")
-        void testSearchByTradeNameUsesSubstringMatching() {
-            RelyingPartyInstance relyingPartyInstance = EntityGenerator.generateRelyingParty();
-            String searchTerm = relyingPartyInstance.getWalletRelyingPartyService().getServiceTradeName();
+        var results = repository.searchRelyingPartyInstances(null, null, searchTerm, false, false,
+            Set.of("urn:first", "urn:second"), 2, PageRequest.of(0, 25, Sort.by("createdMs", "id")));
 
-            relyingPartyInstance.getWalletRelyingPartyService().setServiceTradeName(TestDataGenerator.generateName() + searchTerm + TestDataGenerator.generateName());
-            repository.saveAndFlush(relyingPartyInstance);
-
-            List<RelyingPartyInstance> searchResult = repository.searchRelyingPartyInstances(
-                searchTerm,
-                List.of(),
-                true,
-                false,
-                Pageable.unpaged()
-            ).getContent();
-
-            assertTrue(searchResult.contains(relyingPartyInstance));
-        }
-
-        @Test
-        @DisplayName("then search by wallet relying party trade name uses substring matching")
-        void testSearchByWalletRelyingPartyNameUsesSubstringMatching() {
-            WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
-            String searchTerm = walletRelyingParty.getTradeName();
-
-            walletRelyingParty.setTradeName(TestDataGenerator.generateName() + searchTerm + TestDataGenerator.generateName());
-            walletRelyingPartyRepository.saveAndFlush(walletRelyingParty);
-
-            Set<UUID> searchResult =
-                repository
-                    .searchRelyingPartyInstances(
-                        searchTerm,
-                        List.of(),
-                        true,
-                        false,
-                        Pageable.unpaged())
-                    .getContent()
-                    .stream()
-                    .map(BaseEntity::getId)
-                    .collect(Collectors.toSet());
-
-            Set<UUID> expectedResult =
-                EntityGenerator.instances(walletRelyingParty)
-                           .stream()
-                           .map(BaseEntity::getId)
-                           .collect(Collectors.toSet());
-
-            assertEquals(expectedResult, searchResult);
-        }
-
-        @Test
-        @DisplayName("then search by legal name when the trade name is absent")
-        void testSearchByFirstLegalNameWhenTradeNameIsAbsent() {
-            WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
-            String testId = UUID.randomUUID().toString();
-            String legalName = "Legal fallback " + testId;
-            String secondaryLegalName = "Secondary legal name " + testId;
-            walletRelyingParty.setTradeName(null);
-            walletRelyingParty.getLegalPerson().setLegalName(List.of(legalName, secondaryLegalName));
-            walletRelyingPartyRepository.saveAndFlush(walletRelyingParty);
-
-            Set<UUID> searchResult =
-                repository.searchRelyingPartyInstances(
-                        legalName.toLowerCase(Locale.ROOT),
-                        List.of(),
-                        true,
-                        false,
-                        Pageable.unpaged())
-                    .getContent()
-                    .stream()
-                    .map(BaseEntity::getId)
-                    .collect(Collectors.toSet());
-
-            List<RelyingPartyInstance> secondaryNameSearchResult =
-                repository.searchRelyingPartyInstances(
-                        secondaryLegalName.toLowerCase(Locale.ROOT),
-                        List.of(),
-                        true,
-                        false,
-                        Pageable.unpaged())
-                    .getContent();
-
-            Set<UUID> expectedResult =
-                EntityGenerator.instances(walletRelyingParty)
-                    .stream()
-                    .map(BaseEntity::getId)
-                    .collect(Collectors.toSet());
-
-            assertAll(
-                () -> assertEquals(expectedResult, searchResult),
-                () -> assertTrue(secondaryNameSearchResult.isEmpty())
-            );
-        }
-
-        @Test
-        @DisplayName("then search by orgno uses PREFIX matching, and substring search gives no results")
-        void testSearchByWalletRelyingPartyOrgnoUsesPrefixMatching() {
-            WalletRelyingParty walletRelyingParty = EntityGenerator.generateWalletRelyingParty();
-            walletRelyingPartyRepository.saveAndFlush(walletRelyingParty);
-
-            String orgnoPrefixSearchTerm = walletRelyingParty.getOrgno().substring(0, 8);
-
-            Set<UUID> searchResultByOrgnoPrefix =
-                repository
-                    .searchRelyingPartyInstances(
-                        orgnoPrefixSearchTerm,
-                        List.of(),
-                        true,
-                        false,
-                        Pageable.unpaged())
-                    .getContent()
-                    .stream()
-                    .map(BaseEntity::getId)
-                    .collect(Collectors.toSet());
-
-            Set<UUID> expectedSearchResultByOrgnoPrefix =
-                EntityGenerator.instances(walletRelyingParty)
-                           .stream()
-                           .map(BaseEntity::getId)
-                           .collect(Collectors.toSet());
-            assertEquals(expectedSearchResultByOrgnoPrefix, searchResultByOrgnoPrefix);
-
-            String orgnoSubstringSearchTerm = walletRelyingParty.getOrgno().substring(1, 9);
-
-            List<RelyingPartyInstance> searchResultByOrgnoSubstring =
-                repository
-                    .searchRelyingPartyInstances(
-                        orgnoSubstringSearchTerm,
-                        List.of(),
-                        true,
-                        false,
-                        Pageable.unpaged())
-                    .getContent();
-
-            assertTrue(searchResultByOrgnoSubstring.isEmpty());
-        }
-
-        @Test
-        @Transactional
-        @DisplayName("using a search term which exists in both trade names, orgnos, and legal entity names")
-        void testSearchTermInMultipleDifferentFields() {
-
-            RelyingPartyInstance rpi1 = EntityGenerator.generateRelyingParty();
-            RelyingPartyInstance rpi2 = EntityGenerator.generateRelyingParty();
-            WalletRelyingParty walletRelyingParty = walletRelyingPartyRepository.findAll().getFirst();
-
-            String searchTerm = walletRelyingParty.getOrgno();
-            rpi1.getWalletRelyingPartyService().setServiceTradeName(searchTerm + rpi1.getWalletRelyingPartyService().getServiceTradeName());
-            rpi2.getWalletRelyingPartyService().setServiceTradeName(rpi2.getWalletRelyingPartyService().getServiceTradeName() + searchTerm);
-
-            repository.saveAndFlush(rpi1);
-            repository.saveAndFlush(rpi2);
-
-            Set<UUID> searchResult =
-                repository.searchRelyingPartyInstances(
-                              searchTerm,
-                              List.of(),
-                              true,
-                              false,
-                              Pageable.unpaged())
-                          .getContent()
-                          .stream()
-                          .map(BaseEntity::getId)
-                          .collect(Collectors.toSet());
-
-            Set<UUID> expectedResult =
-                EntityGenerator.instances(walletRelyingParty)
-                           .stream()
-                           .map(BaseEntity::getId)
-                           .collect(Collectors.toSet());
-            expectedResult.add(rpi1.getId());
-            expectedResult.add(rpi2.getId());
-
-            assertEquals(expectedResult, searchResult);
-        }
-
-        @Test
-        @DisplayName("all instances returned when no filter applied")
-        void testAllInstancesReturnedWhenNoFiltersApplied() {
-            List<String> requiredEntitlements = List.of();
-            boolean includeInactive = true;
-            boolean hideSyntheticOrgnos = false;
-
-            List<RelyingPartyInstance> searchResult = repository.searchRelyingPartyInstances(
-                "",
-                requiredEntitlements,
-                includeInactive,
-                hideSyntheticOrgnos,
-                Pageable.unpaged()
-            ).getContent();
-
-            Set<UUID> searchResultIds = searchResult.stream().map(BaseEntity::getId).collect(Collectors.toSet());
-            Set<UUID> allIds = repository.findAll().stream().map(BaseEntity::getId).collect(Collectors.toSet());
-
-            assertEquals(allIds, searchResultIds);
-        }
-
-        @Test
-        @DisplayName("only active instances returned when includeInactive=false")
-        void testOnlyActiveSearchResultsWhenIncludeInactiveFalse() {
-            boolean includeInactiveFalse = false;
-            List<RelyingPartyInstance> searchResult = repository.searchRelyingPartyInstances(
-                "",
-                List.of(),
-                includeInactiveFalse,
-                false,
-                Pageable.unpaged()
-            ).getContent();
-
-            assertTrue(searchResult.stream().allMatch(RelyingPartyInstance::isActive));
-        }
-
-        @Test
-        @DisplayName("only instances with required entitlements are returned when entitlements non-empty")
-        void testOnlyInstancesWithAllRequiredEntitlementsReturned() {
-            Set<String> requiredEntitlements = new HashSet<>(TestDataGenerator.sampleEntitlements(2));
-            List<RelyingPartyInstance> searchResult = repository.searchRelyingPartyInstances(
-                "",
-                requiredEntitlements,
-                true,
-                false,
-                Pageable.unpaged()
-            ).getContent();
-
-            searchResult.forEach(rp -> {
-                Set<String> relyingPartyEntitlements =
-                    rp.getRelyingPartyEntitlements()
-                      .stream()
-                      .map(RelyingPartyEntitlement::getEntitlement)
-                      .collect(Collectors.toSet());
-                assertTrue(relyingPartyEntitlements.containsAll(requiredEntitlements));
-            });
-        }
-
-        @Test
-        @DisplayName("only instances with non-synthetic orgno returned when hideSyntheticOrgnos=true")
-        void testOnlyInstancesWithNonsyntheticOrgnoReturnedWhenHideSyntheticOrgnosTrue() {
-            boolean hideSyntheticOrgnosTrue = true;
-            List<RelyingPartyInstance> searchResult = repository.searchRelyingPartyInstances(
-                "",
-                List.of(),
-                true,
-                hideSyntheticOrgnosTrue,
-                Pageable.unpaged()
-            ).getContent();
-
-            Predicate<String> isNonsyntheticOrgno = orgno -> orgno.startsWith("8") || orgno.startsWith("9");
-
-            assertTrue(searchResult.stream()
-                                   .map(rp -> rp.getWalletRelyingPartyService().getWalletRelyingParty().getOrgno())
-                                   .allMatch(isNonsyntheticOrgno));
-        }
+        assertEquals(List.of(matchingInstance.getId()), results.getContent().stream().map(BaseEntity::getId).toList());
     }
 
-    @Nested
-    @DisplayName("when using JPA sorting")
-    class SearchQueryWithOrderingTests {
-        private static <T> boolean isSortedBy(List<T> lst, Comparator<T> comparator) {
-            for (int i = 0; i < lst.size() - 1; i++) {
-                if (comparator.compare(lst.get(i), lst.get(i + 1)) > 0) {
-                    return false;
-                }
-            }
-            return true;
+    @ParameterizedTest
+    @ValueSource(strings = {"RelyingPartyInstance", "WalletRelyingPartyService", "WalletRelyingParty"})
+    @Transactional
+    @DisplayName("Should include an inactive registration hierarchy only when requested")
+    void shouldIncludeInactiveHierarchyOnlyWhenRequested(String inactiveResource) {
+        String searchTerm = UUID.randomUUID().toString();
+        RelyingPartyInstance activeInstance = EntityGenerator.generateRelyingParty();
+        activeInstance.getWalletRelyingPartyService().setServiceTradeName("Active " + searchTerm);
+        RelyingPartyInstance inactiveInstance = EntityGenerator.generateRelyingParty();
+        var relyingPartyService = inactiveInstance.getWalletRelyingPartyService();
+        relyingPartyService.setServiceTradeName("Inactive " + searchTerm);
+        switch (inactiveResource) {
+            case "RelyingPartyInstance" -> inactiveInstance.setActive(false);
+            case "WalletRelyingPartyService" -> relyingPartyService.setActive(false);
+            case "WalletRelyingParty" -> relyingPartyService.getWalletRelyingParty().setActive(false);
         }
+        repository.saveAndFlush(activeInstance);
+        repository.saveAndFlush(inactiveInstance);
+        var page = PageRequest.of(0, 25, Sort.by("createdMs", "id"));
 
-        @Test
-        @DisplayName("then trade name sorting orders relying parties by trade name")
-        void testSearchWithOrderingByTradename() {
-            Sort orderingByTradename = Sort.by("walletRelyingPartyService.serviceTradeName");
-            List<RelyingPartyInstance> searchResultByTradename =
-                repository.searchRelyingPartyInstances(
-                    "",
-                    List.of(),
-                    true,
-                    false,
-                    PageRequest.of(0, Integer.MAX_VALUE, orderingByTradename)
-                ).getContent();
+        var activeResults = repository.searchRelyingPartyInstances(null, null, searchTerm, false, false, Set.of(), 0, page);
+        var allResults = repository.searchRelyingPartyInstances(null, null, searchTerm, true, false, Set.of(), 0, page);
 
-            assertTrue(isSortedBy(searchResultByTradename,
-                                  Comparator.comparing(instance -> instance.getWalletRelyingPartyService().getServiceTradeName())));
-        }
+        assertEquals(List.of(activeInstance.getId()), activeResults.getContent().stream().map(BaseEntity::getId).toList());
+        assertEquals(Set.of(activeInstance.getId(), inactiveInstance.getId()),
+            allResults.getContent().stream().map(BaseEntity::getId).collect(Collectors.toSet()));
+    }
 
-        @Test
-        @DisplayName("then organization number sorting orders relying parties by organization number")
-        void testSearchWithOrderingByOrgno() {
-            Sort ordering = Sort.by("walletRelyingPartyService.walletRelyingParty.orgno");
-            List<RelyingPartyInstance> searchResultByOrgno =
-                repository.searchRelyingPartyInstances(
-                    "",
-                    List.of(),
-                    true,
-                    false,
-                    PageRequest.of(0, Integer.MAX_VALUE, ordering)
-                ).getContent();
+    @Test
+    @DisplayName("Should page relying-party instances in service-name order")
+    void shouldPageRelyingPartyInstancesInServiceNameOrder() {
+        String searchTerm = UUID.randomUUID().toString();
+        RelyingPartyInstance bravo = EntityGenerator.generateRelyingParty();
+        bravo.getWalletRelyingPartyService().setServiceTradeName("bravo " + searchTerm);
+        RelyingPartyInstance alpha = EntityGenerator.generateRelyingParty();
+        alpha.getWalletRelyingPartyService().setServiceTradeName("alpha " + searchTerm);
+        repository.saveAndFlush(bravo);
+        repository.saveAndFlush(alpha);
 
-            assertTrue(isSortedBy(searchResultByOrgno,
-                                  Comparator.comparing(rp -> rp.getWalletRelyingPartyService().getWalletRelyingParty().getOrgno())));
-        }
+        Sort ordering = Sort.by("walletRelyingPartyService.serviceTradeName", "id");
+        UUID firstPageId = repository.searchRelyingPartyInstances(
+            null, null, searchTerm, true, false, Set.of(), 0, PageRequest.of(0, 1, ordering)).getContent().getFirst().getId();
+        UUID secondPageId = repository.searchRelyingPartyInstances(
+            null, null, searchTerm, true, false, Set.of(), 0, PageRequest.of(1, 1, ordering)).getContent().getFirst().getId();
 
-        @Test
-        @DisplayName("then creation date sorting orders relying parties by createdMs")
-        void testSearchWithOrderingByCreatedMs() {
-            Sort ordering = Sort.by("createdMs");
-            List<RelyingPartyInstance> searchResultByCreatedMs =
-                repository.searchRelyingPartyInstances(
-                    "",
-                    List.of(),
-                    true,
-                    false,
-                    PageRequest.of(0, Integer.MAX_VALUE, ordering)
-                ).getContent();
+        assertEquals(List.of(alpha.getId(), bravo.getId()), List.of(firstPageId, secondPageId));
+    }
 
-            assertTrue(isSortedBy(searchResultByCreatedMs,
-                                  Comparator.comparing(RelyingPartyInstance::getCreatedMs)));
-        }
+    @ParameterizedTest
+    @CsvSource({
+        "false, false, 200000001;800000001;900000001",
+        "false, true, 800000001;900000001",
+        "true, false, 200000001;200000002;800000001;800000002;900000001",
+        "true, true, 800000001;800000002;900000001"
+    })
+    @Transactional
+    @DisplayName("Should combine synthetic, inactive and role filters before counting and paging registrations")
+    void shouldCombineSyntheticInactiveAndRoleFiltersBeforeCountingAndPaging(
+        boolean includeInactive, boolean hideSyntheticOrgnos, String expectedOrganizationNumbers) {
+        String searchTerm = UUID.randomUUID().toString();
 
-        @Test
-        @DisplayName("then last updated sorting orders relying parties by lastUpdatedMs")
-        void testSearchWithOrderingByLastUpdatedMs() {
-            Sort ordering = Sort.by("lastUpdatedMs");
-            List<RelyingPartyInstance> searchResultByLastUpdatedMs =
-                repository.searchRelyingPartyInstances(
-                    "",
-                    List.of(),
-                    true,
-                    false,
-                    PageRequest.of(0, Integer.MAX_VALUE, ordering)
-                ).getContent();
+        for (String orgno : List.of("800000001", "900000001", "200000001", "800000002", "200000002", "900000002")) {
+            var instance = EntityGenerator.generateRelyingParty();
+            var service = instance.getWalletRelyingPartyService();
+            service.setServiceTradeName(searchTerm);
+            service.getWalletRelyingParty().setOrgno(orgno);
+            instance.setActive(!orgno.endsWith("2"));
+            EntityGenerator.setRelyingPartyEntitlements(instance, List.of(
+                new RelyingPartyEntitlement("urn:first"),
+                new RelyingPartyEntitlement("urn:second")));
 
-            assertTrue(isSortedBy(searchResultByLastUpdatedMs,
-                                  Comparator.comparing(RelyingPartyInstance::getLastUpdatedMs)));
-        }
-
-        @Test
-        @Transactional
-        @DisplayName("Should match the legal name despite a trade name and require every selected role")
-        void shouldMatchLegalNameAndRequireEverySelectedRole() {
-            String searchTerm = UUID.randomUUID().toString();
-            RelyingPartyInstance matchingInstance = EntityGenerator.generateRelyingParty();
-            var relyingParty = matchingInstance.getWalletRelyingPartyService().getWalletRelyingParty();
-            relyingParty.setName("Legal " + searchTerm);
-            relyingParty.setTradeName("Unrelated trade name");
-            EntityGenerator.setRelyingPartyEntitlements(matchingInstance, List.of(
-                new RelyingPartyEntitlement("urn:first"), new RelyingPartyEntitlement("urn:second")));
-            RelyingPartyInstance missingRole = EntityGenerator.generateRelyingParty();
-            missingRole.getWalletRelyingPartyService().getWalletRelyingParty().setName("Legal " + searchTerm);
-            EntityGenerator.setRelyingPartyEntitlements(missingRole, List.of(new RelyingPartyEntitlement("urn:first")));
-            repository.saveAndFlush(matchingInstance);
-            repository.saveAndFlush(missingRole);
-
-            var results = repository.searchV2(null, null, searchTerm, false, false,
-                Set.of("urn:first", "urn:second"), 2, PageRequest.of(0, 25, Sort.by("createdMs", "id")));
-
-            assertEquals(List.of(matchingInstance.getId()), results.getContent().stream().map(BaseEntity::getId).toList());
-        }
-
-        @ParameterizedTest
-        @ValueSource(strings = {"RelyingPartyInstance", "WalletRelyingPartyService", "WalletRelyingParty"})
-        @Transactional
-        @DisplayName("Should include an inactive registration hierarchy only when requested")
-        void shouldIncludeInactiveHierarchyOnlyWhenRequested(String inactiveResource) {
-            String searchTerm = UUID.randomUUID().toString();
-            RelyingPartyInstance activeInstance = EntityGenerator.generateRelyingParty();
-            activeInstance.getWalletRelyingPartyService().setServiceTradeName("Active " + searchTerm);
-            RelyingPartyInstance inactiveInstance = EntityGenerator.generateRelyingParty();
-            var relyingPartyService = inactiveInstance.getWalletRelyingPartyService();
-            relyingPartyService.setServiceTradeName("Inactive " + searchTerm);
-            switch (inactiveResource) {
-                case "RelyingPartyInstance" -> inactiveInstance.setActive(false);
-                case "WalletRelyingPartyService" -> relyingPartyService.setActive(false);
-                case "WalletRelyingParty" -> relyingPartyService.getWalletRelyingParty().setActive(false);
-            }
-            repository.saveAndFlush(activeInstance);
-            repository.saveAndFlush(inactiveInstance);
-            var page = PageRequest.of(0, 25, Sort.by("createdMs", "id"));
-
-            var activeResults = repository.searchV2(null, null, searchTerm, false, false, Set.of(), 0, page);
-            var allResults = repository.searchV2(null, null, searchTerm, true, false, Set.of(), 0, page);
-
-            assertEquals(List.of(activeInstance.getId()), activeResults.getContent().stream().map(BaseEntity::getId).toList());
-            assertEquals(Set.of(activeInstance.getId(), inactiveInstance.getId()),
-                allResults.getContent().stream().map(BaseEntity::getId).collect(Collectors.toSet()));
-        }
-
-        @Test
-        @DisplayName("Should page V2 search through instances in service name order")
-        void shouldPageV2SearchInServiceNameOrder() {
-            String searchTerm = UUID.randomUUID().toString();
-            RelyingPartyInstance bravo = EntityGenerator.generateRelyingParty();
-            bravo.getWalletRelyingPartyService().setServiceTradeName("bravo " + searchTerm);
-            RelyingPartyInstance alpha = EntityGenerator.generateRelyingParty();
-            alpha.getWalletRelyingPartyService().setServiceTradeName("alpha " + searchTerm);
-            repository.saveAndFlush(bravo);
-            repository.saveAndFlush(alpha);
-
-            Sort ordering = Sort.by("walletRelyingPartyService.serviceTradeName", "id");
-            UUID firstPageId = repository.searchV2(
-                null, null, searchTerm, true, false, Set.of(), 0, PageRequest.of(0, 1, ordering)).getContent().getFirst().getId();
-            UUID secondPageId = repository.searchV2(
-                null, null, searchTerm, true, false, Set.of(), 0, PageRequest.of(1, 1, ordering)).getContent().getFirst().getId();
-
-            assertEquals(List.of(alpha.getId(), bravo.getId()), List.of(firstPageId, secondPageId));
-        }
-
-        @ParameterizedTest
-        @CsvSource({
-            "false, false, 200000001;800000001;900000001",
-            "false, true, 800000001;900000001",
-            "true, false, 200000001;200000002;800000001;800000002;900000001",
-            "true, true, 800000001;800000002;900000001"
-        })
-        @Transactional
-        @DisplayName("Should combine synthetic, inactive and role filters before counting and paging registrations")
-        void shouldCombineSyntheticInactiveAndRoleFiltersBeforeCountingAndPaging(
-            boolean includeInactive, boolean hideSyntheticOrgnos, String expectedOrganizationNumbers) {
-            String searchTerm = UUID.randomUUID().toString();
-
-            for (String orgno : List.of("800000001", "900000001", "200000001", "800000002", "200000002", "900000002")) {
-                var instance = EntityGenerator.generateRelyingParty();
-                var service = instance.getWalletRelyingPartyService();
-                service.setServiceTradeName(searchTerm);
-                service.getWalletRelyingParty().setOrgno(orgno);
-                instance.setActive(!orgno.endsWith("2"));
-                EntityGenerator.setRelyingPartyEntitlements(instance, List.of(
-                    new RelyingPartyEntitlement("urn:first"),
-                    new RelyingPartyEntitlement("urn:second")));
-
-                if (orgno.equals("900000002")) {
-                    instance.setActive(true);
-                    EntityGenerator.setRelyingPartyEntitlements(instance, List.of(new RelyingPartyEntitlement("urn:first")));
-                }
-
-                repository.saveAndFlush(instance);
+            if (orgno.equals("900000002")) {
+                instance.setActive(true);
+                EntityGenerator.setRelyingPartyEntitlements(instance, List.of(new RelyingPartyEntitlement("urn:first")));
             }
 
-            List<String> expected = List.of(expectedOrganizationNumbers.split(";"));
-            List<String> actual = new ArrayList<>();
-            Sort ordering = Sort.by("walletRelyingPartyService.walletRelyingParty.orgno", "id");
-
-            for (int page = 0; page < expected.size(); page++) {
-                var results = repository.searchV2(
-                    null, null, searchTerm, includeInactive, hideSyntheticOrgnos,
-                    Set.of("urn:first", "urn:second"), 2, PageRequest.of(page, 1, ordering));
-                assertEquals(expected.size(), results.getTotalElements());
-                actual.add(results.getContent().getFirst().getWalletRelyingPartyService().getWalletRelyingParty().getOrgno());
-            }
-
-            assertEquals(expected, actual);
+            repository.saveAndFlush(instance);
         }
 
-        @Test
-        @DisplayName("then an unsorted page request returns every relying party")
-        void testSearchWithUnsortedOrderingReturnsAllRelyingParties() {
-            Sort unsorted = Sort.unsorted();
+        List<String> expected = List.of(expectedOrganizationNumbers.split(";"));
+        List<String> actual = new ArrayList<>();
+        Sort ordering = Sort.by("walletRelyingPartyService.walletRelyingParty.orgno", "id");
 
-            // there is no sorting to verify here, so just check that all RPs are present.
-            Set<UUID> searchResultByUnknownSortKey =
-                repository.searchRelyingPartyInstances(
-                              "",
-                              List.of(),
-                              true,
-                              false,
-                              PageRequest.of(0, Integer.MAX_VALUE, unsorted))
-                          .getContent()
-                          .stream()
-                          .map(BaseEntity::getId)
-                          .collect(Collectors.toSet());
-
-            Set<UUID> expectedResult =
-                repository.findAll()
-                          .stream()
-                          .map(BaseEntity::getId)
-                          .collect(Collectors.toSet());
-
-            assertEquals(expectedResult, searchResultByUnknownSortKey);
+        for (int page = 0; page < expected.size(); page++) {
+            var results = repository.searchRelyingPartyInstances(
+                null, null, searchTerm, includeInactive, hideSyntheticOrgnos,
+                Set.of("urn:first", "urn:second"), 2, PageRequest.of(page, 1, ordering));
+            assertEquals(expected.size(), results.getTotalElements());
+            actual.add(results.getContent().getFirst().getWalletRelyingPartyService().getWalletRelyingParty().getOrgno());
         }
+
+        assertEquals(expected, actual);
     }
 }

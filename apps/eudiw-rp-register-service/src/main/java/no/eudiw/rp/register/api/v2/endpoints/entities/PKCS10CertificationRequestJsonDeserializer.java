@@ -1,4 +1,4 @@
-package no.eudiw.rp.register.api.v1.resource.certificates;
+package no.eudiw.rp.register.api.v2.endpoints.entities;
 
 
 import no.eudiw.rp.register.domain.certificates.PKCS10CertificationRequestConverter;

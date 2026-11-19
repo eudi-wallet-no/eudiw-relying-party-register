@@ -11,7 +11,7 @@ import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
-public class V2RegistrationsService {
+public class RegistrationsService {
 
     private final V2RegisterClient registerClient;
 

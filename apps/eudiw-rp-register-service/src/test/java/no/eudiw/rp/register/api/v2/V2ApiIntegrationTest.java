@@ -38,6 +38,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -129,9 +130,21 @@ class V2ApiIntegrationTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"v1", "v2"})
+    @ValueSource(strings = {
+        "/v1/rp/00000000-0000-0000-0000-000000000001",
+        "/v1/rp/00000000-0000-0000-0000-000000000001/certs/access",
+        "/v1/entitlement",
+        "/v1/credential-issuers"
+    })
+    @DisplayName("Should return 404 for retired V1 routes")
+    void shouldReturnNotFoundForRetiredV1Routes(String path) throws Exception {
+        request(get(path)).andExpect(status().isNotFound())
+            .andExpect(result -> assertInstanceOf(NoResourceFoundException.class, result.getResolvedException()));
+    }
+
+    @Test
     @DisplayName("Should return issuer URLs with batched queries for instance search")
-    void shouldReturnIssuerUrlsWithBatchedQueriesForInstanceSearch(String apiVersion) throws Exception {
+    void shouldReturnIssuerUrlsWithBatchedQueriesForInstanceSearch() throws Exception {
         String role = " urn:example:Issuer ";
         List<WalletRelyingPartyService> services = new ArrayList<>();
         for (int index = 0; index < 100; index++) {
@@ -154,23 +167,19 @@ class V2ApiIntegrationTest {
         statistics.setStatisticsEnabled(true);
         statistics.clear();
         try {
-            JsonNode response = apiVersion.equals("v1")
-                ? read(post("/v1/rp/search"), "{\"search_term\":\"\",\"page_size\":100}")
-                : read(get("/v2/instances").param("pageSize", "100"));
+            JsonNode response = read(get("/v2/instances").param("pageSize", "100"));
             JsonNode content = response.get("content");
             assertEquals(100, content.size());
 
             for (JsonNode instance : content) {
-                String serviceName = instance.get(apiVersion.equals("v1") ? "name" : "serviceTradeName").asString();
+                String serviceName = instance.get("serviceTradeName").asString();
                 int index = Integer.parseInt(serviceName.substring("Batch service ".length()));
-                JsonNode roles = instance.get(apiVersion.equals("v1")
-                    ? "relying_party_entitlements" : "relyingPartyEntitlements");
+                JsonNode roles = instance.get("relyingPartyEntitlements");
 
                 assertEquals(1, roles.size());
                 assertEquals(role, roles.get(0).get("entitlement").asString());
 
-                JsonNode issuerUrl = roles.get(0).path(apiVersion.equals("v1")
-                    ? "credential_issuer_url" : "credentialIssuerUrl");
+                JsonNode issuerUrl = roles.get(0).path("credentialIssuerUrl");
 
                 if (index % 2 == 0) {
                     assertEquals("https://issuer.example/Issuer/" + index + " ", issuerUrl.asString());
@@ -221,7 +230,6 @@ class V2ApiIntegrationTest {
         assertEquals(relyingPartyInstanceId,
             read(get("/v2/instances").param("serviceId", relyingPartyServiceId).param("orgno", orgno))
                 .at("/content/0/id").asString());
-        assertEquals(relyingPartyInstanceId, read(get("/v1/rp/" + relyingPartyInstanceId)).get("id").asString());
         assertEquals(1, relyingPartyRepository.count());
         assertEquals(1, relyingPartyServiceRepository.count());
         assertEquals(1, relyingPartyInstanceRepository.count());
@@ -840,22 +848,17 @@ class V2ApiIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should preserve existing issuer address registration rules for legacy clients")
-    void shouldPreserveExistingIssuerAddressRegistrationRulesForLegacyClients() throws Exception {
-        String entitlementValue = "urn:test:issuer:" + UUID.randomUUID();
-        testEntitlement = entitlementRepository.saveAndFlush(new Entitlement(entitlementValue, true, "Issuer", "test-ca"));
-        String content = """
-            {"org_nr":"%s","name":"Legacy issuer",
-             "relying_party_entitlements":[{"entitlement":"%s","credential_issuer_url":"http://issuer.example.test"}],
-             "relying_party_eaas":[]}
-            """.formatted(TestDataGenerator.generateValidOrgno(), entitlementValue);
+    @DisplayName("Should return previously stored HTTP issuer URLs")
+    void shouldReturnPreviouslyStoredHttpIssuerUrls() throws Exception {
+        String role = "urn:test:issuer:" + UUID.randomUUID();
+        var instance = EntityGenerator.generateRelyingPartyInstance(
+            "Legacy issuer", List.of(new RelyingPartyEntitlement(role)), List.of(), List.of());
+        var service = instance.getWalletRelyingPartyService();
+        service.setCredentialIssuerUrl(role, "http://issuer.example.test");
+        relyingPartyRepository.saveAndFlush(new WalletRelyingParty(
+            "Legacy issuer", TestDataGenerator.generateValidOrgno(), true, List.of(service)));
 
-        JsonNode issuer = read(post("/v1/rp"), content);
-        String issuerId = issuer.get("id").asString();
-
-        assertEquals("http://issuer.example.test", read(get("/v1/rp/" + issuerId))
-            .at("/relying_party_entitlements/0/credential_issuer_url").asString());
-        assertEquals("http://issuer.example.test", read(get("/v2/instances/" + issuerId))
+        assertEquals("http://issuer.example.test", read(get("/v2/instances/" + instance.getId()))
             .at("/relyingPartyEntitlements/0/credentialIssuerUrl").asString());
     }
 
@@ -1215,54 +1218,42 @@ class V2ApiIntegrationTest {
         return request.toString();
     }
 
-    @ParameterizedTest
-    @ValueSource(booleans = {false, true})
+    @Test
     @DisplayName("Should keep service URLs on instance updates and reject URL changes without other registration changes")
-    void shouldKeepServiceUrlsAndRejectInstanceUrlChangesWithoutStoringOtherChanges(boolean legacy) throws Exception {
+    void shouldKeepServiceUrlsAndRejectInstanceUrlChangesWithoutStoringOtherChanges() throws Exception {
+        Registration registration = createRegistration();
         String entitlement = "urn:test:issuer:" + UUID.randomUUID();
         testEntitlement = entitlementRepository.saveAndFlush(new Entitlement(entitlement, true, "Issuer", "test-ca"));
-        String create = """
-            {"org_nr":"%s","name":"Original service",
-             "relying_party_entitlements":[{"entitlement":"%s","credential_issuer_url":"https://issuer.example.test"}],
-             "relying_party_eaas":[{"namespace":"original","intent":"read"}]}
-            """.formatted(TestDataGenerator.generateValidOrgno(), entitlement);
-        String id = read(post("/v1/rp"), create).get("id").asString();
-        String instancePath = "/v2/instances/" + id;
-        String path = legacy ? "/v1/rp/" + id : instancePath;
-        String rolesField = legacy ? "relying_party_entitlements" : "relyingPartyEntitlements";
-        String eaasField = legacy ? "relying_party_eaas" : "relyingPartyEaas";
-        String urlField = legacy ? "credential_issuer_url" : "credentialIssuerUrl";
-        String update = """
-            {%s"%s":[{"entitlement":"%s"%s}],"%s":[{"namespace":"changed","intent":"verify"}]}
-            """;
-        String metadata = legacy ? "\"name\":\"Changed service\",\"active\":false," : "";
-        JsonNode before = read(get(instancePath));
         String addedRole = entitlement + ":added";
         Entitlement addedEntitlement = entitlementRepository.saveAndFlush(
             new Entitlement(addedRole, true, "Reader", "test-ca"));
+        registerServiceEntitlements(registration, entitlement, addedRole);
+        setServiceIssuerUrl(registration, entitlement, "https://issuer.example.test");
+
+        String path = registration.relyingPartyInstancePath();
+        String update = """
+            {"relyingPartyEntitlements":[{"entitlement":"%s"%s}],
+             "relyingPartyEaas":[{"namespace":"changed","intent":"verify"}]}
+            """;
+        JsonNode before = read(get(path));
 
         for (String value : List.of("null", "\"https://stale.example.test\"")) {
-            String rejected = update.formatted(metadata, rolesField, entitlement, ",\"" + urlField + "\":" + value, eaasField)
-                .replace("}],\"" + eaasField, "},{\"entitlement\":\"" + addedRole + "\"}],\"" + eaasField);
+            String url = ",\"credentialIssuerUrl\":" + value;
+            String rejected = update.formatted(entitlement, url + "},{\"entitlement\":\"" + addedRole + "\"");
             request(put(path), rejected).andExpect(status().isBadRequest());
-            if (!legacy) {
-                request(patch(path + "/entitlements"),
-                    "{\"" + rolesField + "\":[{\"entitlement\":\"" + entitlement + "\",\"" + urlField + "\":" + value + "}]}")
-                    .andExpect(status().isBadRequest());
-            }
-            assertEquals(before, read(get(instancePath)));
+            request(patch(path + "/entitlements"),
+                "{\"relyingPartyEntitlements\":[{\"entitlement\":\"" + entitlement + "\"" + url + "}]}")
+                .andExpect(status().isBadRequest());
+            assertEquals(before, read(get(path)));
         }
 
-        read(put(path), update.formatted(metadata, rolesField, entitlement,
-            ",\"" + urlField + "\":\"https://issuer.example.test\"", eaasField));
-        read(put(path), update.formatted(metadata, rolesField, entitlement, "", eaasField));
-        assertEquals("https://issuer.example.test", read(get(instancePath))
+        read(put(path), update.formatted(entitlement, ",\"credentialIssuerUrl\":\"https://issuer.example.test\""));
+        read(put(path), update.formatted(entitlement, ""));
+        assertEquals("https://issuer.example.test", read(get(path))
             .at("/relyingPartyEntitlements/0/credentialIssuerUrl").asString());
-        String serviceId = read(get(instancePath)).get("serviceId").asString();
-        read(patch("/v2/services/" + serviceId + "/credential-issuer-urls"),
-            "[{\"entitlement\":\"" + entitlement + "\",\"credentialIssuerUrl\":null}]");
-        read(put(path), update.formatted(metadata, rolesField, entitlement, ",\"" + urlField + "\":null", eaasField));
-        assertTrue(read(get(instancePath)).at("/relyingPartyEntitlements/0/credentialIssuerUrl").isNull());
+        setServiceIssuerUrl(registration, entitlement, null);
+        read(put(path), update.formatted(entitlement, ",\"credentialIssuerUrl\":null"));
+        assertTrue(read(get(path)).at("/relyingPartyEntitlements/0/credentialIssuerUrl").isNull());
         entitlementRepository.delete(addedEntitlement);
     }
 
@@ -1384,11 +1375,6 @@ class V2ApiIntegrationTest {
         request(patch(registration.relyingPartyInstancePath() + "/entitlements"), roles)
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.error_description", org.hamcrest.Matchers.containsString("role is not on the service")));
-        request(put("/v1/rp/" + registration.relyingPartyInstanceId()), """
-            {"name":"Rejected name","active":true,
-             "relying_party_entitlements":[{"entitlement":"%s"}],
-             "relying_party_eaas":[{"namespace":"rejected","intent":"read"}]}
-            """.formatted(role)).andExpect(status().isBadRequest());
         assertEquals(serviceBefore, read(get(registration.relyingPartyServicePath())));
         assertEquals(instanceBefore, read(get(registration.relyingPartyInstancePath())));
         assertEquals(1, relyingPartyInstanceRepository.count());

@@ -9,7 +9,7 @@ import jakarta.validation.constraints.NotNull;
 import no.eudiw.rp.register.api.v2.resource.MultiLangStringResource;
 import no.eudiw.rp.register.api.v2.resource.ProvidedAttestationResource;
 import no.eudiw.rp.register.api.v2.resource.ServiceReferenceResource;
-import no.eudiw.rp.register.api.v2.resource.V2ResourceValidation;
+import no.eudiw.rp.register.api.v2.resource.ResourceValidation;
 import no.eudiw.rp.register.domain.MultiLangString;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
@@ -34,9 +34,9 @@ public record RelyingPartyServiceRequest(
 ) {
     @AssertTrue(message = "service_contact_required")
     public boolean hasContactInformation() {
-        return V2ResourceValidation.hasText(supportUri)
-            || V2ResourceValidation.hasText(email)
-            || V2ResourceValidation.hasText(phone);
+        return ResourceValidation.hasText(supportUri)
+            || ResourceValidation.hasText(email)
+            || ResourceValidation.hasText(phone);
     }
 
     @AssertTrue(message = "invalid_intermediary_configuration")
@@ -48,13 +48,13 @@ public record RelyingPartyServiceRequest(
 
     @AssertTrue(message = "invalid_support_uri")
     public boolean hasValidSupportUri() {
-        return supportUri == null || V2ResourceValidation.isAbsoluteUri(supportUri);
+        return supportUri == null || ResourceValidation.isAbsoluteUri(supportUri);
     }
 
     @AssertTrue(message = "invalid_sub_entitlements")
     public boolean hasValidSubEntitlements() {
         return subEntitlements == null || subEntitlements.stream()
-            .allMatch(V2ResourceValidation::isAbsoluteUri);
+            .allMatch(ResourceValidation::isAbsoluteUri);
     }
 
     public WalletRelyingPartyService toDomain(

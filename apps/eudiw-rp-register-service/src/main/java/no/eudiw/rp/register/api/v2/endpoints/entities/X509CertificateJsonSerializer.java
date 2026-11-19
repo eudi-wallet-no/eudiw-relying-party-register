@@ -1,4 +1,4 @@
-package no.eudiw.rp.register.api.v1.resource.certificates;
+package no.eudiw.rp.register.api.v2.endpoints.entities;
 
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.databind.SerializationContext;

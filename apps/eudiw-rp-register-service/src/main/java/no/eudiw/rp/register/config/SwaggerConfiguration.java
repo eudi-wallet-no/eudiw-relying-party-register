@@ -27,14 +27,6 @@ public class SwaggerConfiguration {
     }
 
     @Bean
-    public GroupedOpenApi v1Api() {
-        return GroupedOpenApi.builder()
-                .group("V1")
-                .pathsToMatch("/v1/**")
-                .build();
-    }
-
-    @Bean
     public GroupedOpenApi v2Api() {
         return GroupedOpenApi.builder()
                 .group("V2")

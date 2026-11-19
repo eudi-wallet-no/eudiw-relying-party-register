@@ -10,7 +10,7 @@ public record PolicyResource(
 ) {
     @AssertTrue(message = "invalid_policy_uri")
     public boolean hasValidPolicyUri() {
-        return V2ResourceValidation.isAbsoluteUri(policyURI);
+        return ResourceValidation.isAbsoluteUri(policyURI);
     }
 
     public Policy toDomain() {

@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import no.eudiw.rp.register.api.v2.resource.MultiLangStringResource;
-import no.eudiw.rp.register.api.v2.resource.V2ResourceValidation;
+import no.eudiw.rp.register.api.v2.resource.ResourceValidation;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 
 import java.util.List;
@@ -22,14 +22,14 @@ public record RelyingPartyServiceInformationRequest(
 ) {
     @AssertTrue(message = "service_contact_required")
     public boolean hasContactInformation() {
-        return V2ResourceValidation.hasText(supportUri)
-            || V2ResourceValidation.hasText(email)
-            || V2ResourceValidation.hasText(phone);
+        return ResourceValidation.hasText(supportUri)
+            || ResourceValidation.hasText(email)
+            || ResourceValidation.hasText(phone);
     }
 
     @AssertTrue(message = "invalid_support_uri")
     public boolean hasValidSupportUri() {
-        return !V2ResourceValidation.hasText(supportUri) || V2ResourceValidation.isAbsoluteUri(supportUri);
+        return !ResourceValidation.hasText(supportUri) || ResourceValidation.isAbsoluteUri(supportUri);
     }
 
     public void update(WalletRelyingPartyService relyingPartyService) {
@@ -43,6 +43,6 @@ public record RelyingPartyServiceInformationRequest(
     }
 
     private static String blankToNull(String value) {
-        return V2ResourceValidation.hasText(value) ? value.strip() : null;
+        return ResourceValidation.hasText(value) ? value.strip() : null;
     }
 }

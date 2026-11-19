@@ -69,18 +69,6 @@ public class TestDataGenerator {
         return Integer.toString(orgno);
     }
 
-    public static String generateInvalidOrgno() {
-        // guarantee an invalid orgno by modifying a valid one.
-        StringBuilder buf = new StringBuilder(generateValidOrgno());
-
-        int modifyIndex = rng.nextInt(0, ORGNO_LENGTH);
-        int digit = Character.digit(buf.charAt(modifyIndex), 10);
-        int invalidDigit = (digit + 1) % 10;
-
-        buf.setCharAt(modifyIndex, Character.forDigit(invalidDigit, 1));
-        return buf.toString();
-    }
-
     private static final List<String> EXAMPLE_ENTITLEMENTS = new ArrayList<>(List.of(
         // NOTE: the actual set of entitlements may change, but this is not important
         // for the purposes of testing.

@@ -2,7 +2,6 @@ package no.eudiw.rp.register.service;
 
 import lombok.RequiredArgsConstructor;
 import no.eudiw.rp.register.domain.Entitlement;
-import no.eudiw.rp.register.domain.ServiceCredentialIssuerUrl;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEaa;
@@ -14,8 +13,6 @@ import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.repository.WalletRelyingPartyServiceRepository;
 import no.eudiw.rp.register.exception.BadRequestException;
 import no.eudiw.rp.register.exception.NotFoundException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,16 +41,6 @@ public class RelyingPartyService {
         List<RelyingPartyEntitlement> entitlements,
         List<RelyingPartyEaa> eaas
     ) {
-        return createRelyingParty(orgno, serviceTradeName, entitlements, eaas, List.of());
-    }
-
-    public RelyingPartyInstance createRelyingParty(
-        String orgno,
-        String serviceTradeName,
-        List<RelyingPartyEntitlement> entitlements,
-        List<RelyingPartyEaa> eaas,
-        List<ServiceCredentialIssuerUrl> credentialIssuerUrls
-    ) {
         if (entitlements == null || eaas == null) {
             throw new BadRequestException("Entitlements and EAAs should be empty if none exists");
         }
@@ -72,93 +59,8 @@ public class RelyingPartyService {
         WalletRelyingPartyService walletService =
             new WalletRelyingPartyService(serviceTradeName, walletRelyingParty, List.of(relyingPartyInstance));
 
-        credentialIssuerUrls.forEach(url ->
-            walletService.setCredentialIssuerUrl(url.entitlement(), url.credentialIssuerUrl()));
         walletRelyingParty.getServices().add(walletService);
         walletRelyingPartyServiceRepository.save(walletService);
-
-        return relyingPartyInstanceRepository.saveAndFlush(relyingPartyInstance);
-    }
-
-    @Transactional(readOnly = true)
-    public RelyingPartyInstance findRelyingParty(UUID id) {
-        return relyingPartyInstanceRepository.findById(id)
-            .orElseThrow(() -> new NotFoundException("Relying party not found"));
-    }
-
-    @Transactional(readOnly = true)
-    public Page<RelyingPartyInstance> searchRelyingParties(
-        String searchTerm,
-        List<String> requiredEntitlements,
-        boolean includeInactive,
-        boolean hideSyntheticOrgnos,
-        PageRequest pageRequest
-    ) {
-        return relyingPartyInstanceRepository.searchRelyingPartyInstances(
-            searchTerm,
-            requiredEntitlements,
-            includeInactive,
-            hideSyntheticOrgnos,
-            pageRequest
-        );
-    }
-
-    public RelyingPartyInstance updateRelyingParty(
-        UUID id,
-        String serviceTradeName,
-        boolean active,
-        List<RelyingPartyEntitlement> entitlements,
-        List<RelyingPartyEaa> eaas
-    ) {
-        return updateRelyingParty(id, serviceTradeName, active, entitlements, eaas, List.of());
-    }
-
-    public RelyingPartyInstance updateRelyingParty(
-        UUID id,
-        String serviceTradeName,
-        boolean active,
-        List<RelyingPartyEntitlement> entitlements,
-        List<RelyingPartyEaa> eaas,
-        List<ServiceCredentialIssuerUrl> submittedCredentialIssuerUrls
-    ) {
-        if (id == null) {
-            throw new BadRequestException("ID should not be null");
-        }
-
-        if (entitlements == null || eaas == null) {
-            throw new BadRequestException("Entitlements and EAAs should be emtpy if none exists");
-        }
-
-        walletRelyingPartyRepository.findByInstanceIdForUpdate(id)
-            .orElseThrow(() -> new BadRequestException("Relying party instance not found"));
-        RelyingPartyInstance relyingPartyInstance = relyingPartyInstanceRepository.findById(id)
-            .orElseThrow(() -> new BadRequestException("Relying party instance not found"));
-
-        if (active && !relyingPartyInstance.hasActiveRelyingPartyAndService()) {
-            throw new BadRequestException("Relying party cannot be activated while its party or service is inactive");
-        }
-
-        WalletRelyingPartyService walletService = relyingPartyInstance.getWalletRelyingPartyService();
-        entitlements.forEach(selection -> walletService.requireServiceEntitlement(selection.getEntitlement()));
-        entitlementCheck(entitlements);
-
-        if (!relyingPartyInstance.keepsEntitlementsWithIssuerCertificates(entitlements)) {
-            throw new BadRequestException("An instance role with issuer certificates cannot be removed");
-        }
-
-        submittedCredentialIssuerUrls.forEach(url -> validateCredentialIssuerUrl(
-            walletService, url.entitlement(), url.credentialIssuerUrl()));
-
-        if (!Objects.equals(walletService.getServiceTradeName(), serviceTradeName)) {
-            walletService.setServiceTradeName(serviceTradeName);
-            for (RelyingPartyInstance serviceInstance : walletService.getRelyingPartyInstances()) {
-                serviceInstance.setUpdated();
-            }
-        }
-        relyingPartyInstance.setActive(active);
-
-        relyingPartyInstance.setRelyingPartyEntitlements(entitlements);
-        relyingPartyInstance.setRelyingPartyEaas(eaas);
 
         return relyingPartyInstanceRepository.saveAndFlush(relyingPartyInstance);
     }
@@ -232,19 +134,6 @@ public class RelyingPartyService {
     private WalletRelyingParty findWalletRelyingParty(UUID walletRelyingPartyId) {
         return walletRelyingPartyRepository.findByIdForUpdate(walletRelyingPartyId)
             .orElseThrow(() -> new NotFoundException("Party not found"));
-    }
-
-    public void deleteRelyingParty(UUID id) {
-        walletRelyingPartyRepository.findByInstanceIdForUpdate(id)
-            .orElseThrow(() -> new NotFoundException("Relying party not found"));
-        RelyingPartyInstance relyingPartyInstance = relyingPartyInstanceRepository.findById(id)
-            .orElseThrow(() -> new NotFoundException("Relying party not found"));
-        WalletRelyingPartyService walletService = relyingPartyInstance.getWalletRelyingPartyService();
-        walletService.getRelyingPartyInstances().remove(relyingPartyInstance);
-        if (walletService.getRelyingPartyInstances().isEmpty()) {
-            walletService.getWalletRelyingParty().getServices().remove(walletService);
-            walletRelyingPartyServiceRepository.delete(walletService);
-        }
     }
 
     public void validateEntitlements(List<RelyingPartyEntitlement> entitlements) {

@@ -54,7 +54,7 @@ public class RelyingPartyEntitlementResource {
         }
         try {
             URI issuerUri = URI.create(credentialIssuerUrl);
-            return "https".equals(issuerUri.getScheme()) && V2ResourceValidation.hasText(issuerUri.getHost());
+            return "https".equals(issuerUri.getScheme()) && ResourceValidation.hasText(issuerUri.getHost());
         } catch (IllegalArgumentException exception) {
             return false;
         }
