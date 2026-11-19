@@ -1098,6 +1098,17 @@ class WrpByIdentifierIntegrationTest {
             ),
             Set.copyOf(matchingTradeNames)
         );
+        assertEquals(
+            List.of("Entitlement match B"),
+            collectionTradeNames(getCollectionPage(null, null, Map.of(
+                "entitlement", entitlement,
+                "identifier", subEntitlementMatch.getOrgno()
+            )))
+        );
+        assertTrue(collectionTradeNames(getCollectionPage(null, null, Map.of(
+            "entitlement", "https://example.test/entitlements/Provider",
+            "identifier", subEntitlementMatch.getOrgno()
+        ))).isEmpty());
         JWSObject matchingWrpPage = getCollectionPage(null, null, Map.of(
             "entitlement", entitlement,
             "legalName", "Entitlement Alpha"
