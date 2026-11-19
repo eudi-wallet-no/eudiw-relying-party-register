@@ -228,6 +228,49 @@ class V2ApiIntegrationTest {
     }
 
     @Test
+    @DisplayName("Should reject a service entitlement that differs from its catalog URI only by case")
+    void shouldRejectCaseVariantOfCatalogEntitlementWhenCreatingService() throws Exception {
+        String relyingPartyId = read(post("/v2/relying-parties"),
+            "{\"orgno\":\"" + TestDataGenerator.generateValidOrgno() + "\"}").get("id").asString();
+        String submittedEntitlement = "https://uri.etsi.org/19475/Entitlement/service_provider";
+        String serviceRequest = RELYING_PARTY_SERVICE.replace("\"isIntermediary\":false",
+            "\"entitlements\":[\"" + submittedEntitlement + "\"],\"isIntermediary\":false");
+
+        request(post("/v2/relying-parties/" + relyingPartyId + "/services"), serviceRequest)
+            .andExpect(status().isBadRequest());
+
+        assertEquals(0, relyingPartyServiceRepository.count());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"sub-role", "http://[broken"})
+    @DisplayName("Should reject a sub-entitlement that is not an absolute URI when creating a service")
+    void shouldRejectNonAbsoluteSubEntitlementWhenCreatingService(String subEntitlement) throws Exception {
+        String relyingPartyId = read(post("/v2/relying-parties"),
+            "{\"orgno\":\"" + TestDataGenerator.generateValidOrgno() + "\"}").get("id").asString();
+        String serviceRequest = RELYING_PARTY_SERVICE.replace("\"isIntermediary\":false",
+            "\"subEntitlements\":[\"" + subEntitlement + "\"],\"isIntermediary\":false");
+
+        request(post("/v2/relying-parties/" + relyingPartyId + "/services"), serviceRequest)
+            .andExpect(status().isBadRequest());
+
+        assertEquals(0, relyingPartyServiceRepository.count());
+    }
+
+    @Test
+    @DisplayName("Should reject a non-absolute sub-entitlement when updating a service")
+    void shouldRejectNonAbsoluteSubEntitlementWhenUpdatingService() throws Exception {
+        Registration registration = createRegistration();
+        String serviceRequest = RELYING_PARTY_SERVICE.replace("\"isIntermediary\":false",
+            "\"subEntitlements\":[\"sub-role\"],\"isIntermediary\":false");
+
+        request(put(registration.relyingPartyServicePath()), serviceRequest)
+            .andExpect(status().isBadRequest());
+
+        assertTrue(read(get(registration.relyingPartyServicePath())).get("subEntitlements").isEmpty());
+    }
+
+    @Test
     @DisplayName("Should create instances for a new or existing organization")
     void shouldCreateInstancesForNewOrExistingOrganization() throws Exception {
         String orgno = TestDataGenerator.generateValidOrgno();
@@ -287,7 +330,8 @@ class V2ApiIntegrationTest {
     void shouldUpdateServiceBasicInformationAndKeepOtherServiceData() throws Exception {
         Registration registration = createRegistration();
         read(put(registration.relyingPartyServicePath()),
-            RELYING_PARTY_SERVICE.replace("\"isIntermediary\":false", "\"subEntitlements\":[\"sub-role\"],\"isIntermediary\":false"));
+            RELYING_PARTY_SERVICE.replace("\"isIntermediary\":false",
+                "\"subEntitlements\":[\"https://example.test/entitlements/sub-role\"],\"isIntermediary\":false"));
         JsonNode intendedUse = read(post(registration.intendedUsesPath()), INTENDED_USE);
         JsonNode before = read(get(registration.relyingPartyServicePath()));
 

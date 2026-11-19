@@ -3,6 +3,7 @@ package no.eudiw.rp.register.data.migration;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
 import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.FlywayException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -69,6 +70,40 @@ class WalletRelyingPartySchemaTest {
               AND TABLE_NAME = 'wallet_relying_party_service'
               AND COLUMN_NAME = 'issuer_policies'
             """, String.class));
+        assertEquals(0, jdbc.queryForObject("""
+            SELECT COUNT(*) FROM information_schema.TABLES
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'wallet_relying_party_service_credential_issuer_url'
+            """, Integer.class));
+    }
+
+    @Test
+    @DisplayName("Should preserve legacy URLs and stop dropping the table when rows remain")
+    void shouldPreserveLegacyUrlsAndStopDroppingTheTableWhenRowsRemain() {
+        flyway.clean();
+        Flyway.configure().configuration(flyway.getConfiguration()).target("37").load().migrate();
+        jdbc.update("""
+            INSERT INTO wallet_relying_party
+                (id, trade_name, orgno, is_psb, policy, identifier, postal_address, email, phone, info_uri)
+            VALUES ('party', 'Party', '123456785', TRUE, '[]', '[]', '[]', '[]', '[]', '[]')
+            """);
+        insertService("service", null);
+        jdbc.update("""
+            INSERT INTO wallet_relying_party_service_credential_issuer_url
+                (id, wallet_relying_party_service_id, entitlement, credential_issuer_url)
+            VALUES ('legacy-url', 'service', 'urn:test:issuer', 'https://issuer.example')
+            """);
+
+        assertThrows(FlywayException.class, flyway::migrate);
+
+        assertEquals(1, jdbc.queryForObject("""
+            SELECT COUNT(*) FROM wallet_relying_party_service_credential_issuer_url
+            """, Integer.class));
+        assertEquals(1, jdbc.queryForObject("""
+            SELECT COUNT(*) FROM information_schema.TABLES
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'wallet_relying_party_service_credential_issuer_url'
+            """, Integer.class));
     }
 
     @Test
