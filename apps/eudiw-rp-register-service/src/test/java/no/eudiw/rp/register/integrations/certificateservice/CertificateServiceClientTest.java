@@ -1,14 +1,17 @@
 package no.eudiw.rp.register.integrations.certificateservice;
 
+import no.eudiw.rp.register.domain.certificates.X509CertificateConverter;
 import no.eudiw.rp.register.exception.ErrorResponseException;
 import no.eudiw.rp.register.exception.UnauthorizedRequestException;
 import no.eudiw.rp.register.integrations.certificateservice.config.RelyingPartyCertificateServiceConfig;
 import no.eudiw.rp.register.integrations.certificateservice.config.RelyingPartyCertificateServiceProperties;
+import no.eudiw.rp.register.testdata.CertificatesGenerator;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -64,6 +67,41 @@ class CertificateServiceClientTest {
         JsonNode body = new ObjectMapper().readTree(request.getBody().readUtf8());
         assertEquals("12345", body.get("serial_number").asText());
         assertEquals(0, body.get("reason").asInt());
+    }
+
+    @Test
+    @DisplayName("Should encode a leading slash in the CA ID when issuing a certificate")
+    void encodesLeadingSlashInCaIdWhenIssuingCertificate() throws InterruptedException {
+        server.enqueue(new MockResponse()
+            .setResponseCode(200)
+            .setHeader("Content-Type", "application/x-pem-file")
+            .setBody(X509CertificateConverter.convert(CertificatesGenerator.generateX509Certificate())));
+
+        client.requestCertificate(
+            CertificatesGenerator.generatePKCS10Csr(), "123456789", "Party", "Service", "/attacker.example");
+
+        RecordedRequest request = server.takeRequest(5, TimeUnit.SECONDS);
+        assertNotNull(request);
+        assertEquals("POST", request.getMethod());
+        assertEquals("/v1/internal/issue/%2Fattacker.example", request.getPath());
+        assertEquals(server.url("/").host(), request.getRequestUrl().host());
+        assertEquals(server.url("/").port(), request.getRequestUrl().port());
+    }
+
+    @Test
+    @DisplayName("Should encode a leading slash in the CA ID when revoking a certificate")
+    void encodesLeadingSlashInCaIdWhenRevokingCertificate() throws InterruptedException {
+        server.enqueue(new MockResponse().setResponseCode(204));
+
+        HttpStatusCode status = client.revokeCertificate("12345", 0, "/attacker.example");
+
+        RecordedRequest request = server.takeRequest(5, TimeUnit.SECONDS);
+        assertNotNull(request);
+        assertEquals(HttpStatus.NO_CONTENT, status);
+        assertEquals("PUT", request.getMethod());
+        assertEquals("/v1/internal/revoke/%2Fattacker.example", request.getPath());
+        assertEquals(server.url("/").host(), request.getRequestUrl().host());
+        assertEquals(server.url("/").port(), request.getRequestUrl().port());
     }
 
     @ParameterizedTest

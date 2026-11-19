@@ -10,7 +10,7 @@ import jakarta.validation.constraints.Pattern;
 import no.eudiw.rp.register.api.v2.resource.IdentifierResource;
 import no.eudiw.rp.register.api.v2.resource.LegalPersonResource;
 import no.eudiw.rp.register.api.v2.resource.PolicyResource;
-import no.eudiw.rp.register.api.v2.resource.V2ResourceValidation;
+import no.eudiw.rp.register.api.v2.resource.ResourceValidation;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 
 import java.util.ArrayList;
@@ -31,7 +31,7 @@ public record RelyingPartyRequest(
 ) {
     @AssertTrue(message = "invalid_info_uri")
     public boolean hasValidInfoUris() {
-        return infoURI == null || infoURI.stream().allMatch(V2ResourceValidation::isAbsoluteUri);
+        return infoURI == null || infoURI.stream().allMatch(ResourceValidation::isAbsoluteUri);
     }
 
     public void update(WalletRelyingParty relyingParty) {

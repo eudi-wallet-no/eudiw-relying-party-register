@@ -18,7 +18,7 @@ public record ServiceReferenceResource(
 ) {
     @AssertTrue(message = "invalid_service_reference_registry_uri")
     public boolean hasValidRegistryUri() {
-        return V2ResourceValidation.isAbsoluteUri(registryUri);
+        return ResourceValidation.isAbsoluteUri(registryUri);
     }
 
     public ServiceReference toDomain() {

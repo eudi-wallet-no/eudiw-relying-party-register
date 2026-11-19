@@ -17,7 +17,10 @@ import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -31,6 +34,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -71,14 +75,21 @@ class V2IssuerCertificateIntegrationTest {
         CA_SERVER.close();
     }
 
-    @Test
-    @DisplayName("Should issue and store an issuer certificate for its entitlement")
-    void shouldIssueAndStoreAnIssuerCertificateForItsEntitlement() throws Exception {
-        var entitlement = entitlementRepository.saveAndFlush(new Entitlement(ENTITLEMENT, true, "Issuer", CA_ID));
+    @ParameterizedTest
+    @CsvSource({
+        "https://uri.etsi.org/19475/Entitlement/PID_Provider, pid_provider2",
+        "https://uri.etsi.org/19475/Entitlement/QEAA_Provider, eaa_provider2",
+        "https://uri.etsi.org/19475/Entitlement/Non_Q_EAA_Provider, eaa_provider2",
+        "https://uri.etsi.org/19475/Entitlement/PUB_EAA_Provider, eaa_provider2"
+    })
+    @DisplayName("Should issue and store an issuer certificate using the CA for the entitlement")
+    void shouldIssueAndStoreAnIssuerCertificateUsingTheCaForTheEntitlement(
+        String entitlement, String expectedCaId
+    ) throws Exception {
         var instance = new RelyingPartyInstance(
-            List.of(new RelyingPartyEntitlement(ENTITLEMENT)), List.of(), List.of());
+            List.of(new RelyingPartyEntitlement(entitlement)), List.of(), List.of());
         var service = new WalletRelyingPartyService("Service", null, List.of(instance));
-        service.setEntitlements(List.of(ENTITLEMENT));
+        service.setEntitlements(List.of(entitlement));
         var party = walletRelyingPartyRepository.saveAndFlush(new WalletRelyingParty(
             "Party", "123456789", true, List.of(service)));
         var csr = CertificatesGenerator.generatePKCS10Csr();
@@ -91,26 +102,79 @@ class V2IssuerCertificateIntegrationTest {
             var result = mockMvc.perform(post("/v2/instances/{instanceId}/certificates/issuer", instance.getId())
                     .header("X-API-KEY", "junit-api-key")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(new IssuerCertificateRequest(csr, ENTITLEMENT))))
+                    .content(objectMapper.writeValueAsString(new IssuerCertificateRequest(csr, entitlement))))
                 .andExpect(status().isOk())
                 .andReturn();
 
             var caRequest = CA_SERVER.takeRequest(5, TimeUnit.SECONDS);
             assertNotNull(caRequest);
-            assertEquals("/v1/internal/issue/" + CA_ID, caRequest.getPath());
+            assertEquals("/v1/internal/issue/" + expectedCaId, caRequest.getPath());
             var caBody = objectMapper.readTree(caRequest.getBody().readUtf8());
             assertEquals(PKCS10CertificationRequestConverter.convert(csr), caBody.get("csr").asString());
 
             var response = objectMapper.readValue(result.getResponse().getContentAsByteArray(), CertificateResponse.class);
             assertNotNull(response.id());
-            assertEquals(ENTITLEMENT, response.entitlement());
+            assertEquals(entitlement, response.entitlement());
             assertEquals(certificate, response.certificate());
             var stored = issuerCertificateRepository.findById(response.id()).orElseThrow();
             assertEquals(certificate, stored.getCertificate());
-            assertEquals(ENTITLEMENT, stored.getEntitlement().getEntitlement());
+            assertEquals(entitlement, stored.getEntitlement().getEntitlement());
+        } finally {
+            walletRelyingPartyRepository.deleteById(party.getId());
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("caIssuanceFailures")
+    @DisplayName("Should not store an issuer certificate when the CA response is invalid")
+    void shouldNotStoreAnIssuerCertificateWhenTheCaResponseIsInvalid(
+        int caStatus,
+        String contentType,
+        String body,
+        int expectedStatus
+    ) throws Exception {
+        var entitlement = entitlementRepository.saveAndFlush(new Entitlement(ENTITLEMENT, true, "Issuer", CA_ID));
+        var instance = new RelyingPartyInstance(
+            List.of(new RelyingPartyEntitlement(ENTITLEMENT)), List.of(), List.of());
+        var service = new WalletRelyingPartyService("Service", null, List.of(instance));
+        service.setEntitlements(List.of(ENTITLEMENT));
+        var party = walletRelyingPartyRepository.saveAndFlush(new WalletRelyingParty(
+            "Party", "123456789", true, List.of(service)));
+        long certificateCount = issuerCertificateRepository.count();
+
+        var caResponse = new MockResponse()
+            .setResponseCode(caStatus)
+            .setHeader("Content-Type", contentType);
+        if (body != null) {
+            caResponse.setBody(body);
+        }
+        CA_SERVER.enqueue(caResponse);
+
+        try {
+            mockMvc.perform(post("/v2/instances/{instanceId}/certificates/issuer", instance.getId())
+                    .header("X-API-KEY", "junit-api-key")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(new IssuerCertificateRequest(
+                        CertificatesGenerator.generatePKCS10Csr(), ENTITLEMENT))))
+                .andExpect(status().is(expectedStatus));
+
+            assertNotNull(CA_SERVER.takeRequest(5, TimeUnit.SECONDS));
+            assertEquals(certificateCount, issuerCertificateRepository.count());
         } finally {
             walletRelyingPartyRepository.deleteById(party.getId());
             entitlementRepository.delete(entitlement);
         }
+    }
+
+    private static Stream<Arguments> caIssuanceFailures() {
+        String invalidCertificatePem = X509CertificateConverter
+            .convert(CertificatesGenerator.generateX509Certificate())
+            .toLowerCase();
+
+        return Stream.of(
+            Arguments.of(400, "application/json", "{\"error\":\"invalid_request\"}", 500),
+            Arguments.of(200, "application/x-pem-file", invalidCertificatePem, 400),
+            Arguments.of(200, "application/x-pem-file", null, 500)
+        );
     }
 }

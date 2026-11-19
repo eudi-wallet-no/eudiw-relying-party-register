@@ -1,7 +1,7 @@
 package no.idporten.eudiw.rp.admin.web.selfservice;
 
 import no.idporten.eudiw.rp.admin.security.SecurityTestUtils;
-import no.idporten.eudiw.rp.admin.service.V2RegistrationsService;
+import no.idporten.eudiw.rp.admin.service.RegistrationsService;
 import no.idporten.eudiw.rp.admin.web.resource.RegistrationSummary;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,7 +33,7 @@ class RegistrationsControllerTests {
     @Autowired
     private MockMvc mockMvc;
     @MockitoBean
-    private V2RegistrationsService registrationsService;
+    private RegistrationsService registrationsService;
 
     @Test
     @DisplayName("Should show registrations for the signed-in organization without a search field")

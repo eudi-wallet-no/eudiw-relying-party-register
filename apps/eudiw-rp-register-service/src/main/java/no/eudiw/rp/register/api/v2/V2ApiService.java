@@ -404,7 +404,7 @@ public class V2ApiService {
     ) {
         Set<String> uniqueRequiredEntitlements =
             new HashSet<>(Objects.requireNonNullElse(requiredEntitlements, List.of()));
-        Page<RelyingPartyInstance> relyingPartyInstances = relyingPartyInstanceRepository.searchV2(
+        Page<RelyingPartyInstance> relyingPartyInstances = relyingPartyInstanceRepository.searchRelyingPartyInstances(
             relyingPartyServiceId,
             orgno,
             searchTerm == null ? "" : searchTerm,

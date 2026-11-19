@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
-import no.eudiw.rp.register.api.v2.resource.V2ResourceValidation;
+import no.eudiw.rp.register.api.v2.resource.ResourceValidation;
 
 import java.util.List;
 
@@ -18,6 +18,6 @@ public record RelyingPartyInformationRequest(
 ) {
     @AssertTrue(message = "invalid_info_uri")
     public boolean hasValidInformationUris() {
-        return infoURI == null || infoURI.stream().allMatch(V2ResourceValidation::isAbsoluteUri);
+        return infoURI == null || infoURI.stream().allMatch(ResourceValidation::isAbsoluteUri);
     }
 }

@@ -33,14 +33,14 @@ class V2ApiServiceTest {
     })
     @DisplayName("Should sort instance search by the organization number or service name that admin selects")
     void shouldSortInstanceSearchByAdminSortKey(String sortKey, String expectedProperty) {
-        when(relyingPartyInstanceRepository.searchV2(
+        when(relyingPartyInstanceRepository.searchRelyingPartyInstances(
             any(), any(), anyString(), anyBoolean(), anyBoolean(), anySet(), anyInt(), any(Pageable.class)
         )).thenReturn(Page.empty());
 
         service.searchRelyingPartyInstances(null, null, null, false, false, null, 0, 25, sortKey);
 
         ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
-        verify(relyingPartyInstanceRepository).searchV2(
+        verify(relyingPartyInstanceRepository).searchRelyingPartyInstances(
             any(), any(), anyString(), anyBoolean(), anyBoolean(), anySet(), anyInt(), pageable.capture());
         assertEquals(Sort.by(expectedProperty, "id"), pageable.getValue().getSort());
     }

@@ -208,7 +208,7 @@ public class RelyingPartyInstanceRepositoryTest {
         repository.saveAndFlush(matchingInstance);
         repository.saveAndFlush(missingRole);
 
-        var results = repository.searchV2(null, null, searchTerm, false, false,
+        var results = repository.searchRelyingPartyInstances(null, null, searchTerm, false, false,
             Set.of("urn:first", "urn:second"), 2, PageRequest.of(0, 25, Sort.by("createdMs", "id")));
 
         assertEquals(List.of(matchingInstance.getId()), results.getContent().stream().map(BaseEntity::getId).toList());
@@ -234,8 +234,8 @@ public class RelyingPartyInstanceRepositoryTest {
         repository.saveAndFlush(inactiveInstance);
         var page = PageRequest.of(0, 25, Sort.by("createdMs", "id"));
 
-        var activeResults = repository.searchV2(null, null, searchTerm, false, false, Set.of(), 0, page);
-        var allResults = repository.searchV2(null, null, searchTerm, true, false, Set.of(), 0, page);
+        var activeResults = repository.searchRelyingPartyInstances(null, null, searchTerm, false, false, Set.of(), 0, page);
+        var allResults = repository.searchRelyingPartyInstances(null, null, searchTerm, true, false, Set.of(), 0, page);
 
         assertEquals(List.of(activeInstance.getId()), activeResults.getContent().stream().map(BaseEntity::getId).toList());
         assertEquals(Set.of(activeInstance.getId(), inactiveInstance.getId()),
@@ -243,8 +243,8 @@ public class RelyingPartyInstanceRepositoryTest {
     }
 
     @Test
-    @DisplayName("Should page V2 search through instances in service name order")
-    void shouldPageV2SearchInServiceNameOrder() {
+    @DisplayName("Should page relying-party instances in service-name order")
+    void shouldPageRelyingPartyInstancesInServiceNameOrder() {
         String searchTerm = UUID.randomUUID().toString();
         RelyingPartyInstance bravo = EntityGenerator.generateRelyingParty();
         bravo.getWalletRelyingPartyService().setServiceTradeName("bravo " + searchTerm);
@@ -254,9 +254,9 @@ public class RelyingPartyInstanceRepositoryTest {
         repository.saveAndFlush(alpha);
 
         Sort ordering = Sort.by("walletRelyingPartyService.serviceTradeName", "id");
-        UUID firstPageId = repository.searchV2(
+        UUID firstPageId = repository.searchRelyingPartyInstances(
             null, null, searchTerm, true, false, Set.of(), 0, PageRequest.of(0, 1, ordering)).getContent().getFirst().getId();
-        UUID secondPageId = repository.searchV2(
+        UUID secondPageId = repository.searchRelyingPartyInstances(
             null, null, searchTerm, true, false, Set.of(), 0, PageRequest.of(1, 1, ordering)).getContent().getFirst().getId();
 
         assertEquals(List.of(alpha.getId(), bravo.getId()), List.of(firstPageId, secondPageId));
@@ -298,7 +298,7 @@ public class RelyingPartyInstanceRepositoryTest {
         Sort ordering = Sort.by("walletRelyingPartyService.walletRelyingParty.orgno", "id");
 
         for (int page = 0; page < expected.size(); page++) {
-            var results = repository.searchV2(
+            var results = repository.searchRelyingPartyInstances(
                 null, null, searchTerm, includeInactive, hideSyntheticOrgnos,
                 Set.of("urn:first", "urn:second"), 2, PageRequest.of(page, 1, ordering));
             assertEquals(expected.size(), results.getTotalElements());

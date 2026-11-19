@@ -13,6 +13,9 @@ import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -25,6 +28,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -94,5 +98,53 @@ class V2AccessCertificateIntegrationTest {
         } finally {
             walletRelyingPartyRepository.deleteById(party.getId());
         }
+    }
+
+    @ParameterizedTest
+    @MethodSource("caIssuanceFailures")
+    @DisplayName("Should not store an access certificate when the CA response is invalid")
+    void shouldNotStoreAnAccessCertificateWhenTheCaResponseIsInvalid(
+        int caStatus,
+        String contentType,
+        String body,
+        int expectedStatus
+    ) throws Exception {
+        var party = walletRelyingPartyRepository.saveAndFlush(EntityGenerator.generateWalletRelyingParty(1));
+        var instanceId = EntityGenerator.instances(party).getFirst().getId();
+        long certificateCount = accessCertificateRepository.count();
+
+        var caResponse = new MockResponse()
+            .setResponseCode(caStatus)
+            .setHeader("Content-Type", contentType);
+        if (body != null) {
+            caResponse.setBody(body);
+        }
+        CA_SERVER.enqueue(caResponse);
+
+        try {
+            mockMvc.perform(post("/v2/instances/{instanceId}/certificates/access", instanceId)
+                    .header("X-API-KEY", "junit-api-key")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(
+                        new AccessCertificateRequest(CertificatesGenerator.generatePKCS10Csr()))))
+                .andExpect(status().is(expectedStatus));
+
+            assertNotNull(CA_SERVER.takeRequest(5, TimeUnit.SECONDS));
+            assertEquals(certificateCount, accessCertificateRepository.count());
+        } finally {
+            walletRelyingPartyRepository.deleteById(party.getId());
+        }
+    }
+
+    private static Stream<Arguments> caIssuanceFailures() {
+        String invalidCertificatePem = X509CertificateConverter
+            .convert(CertificatesGenerator.generateX509Certificate())
+            .toLowerCase();
+
+        return Stream.of(
+            Arguments.of(400, "application/json", "{\"error\":\"invalid_request\"}", 500),
+            Arguments.of(200, "application/x-pem-file", invalidCertificatePem, 400),
+            Arguments.of(200, "application/x-pem-file", null, 500)
+        );
     }
 }

@@ -3,7 +3,7 @@ package no.idporten.eudiw.rp.admin.web.controllers.selfservice;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import no.idporten.eudiw.rp.admin.service.V2RegistrationsService;
+import no.idporten.eudiw.rp.admin.service.RegistrationsService;
 import no.idporten.eudiw.rp.admin.web.form.RegistrationSearchForm;
 import no.idporten.eudiw.rp.admin.web.resource.RegistrationSummary;
 import no.idporten.eudiw.rp.admin.web.security.UserAuthorityService;
@@ -21,7 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RegistrationsController {
     public static final String registrationsAttrId = "registrationsAttr";
-    private final V2RegistrationsService registrationsService;
+    private final RegistrationsService registrationsService;
     private final UserAuthorityService userAuthorityService;
 
     @GetMapping("/registrations")

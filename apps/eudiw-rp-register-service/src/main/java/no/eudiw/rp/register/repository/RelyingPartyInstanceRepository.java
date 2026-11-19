@@ -52,7 +52,7 @@ public interface RelyingPartyInstanceRepository
             ) = :numRequiredEntitlements
           )
         """)
-    Page<RelyingPartyInstance> searchV2(
+    Page<RelyingPartyInstance> searchRelyingPartyInstances(
         @Param("serviceId") UUID serviceId,
         @Param("orgno") String orgno,
         @Param("searchTerm") String searchTerm,

@@ -24,20 +24,20 @@ import java.util.stream.Collectors;
 @Service
 public class RelyingPartiesService {
 
-    private final V2RegisterClient v2RegisterClient;
-    private final V2CertificateClient v2CertificateClient;
+    private final V2RegisterClient registerClient;
+    private final V2CertificateClient certificateClient;
 
     public UUID createInstance(V2RegisterClient.CreateInstanceRequest request) {
-        return v2RegisterClient.createInstance(request);
+        return registerClient.createInstance(request);
     }
 
     public PagedResponse<RegistrationSearchResult> search(SearchRelyingPartyResource searchResource) {
-        var instances = v2RegisterClient.searchInstances(searchResource);
+        var instances = registerClient.searchInstances(searchResource);
         if (instances.content().isEmpty()) {
             return new PagedResponse<>(List.of(), instances.page());
         }
 
-        var entitlementCatalog = v2RegisterClient.getEntitlements(true).stream()
+        var entitlementCatalog = registerClient.getEntitlements(true).stream()
             .collect(Collectors.toMap(V2RegisterClient.Entitlement::entitlement, Function.identity()));
         var results = instances.content().stream()
             .map(instance -> toSearchResult(instance, entitlementCatalog))
@@ -46,80 +46,80 @@ public class RelyingPartiesService {
     }
 
     public RelyingPartyResource get(UUID id) {
-        return v2RegisterClient.getRelyingParty(id);
+        return registerClient.getRelyingParty(id);
     }
 
     public void updateInstanceStatus(UUID instanceId, boolean active) {
-        v2RegisterClient.updateInstanceStatus(instanceId, active);
+        registerClient.updateInstanceStatus(instanceId, active);
     }
 
     public void updateServiceInformation(UUID serviceId, V2RegisterClient.ServiceInformation information) {
-        v2RegisterClient.updateServiceInformation(serviceId, information);
+        registerClient.updateServiceInformation(serviceId, information);
     }
 
     public void updateInstanceRoles(UUID instanceId, V2RegisterClient.InstanceRolesRequest request) {
-        v2RegisterClient.updateInstanceRoles(instanceId, request);
+        registerClient.updateInstanceRoles(instanceId, request);
     }
 
     public List<V2RegisterClient.ServiceCredentialIssuerUrl> getServiceCredentialIssuerUrls(UUID serviceId) {
-        return v2RegisterClient.getServiceCredentialIssuerUrls(serviceId);
+        return registerClient.getServiceCredentialIssuerUrls(serviceId);
     }
 
     public List<String> getServiceEntitlements(UUID serviceId) {
-        return v2RegisterClient.getServiceEntitlements(serviceId);
+        return registerClient.getServiceEntitlements(serviceId);
     }
 
     public void updateServiceCredentialIssuerUrls(UUID serviceId,
                                                   List<V2RegisterClient.ServiceCredentialIssuerUrl> credentialIssuerUrls) {
-        v2RegisterClient.updateServiceCredentialIssuerUrls(serviceId, credentialIssuerUrls);
+        registerClient.updateServiceCredentialIssuerUrls(serviceId, credentialIssuerUrls);
     }
 
     public void updateServiceEntitlements(UUID serviceId, V2RegisterClient.ServiceEntitlementsRequest request) {
-        v2RegisterClient.updateServiceEntitlements(serviceId, request);
+        registerClient.updateServiceEntitlements(serviceId, request);
     }
 
     public Map<String, String> getEntitlementDisplayNames() {
-        return v2RegisterClient.getEntitlements(true).stream()
+        return registerClient.getEntitlements(true).stream()
             .filter(entitlement -> entitlement.displayName() != null)
             .collect(Collectors.toMap(V2RegisterClient.Entitlement::entitlement, V2RegisterClient.Entitlement::displayName));
     }
 
     public void updateInstanceEaas(UUID instanceId, V2RegisterClient.InstanceEaasRequest request) {
-        v2RegisterClient.updateInstanceEaas(instanceId, request);
+        registerClient.updateInstanceEaas(instanceId, request);
     }
 
     public V2RegisterClient.RelyingParty getRelyingPartyInformation(UUID relyingPartyId) {
-        return v2RegisterClient.getRelyingPartyInformation(relyingPartyId);
+        return registerClient.getRelyingPartyInformation(relyingPartyId);
     }
 
     public void updateRelyingPartyInformation(UUID relyingPartyId, V2RegisterClient.RelyingPartyInformation information) {
-        v2RegisterClient.updateRelyingPartyInformation(relyingPartyId, information);
+        registerClient.updateRelyingPartyInformation(relyingPartyId, information);
     }
 
     public RelyingPartyCertificateResource getAccessCertificate(
         UUID relyingPartyId, UUID certificateId) {
-        return v2CertificateClient.getAccessCertificate(relyingPartyId, certificateId);
+        return certificateClient.getAccessCertificate(relyingPartyId, certificateId);
     }
 
     public RelyingPartyCertificateResource getIssuerCertificate(UUID relyingPartyId, UUID certificateId) {
-        return v2CertificateClient.getIssuerCertificate(relyingPartyId, certificateId);
+        return certificateClient.getIssuerCertificate(relyingPartyId, certificateId);
     }
 
     public RelyingPartyCertificateResource requestCertificateForRelyingParty(
         UUID id,
         RelyingPartyCsrResource csrResource) {
-        return v2CertificateClient.requestAccessCertificate(id, csrResource);
+        return certificateClient.requestAccessCertificate(id, csrResource);
     }
 
     public RelyingPartyCertificateResource requestIssuerCertificateForEntitlement(
         UUID id,
         IssuerCsrResource csrResource
     ) {
-        return v2CertificateClient.requestIssuerCertificate(id, csrResource);
+        return certificateClient.requestIssuerCertificate(id, csrResource);
     }
 
     public EntitlementsResource getValidEntitlements() {
-        return new EntitlementsResource(v2RegisterClient.getEntitlements(false).stream()
+        return new EntitlementsResource(registerClient.getEntitlements(false).stream()
             .map(entitlement -> new EntitlementResource(
                 entitlement.id(), entitlement.entitlement(), entitlement.displayName(), entitlement.active()))
             .toList());
@@ -134,11 +134,11 @@ public class RelyingPartiesService {
     }
 
     public void revokeAccessCertificate(UUID relyingPartyId, UUID certificateId) {
-        v2CertificateClient.revokeAccessCertificate(relyingPartyId, certificateId);
+        certificateClient.revokeAccessCertificate(relyingPartyId, certificateId);
     }
 
     public void revokeIssuerCertificate(UUID relyingPartyId, UUID certificateId) {
-        v2CertificateClient.revokeIssuerCertificate(relyingPartyId, certificateId);
+        certificateClient.revokeIssuerCertificate(relyingPartyId, certificateId);
     }
 
     @ExceptionHandler(Exception.class)

@@ -2,9 +2,9 @@ package no.eudiw.rp.register.api.v2.resource;
 
 import java.net.URI;
 
-public final class V2ResourceValidation {
+public final class ResourceValidation {
 
-    private V2ResourceValidation() { }
+    private ResourceValidation() { }
 
     public static boolean hasText(String value) {
         return value != null && !value.isBlank();
