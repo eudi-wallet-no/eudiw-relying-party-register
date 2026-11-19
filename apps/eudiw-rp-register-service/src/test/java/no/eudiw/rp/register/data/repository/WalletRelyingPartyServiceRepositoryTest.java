@@ -8,6 +8,7 @@ import no.eudiw.rp.register.domain.MultiLangString;
 import no.eudiw.rp.register.domain.Policy;
 import no.eudiw.rp.register.domain.ProvidedAttestation;
 import no.eudiw.rp.register.domain.ServiceReference;
+import no.eudiw.rp.register.domain.TrustAuthority;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
@@ -75,7 +76,15 @@ class WalletRelyingPartyServiceRepositoryTest {
             new Policy("TermsAndConditions", "https://service.example/terms")));
         service.setSubEntitlements(List.of("urn:test:payment"));
         service.setProvidesAttestations(List.of(
-            new ProvidedAttestation("dc+sd-jwt", "https://schemas.example/payment")));
+            new ProvidedAttestation(
+                "dc+sd-jwt",
+                "https://schemas.example/payment",
+                List.of(
+                    new TrustAuthority("etsi_tl", "https://trust.example/list", true),
+                    new TrustAuthority("aki", "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE", null)
+                )),
+            new ProvidedAttestation("mso_mdoc", "org.iso.18013.5.1.mDL")
+        ));
         relyingParty.setServices(List.of(service));
 
         WalletRelyingPartyService savedService = repository.saveAndFlush(service);
@@ -83,8 +92,29 @@ class WalletRelyingPartyServiceRepositoryTest {
 
         WalletRelyingPartyService actual = repository.findById(savedService.getId()).orElseThrow();
         RelyingPartyInstance actualInstance = actual.getRelyingPartyInstances().getFirst();
+        int isLotePresent = ((Number) entityManager.createNativeQuery("""
+            SELECT JSON_CONTAINS_PATH(
+                trusted_authorities,
+                'one',
+                '$[1].isLOTE'
+            )
+            FROM wallet_relying_party_service_provided_attestation
+            WHERE wallet_relying_party_service_id = :serviceId
+              AND type = 'https://schemas.example/payment'
+            """)
+            .setParameter("serviceId", savedService.getId().toString())
+            .getSingleResult()).intValue();
+        ProvidedAttestation actualAttestation = actual.getProvidesAttestations().stream()
+            .filter(attestation -> attestation.type().equals("https://schemas.example/payment"))
+            .findFirst()
+            .orElseThrow();
+        ProvidedAttestation secondAttestation = actual.getProvidesAttestations().stream()
+            .filter(attestation -> attestation.type().equals("org.iso.18013.5.1.mDL"))
+            .findFirst()
+            .orElseThrow();
 
         assertAll(
+            () -> assertEquals(0, isLotePresent),
             () -> assertEquals("Service Trade Name", actual.getServiceTradeName()),
             () -> assertEquals("payments", actual.getServiceIdentifier()),
             () -> assertEquals("https://service.example/support", actual.getSupportUri()),
@@ -97,9 +127,15 @@ class WalletRelyingPartyServiceRepositoryTest {
                 new Policy("PrivacyPolicy", "https://service.example/privacy"),
                 new Policy("TermsAndConditions", "https://service.example/terms")), actual.getIssuerPolicies()),
             () -> assertEquals(List.of("urn:test:payment"), actual.getSubEntitlements()),
+            () -> assertEquals(2, actual.getProvidesAttestations().size()),
+            () -> assertEquals("dc+sd-jwt", actualAttestation.format()),
+            () -> assertEquals("https://schemas.example/payment", actualAttestation.type()),
             () -> assertEquals(List.of(
-                new ProvidedAttestation("dc+sd-jwt", "https://schemas.example/payment")),
-                actual.getProvidesAttestations()),
+                new TrustAuthority("etsi_tl", "https://trust.example/list", true),
+                new TrustAuthority("aki", "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE", null)),
+                actualAttestation.trustedAuthorities()),
+            () -> assertEquals("org.iso.18013.5.1.mDL", secondAttestation.type()),
+            () -> assertEquals(List.of(), secondAttestation.trustedAuthorities()),
             () -> assertFalse(intermediaryFlag(actual.getId())),
             () -> assertEquals(List.of(), actual.getUsesIntermediaries()),
             () -> assertEquals(List.of(), actual.getServedWRPServices()),
@@ -112,6 +148,60 @@ class WalletRelyingPartyServiceRepositoryTest {
             () -> assertTrue(actual.getCreatedMs() > 0),
             () -> assertTrue(actual.getLastUpdatedMs() > 0)
         );
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("loads provided attestations with empty trusted authorities")
+    void loadsProvidedAttestationsWithEmptyTrustedAuthorities() {
+        var relyingParty = new WalletRelyingParty("Legal Name", generateValidOrgno(), true, List.of());
+        var service = new WalletRelyingPartyService("Service", relyingParty, List.of());
+        service.setProvidesAttestations(List.of(
+            new ProvidedAttestation("dc+sd-jwt", "https://schemas.example/payment")));
+        relyingParty.setServices(List.of(service));
+        repository.saveAndFlush(service);
+        entityManager.clear();
+
+        var actual = repository.findById(service.getId()).orElseThrow();
+
+        assertEquals(1, actual.getProvidesAttestations().size());
+        assertEquals("https://schemas.example/payment", actual.getProvidesAttestations().getFirst().type());
+        assertEquals(List.of(), actual.getProvidesAttestations().getFirst().trustedAuthorities());
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("replaces provided attestations and removes orphan rows")
+    void replacesProvidedAttestationsAndRemovesOrphanRows() {
+        var relyingParty = new WalletRelyingParty("Legal Name", generateValidOrgno(), true, List.of());
+        var service = new WalletRelyingPartyService("Service", relyingParty, List.of());
+        service.setProvidesAttestations(List.of(
+            new ProvidedAttestation("dc+sd-jwt", "https://schemas.example/first"),
+            new ProvidedAttestation("mso_mdoc", "https://schemas.example/second")));
+        relyingParty.setServices(List.of(service));
+        repository.saveAndFlush(service);
+
+        service.setProvidesAttestations(List.of(
+            new ProvidedAttestation("dc+sd-jwt", "https://schemas.example/replacement")));
+        repository.flush();
+        entityManager.clear();
+
+        var actual = repository.findById(service.getId()).orElseThrow();
+        assertEquals(1, actual.getProvidesAttestations().size());
+        assertEquals("https://schemas.example/replacement", actual.getProvidesAttestations().getFirst().type());
+
+        actual.setProvidesAttestations(List.of());
+        repository.flush();
+        entityManager.clear();
+
+        int remainingRows = ((Number) entityManager.createNativeQuery("""
+            SELECT COUNT(*)
+            FROM wallet_relying_party_service_provided_attestation
+            WHERE wallet_relying_party_service_id = :serviceId
+            """)
+            .setParameter("serviceId", service.getId().toString())
+            .getSingleResult()).intValue();
+        assertEquals(0, remainingRows);
     }
 
     @Test

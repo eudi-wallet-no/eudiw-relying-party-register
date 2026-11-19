@@ -49,8 +49,14 @@ public class WalletRelyingPartyService extends BaseEntity {
     @Column(name = "sub_entitlements", columnDefinition = "JSON", nullable = false)
     private List<String> subEntitlements = new ArrayList<>();
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "provides_attestations", columnDefinition = "JSON", nullable = false)
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    @OneToMany(
+        mappedBy = "walletRelyingPartyService",
+        fetch = FetchType.LAZY,
+        cascade = CascadeType.ALL,
+        orphanRemoval = true)
+    @BatchSize(size = 50)
     private List<ProvidedAttestation> providesAttestations = new ArrayList<>();
 
     @Getter(AccessLevel.NONE)
@@ -188,6 +194,19 @@ public class WalletRelyingPartyService extends BaseEntity {
         this.intendedUses.clear();
         intendedUsesCopy.forEach(intendedUse -> intendedUse.setWalletRelyingPartyService(this));
         this.intendedUses.addAll(intendedUsesCopy);
+    }
+
+    public List<ProvidedAttestation> getProvidesAttestations() {
+        return List.copyOf(providesAttestations);
+    }
+
+    public void setProvidesAttestations(List<ProvidedAttestation> providesAttestations) {
+        List<ProvidedAttestation> providedAttestationsCopy =
+            providesAttestations == null ? List.of() : new ArrayList<>(providesAttestations);
+        this.providesAttestations.clear();
+        providedAttestationsCopy.forEach(
+            providedAttestation -> providedAttestation.setWalletRelyingPartyService(this));
+        this.providesAttestations.addAll(providedAttestationsCopy);
     }
 
     public void setRelyingPartyInstances(List<RelyingPartyInstance> relyingPartyInstances) {

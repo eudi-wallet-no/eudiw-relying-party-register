@@ -71,9 +71,96 @@ class WalletRelyingPartySchemaTest {
               AND COLUMN_NAME = 'issuer_policies'
             """, String.class));
         assertEquals(0, jdbc.queryForObject("""
+            SELECT COUNT(*) FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'wallet_relying_party_service'
+              AND COLUMN_NAME = 'provides_attestations'
+            """, Integer.class));
+        assertEquals(1, jdbc.queryForObject("""
+            SELECT COUNT(*) FROM information_schema.TABLES
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'wallet_relying_party_service_provided_attestation'
+            """, Integer.class));
+        assertEquals(0, jdbc.queryForObject("""
             SELECT COUNT(*) FROM information_schema.TABLES
             WHERE TABLE_SCHEMA = DATABASE()
               AND TABLE_NAME = 'wallet_relying_party_service_credential_issuer_url'
+            """, Integer.class));
+    }
+
+    @Test
+    @DisplayName("Backfills provided attestations and preserves trusted authorities")
+    void backfillsProvidedAttestationsAndPreservesTrustedAuthorities() {
+        flyway.clean();
+        Flyway.configure().configuration(flyway.getConfiguration()).target("39").load().migrate();
+        jdbc.update("""
+            INSERT INTO wallet_relying_party
+                (id, trade_name, orgno, is_psb, policy, identifier, postal_address, email, phone, info_uri)
+            VALUES ('party', 'Party', '123456785', TRUE, '[]', '[]', '[]', '[]', '[]', '[]')
+            """);
+        jdbc.update("""
+            INSERT INTO wallet_relying_party_service
+                (id, service_trade_name, wallet_relying_party_id, created_ms, last_updated_ms,
+                 provides_attestations)
+            VALUES ('service-with-attestations', 'Service', 'party', 1, 1, ?)
+            """, """
+            [
+              {
+                "format": "dc+sd-jwt",
+                "type": "https://schemas.example/payment",
+                "trustedAuthorities": [
+                  {
+                    "frameworkType": "etsi_tl",
+                    "value": "https://trust.example/list",
+                    "isLOTE": true
+                  }
+                ]
+              },
+              {
+                "format": "mso_mdoc",
+                "type": "org.iso.18013.5.1.mDL"
+              }
+            ]
+            """);
+        jdbc.update("""
+            INSERT INTO wallet_relying_party_service
+                (id, service_trade_name, wallet_relying_party_id, created_ms, last_updated_ms)
+            VALUES ('service-without-attestations', 'Empty Service', 'party', 1, 1)
+            """);
+
+        flyway.migrate();
+
+        assertEquals(2, jdbc.queryForObject("""
+            SELECT COUNT(*)
+            FROM wallet_relying_party_service_provided_attestation
+            WHERE wallet_relying_party_service_id = 'service-with-attestations'
+            """, Integer.class));
+        assertEquals("https://schemas.example/payment", jdbc.queryForObject("""
+            SELECT type
+            FROM wallet_relying_party_service_provided_attestation
+            WHERE wallet_relying_party_service_id = 'service-with-attestations'
+              AND format = 'dc+sd-jwt'
+            """, String.class));
+        assertEquals(1, jdbc.queryForObject("""
+            SELECT JSON_CONTAINS(
+                trusted_authorities,
+                '{"frameworkType":"etsi_tl","value":"https://trust.example/list","isLOTE":true}',
+                '$'
+            )
+            FROM wallet_relying_party_service_provided_attestation
+            WHERE wallet_relying_party_service_id = 'service-with-attestations'
+              AND format = 'dc+sd-jwt'
+            """, Integer.class));
+        assertEquals(0, jdbc.queryForObject("""
+            SELECT JSON_LENGTH(trusted_authorities)
+            FROM wallet_relying_party_service_provided_attestation
+            WHERE wallet_relying_party_service_id = 'service-with-attestations'
+              AND format = 'mso_mdoc'
+            """, Integer.class));
+        assertEquals(0, jdbc.queryForObject("""
+            SELECT COUNT(*)
+            FROM wallet_relying_party_service_provided_attestation
+            WHERE wallet_relying_party_service_id = 'service-without-attestations'
             """, Integer.class));
     }
 
@@ -236,6 +323,7 @@ class WalletRelyingPartySchemaTest {
             """, intendedUseId.toString(), legacyId.toString());
         var servicesBefore = jdbc.queryForList("SELECT * FROM wallet_relying_party_service ORDER BY id");
         servicesBefore.forEach(row -> {
+            row.remove("provides_attestations");
             row.put("uses_intermediaries", "[]");
             row.put("served_wrp_services", "[]");
             row.put("issuer_policies", "[]");
@@ -259,6 +347,7 @@ class WalletRelyingPartySchemaTest {
         try (var entityManager = factory.getObject().createEntityManager()) {
             for (var serviceId : serviceIds) {
                 var service = entityManager.find(WalletRelyingPartyService.class, serviceId);
+                assertEquals(List.of(), service.getProvidesAttestations());
                 assertEquals(List.of(), service.getIssuerPolicies());
                 assertEquals(List.of(), service.getUsesIntermediaries());
                 assertEquals(List.of(), service.getServedWRPServices());
