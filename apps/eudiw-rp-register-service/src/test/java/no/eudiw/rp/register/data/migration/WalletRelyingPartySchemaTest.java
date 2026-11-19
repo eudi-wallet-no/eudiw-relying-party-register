@@ -63,6 +63,12 @@ class WalletRelyingPartySchemaTest {
               AND TABLE_NAME = 'wallet_relying_party_service'
               AND COLUMN_NAME = 'active'
             """, String.class));
+        assertEquals("NO", jdbc.queryForObject("""
+            SELECT IS_NULLABLE FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'wallet_relying_party_service'
+              AND COLUMN_NAME = 'issuer_policies'
+            """, String.class));
     }
 
     @Test
@@ -197,6 +203,7 @@ class WalletRelyingPartySchemaTest {
         servicesBefore.forEach(row -> {
             row.put("uses_intermediaries", "[]");
             row.put("served_wrp_services", "[]");
+            row.put("issuer_policies", "[]");
         });
         var partiesBefore = jdbc.queryForList("SELECT * FROM wallet_relying_party");
         var instancesBefore = jdbc.queryForList("SELECT * FROM relying_party_instance");
@@ -217,6 +224,7 @@ class WalletRelyingPartySchemaTest {
         try (var entityManager = factory.getObject().createEntityManager()) {
             for (var serviceId : serviceIds) {
                 var service = entityManager.find(WalletRelyingPartyService.class, serviceId);
+                assertEquals(List.of(), service.getIssuerPolicies());
                 assertEquals(List.of(), service.getUsesIntermediaries());
                 assertEquals(List.of(), service.getServedWRPServices());
                 assertEquals(partyId, service.getWalletRelyingParty().getId());
