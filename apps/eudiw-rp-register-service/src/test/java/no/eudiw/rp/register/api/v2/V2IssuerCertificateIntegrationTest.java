@@ -80,7 +80,7 @@ class V2IssuerCertificateIntegrationTest {
         var service = new WalletRelyingPartyService("Service", null, List.of(instance));
         service.setEntitlements(List.of(ENTITLEMENT));
         var party = walletRelyingPartyRepository.saveAndFlush(new WalletRelyingParty(
-            "Party", "123456789", true, List.of(service)));
+            "Party", no.eudiw.rp.register.testdata.TestDataGenerator.generateValidOrgno(), true, List.of(service)));
         var csr = CertificatesGenerator.generatePKCS10Csr();
         var certificate = CertificatesGenerator.generateX509Certificate();
         CA_SERVER.enqueue(new MockResponse()
