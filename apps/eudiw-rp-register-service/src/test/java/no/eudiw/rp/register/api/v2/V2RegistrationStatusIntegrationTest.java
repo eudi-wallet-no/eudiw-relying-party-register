@@ -1,7 +1,7 @@
 package no.eudiw.rp.register.api.v2;
 
-import no.eudiw.rp.register.api.v1.resource.certificates.IssuerCsrResource;
-import no.eudiw.rp.register.api.v1.resource.certificates.RelyingPartyCsrResource;
+import no.eudiw.rp.register.api.v2.endpoints.entities.IssuerCertificateRequest;
+import no.eudiw.rp.register.api.v2.endpoints.entities.AccessCertificateRequest;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 import no.eudiw.rp.register.domain.certificates.AccessCertificate;
@@ -320,29 +320,25 @@ class V2RegistrationStatusIntegrationTest {
         var objectMapper = new ObjectMapper();
         long accessCertificateCount = accessCertificateRepository.count();
         long issuerCertificateCount = issuerCertificateRepository.count();
-        List<String> certificatePaths = List.of(
-            "/v1/rp/%s/certs".formatted(registration.relyingPartyInstance().getId()),
-            "/v2/instances/%s/certificates".formatted(registration.relyingPartyInstance().getId()));
+        String certificatePath = "/v2/instances/%s/certificates".formatted(registration.relyingPartyInstance().getId());
 
-        for (String certificatePath : certificatePaths) {
-            mockMvc.perform(post(certificatePath + "/access")
-                    .header(API_KEY_HEADER, API_KEY)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(new RelyingPartyCsrResource(certificateSigningRequest))))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("not_found"))
-                .andExpect(jsonPath("$.error_description")
-                    .value("Certificate registree does not exist or is inactive"));
-            mockMvc.perform(post(certificatePath + "/issuer")
-                    .header(API_KEY_HEADER, API_KEY)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(new IssuerCsrResource(
-                        certificateSigningRequest, registration.entitlement().getEntitlement()))))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("not_found"))
-                .andExpect(jsonPath("$.error_description")
-                    .value("Certificate registree does not exist or is inactive"));
-        }
+        mockMvc.perform(post(certificatePath + "/access")
+                .header(API_KEY_HEADER, API_KEY)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(new AccessCertificateRequest(certificateSigningRequest))))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.error").value("not_found"))
+            .andExpect(jsonPath("$.error_description")
+                .value("Certificate registree does not exist or is inactive"));
+        mockMvc.perform(post(certificatePath + "/issuer")
+                .header(API_KEY_HEADER, API_KEY)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(new IssuerCertificateRequest(
+                    certificateSigningRequest, registration.entitlement().getEntitlement()))))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.error").value("not_found"))
+            .andExpect(jsonPath("$.error_description")
+                .value("Certificate registree does not exist or is inactive"));
 
         assertEquals(accessCertificateCount, accessCertificateRepository.count());
         assertEquals(issuerCertificateCount, issuerCertificateRepository.count());

@@ -1,9 +1,7 @@
 package no.eudiw.rp.register.service;
 
-import no.eudiw.rp.register.api.v1.V1ApiService;
-import no.eudiw.rp.register.api.v1.resource.relyingparty.CreateRelyingPartyResource;
-import no.eudiw.rp.register.api.v1.resource.relyingparty.EditRelyingPartyResource;
-import no.eudiw.rp.register.api.v1.resource.relyingparty.RelyingPartyEntitlementResource;
+import no.eudiw.rp.register.api.v2.V2ApiService;
+import no.eudiw.rp.register.api.v2.endpoints.entities.CreateInstanceRequest;
 import no.eudiw.rp.register.domain.Entitlement;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
@@ -44,7 +42,7 @@ class RegistrationStatusConcurrencyTest {
     private RelyingPartyService relyingPartyService;
 
     @Autowired
-    private V1ApiService v1ApiService;
+    private V2ApiService v2ApiService;
 
     @Autowired
     private WalletRelyingPartyRepository partyRepository;
@@ -145,7 +143,7 @@ class RegistrationStatusConcurrencyTest {
         reactivateAncestor(registration, write);
 
         assertChildrenInactive(registration, write);
-        assertEquals(write == HierarchyWrite.V1_CREATION ? 2 : 1, serviceRepository.count());
+        assertEquals(write == HierarchyWrite.INSTANCE_CREATION ? 2 : 1, serviceRepository.count());
     }
 
     private Registration createRegistration(HierarchyWrite write) {
@@ -160,19 +158,16 @@ class RegistrationStatusConcurrencyTest {
     }
 
     private void activateChild(Registration registration, HierarchyWrite write) {
-        var entitlements = List.of(new RelyingPartyEntitlementResource(ENTITLEMENT, null, null));
         switch (write) {
             case SERVICE_ACTIVATION -> relyingPartyService.activateRelyingPartyService(registration.serviceId());
             case INSTANCE_ACTIVATION -> relyingPartyService.activateRelyingPartyInstance(registration.instanceId());
-            case V1_UPDATE_SERVICE, V1_UPDATE_PARTY -> v1ApiService.updateRelyingParty(
-                registration.instanceId(), new EditRelyingPartyResource("Service", entitlements, List.of(), true));
-            case V1_CREATION -> v1ApiService.createRelyingParty(
-                new CreateRelyingPartyResource(registration.orgno(), "New service", entitlements, List.of()));
+            case INSTANCE_CREATION -> v2ApiService.createInstance(new CreateInstanceRequest(
+                registration.orgno(), "New service", List.of(new CreateInstanceRequest.EntitlementRequest(ENTITLEMENT))));
         }
     }
 
     private void deactivateAncestor(Registration registration, HierarchyWrite write) {
-        if (write == HierarchyWrite.INSTANCE_ACTIVATION || write == HierarchyWrite.V1_UPDATE_SERVICE) {
+        if (write == HierarchyWrite.INSTANCE_ACTIVATION) {
             relyingPartyService.deactivateRelyingPartyService(registration.serviceId());
         } else {
             relyingPartyService.deactivateRelyingParty(registration.partyId());
@@ -180,7 +175,7 @@ class RegistrationStatusConcurrencyTest {
     }
 
     private void reactivateAncestor(Registration registration, HierarchyWrite write) {
-        if (write == HierarchyWrite.INSTANCE_ACTIVATION || write == HierarchyWrite.V1_UPDATE_SERVICE) {
+        if (write == HierarchyWrite.INSTANCE_ACTIVATION) {
             relyingPartyService.activateRelyingPartyService(registration.serviceId());
         } else {
             relyingPartyService.activateRelyingParty(registration.partyId());
@@ -190,7 +185,7 @@ class RegistrationStatusConcurrencyTest {
     private void assertChildrenInactive(Registration registration, HierarchyWrite write) {
         assertTrue(instanceRepository.findAll().stream().noneMatch(RelyingPartyInstance::isActive));
         assertTrue(partyRepository.findById(registration.partyId()).orElseThrow().isActive());
-        if (write != HierarchyWrite.INSTANCE_ACTIVATION && write != HierarchyWrite.V1_UPDATE_SERVICE) {
+        if (write != HierarchyWrite.INSTANCE_ACTIVATION) {
             assertTrue(serviceRepository.findAll().stream().noneMatch(WalletRelyingPartyService::isActive));
         }
     }
@@ -217,8 +212,6 @@ class RegistrationStatusConcurrencyTest {
     private enum HierarchyWrite {
         SERVICE_ACTIVATION,
         INSTANCE_ACTIVATION,
-        V1_UPDATE_SERVICE,
-        V1_UPDATE_PARTY,
-        V1_CREATION
+        INSTANCE_CREATION
     }
 }

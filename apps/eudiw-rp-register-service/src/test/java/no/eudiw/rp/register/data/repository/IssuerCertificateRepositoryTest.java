@@ -9,7 +9,6 @@ import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
 import no.eudiw.rp.register.repository.IssuerCertificateRepository;
 import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.service.RelyingPartyCertificateService;
-import no.eudiw.rp.register.service.RelyingPartyService;
 import no.eudiw.rp.register.exception.NotFoundException;
 import no.eudiw.rp.register.testdata.CertificatesGenerator;
 import no.eudiw.rp.register.testdata.EntityGenerator;
@@ -44,9 +43,6 @@ public class IssuerCertificateRepositoryTest {
 
     @Autowired
     private RelyingPartyCertificateService certificateService;
-
-    @Autowired
-    private RelyingPartyService relyingPartyService;
 
     @Autowired
     private PlatformTransactionManager transactionManager;
@@ -174,8 +170,8 @@ public class IssuerCertificateRepositoryTest {
     }
 
     @Test
-    @DisplayName("Should keep issuer certificates when role deletion is rejected and delete them with their instance")
-    void shouldKeepIssuerCertificatesWhenRoleDeletionIsRejectedAndDeleteThemWithTheirInstance() {
+    @DisplayName("Should keep issuer certificates when role deletion is rejected")
+    void shouldKeepIssuerCertificatesWhenRoleDeletionIsRejected() {
         var transaction = new TransactionTemplate(transactionManager);
         var party = EntityGenerator.generateWalletRelyingParty();
         var instance = EntityGenerator.instances(party).getFirst();
@@ -197,14 +193,6 @@ public class IssuerCertificateRepositoryTest {
                 assertEquals(entitlement.getId(), stored.getEntitlement().getId());
                 assertEquals(instance.getId(), stored.getRelyingPartyInstance().getId());
                 assertEquals(0, stored.getRevocationStatus());
-            });
-
-            relyingPartyService.deleteRelyingParty(instance.getId());
-
-            transaction.executeWithoutResult(status -> {
-                assertFalse(certificateRepository.existsById(certificate.getId()));
-                assertNull(entityManager.find(RelyingPartyEntitlement.class, entitlement.getId()));
-                assertNull(entityManager.find(RelyingPartyInstance.class, instance.getId()));
             });
         } finally {
             transaction.executeWithoutResult(status -> walletRelyingPartyRepository.deleteById(party.getId()));

@@ -9,7 +9,6 @@ spring:
   security:
     api-key: ${API_KEY}
     include-paths:
-      - /v1/**
       - /v2/**
     public-get-paths:
       - /wrp/**
