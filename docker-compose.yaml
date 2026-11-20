@@ -5,21 +5,7 @@ networks:
     name: digital-lommebok
 
 services:
-  # Delte støttetjenester
-  redis:
-    image: redis:alpine
-    healthcheck:
-      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
-      interval: 5s
-      start_period: 3s
-      timeout: 2s
-      retries: 20
-    ports:
-      - "127.0.0.1:6370:6379"
-    networks:
-      - digital-lommebok
-    command: redis-server --maxmemory-policy allkeys-lru
-
+  # Databaser
   rp-register-db:
     image: "mariadb:11.4"
     restart: on-failure
