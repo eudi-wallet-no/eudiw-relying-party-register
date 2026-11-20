@@ -1,17 +1,17 @@
 # AI instructions
 
 ## Before you start
-- Read documentation in [`docs/`](../docs/) that is relevant to the task.
-- When a change depends on an external requirement, check the relevant [specification](../docs/architecture.md#specification-sources) and identify the version you used.
-- Check relevant existing documentation before adding or changing documentation.
 - Understand the request and make the smallest complete change.
 - Check for existing solutions first. Follow established standards and patterns in the codebase instead of creating new ones.
+
+## Working on changes
 - Preserve existing contracts, validation, access control and error handling.
 - Treat investigation and recommendations as read-only; change the repository when the user asks for implementation.
-- Keep changes in scope, verify the result and review the diff.
-- Before delivery, check that affected documentation matches the change and that decisions follow the ADR instructions, including status updates.
+- Keep changes in scope.
 
 ## README and documentation
+- Read documentation in [`docs/`](../docs/) that is relevant to the task. Check relevant existing documentation before adding or changing it.
+- When a change depends on an external requirement, check the relevant [specification](../docs/architecture.md#specification-sources) and identify the version you used.
 - Write new and changed text in English. Follow [ASD-STE100 Issue 9, 2025-01-15](https://www.asd-ste100.org/assets/files/ASD-STE100_ISSUE9.pdf). Check relevant rules and dictionary entries. Preserve meaning, conditions and technical terms, and report gaps. Short sentences alone do not prove compliance.
 - README: a short introduction to purpose, prerequisites, setup and operation. Change it only when these change or the user asks.
 - Document stable behavior, domain rules, lifecycle constraints and operational guidance that readers need beyond a specific code change. Keep implementation details with the code, and avoid duplicating information that the code or API docs already state.
@@ -25,6 +25,10 @@
 ## Tests
 - Start from the rule the test must protect, and check the observable response or stored state with the smallest case that would catch a regression.
 - Give each JUnit test a `@DisplayName` starting with `Should` that states the outcome and condition and matches its `should...` method name.
+
+## Before delivery
+- Verify the change and review the diff.
+- Check that affected documentation matches the change and that decisions follow the ADR instructions, including status updates.
 
 ## Branch and PR
 - Ask for missing JIRA IDs; never invent them.
