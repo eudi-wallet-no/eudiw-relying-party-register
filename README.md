@@ -54,7 +54,7 @@ docker compose logs -f credential-registry
 Services in `docker-compose.yaml`:
 `rp-register-service`, `rp-register-admin`, `rp-register-selfservice`,
 `rp-register-lookup-web`, `ca-service`, `credential-registry`,
-`trustlist-service`, `rp-register-db`, `ca-db`, `redis`.
+`trustlist-service`, `rp-register-db`, `ca-db`.
 
 ### Application, Ports
 
