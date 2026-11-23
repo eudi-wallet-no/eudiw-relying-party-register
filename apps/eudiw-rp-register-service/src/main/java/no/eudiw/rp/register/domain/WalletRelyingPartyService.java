@@ -12,6 +12,8 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -21,6 +23,10 @@ import java.util.Objects;
 @Entity
 @Table(name = "wallet_relying_party_service")
 public class WalletRelyingPartyService extends BaseEntity {
+
+    public static final String STATUS_ACTIVE = "active";
+    public static final String STATUS_SUSPENDED = "suspended";
+    public static final String STATUS_REVOKED = "revoked";
 
     @Column(name = "service_trade_name", nullable = false)
     private String serviceTradeName;
@@ -116,7 +122,24 @@ public class WalletRelyingPartyService extends BaseEntity {
     private long lastUpdatedMs;
 
     @Column(name = "active", nullable = false)
+    @Setter(AccessLevel.NONE)
     private boolean active = true;
+
+    @Column(name = "status", nullable = false, length = 16)
+    @Setter(AccessLevel.NONE)
+    private String status = STATUS_ACTIVE;
+
+    @Column(name = "created_at", nullable = false)
+    @Setter(AccessLevel.NONE)
+    private LocalDate createdAt = currentDate();
+
+    @Column(name = "suspended_at")
+    @Setter(AccessLevel.NONE)
+    private LocalDate suspendedAt;
+
+    @Column(name = "revoked_at")
+    @Setter(AccessLevel.NONE)
+    private LocalDate revokedAt;
 
     public WalletRelyingPartyService(
         String serviceTradeName,
@@ -280,10 +303,60 @@ public class WalletRelyingPartyService extends BaseEntity {
         this.lastUpdatedMs = Instant.now().toEpochMilli();
     }
 
+    public void suspend() {
+        if (STATUS_SUSPENDED.equals(status)) {
+            return;
+        }
+        if (STATUS_REVOKED.equals(status)) {
+            throw new BadRequestException("A revoked service cannot be suspended");
+        }
+
+        this.status = STATUS_SUSPENDED;
+        this.suspendedAt = currentDate();
+        this.active = false;
+    }
+
+    public void reactivate() {
+        if (STATUS_ACTIVE.equals(status)) {
+            return;
+        }
+        if (STATUS_REVOKED.equals(status)) {
+            throw new BadRequestException("A revoked service cannot be reactivated");
+        }
+
+        this.status = STATUS_ACTIVE;
+        this.suspendedAt = null;
+        this.active = true;
+    }
+
+    public void revoke() {
+        if (STATUS_REVOKED.equals(status)) {
+            return;
+        }
+
+        this.status = STATUS_REVOKED;
+        this.revokedAt = currentDate();
+        this.active = false;
+    }
+
+    public void setActive(boolean active) {
+        if (active) {
+            reactivate();
+        } else {
+            suspend();
+        }
+    }
+
+    private static LocalDate currentDate() {
+        return LocalDate.now(ZoneOffset.UTC);
+    }
+
     @PrePersist
     protected void onPrePersist() {
         validateIntermediaryConfiguration(isIntermediary, usesIntermediaries, servedWRPServices);
-        this.lastUpdatedMs = this.createdMs = Instant.now().toEpochMilli();
+        Instant now = Instant.now();
+        this.createdAt = LocalDate.ofInstant(now, ZoneOffset.UTC);
+        this.lastUpdatedMs = this.createdMs = now.toEpochMilli();
     }
 
     @PreUpdate
