@@ -20,6 +20,7 @@ import java.util.UUID;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record WalletRelyingPartyResource(
     String country,
+    String createdAt,
     List<String> email,
     List<IdentifierResource> identifier,
     List<String> infoURI,
@@ -27,6 +28,7 @@ public record WalletRelyingPartyResource(
     List<String> phone,
     List<PolicyResource> policy,
     String providerType,
+    String revokedAt,
     List<String> x5c,
     @JsonProperty("isPSB") boolean isPSB,
     SupervisoryAuthorityResource supervisoryAuthority,
@@ -53,6 +55,7 @@ public record WalletRelyingPartyResource(
     ) {
         return new WalletRelyingPartyResource(
             relyingParty.getCountry(),
+            relyingParty.getCreatedAt().toString(),
             relyingParty.getEmail(),
             relyingParty.getIdentifier().stream()
                 .map(identifier -> new IdentifierResource(identifier.identifier(), identifier.type()))
@@ -64,6 +67,7 @@ public record WalletRelyingPartyResource(
                 .map(policy -> new PolicyResource(policy.policyURI(), policy.type()))
                 .toList(),
             relyingParty.getProviderType(),
+            relyingParty.getRevokedAt() == null ? null : relyingParty.getRevokedAt().toString(),
             List.copyOf(relyingParty.getX5c()),
             relyingParty.isPSB(),
             SupervisoryAuthorityResource.from(supervisoryAuthority),
