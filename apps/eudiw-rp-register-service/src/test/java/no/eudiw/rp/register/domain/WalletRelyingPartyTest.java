@@ -1,5 +1,6 @@
 package no.eudiw.rp.register.domain;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
@@ -20,6 +21,7 @@ class WalletRelyingPartyTest {
     }
 
     @Test
+    @DisplayName("Sets the creation date on persist and leaves the revocation date unset")
     void initializesLifecycleDatesOnPersist() {
         var party = new WalletRelyingParty("Name", "123456785", true, List.of());
 

@@ -24,6 +24,7 @@ class WalletRelyingPartyServiceTest {
         "proxy", "https://registry.example/wrp");
 
     @Test
+    @DisplayName("Starts active and records its creation date")
     void startsActiveWithCreationDate() {
         var service = new WalletRelyingPartyService("Service", null, List.of());
 
@@ -35,6 +36,7 @@ class WalletRelyingPartyServiceTest {
     }
 
     @Test
+    @DisplayName("Updates status and dates only when suspension or reactivation changes status")
     void suspendAndReactivateUpdateStatusAndDatesOnlyOnTransitions() {
         var service = new WalletRelyingPartyService("Service", null, List.of());
 
@@ -59,6 +61,7 @@ class WalletRelyingPartyServiceTest {
     }
 
     @Test
+    @DisplayName("Revokes a service terminally and preserves its suspension date")
     void revokeIsTerminalAndPreservesSuspensionDate() {
         var service = new WalletRelyingPartyService("Service", null, List.of());
         service.suspend();
@@ -79,6 +82,7 @@ class WalletRelyingPartyServiceTest {
     }
 
     @Test
+    @DisplayName("Keeps TS5 status synchronized with the legacy active setter")
     void legacyActiveSetterKeepsTs5StatusInSync() {
         var service = new WalletRelyingPartyService("Service", null, List.of());
 

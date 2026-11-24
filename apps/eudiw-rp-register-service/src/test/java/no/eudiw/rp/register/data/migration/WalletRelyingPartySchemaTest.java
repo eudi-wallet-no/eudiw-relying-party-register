@@ -49,6 +49,7 @@ class WalletRelyingPartySchemaTest {
     }
 
     @Test
+    @DisplayName("Validates lifecycle columns in the current schema")
     void validatesCurrentSchemaWithoutReapplyingMigrations() {
         flyway.validate();
 
@@ -140,6 +141,7 @@ class WalletRelyingPartySchemaTest {
     }
 
     @Test
+    @DisplayName("Backfills WRP and service creation dates and service status")
     void backfillsServiceStatusAndCreationDateFromExistingFields() {
         flyway.clean();
         Flyway.configure().configuration(flyway.getConfiguration()).target("40").load().migrate();

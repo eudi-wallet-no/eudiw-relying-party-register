@@ -128,6 +128,7 @@ class RelyingPartyServiceTest {
     }
 
     @Test
+    @DisplayName("Deactivating a party suspends its services and instances")
     void deactivatingPartySuspendsItsServicesAndKeepsExistingLifecycleBehavior() {
         var relyingPartyInstance = new RelyingPartyInstance(List.of(), List.of(), List.of());
         var walletRelyingPartyService =
@@ -148,6 +149,7 @@ class RelyingPartyServiceTest {
     }
 
     @Test
+    @DisplayName("Service activation and deactivation update TS5 lifecycle fields")
     void serviceStatusOperationsUpdateTs5Fields() {
         var walletRelyingPartyService =
             new WalletRelyingPartyService("Service", null, List.of());
