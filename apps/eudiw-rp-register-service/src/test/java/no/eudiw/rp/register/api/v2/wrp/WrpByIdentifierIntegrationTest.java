@@ -50,6 +50,7 @@ import java.security.interfaces.ECPublicKey;
 import java.security.spec.ECGenParameterSpec;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -137,11 +138,19 @@ class WrpByIdentifierIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should include WRP lifecycle dates in signed read responses")
+    @DisplayName("Should include WRP and service lifecycle data in signed read responses")
     void includesWrpLifecycleDatesInReadResponses() throws Exception {
         WalletRelyingParty relyingParty = partyNamed("Lifecycle date party");
+        WalletRelyingPartyService activeService = relyingParty.getServices().getFirst();
+        WalletRelyingPartyService suspendedService =
+            new WalletRelyingPartyService("Suspended service", relyingParty, List.of());
+        suspendedService.suspend();
+        WalletRelyingPartyService revokedService =
+            new WalletRelyingPartyService("Revoked service", relyingParty, List.of());
+        revokedService.revoke();
+        relyingParty.setServices(List.of(activeService, suspendedService, revokedService));
         walletRelyingPartyRepository.saveAndFlush(relyingParty);
-        LocalDate revokedAt = LocalDate.of(2026, 3, 15);
+        LocalDate revokedAt = LocalDate.now(ZoneOffset.UTC);
         jdbcTemplate.update(
             "UPDATE wallet_relying_party SET revoked_at = ? WHERE id = ?",
             java.sql.Date.valueOf(revokedAt),
@@ -157,12 +166,18 @@ class WrpByIdentifierIntegrationTest {
         Map<?, ?> singleResult = (Map<?, ?>) byIdentifier.getPayload().toJSONObject().get("data");
         assertEquals(relyingParty.getCreatedAt().toString(), singleResult.get("createdAt"));
         assertEquals(revokedAt.toString(), singleResult.get("revokedAt"));
+        assertServiceLifecycleFields(singleResult, activeService);
+        assertServiceLifecycleFields(singleResult, suspendedService);
+        assertServiceLifecycleFields(singleResult, revokedService);
 
         Map<?, ?> collectionResult = (Map<?, ?>) ((List<?>) getCollectionPage(
             null, null, Map.of("identifier", relyingParty.getOrgno()))
             .getPayload().toJSONObject().get("data")).getFirst();
         assertEquals(relyingParty.getCreatedAt().toString(), collectionResult.get("createdAt"));
         assertEquals(revokedAt.toString(), collectionResult.get("revokedAt"));
+        assertServiceLifecycleFields(collectionResult, activeService);
+        assertServiceLifecycleFields(collectionResult, suspendedService);
+        assertServiceLifecycleFields(collectionResult, revokedService);
     }
 
     @Test
@@ -1680,6 +1695,30 @@ class WrpByIdentifierIntegrationTest {
             List.of(Map.of("path", List.of("org.iso.18013.5.1", "family_name"))),
             credential.get("claims")
         );
+    }
+
+    private static void assertServiceLifecycleFields(
+        Map<?, ?> relyingPartyResponse,
+        WalletRelyingPartyService expectedService
+    ) {
+        Map<?, ?> service = ((List<?>) relyingPartyResponse.get("services")).stream()
+            .map(item -> (Map<?, ?>) item)
+            .filter(item -> expectedService.getServiceTradeName().equals(item.get("serviceTradeName")))
+            .findFirst()
+            .orElseThrow();
+
+        assertEquals(expectedService.getStatus(), service.get("status"));
+        assertEquals(expectedService.getCreatedAt().toString(), service.get("createdAt"));
+        assertLifecycleDate(service, "suspendedAt", expectedService.getSuspendedAt());
+        assertLifecycleDate(service, "revokedAt", expectedService.getRevokedAt());
+    }
+
+    private static void assertLifecycleDate(Map<?, ?> service, String field, LocalDate expectedDate) {
+        if (expectedDate == null) {
+            assertFalse(service.containsKey(field));
+        } else {
+            assertEquals(expectedDate.toString(), service.get(field));
+        }
     }
 
     private JWSObject getCollectionPage(Integer limit, String cursor) throws Exception {
