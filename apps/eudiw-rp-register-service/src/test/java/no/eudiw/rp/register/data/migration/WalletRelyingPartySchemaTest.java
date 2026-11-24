@@ -49,8 +49,8 @@ class WalletRelyingPartySchemaTest {
     }
 
     @Test
-    @DisplayName("Should leave display names null for existing credentials after migration")
-    void shouldLeaveDisplayNamesNullForExistingCredentialsAfterMigration() {
+    @DisplayName("Should set display name to null for existing credentials during migration")
+    void shouldSetDisplayNameToNullForExistingCredentialsDuringMigration() {
         flyway.clean();
         Flyway.configure().configuration(flyway.getConfiguration()).target("41").load().migrate();
         jdbc.update("""
