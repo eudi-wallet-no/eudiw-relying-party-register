@@ -139,7 +139,7 @@ class WrpByIdentifierIntegrationTest {
 
     @Test
     @DisplayName("Should include WRP and service lifecycle data in signed read responses")
-    void includesWrpLifecycleDatesInReadResponses() throws Exception {
+    void shouldIncludeWrpAndServiceLifecycleDataInSignedReadResponses() throws Exception {
         WalletRelyingParty relyingParty = partyNamed("Lifecycle date party");
         WalletRelyingPartyService activeService = relyingParty.getServices().getFirst();
         WalletRelyingPartyService suspendedService =
