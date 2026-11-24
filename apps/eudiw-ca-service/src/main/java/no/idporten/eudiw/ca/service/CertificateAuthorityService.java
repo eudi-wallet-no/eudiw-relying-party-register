@@ -34,6 +34,7 @@ import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -63,11 +64,12 @@ public class CertificateAuthorityService {
 
     /**
      * Decodes CSR from PEM input.  Throws exception for empty or invalid input.
+     *
      * @param csr csr
      * @return decoded csr
      */
     public PKCS10CertificationRequest decodeCsr(String csr) {
-        if (! StringUtils.hasText(csr)) {
+        if (!StringUtils.hasText(csr)) {
             throw new CertificateAuthorityException("invalid_request", "CSR is empty", HttpStatus.BAD_REQUEST);
         }
         return CertificateEncodingUtils.decodeFromPem(csr, PKCS10CertificationRequest.class);
@@ -90,7 +92,7 @@ public class CertificateAuthorityService {
         }
     }
 
-    protected void validateCertificateAuthority(CertificateAuthority certificateAuthority) throws Exception {
+    protected void validateCertificateAuthority(CertificateAuthority certificateAuthority) {
         if (certificateAuthority.getCertificate().getNotAfter().before(new Date())) {
             throw new CertificateAuthorityException("invalid_request", "Certificate authority is expired", HttpStatus.BAD_REQUEST);
         }
@@ -132,7 +134,7 @@ public class CertificateAuthorityService {
     /**
      * Signs an end-entity certificate for an organization with an intermediate CA certificate.
      */
-    public X509Certificate signLeafCertificate(CertificateAuthority certificateAuthority, PKCS10CertificationRequest csr, SubjectAttributes subjectAttributes) throws Exception {
+    public X509Certificate signLeafCertificate(CertificateAuthority certificateAuthority, String profile, PKCS10CertificationRequest csr, SubjectAttributes subjectAttributes) throws Exception {
         validateCSR(csr);
         List<Extension> extensions = new ArrayList<>();
         // basic + relation to CA
@@ -142,7 +144,14 @@ public class CertificateAuthorityService {
         // key usage
         extensions.add(Extension.create(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment)));
         // add extensions from CA certificate profile
-        addExtensionsFromCertificateProfile(certificateAuthority.getCertificateProfile(), extensions);
+        if (profile == null && certificateAuthority.getDefaultCertificateProfile() != null) {
+            profile = certificateAuthority.getDefaultCertificateProfile();
+        }
+        if (profile != null && certificateAuthority.getCertificateProfiles() != null && certificateAuthority.getCertificateProfiles().containsKey(profile)) {
+            addExtensionsFromCertificateProfile(certificateAuthority.getCertificateProfiles().get(profile), extensions);
+        } else {
+            LoggerFactory.getLogger(CertificateAuthorityService.class).warn("Ignore profile '{}' since no certificate profile configured for CA intermediate '{}'", profile, certificateAuthority.getId());
+        }
         // add extensions from CSR if supported
         addSupportedExtensionsFromCsr(csr, extensions);
         X500Name subject = createLeafSubject(csr.getSubject(), subjectAttributes);
@@ -196,10 +205,10 @@ public class CertificateAuthorityService {
             if (StringUtils.hasText(certificateProfile.getQcStatements().getQcType())) {
                 extensions.add(
                         Extension.create(Extension.qCStatements,
-                        true,
-                        new QCStatement(
-                                ETSIQCObjectIdentifiers.id_etsi_qcs_QcType,
-                                new DERUTF8String(certificateProfile.getQcStatements().getQcType()))));
+                                true,
+                                new QCStatement(
+                                        ETSIQCObjectIdentifiers.id_etsi_qcs_QcType,
+                                        new DERUTF8String(certificateProfile.getQcStatements().getQcType()))));
             }
         }
     }

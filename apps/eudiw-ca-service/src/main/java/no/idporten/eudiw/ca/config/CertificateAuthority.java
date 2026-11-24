@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import java.net.URI;
 import java.security.*;
 import java.security.cert.X509Certificate;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -44,10 +45,12 @@ public class CertificateAuthority {
     private final URI certificateUri;
 
     /**
-     * Profile for certificates signed with this certificate authority
+     * Profiles for certificates signed with this certificate authority
      */
     @Valid
-    private final CertificateProfile certificateProfile;
+    private final Map<String, CertificateProfile> certificateProfiles;
+
+    private final String defaultCertificateProfile;
 
     @Getter(AccessLevel.PRIVATE)
     @NotNull
