@@ -55,7 +55,7 @@ public final class IntendedUseMapper {
         IntendedUseForm form,
         List<IssuerMetadataService.Definition> definitions
     ) {
-        Objects.requireNonNull(form, "form must not be null");
+        Objects.requireNonNull(form, "Skjemaet må vere oppgitt.");
 
         List<IntendedUseForm.CredentialSelection> selections = form.getCredentialSelections();
         if (selections == null || selections.isEmpty()) {
