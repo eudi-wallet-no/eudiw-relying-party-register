@@ -7,9 +7,11 @@ import org.flywaydb.core.api.FlywayException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.testcontainers.junit.jupiter.Container;
@@ -46,6 +48,49 @@ class WalletRelyingPartySchemaTest {
             .load();
         flyway.clean();
         flyway.migrate();
+    }
+
+    @Test
+    @DisplayName("Should preserve existing credentials when adding and removing display names")
+    void shouldPreserveExistingCredentialsWhenAddingAndRemovingDisplayNames() {
+        flyway.clean();
+        Flyway.configure().configuration(flyway.getConfiguration()).target("41").load().migrate();
+        jdbc.update("""
+            INSERT INTO wallet_relying_party
+                (id, trade_name, orgno, is_psb, policy, identifier, postal_address, email, phone, info_uri, created_at)
+            VALUES ('party', 'Party', '123456785', TRUE, '[]', '[]', '[]', '[]', '[]', '[]', '2026-01-01')
+            """);
+        jdbc.update("""
+            INSERT INTO wallet_relying_party_service
+                (id, service_trade_name, wallet_relying_party_id, status, created_at)
+            VALUES ('service', 'Service', 'party', 'active', '2026-01-01')
+            """);
+        jdbc.update("""
+            INSERT INTO wallet_relying_party_service_intended_use (id, wallet_relying_party_service_id)
+            VALUES ('intended-use', 'service')
+            """);
+        jdbc.update("""
+            INSERT INTO wallet_relying_party_service_intended_use_credential (id, intended_use_id, format, meta, claims)
+            VALUES ('credential', 'intended-use', 'format', '{"doctype":"type"}', '[{"path":["claim"]}]')
+            """);
+
+        flyway.migrate();
+
+        assertNull(jdbc.queryForObject("""
+            SELECT display_name FROM wallet_relying_party_service_intended_use_credential WHERE id = 'credential'
+            """, String.class));
+
+        new ResourceDatabasePopulator(new ClassPathResource("db/rollback/U42__credential_display_name.sql"))
+            .execute(flyway.getConfiguration().getDataSource());
+        assertEquals("format", jdbc.queryForObject("""
+            SELECT format FROM wallet_relying_party_service_intended_use_credential WHERE id = 'credential'
+            """, String.class));
+        assertEquals(0, jdbc.queryForObject("""
+            SELECT COUNT(*) FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'wallet_relying_party_service_intended_use_credential'
+              AND COLUMN_NAME = 'display_name'
+            """, Integer.class));
     }
 
     @Test

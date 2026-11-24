@@ -1,5 +1,6 @@
 package no.eudiw.rp.register.domain;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -13,6 +14,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class CredentialTest {
+
+    @Test
+    @DisplayName("Should reject a credential display name longer than 255 characters")
+    void shouldRejectACredentialDisplayNameLongerThan255Characters() {
+        assertThrows(IllegalArgumentException.class, () ->
+            new Credential("format", meta("doctype", "type"), claims("claim"), "a".repeat(256)));
+    }
 
     @Test
     void acceptsBothSupportedMetaShapesAndCopiesInputAndOutput() {

@@ -402,6 +402,40 @@ class V2ApiIntegrationTest {
         assertTrue(filteredResults.get("content").isEmpty());
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    @DisplayName("Should create and read an intended use with or without a credential display name")
+    void shouldCreateAndReadAnIntendedUseWithOrWithoutACredentialDisplayName(boolean withDisplayName) throws Exception {
+        Registration registration = createRegistration();
+        String displayName = "a".repeat(255);
+        String requestBody = withDisplayName
+            ? INTENDED_USE.replace("\"format\":", "\"displayName\":\"" + displayName + "\",\"format\":")
+            : INTENDED_USE;
+
+        JsonNode created = read(post(registration.intendedUsesPath()), requestBody);
+        JsonNode stored = read(get(registration.intendedUsesPath())).get(0);
+
+        for (JsonNode intendedUse : List.of(created, stored)) {
+            JsonNode actualDisplayName = intendedUse.at("/credentials/0/displayName");
+            if (withDisplayName) {
+                assertEquals(displayName, actualDisplayName.asString());
+            } else {
+                assertTrue(actualDisplayName.isMissingNode() || actualDisplayName.isNull());
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("Should reject a credential display name longer than 255 characters")
+    void shouldRejectACredentialDisplayNameLongerThan255Characters() throws Exception {
+        Registration registration = createRegistration();
+        String requestBody = INTENDED_USE.replace(
+            "\"format\":", "\"displayName\":\"" + "a".repeat(256) + "\",\"format\":");
+
+        request(post(registration.intendedUsesPath()), requestBody).andExpect(status().isBadRequest());
+        assertTrue(read(get(registration.intendedUsesPath())).isEmpty());
+    }
+
     @Test
     void replacementsPersistOwnFieldsWithoutChangingIdentityHierarchyOrStatus() throws Exception {
         Registration registration = createRegistration();
