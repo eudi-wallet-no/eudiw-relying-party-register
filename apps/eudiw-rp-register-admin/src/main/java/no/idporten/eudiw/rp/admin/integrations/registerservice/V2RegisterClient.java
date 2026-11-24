@@ -1,6 +1,7 @@
 package no.idporten.eudiw.rp.admin.integrations.registerservice;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import no.idporten.eudiw.rp.admin.web.resource.RelyingPartyEaaResource;
 import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertificateResource;
@@ -391,9 +392,13 @@ public class V2RegisterClient {
 
     public record IntendedUseCredential(
         String format,
+        @JsonInclude(JsonInclude.Include.NON_NULL) String displayName,
         Map<String, Object> meta,
         List<Map<String, Object>> claims
     ) {
+        public IntendedUseCredential(String format, Map<String, Object> meta, List<Map<String, Object>> claims) {
+            this(format, null, meta, claims);
+        }
     }
 
     public record CreateIntendedUseRequest(

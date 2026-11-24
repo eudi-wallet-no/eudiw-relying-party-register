@@ -391,4 +391,29 @@ class V2RegisterClientTests {
                 Map.of("vct_values", List.of("type")), List.of(Map.of("path", List.of("name")))))));
     }
 
+    @Test
+    @DisplayName("Should create an intended use with credential displayName")
+    void shouldCreateAnIntendedUseWithCredentialDisplayName() {
+        UUID serviceId = new UUID(0, 2);
+        server.expect(requestTo("https://register.test/v2/services/" + serviceId + "/intended-uses"))
+            .andExpect(method(HttpMethod.POST))
+            .andExpect(header("X-API-KEY", "test-api-key"))
+            .andExpect(content().json("""
+                {"purpose":[{"lang":"nb","content":"Purpose"}],
+                 "privacyPolicy":[{"type":"http://data.europa.eu/eudi/policy/privacy-statement",
+                                   "policyURI":"https://example.org/privacy"}],
+                 "credentials":[{"format":"dc+sd-jwt","displayName":"Personidentifikator",
+                                 "meta":{"vct_values":["type"]},"claims":[{"path":["name"]}]}]}
+                """, JsonCompareMode.STRICT))
+            .andRespond(withSuccess());
+
+        client.createIntendedUse(serviceId, new V2RegisterClient.CreateIntendedUseRequest(
+            List.of(new V2RegisterClient.IntendedUsePurpose("nb", "Purpose")),
+            List.of(new V2RegisterClient.IntendedUsePolicy(
+                "http://data.europa.eu/eudi/policy/privacy-statement",
+                "https://example.org/privacy")),
+            List.of(new V2RegisterClient.IntendedUseCredential("dc+sd-jwt", "Personidentifikator",
+                Map.of("vct_values", List.of("type")), List.of(Map.of("path", List.of("name")))))));
+    }
+
 }
