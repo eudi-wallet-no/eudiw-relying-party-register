@@ -34,7 +34,7 @@ public class V2CertificateClientConfig {
             .build();
     }
 
-    @Bean
+    @Bean({"v2CertificateRestClient", "v2NonRetryingRestClient"})
     public RestClient v2CertificateRestClient(RestClient.Builder builder,
         @Qualifier("v2CertificateHttpClient") CloseableHttpClient httpClient) {
         var requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
