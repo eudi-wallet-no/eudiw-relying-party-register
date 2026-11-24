@@ -12,8 +12,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class IntendedUseDetailsTest {
 
     @Test
-    @DisplayName("Should join non-blank credential display names")
-    void shouldJoinNonBlankCredentialDisplayNames() {
+    @DisplayName("Should show named credentials in the intended-use label when some credentials have no display name")
+    void shouldShowNamedCredentialsInTheIntendedUseLabelWhenSomeCredentialsHaveNoDisplayName() {
         var intendedUse = intendedUse(List.of(
             credential("Personal ID"), credential(null), credential(" "), credential("Mobile driving licence")));
 
