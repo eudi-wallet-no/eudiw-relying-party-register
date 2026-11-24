@@ -21,6 +21,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import java.security.Security;
 import java.security.cert.X509Certificate;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -185,6 +186,30 @@ public class CertificateAuthorityApiControllerTest {
         X509CertificateHolder certificateHolder = CertificateEncodingUtils.decodeFromPem(content, X509CertificateHolder.class);
         X509Certificate certificate = CertificateEncodingUtils.toX509Certificate(certificateHolder);
         certificate.verify(certificateAuthorities.findIntermediate("eaa_provider2").getPublicKey());
+    }
+
+    @DisplayName("Should sign a certificate with the certificate profile given in the path")
+    @Test
+    void shouldSignCertificateWithCertificateProfileFromPath() throws Exception {
+        String certificateRequest = """
+                {
+                  "orgno": "991825827",
+                  "legal_name": "Digdir",
+                  "trade_name": "Junit",
+                  "csr": "-----BEGIN NEW CERTIFICATE REQUEST-----\\nMIIBbTCCARQCAQAwXzELMAkGA1UEBhMCbm8xDTALBgNVBAgTBFNvZ24xEjAQBgNV\\nBAcTCUxlaWthbmdlcjEPMA0GA1UEChMGRGlnZGlyMQ4wDAYDVQQLEwVFVURJVzEM\\nMAoGA1UEAxMDcnAyMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAELKyeEr6OlEgW\\nE0cRI3aCgzRnPu9IjoYCsPuV53/QwBe0pymYVafMPssBqiLEyuylH/AQ3Teltq66\\nL96/KVs1bqBTMFEGCSqGSIb3DQEJDjFEMEIwHQYDVR0OBBYEFFLDKogDLA5GDhgY\\noiRDkMpjeQDNMCEGA1UdEQQaMBiCFmp1bml0LnJwMS5pZHBvcnRlbi5kZXYwCgYI\\nKoZIzj0EAwMDRwAwRAIgVIhOFcOMK0KR9MvK3a76Hgma6susPfXDJ+HfZZe50N8C\\nIF5nyI5eYXYbBBQvdAZFJStX4YgEc+7j/QV3BlIGz2HE\\n-----END NEW CERTIFICATE REQUEST-----"
+                }""";
+        MvcResult result = mockMvc.perform(post("/v1/internal/issue/{intermediate}/{profile}", "eudi_issuer2", "statuslist2")
+                        .header("X-API-KEY", "junit-api-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(certificateRequest))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/x-pem-file;charset=UTF-8"))
+                .andReturn();
+        String content = result.getResponse().getContentAsString();
+        X509CertificateHolder certificateHolder = CertificateEncodingUtils.decodeFromPem(content, X509CertificateHolder.class);
+        X509Certificate certificate = CertificateEncodingUtils.toX509Certificate(certificateHolder);
+        certificate.verify(certificateAuthorities.findIntermediate("eudi_issuer2").getPublicKey());
+        assertEquals(List.of("1.3.6.1.5.7.3"), certificate.getExtendedKeyUsage());
     }
 
     @DisplayName("then access certificates are added to the CRL when revoked")

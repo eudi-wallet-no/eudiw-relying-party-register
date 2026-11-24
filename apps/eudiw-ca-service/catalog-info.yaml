@@ -8,7 +8,7 @@ metadata:
 spec:
   type: application
   owner: team-digital-lommebok
-  lifecycle: test
+  lifecycle: prod
   system: digital-lommebok
   dependsOn:
     - resource:default/id_eudiw_ca_prod

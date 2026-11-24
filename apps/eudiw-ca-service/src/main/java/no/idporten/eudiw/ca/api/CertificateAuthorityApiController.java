@@ -184,54 +184,16 @@ public class CertificateAuthorityApiController {
             @PathVariable("intermediate") String intermediate) throws Exception {
         return ResponseEntity.ok(certificateAuthorityService.createCRL(certificateAuthorities.findIntermediate(intermediate)).getEncoded());
     }
-//
-//    @Operation(
-//            summary = "Issue certificate",
-//            description = "Sign certificate with intermediate CA",
-//            tags = {API_TAG}//,            hidden = true
-//     )
-//    @ApiResponses(value = {
-//            @ApiResponse(responseCode = "200", description = "PEM-encoded certificate", content = @Content(mediaType = APPLICATION_X_PEM_FILE_VALUE))
-//    })
-//    @PostMapping(path = "/v1/internal/issue/{intermediate}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = APPLICATION_X_PEM_FILE_VALUE)
-//    public ResponseEntity<String> signLeafCertificate(
-//            @io.swagger.v3.oas.annotations.parameters.RequestBody(
-//                    description = "Certificate issue request",
-//                    content = {
-//                            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-//                                    schema = @Schema(implementation = CertificateRequest.class))},
-//                    required = true)
-//            @Valid @RequestBody CertificateRequest certificateRequest,
-//            @Parameter(
-//                    description = "Intermediate CA name",
-//                    examples = {
-//                            @ExampleObject(name = "access2", value = "access2", description = "RP access CA 2"),
-//                            @ExampleObject(name = "pid_provider2", value = "pid_provider2", description = "PID_Provider CA 2"),
-//                            @ExampleObject(name = "eaa_provider2", value = "eaa_provider2", description = "QEAA_Provider/Non_Q_EAA_Provider CA 2"),
-//                            @ExampleObject(name = "access", value = "access", description = "RP access CA"),
-//                            @ExampleObject(name = "pid_provider", value = "pid_provider", description = "PID_Provider CA"),
-//                            @ExampleObject(name = "eaa_provider", value = "eaa_provider", description = "QEAA_Provider/Non_Q_EAA_Provider CA")},
-//                    required = true)
-//            @PathVariable("intermediate") String intermediate) throws Exception {
-//        PKCS10CertificationRequest pkcs10CertificationRequest = certificateAuthorityService.decodeCsr(certificateRequest.getCsr());
-//        X509Certificate signedCertificate =
-//                certificateAuthorityService.signLeafCertificate(
-//                        certificateAuthorities.findIntermediate(intermediate),
-//                        intermediate,
-//                        pkcs10CertificationRequest,
-//                        new SubjectAttributes(certificateRequest.getOrgno(), certificateRequest.getLegalName(), certificateRequest.getTradeName()));
-//        return ResponseEntity.ok(CertificateEncodingUtils.encodeToPem(signedCertificate));
-//    }
 
     @Operation(
             summary = "Issue certificate",
             description = "Sign certificate with intermediate CA",
-            tags = {API_TAG}//,            hidden = true
-     )
+            tags = {API_TAG},
+            hidden = true)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "PEM-encoded certificate", content = @Content(mediaType = APPLICATION_X_PEM_FILE_VALUE))
     })
-    @PostMapping(path = "/v1/internal/issue/{intermediate}/{profile}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = APPLICATION_X_PEM_FILE_VALUE)
+    @PostMapping(path = {"/v1/internal/issue/{intermediate}", "/v1/internal/issue/{intermediate}/{profile}"}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = APPLICATION_X_PEM_FILE_VALUE)
     public ResponseEntity<String> signLeafCertificate(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Certificate issue request",
@@ -252,11 +214,12 @@ public class CertificateAuthorityApiController {
             @Parameter(
                     description = "Profile name",
                     examples = {
-                            @ExampleObject(name = "pid", value = "pid", description = "PID_Provider CA 2"),
-                            @ExampleObject(name = "eaa", value = "eaa", description = "QEAA_Provider/Non_Q_EAA_Provider CA 2"),
-                            @ExampleObject(name = "wallet", value = "wallet", description = "Wallet provider CA 2"),
-                            @ExampleObject(name = "statuslist", value = "statuslist", description = "Signing certificates for status-list"),
-                            @ExampleObject(name = "trustlist", value = "trustlist", description = "Signing certificates for trust-list")}
+                            @ExampleObject(name = "access2", value = "access2", description = "RP access CA 2"),
+                            @ExampleObject(name = "pid_provider2", value = "pid_provider2", description = "PID_Provider CA 2"),
+                            @ExampleObject(name = "eaa_provider2", value = "eaa_provider2", description = "QEAA_Provider/Non_Q_EAA_Provider CA 2"),
+                            @ExampleObject(name = "wallet2", value = "wallet2", description = "Wallet provider CA 2"),
+                            @ExampleObject(name = "statuslist2", value = "statuslist2", description = "Signing certificates for status-list"),
+                            @ExampleObject(name = "trustlist2", value = "trustlist2", description = "Signing certificates for trust-list")}
             )
             @PathVariable(value = "profile", required = false) String profile) throws Exception {
         PKCS10CertificationRequest pkcs10CertificationRequest = certificateAuthorityService.decodeCsr(certificateRequest.getCsr());
@@ -272,8 +235,8 @@ public class CertificateAuthorityApiController {
     @Operation(
             summary = "Revoke certificate",
             description = "Revoke certificate from intermediate CA",
-            tags = {API_TAG}//        hidden = true,
-    )
+            tags = {API_TAG},
+            hidden = true)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Certificate revoked")
     })
@@ -292,9 +255,7 @@ public class CertificateAuthorityApiController {
                             @ExampleObject(name = "access2", value = "access2", description = "RP access CA 2"),
                             @ExampleObject(name = "pid_provider2", value = "pid_provider2", description = "PID_Provider CA 2"),
                             @ExampleObject(name = "eaa_provider2", value = "eaa_provider2", description = "QEAA_Provider/Non_Q_EAA_Provider CA 2"),
-                            @ExampleObject(name = "access", value = "access", description = "RP access CA"),
-                            @ExampleObject(name = "pid_provider", value = "pid_provider", description = "PID_Provider CA"),
-                            @ExampleObject(name = "eaa_provider", value = "eaa_provider", description = "QEAA_Provider/Non_Q_EAA_Provider CA")},
+                            @ExampleObject(name = "eudi_issuer2", value = "eudi_issuer2", description = "Generic EUDI_ISSUER CA 2, needs profile as well")},
                     required = true)
             @PathVariable("intermediate") String intermediate) {
         certificateAuthorityService.revokeCertificate(
