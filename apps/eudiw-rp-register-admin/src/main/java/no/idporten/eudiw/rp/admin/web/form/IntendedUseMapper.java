@@ -26,11 +26,8 @@ public final class IntendedUseMapper {
             return List.of();
         }
 
-        Collator norwegianCollator = Collator.getInstance(Locale.forLanguageTag("nn"));
-        norwegianCollator.setStrength(Collator.PRIMARY);
-        List<IssuerMetadataService.Definition> sortedDefinitions = definitions.stream()
-            .sorted((left, right) -> norwegianCollator.compare(left.label(), right.label()))
-            .toList();
+        List<IssuerMetadataService.Definition> sortedDefinitions =
+            sortByNorwegianLabel(definitions);
 
         List<CredentialOption> options = new ArrayList<>();
 
@@ -49,6 +46,17 @@ public final class IntendedUseMapper {
         }
 
         return List.copyOf(options);
+    }
+
+    private static List<IssuerMetadataService.Definition> sortByNorwegianLabel(
+        List<IssuerMetadataService.Definition> definitions
+    ) {
+        Collator norwegianCollator = Collator.getInstance(Locale.forLanguageTag("nn"));
+        norwegianCollator.setStrength(Collator.PRIMARY);
+
+        return definitions.stream()
+            .sorted((left, right) -> norwegianCollator.compare(left.label(), right.label()))
+            .toList();
     }
 
     public static MappingResult toCreateRequest(
