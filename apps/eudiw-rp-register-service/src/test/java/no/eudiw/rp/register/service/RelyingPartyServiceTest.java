@@ -2,6 +2,7 @@ package no.eudiw.rp.register.service;
 
 import no.eudiw.rp.register.domain.Entitlement;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
+import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEaa;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyEntitlement;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
@@ -20,6 +21,7 @@ import org.mockito.ArgumentCaptor;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -123,6 +125,51 @@ class RelyingPartyServiceTest {
             () -> service.createRelyingParty("123456789", "Name", List.of(), List.of()));
 
         verifyNoInteractions(repository, walletRelyingPartyServiceRepository);
+    }
+
+    @Test
+    @DisplayName("Deactivating a party suspends its services and instances")
+    void deactivatingPartySuspendsItsServicesAndKeepsExistingLifecycleBehavior() {
+        var relyingPartyInstance = new RelyingPartyInstance(List.of(), List.of(), List.of());
+        var walletRelyingPartyService =
+            new WalletRelyingPartyService("Service", null, List.of(relyingPartyInstance));
+        var walletRelyingParty =
+            new WalletRelyingParty("Entity", "123456789", false, List.of(walletRelyingPartyService));
+        var partyId = UUID.randomUUID();
+        when(walletRelyingPartyRepository.findByIdForUpdate(partyId))
+            .thenReturn(Optional.of(walletRelyingParty));
+
+        service.deactivateRelyingParty(partyId);
+
+        assertEquals(
+            WalletRelyingPartyService.STATUS_SUSPENDED, walletRelyingPartyService.getStatus());
+        assertFalse(walletRelyingPartyService.isActive());
+        assertFalse(relyingPartyInstance.isActive());
+        verify(walletRelyingPartyRepository).saveAndFlush(walletRelyingParty);
+    }
+
+    @Test
+    @DisplayName("Service activation and deactivation update TS5 lifecycle fields")
+    void serviceStatusOperationsUpdateTs5Fields() {
+        var walletRelyingPartyService =
+            new WalletRelyingPartyService("Service", null, List.of());
+        var walletRelyingParty =
+            new WalletRelyingParty("Entity", "123456789", false, List.of(walletRelyingPartyService));
+        var serviceId = UUID.randomUUID();
+        when(walletRelyingPartyRepository.findByServiceIdForUpdate(serviceId))
+            .thenReturn(Optional.of(walletRelyingParty));
+        when(walletRelyingPartyServiceRepository.findById(serviceId))
+            .thenReturn(Optional.of(walletRelyingPartyService));
+
+        service.deactivateRelyingPartyService(serviceId);
+        assertEquals(
+            WalletRelyingPartyService.STATUS_SUSPENDED, walletRelyingPartyService.getStatus());
+
+        service.activateRelyingPartyService(serviceId);
+        assertEquals(
+            WalletRelyingPartyService.STATUS_ACTIVE, walletRelyingPartyService.getStatus());
+        assertNull(walletRelyingPartyService.getSuspendedAt());
+        verify(walletRelyingPartyServiceRepository, times(2)).saveAndFlush(walletRelyingPartyService);
     }
 
 }

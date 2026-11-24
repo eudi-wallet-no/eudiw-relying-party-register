@@ -9,6 +9,8 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -80,6 +82,14 @@ public class WalletRelyingParty extends BaseEntity {
     @Column(name = "last_updated_ms", nullable = false)
     @Setter(AccessLevel.NONE)
     private long lastUpdatedMs;
+
+    @Column(name = "created_at", nullable = false)
+    @Setter(AccessLevel.NONE)
+    private LocalDate createdAt = currentDate();
+
+    @Column(name = "revoked_at")
+    @Setter(AccessLevel.NONE)
+    private LocalDate revokedAt;
 
     @Column(name = "active", nullable = false)
     private boolean active = true;
@@ -157,11 +167,17 @@ public class WalletRelyingParty extends BaseEntity {
 
     @PrePersist
     protected void onPrePersist() {
-        this.lastUpdatedMs = this.createdMs = Instant.now().toEpochMilli();
+        Instant now = Instant.now();
+        this.createdAt = LocalDate.ofInstant(now, ZoneOffset.UTC);
+        this.lastUpdatedMs = this.createdMs = now.toEpochMilli();
     }
 
     @PreUpdate
     protected void onPreUpdate() {
         setUpdated();
+    }
+
+    private static LocalDate currentDate() {
+        return LocalDate.now(ZoneOffset.UTC);
     }
 }

@@ -1,10 +1,13 @@
 package no.eudiw.rp.register.domain;
 
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
+import no.eudiw.rp.register.exception.BadRequestException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,6 +22,79 @@ class WalletRelyingPartyServiceTest {
     private static final ServiceReference INTERMEDIARY_REFERENCE = new ServiceReference(
         List.of(new Identifier("urn:example:identifier", "party-1")),
         "proxy", "https://registry.example/wrp");
+
+    @Test
+    @DisplayName("Starts active and records its creation date")
+    void startsActiveWithCreationDate() {
+        var service = new WalletRelyingPartyService("Service", null, List.of());
+
+        assertEquals(WalletRelyingPartyService.STATUS_ACTIVE, service.getStatus());
+        assertTrue(service.isActive());
+        assertEquals(LocalDate.now(ZoneOffset.UTC), service.getCreatedAt());
+        assertNull(service.getSuspendedAt());
+        assertNull(service.getRevokedAt());
+    }
+
+    @Test
+    @DisplayName("Updates status and dates only when suspension or reactivation changes status")
+    void suspendAndReactivateUpdateStatusAndDatesOnlyOnTransitions() {
+        var service = new WalletRelyingPartyService("Service", null, List.of());
+
+        service.suspend();
+        LocalDate suspendedAt = service.getSuspendedAt();
+        assertEquals(WalletRelyingPartyService.STATUS_SUSPENDED, service.getStatus());
+        assertFalse(service.isActive());
+        assertEquals(LocalDate.now(ZoneOffset.UTC), suspendedAt);
+
+        service.suspend();
+        assertEquals(suspendedAt, service.getSuspendedAt());
+
+        service.reactivate();
+        assertEquals(WalletRelyingPartyService.STATUS_ACTIVE, service.getStatus());
+        assertTrue(service.isActive());
+        assertNull(service.getSuspendedAt());
+
+        service.reactivate();
+        assertEquals(WalletRelyingPartyService.STATUS_ACTIVE, service.getStatus());
+        assertTrue(service.isActive());
+        assertNull(service.getSuspendedAt());
+    }
+
+    @Test
+    @DisplayName("Revokes a service terminally and preserves its suspension date")
+    void revokeIsTerminalAndPreservesSuspensionDate() {
+        var service = new WalletRelyingPartyService("Service", null, List.of());
+        service.suspend();
+        LocalDate suspendedAt = service.getSuspendedAt();
+
+        service.revoke();
+        LocalDate revokedAt = service.getRevokedAt();
+
+        assertEquals(WalletRelyingPartyService.STATUS_REVOKED, service.getStatus());
+        assertFalse(service.isActive());
+        assertEquals(suspendedAt, service.getSuspendedAt());
+        assertEquals(LocalDate.now(ZoneOffset.UTC), revokedAt);
+
+        service.revoke();
+        assertEquals(revokedAt, service.getRevokedAt());
+        assertThrows(BadRequestException.class, service::suspend);
+        assertThrows(BadRequestException.class, service::reactivate);
+    }
+
+    @Test
+    @DisplayName("Keeps TS5 status synchronized with the legacy active setter")
+    void legacyActiveSetterKeepsTs5StatusInSync() {
+        var service = new WalletRelyingPartyService("Service", null, List.of());
+
+        service.setActive(false);
+        assertEquals(WalletRelyingPartyService.STATUS_SUSPENDED, service.getStatus());
+        assertFalse(service.isActive());
+
+        service.setActive(true);
+        assertEquals(WalletRelyingPartyService.STATUS_ACTIVE, service.getStatus());
+        assertTrue(service.isActive());
+        assertNull(service.getSuspendedAt());
+    }
 
     @Test
     void legacyConstructorDefaultsToNonIntermediaryWithEmptyLists() {

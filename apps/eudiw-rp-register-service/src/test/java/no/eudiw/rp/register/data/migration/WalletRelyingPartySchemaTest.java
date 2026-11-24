@@ -16,6 +16,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.mariadb.MariaDBContainer;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -48,6 +49,7 @@ class WalletRelyingPartySchemaTest {
     }
 
     @Test
+    @DisplayName("Validates lifecycle columns in the current schema")
     void validatesCurrentSchemaWithoutReapplyingMigrations() {
         flyway.validate();
 
@@ -67,8 +69,58 @@ class WalletRelyingPartySchemaTest {
         assertEquals("NO", jdbc.queryForObject("""
             SELECT IS_NULLABLE FROM information_schema.COLUMNS
             WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'wallet_relying_party'
+              AND COLUMN_NAME = 'created_at'
+            """, String.class));
+        assertEquals("YES", jdbc.queryForObject("""
+            SELECT IS_NULLABLE FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'wallet_relying_party'
+              AND COLUMN_NAME = 'revoked_at'
+            """, String.class));
+        assertEquals(2, jdbc.queryForObject("""
+            SELECT COUNT(*) FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'wallet_relying_party'
+              AND COLUMN_NAME IN ('created_at', 'revoked_at')
+              AND DATA_TYPE = 'date'
+            """, Integer.class));
+        assertEquals("NO", jdbc.queryForObject("""
+            SELECT IS_NULLABLE FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
               AND TABLE_NAME = 'wallet_relying_party_service'
               AND COLUMN_NAME = 'issuer_policies'
+            """, String.class));
+        assertEquals("NO", jdbc.queryForObject("""
+            SELECT IS_NULLABLE FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'wallet_relying_party_service'
+              AND COLUMN_NAME = 'status'
+            """, String.class));
+        assertEquals("NO", jdbc.queryForObject("""
+            SELECT IS_NULLABLE FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'wallet_relying_party_service'
+              AND COLUMN_NAME = 'created_at'
+            """, String.class));
+        assertEquals(3, jdbc.queryForObject("""
+            SELECT COUNT(*) FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'wallet_relying_party_service'
+              AND COLUMN_NAME IN ('created_at', 'suspended_at', 'revoked_at')
+              AND DATA_TYPE = 'date'
+            """, Integer.class));
+        assertEquals("YES", jdbc.queryForObject("""
+            SELECT IS_NULLABLE FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'wallet_relying_party_service'
+              AND COLUMN_NAME = 'suspended_at'
+            """, String.class));
+        assertEquals("YES", jdbc.queryForObject("""
+            SELECT IS_NULLABLE FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'wallet_relying_party_service'
+              AND COLUMN_NAME = 'revoked_at'
             """, String.class));
         assertEquals(0, jdbc.queryForObject("""
             SELECT COUNT(*) FROM information_schema.COLUMNS
@@ -86,6 +138,71 @@ class WalletRelyingPartySchemaTest {
             WHERE TABLE_SCHEMA = DATABASE()
               AND TABLE_NAME = 'wallet_relying_party_service_credential_issuer_url'
             """, Integer.class));
+    }
+
+    @Test
+    @DisplayName("Backfills WRP and service creation dates and service status")
+    void backfillsServiceStatusAndCreationDateFromExistingFields() {
+        flyway.clean();
+        Flyway.configure().configuration(flyway.getConfiguration()).target("40").load().migrate();
+        jdbc.update("""
+            INSERT INTO wallet_relying_party
+                (id, trade_name, orgno, is_psb, policy, identifier, postal_address, email, phone, info_uri,
+                 created_ms, last_updated_ms)
+            VALUES ('party', 'Party', '123456785', TRUE, '[]', '[]', '[]', '[]', '[]', '[]', 1704240000000, 1704240000000)
+            """);
+        jdbc.update("""
+            INSERT INTO wallet_relying_party_service
+                (id, service_trade_name, wallet_relying_party_id, created_ms, last_updated_ms, active)
+            VALUES
+                ('active-service', 'Active', 'party', 1704067200000, 1704067200000, TRUE),
+                ('suspended-service', 'Suspended', 'party', 1704153600000, 1704153600000, FALSE)
+            """);
+
+        flyway.migrate();
+
+        assertEquals(LocalDate.of(2024, 1, 3), jdbc.queryForObject("""
+            SELECT created_at
+            FROM wallet_relying_party
+            WHERE id = 'party'
+            """, java.sql.Date.class).toLocalDate());
+        assertNull(jdbc.queryForObject("""
+            SELECT revoked_at
+            FROM wallet_relying_party
+            WHERE id = 'party'
+            """, java.sql.Date.class));
+
+        assertEquals("active", jdbc.queryForObject("""
+            SELECT status
+            FROM wallet_relying_party_service
+            WHERE id = 'active-service'
+            """, String.class));
+        assertEquals(LocalDate.of(2024, 1, 1), jdbc.queryForObject("""
+            SELECT created_at
+            FROM wallet_relying_party_service
+            WHERE id = 'active-service'
+            """, java.sql.Date.class).toLocalDate());
+        assertNull(jdbc.queryForObject("""
+            SELECT suspended_at
+            FROM wallet_relying_party_service
+            WHERE id = 'active-service'
+            """, java.sql.Date.class));
+
+        assertEquals("suspended", jdbc.queryForObject("""
+            SELECT status
+            FROM wallet_relying_party_service
+            WHERE id = 'suspended-service'
+            """, String.class));
+        assertEquals(LocalDate.of(2024, 1, 2), jdbc.queryForObject("""
+            SELECT created_at
+            FROM wallet_relying_party_service
+            WHERE id = 'suspended-service'
+            """, java.sql.Date.class).toLocalDate());
+        assertNull(jdbc.queryForObject("""
+            SELECT suspended_at
+            FROM wallet_relying_party_service
+            WHERE id = 'suspended-service'
+            """, java.sql.Date.class));
     }
 
     @Test
@@ -327,8 +444,16 @@ class WalletRelyingPartySchemaTest {
             row.put("uses_intermediaries", "[]");
             row.put("served_wrp_services", "[]");
             row.put("issuer_policies", "[]");
+            row.put("status", "suspended");
+            row.put("created_at", java.sql.Date.valueOf("1970-01-01"));
+            row.put("suspended_at", null);
+            row.put("revoked_at", null);
         });
         var partiesBefore = jdbc.queryForList("SELECT * FROM wallet_relying_party");
+        partiesBefore.forEach(row -> {
+            row.put("created_at", java.sql.Date.valueOf("1970-01-01"));
+            row.put("revoked_at", null);
+        });
         var instancesBefore = jdbc.queryForList("SELECT * FROM relying_party_instance");
         var intendedUsesBefore = jdbc.queryForList("SELECT * FROM wallet_relying_party_service_intended_use");
 
@@ -422,13 +547,14 @@ class WalletRelyingPartySchemaTest {
         var instanceId = UUID.randomUUID();
         jdbc.update("""
             INSERT INTO wallet_relying_party
-                (id, trade_name, orgno, is_psb, policy, identifier, postal_address, email, phone, info_uri)
-            VALUES (?, 'Party', '123456785', TRUE, '[]', '[]', '[]', '[]', '[]', '[]')
+                (id, trade_name, orgno, is_psb, policy, identifier, postal_address, email, phone, info_uri,
+                 created_at)
+            VALUES (?, 'Party', '123456785', TRUE, '[]', '[]', '[]', '[]', '[]', '[]', '1970-01-01')
             """, partyId.toString());
         jdbc.update("""
             INSERT INTO wallet_relying_party_service
-                (id, service_trade_name, wallet_relying_party_id, created_ms, last_updated_ms)
-            VALUES (?, 'Service', ?, 1, 1)
+                (id, service_trade_name, wallet_relying_party_id, created_ms, last_updated_ms, status, created_at)
+            VALUES (?, 'Service', ?, 1, 1, 'active', '1970-01-01')
             """, serviceId.toString(), partyId.toString());
         jdbc.update("""
             INSERT INTO relying_party_instance

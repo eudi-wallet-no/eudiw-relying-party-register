@@ -14,6 +14,8 @@ external-dependency-health-checks:
       base-uri: http://${LOCAL_SERVICE_HOST:rp-register-service}:9201
 
 eudiw-admin-web:
+  issuer-metadata:
+    bevisgenerator: https://utsteder.eidas2sandkasse.dev/.well-known/openid-credential-issuer/bevisgenerator
   relying-parties-service:
     register-service-api:
       register-service-base-uri: http://${LOCAL_SERVICE_HOST:rp-register-service}:9200

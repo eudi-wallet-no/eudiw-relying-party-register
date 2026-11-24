@@ -25,6 +25,7 @@ import org.springframework.web.client.RestClient;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -49,7 +50,8 @@ class V2RegisterClientTests {
             new RelyingPartiesServiceProperties.RestClient(1000, 1000), null);
         RestClient.Builder builder = new RelyingPartiesServiceConfig(properties).v2RestClient(RestClient.builder()).mutate();
         server = MockRestServiceServer.bindTo(builder).build();
-        client = new V2RegisterClient(builder.build());
+        var restClient = builder.build();
+        client = new V2RegisterClient(restClient, restClient);
     }
 
     @AfterEach
@@ -356,4 +358,26 @@ class V2RegisterClientTests {
 
         assertThrows(UnrecognizedErrorResponseException.class, () -> client.getRegistrations("123456785"));
     }
+
+    @Test
+    @DisplayName("Should create an intended use with selected SD-JWT claims")
+    void shouldCreateAnIntendedUseWithSelectedSdJwtClaims() {
+        UUID serviceId = new UUID(0, 2);
+        server.expect(requestTo("https://register.test/v2/services/" + serviceId + "/intended-uses"))
+            .andExpect(method(HttpMethod.POST))
+            .andExpect(header("X-API-KEY", "test-api-key"))
+            .andExpect(content().json("""
+                {"purpose":[{"lang":"nb","content":"Purpose"}],
+                 "privacyPolicy":[{"type":"PrivacyPolicy","policyURI":"https://example.org/privacy"}],
+                 "credentials":[{"format":"dc+sd-jwt","meta":{"vct_values":["type"]},"claims":[{"path":["name"]}]}]}
+                """, JsonCompareMode.STRICT))
+            .andRespond(withSuccess());
+
+        client.createIntendedUse(serviceId, new V2RegisterClient.CreateIntendedUseRequest(
+            List.of(new V2RegisterClient.IntendedUsePurpose("nb", "Purpose")),
+            List.of(new V2RegisterClient.IntendedUsePolicy("PrivacyPolicy", "https://example.org/privacy")),
+            List.of(new V2RegisterClient.IntendedUseCredential("dc+sd-jwt",
+                Map.of("vct_values", List.of("type")), List.of(Map.of("path", List.of("name")))))));
+    }
+
 }
