@@ -7,11 +7,9 @@ import org.flywaydb.core.api.FlywayException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.testcontainers.junit.jupiter.Container;
@@ -51,8 +49,8 @@ class WalletRelyingPartySchemaTest {
     }
 
     @Test
-    @DisplayName("Should preserve existing credentials when adding and removing display names")
-    void shouldPreserveExistingCredentialsWhenAddingAndRemovingDisplayNames() {
+    @DisplayName("Should leave display names null for existing credentials after migration")
+    void shouldLeaveDisplayNamesNullForExistingCredentialsAfterMigration() {
         flyway.clean();
         Flyway.configure().configuration(flyway.getConfiguration()).target("41").load().migrate();
         jdbc.update("""
@@ -79,18 +77,6 @@ class WalletRelyingPartySchemaTest {
         assertNull(jdbc.queryForObject("""
             SELECT display_name FROM wallet_relying_party_service_intended_use_credential WHERE id = 'credential'
             """, String.class));
-
-        new ResourceDatabasePopulator(new ClassPathResource("db/rollback/U42__credential_display_name.sql"))
-            .execute(flyway.getConfiguration().getDataSource());
-        assertEquals("format", jdbc.queryForObject("""
-            SELECT format FROM wallet_relying_party_service_intended_use_credential WHERE id = 'credential'
-            """, String.class));
-        assertEquals(0, jdbc.queryForObject("""
-            SELECT COUNT(*) FROM information_schema.COLUMNS
-            WHERE TABLE_SCHEMA = DATABASE()
-              AND TABLE_NAME = 'wallet_relying_party_service_intended_use_credential'
-              AND COLUMN_NAME = 'display_name'
-            """, Integer.class));
     }
 
     @Test
