@@ -69,7 +69,9 @@ public class RelyingPartyService {
         WalletRelyingParty walletRelyingParty = findWalletRelyingParty(partyId);
         walletRelyingParty.setActive(false);
         for (WalletRelyingPartyService walletRelyingPartyService : walletRelyingParty.getServices()) {
-            walletRelyingPartyService.setActive(false);
+            if (!WalletRelyingPartyService.STATUS_REVOKED.equals(walletRelyingPartyService.getStatus())) {
+                walletRelyingPartyService.suspend();
+            }
             walletRelyingPartyService.getRelyingPartyInstances()
                 .forEach(relyingPartyInstance -> relyingPartyInstance.setActive(false));
         }
@@ -101,7 +103,11 @@ public class RelyingPartyService {
             throw new BadRequestException("Service cannot be activated while its party is inactive");
         }
 
-        walletRelyingPartyService.setActive(active);
+        if (active) {
+            walletRelyingPartyService.reactivate();
+        } else {
+            walletRelyingPartyService.suspend();
+        }
         if (!active) {
             walletRelyingPartyService.getRelyingPartyInstances()
                 .forEach(relyingPartyInstance -> relyingPartyInstance.setActive(false));
