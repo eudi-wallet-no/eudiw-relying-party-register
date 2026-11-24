@@ -1,0 +1,58 @@
+<form th:fragment="summary_form_fragment(relyingPartyResource)"
+      id="summary_form"
+      th:object="${summaryFormAttr}"
+      th:action="@{/details/{id}/summary(id=${relyingPartyResource.id})} + '#summary'"
+      method="post">
+    <div th:if="${#fields.hasGlobalErrors()}" role="alert">
+        <p th:each="error : ${#fields.globalErrors()}" th:text="${error}" class="ds-validation-message"></p>
+    </div>
+
+    <fieldset class="ds-fieldset" data-size="sm">
+        <legend class="ds-legend">Endre oppsummering</legend>
+        <p class="ds-paragraph">
+            <label for="summary_orgno" class="ds-label">Org.nr.</label>
+            <input id="summary_orgno" type="text" class="ds-input" th:value="${relyingPartyResource.orgno}" disabled>
+        </p>
+        <p class="ds-paragraph">
+            <label for="summary_organization" class="ds-label">Organisasjon</label>
+            <input id="summary_organization" type="text" class="ds-input" th:value="${relyingPartyResource.orgName}" disabled>
+        </p>
+        <p class="ds-paragraph">
+            <label for="serviceTradeName" class="ds-label">Tenestenamn</label>
+            <input th:field="*{serviceTradeName}" type="text" class="ds-input" required maxlength="255"
+                   aria-describedby="summary_shared_name summary_name_errors"
+                   th:attr="aria-invalid=${#fields.hasErrors('serviceTradeName')}">
+        </p>
+        <ul id="summary_name_errors" th:if="${#fields.hasErrors('serviceTradeName')}">
+            <li th:each="error : ${#fields.errors('serviceTradeName')}" th:text="${error}" class="ds-validation-message"></li>
+        </ul>
+        <p id="summary_shared_name" class="ds-paragraph">
+            Tenestenamnet er felles for alle registreringar (instansar) under denne tenesta.
+            Ei namneendring gjeld alle desse registreringane.
+        </p>
+        <p class="ds-paragraph">
+            <label for="summary_sector" class="ds-label">Sektor</label>
+            <input id="summary_sector" type="text" class="ds-input"
+                   th:value="${relyingPartyResource.publicSector ? 'offentleg' : 'privat'}" disabled>
+        </p>
+        <p class="ds-paragraph">
+            <label for="summary_created" class="ds-label">Oppretta</label>
+            <input id="summary_created" type="text" class="ds-input"
+                   th:value="${@timestampFormatter.formatEpochMillis(relyingPartyResource.createdMs)}" disabled>
+        </p>
+        <p class="ds-paragraph">
+            <label for="summary_updated" class="ds-label">Sist endra</label>
+            <input id="summary_updated" type="text" class="ds-input"
+                   th:value="${@timestampFormatter.formatEpochMillis(relyingPartyResource.lastUpdatedMs)}" disabled>
+        </p>
+        <p class="ds-paragraph">
+            <label for="summary_active" class="ds-label">Aktiv</label>
+            <input id="summary_active" type="text" class="ds-input"
+                   th:value="${relyingPartyResource.active ? 'ja' : 'nei'}" disabled>
+        </p>
+    </fieldset>
+
+    <button type="submit" class="ds-button" data-variant="primary">Lagre</button>
+    <a th:href="@{/details/{id}(id=${relyingPartyResource.id})} + '#summary'"
+       class="ds-button" data-variant="secondary">Avbryt</a>
+</form>
