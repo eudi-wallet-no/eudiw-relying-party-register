@@ -1,3 +1,13 @@
+ALTER TABLE wallet_relying_party
+    ADD COLUMN created_at DATE NULL,
+    ADD COLUMN revoked_at DATE NULL;
+
+UPDATE wallet_relying_party
+SET created_at = DATE_ADD('1970-01-01', INTERVAL FLOOR(created_ms / 86400000) DAY);
+
+ALTER TABLE wallet_relying_party
+    MODIFY COLUMN created_at DATE NOT NULL;
+
 ALTER TABLE wallet_relying_party_service
     ADD COLUMN status VARCHAR(16) NULL,
     ADD COLUMN created_at DATE NULL,

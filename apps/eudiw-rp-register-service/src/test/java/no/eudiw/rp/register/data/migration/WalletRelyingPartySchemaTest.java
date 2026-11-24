@@ -68,6 +68,25 @@ class WalletRelyingPartySchemaTest {
         assertEquals("NO", jdbc.queryForObject("""
             SELECT IS_NULLABLE FROM information_schema.COLUMNS
             WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'wallet_relying_party'
+              AND COLUMN_NAME = 'created_at'
+            """, String.class));
+        assertEquals("YES", jdbc.queryForObject("""
+            SELECT IS_NULLABLE FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'wallet_relying_party'
+              AND COLUMN_NAME = 'revoked_at'
+            """, String.class));
+        assertEquals(2, jdbc.queryForObject("""
+            SELECT COUNT(*) FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'wallet_relying_party'
+              AND COLUMN_NAME IN ('created_at', 'revoked_at')
+              AND DATA_TYPE = 'date'
+            """, Integer.class));
+        assertEquals("NO", jdbc.queryForObject("""
+            SELECT IS_NULLABLE FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
               AND TABLE_NAME = 'wallet_relying_party_service'
               AND COLUMN_NAME = 'issuer_policies'
             """, String.class));
@@ -126,8 +145,9 @@ class WalletRelyingPartySchemaTest {
         Flyway.configure().configuration(flyway.getConfiguration()).target("40").load().migrate();
         jdbc.update("""
             INSERT INTO wallet_relying_party
-                (id, trade_name, orgno, is_psb, policy, identifier, postal_address, email, phone, info_uri)
-            VALUES ('party', 'Party', '123456785', TRUE, '[]', '[]', '[]', '[]', '[]', '[]')
+                (id, trade_name, orgno, is_psb, policy, identifier, postal_address, email, phone, info_uri,
+                 created_ms, last_updated_ms)
+            VALUES ('party', 'Party', '123456785', TRUE, '[]', '[]', '[]', '[]', '[]', '[]', 1704240000000, 1704240000000)
             """);
         jdbc.update("""
             INSERT INTO wallet_relying_party_service
@@ -138,6 +158,17 @@ class WalletRelyingPartySchemaTest {
             """);
 
         flyway.migrate();
+
+        assertEquals(LocalDate.of(2024, 1, 3), jdbc.queryForObject("""
+            SELECT created_at
+            FROM wallet_relying_party
+            WHERE id = 'party'
+            """, java.sql.Date.class).toLocalDate());
+        assertNull(jdbc.queryForObject("""
+            SELECT revoked_at
+            FROM wallet_relying_party
+            WHERE id = 'party'
+            """, java.sql.Date.class));
 
         assertEquals("active", jdbc.queryForObject("""
             SELECT status
@@ -417,6 +448,10 @@ class WalletRelyingPartySchemaTest {
             row.put("revoked_at", null);
         });
         var partiesBefore = jdbc.queryForList("SELECT * FROM wallet_relying_party");
+        partiesBefore.forEach(row -> {
+            row.put("created_at", java.sql.Date.valueOf("1970-01-01"));
+            row.put("revoked_at", null);
+        });
         var instancesBefore = jdbc.queryForList("SELECT * FROM relying_party_instance");
         var intendedUsesBefore = jdbc.queryForList("SELECT * FROM wallet_relying_party_service_intended_use");
 
@@ -510,8 +545,9 @@ class WalletRelyingPartySchemaTest {
         var instanceId = UUID.randomUUID();
         jdbc.update("""
             INSERT INTO wallet_relying_party
-                (id, trade_name, orgno, is_psb, policy, identifier, postal_address, email, phone, info_uri)
-            VALUES (?, 'Party', '123456785', TRUE, '[]', '[]', '[]', '[]', '[]', '[]')
+                (id, trade_name, orgno, is_psb, policy, identifier, postal_address, email, phone, info_uri,
+                 created_at)
+            VALUES (?, 'Party', '123456785', TRUE, '[]', '[]', '[]', '[]', '[]', '[]', '1970-01-01')
             """, partyId.toString());
         jdbc.update("""
             INSERT INTO wallet_relying_party_service
