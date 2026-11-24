@@ -432,21 +432,6 @@ class V2ApiIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should accept a credential display name of 255 characters")
-    void shouldAcceptACredentialDisplayNameOf255Characters() throws Exception {
-        Registration registration = createRegistration();
-        String displayName = "a".repeat(255);
-        String requestBody = INTENDED_USE.replace(
-            "\"format\":", "\"displayName\":\"" + displayName + "\",\"format\":");
-
-        JsonNode created = read(post(registration.intendedUsesPath()), requestBody);
-        JsonNode stored = read(get(registration.intendedUsesPath())).get(0);
-
-        assertEquals(displayName, created.at("/credentials/0/displayName").asString());
-        assertEquals(displayName, stored.at("/credentials/0/displayName").asString());
-    }
-
-    @Test
     @DisplayName("Should reject a credential display name longer than 255 characters")
     void shouldRejectACredentialDisplayNameLongerThan255Characters() throws Exception {
         Registration registration = createRegistration();

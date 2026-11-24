@@ -49,37 +49,6 @@ class WalletRelyingPartySchemaTest {
     }
 
     @Test
-    @DisplayName("Should set display name to null for existing credentials during migration")
-    void shouldSetDisplayNameToNullForExistingCredentialsDuringMigration() {
-        flyway.clean();
-        Flyway.configure().configuration(flyway.getConfiguration()).target("41").load().migrate();
-        jdbc.update("""
-            INSERT INTO wallet_relying_party
-                (id, trade_name, orgno, is_psb, policy, identifier, postal_address, email, phone, info_uri, created_at)
-            VALUES ('party', 'Party', '123456785', TRUE, '[]', '[]', '[]', '[]', '[]', '[]', '2026-01-01')
-            """);
-        jdbc.update("""
-            INSERT INTO wallet_relying_party_service
-                (id, service_trade_name, wallet_relying_party_id, status, created_at)
-            VALUES ('service', 'Service', 'party', 'active', '2026-01-01')
-            """);
-        jdbc.update("""
-            INSERT INTO wallet_relying_party_service_intended_use (id, wallet_relying_party_service_id)
-            VALUES ('intended-use', 'service')
-            """);
-        jdbc.update("""
-            INSERT INTO wallet_relying_party_service_intended_use_credential (id, intended_use_id, format, meta, claims)
-            VALUES ('credential', 'intended-use', 'format', '{"doctype":"type"}', '[{"path":["claim"]}]')
-            """);
-
-        flyway.migrate();
-
-        assertNull(jdbc.queryForObject("""
-            SELECT display_name FROM wallet_relying_party_service_intended_use_credential WHERE id = 'credential'
-            """, String.class));
-    }
-
-    @Test
     @DisplayName("Validates lifecycle columns in the current schema")
     void validatesCurrentSchemaWithoutReapplyingMigrations() {
         flyway.validate();

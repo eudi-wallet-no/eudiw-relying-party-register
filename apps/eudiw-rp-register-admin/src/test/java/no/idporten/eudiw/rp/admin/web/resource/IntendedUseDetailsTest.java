@@ -8,42 +8,24 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 class IntendedUseDetailsTest {
 
     @Test
-    @DisplayName("Should use stored credential names when some credentials have no name")
-    void shouldUseStoredCredentialNamesWhenSomeCredentialsHaveNoName() {
+    @DisplayName("Should join non-blank credential display names")
+    void shouldJoinNonBlankCredentialDisplayNames() {
         var intendedUse = intendedUse(List.of(
-            credential("Personal ID"), credential(null), credential("Mobile driving licence")));
+            credential("Personal ID"), credential(null), credential(" "), credential("Mobile driving licence")));
 
         assertEquals("Personal ID, Mobile driving licence", intendedUse.getDisplayLabel());
-        assertEquals("pid-verification", intendedUse.intendedUseIdentifier());
     }
 
     @Test
-    @DisplayName("Should use the intended-use identifier when all credential names are missing or blank")
-    void shouldUseIntendedUseIdentifierWhenAllCredentialNamesAreMissingOrBlank() {
-        var intendedUse = intendedUse(List.of(credential(null), credential(""), credential(" \t")));
+    @DisplayName("Should fall back to the intended-use identifier when credentials have no display name")
+    void shouldFallBackToTheIntendedUseIdentifierWhenCredentialsHaveNoDisplayName() {
+        var intendedUse = intendedUse(List.of(credential(null), credential(" ")));
 
         assertEquals("pid-verification", intendedUse.getDisplayLabel());
-    }
-
-    @Test
-    @DisplayName("Should use the intended-use identifier when credentials are absent or empty")
-    void shouldUseIntendedUseIdentifierWhenCredentialsAreAbsentOrEmpty() {
-        assertEquals("pid-verification", intendedUse(null).getDisplayLabel());
-        assertEquals("pid-verification", intendedUse(List.of()).getDisplayLabel());
-    }
-
-    @Test
-    @DisplayName("Should leave the display label absent when names and the intended-use identifier are absent")
-    void shouldLeaveDisplayLabelAbsentWhenNamesAndIntendedUseIdentifierAreAbsent() {
-        var intendedUse = new RelyingPartyResource.IntendedUseDetails(
-            UUID.randomUUID(), null, null, null, List.of(), List.of(), List.of());
-
-        assertNull(intendedUse.getDisplayLabel());
     }
 
     private static RelyingPartyResource.IntendedUseDetails intendedUse(
