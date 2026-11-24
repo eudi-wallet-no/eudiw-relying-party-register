@@ -44,11 +44,6 @@ public class IntendedUseForm {
             entry != null && hasText(entry.getLang()) && hasText(entry.getContent()));
     }
 
-    public boolean hasPurpose() {
-        return purpose != null && purpose.stream().anyMatch(entry ->
-            entry != null && hasText(entry.getLang()) && hasText(entry.getContent()));
-    }
-
     public boolean hasValidPurposeLanguages() {
         return purpose != null && purpose.stream()
             .filter(entry -> entry != null && hasText(entry.getLang()) && hasText(entry.getContent()))

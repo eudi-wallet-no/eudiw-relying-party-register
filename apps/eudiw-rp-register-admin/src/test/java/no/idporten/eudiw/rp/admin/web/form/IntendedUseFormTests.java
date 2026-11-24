@@ -52,7 +52,6 @@ class IntendedUseFormTests {
             new IntendedUseForm.Purpose("NB", "Andre føremål")));
 
         assertTrue(validForm.hasCompletePurposes());
-        assertTrue(validForm.hasPurpose());
         assertTrue(validForm.hasValidPurposeLanguages());
         assertTrue(validForm.hasUniquePurposeLanguages());
 
