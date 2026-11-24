@@ -10,6 +10,7 @@ import no.idporten.eudiw.rp.admin.web.resource.certificates.RelyingPartyCertific
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @With
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -148,13 +149,24 @@ public record RelyingPartyResource(
         List<MultiLangStringDetails> purpose,
         List<PolicyDetails> privacyPolicy,
         List<CredentialDetails> credentials
-    ) { }
+    ) {
+        @JsonIgnore
+        public String getDisplayLabel() {
+            String credentialNames = credentials == null ? "" : credentials.stream()
+                .map(CredentialDetails::displayName)
+                .filter(name -> name != null && !name.isBlank())
+                .collect(Collectors.joining(", "));
+
+            return credentialNames.isEmpty() ? intendedUseIdentifier : credentialNames;
+        }
+    }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record CredentialDetails(
         String format,
         Map<String, Object> meta,
-        List<Map<String, Object>> claims
+        List<Map<String, Object>> claims,
+        String displayName
     ) { }
 
     @JsonIgnore
