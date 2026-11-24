@@ -1,9 +1,11 @@
 package no.eudiw.rp.register.api.v2.resource;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import no.eudiw.rp.register.domain.Credential;
 
 import java.math.BigInteger;
@@ -13,7 +15,8 @@ import java.util.Map;
 public record CredentialResource(
     @NotBlank String format,
     @NotNull Map<String, Object> meta,
-    @NotEmpty List<@NotNull Map<String, Object>> claims
+    @NotEmpty List<@NotNull Map<String, Object>> claims,
+    @JsonInclude(JsonInclude.Include.NON_NULL) @Size(max = 255) String displayName
 ) {
     @AssertTrue(message = "invalid_credential_meta")
     public boolean hasValidMeta() {
@@ -49,6 +52,6 @@ public record CredentialResource(
     }
 
     public Credential toDomain() {
-        return new Credential(format, meta, claims);
+        return new Credential(format, meta, claims, displayName);
     }
 }

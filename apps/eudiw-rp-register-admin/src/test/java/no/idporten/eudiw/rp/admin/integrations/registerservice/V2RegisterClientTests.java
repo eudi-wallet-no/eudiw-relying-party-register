@@ -229,7 +229,12 @@ class V2RegisterClientTests {
         server.expect(requestTo("https://register.test/v2/services/" + relyingPartyServiceId + "/intended-uses"))
             .andExpect(header("X-API-KEY", "test-api-key"))
             .andRespond(withSuccess("""
-                [{"id":"00000000-0000-0000-0000-000000000003","intendedUseIdentifier":"pid-verification"}]
+                [{"id":"00000000-0000-0000-0000-000000000003","intendedUseIdentifier":"pid-verification",
+                  "credentials":[
+                    {"format":"dc+sd-jwt","meta":{"vct_values":["urn:example:pid"]},"claims":[],
+                     "displayName":"Personal ID"},
+                    {"format":"mso_mdoc","meta":{"doctype":"org.example.legacy"},"claims":[]}
+                  ]}]
                 """, MediaType.APPLICATION_JSON));
 
         var relyingPartyResource = client.getRelyingParty(RELYING_PARTY_INSTANCE_ID);
@@ -245,6 +250,12 @@ class V2RegisterClientTests {
             () -> assertEquals(
                 "pid-verification",
                 relyingPartyResource.intendedUses().getFirst().intendedUseIdentifier()),
+            () -> assertEquals("Personal ID",
+                relyingPartyResource.intendedUses().getFirst().credentials().getFirst().displayName()),
+            () -> assertNull(
+                relyingPartyResource.intendedUses().getFirst().credentials().getLast().displayName()),
+            () -> assertEquals(Map.of("doctype", "org.example.legacy"),
+                relyingPartyResource.intendedUses().getFirst().credentials().getLast().meta()),
             () -> assertEquals(
                 List.of(new RelyingPartyEntitlementResource("urn:issuer", "Issuer", "https://issuer.test")),
                 relyingPartyResource.relyingPartyEntitlements()));
