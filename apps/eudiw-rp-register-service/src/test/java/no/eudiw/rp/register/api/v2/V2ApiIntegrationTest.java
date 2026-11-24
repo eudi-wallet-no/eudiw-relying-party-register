@@ -402,27 +402,48 @@ class V2ApiIntegrationTest {
         assertTrue(filteredResults.get("content").isEmpty());
     }
 
-    @ParameterizedTest
-    @ValueSource(booleans = {true, false})
-    @DisplayName("Should create and read an intended use with or without a credential display name")
-    void shouldCreateAndReadAnIntendedUseWithOrWithoutACredentialDisplayName(boolean withDisplayName) throws Exception {
+    @Test
+    @DisplayName("Should create and read an intended use with a credential display name")
+    void shouldCreateAndReadAnIntendedUseWithACredentialDisplayName() throws Exception {
         Registration registration = createRegistration();
-        String displayName = "a".repeat(255);
-        String requestBody = withDisplayName
-            ? INTENDED_USE.replace("\"format\":", "\"displayName\":\"" + displayName + "\",\"format\":")
-            : INTENDED_USE;
+        String displayName = "Identity credential";
+        String requestBody = INTENDED_USE.replace(
+            "\"format\":", "\"displayName\":\"" + displayName + "\",\"format\":");
 
         JsonNode created = read(post(registration.intendedUsesPath()), requestBody);
         JsonNode stored = read(get(registration.intendedUsesPath())).get(0);
 
+        assertEquals(displayName, created.at("/credentials/0/displayName").asString());
+        assertEquals(displayName, stored.at("/credentials/0/displayName").asString());
+    }
+
+    @Test
+    @DisplayName("Should create and read an intended use without a credential display name")
+    void shouldCreateAndReadAnIntendedUseWithoutACredentialDisplayName() throws Exception {
+        Registration registration = createRegistration();
+
+        JsonNode created = read(post(registration.intendedUsesPath()), INTENDED_USE);
+        JsonNode stored = read(get(registration.intendedUsesPath())).get(0);
+
         for (JsonNode intendedUse : List.of(created, stored)) {
-            JsonNode actualDisplayName = intendedUse.at("/credentials/0/displayName");
-            if (withDisplayName) {
-                assertEquals(displayName, actualDisplayName.asString());
-            } else {
-                assertTrue(actualDisplayName.isMissingNode() || actualDisplayName.isNull());
-            }
+            JsonNode displayName = intendedUse.at("/credentials/0/displayName");
+            assertTrue(displayName.isMissingNode() || displayName.isNull());
         }
+    }
+
+    @Test
+    @DisplayName("Should accept a credential display name of 255 characters")
+    void shouldAcceptACredentialDisplayNameOf255Characters() throws Exception {
+        Registration registration = createRegistration();
+        String displayName = "a".repeat(255);
+        String requestBody = INTENDED_USE.replace(
+            "\"format\":", "\"displayName\":\"" + displayName + "\",\"format\":");
+
+        JsonNode created = read(post(registration.intendedUsesPath()), requestBody);
+        JsonNode stored = read(get(registration.intendedUsesPath())).get(0);
+
+        assertEquals(displayName, created.at("/credentials/0/displayName").asString());
+        assertEquals(displayName, stored.at("/credentials/0/displayName").asString());
     }
 
     @Test
