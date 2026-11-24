@@ -18,15 +18,31 @@ import org.springframework.web.client.RestClient;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Component
 public class V2RegisterClient {
 
-    private final RestClient restClient;
+    private static final String INTENDED_USES_PATH = "/services/{serviceId}/intended-uses";
 
-    public V2RegisterClient(@Qualifier("v2RestClient") RestClient restClient) {
+    private final RestClient restClient;
+    private final RestClient nonRetryingRestClient;
+
+    public V2RegisterClient(
+        @Qualifier("v2RestClient") RestClient restClient,
+        @Qualifier("v2NonRetryingRestClient") RestClient nonRetryingRestClient
+    ) {
         this.restClient = restClient;
+        this.nonRetryingRestClient = nonRetryingRestClient;
+    }
+
+    public void createIntendedUse(UUID serviceId, CreateIntendedUseRequest request) {
+        nonRetryingRestClient.post()
+            .uri(INTENDED_USES_PATH, serviceId)
+            .body(request)
+            .retrieve()
+            .toBodilessEntity();
     }
 
     public UUID createInstance(CreateInstanceRequest request) {
@@ -80,14 +96,13 @@ public class V2RegisterClient {
     }
 
     private List<RelyingPartyResource.IntendedUseDetails> getIntendedUses(UUID relyingPartyServiceId) {
-        String intendedUsesPath = "/services/" + relyingPartyServiceId + "/intended-uses";
         List<RelyingPartyResource.IntendedUseDetails> intendedUses = restClient.get()
-            .uri(intendedUsesPath)
+            .uri(INTENDED_USES_PATH, relyingPartyServiceId)
             .retrieve()
             .body(new ParameterizedTypeReference<>() {});
         if (intendedUses == null) {
             throw new UnrecognizedErrorResponseException(
-                "Unable to retrieve " + intendedUsesPath + " from register service: response body is empty");
+                "Unable to retrieve intended uses for service " + relyingPartyServiceId + ": response body is empty");
         }
         return intendedUses;
     }
@@ -366,5 +381,25 @@ public class V2RegisterClient {
 
     private static boolean hasRequiredEntitlementData(Entitlement entitlement) {
         return entitlement != null && entitlement.entitlement() != null;
+    }
+
+    public record IntendedUsePurpose(String lang, String content) {
+    }
+
+    public record IntendedUsePolicy(String type, String policyURI) {
+    }
+
+    public record IntendedUseCredential(
+        String format,
+        Map<String, Object> meta,
+        List<Map<String, Object>> claims
+    ) {
+    }
+
+    public record CreateIntendedUseRequest(
+        List<IntendedUsePurpose> purpose,
+        List<IntendedUsePolicy> privacyPolicy,
+        List<IntendedUseCredential> credentials
+    ) {
     }
 }
