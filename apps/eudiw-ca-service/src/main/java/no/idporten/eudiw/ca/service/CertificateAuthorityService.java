@@ -144,13 +144,12 @@ public class CertificateAuthorityService {
         // key usage
         extensions.add(Extension.create(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment)));
         // add extensions from CA certificate profile
-        if (profile == null && certificateAuthority.getDefaultCertificateProfile() != null) {
-            profile = certificateAuthority.getDefaultCertificateProfile();
-        }
-        if (profile != null && certificateAuthority.getCertificateProfiles() != null && certificateAuthority.getCertificateProfiles().containsKey(profile)) {
-            addExtensionsFromCertificateProfile(certificateAuthority.getCertificateProfiles().get(profile), extensions);
+        CertificateProfile certificateProfile = certificateAuthority.getCertificateProfile(profile);
+        if (certificateProfile == null) {
+            LoggerFactory.getLogger(CertificateAuthorityService.class).warn("Ignore profile '{}' since no certificate profile found for CA intermediate '{}'", profile, certificateAuthority.getId());
+
         } else {
-            LoggerFactory.getLogger(CertificateAuthorityService.class).warn("Ignore profile '{}' since no certificate profile configured for CA intermediate '{}'", profile, certificateAuthority.getId());
+            addExtensionsFromCertificateProfile(certificateProfile, extensions);
         }
         // add extensions from CSR if supported
         addSupportedExtensionsFromCsr(csr, extensions);
