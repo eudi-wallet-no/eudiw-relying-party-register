@@ -11,6 +11,7 @@ import no.eudiw.rp.register.domain.LegalPerson;
 import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.UUID;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record WalletRelyingPartyResource(
     String country,
+    String createdAt,
     List<String> email,
     List<IdentifierResource> identifier,
     List<String> infoURI,
@@ -27,6 +29,7 @@ public record WalletRelyingPartyResource(
     List<String> phone,
     List<PolicyResource> policy,
     String providerType,
+    String revokedAt,
     List<String> x5c,
     @JsonProperty("isPSB") boolean isPSB,
     SupervisoryAuthorityResource supervisoryAuthority,
@@ -53,6 +56,7 @@ public record WalletRelyingPartyResource(
     ) {
         return new WalletRelyingPartyResource(
             relyingParty.getCountry(),
+            relyingParty.getCreatedAt().toString(),
             relyingParty.getEmail(),
             relyingParty.getIdentifier().stream()
                 .map(identifier -> new IdentifierResource(identifier.identifier(), identifier.type()))
@@ -64,6 +68,7 @@ public record WalletRelyingPartyResource(
                 .map(policy -> new PolicyResource(policy.policyURI(), policy.type()))
                 .toList(),
             relyingParty.getProviderType(),
+            dateString(relyingParty.getRevokedAt()),
             List.copyOf(relyingParty.getX5c()),
             relyingParty.isPSB(),
             SupervisoryAuthorityResource.from(supervisoryAuthority),
@@ -88,6 +93,10 @@ public record WalletRelyingPartyResource(
 
     private static List<String> optionalList(String value) {
         return value == null || value.isBlank() ? List.of() : List.of(value);
+    }
+
+    private static String dateString(LocalDate date) {
+        return date == null ? null : date.toString();
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -125,6 +134,10 @@ public record WalletRelyingPartyResource(
     public record ServiceResource(
         String serviceTradeName,
         String serviceIdentifier,
+        String status,
+        String createdAt,
+        String suspendedAt,
+        String revokedAt,
         String supportURI,
         String email,
         String phone,
@@ -146,6 +159,10 @@ public record WalletRelyingPartyResource(
             return new ServiceResource(
                 relyingPartyService.getServiceTradeName(),
                 relyingPartyService.getServiceIdentifier(),
+                relyingPartyService.getStatus(),
+                relyingPartyService.getCreatedAt().toString(),
+                dateString(relyingPartyService.getSuspendedAt()),
+                dateString(relyingPartyService.getRevokedAt()),
                 relyingPartyService.getSupportUri(),
                 relyingPartyService.getEmail(),
                 relyingPartyService.getPhone(),

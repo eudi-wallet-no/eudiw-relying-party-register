@@ -37,7 +37,7 @@ public record IntendedUseResponse(
                 .toList(),
             intendedUse.getCredentials().stream()
                 .map(credential -> new CredentialResource(
-                    credential.getFormat(), credential.getMeta(), credential.getClaims()))
+                    credential.getFormat(), credential.getMeta(), credential.getClaims(), credential.getDisplayName()))
                 .toList()
         );
     }

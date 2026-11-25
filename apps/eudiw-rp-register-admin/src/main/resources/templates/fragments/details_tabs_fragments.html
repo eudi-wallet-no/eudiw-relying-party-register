@@ -410,10 +410,10 @@
             <p class="ds-paragraph" th:if="${#lists.isEmpty(relyingPartyResource.intendedUses)}">Tenesta har ingen registrerte føremål.</p>
         <details class="ds-details"
                  th:each="intendedUse, intendedUseStatus : ${relyingPartyResource.intendedUses}">
-            <summary th:text="${intendedUse.intendedUseIdentifier ?: ('Bruk ' + intendedUseStatus.count)}">Bruk</summary>
+            <summary th:text="${intendedUse.displayLabel ?: ('Føremål ' + intendedUseStatus.count)}">Føremål</summary>
             <div class="table-wrap">
                 <table class="ds-table relying-party-information-table">
-                    <caption th:text="${intendedUse.intendedUseIdentifier ?: ('Bruk ' + intendedUseStatus.count)}">Bruk</caption>
+                    <caption th:text="${intendedUse.displayLabel ?: ('Føremål ' + intendedUseStatus.count)}">Føremål</caption>
                     <tbody>
                     <tr>
                         <th scope="row">Identifikator</th>
