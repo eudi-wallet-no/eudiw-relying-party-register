@@ -7,10 +7,14 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
-import java.security.*;
+import java.security.KeyStore;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.cert.X509Certificate;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -19,6 +23,8 @@ import java.util.Objects;
 @Getter
 @RequiredArgsConstructor
 public class CertificateAuthority {
+
+    private final org.slf4j.Logger log = LoggerFactory.getLogger(CertificateAuthority.class);
 
     /**
      * CA identifier.  Used to reference CA in URL and configuration.
@@ -44,10 +50,12 @@ public class CertificateAuthority {
     private final URI certificateUri;
 
     /**
-     * Profile for certificates signed with this certificate authority
+     * Profiles for certificates signed with this certificate authority
      */
     @Valid
-    private final CertificateProfile certificateProfile;
+    private final Map<String, CertificateProfile> certificateProfiles;
+
+    private final String defaultCertificateProfile;
 
     @Getter(AccessLevel.PRIVATE)
     @NotNull
@@ -78,6 +86,22 @@ public class CertificateAuthority {
         } else if (!isRoot() && getCertificate().equals(issuer.getCertificate())) {
             throw new IllegalArgumentException("Intermediate certificate must not be self-signed");
         }
+    }
+
+    public CertificateProfile getCertificateProfile(String profileName) {
+        if(getCertificateProfiles() == null || getCertificateProfiles().isEmpty()) {
+            log.info("CA intermediate '{}' has no certificate profile configured at all. Requested profile '{}' ", getId(), profileName);
+            return null;
+        }
+
+        if (profileName == null && getDefaultCertificateProfile() != null) {
+            profileName = getDefaultCertificateProfile();
+        }
+        if(profileName == null) {
+            return null;
+        }
+
+        return certificateProfiles.get(profileName);
     }
 
 }

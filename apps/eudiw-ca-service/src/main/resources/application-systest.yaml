@@ -7,22 +7,8 @@ eudiw-ca:
   base-uri: "https://ca.eidas2sandkasse.dev"
   intermediates:
     access2:
-      certificate-profile:
-        certificate-policies:
-          - "0.4.0.194118.1.2"
-        subject-alt-names:
-          - "https://eidas2sandkasse.dev"
-    status_provider2:
-      certificate-profile:
-        extended-key-usage:
-          - "1.3.6.1.5.7.3"
-      root: root2
-      lifetime-days: 365
-      crl-distribution-point: ${eudiw-ca.base-uri}/v1/certs/intermediates/eaa_provider2.crl
-      certificate-uri: ${eudiw-ca.base-uri}/v1/certs/intermediates/eaa_provider2.cer
-      keystore:
-        type: pkcs12
-        location: ${INTERMEDIATE_EAA_PROVIDER_2_KEYSTORE_LOCATION}
-        password: ${INTERMEDIATE_EAA_PROVIDER_2_KEYSTORE_PASSWORD}
-        key-alias: ${INTERMEDIATE_EAA_PROVIDER_2_KEYSTORE_KEY_ALIAS}
-        key-password: ${INTERMEDIATE_EAA_PROVIDER_2_KEYSTORE_KEY_PASSWORD}
+      certificate-profiles:
+        access2:
+          subject-alt-names:
+            - "https://eidas2sandkasse.dev"
+

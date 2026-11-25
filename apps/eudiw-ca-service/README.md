@@ -27,7 +27,7 @@ The application needs:
 - to know the url it is running on (to add csr and cert info in issued certs)
 - a database for storing issued leaf certificates
 
-Profiles in the [resources](src/main/resources) folder:
+Profiles in the [resources](/src/main/resources) folder:
 
 | Profile | Description                                           |
 |---------|-------------------------------------------------------|
@@ -35,6 +35,7 @@ Profiles in the [resources](src/main/resources) folder:
 | docker  | Docker locally, run by the root docker-compose file w/MariaDB |
 | systest | Systest environment                                   |
 | test    | Test environment                                      |
+| prod    | Production environment                                 |
 
 For local setup, run commands and ports, see
 [Local development](../../README.md#run-everything-locally-with-docker-compose).
