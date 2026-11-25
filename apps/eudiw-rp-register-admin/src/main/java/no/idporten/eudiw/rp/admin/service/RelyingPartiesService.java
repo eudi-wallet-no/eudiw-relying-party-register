@@ -49,6 +49,11 @@ public class RelyingPartiesService {
         return registerClient.getRelyingParty(id);
     }
 
+    public void createIntendedUse(UUID serviceId, V2RegisterClient.CreateIntendedUseRequest request) {
+        // TODO: Legg inn kontroll mot revokert/inaktiv status før oppretting av føremål.
+        registerClient.createIntendedUse(serviceId, request);
+    }
+
     public void updateInstanceStatus(UUID instanceId, boolean active) {
         registerClient.updateInstanceStatus(instanceId, active);
     }
