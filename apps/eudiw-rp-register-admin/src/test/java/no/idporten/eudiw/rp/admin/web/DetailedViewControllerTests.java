@@ -144,7 +144,8 @@ public class DetailedViewControllerTests {
                         List.of(new RelyingPartyResource.CredentialDetails(
                             "dc+sd-jwt",
                             Map.of("vct_values", List.of("urn:example:pid")),
-                            List.of(Map.of("path", List.of("given_name")))))),
+                            List.of(Map.of("path", List.of("given_name"))),
+                            "Personal ID"))),
                     new RelyingPartyResource.IntendedUseDetails(
                         UUID.randomUUID(), "revoked-use", "2025-01-01T00:00:00Z",
                         "2026-01-01T00:00:00Z", List.of(), List.of(), List.of())));
@@ -163,6 +164,11 @@ public class DetailedViewControllerTests {
                 () -> assertTrue(response.contains("https://registry.example.test/wrp")),
                 () -> assertTrue(response.contains("en: Service description")),
                 () -> assertTrue(response.contains("pid-verification")),
+                () -> assertTrue(response.contains("<summary>Personal ID</summary>")),
+                () -> assertTrue(response.contains("<caption>Personal ID</caption>")),
+                () -> assertTrue(response.contains("<td>pid-verification</td>")),
+                () -> assertTrue(response.contains("<summary>revoked-use</summary>")),
+                () -> assertTrue(response.contains("<caption>revoked-use</caption>")),
                 () -> assertTrue(response.contains("Verify identity")),
                 () -> assertTrue(response.contains("<td>1 aktive</td>")),
                 () -> assertTrue(response.matches("(?s).*Generelt</h2>.*Brukarstad</h2>.*Tenester</h2>"

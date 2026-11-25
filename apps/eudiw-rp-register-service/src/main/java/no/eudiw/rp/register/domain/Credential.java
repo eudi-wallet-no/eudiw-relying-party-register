@@ -32,6 +32,9 @@ public class Credential extends BaseEntity {
     @Column(name = "format", nullable = false, columnDefinition = "TEXT")
     private String format;
 
+    @Column(name = "display_name", length = 255)
+    private String displayName;
+
     @Getter(AccessLevel.NONE)
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "meta", nullable = false, columnDefinition = "JSON")
@@ -43,6 +46,12 @@ public class Credential extends BaseEntity {
     private List<Map<String, Object>> claims;
 
     public Credential(String format, Map<String, Object> meta, List<Map<String, Object>> claims) {
+        this(format, meta, claims, null);
+    }
+
+    public Credential(String format, Map<String, Object> meta, List<Map<String, Object>> claims, String displayName) {
+        validateDisplayName(displayName);
+        this.displayName = displayName;
         setCredentialData(format, meta, claims);
     }
 
@@ -63,6 +72,12 @@ public class Credential extends BaseEntity {
 
     void setIntendedUse(IntendedUse intendedUse) {
         this.intendedUse = intendedUse;
+    }
+
+    private static void validateDisplayName(String displayName) {
+        if (displayName != null && displayName.length() > 255) {
+            throw new IllegalArgumentException("Credential display name must not exceed 255 characters");
+        }
     }
 
     private static void validateCredentialData(
@@ -178,11 +193,13 @@ public class Credential extends BaseEntity {
     @PrePersist
     @PreUpdate
     protected void validateBeforeWrite() {
+        validateDisplayName(displayName);
         validateCredentialData(format, meta, claims);
     }
 
     @PostLoad
     protected void validateAfterLoad() {
+        validateDisplayName(displayName);
         validateCredentialData(format, meta, claims);
     }
 

@@ -403,6 +403,46 @@ class V2ApiIntegrationTest {
     }
 
     @Test
+    @DisplayName("Should create and read an intended use with a credential display name")
+    void shouldCreateAndReadAnIntendedUseWithACredentialDisplayName() throws Exception {
+        Registration registration = createRegistration();
+        String displayName = "Identity credential";
+        String requestBody = INTENDED_USE.replace(
+            "\"format\":", "\"displayName\":\"" + displayName + "\",\"format\":");
+
+        JsonNode created = read(post(registration.intendedUsesPath()), requestBody);
+        JsonNode stored = read(get(registration.intendedUsesPath())).get(0);
+
+        assertEquals(displayName, created.at("/credentials/0/displayName").asString());
+        assertEquals(displayName, stored.at("/credentials/0/displayName").asString());
+    }
+
+    @Test
+    @DisplayName("Should create and read an intended use without a credential display name")
+    void shouldCreateAndReadAnIntendedUseWithoutACredentialDisplayName() throws Exception {
+        Registration registration = createRegistration();
+
+        JsonNode created = read(post(registration.intendedUsesPath()), INTENDED_USE);
+        JsonNode stored = read(get(registration.intendedUsesPath())).get(0);
+
+        for (JsonNode intendedUse : List.of(created, stored)) {
+            JsonNode displayName = intendedUse.at("/credentials/0/displayName");
+            assertTrue(displayName.isMissingNode() || displayName.isNull());
+        }
+    }
+
+    @Test
+    @DisplayName("Should reject a credential display name longer than 255 characters")
+    void shouldRejectACredentialDisplayNameLongerThan255Characters() throws Exception {
+        Registration registration = createRegistration();
+        String requestBody = INTENDED_USE.replace(
+            "\"format\":", "\"displayName\":\"" + "a".repeat(256) + "\",\"format\":");
+
+        request(post(registration.intendedUsesPath()), requestBody).andExpect(status().isBadRequest());
+        assertTrue(read(get(registration.intendedUsesPath())).isEmpty());
+    }
+
+    @Test
     void replacementsPersistOwnFieldsWithoutChangingIdentityHierarchyOrStatus() throws Exception {
         Registration registration = createRegistration();
         JsonNode intendedUse = read(post(registration.intendedUsesPath()), INTENDED_USE);
