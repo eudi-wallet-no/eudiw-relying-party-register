@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nn">
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title>Legg til føremål</title>
+</head>
+<body>
+<header th:replace="~{fragments/general :: page_header_fragment}"></header>
+<main id="hovudinnhald" tabindex="-1">
+    <p class="ds-paragraph">
+        <a th:href="${detailsUrl}" class="ds-button" data-variant="secondary">Tilbake til registreringa</a>
+    </p>
+    <div class="intended-use-page-heading">
+        <h1 class="ds-heading break-word" data-size="xl">Legg til føremål</h1>
+        <p class="ds-paragraph">
+            Føremålet gjeld tenesta og blir delt av alle tilhøyrande instansar.
+        </p>
+    </div>
+
+    <form th:action="@{|/service/intended-use/create/${registration.id}|}" th:object="${intendedUseForm}"
+          method="post" class="form-container intended-use-form" novalidate>
+        <input type="hidden" name="returnUrl" th:value="${returnUrl}">
+
+        <section class="ds-card registration-card">
+            <div class="ds-card__block">
+                <div th:replace="~{fragments/registration_fragments :: card_heading('Føremål og personvern', null)}"></div>
+                <div th:if="${#fields.hasErrors()}" class="ds-alert" data-color="danger"
+                     role="alert" tabindex="-1" autofocus aria-labelledby="intended-use-errors-heading">
+                    <h3 id="intended-use-errors-heading" class="ds-heading" data-size="sm">Rett feila før du lagrar</h3>
+                    <ul>
+                        <li th:each="fieldError : ${#fields.detailedErrors()}">
+                            <a th:if="${fieldError.fieldName != '*' and fieldError.fieldName != ''}"
+                               th:href="${#strings.startsWith(fieldError.fieldName, 'credentials[')} ? '#credentials' : |#${fieldError.fieldName}|"
+                               th:data-error-field="${fieldError.fieldName}" th:text="${fieldError.message}"></a>
+                            <span th:unless="${fieldError.fieldName != '*' and fieldError.fieldName != ''}"
+                                  th:text="${fieldError.message}"></span>
+                        </li>
+                    </ul>
+                </div>
+
+                <fieldset id="purpose" class="ds-fieldset intended-use-section">
+                    <legend class="ds-label">Føremål</legend>
+                    <p class="ds-paragraph" data-size="sm">Skriv kva opplysningane skal brukast til. Legg til eitt språk per linje.</p>
+                    <div id="purpose-rows">
+                        <div class="intended-use-purpose-row" th:each="entry, stat : *{purpose}">
+                            <div class="ds-field">
+                                <label class="ds-label" th:for="|purpose-lang-${stat.index}|">Språkkode</label>
+                                <input class="ds-input" type="text" inputmode="text"
+                                       th:id="|purpose-lang-${stat.index}|"
+                                       th:name="|purpose[${stat.index}].lang|" th:value="${entry.lang}"
+                                       autocomplete="off"
+                                       th:aria-invalid="${#fields.hasErrors('purpose')}"
+                                       th:aria-describedby="${#fields.hasErrors('purpose')} ? 'purpose-error'">
+                            </div>
+                            <div class="ds-field">
+                                <label class="ds-label" th:for="|purpose-content-${stat.index}|">Føremål</label>
+                                <textarea class="ds-input"
+                                          th:id="|purpose-content-${stat.index}|"
+                                          th:name="|purpose[${stat.index}].content|" th:text="${entry.content}"
+                                          th:aria-invalid="${#fields.hasErrors('purpose')}"
+                                          th:aria-describedby="${#fields.hasErrors('purpose')} ? 'purpose-error'"></textarea>
+                            </div>
+                            <button type="button" class="ds-button" data-variant="secondary" data-color="danger"
+                                    data-remove-purpose th:hidden="${stat.size == 1}"
+                                    th:aria-label="|Fjern føremål på språk ${stat.index + 1}|">&times;</button>
+                        </div>
+                    </div>
+                    <template id="purpose-row-template">
+                        <div class="intended-use-purpose-row">
+                            <div class="ds-field">
+                                <label class="ds-label" for="purpose-lang-0">Språkkode</label>
+                                <input class="ds-input" type="text" inputmode="text" id="purpose-lang-0"
+                                       name="purpose[0].lang" autocomplete="off">
+                            </div>
+                            <div class="ds-field">
+                                <label class="ds-label" for="purpose-content-0">Føremål</label>
+                                <textarea class="ds-input" id="purpose-content-0"
+                                          name="purpose[0].content"></textarea>
+                            </div>
+                            <button type="button" class="ds-button" data-variant="secondary" data-color="danger"
+                                    data-remove-purpose hidden aria-label="Fjern føremål">&times;</button>
+                        </div>
+                    </template>
+                    <button type="button" id="add-purpose" class="ds-button" data-variant="secondary">Legg til nytt språk</button>
+                    <p id="purpose-error" th:if="${#fields.hasErrors('purpose')}"
+                       th:errors="*{purpose}" class="ds-validation-message"></p>
+                </fieldset>
+
+                <div class="ds-field intended-use-section">
+                    <label class="ds-label" for="privacyPolicyUri">Adresse til personvernreglane</label>
+                    <input class="ds-input" id="privacyPolicyUri" type="url" inputmode="url"
+                           th:field="*{privacyPolicyUri}" autocomplete="url"
+                           th:aria-invalid="${#fields.hasErrors('privacyPolicyUri')}"
+                           th:aria-describedby="${#fields.hasErrors('privacyPolicyUri')} ? 'privacy-policy-error'">
+                    <p id="privacy-policy-error" th:if="${#fields.hasErrors('privacyPolicyUri')}"
+                       th:errors="*{privacyPolicyUri}" class="ds-validation-message"></p>
+                </div>
+            </div>
+
+            <div class="ds-card__block">
+                <div th:replace="~{fragments/registration_fragments :: card_heading('Bevis og attributt', null)}"></div>
+                <fieldset id="credentials" class="ds-fieldset intended-use-section" tabindex="-1"
+                          th:aria-describedby="${#fields.hasErrors('credentials')} ? 'credentials-error'">
+                    <legend class="ds-label">Bevis</legend>
+                    <div id="manual-credentials">
+                        <p id="credentials-empty" class="ds-paragraph" data-size="sm"
+                           th:hidden="${!#lists.isEmpty(intendedUseForm.credentials)}">Ingen bevis er lagde til.</p>
+                        <div id="added-credentials">
+                            <th:block th:each="credential, stat : *{credentials}" th:if="${credential != null}">
+                                <div th:replace="~{::manual_row(${stat.index}, ${credential})}"></div>
+                            </th:block>
+                        </div>
+                        <template id="credential-row-template">
+                            <div th:replace="~{::manual_row(0, ${emptyCredential})}"></div>
+                        </template>
+                        <button type="button" id="add-credential" class="ds-button" data-variant="secondary">Legg til bevis</button>
+                    </div>
+                    <p id="credentials-error" th:if="${#fields.hasErrors('credentials')}"
+                       th:errors="*{credentials}" class="ds-validation-message"></p>
+                </fieldset>
+            </div>
+
+            <div class="ds-card__block">
+                <div class="button-group">
+                    <button class="ds-button" type="submit">Lagre føremålet</button>
+                    <a th:href="${detailsUrl}" class="ds-button" data-variant="secondary">Avbryt</a>
+                </div>
+            </div>
+        </section>
+    </form>
+
+    <th:block th:remove="all">
+        <div th:fragment="manual_row(index, credential)" class="intended-use-proof-selection" data-credential>
+            <div class="ds-field">
+                <label class="ds-label" th:for="|credential-name-${index}|">Namn</label>
+                <input class="ds-input" th:id="|credential-name-${index}|"
+                       placeholder="Norsk ID-bevis"
+                       th:name="|credentials[${index}].name|"
+                       th:aria-invalid="${#fields.hasErrors('credentials[' + index + '].name')}"
+                       th:aria-describedby="${#fields.hasErrors('credentials[' + index + '].name')} ? |credential-name-error-${index}|" type="text" autocomplete="off" th:value="${credential.name}" maxlength="255">
+                <p th:id="|credential-name-error-${index}|"
+                   th:if="${#fields.hasErrors('credentials[' + index + '].name')}"
+                   th:errors="*{credentials[__${index}__].name}" class="ds-validation-message"></p>
+            </div>
+            <div class="ds-field">
+                <label class="ds-label" th:for="|credential-vct-${index}|">Bevistype (VCT)</label>
+                <input class="ds-input" th:id="|credential-vct-${index}|"
+                       placeholder="urn:example:norsk-id"
+                       th:name="|credentials[${index}].vct|"
+                       th:aria-invalid="${#fields.hasErrors('credentials[' + index + '].vct')}"
+                       th:aria-describedby="${#fields.hasErrors('credentials[' + index + '].vct')} ? |credential-vct-error-${index}|" type="text" autocomplete="off" th:value="${credential.vct}">
+                <p th:id="|credential-vct-error-${index}|"
+                   th:if="${#fields.hasErrors('credentials[' + index + '].vct')}"
+                   th:errors="*{credentials[__${index}__].vct}" class="ds-validation-message"></p>
+            </div>
+            <div class="ds-field">
+                <label class="ds-label" th:for="|credential-claimPaths-${index}|">DCQL-path</label>
+                <p class="ds-paragraph" data-size="sm" th:id="|credential-claimPaths-help-${index}|">Skriv éin DCQL-path per linje.</p>
+                <textarea class="ds-input" th:id="|credential-claimPaths-${index}|"
+                       placeholder="[&quot;given_name&quot;]&#10;[&quot;family_name&quot;]&#10;[&quot;birthdate&quot;]"
+                       th:name="|credentials[${index}].claimPaths|"
+                       th:aria-invalid="${#fields.hasErrors('credentials[' + index + '].claimPaths')}"
+                       th:aria-describedby="${#fields.hasErrors('credentials[' + index + '].claimPaths')} ? |credential-claimPaths-help-${index} credential-claimPaths-error-${index}| : |credential-claimPaths-help-${index}|" rows="4" spellcheck="false" th:text="${credential.claimPaths}"></textarea>
+                <p th:id="|credential-claimPaths-error-${index}|"
+                   th:if="${#fields.hasErrors('credentials[' + index + '].claimPaths')}"
+                   th:errors="*{credentials[__${index}__].claimPaths}" class="ds-validation-message"></p>
+            </div>
+            <button type="button" class="ds-button" data-variant="secondary" data-color="danger"
+                    data-size="sm" data-remove-credential th:aria-label="|Fjern bevis ${index + 1}|">Fjern bevis</button>
+        </div>
+    </th:block>
+</main>
+<footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
+<script th:src="@{/js/intended_use_form.js}"></script>
+</body>
+</html>

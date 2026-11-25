@@ -403,18 +403,35 @@ class V2ApiIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should create and read an intended use with a credential display name")
-    void shouldCreateAndReadAnIntendedUseWithACredentialDisplayName() throws Exception {
+    @DisplayName("Should create and reload manual proofs without changing DCQL path values")
+    void shouldCreateAndReloadManualProofsWithoutChangingDcqlPathValues() throws Exception {
         Registration registration = createRegistration();
-        String displayName = "Identity credential";
-        String requestBody = INTENDED_USE.replace(
-            "\"format\":", "\"displayName\":\"" + displayName + "\",\"format\":");
+        String requestBody = """
+            {"purpose":[{"lang":"nn","content":"Identifisere brukaren"}],
+             "privacyPolicy":[{"type":"http://data.europa.eu/eudi/policy/privacy-statement",
+                               "policyURI":"https://example.test/privacy"}],
+             "credentials":[{"format":"dc+sd-jwt","displayName":"Norsk ID-bevis",
+                             "meta":{"vct_values":["urn:example:norsk-id"]},
+                             "claims":[{"path":["items",0,null,2147483648,9223372036854775808," name "]}]}]}
+            """;
+        var expectedPath = objectMapper.readTree("[\"items\",0,null,2147483648,9223372036854775808,\" name \"]");
 
         JsonNode created = read(post(registration.intendedUsesPath()), requestBody);
         JsonNode stored = read(get(registration.intendedUsesPath())).get(0);
 
-        assertEquals(displayName, created.at("/credentials/0/displayName").asString());
-        assertEquals(displayName, stored.at("/credentials/0/displayName").asString());
+        for (JsonNode intendedUse : List.of(created, stored)) {
+            assertEquals("Norsk ID-bevis", intendedUse.at("/credentials/0/displayName").asString());
+            assertEquals(expectedPath, intendedUse.at("/credentials/0/claims/0/path"));
+        }
+
+        new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+            var service = relyingPartyServiceRepository.findById(UUID.fromString(registration.relyingPartyServiceId()))
+                .orElseThrow();
+            var credential = service.getIntendedUses().getFirst().getCredentials().getFirst();
+            assertEquals("Norsk ID-bevis", credential.getDisplayName());
+            assertEquals(java.util.Arrays.asList("items", 0, null, 2147483648L,
+                new java.math.BigInteger("9223372036854775808"), " name "), credential.getClaims().getFirst().get("path"));
+        });
     }
 
     @Test

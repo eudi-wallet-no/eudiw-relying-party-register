@@ -21,10 +21,7 @@ public class IntendedUseForm {
 
     private List<Purpose> purpose = new ArrayList<>();
     private String privacyPolicyUri;
-    private IssuerSource issuerSource = IssuerSource.DEFAULT;
-    private String issuerMetadataUrl;
-    private String metadataLoadedFor;
-    private List<CredentialSelection> credentialSelections = new ArrayList<>();
+    private List<Credential> credentials = new ArrayList<>();
 
     public IntendedUseForm() {
     }
@@ -92,22 +89,9 @@ public class IntendedUseForm {
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class CredentialSelection {
-        private String credentialId;
-        private List<ClaimSelection> claims = new ArrayList<>();
-    }
-
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class ClaimSelection {
-        private Integer index;
-        private boolean selected;
-    }
-
-    public enum IssuerSource {
-        DEFAULT,
-        CUSTOM
+    public static class Credential {
+        private String name;
+        private String vct;
+        private String claimPaths;
     }
 }
