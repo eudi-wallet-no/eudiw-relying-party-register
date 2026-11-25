@@ -28,7 +28,7 @@
         <idporten-audit-log.version>4.0.6</idporten-audit-log.version>
         <spring-security-test.version>7.1.2</spring-security-test.version>
         <spring-security-oauth2-resource-server.version>7.1.2</spring-security-oauth2-resource-server.version>
-        <httpcore5.version>5.4.4</httpcore5.version>
+        <httpcore5.version>5.5</httpcore5.version>
         <tomcat.version>11.0.24</tomcat.version>
     </properties>
 
