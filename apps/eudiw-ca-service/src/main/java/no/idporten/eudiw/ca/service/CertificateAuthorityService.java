@@ -56,6 +56,8 @@ import java.util.List;
 @Service
 public class CertificateAuthorityService {
 
+    private final org.slf4j.Logger log = LoggerFactory.getLogger(CertificateAuthorityService.class);
+
     public static final String DIGDIR_ORGNO = "991825827";
     public static final String OID_ORGANIZATION_NUMBER = "2.5.4.97";
     public static final String SIGNATURE_ALGORITHM_SHA_256_WITH_ECDSA = "SHA256WITHECDSA";
@@ -146,9 +148,10 @@ public class CertificateAuthorityService {
         // add extensions from CA certificate profile
         CertificateProfile certificateProfile = certificateAuthority.getCertificateProfile(profile);
         if (certificateProfile == null) {
-            LoggerFactory.getLogger(CertificateAuthorityService.class).warn("Ignore profile '{}' since no certificate profile found for CA intermediate '{}'", profile, certificateAuthority.getId());
+            log.warn("Ignore profile '{}' since no certificate profile found for CA intermediate '{}'", profile, certificateAuthority.getId());
 
         } else {
+            log.info("Add extensions from certificate profile '{}' for CA intermediate '{}'", profile, certificateAuthority.getId());
             addExtensionsFromCertificateProfile(certificateProfile, extensions);
         }
         // add extensions from CSR if supported
