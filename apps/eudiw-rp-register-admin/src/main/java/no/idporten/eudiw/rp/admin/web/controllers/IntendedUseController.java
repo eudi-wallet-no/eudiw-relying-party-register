@@ -50,6 +50,7 @@ public class IntendedUseController {
         // TODO: Legg inn kontroll mot revokert/inaktiv status før oppretting av føremål.
         var registration = getAuthorizedRegistration(id);
         var form = new IntendedUseForm();
+        form.getCredentials().add(new IntendedUseForm.Credential());
         var bindingResult = new BeanPropertyBindingResult(form, FORM_ATTR);
 
         return formView(registration, form, bindingResult, returnUrl);
