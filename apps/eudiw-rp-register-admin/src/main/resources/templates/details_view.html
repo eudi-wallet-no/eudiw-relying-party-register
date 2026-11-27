@@ -34,8 +34,9 @@
                 Detaljar for <span th:text="${relyingPartyResource.tradeName}"/>
             </h1>
             <span class="ds-tag"
-                  th:attr="data-color=${relyingPartyResource.active ? 'success' : 'danger'}"
-                  th:text="${relyingPartyResource.active ? 'Aktiv' : 'Inaktiv'}"></span>
+                  th:with="partyRevoked=${relyingPartyResource.relyingParty != null and relyingPartyResource.relyingParty.revokedAt != null}"
+                  th:attr="data-color=${partyRevoked or !relyingPartyResource.active ? 'danger' : 'success'}"
+                  th:text="${partyRevoked ? 'Revokert' : (relyingPartyResource.active ? 'Aktiv' : 'Inaktiv')}"></span>
         </div>
 
         <nav id="tabs_container" aria-label="Detaljar om registreringa">

@@ -429,6 +429,38 @@ class RegistrationWorkflowTests {
     }
 
     @ParameterizedTest
+    @CsvSource({
+        "true, true, true, true, danger, Revokert",
+        "true, false, true, true, danger, Revokert",
+        "false, true, true, true, danger, Revokert",
+        "false, false, true, true, danger, Revokert",
+        "true, true, true, false, success, Aktiv",
+        "true, false, true, false, danger, Inaktiv",
+        "false, true, true, false, success, Aktiv",
+        "false, false, true, false, danger, Inaktiv",
+        "true, true, false, false, success, Aktiv",
+        "false, false, false, false, danger, Inaktiv"
+    })
+    @DisplayName("Should show the party revocation or instance status in the details badge")
+    void shouldShowThePartyRevocationOrInstanceStatusInTheDetailsBadge(
+        boolean administrator, boolean active, boolean partyPresent, boolean revoked, String color, String label
+    ) throws Exception {
+        var party = relyingPartyResource.relyingParty();
+        relyingPartyResource = relyingPartyResource.withActive(active)
+            .withRelyingParty(partyPresent ? new RelyingPartyResource.RelyingPartyDetails(
+                party.tradeName(), party.country(), party.providerType(), party.legalPerson(), party.identifier(),
+                party.policy(), party.postalAddress(), party.email(), party.phone(), party.infoUri(), party.x5c(),
+                party.supervisoryAuthority(), party.registryUri(), revoked ? "2026-11-27" : null) : null);
+        enqueueLookup();
+
+        String html = mockMvc.perform(get("/details/" + relyingPartyResource.id()).with(login(administrator)))
+            .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        assertTrue(Pattern.compile("<div class=\"registration-title\">(?:(?!</div>).)*?<span\\s+class=\"ds-tag\"\\s+data-color=\""
+                + color + "\">" + label + "</span>", Pattern.DOTALL)
+            .matcher(html).find(), "Expected the details badge to show " + label + " in " + color);
+    }
+
+    @ParameterizedTest
     @ValueSource(booleans = {true, false})
     @DisplayName("Should change registration status from the status section and show the new status badge")
     void shouldChangeRegistrationStatusFromStatusSectionAndShowNewStatusBadge(boolean active) throws Exception {
