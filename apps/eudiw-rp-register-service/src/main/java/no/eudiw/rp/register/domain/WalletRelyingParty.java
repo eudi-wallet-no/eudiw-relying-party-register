@@ -165,6 +165,12 @@ public class WalletRelyingParty extends BaseEntity {
         this.lastUpdatedMs = Instant.now().toEpochMilli();
     }
 
+    public void revoke() {
+        if (revokedAt == null) {
+            revokedAt = currentDate();
+        }
+    }
+
     @PrePersist
     protected void onPrePersist() {
         Instant now = Instant.now();
