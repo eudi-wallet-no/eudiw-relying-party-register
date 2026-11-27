@@ -117,7 +117,8 @@ public class DetailedViewControllerTests {
                     List.of("certificate-chain"),
                     new RelyingPartyResource.SupervisoryAuthorityDetails(
                         "Datatilsynet", "NO", List.of(), List.of("postkasse@datatilsynet.no"), List.of()),
-                    "https://registry.example.test/wrp"))
+                    "https://registry.example.test/wrp",
+                    null))
                 .withRelyingPartyService(new RelyingPartyResource.RelyingPartyServiceDetails(
                     "service-1",
                     List.of(new RelyingPartyResource.MultiLangStringDetails("en", "Service description")),

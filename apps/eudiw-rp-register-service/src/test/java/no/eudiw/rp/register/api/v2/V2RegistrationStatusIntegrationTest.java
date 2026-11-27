@@ -35,6 +35,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -111,48 +113,49 @@ class V2RegistrationStatusIntegrationTest {
 
         assertRegistrationStatus(registration, true, true, true, false, true, true);
 
-        changeRegistrationStatus("/v2/relying-parties/%s/deactivate".formatted(registration.walletRelyingParty().getId()));
+    }
 
-        assertRegistrationStatus(registration, false, false, false, false, false, false);
+    @Test
+    @DisplayName("Should revoke a party without changing its services or instances")
+    void shouldRevokeAPartyWithoutChangingItsServicesOrInstances() throws Exception {
+        Registration registration = createRegistration();
+        UUID partyId = registration.walletRelyingParty().getId();
+        String path = "/v2/relying-parties/%s".formatted(partyId);
 
-        changeRegistrationStatus("/v2/relying-parties/%s/activate".formatted(registration.walletRelyingParty().getId()));
+        changeRegistrationStatus(path + "/revoke");
+        var party = walletRelyingPartyRepository.findById(partyId).orElseThrow();
+        assertEquals(LocalDate.now(ZoneOffset.UTC), party.getRevokedAt());
+        assertTrue(party.isActive());
+        assertRegistrationStatus(registration, false, true, true, true, true, true);
 
-        assertRegistrationStatus(registration, true, false, false, false, false, false);
-
-        changeRegistrationStatus("/v2/services/%s/activate".formatted(registration.otherWalletRelyingPartyService().getId()));
-
-        assertRegistrationStatus(registration, true, false, false, false, true, false);
-
-        changeRegistrationStatus("/v2/instances/%s/activate".formatted(registration.otherRelyingPartyInstance().getId()));
-
-        assertRegistrationStatus(registration, true, false, false, false, true, true);
-
-        changeRegistrationStatus("/v2/services/%s/activate".formatted(registration.walletRelyingPartyService().getId()));
-
-        assertRegistrationStatus(registration, true, true, false, false, true, true);
-
-        changeRegistrationStatus("/v2/instances/%s/activate".formatted(registration.siblingRelyingPartyInstance().getId()));
-
-        assertRegistrationStatus(registration, true, true, false, true, true, true);
+        changeRegistrationStatus(path + "/revoke");
+        assertEquals(party.getRevokedAt(), walletRelyingPartyRepository.findById(partyId).orElseThrow().getRevokedAt());
+        mockMvc.perform(get(path).header(API_KEY_HEADER, API_KEY))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.revokedAt").value(party.getRevokedAt().toString()))
+            .andExpect(jsonPath("$.active").doesNotExist());
+        mockMvc.perform(patch(path + "/activate").header(API_KEY_HEADER, API_KEY))
+            .andExpect(status().isNotFound());
+        mockMvc.perform(patch(path + "/deactivate").header(API_KEY_HEADER, API_KEY))
+            .andExpect(status().isNotFound());
     }
 
     @Test
     void cannotReactivateChildWhileAnyAncestorIsInactive() throws Exception {
         Registration registration = createRegistration();
-        changeRegistrationStatus("/v2/relying-parties/%s/deactivate".formatted(registration.walletRelyingParty().getId()));
+        changeRegistrationStatus("/v2/services/%s/deactivate".formatted(registration.walletRelyingPartyService().getId()));
+        changeRegistrationStatus("/v2/relying-parties/%s/revoke".formatted(registration.walletRelyingParty().getId()));
 
         mockMvc.perform(patch("/v2/services/%s/activate".formatted(registration.walletRelyingPartyService().getId()))
                 .header(API_KEY_HEADER, API_KEY))
             .andExpect(status().isBadRequest());
         assertFalse(isWalletRelyingPartyServiceActive(registration));
 
-        changeRegistrationStatus("/v2/relying-parties/%s/activate".formatted(registration.walletRelyingParty().getId()));
-
         mockMvc.perform(patch("/v2/instances/%s/activate".formatted(registration.relyingPartyInstance().getId()))
                 .header(API_KEY_HEADER, API_KEY))
             .andExpect(status().isBadRequest());
 
-        assertTrue(isWalletRelyingPartyActive(registration));
+        assertFalse(isWalletRelyingPartyActive(registration));
         assertFalse(isWalletRelyingPartyServiceActive(registration));
         assertFalse(isRelyingPartyInstanceActive(registration));
     }
@@ -162,7 +165,7 @@ class V2RegistrationStatusIntegrationTest {
     void rejectsCertificateIssuanceWhenAnyRegistrationLevelIsInactive(RegistrationLevel level) throws Exception {
         Registration registration = createRegistration();
         String path = switch (level) {
-            case WALLET_RELYING_PARTY -> "/v2/relying-parties/%s/deactivate".formatted(registration.walletRelyingParty().getId());
+            case WALLET_RELYING_PARTY -> "/v2/relying-parties/%s/revoke".formatted(registration.walletRelyingParty().getId());
             case WALLET_RELYING_PARTY_SERVICE -> "/v2/services/%s/deactivate".formatted(registration.walletRelyingPartyService().getId());
             case RELYING_PARTY_INSTANCE -> "/v2/instances/%s/deactivate".formatted(registration.relyingPartyInstance().getId());
         };
@@ -193,7 +196,7 @@ class V2RegistrationStatusIntegrationTest {
         registration.issuerCertificate().revoke(1);
         issuerCertificateRepository.saveAndFlush(registration.issuerCertificate());
         String path = switch (level) {
-            case WALLET_RELYING_PARTY -> "/v2/relying-parties/%s/deactivate".formatted(registration.walletRelyingParty().getId());
+            case WALLET_RELYING_PARTY -> "/v2/relying-parties/%s/revoke".formatted(registration.walletRelyingParty().getId());
             case WALLET_RELYING_PARTY_SERVICE -> "/v2/services/%s/deactivate".formatted(registration.walletRelyingPartyService().getId());
             case RELYING_PARTY_INSTANCE -> "/v2/instances/%s/deactivate".formatted(registration.relyingPartyInstance().getId());
         };
@@ -231,8 +234,8 @@ class V2RegistrationStatusIntegrationTest {
     @DisplayName("Should read and revoke both certificate types through V2 when the entire hierarchy is inactive")
     void shouldReadAndRevokeCertificatesThroughV2ForInactiveRegistration() throws Exception {
         Registration registration = createRegistration();
-        changeRegistrationStatus("/v2/relying-parties/%s/deactivate".formatted(registration.walletRelyingParty().getId()));
-        assertRegistrationStatus(registration, false, false, false, false, false, false);
+        changeRegistrationStatus("/v2/relying-parties/%s/revoke".formatted(registration.walletRelyingParty().getId()));
+        assertRegistrationStatus(registration, false, true, true, true, true, true);
         when(certificateServiceClient.revokeCertificate(anyString(), anyInt(), anyString()))
             .thenReturn(HttpStatus.NO_CONTENT);
 
@@ -304,7 +307,7 @@ class V2RegistrationStatusIntegrationTest {
 
     @Test
     void requiresApiKeyForV2StatusOperations() throws Exception {
-        mockMvc.perform(patch("/v2/relying-parties/%s/deactivate".formatted(java.util.UUID.randomUUID())))
+        mockMvc.perform(patch("/v2/relying-parties/%s/revoke".formatted(java.util.UUID.randomUUID())))
             .andExpect(status().isUnauthorized());
 
         verifyNoInteractions(certificateServiceClient);
@@ -346,7 +349,7 @@ class V2RegistrationStatusIntegrationTest {
     }
 
     private boolean isWalletRelyingPartyActive(Registration registration) {
-        return walletRelyingPartyRepository.findById(registration.walletRelyingParty().getId()).orElseThrow().isActive();
+        return walletRelyingPartyRepository.findById(registration.walletRelyingParty().getId()).orElseThrow().isUsable();
     }
 
     private boolean isWalletRelyingPartyServiceActive(Registration registration) {

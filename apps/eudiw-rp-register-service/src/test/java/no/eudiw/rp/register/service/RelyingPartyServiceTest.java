@@ -117,7 +117,7 @@ class RelyingPartyServiceTest {
     @Test
     void rejectsInactiveWalletRelyingPartyBeforeSaving() {
         WalletRelyingParty walletRelyingParty = new WalletRelyingParty("Entity", "123456789", false, List.of());
-        walletRelyingParty.setActive(false);
+        walletRelyingParty.revoke();
         when(walletRelyingPartyLookupService.findWalletRelyingPartyForOrgno("123456789"))
             .thenReturn(Optional.of(walletRelyingParty));
 
@@ -128,8 +128,8 @@ class RelyingPartyServiceTest {
     }
 
     @Test
-    @DisplayName("Deactivating a party suspends its services and instances")
-    void deactivatingPartySuspendsItsServicesAndKeepsExistingLifecycleBehavior() {
+    @DisplayName("Should preserve service and instance status when a party is revoked")
+    void shouldPreserveServiceAndInstanceStatusWhenAPartyIsRevoked() {
         var relyingPartyInstance = new RelyingPartyInstance(List.of(), List.of(), List.of());
         var walletRelyingPartyService =
             new WalletRelyingPartyService("Service", null, List.of(relyingPartyInstance));
@@ -139,12 +139,13 @@ class RelyingPartyServiceTest {
         when(walletRelyingPartyRepository.findByIdForUpdate(partyId))
             .thenReturn(Optional.of(walletRelyingParty));
 
-        service.deactivateRelyingParty(partyId);
+        service.revokeRelyingParty(partyId);
 
         assertEquals(
-            WalletRelyingPartyService.STATUS_SUSPENDED, walletRelyingPartyService.getStatus());
-        assertFalse(walletRelyingPartyService.isActive());
-        assertFalse(relyingPartyInstance.isActive());
+            WalletRelyingPartyService.STATUS_ACTIVE, walletRelyingPartyService.getStatus());
+        assertTrue(walletRelyingPartyService.isActive());
+        assertTrue(relyingPartyInstance.isActive());
+        assertNotNull(walletRelyingParty.getRevokedAt());
         verify(walletRelyingPartyRepository).saveAndFlush(walletRelyingParty);
     }
 

@@ -116,7 +116,7 @@ public class RelyingPartyInstanceRepositoryTest {
             new RelyingPartyEntitlement("inactive-service")
         ));
         RelyingPartyInstance inactivePartyInstance = EntityGenerator.generateRelyingParty();
-        inactivePartyInstance.getWalletRelyingPartyService().getWalletRelyingParty().setActive(false);
+        inactivePartyInstance.getWalletRelyingPartyService().getWalletRelyingParty().revoke();
         EntityGenerator.setRelyingPartyEntitlements(inactivePartyInstance, List.of(
             new RelyingPartyEntitlement("inactive-party")
         ));
@@ -228,7 +228,7 @@ public class RelyingPartyInstanceRepositoryTest {
         switch (inactiveResource) {
             case "RelyingPartyInstance" -> inactiveInstance.setActive(false);
             case "WalletRelyingPartyService" -> relyingPartyService.setActive(false);
-            case "WalletRelyingParty" -> relyingPartyService.getWalletRelyingParty().setActive(false);
+            case "WalletRelyingParty" -> relyingPartyService.getWalletRelyingParty().revoke();
         }
         repository.saveAndFlush(activeInstance);
         repository.saveAndFlush(inactiveInstance);

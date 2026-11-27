@@ -14,6 +14,7 @@ import no.eudiw.rp.register.domain.WalletRelyingParty;
 import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 
 import java.util.List;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @JsonInclude(JsonInclude.Include.ALWAYS)
@@ -32,7 +33,7 @@ public record RelyingPartyResponse(
     List<String> email,
     List<String> phone,
     List<String> infoURI,
-    boolean active,
+    LocalDate revokedAt,
     long createdMs,
     long lastUpdatedMs,
     @JsonProperty("serviceIds") List<UUID> relyingPartyServiceIds,
@@ -63,7 +64,7 @@ public record RelyingPartyResponse(
             relyingParty.getEmail(),
             relyingParty.getPhone(),
             relyingParty.getInfoURI(),
-            relyingParty.isActive(),
+            relyingParty.getRevokedAt(),
             relyingParty.getCreatedMs(),
             relyingParty.getLastUpdatedMs(),
             relyingParty.getServices().stream().map(WalletRelyingPartyService::getId).toList(),

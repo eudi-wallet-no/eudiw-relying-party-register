@@ -22,6 +22,7 @@ public interface WalletRelyingPartyServiceRepository
         WHERE service.id = :id
           AND service.active = TRUE
           AND service.walletRelyingParty.active = TRUE
+          AND service.walletRelyingParty.revokedAt IS NULL
         """)
     Optional<WalletRelyingPartyService> findActiveById(@Param("id") UUID id);
 }

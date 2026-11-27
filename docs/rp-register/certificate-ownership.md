@@ -12,4 +12,4 @@ You cannot delete a role with issuer certificates. This includes revoked certifi
 
 Before SQL deletion of an instance or service, delete the issuer certificates of the affected instances.
 
-See [Registration lifecycle](registration-lifecycle.md) for deactivation and reactivation.
+See [Registration lifecycle](registration-lifecycle.md) for revocation, deactivation and reactivation.

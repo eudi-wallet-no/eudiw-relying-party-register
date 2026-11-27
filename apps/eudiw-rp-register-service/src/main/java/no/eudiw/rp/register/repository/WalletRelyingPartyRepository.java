@@ -49,7 +49,7 @@ public interface WalletRelyingPartyRepository
     Optional<WalletRelyingParty> findByIdForUpdate(UUID id);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT party FROM WalletRelyingParty party WHERE party.id = :id AND party.active = TRUE")
+    @Query("SELECT party FROM WalletRelyingParty party WHERE party.id = :id AND party.active = TRUE AND party.revokedAt IS NULL")
     Optional<WalletRelyingParty> findActiveByIdForUpdate(UUID id);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
@@ -65,6 +65,7 @@ public interface WalletRelyingPartyRepository
     @Query("""
         SELECT party FROM WalletRelyingParty party
         WHERE party.active = TRUE
+          AND party.revokedAt IS NULL
           AND party.id = (
             SELECT service.walletRelyingParty.id
             FROM WalletRelyingPartyService service
@@ -87,6 +88,7 @@ public interface WalletRelyingPartyRepository
     @Query("""
         SELECT party FROM WalletRelyingParty party
         WHERE party.active = TRUE
+          AND party.revokedAt IS NULL
           AND party.id = (
             SELECT instance.walletRelyingPartyService.walletRelyingParty.id
             FROM RelyingPartyInstance instance

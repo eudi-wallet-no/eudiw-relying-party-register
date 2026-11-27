@@ -144,6 +144,13 @@ public class V2RegisterClient {
             .toBodilessEntity();
     }
 
+    public void revokeRelyingParty(UUID relyingPartyId) {
+        restClient.patch()
+            .uri("/relying-parties/{id}/revoke", relyingPartyId)
+            .retrieve()
+            .toBodilessEntity();
+    }
+
     public void updateInstanceRoles(UUID instanceId, InstanceRolesRequest request) {
         restClient.patch()
             .uri("/instances/{id}/entitlements", instanceId)

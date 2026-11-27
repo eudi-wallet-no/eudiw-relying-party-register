@@ -13,6 +13,7 @@ import no.eudiw.rp.register.repository.WalletRelyingPartyRepository;
 import no.eudiw.rp.register.repository.WalletRelyingPartyServiceRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,7 +75,8 @@ class RegistrationStatusConcurrencyTest {
 
     @ParameterizedTest
     @EnumSource(HierarchyWrite.class)
-    void childWriteWaitsForDeactivationAndRejectsInactiveAncestor(HierarchyWrite write) throws Exception {
+    @DisplayName("Should reject a child write after an ancestor status change")
+    void shouldRejectAChildWriteAfterAnAncestorStatusChange(HierarchyWrite write) throws Exception {
         Registration registration = createRegistration(write);
         var deactivated = new CountDownLatch(1);
         var allowCommit = new CountDownLatch(1);
@@ -103,15 +105,14 @@ class RegistrationStatusConcurrencyTest {
             }
         }
 
-        reactivateAncestor(registration, write);
-
-        assertChildrenInactive(registration, write);
+        assertChildrenAfterRevocation(registration, write, false);
         assertEquals(1, serviceRepository.count());
     }
 
     @ParameterizedTest
     @EnumSource(HierarchyWrite.class)
-    void deactivationWaitsForChildWriteAndThenCascadesToIt(HierarchyWrite write) throws Exception {
+    @DisplayName("Should serialize an ancestor status change after a child write")
+    void shouldSerializeAnAncestorStatusChangeAfterAChildWrite(HierarchyWrite write) throws Exception {
         Registration registration = createRegistration(write);
         var activated = new CountDownLatch(1);
         var allowCommit = new CountDownLatch(1);
@@ -140,9 +141,7 @@ class RegistrationStatusConcurrencyTest {
             }
         }
 
-        reactivateAncestor(registration, write);
-
-        assertChildrenInactive(registration, write);
+        assertChildrenAfterRevocation(registration, write, true);
         assertEquals(write == HierarchyWrite.INSTANCE_CREATION ? 2 : 1, serviceRepository.count());
     }
 
@@ -170,23 +169,20 @@ class RegistrationStatusConcurrencyTest {
         if (write == HierarchyWrite.INSTANCE_ACTIVATION) {
             relyingPartyService.deactivateRelyingPartyService(registration.serviceId());
         } else {
-            relyingPartyService.deactivateRelyingParty(registration.partyId());
+            relyingPartyService.revokeRelyingParty(registration.partyId());
         }
     }
 
-    private void reactivateAncestor(Registration registration, HierarchyWrite write) {
+    private void assertChildrenAfterRevocation(Registration registration, HierarchyWrite write, boolean childWriteSucceeded) {
+        var party = partyRepository.findById(registration.partyId()).orElseThrow();
         if (write == HierarchyWrite.INSTANCE_ACTIVATION) {
-            relyingPartyService.activateRelyingPartyService(registration.serviceId());
+            assertNull(party.getRevokedAt());
+            assertFalse(instanceRepository.findById(registration.instanceId()).orElseThrow().isActive());
         } else {
-            relyingPartyService.activateRelyingParty(registration.partyId());
-        }
-    }
-
-    private void assertChildrenInactive(Registration registration, HierarchyWrite write) {
-        assertTrue(instanceRepository.findAll().stream().noneMatch(RelyingPartyInstance::isActive));
-        assertTrue(partyRepository.findById(registration.partyId()).orElseThrow().isActive());
-        if (write != HierarchyWrite.INSTANCE_ACTIVATION) {
-            assertTrue(serviceRepository.findAll().stream().noneMatch(WalletRelyingPartyService::isActive));
+            assertNotNull(party.getRevokedAt());
+            assertFalse(instanceRepository.findById(registration.instanceId()).orElseThrow().isActive());
+            assertEquals(write == HierarchyWrite.INSTANCE_CREATION || childWriteSucceeded,
+                serviceRepository.findById(registration.serviceId()).orElseThrow().isActive());
         }
     }
 

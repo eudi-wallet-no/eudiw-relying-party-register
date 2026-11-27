@@ -82,7 +82,7 @@ public class RelyingPartyInstance extends BaseEntity {
         }
 
         return walletRelyingPartyService.isActive()
-            && walletRelyingPartyService.getWalletRelyingParty().isActive();
+            && walletRelyingPartyService.getWalletRelyingParty().isUsable();
     }
 
     private void addOrUpdateRelyingPartyEntitlement(RelyingPartyEntitlement newEntitlement) {
