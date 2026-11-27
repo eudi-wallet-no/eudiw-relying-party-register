@@ -407,6 +407,11 @@
     <section class="ds-card registration-card">
         <details class="ds-details">
             <summary><h2 class="ds-heading" data-size="sm">Føremål</h2></summary>
+            <div class="registration-section-bar">
+                <h3 class="ds-heading" data-size="sm">Dine registrerte føremål</h3>
+                <a class="ds-button" data-variant="secondary" data-size="sm"
+                   th:href="${'/service/intended-use/create/' + relyingPartyResource.id + '?returnUrl=' + #uris.escapeQueryParam(searchUrlAttr ?: '/search')}">Legg til føremål</a>
+            </div>
             <p class="ds-paragraph" th:if="${#lists.isEmpty(relyingPartyResource.intendedUses)}">Tenesta har ingen registrerte føremål.</p>
         <details class="ds-details"
                  th:each="intendedUse, intendedUseStatus : ${relyingPartyResource.intendedUses}">

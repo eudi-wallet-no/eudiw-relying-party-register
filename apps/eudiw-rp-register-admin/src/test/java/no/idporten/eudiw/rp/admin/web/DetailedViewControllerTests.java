@@ -151,7 +151,8 @@ public class DetailedViewControllerTests {
                         "2026-01-01T00:00:00Z", List.of(), List.of(), List.of())));
             when(mockRelyingPartiesService.get(relyingPartyResource.id())).thenReturn(relyingPartyResource);
 
-            var response = mockMvc.perform(get("/details/" + relyingPartyResource.id()))
+            var response = mockMvc.perform(get("/details/" + relyingPartyResource.id())
+                    .param("returnUrl", "/search?name=MinID&page=2"))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
@@ -163,6 +164,11 @@ public class DetailedViewControllerTests {
                 () -> assertTrue(response.contains("Datatilsynet")),
                 () -> assertTrue(response.contains("https://registry.example.test/wrp")),
                 () -> assertTrue(response.contains("en: Service description")),
+                () -> assertTrue(response.matches("(?s).*<div class=\"registration-section-bar\">\\s*"
+                    + "<h3[^>]*>Dine registrerte føremål</h3>\\s*"
+                    + "<a[^>]*class=\"ds-button\"[^>]*>Legg til føremål</a>\\s*</div>.*")),
+                () -> assertTrue(response.contains("/service/intended-use/create/" + relyingPartyResource.id()
+                    + "?returnUrl=/search?name%3DMinID%26page%3D2")),
                 () -> assertTrue(response.contains("pid-verification")),
                 () -> assertTrue(response.contains("<summary>Personal ID</summary>")),
                 () -> assertTrue(response.contains("<caption>Personal ID</caption>")),

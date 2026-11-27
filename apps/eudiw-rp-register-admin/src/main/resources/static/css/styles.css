@@ -56,6 +56,10 @@ html {
     padding-block-start: var(--ds-size-6);
     border-block-start: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
 }
+.intended-use-page-heading {
+    display: grid;
+    gap: var(--ds-size-2);
+}
 .relying-party-information-table--editing th,
 .relying-party-information-table--editing td { padding-block: var(--ds-size-4); }
 .relying-party-information-table--editing tr:has(.relying-party-field-status--readonly) > :is(th, td) { background-color: var(--ds-color-neutral-surface-tinted); }
@@ -568,6 +572,39 @@ footer ul {
     gap: var(--ds-size-2);
     align-items: flex-start;
     margin-block-end: var(--ds-size-2);
+}
+.intended-use-section + .intended-use-section { margin-block-start: var(--ds-size-4); }
+#purpose + .intended-use-section { margin-block-start: var(--ds-size-6); }
+.intended-use-form .registration-card-heading + * { margin-block-start: var(--ds-size-6); }
+.intended-use-form .ds-card__block > .button-group { margin-block-start: 0; }
+.intended-use-form #add-credential { margin-block-start: var(--ds-size-6); }
+.intended-use-purpose-row {
+    display: grid;
+    grid-template-columns: minmax(5rem, 0.3fr) minmax(0, 1fr) auto;
+    align-items: start;
+    gap: var(--ds-size-4);
+    margin-block-end: var(--ds-size-4);
+}
+.intended-use-purpose-row .ds-field {
+    align-self: start;
+    min-inline-size: 0;
+}
+.intended-use-purpose-row > .ds-button { align-self: end; }
+.intended-use-purpose-row textarea.ds-input { min-height: var(--dsc-input-size); }
+.intended-use-proof-selection {
+    display: grid;
+    gap: var(--ds-size-2);
+    min-inline-size: 0;
+    margin-block-start: var(--ds-size-4);
+    padding: var(--ds-size-4);
+    border: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
+    border-radius: var(--ds-border-radius-md);
+}
+.intended-use-proof-selection > .ds-button { justify-self: start; }
+@media (max-width: 600px) {
+    .intended-use-purpose-row { grid-template-columns: minmax(0, 1fr) auto; }
+    .intended-use-purpose-row .ds-field:nth-child(2) { grid-column: 1 / -1; }
+    .intended-use-purpose-row > .ds-button { grid-column: 2; grid-row: 1; }
 }
 .description-lang { flex: 0 0 5rem; inline-size: 5rem; }
 .description-content { flex: 1 1 10rem; min-inline-size: 0; }
