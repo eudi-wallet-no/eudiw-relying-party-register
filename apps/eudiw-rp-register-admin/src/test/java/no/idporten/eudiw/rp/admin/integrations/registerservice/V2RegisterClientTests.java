@@ -406,6 +406,12 @@ class V2RegisterClientTests {
         form.getCredentials().add(new IntendedUseForm.Credential(
             "Norsk ID-bevis", "urn:example:norsk-id",
             "[\"items\",0,null,2147483648,9223372036854775808,\" name \u2028 \"]\n[\"age\"]"));
+        form.getCredentials().add(new IntendedUseForm.Credential(
+            "Driving licence",
+            null,
+            "[\"org.iso.18013.5.1\",\"given_name\"]",
+            "mso_mdoc",
+            "org.iso.18013.5.1.mDL"));
         var jsonMapper = JsonMapper.builder().build();
         var expectedClaims = jsonMapper.readTree("""
             [{"path":["items",0,null,2147483648,9223372036854775808," name \u2028 "]},
@@ -417,7 +423,13 @@ class V2RegisterClientTests {
             .andExpect(header("X-API-KEY", "test-api-key"))
             .andExpect(request -> {
                 var body = jsonMapper.readTree(((MockClientHttpRequest) request).getBodyAsString());
-                assertEquals(1, body.get("credentials").size());
+                assertEquals(2, body.get("credentials").size());
+                assertEquals("mso_mdoc", body.at("/credentials/1/format").asString());
+                assertEquals("Driving licence", body.at("/credentials/1/displayName").asString());
+                assertEquals(jsonMapper.readTree("{\"doctype\":\"org.iso.18013.5.1.mDL\"}"),
+                    body.at("/credentials/1/meta"));
+                assertEquals(jsonMapper.readTree("[{\"path\":[\"org.iso.18013.5.1\",\"given_name\"]}]"),
+                    body.at("/credentials/1/claims"));
                 assertEquals("Norsk ID-bevis", body.at("/credentials/0/displayName").asString());
                 assertEquals("dc+sd-jwt", body.at("/credentials/0/format").asString());
                 assertEquals(jsonMapper.readTree("[\"urn:example:norsk-id\"]"),

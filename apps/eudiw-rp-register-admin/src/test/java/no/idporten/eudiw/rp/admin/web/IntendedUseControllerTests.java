@@ -116,7 +116,7 @@ class IntendedUseControllerTests {
                     submission.setParameter("credentials[0].claimPaths", "[\"given_name\"]\r\n[\"family_name\"]");
                     return submission;
                 })
-                .param("credentials[0].format", "forged")
+                .param("credentials[0].format", "dc+sd-jwt")
                 .param("credentials[0].definitionId", "urn:test:ignored")
                 .param("credentials[1].name", "Aldersbevis")
                 .param("credentials[1].vct", "urn:example:age")
@@ -152,7 +152,6 @@ class IntendedUseControllerTests {
                 .param("credentials[1].name", "Aldersbevis")
                 .param("credentials[1].vct", "urn:example:age")
                 .param("credentials[1].claimPaths", invalidPath)
-                .param("credentials[1].format", "forged")
                 .param("credentials[1].definitionId", "urn:test:ignored"))
             .andExpectAll(status().isOk(), view().name("intended_use_form_view"),
                 model().attributeHasFieldErrors("intendedUseForm", "credentials[1].claimPaths"))
@@ -166,7 +165,7 @@ class IntendedUseControllerTests {
         var errors = bindingResult(result);
         assertFalse(errors.getFieldError("credentials[1].claimPaths").getDefaultMessage().isBlank());
         assertTrue(List.of(errors.getSuppressedFields()).containsAll(
-            List.of("credentials[1].format", "credentials[1].definitionId")));
+            List.of("credentials[1].definitionId")));
         verify(relyingPartiesService, never()).createIntendedUse(any(), any());
     }
 
@@ -221,6 +220,79 @@ class IntendedUseControllerTests {
             .andExpectAll(status().isOk(), view().name("intended_use_form_view"),
                 model().attributeHasFieldErrors("intendedUseForm", "credentials"));
 
+        verify(relyingPartiesService, never()).createIntendedUse(any(), any());
+    }
+
+    @Test
+    @DisplayName("Should save mdoc and SD-JWT credentials with their selected formats and metadata")
+    void shouldSaveMdocAndSdJwtCredentialsWithTheirSelectedFormatsAndMetadata() throws Exception {
+        mockMvc.perform(manualSubmission(registration.id())
+                .param("credentials[1].format", "mso_mdoc")
+                .param("credentials[1].name", "Driving licence")
+                .param("credentials[1].doctype", " org.iso.18013.5.1.mDL ")
+                .param("credentials[1].claimPaths",
+                    "[\"org.iso.18013.5.1\", \"given_name\"]\n[\"org.iso.18013.5.1\", \"family_name\"]"))
+            .andExpectAll(
+                status().is3xxRedirection(),
+                redirectedUrl("/details/" + registration.id() + "?returnUrl=%2Fsearch"));
+
+        var requestCaptor = ArgumentCaptor.forClass(V2RegisterClient.CreateIntendedUseRequest.class);
+        verify(relyingPartiesService).createIntendedUse(eq(registration.relyingPartyServiceId()), requestCaptor.capture());
+        var credentials = requestCaptor.getValue().credentials();
+        assertEquals(2, credentials.size());
+        assertEquals("dc+sd-jwt", credentials.getFirst().format());
+        assertEquals(Map.of("vct_values", List.of("urn:example:norsk-id")), credentials.getFirst().meta());
+        assertEquals(List.of(Map.of("path", List.of("given_name"))), credentials.getFirst().claims());
+        assertEquals("mso_mdoc", credentials.get(1).format());
+        assertEquals("Driving licence", credentials.get(1).displayName());
+        assertEquals(Map.of("doctype", "org.iso.18013.5.1.mDL"), credentials.get(1).meta());
+        assertEquals(List.of(Map.of("path", List.of("org.iso.18013.5.1", "given_name")),
+            Map.of("path", List.of("org.iso.18013.5.1", "family_name"))), credentials.get(1).claims());
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {
+        "doctype| |doctype", "format|forged|format",
+        "claimPaths|[\"namespace\"]|claimPaths",
+        "claimPaths|[\"namespace\",\"name\",\"extra\"]|claimPaths",
+        "claimPaths|[\"namespace\",0]|claimPaths",
+        "claimPaths|[null,\"name\"]|claimPaths",
+        "claimPaths|[\"namespace\",\" \"]|claimPaths",
+        "claimPaths|[\" \",\"name\"]|claimPaths"
+    }, delimiter = '|')
+    @DisplayName("Should retain all submitted values with a field error and not save invalid mdoc input")
+    void shouldRetainAllSubmittedValuesWithAFieldErrorAndNotSaveInvalidMdocInput(
+        String field, String invalidValue, String errorField
+    ) throws Exception {
+        var result = mockMvc.perform(manualSubmission(registration.id())
+                .param("credentials[1].format", "mso_mdoc")
+                .param("credentials[1].name", "Driving licence")
+                .param("credentials[1].vct", "urn:example:retained")
+                .param("credentials[1].doctype", "org.iso.18013.5.1.mDL")
+                .param("credentials[1].claimPaths", "[\"org.iso.18013.5.1\",\"given_name\"]")
+                .with(submission -> {
+                    submission.setParameter("credentials[1]." + field, invalidValue == null ? "" : invalidValue);
+                    return submission;
+                }))
+            .andExpectAll(status().isOk(), view().name("intended_use_form_view"),
+                model().attributeHasFieldErrors("intendedUseForm", "credentials[1]." + errorField))
+            .andReturn();
+
+        var form = submittedForm(result);
+        var credential = form.getCredentials().get(1);
+        assertEquals(2, form.getCredentials().size());
+        assertCredentialValues(form.getCredentials().getFirst(), "Norsk ID-bevis", "urn:example:norsk-id", "[\"given_name\"]");
+        assertEquals("Driving licence", credential.getName());
+        assertEquals("urn:example:retained", credential.getVct());
+        assertEquals("format".equals(field) ? invalidValue : "mso_mdoc", credential.getFormat());
+        assertEquals("doctype".equals(field) ? null : "org.iso.18013.5.1.mDL", credential.getDoctype());
+        assertEquals("claimPaths".equals(field) ? invalidValue : "[\"org.iso.18013.5.1\",\"given_name\"]",
+            credential.getClaimPaths());
+        assertPurposeAndPrivacyPolicy(form);
+        assertFalse(bindingResult(result)
+            .getFieldError("credentials[1]." + errorField)
+            .getDefaultMessage()
+            .isBlank());
         verify(relyingPartiesService, never()).createIntendedUse(any(), any());
     }
 

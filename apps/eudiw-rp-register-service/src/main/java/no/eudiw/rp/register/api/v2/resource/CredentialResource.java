@@ -18,16 +18,25 @@ public record CredentialResource(
     @NotEmpty List<@NotNull Map<String, Object>> claims,
     @JsonInclude(JsonInclude.Include.NON_NULL) @Size(max = 255) String displayName
 ) {
+    private static final String MDOC_FORMAT = "mso_mdoc";
+
     @AssertTrue(message = "invalid_credential_meta")
     public boolean hasValidMeta() {
         if (meta == null || meta.size() != 1) {
             return false;
         }
+
+        if (MDOC_FORMAT.equals(format)) {
+            return meta.get("doctype") instanceof String doctype && !doctype.isBlank();
+        }
+
         Object vctValues = meta.get("vct_values");
+
         if (vctValues instanceof List<?> values) {
             return !values.isEmpty() && values.stream()
                 .allMatch(value -> value instanceof String text && !text.isBlank());
         }
+
         return meta.get("doctype") instanceof String doctype && !doctype.isBlank();
     }
 
@@ -37,10 +46,18 @@ public record CredentialResource(
             if (claim == null) {
                 return false;
             }
+
             Object path = claim.get("path");
+
             if (!(path instanceof List<?> pathParts) || pathParts.isEmpty()) {
                 return false;
             }
+
+            if (MDOC_FORMAT.equals(format)) {
+                return pathParts.size() == 2 && pathParts.stream()
+                    .allMatch(part -> part instanceof String text && !text.isBlank());
+            }
+
             return pathParts.stream().allMatch(part ->
                 part == null
                     || (part instanceof String text && !text.isBlank())

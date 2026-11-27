@@ -39,7 +39,8 @@ public class IntendedUseController {
         binder.registerCustomEditor(String.class, new StringTrimmerEditor(true));
         binder.setAutoGrowCollectionLimit(1000);
         binder.setAllowedFields("purpose[*].lang", "purpose[*].content", "privacyPolicyUri",
-            "credentials[*].name", "credentials[*].vct", "credentials[*].claimPaths");
+            "credentials[*].name", "credentials[*].format", "credentials[*].vct",
+            "credentials[*].doctype", "credentials[*].claimPaths");
     }
 
     @GetMapping("/service/intended-use/create/{id}")

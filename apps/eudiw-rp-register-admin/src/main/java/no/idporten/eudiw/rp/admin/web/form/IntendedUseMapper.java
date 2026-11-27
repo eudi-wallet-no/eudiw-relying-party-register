@@ -8,14 +8,17 @@ import tools.jackson.databind.json.JsonMapper;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Predicate;
 
 public final class IntendedUseMapper {
 
     public static final String PRIVACY_STATEMENT_TYPE = "http://data.europa.eu/eudi/policy/privacy-statement";
 
     private static final String SD_JWT_FORMAT = "dc+sd-jwt";
+    private static final String MDOC_FORMAT = "mso_mdoc";
     private static final JsonMapper CLAIM_PATH_MAPPER = JsonMapper.builder()
         .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
         .build();
@@ -25,50 +28,93 @@ public final class IntendedUseMapper {
 
     public static MappingResult toCreateRequest(IntendedUseForm form) {
         Objects.requireNonNull(form, "The form must be provided.");
+
         List<IntendedUseForm.Credential> rows = form.getCredentials();
+
         if (rows == null || rows.isEmpty()) {
             return MappingResult.error("credentials", "required", "Legg til minst eitt bevis.");
         }
 
         List<V2RegisterClient.IntendedUseCredential> credentials = new ArrayList<>();
+
         for (int index = 0; index < rows.size(); index++) {
             var row = rows.get(index);
             String field = "credentials[" + index + "].";
+
             if (row == null || row.getName() == null || row.getName().isBlank()) {
                 return MappingResult.error(field + "name", "required", "Skriv eit visingsnamn for beviset.");
             }
+
             if (row.getName().strip().length() > 255) {
                 return MappingResult.error(field + "name", "nameTooLong",
                     "Visingsnamnet for beviset kan ikkje ha meir enn 255 teikn.");
             }
-            if (row.getVct() == null || row.getVct().isBlank()) {
-                return MappingResult.error(field + "vct", "required", "Skriv ein VCT.");
+
+            Map<String, Object> meta;
+            Predicate<List<?>> isValidClaimPath;
+            String invalidClaimPathMessage;
+
+            if (SD_JWT_FORMAT.equals(row.getFormat())) {
+                if (row.getVct() == null || row.getVct().isBlank()) {
+                    return MappingResult.error(field + "vct", "required", "Skriv ein VCT.");
+                }
+
+                meta = Map.of("vct_values", List.of(row.getVct().strip()));
+                isValidClaimPath = Objects::nonNull;
+                invalidClaimPathMessage = "Linje %d: skriv ei JSON-liste med minst eitt element."
+                    + " Bruk tekst som ikkje er tom eller berre mellomrom, null eller heiltal frå 0 og oppover.";
+            } else if (MDOC_FORMAT.equals(row.getFormat())) {
+                if (row.getDoctype() == null || row.getDoctype().isBlank()) {
+                    return MappingResult.error(field + "doctype", "required", "Skriv ein dokumenttype.");
+                }
+
+                meta = Map.of("doctype", row.getDoctype().strip());
+                isValidClaimPath = IntendedUseMapper::isValidMdocClaimPath;
+                invalidClaimPathMessage = "Linje %d: skriv ei JSON-liste med nøyaktig to tekststrengar:"
+                    + " namnerom og identifikator for dataelementet."
+                    + " Ingen av tekststrengane kan vere tomme eller berre innehalde mellomrom.";
+            } else {
+                return MappingResult.error(field + "format", "invalidFormat", "Vel SD-JWT eller mdoc.");
             }
+
             if (row.getClaimPaths() == null || row.getClaimPaths().isBlank()) {
                 return MappingResult.error(field + "claimPaths", "claimsRequired", "Skriv minst éin attributtsti.");
             }
 
             List<Map<String, Object>> claims = new ArrayList<>();
             String[] lines = row.getClaimPaths().strip().split("\\r\\n|\\r|\\n", -1);
+
             for (int line = 0; line < lines.length; line++) {
                 List<?> path = parsePath(lines[line]);
-                if (path == null) {
+
+                if (!isValidClaimPath.test(path)) {
                     return MappingResult.error(field + "claimPaths", "invalidClaims",
-                        "Linje " + (line + 1) + ": skriv ei JSON-liste med minst eitt element. Bruk tekst som ikkje er tom eller berre mellomrom, null eller heiltal frå 0 og oppover.");
+                        String.format(Locale.ROOT, invalidClaimPathMessage, line + 1));
                 }
+
                 claims.add(Map.of("path", path));
             }
+
             credentials.add(new V2RegisterClient.IntendedUseCredential(
-                SD_JWT_FORMAT, row.getName().strip(),
-                Map.of("vct_values", List.of(row.getVct().strip())), List.copyOf(claims)));
+                row.getFormat(),
+                row.getName().strip(),
+                meta,
+                List.copyOf(claims)));
         }
 
         return createRequest(form, credentials);
     }
 
+    private static boolean isValidMdocClaimPath(List<?> path) {
+        return path != null
+            && path.size() == 2
+            && path.stream().allMatch(part -> part instanceof String text && !text.isBlank());
+    }
+
     private static List<?> parsePath(String line) {
         try {
             Object value = CLAIM_PATH_MAPPER.readValue(line, Object.class);
+
             if (value instanceof List<?> path && !path.isEmpty()
                 && path.stream().allMatch(IntendedUseMapper::isValidPathSegment)) {
                 return path;
