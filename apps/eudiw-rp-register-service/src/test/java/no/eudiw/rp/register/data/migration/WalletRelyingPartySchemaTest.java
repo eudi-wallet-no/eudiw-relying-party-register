@@ -17,7 +17,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.mariadb.MariaDBContainer;
 
 import java.time.LocalDate;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -141,6 +143,156 @@ class WalletRelyingPartySchemaTest {
     }
 
     @Test
+    @DisplayName("Should delete inactive registrations and retain active registration data")
+    void shouldDeleteInactiveRegistrationsAndRetainActiveRegistrationData() {
+        flyway.clean();
+        Flyway.configure().configuration(flyway.getConfiguration()).target("42").load().migrate();
+
+        jdbc.update("""
+            INSERT INTO wallet_relying_party
+                (id, trade_name, orgno, is_psb, policy, identifier, postal_address, email, phone, info_uri,
+                 active, created_at)
+            VALUES
+                ('drop-party', 'Inactive', '123456780', TRUE, '[]', '[]', '[]', '[]', '[]', '[]', FALSE, '2024-01-01'),
+                ('keep-party', 'Active', '123456781', TRUE, '[]', '[]', '[]', '[]', '[]', '[]', TRUE, '2024-01-01')
+            """);
+        for (String party : List.of("drop-party", "keep-party")) {
+            jdbc.update("""
+                INSERT INTO legal_person (id, wallet_relying_party_id, legal_name, established_by_law)
+                VALUES (?, ?, '[]', '[]')
+                """, party, party);
+            jdbc.update("""
+                INSERT INTO wallet_relying_party_x5c (wallet_relying_party_id, position, certificate_chain)
+                VALUES (?, 0, 'chain')
+                """, party);
+        }
+
+        String references = """
+            [{"identifier":[{"type":"urn:example:identifier","identifier":"party"}],"service":"deleted","register":"https://registry.example"}]
+            """;
+        for (String service : List.of("drop-parent-active", "drop-parent-inactive", "drop-child", "keep-service")) {
+            boolean active = service.equals("drop-parent-active") || service.equals("keep-service");
+            String party = service.startsWith("drop-parent") ? "drop-party" : "keep-party";
+            jdbc.update("""
+                INSERT INTO wallet_relying_party_service
+                    (id, service_trade_name, wallet_relying_party_id, active, status, created_at, uses_intermediaries)
+                VALUES (?, 'Service', ?, ?, ?, '2024-01-01', ?)
+                """, service, party, active, active ? "active" : "suspended",
+                service.equals("keep-service") ? references : "[]");
+            jdbc.update("""
+                INSERT INTO relying_party_instance (id, wallet_relying_party_service_id, active)
+                VALUES (?, ?, ?)
+                """, service, service, !service.equals("keep-service"));
+            jdbc.update("""
+                INSERT INTO wallet_relying_party_service_entitlement
+                    (id, wallet_relying_party_service_id, entitlement)
+                VALUES (?, ?, 'urn:test:issuer')
+                """, service, service);
+            jdbc.update("""
+                INSERT INTO relying_party_entitlement (id, relying_party_instance_id, service_entitlement_id)
+                VALUES (?, ?, ?)
+                """, service, service, service);
+            jdbc.update("""
+                INSERT INTO relying_party_eaa (id, relying_party_instance_id, namespace, intent)
+                VALUES (?, ?, 'namespace', 'intent')
+                """, service, service);
+            jdbc.update("""
+                INSERT INTO relying_party_certificates
+                    (id, type, relying_party_instance_id, entitlement_id, issuer, ca_id, certificate_pem,
+                     subject_dn, serial_no)
+                VALUES (?, 'ISSUER', ?, ?, 'issuer', 'ca', 'pem', 'subject', ?),
+                       (?, 'ACCESS', ?, NULL, 'issuer', 'ca', 'pem', 'subject', ?)
+                """, service + "-issuer", service, service, service + "-issuer",
+                service + "-access", service, service + "-access");
+            jdbc.update("""
+                INSERT INTO wallet_relying_party_service_intended_use
+                    (id, wallet_relying_party_service_id, purpose, privacy_policy)
+                VALUES (?, ?, '[]', '[]')
+                """, service, service);
+            jdbc.update("""
+                INSERT INTO wallet_relying_party_service_intended_use_credential (id, intended_use_id, format, meta, claims)
+                VALUES (?, ?, 'format', '{}', '[]')
+                """, service, service);
+            jdbc.update("""
+                INSERT INTO wallet_relying_party_service_provided_attestation
+                    (id, wallet_relying_party_service_id, format, type)
+                VALUES (?, ?, 'format', 'type')
+                """, service, service);
+        }
+        jdbc.update("""
+            INSERT INTO relying_party_instance (id, wallet_relying_party_service_id, active)
+            VALUES ('keep-active-instance', 'keep-service', TRUE)
+            """);
+
+        List<String> tables = List.of(
+            "wallet_relying_party", "legal_person", "wallet_relying_party_service",
+            "relying_party_instance", "wallet_relying_party_service_entitlement", "relying_party_entitlement",
+            "relying_party_eaa", "relying_party_certificates", "wallet_relying_party_service_intended_use",
+            "wallet_relying_party_service_intended_use_credential", "wallet_relying_party_service_provided_attestation");
+        Map<String, List<Map<String, Object>>> retainedRows = new LinkedHashMap<>();
+        for (String table : tables) {
+            retainedRows.put(table, jdbc.queryForList("SELECT * FROM " + table + " WHERE id LIKE 'keep-%' ORDER BY id"));
+        }
+        var retainedChains = jdbc.queryForList("""
+            SELECT * FROM wallet_relying_party_x5c WHERE wallet_relying_party_id = 'keep-party'
+            """);
+
+        flyway.migrate();
+
+        for (String table : tables) {
+            assertEquals(retainedRows.get(table), jdbc.queryForList("SELECT * FROM " + table + " ORDER BY id"), table);
+        }
+        assertEquals(retainedChains, jdbc.queryForList("SELECT * FROM wallet_relying_party_x5c"));
+        flyway.validate();
+        assertEquals(0, flyway.migrate().migrationsExecuted);
+    }
+
+    @Test
+    @DisplayName("Should preserve an active instance certificate when its role belongs to an inactive service")
+    void shouldPreserveAnActiveInstanceCertificateWhenItsRoleBelongsToAnInactiveService() {
+        flyway.clean();
+        Flyway.configure().configuration(flyway.getConfiguration()).target("42").load().migrate();
+        jdbc.update("""
+            INSERT INTO wallet_relying_party
+                (id, trade_name, orgno, is_psb, policy, identifier, postal_address, email, phone, info_uri, created_at)
+            VALUES ('party', 'Party', '123456780', TRUE, '[]', '[]', '[]', '[]', '[]', '[]', '2024-01-01')
+            """);
+        jdbc.update("""
+            INSERT INTO wallet_relying_party_service
+                (id, service_trade_name, wallet_relying_party_id, active, status, created_at)
+            VALUES ('keep-service', 'Active', 'party', TRUE, 'active', '2024-01-01'),
+                   ('drop-service', 'Inactive', 'party', FALSE, 'suspended', '2024-01-01')
+            """);
+        jdbc.update("""
+            INSERT INTO relying_party_instance (id, wallet_relying_party_service_id)
+            VALUES ('keep-instance', 'keep-service'), ('drop-instance', 'drop-service')
+            """);
+        jdbc.update("""
+            INSERT INTO wallet_relying_party_service_entitlement (id, wallet_relying_party_service_id, entitlement)
+            VALUES ('role', 'drop-service', 'urn:test:issuer')
+            """);
+        jdbc.update("""
+            INSERT INTO relying_party_entitlement (id, relying_party_instance_id, service_entitlement_id)
+            VALUES ('selection', 'drop-instance', 'role')
+            """);
+        jdbc.update("""
+            INSERT INTO relying_party_certificates
+                (id, type, relying_party_instance_id, entitlement_id, issuer, ca_id, certificate_pem, subject_dn, serial_no)
+            VALUES ('certificate', 'ISSUER', 'keep-instance', 'selection', 'issuer', 'ca', 'pem', 'subject', 'serial'),
+                   ('drop-certificate', 'ACCESS', 'drop-instance', NULL, 'issuer', 'ca', 'pem', 'subject', 'drop-serial')
+            """);
+
+        assertThrows(FlywayException.class, flyway::migrate);
+
+        assertEquals("keep-instance", jdbc.queryForObject("""
+            SELECT relying_party_instance_id FROM relying_party_certificates WHERE id = 'certificate'
+            """, String.class));
+        assertEquals(1, jdbc.queryForObject("""
+            SELECT COUNT(*) FROM relying_party_certificates WHERE id = 'drop-certificate'
+            """, Integer.class));
+    }
+
+    @Test
     @DisplayName("Backfills WRP and service creation dates and service status")
     void backfillsServiceStatusAndCreationDateFromExistingFields() {
         flyway.clean();
@@ -159,7 +311,7 @@ class WalletRelyingPartySchemaTest {
                 ('suspended-service', 'Suspended', 'party', 1704153600000, 1704153600000, FALSE)
             """);
 
-        flyway.migrate();
+        Flyway.configure().configuration(flyway.getConfiguration()).target("41").load().migrate();
 
         assertEquals(LocalDate.of(2024, 1, 3), jdbc.queryForObject("""
             SELECT created_at
@@ -347,7 +499,7 @@ class WalletRelyingPartySchemaTest {
             VALUES ('inactive-instance', 'inactive-service', 1, 1, TRUE)
             """);
 
-        flyway.migrate();
+        Flyway.configure().configuration(flyway.getConfiguration()).target("27").load().migrate();
 
         assertFalse(jdbc.queryForObject(
             "SELECT active FROM wallet_relying_party_service WHERE id = 'inactive-service'", Boolean.class));
@@ -457,7 +609,7 @@ class WalletRelyingPartySchemaTest {
         var instancesBefore = jdbc.queryForList("SELECT * FROM relying_party_instance");
         var intendedUsesBefore = jdbc.queryForList("SELECT * FROM wallet_relying_party_service_intended_use");
 
-        flyway.migrate();
+        Flyway.configure().configuration(flyway.getConfiguration()).target("42").load().migrate();
 
         assertEquals(servicesBefore, jdbc.queryForList("SELECT * FROM wallet_relying_party_service ORDER BY id"));
         assertEquals(partiesBefore, jdbc.queryForList("SELECT * FROM wallet_relying_party"));
