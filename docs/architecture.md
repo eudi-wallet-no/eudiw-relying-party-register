@@ -1,5 +1,7 @@
 # C4 container diagram
 
+Describe only application-level dependencies between applications, external systems, and data stores. Do not include form fields, data formats, validation rules, or implementation details.
+
 Organisations use the register to publish which wallet data their services intend to request in [Digdir's digital wallet sandbox](https://docs.digdir.no/docs/lommebok/lommebok_om.html).
 
 ## Specification sources
@@ -8,7 +10,7 @@ Use [TS5](https://github.com/eu-digital-identity-wallet/eudi-doc-standards-and-t
 
 ## Containers
 
-Each directory under `apps/` is a separate Maven application. The applications do not depend on shared modules in this repository. The diagram shows runtime connections and storage dependencies.
+The diagram shows runtime connections and storage dependencies.
 
 ```mermaid
 flowchart LR
@@ -28,18 +30,19 @@ flowchart LR
     trustlist["eudiw-trustlist-service"]
   end
 
+  issuers["Configured credential issuers"]
+
   admin -->|HTTP| register
   selfservice -->|HTTP| register
   lookup -->|HTTP| register
   lookup -->|HTTP| credentials
   credentials -->|HTTP| register
+  credentials -->|HTTPS| issuers
   register -->|HTTP| ca
   register --> registerdb
   ca --> cadb
 ```
 
 The RP register service owns the list of registered credential issuers. The credential registry uses this list to retrieve issuer metadata.
-
-`rp-register-admin` and `rp-register-selfservice` use the same Maven application with different Spring profiles. `eudiw-trustlist-service` is separate from the other applications in this repository.
 
 The connections shown here are defined in [`docker-compose.yaml`](../docker-compose.yaml) and the applications' `application*.yaml` files. Update this diagram when an application or runtime connection changes.

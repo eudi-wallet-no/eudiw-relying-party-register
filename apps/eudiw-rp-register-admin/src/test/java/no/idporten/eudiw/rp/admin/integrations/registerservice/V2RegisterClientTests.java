@@ -1,5 +1,8 @@
 package no.idporten.eudiw.rp.admin.integrations.registerservice;
 
+import no.idporten.eudiw.rp.admin.web.form.IntendedUseForm;
+import no.idporten.eudiw.rp.admin.web.form.IntendedUseMapper;
+
 import no.idporten.eudiw.rp.admin.integrations.registerservice.config.RelyingPartiesServiceConfig;
 import no.idporten.eudiw.rp.admin.integrations.registerservice.config.RelyingPartiesServiceProperties;
 import no.idporten.eudiw.rp.admin.service.exception.NotFoundException;
@@ -18,10 +21,12 @@ import org.junit.jupiter.params.provider.ValueSource;
 import no.idporten.eudiw.rp.admin.web.resource.SearchRelyingPartyResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.mock.http.client.MockClientHttpRequest;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClient;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.util.List;
@@ -392,28 +397,36 @@ class V2RegisterClientTests {
     }
 
     @Test
-    @DisplayName("Should create an intended use with credential displayName")
-    void shouldCreateAnIntendedUseWithCredentialDisplayName() {
+    @DisplayName("Should send manual proofs without changing DCQL path values")
+    void shouldSendManualProofsWithoutChangingDcqlPathValues() {
         UUID serviceId = new UUID(0, 2);
+        var form = new IntendedUseForm();
+        form.setPurpose(List.of(new IntendedUseForm.Purpose("nn", "Identifisere brukaren")));
+        form.setPrivacyPolicyUri("https://example.org/privacy");
+        form.getCredentials().add(new IntendedUseForm.Credential(
+            "Norsk ID-bevis", "urn:example:norsk-id",
+            "[\"items\",0,null,2147483648,9223372036854775808,\" name \u2028 \"]\n[\"age\"]"));
+        var jsonMapper = JsonMapper.builder().build();
+        var expectedClaims = jsonMapper.readTree("""
+            [{"path":["items",0,null,2147483648,9223372036854775808," name \u2028 "]},
+             {"path":["age"]}]
+            """);
+
         server.expect(requestTo("https://register.test/v2/services/" + serviceId + "/intended-uses"))
             .andExpect(method(HttpMethod.POST))
             .andExpect(header("X-API-KEY", "test-api-key"))
-            .andExpect(content().json("""
-                {"purpose":[{"lang":"nb","content":"Purpose"}],
-                 "privacyPolicy":[{"type":"http://data.europa.eu/eudi/policy/privacy-statement",
-                                   "policyURI":"https://example.org/privacy"}],
-                 "credentials":[{"format":"dc+sd-jwt","displayName":"Personidentifikator",
-                                 "meta":{"vct_values":["type"]},"claims":[{"path":["name"]}]}]}
-                """, JsonCompareMode.STRICT))
+            .andExpect(request -> {
+                var body = jsonMapper.readTree(((MockClientHttpRequest) request).getBodyAsString());
+                assertEquals(1, body.get("credentials").size());
+                assertEquals("Norsk ID-bevis", body.at("/credentials/0/displayName").asString());
+                assertEquals("dc+sd-jwt", body.at("/credentials/0/format").asString());
+                assertEquals(jsonMapper.readTree("[\"urn:example:norsk-id\"]"),
+                    body.at("/credentials/0/meta/vct_values"));
+                assertEquals(expectedClaims, body.at("/credentials/0/claims"));
+            })
             .andRespond(withSuccess());
 
-        client.createIntendedUse(serviceId, new V2RegisterClient.CreateIntendedUseRequest(
-            List.of(new V2RegisterClient.IntendedUsePurpose("nb", "Purpose")),
-            List.of(new V2RegisterClient.IntendedUsePolicy(
-                "http://data.europa.eu/eudi/policy/privacy-statement",
-                "https://example.org/privacy")),
-            List.of(new V2RegisterClient.IntendedUseCredential("dc+sd-jwt", "Personidentifikator",
-                Map.of("vct_values", List.of("type")), List.of(Map.of("path", List.of("name")))))));
+        client.createIntendedUse(serviceId, IntendedUseMapper.toCreateRequest(form).request());
     }
 
 }

@@ -2,7 +2,3 @@
 spring:
   application:
     environment: systest
-
-eudiw-admin-web:
-  issuer-metadata:
-    bevisgenerator: https://utsteder.eidas2sandkasse.dev/.well-known/openid-credential-issuer/bevisgenerator
