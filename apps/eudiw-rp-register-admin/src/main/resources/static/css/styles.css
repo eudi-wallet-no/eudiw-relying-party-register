@@ -574,7 +574,7 @@ footer ul {
     margin-block-end: var(--ds-size-2);
 }
 .intended-use-section + .intended-use-section { margin-block-start: var(--ds-size-4); }
-#purpose + .intended-use-section { margin-block-start: var(--ds-size-6); }
+#purpose + .intended-use-section { margin-block-start: var(--ds-size-8); }
 .intended-use-form .registration-card-heading + * { margin-block-start: var(--ds-size-6); }
 .intended-use-form .ds-card__block > .button-group { margin-block-start: 0; }
 .intended-use-form #add-credential { margin-block-start: var(--ds-size-6); }
@@ -591,9 +591,13 @@ footer ul {
 }
 .intended-use-purpose-row > .ds-button { align-self: end; }
 .intended-use-purpose-row textarea.ds-input { min-height: var(--dsc-input-size); }
+.intended-use-proof-selection [hidden] {
+    display: none;
+}
+
 .intended-use-proof-selection {
     display: grid;
-    gap: var(--ds-size-2);
+    gap: var(--ds-size-4);
     min-inline-size: 0;
     margin-block-start: var(--ds-size-4);
     padding: var(--ds-size-4);

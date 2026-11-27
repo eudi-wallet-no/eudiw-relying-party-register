@@ -93,6 +93,14 @@ class V2ApiIntegrationTest {
                          "claims":[{"path":["given_name"]}]}]}
         """;
 
+    private static final String MDOC_INTENDED_USE = """
+        {"purpose":[{"lang":"en","content":"Verify identity"}],
+         "privacyPolicy":[{"type":"PrivacyPolicy","policyURI":"https://example.test/privacy"}],
+         "credentials":[{"format":"mso_mdoc","displayName":"Driving licence",
+                         "meta":{"doctype":"org.iso.18013.5.1.mDL"},
+                         "claims":[{"path":["org.iso.18013.5.1","given_name"]}]}]}
+        """;
+
     @Autowired
     private MockMvc mockMvc;
     @Autowired
@@ -432,6 +440,59 @@ class V2ApiIntegrationTest {
             assertEquals(java.util.Arrays.asList("items", 0, null, 2147483648L,
                 new java.math.BigInteger("9223372036854775808"), " name "), credential.getClaims().getFirst().get("path"));
         });
+    }
+
+    @Test
+    @DisplayName("Should create and reload an mdoc credential with its document type and requested claim")
+    void shouldCreateAndReloadAnMdocCredentialWithItsDocumentTypeAndRequestedClaim() throws Exception {
+        Registration registration = createRegistration();
+        JsonNode created = read(post(registration.intendedUsesPath()), MDOC_INTENDED_USE);
+        JsonNode stored = read(get(registration.intendedUsesPath())).get(0);
+        JsonNode expectedCredential = objectMapper.readTree(MDOC_INTENDED_USE).at("/credentials/0");
+
+        for (JsonNode intendedUse : List.of(created, stored)) {
+            assertEquals(expectedCredential, intendedUse.at("/credentials/0"));
+        }
+
+        new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+            var service = relyingPartyServiceRepository
+                .findById(UUID.fromString(registration.relyingPartyServiceId()))
+                .orElseThrow();
+            var credential = service.getIntendedUses().getFirst()
+                .getCredentials().getFirst();
+
+            assertEquals("mso_mdoc", credential.getFormat());
+            assertEquals("Driving licence", credential.getDisplayName());
+            assertEquals(Map.of("doctype", "org.iso.18013.5.1.mDL"), credential.getMeta());
+            assertEquals(List.of(Map.of("path", List.of("org.iso.18013.5.1", "given_name"))), credential.getClaims());
+        });
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "[\"namespace\"]", "[\"namespace\",\"name\",\"extra\"]",
+        "[\"namespace\",0]", "[null,\"name\"]", "[\"namespace\",\" \"]", "[\" \",\"name\"]"
+    })
+    @DisplayName("Should reject invalid mdoc claim paths without storing an intended use")
+    void shouldRejectInvalidMdocClaimPathsWithoutStoringAnIntendedUse(String path) throws Exception {
+        Registration registration = createRegistration();
+        String requestBody = MDOC_INTENDED_USE.replace("[\"org.iso.18013.5.1\",\"given_name\"]", path);
+
+        request(post(registration.intendedUsesPath()), requestBody).andExpect(status().isBadRequest());
+
+        assertTrue(read(get(registration.intendedUsesPath())).isEmpty());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"{}", "{\"doctype\":\" \"}", "{\"vct_values\":[\"urn:example:pid\"]}"})
+    @DisplayName("Should reject mdoc metadata without a document type and not store an intended use")
+    void shouldRejectMdocMetadataWithoutADocumentTypeAndNotStoreAnIntendedUse(String meta) throws Exception {
+        Registration registration = createRegistration();
+        String requestBody = MDOC_INTENDED_USE.replace("{\"doctype\":\"org.iso.18013.5.1.mDL\"}", meta);
+
+        request(post(registration.intendedUsesPath()), requestBody).andExpect(status().isBadRequest());
+
+        assertTrue(read(get(registration.intendedUsesPath())).isEmpty());
     }
 
     @Test

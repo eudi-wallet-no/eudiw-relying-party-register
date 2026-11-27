@@ -48,38 +48,86 @@ const credentialsEmpty = document.getElementById("credentials-empty");
 const credentialTemplate = document.getElementById("credential-row-template");
 const addCredential = document.getElementById("add-credential");
 
+function updateCredentialFormat(row) {
+    const mdoc = row.querySelector("[data-credential-format]").value === "mso_mdoc";
+
+    row.querySelectorAll("[data-sd-jwt-field]").forEach(field => field.hidden = mdoc);
+    row.querySelectorAll("[data-mdoc-field]").forEach(field => field.hidden = !mdoc);
+
+    const claimPaths = row.querySelector("textarea");
+    claimPaths.placeholder = mdoc
+        ? '["org.iso.18013.5.1", "given_name"]'
+        : '["given_name"]\n["family_name"]\n["birthdate"]';
+
+    const descriptions = claimPaths.getAttribute("aria-describedby")
+        .split(" ")
+        .filter(id => !id.includes("-mdoc-help-"));
+
+    if (mdoc) {
+        descriptions.push(claimPaths.id.replace("claimPaths-", "claimPaths-mdoc-help-"));
+    }
+
+    claimPaths.setAttribute("aria-describedby", descriptions.join(" "));
+}
+
+addedCredentials.addEventListener("change", event => {
+    if (event.target.matches("[data-credential-format]")) {
+        updateCredentialFormat(event.target.closest("[data-credential]"));
+    }
+});
+
 function reindexCredentials() {
     addedCredentials.querySelectorAll("[data-credential]").forEach((row, index) => {
         row.querySelectorAll("[name]").forEach(field => {
             field.name = field.name.replace(/credentials\[\d+]/, `credentials[${index}]`);
         });
+
         row.querySelectorAll("[id]").forEach(element => {
-            element.id = element.id.replace(/credential-(name|vct|claimPaths)(-help|-error)?-\d+/g,
-                `credential-$1$2-${index}`);
+            element.id = element.id.replace(
+                /credential-(format|name|vct|doctype|claimPaths)(-mdoc-help|-help|-error)?-\d+/g,
+                `credential-$1$2-${index}`
+            );
         });
+
         row.querySelectorAll("label[for]").forEach(label => {
-            label.htmlFor = label.htmlFor.replace(/credential-(name|vct|claimPaths)-\d+/g,
-                `credential-$1-${index}`);
+            label.htmlFor = label.htmlFor.replace(
+                /credential-(format|name|vct|doctype|claimPaths)-\d+/g,
+                `credential-$1-${index}`
+            );
         });
+
         row.querySelectorAll("[aria-describedby]").forEach(field => {
-            field.setAttribute("aria-describedby", field.getAttribute("aria-describedby")
-                .replace(/credential-(name|vct|claimPaths)(-help|-error)-\d+/g,
-                    `credential-$1$2-${index}`));
+            field.setAttribute(
+                "aria-describedby",
+                field.getAttribute("aria-describedby").replace(
+                    /credential-(format|name|vct|doctype|claimPaths)(-mdoc-help|-help|-error)-\d+/g,
+                    `credential-$1$2-${index}`
+                )
+            );
         });
+
         row.querySelector("[data-remove-credential]").setAttribute("aria-label", `Fjern bevis ${index + 1}`);
     });
+
     credentialsEmpty.hidden = addedCredentials.childElementCount > 0;
+    addedCredentials.querySelectorAll("[data-credential]").forEach(updateCredentialFormat);
 }
 
 addCredential.addEventListener("click", () => {
     const row = credentialTemplate.content.cloneNode(true);
     row.querySelectorAll(".ds-validation-message").forEach(error => error.remove());
-    row.querySelectorAll("input, textarea").forEach(field => {
-        field.value = "";
+
+    row.querySelectorAll("input, textarea, select").forEach(field => {
+        field.value = field.matches("select") ? "dc+sd-jwt" : "";
         field.removeAttribute("aria-invalid");
         field.removeAttribute("aria-describedby");
     });
-    row.querySelector("textarea").setAttribute("aria-describedby", "credential-claimPaths-help-0");
+
+    row.querySelector("textarea").setAttribute(
+        "aria-describedby",
+        "credential-claimPaths-help-0 credential-claimPaths-mdoc-help-0"
+    );
+
     addedCredentials.appendChild(row);
     reindexCredentials();
     addedCredentials.lastElementChild.querySelector("input").focus();

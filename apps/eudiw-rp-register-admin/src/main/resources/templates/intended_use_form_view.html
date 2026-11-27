@@ -131,6 +131,21 @@
 
     <th:block th:remove="all">
         <div th:fragment="manual_row(index, credential)" class="intended-use-proof-selection" data-credential>
+            <div class="ds-field" lang="en">
+                <label class="ds-label" th:for="|credential-format-${index}|">Format</label>
+                <select class="ds-input" th:id="|credential-format-${index}|"
+                        th:name="|credentials[${index}].format|" data-credential-format
+                        th:aria-invalid="${#fields.hasErrors('credentials[' + index + '].format')}"
+                        th:aria-describedby="${#fields.hasErrors('credentials[' + index + '].format')} ? |credential-format-error-${index}|">
+                    <option th:if="${credential.format != 'dc+sd-jwt' and credential.format != 'mso_mdoc'}"
+                            th:value="${credential.format}" th:text="${credential.format}" selected></option>
+                    <option value="dc+sd-jwt" th:selected="${credential.format == 'dc+sd-jwt'}">SD-JWT</option>
+                    <option value="mso_mdoc" th:selected="${credential.format == 'mso_mdoc'}">mdoc</option>
+                </select>
+                <p th:id="|credential-format-error-${index}|"
+                   th:if="${#fields.hasErrors('credentials[' + index + '].format')}"
+                   th:errors="*{credentials[__${index}__].format}" class="ds-validation-message"></p>
+            </div>
             <div class="ds-field">
                 <label class="ds-label" th:for="|credential-name-${index}|">Namn</label>
                 <input class="ds-input" th:id="|credential-name-${index}|"
@@ -142,7 +157,7 @@
                    th:if="${#fields.hasErrors('credentials[' + index + '].name')}"
                    th:errors="*{credentials[__${index}__].name}" class="ds-validation-message"></p>
             </div>
-            <div class="ds-field">
+            <div class="ds-field" data-sd-jwt-field>
                 <label class="ds-label" th:for="|credential-vct-${index}|">Bevistype (VCT)</label>
                 <input class="ds-input" th:id="|credential-vct-${index}|"
                        placeholder="urn:example:norsk-id"
@@ -153,14 +168,29 @@
                    th:if="${#fields.hasErrors('credentials[' + index + '].vct')}"
                    th:errors="*{credentials[__${index}__].vct}" class="ds-validation-message"></p>
             </div>
+            <div class="ds-field" data-mdoc-field lang="en">
+                <label class="ds-label" th:for="|credential-doctype-${index}|">Document type</label>
+                <input class="ds-input" th:id="|credential-doctype-${index}|"
+                       placeholder="org.iso.18013.5.1.mDL"
+                       th:name="|credentials[${index}].doctype|" th:value="${credential.doctype}"
+                       type="text" autocomplete="off"
+                       th:aria-invalid="${#fields.hasErrors('credentials[' + index + '].doctype')}"
+                       th:aria-describedby="${#fields.hasErrors('credentials[' + index + '].doctype')} ? |credential-doctype-error-${index}|">
+                <p th:id="|credential-doctype-error-${index}|"
+                   th:if="${#fields.hasErrors('credentials[' + index + '].doctype')}"
+                   th:errors="*{credentials[__${index}__].doctype}" class="ds-validation-message"></p>
+            </div>
             <div class="ds-field">
                 <label class="ds-label" th:for="|credential-claimPaths-${index}|">DCQL-path</label>
                 <p class="ds-paragraph" data-size="sm" th:id="|credential-claimPaths-help-${index}|">Skriv éin DCQL-path per linje.</p>
+                <p class="ds-paragraph" data-size="sm" data-mdoc-field lang="en"
+                   th:id="|credential-claimPaths-mdoc-help-${index}|">For mdoc, use exactly two nonblank strings: namespace and data element identifier.</p>
                 <textarea class="ds-input" th:id="|credential-claimPaths-${index}|"
                        placeholder="[&quot;given_name&quot;]&#10;[&quot;family_name&quot;]&#10;[&quot;birthdate&quot;]"
                        th:name="|credentials[${index}].claimPaths|"
                        th:aria-invalid="${#fields.hasErrors('credentials[' + index + '].claimPaths')}"
-                       th:aria-describedby="${#fields.hasErrors('credentials[' + index + '].claimPaths')} ? |credential-claimPaths-help-${index} credential-claimPaths-error-${index}| : |credential-claimPaths-help-${index}|" rows="4" spellcheck="false" th:text="${credential.claimPaths}"></textarea>
+                       th:with="helpIds=${credential.format == 'mso_mdoc'} ? |credential-claimPaths-help-${index} credential-claimPaths-mdoc-help-${index}| : |credential-claimPaths-help-${index}|"
+                       th:aria-describedby="${#fields.hasErrors('credentials[' + index + '].claimPaths')} ? |${helpIds} credential-claimPaths-error-${index}| : ${helpIds}" rows="4" spellcheck="false" th:text="${credential.claimPaths}"></textarea>
                 <p th:id="|credential-claimPaths-error-${index}|"
                    th:if="${#fields.hasErrors('credentials[' + index + '].claimPaths')}"
                    th:errors="*{credentials[__${index}__].claimPaths}" class="ds-validation-message"></p>

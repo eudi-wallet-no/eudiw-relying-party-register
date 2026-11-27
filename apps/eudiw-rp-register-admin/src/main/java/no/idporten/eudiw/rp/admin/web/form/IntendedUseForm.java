@@ -93,5 +93,13 @@ public class IntendedUseForm {
         private String name;
         private String vct;
         private String claimPaths;
+        private String format = "dc+sd-jwt";
+        private String doctype;
+
+        public Credential(String name, String vct, String claimPaths) {
+            this.name = name;
+            this.vct = vct;
+            this.claimPaths = claimPaths;
+        }
     }
 }
