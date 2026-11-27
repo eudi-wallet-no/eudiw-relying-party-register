@@ -82,7 +82,8 @@ public record RelyingPartyResource(
         @JsonProperty("infoURI") List<String> infoUri,
         List<String> x5c,
         SupervisoryAuthorityDetails supervisoryAuthority,
-        @JsonProperty("registryURI") String registryUri
+        @JsonProperty("registryURI") String registryUri,
+        String revokedAt
     ) { }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

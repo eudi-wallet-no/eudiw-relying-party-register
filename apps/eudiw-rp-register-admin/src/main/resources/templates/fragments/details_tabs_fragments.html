@@ -207,6 +207,18 @@
                    aria-label="Rediger brukarstad" class="ds-button" data-variant="secondary" data-size="sm">Rediger</a>
             </div>
             <div th:replace="~{fragments/details_tabs_fragments :: relying_party_information_table(${relyingPartyResource}, false)}"></div>
+            <div class="ds-card__block" th:if="${relyingPartyResource.relyingParty != null}">
+                <p class="ds-paragraph" th:if="${relyingPartyResource.relyingParty.revokedAt != null}"
+                   th:text="|Brukarstaden er revokert ${relyingPartyResource.relyingParty.revokedAt}.|"></p>
+                <form th:if="${relyingPartyResource.relyingParty.revokedAt == null}"
+                      th:action="@{|/relying-party/revoke/${relyingPartyResource.id}|}"
+                      method="post" class="confirm-party-revocation">
+                    <input type="hidden" name="returnUrl" th:value="${searchUrlAttr}">
+                    <button type="submit" class="ds-button" data-variant="secondary" data-color="danger">
+                        Revoker brukarstad
+                    </button>
+                </form>
+            </div>
         </details>
         <th:block th:if="${editingRelyingParty}">
             <div class="ds-card__block">
@@ -492,7 +504,11 @@
                 Eksisterande sertifikat må tilbakekallast separat. Gjeld berre denne registreringa.
             </p>
             <p class="ds-paragraph" id="registration-status-blocked"
-               th:if="${!relyingPartyResource.active and relyingPartyResource.relyingPartyService != null and !relyingPartyResource.relyingPartyService.active}">
+               th:if="${!relyingPartyResource.active and relyingPartyResource.relyingParty != null and relyingPartyResource.relyingParty.revokedAt != null}">
+                Brukarstaden er revokert. Registreringa kan ikkje aktiverast.
+            </p>
+            <p class="ds-paragraph" id="registration-status-blocked"
+               th:if="${!relyingPartyResource.active and (relyingPartyResource.relyingParty == null or relyingPartyResource.relyingParty.revokedAt == null) and relyingPartyResource.relyingPartyService != null and !relyingPartyResource.relyingPartyService.active}">
                 Tenesta er deaktivert. Aktiver tenesta før du aktiverer registreringa.
             </p>
             <form th:action="@{|/admin/status/${relyingPartyResource.id}|}" method="post"
@@ -500,7 +516,7 @@
                 <input type="hidden" name="active" th:value="${!relyingPartyResource.active}">
                 <input type="hidden" name="returnUrl" th:value="${searchUrlAttr}">
                 <button type="submit" class="ds-button"
-                        th:with="activationBlocked=${!relyingPartyResource.active and relyingPartyResource.relyingPartyService != null and !relyingPartyResource.relyingPartyService.active}"
+                        th:with="activationBlocked=${!relyingPartyResource.active and ((relyingPartyResource.relyingPartyService != null and !relyingPartyResource.relyingPartyService.active) or (relyingPartyResource.relyingParty != null and relyingPartyResource.relyingParty.revokedAt != null))}"
                         th:disabled="${activationBlocked}"
                         th:attr="aria-describedby=${activationBlocked ? 'registration-status-blocked' : null},
                                  data-variant=${relyingPartyResource.active ? 'secondary' : 'primary'},

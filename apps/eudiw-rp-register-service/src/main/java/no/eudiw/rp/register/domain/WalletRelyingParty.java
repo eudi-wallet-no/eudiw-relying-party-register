@@ -92,6 +92,7 @@ public class WalletRelyingParty extends BaseEntity {
     private LocalDate revokedAt;
 
     @Column(name = "active", nullable = false)
+    @Setter(AccessLevel.NONE)
     private boolean active = true;
 
     @Setter(AccessLevel.NONE)
@@ -163,6 +164,16 @@ public class WalletRelyingParty extends BaseEntity {
 
     public void setUpdated() {
         this.lastUpdatedMs = Instant.now().toEpochMilli();
+    }
+
+    public void revoke() {
+        if (revokedAt == null) {
+            revokedAt = currentDate();
+        }
+    }
+
+    public boolean isUsable() {
+        return active && revokedAt == null;
     }
 
     @PrePersist

@@ -21,6 +21,7 @@ import no.eudiw.rp.register.domain.WalletRelyingPartyService;
 import no.eudiw.rp.register.domain.relyingparty.RelyingPartyInstance;
 
 import java.util.List;
+import java.time.LocalDate;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
@@ -104,7 +105,8 @@ public record RegistrationDetailsResponse(
         List<String> infoURI,
         List<String> x5c,
         SupervisoryAuthorityResource supervisoryAuthority,
-        String registryURI
+        String registryURI,
+        LocalDate revokedAt
     ) {
         private static RelyingPartyDetails from(
             WalletRelyingParty relyingParty,
@@ -130,7 +132,8 @@ public record RegistrationDetailsResponse(
                 listOrEmpty(relyingParty.getInfoURI()),
                 listOrEmpty(relyingParty.getX5c()),
                 RelyingPartyResponse.supervisoryAuthorityResource(supervisoryAuthorityProperties),
-                registryProperties.registryUri());
+                registryProperties.registryUri(),
+                relyingParty.getRevokedAt());
         }
     }
 

@@ -58,6 +58,10 @@ public class RelyingPartiesService {
         registerClient.updateInstanceStatus(instanceId, active);
     }
 
+    public void revokeRelyingParty(UUID relyingPartyId) {
+        registerClient.revokeRelyingParty(relyingPartyId);
+    }
+
     public void updateServiceInformation(UUID serviceId, V2RegisterClient.ServiceInformation information) {
         registerClient.updateServiceInformation(serviceId, information);
     }

@@ -482,7 +482,7 @@ class V2ApiIntegrationTest {
         assertEquals("read", relyingPartyInstance.at("/relyingPartyEaas/0/intent").asString());
         assertEquals(registration.relyingPartyServiceId(), relyingPartyInstance.get("serviceId").asString());
 
-        request(patch(registration.relyingPartyPath() + "/deactivate")).andExpect(status().isNoContent());
+        request(patch(registration.relyingPartyPath() + "/revoke")).andExpect(status().isNoContent());
         read(put(registration.relyingPartyPath()), RELYING_PARTY.replace(
             "\"email\":[\"contact@example.test\"]", "\"email\":null"));
         read(put(registration.relyingPartyServicePath()), RELYING_PARTY_SERVICE.replace(
@@ -491,9 +491,9 @@ class V2ApiIntegrationTest {
         assertTrue(read(get(registration.relyingPartyPath())).get("email").isEmpty());
         assertTrue(read(get(registration.relyingPartyServicePath())).get("serviceIdentifier").isNull());
         assertTrue(read(get(registration.relyingPartyInstancePath())).get("relyingPartyEaas").isEmpty());
-        for (String path : registration.resourcePaths()) {
-            assertFalse(read(get(path)).get("active").asBoolean());
-        }
+        assertFalse(read(get(registration.relyingPartyPath())).get("revokedAt").isNull());
+        assertTrue(read(get(registration.relyingPartyServicePath())).get("active").asBoolean());
+        assertTrue(read(get(registration.relyingPartyInstancePath())).get("active").asBoolean());
         assertEquals(intendedUse.get("credentials"),
             read(get(registration.intendedUsesPath())).get(0).get("credentials"));
     }
@@ -516,7 +516,7 @@ class V2ApiIntegrationTest {
             new AccessCertificate("test-ca", CertificatesGenerator.generateX509Certificate(), instance)));
         relyingPartyInstanceRepository.saveAndFlush(instance);
         if (!active) {
-            request(patch(registration.relyingPartyPath() + "/deactivate")).andExpect(status().isNoContent());
+            request(patch(registration.relyingPartyPath() + "/revoke")).andExpect(status().isNoContent());
         }
         ObjectNode beforeRelyingParty = (ObjectNode) read(get(registration.relyingPartyPath()));
         ObjectNode beforeDetails = (ObjectNode) read(get("/v2/registrations/" + registration.relyingPartyInstanceId()));
@@ -640,7 +640,7 @@ class V2ApiIntegrationTest {
             post("/v2/relying-parties"), post("/v2/instances"), post(registration.relyingPartyPath() + "/services"),
             post(registration.relyingPartyServicePath() + "/instances"),
             put(registration.relyingPartyPath()), put(registration.relyingPartyServicePath()),
-            put(registration.relyingPartyInstancePath()), patch(registration.relyingPartyPath() + "/deactivate"),
+            put(registration.relyingPartyInstancePath()), patch(registration.relyingPartyPath() + "/revoke"),
             post(registration.intendedUsesPath()), patch(registration.intendedUsesPath() + "/" + UUID.randomUUID() + "/revoke"),
             post(registration.relyingPartyInstancePath() + "/certificates/access"))) {
             if (!apiKey.isEmpty()) {
@@ -648,7 +648,7 @@ class V2ApiIntegrationTest {
             }
             mockMvc.perform(builder).andExpect(status().isUnauthorized());
         }
-        assertTrue(read(get(registration.relyingPartyPath())).get("active").asBoolean());
+        assertTrue(read(get(registration.relyingPartyPath())).get("revokedAt").isNull());
         assertTrue(read(get(registration.intendedUsesPath())).isEmpty());
         assertEquals(1, relyingPartyInstanceRepository.count());
     }
@@ -660,7 +660,8 @@ class V2ApiIntegrationTest {
         JsonNode intendedUse = read(post(registration.intendedUsesPath()), INTENDED_USE);
         String ancestorPath = level.equals("relying-parties")
             ? registration.relyingPartyPath() : registration.relyingPartyServicePath();
-        request(patch(ancestorPath + "/deactivate")).andExpect(status().isNoContent());
+        request(patch(ancestorPath + (level.equals("relying-parties") ? "/revoke" : "/deactivate")))
+            .andExpect(status().isNoContent());
 
         request(post(registration.relyingPartyServicePath() + "/instances"), RELYING_PARTY_INSTANCE)
             .andExpect(status().isNotFound());
@@ -836,15 +837,21 @@ class V2ApiIntegrationTest {
             case "services" -> registration.relyingPartyServicePath();
             default -> registration.relyingPartyInstancePath();
         };
-        request(patch(ownerPath + "/deactivate")).andExpect(status().isNoContent());
+        request(patch(ownerPath + (resource.equals("relying-parties") ? "/revoke" : "/deactivate")))
+            .andExpect(status().isNoContent());
         read(patch(registration.relyingPartyInstancePath() + "/eaas"),
             "{\"relyingPartyEaas\":[{\"namespace\":\"example\",\"intent\":\"read\"}]}");
         read(patch(registration.relyingPartyInstancePath() + "/entitlements"), "{\"relyingPartyEntitlements\":[]}");
 
         JsonNode instance = read(get(registration.relyingPartyInstancePath()));
-        assertFalse(instance.get("active").asBoolean());
+        assertEquals(resource.equals("relying-parties"), instance.get("active").asBoolean());
         assertEquals("example", instance.at("/relyingPartyEaas/0/namespace").asString());
-        assertFalse(read(get(ownerPath)).get("active").asBoolean());
+        JsonNode owner = read(get(ownerPath));
+        if (resource.equals("relying-parties")) {
+            assertFalse(owner.get("revokedAt").isNull());
+        } else {
+            assertFalse(owner.get("active").asBoolean());
+        }
     }
 
     @ParameterizedTest
@@ -1017,7 +1024,7 @@ class V2ApiIntegrationTest {
         try (var executor = Executors.newFixedThreadPool(2)) {
             var deactivation = executor.submit(() -> transaction.executeWithoutResult(state -> {
                 try {
-                    request(patch(registration.relyingPartyPath() + "/deactivate")).andExpect(status().isNoContent());
+                    request(patch(registration.relyingPartyPath() + "/revoke")).andExpect(status().isNoContent());
                     locked.countDown();
                     assertTrue(release.await(10, TimeUnit.SECONDS));
                 } catch (Exception exception) {
@@ -1078,7 +1085,8 @@ class V2ApiIntegrationTest {
             List.of("certificate-chain"),
             new SupervisoryAuthorityResource(
                 "Datatilsynet", "NO", List.of("+4722396900"), List.of("postkasse@datatilsynet.no"), List.of()),
-            "https://registry.example.test/wrp");
+            "https://registry.example.test/wrp",
+            null);
         var expectedRelyingPartyService = new RegistrationDetailsResponse.RelyingPartyServiceDetails(
             "service-1",
             List.of(new MultiLangStringResource("en", "Service description")),
@@ -1094,7 +1102,7 @@ class V2ApiIntegrationTest {
                 "service-2", "https://other-registry.example/wrp")),
             true);
         ObjectNode relyingPartyRequest = objectMapper.valueToTree(expectedRelyingParty);
-        relyingPartyRequest.remove(List.of("providerType", "supervisoryAuthority", "registryURI"));
+        relyingPartyRequest.remove(List.of("providerType", "supervisoryAuthority", "registryURI", "revokedAt"));
         relyingPartyRequest.put("isPSB", false);
         ObjectNode relyingPartyServiceRequest = objectMapper.valueToTree(expectedRelyingPartyService);
         relyingPartyServiceRequest.remove("active");
@@ -1175,7 +1183,7 @@ class V2ApiIntegrationTest {
         request(get(otherCertificatePath)).andExpect(status().isNotFound());
         request(patch(otherCertificatePath + "/revoke")).andExpect(status().isNotFound());
 
-        request(patch(registration.relyingPartyPath() + "/deactivate"))
+        request(patch(registration.relyingPartyPath() + "/revoke"))
             .andExpect(status().isNoContent());
 
         JsonNode registrationDetails = read(get("/v2/registrations/" + registration.relyingPartyInstanceId()));
@@ -1186,7 +1194,8 @@ class V2ApiIntegrationTest {
         assertEquals(issuerCertificateId.toString(), searchResult.at("/issuerCertificateIds/0").asString());
         assertAll(
             () -> assertEquals(orgno, registrationDetails.get("orgno").asString()),
-            () -> assertFalse(registrationDetails.get("active").asBoolean()),
+            () -> assertTrue(registrationDetails.get("active").asBoolean()),
+            () -> assertFalse(registrationDetails.at("/relyingParty/revokedAt").isNull()),
             () -> assertEquals("Issuer", registrationDetails.at("/relyingPartyEntitlements/0/displayName").asString()),
             () -> assertEquals(
                 "https://issuer.example.test",
@@ -1404,7 +1413,7 @@ class V2ApiIntegrationTest {
             request(patch(path), body).andExpect(status().isBadRequest());
             assertEquals(before, read(get(path)));
         }
-        request(patch(registration.relyingPartyPath() + "/deactivate")).andExpect(status().isNoContent());
+        request(patch(registration.relyingPartyPath() + "/revoke")).andExpect(status().isNoContent());
         setServiceIssuerUrl(registration, "urn:test:retained", null);
         assertTrue(read(get(path)).get(0).get("credentialIssuerUrl").isNull());
     }

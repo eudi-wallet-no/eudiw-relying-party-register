@@ -50,7 +50,7 @@ public class RelyingPartyService {
             walletRelyingPartyLookupService.findWalletRelyingPartyForOrgno(orgno)
                 .orElseGet(() -> walletRelyingPartyLookupService.createWalletRelyingParty(orgno));
 
-        if (!walletRelyingParty.isActive()) {
+        if (!walletRelyingParty.isUsable()) {
             throw new BadRequestException("Legal entity is not active");
         }
 
@@ -65,22 +65,9 @@ public class RelyingPartyService {
         return relyingPartyInstanceRepository.saveAndFlush(relyingPartyInstance);
     }
 
-    public void deactivateRelyingParty(UUID partyId) {
+    public void revokeRelyingParty(UUID partyId) {
         WalletRelyingParty walletRelyingParty = findWalletRelyingParty(partyId);
-        walletRelyingParty.setActive(false);
-        for (WalletRelyingPartyService walletRelyingPartyService : walletRelyingParty.getServices()) {
-            if (!WalletRelyingPartyService.STATUS_REVOKED.equals(walletRelyingPartyService.getStatus())) {
-                walletRelyingPartyService.suspend();
-            }
-            walletRelyingPartyService.getRelyingPartyInstances()
-                .forEach(relyingPartyInstance -> relyingPartyInstance.setActive(false));
-        }
-        walletRelyingPartyRepository.saveAndFlush(walletRelyingParty);
-    }
-
-    public void activateRelyingParty(UUID partyId) {
-        WalletRelyingParty walletRelyingParty = findWalletRelyingParty(partyId);
-        walletRelyingParty.setActive(true);
+        walletRelyingParty.revoke();
         walletRelyingPartyRepository.saveAndFlush(walletRelyingParty);
     }
 
@@ -99,7 +86,7 @@ public class RelyingPartyService {
             walletRelyingPartyServiceRepository.findById(serviceId)
             .orElseThrow(() -> new NotFoundException("Service not found"));
 
-        if (active && !walletRelyingPartyService.getWalletRelyingParty().isActive()) {
+        if (active && !walletRelyingPartyService.getWalletRelyingParty().isUsable()) {
             throw new BadRequestException("Service cannot be activated while its party is inactive");
         }
 

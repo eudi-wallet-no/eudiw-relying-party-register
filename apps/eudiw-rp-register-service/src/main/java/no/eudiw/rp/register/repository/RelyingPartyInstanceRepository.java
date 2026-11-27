@@ -25,6 +25,7 @@ public interface RelyingPartyInstanceRepository
           AND instance.active = TRUE
           AND service.active = TRUE
           AND party.active = TRUE
+          AND party.revokedAt IS NULL
         """)
     Optional<RelyingPartyInstance> findActiveRegistrationById(@Param("id") UUID id);
 
@@ -42,7 +43,7 @@ public interface RelyingPartyInstanceRepository
               OR cast(function('json_value', legalPerson.legalName, '$[0]') AS String)
                     ILIKE CONCAT('%', :searchTerm, '%'))
           AND (:includeInactive = TRUE OR
-              (instance.active = TRUE AND service.active = TRUE AND party.active = TRUE))
+              (instance.active = TRUE AND service.active = TRUE AND party.active = TRUE AND party.revokedAt IS NULL))
           AND (:hideSyntheticOrgnos = FALSE OR party.orgno LIKE '8%' OR party.orgno LIKE '9%')
           AND (
             (SELECT COUNT(DISTINCT entitlement.serviceEntitlement.entitlement)
@@ -84,6 +85,7 @@ public interface RelyingPartyInstanceRepository
         JOIN wallet_relying_party party ON party.id = service.wallet_relying_party_id
         WHERE service.active = TRUE
           AND party.active = TRUE
+          AND party.revoked_at IS NULL
           AND configuration.credential_issuer_url IS NOT NULL
           AND EXISTS (
               SELECT 1 FROM relying_party_instance instance

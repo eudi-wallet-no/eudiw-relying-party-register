@@ -22,8 +22,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class V2RegistrationStatusEndpoint {
 
-    private static final String AUDIT_PARTY_DEACTIVATED = "PARTY-DEACTIVATED";
-    private static final String AUDIT_PARTY_ACTIVATED = "PARTY-ACTIVATED";
+    private static final String AUDIT_PARTY_REVOKED = "PARTY-REVOKED";
     private static final String AUDIT_SERVICE_DEACTIVATED = "SERVICE-DEACTIVATED";
     private static final String AUDIT_SERVICE_ACTIVATED = "SERVICE-ACTIVATED";
     private static final String AUDIT_RELYING_PARTY_INSTANCE_DEACTIVATED = "INSTANCE-DEACTIVATED";
@@ -33,19 +32,11 @@ public class V2RegistrationStatusEndpoint {
 
     // TODO: legg til søk for å hente alle instanser uavhengig av aktiv / deaktivert slik at admin kan reaktivere
 
-    @Operation(summary = "Deactivate a RelyingParty and descendants")
-    @Audit(auditId = AUDIT_PARTY_DEACTIVATED)
-    @PatchMapping("/relying-parties/{id}/deactivate")
-    public ResponseEntity<Void> deactivateRelyingParty(@PathVariable("id") UUID relyingPartyId) {
-        relyingPartyService.deactivateRelyingParty(relyingPartyId);
-        return ResponseEntity.noContent().build();
-    }
-
-    @Operation(summary = "Reactivate a RelyingParty")
-    @Audit(auditId = AUDIT_PARTY_ACTIVATED)
-    @PatchMapping("/relying-parties/{id}/activate")
-    public ResponseEntity<Void> activateRelyingParty(@PathVariable("id") UUID relyingPartyId) {
-        relyingPartyService.activateRelyingParty(relyingPartyId);
+    @Operation(summary = "Revoke a RelyingParty")
+    @Audit(auditId = AUDIT_PARTY_REVOKED)
+    @PatchMapping("/relying-parties/{id}/revoke")
+    public ResponseEntity<Void> revokeRelyingParty(@PathVariable("id") UUID relyingPartyId) {
+        relyingPartyService.revokeRelyingParty(relyingPartyId);
         return ResponseEntity.noContent().build();
     }
 

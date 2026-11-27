@@ -102,7 +102,7 @@ class RegistrationWorkflowTests {
             true,
             new RelyingPartyResource.RelyingPartyDetails("Original alias", "NO", "WalletRelyingParty",
                 new RelyingPartyResource.LegalPersonDetails(List.of("Legal name"), List.of()),
-                List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), null, null),
+                List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), null, null, null),
             null,
             List.of(),
             relyingPartyId,
@@ -376,7 +376,7 @@ class RegistrationWorkflowTests {
         "GET /csr/issuer/{id}", "GET /get-certificate/{id}/{cert}",
         "GET /get-certificate/{id}/issuer/{cert}", "POST /csr/access/{id}",
         "POST /csr/issuer/{id}", "POST /revoke-certificate/{id}/access/{cert}",
-        "POST /revoke-certificate/{id}/issuer/{cert}"})
+        "POST /revoke-certificate/{id}/issuer/{cert}", "POST /relying-party/revoke/{id}"})
     @DisplayName("Should prevent another organization from viewing or editing the registration, ordering or downloading certificates, or submitting revocations")
     void shouldPreventOtherOrganizationsFromAccessingOrChangingRegistration(String operation) throws Exception {
         enqueueLookup();
@@ -387,6 +387,77 @@ class RegistrationWorkflowTests {
 
         mockMvc.perform(request.with(SecurityTestUtils.oidcLoginForOrgno("987654325")))
             .andExpectAll(status().isNotFound(), view().name("error/404"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    @DisplayName("Should let an authorized user revoke the owning party")
+    void shouldLetAnAuthorizedUserRevokeTheOwningParty(boolean administrator) throws Exception {
+        enqueueLookup();
+        mockMvc.perform(get("/details/" + relyingPartyResource.id()).with(login(administrator)))
+            .andExpectAll(status().isOk(), content().string(containsString("Revoker brukarstad")));
+
+        enqueueLookup();
+        expectedRequests.add("PATCH /v2/relying-parties/" + relyingPartyId + "/revoke");
+        server.enqueue(new MockResponse().setResponseCode(204));
+        mockMvc.perform(post("/relying-party/revoke/" + relyingPartyResource.id())
+                .with(login(administrator)).with(csrf()))
+            .andExpect(status().is3xxRedirection());
+
+        var party = relyingPartyResource.relyingParty();
+        relyingPartyResource = relyingPartyResource.withRelyingParty(new RelyingPartyResource.RelyingPartyDetails(
+            party.tradeName(), party.country(), party.providerType(), party.legalPerson(), party.identifier(),
+            party.policy(), party.postalAddress(), party.email(), party.phone(), party.infoUri(), party.x5c(),
+            party.supervisoryAuthority(), party.registryUri(), "2026-11-27")).withActive(false);
+        enqueueLookup();
+        var result = mockMvc.perform(get("/details/" + relyingPartyResource.id()).with(login(administrator)))
+            .andExpectAll(status().isOk(),
+                content().string(containsString("Brukarstaden er revokert 2026-11-27.")),
+                content().string(not(containsString("Revoker brukarstad"))));
+        if (administrator) {
+            result.andExpectAll(
+                content().string(containsString("Brukarstaden er revokert. Registreringa kan ikkje aktiverast.")),
+                content().string(containsString("disabled=\"disabled\"")));
+        }
+    }
+
+    @Test
+    @DisplayName("Should reject party revocation without CSRF protection")
+    void shouldRejectPartyRevocationWithoutCsrfProtection() throws Exception {
+        mockMvc.perform(post("/relying-party/revoke/" + relyingPartyResource.id()).with(login(false)))
+            .andExpect(status().isForbidden());
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "true, true, true, true, danger, Revokert",
+        "true, false, true, true, danger, Revokert",
+        "false, true, true, true, danger, Revokert",
+        "false, false, true, true, danger, Revokert",
+        "true, true, true, false, success, Aktiv",
+        "true, false, true, false, danger, Inaktiv",
+        "false, true, true, false, success, Aktiv",
+        "false, false, true, false, danger, Inaktiv",
+        "true, true, false, false, success, Aktiv",
+        "false, false, false, false, danger, Inaktiv"
+    })
+    @DisplayName("Should show the party revocation or instance status in the details badge")
+    void shouldShowThePartyRevocationOrInstanceStatusInTheDetailsBadge(
+        boolean administrator, boolean active, boolean partyPresent, boolean revoked, String color, String label
+    ) throws Exception {
+        var party = relyingPartyResource.relyingParty();
+        relyingPartyResource = relyingPartyResource.withActive(active)
+            .withRelyingParty(partyPresent ? new RelyingPartyResource.RelyingPartyDetails(
+                party.tradeName(), party.country(), party.providerType(), party.legalPerson(), party.identifier(),
+                party.policy(), party.postalAddress(), party.email(), party.phone(), party.infoUri(), party.x5c(),
+                party.supervisoryAuthority(), party.registryUri(), revoked ? "2026-11-27" : null) : null);
+        enqueueLookup();
+
+        String html = mockMvc.perform(get("/details/" + relyingPartyResource.id()).with(login(administrator)))
+            .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        assertTrue(Pattern.compile("<div class=\"registration-title\">(?:(?!</div>).)*?<span\\s+class=\"ds-tag\"\\s+data-color=\""
+                + color + "\">" + label + "</span>", Pattern.DOTALL)
+            .matcher(html).find(), "Expected the details badge to show " + label + " in " + color);
     }
 
     @ParameterizedTest
@@ -508,7 +579,7 @@ class RegistrationWorkflowTests {
         relyingPartyResource = relyingPartyResource.withRelyingParty(
             new RelyingPartyResource.RelyingPartyDetails("Digdir", "SE", "WalletRelyingParty",
                 new RelyingPartyResource.LegalPersonDetails(List.of("Legal name"), List.of()),
-                List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), null, null));
+                List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), null, null, null));
         enqueueLookup();
         mockMvc.perform(get(URI.create(redirect)).with(login(administrator)))
             .andExpectAll(status().isOk(), content().string(allOf(
